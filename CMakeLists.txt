@@ -98,7 +98,7 @@ set(SOURCES
 )
 
 generate_cpp_resources(WEIGHTS_SOURCES "oidn::Weights"
-  weights/ldr_albedo_normal.tza
+  weights/ae_ldr_albedo_normal.tza
 )
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES} ${WEIGHTS_SOURCES})

@@ -21,8 +21,8 @@ namespace oidn {
   // Trained weights stored in binary blobs
   namespace Weights
   {
-    extern unsigned char ldr_albedo_normal[];
-    extern const size_t ldr_albedo_normal_size;
+    extern unsigned char ae_ldr_albedo_normal[];
+    extern const size_t ae_ldr_albedo_normal_size;
   }
 
   void Autoencoder::set_buffer(BufferType type, int slot, const BufferView2D& view)
@@ -92,7 +92,7 @@ namespace oidn {
     int height = input.height;
 
     // Parse the weights
-    void* weights = Weights::ldr_albedo_normal;
+    void* weights = Weights::ae_ldr_albedo_normal;
     auto weight_map = parse_tensors(weights);
 
     // Create the network
