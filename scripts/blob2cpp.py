@@ -44,10 +44,10 @@ def generate(in_path, out_path, namespace):
     in_data = in_file.read()
 
     # Write the size
-    out_file.write('extern const size_t %s_size = %d;\n\n' % (var_name, len(in_data)))
+    out_file.write('const size_t %s_size = %d;\n\n' % (var_name, len(in_data)))
 
     # Write the data
-    out_file.write('extern unsigned char %s[] = {' % var_name)
+    out_file.write('unsigned char %s[] = {' % var_name)
     for i in range(len(in_data)):
       c = ord(in_data[i])
       if i > 0:

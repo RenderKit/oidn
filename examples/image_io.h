@@ -35,7 +35,8 @@ namespace oidn {
     fseek(file, 0, SEEK_SET);
 
     Ref<Buffer> buffer = make_ref<Buffer>(size);
-    fread(buffer->data(), 1, size, file);
+    if (fread(buffer->data(), 1, size, file) != size)
+      throw std::runtime_error("read error");
 
     fclose(file);
     return buffer;
