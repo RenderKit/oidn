@@ -56,7 +56,8 @@ namespace OIDN {
 
     Buffer(const Buffer& other) : handle(other.handle)
     {
-      oidnRetainBuffer(handle);
+      if (handle)
+        oidnRetainBuffer(handle);
     }
 
     Buffer(Buffer&& other) : handle(other.handle)
@@ -68,7 +69,8 @@ namespace OIDN {
     {
       if (&other != this)
       {
-        oidnRetainBuffer(other.handle);
+        if (other.handle)
+          oidnRetainBuffer(other.handle);
         if (handle)
           oidnReleaseBuffer(handle);
         handle = other.handle;
@@ -84,7 +86,8 @@ namespace OIDN {
 
     Buffer& operator =(OIDNBuffer other)
     {
-      oidnRetainBuffer(other);
+      if (other)
+        oidnRetainBuffer(other);
       if (handle)
         oidnReleaseBuffer(handle);
       handle = other;
@@ -93,7 +96,8 @@ namespace OIDN {
 
     ~Buffer()
     {
-      oidnReleaseBuffer(handle);
+      if (handle)
+        oidnReleaseBuffer(handle);
     }
 
     OIDNBuffer get() const
@@ -114,7 +118,8 @@ namespace OIDN {
 
     Filter(const Filter& other) : handle(other.handle)
     {
-      oidnRetainFilter(handle);
+      if (handle)
+        oidnRetainFilter(handle);
     }
 
     Filter(Filter&& other) : handle(other.handle)
@@ -126,7 +131,8 @@ namespace OIDN {
     {
       if (&other != this)
       {
-        oidnRetainFilter(other.handle);
+        if (other.handle)
+          oidnRetainFilter(other.handle);
         if (handle)
           oidnReleaseFilter(handle);
         handle = other.handle;
@@ -142,7 +148,8 @@ namespace OIDN {
 
     Filter& operator =(OIDNFilter other)
     {
-      oidnRetainFilter(other);
+      if (other)
+        oidnRetainFilter(other);
       if (handle)
         oidnReleaseFilter(handle);
       handle = other;
@@ -151,7 +158,8 @@ namespace OIDN {
 
     ~Filter()
     {
-      oidnReleaseFilter(handle);
+      if (handle)
+        oidnReleaseFilter(handle);
     }
 
     OIDNFilter get() const
@@ -200,7 +208,8 @@ namespace OIDN {
 
     Device(const Device& other) : handle(other.handle)
     {
-      oidnRetainDevice(handle);
+      if (handle)
+        oidnRetainDevice(handle);
     }
 
     Device(Device&& other) : handle(other.handle)
@@ -212,7 +221,8 @@ namespace OIDN {
     {
       if (&other != this)
       {
-        oidnRetainDevice(other.handle);
+        if (other.handle)
+          oidnRetainDevice(other.handle);
         if (handle)
           oidnReleaseDevice(handle);
         handle = other.handle;
@@ -228,7 +238,8 @@ namespace OIDN {
 
     Device& operator =(OIDNDevice other)
     {
-      oidnRetainDevice(other);
+      if (other)
+        oidnRetainDevice(other);
       if (handle)
         oidnReleaseDevice(handle);
       handle = other;
@@ -237,7 +248,8 @@ namespace OIDN {
 
     ~Device()
     {
-      oidnReleaseDevice(handle);
+      if (handle)
+        oidnReleaseDevice(handle);
     }
 
     OIDNDevice get() const
