@@ -17,6 +17,7 @@
 #include <iostream>
 #include <sys/time.h>
 #include <cassert>
+#include <cmath>
 
 #ifdef VTUNE
 #include <ittnotify.h>

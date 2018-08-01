@@ -18,6 +18,7 @@
 
 #include "node.h"
 #include "buffer_view.h"
+#include <cmath>
 
 namespace oidn {
 
@@ -116,7 +117,7 @@ namespace oidn {
 
     __forceinline float linear_to_srgb(float x)
     {
-      return pow(x, 1.f/2.2f);
+      return std::pow(x, 1.f/2.2f);
     }
   };
 

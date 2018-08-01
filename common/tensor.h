@@ -17,6 +17,7 @@
 #pragma once
 
 #include "buffer.h"
+#include <vector>
 #include <map>
 
 namespace oidn {
