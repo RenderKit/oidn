@@ -17,6 +17,21 @@
 cmake_minimum_required(VERSION 2.8)
 project(OpenImageDenoise)
 
+set(CONFIGURATION_TYPES "Debug;Release;RelWithDebInfo")
+if (win32)
+  if (NOT OIDN_DEFAULT_CMAKE_CONFIGURATION_TYPES_SET)
+    set(CMAKE_CONFIGURATION_TYPES "${CONFIGURATION_TYPES}"
+        CACHE STRING "List of generated configurations." FORCE)
+    set(OOIDN_DEFAULT_CMAKE_CONFIGURATION_TYPES_SET ON
+        CACHE INTERNAL "Default CMake configuration types set.")
+  endif()
+else()
+  if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the build type." FORCE)
+  endif()
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${CONFIGURATION_TYPES})
+endif()
+
 # Modified version of MKL-DNN
 add_subdirectory(mkl-dnn)
 
