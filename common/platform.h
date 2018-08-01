@@ -20,6 +20,7 @@
 #include <atomic>
 #include <algorithm>
 #include <memory>
+#include <cmath>
 #include <iostream>
 #include <cassert>
 

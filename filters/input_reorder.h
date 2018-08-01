@@ -18,7 +18,6 @@
 
 #include "node.h"
 #include "buffer_view.h"
-#include <cmath>
 
 namespace oidn {
 
