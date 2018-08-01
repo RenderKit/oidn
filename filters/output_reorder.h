@@ -39,6 +39,7 @@ namespace oidn {
     {
       memory::primitive_desc src_mpd = src->get_primitive_desc();
       const mkldnn_memory_desc_t& src_md = src_mpd.desc().data;
+      MAYBE_UNUSED(src_md);
       assert(src_md.format == BlockedFormat<K>::nChwKc);
       assert(src_md.ndims == 4);
       assert(src_md.data_type == memory::data_type::f32);

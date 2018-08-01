@@ -24,7 +24,14 @@
 #include <cassert>
 
 #if !defined(__forceinline)
-#define __forceinline  inline __attribute__((always_inline))
+  #define __forceinline  inline __attribute__((always_inline))
+#endif
+
+#ifndef UNUSED
+  #define UNUSED(x) ((void)x)
+#endif
+#ifndef MAYBE_UNUSED
+  #define MAYBE_UNUSED(x) UNUSED(x)
 #endif
 
 #define WARNING(x) { std::cerr << "Warning: " << x << std::endl << std::flush; }

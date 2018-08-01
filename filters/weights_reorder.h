@@ -33,37 +33,39 @@ namespace oidn {
       : src(src), dst(dst)
     {
       memory::primitive_desc src_mpd = src->get_primitive_desc();
-      memory::primitive_desc pad_mpd = dst->get_primitive_desc();
+      memory::primitive_desc dst_mpd = dst->get_primitive_desc();
       const mkldnn_memory_desc_t& src_md = src_mpd.desc().data;
-      const mkldnn_memory_desc_t& pad_md = pad_mpd.desc().data;
+      const mkldnn_memory_desc_t& dst_md = dst_mpd.desc().data;
+      MAYBE_UNUSED(src_md);
+      MAYBE_UNUSED(dst_md);
       assert(src_md.format == memory::format::oihw);
-      assert(pad_md.format == BlockedFormat<K>::OIhwKiKo);
+      assert(dst_md.format == BlockedFormat<K>::OIhwKiKo);
       assert(src_md.ndims == 4);
-      assert(pad_md.ndims == 4);
+      assert(dst_md.ndims == 4);
       assert(src_md.data_type == memory::data_type::f32);
-      assert(pad_md.data_type == memory::data_type::f32);
-      assert(padded<K>(src_md.dims[0]) == pad_md.dims[0]); // OC
-      assert(padded<K>(src_md.dims[1]) == pad_md.dims[1]); // IC
-      assert(src_md.dims[2] == pad_md.dims[2]);
-      assert(src_md.dims[3] == pad_md.dims[3]);
+      assert(dst_md.data_type == memory::data_type::f32);
+      assert(padded<K>(src_md.dims[0]) == dst_md.dims[0]); // OC
+      assert(padded<K>(src_md.dims[1]) == dst_md.dims[1]); // IC
+      assert(src_md.dims[2] == dst_md.dims[2]);
+      assert(src_md.dims[3] == dst_md.dims[3]);
     }
 
     void execute() override
     {
       memory::primitive_desc src_mpd = src->get_primitive_desc();
-      memory::primitive_desc pad_mpd = dst->get_primitive_desc();
+      memory::primitive_desc dst_mpd = dst->get_primitive_desc();
       const mkldnn_memory_desc_t& src_md = src_mpd.desc().data;
-      const mkldnn_memory_desc_t& pad_md = pad_mpd.desc().data;
+      const mkldnn_memory_desc_t& dst_md = dst_mpd.desc().data;
 
       const float* src_data = (float*)src->get_data_handle();
       float* dst_data = (float*)dst->get_data_handle();
 
       const int OC1 = src_md.dims[0];
-      const int OC2 = pad_md.dims[0];
+      const int OC2 = dst_md.dims[0];
       const int IC1 = src_md.dims[1];
-      const int IC2 = pad_md.dims[1];
-      const int H   = pad_md.dims[2];
-      const int W   = pad_md.dims[3];
+      const int IC2 = dst_md.dims[1];
+      const int H   = dst_md.dims[2];
+      const int W   = dst_md.dims[3];
 
       for (int oc = 0; oc < OC2; ++oc)
       {

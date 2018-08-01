@@ -36,6 +36,8 @@ namespace oidn {
       memory::primitive_desc dst_mpd = dst->get_primitive_desc();
       const mkldnn_memory_desc_t& src_md = src_mpd.desc().data;
       const mkldnn_memory_desc_t& dst_md = dst_mpd.desc().data;
+      MAYBE_UNUSED(src_md);
+      MAYBE_UNUSED(dst_md);
       assert(src_md.format == BlockedFormat<K>::nChwKc);
       assert(dst_md.format == BlockedFormat<K>::nChwKc);
       assert(src_md.ndims == 4);
@@ -52,9 +54,7 @@ namespace oidn {
     void execute() override
     {
       memory::primitive_desc src_mpd = src->get_primitive_desc();
-      memory::primitive_desc dst_mpd = dst->get_primitive_desc();
       const mkldnn_memory_desc_t& src_md = src_mpd.desc().data;
-      const mkldnn_memory_desc_t& dst_md = dst_mpd.desc().data;
 
       const float* src_data = (float*)src->get_data_handle();
       float* dst_data = (float*)dst->get_data_handle();

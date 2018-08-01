@@ -71,6 +71,7 @@ namespace oidn {
       start_time = mach_absolute_time();
   #else
       int result = clock_gettime(CLOCK_MONOTONIC, &start_time);
+      MAYBE_UNUSED(result);
       assert(result == 0 && "could not get time");
   #endif
     }
@@ -92,6 +93,7 @@ namespace oidn {
       timespec current_time;
 
       int result = clock_gettime(CLOCK_MONOTONIC, &current_time);
+      MAYBE_UNUSED(result);
       assert(result == 0 && "could not get time");
 
       return (double)(current_time.tv_sec - start_time.tv_sec) + (double)(current_time.tv_nsec - start_time.tv_nsec) * 1e-9;

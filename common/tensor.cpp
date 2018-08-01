@@ -23,19 +23,20 @@ namespace oidn {
     char* input = (char*)buffer;
 
     // Parse the magic value
-    int magic = *(unsigned short*)input;
+    const int magic = *(unsigned short*)input;
     if (magic != 0x41D7)
       throw std::runtime_error("invalid tensor archive");
     input += sizeof(unsigned short);
 
     // Parse the version
-    int major_version = *(unsigned char*)input++;
-    int minor_version = *(unsigned char*)input++;
+    const int major_version = *(unsigned char*)input++;
+    const int minor_version = *(unsigned char*)input++;
+    UNUSED(minor_version);
     if (major_version > 1)
       throw std::runtime_error("unsupported tensor archive version");
 
     // Parse the number of tensors
-    int num_tensors = *(int*)input;
+    const int num_tensors = *(int*)input;
     input += sizeof(int);
 
     // Parse the tensors
@@ -45,12 +46,12 @@ namespace oidn {
       Tensor tensor;
 
       // Parse the name
-      int name_len = *(unsigned char*)input++;
+      const int name_len = *(unsigned char*)input++;
       std::string name(input, name_len);
       input += name_len;
 
       // Parse the number of dimensions
-      int ndims = *(unsigned char*)input++;
+      const int ndims = *(unsigned char*)input++;
 
       // Parse the shape of the tensor
       tensor.dims = std::vector<int>((int*)input, (int*)input + ndims);
@@ -61,7 +62,7 @@ namespace oidn {
       input += ndims;
 
       // Parse the data type of the tensor
-      char type = *(unsigned char*)input++;
+      const char type = *(unsigned char*)input++;
       if (type != 'f') // only float32 is supported
         throw std::runtime_error("unsupported tensor data type");
 
