@@ -51,8 +51,8 @@ namespace oidn {
       assert(dst.width  <= src_md.dims[3]);
 
       src_data = (float*)src->get_data_handle();
-      H1 = dst.height;
-      W1 = dst.width;
+      H1 = src_md.dims[2];
+      W1 = src_md.dims[3];
     }
 
     void execute() override
