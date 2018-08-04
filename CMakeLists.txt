@@ -41,6 +41,7 @@ include(mkl-dnn/cmake/TBB.cmake)
 include(mkl-dnn/cmake/SDL.cmake)
 
 # Generates C++ resource files from the specified binary blobs
+find_package(PythonInterp REQUIRED)
 function(generate_cpp_resources out_sources namespace)
   set(${out_sources})
   foreach(in_file ${ARGN})

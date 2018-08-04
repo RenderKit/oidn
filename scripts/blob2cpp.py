@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 ## ======================================================================== ##
 ## Copyright 2009-2018 Intel Corporation                                    ##
