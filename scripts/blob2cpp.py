@@ -19,6 +19,7 @@
 import os
 import sys
 import argparse
+from array import array
 
 # Generates a C++ file from the specified binary blob
 def generate(in_path, out_path, namespace):
@@ -41,7 +42,7 @@ def generate(in_path, out_path, namespace):
       out_file.write('\n')
 
     # Read the file
-    in_data = in_file.read()
+    in_data = array('B', in_file.read())
 
     # Write the size
     out_file.write('const size_t %s_size = %d;\n\n' % (var_name, len(in_data)))
@@ -49,7 +50,7 @@ def generate(in_path, out_path, namespace):
     # Write the data
     out_file.write('unsigned char %s[] = {' % var_name)
     for i in range(len(in_data)):
-      c = ord(in_data[i])
+      c = in_data[i]
       if i > 0:
         out_file.write(',')
       if (i+1) % 20 == 1:
