@@ -89,12 +89,6 @@ namespace oidn {
           }
         }, tbb::static_partitioner());
     }
-
-  private:
-    __forceinline float srgb_to_linear(float x)
-    {
-      return pow(x, 2.2f);
-    }
   };
 
 } // ::oidn

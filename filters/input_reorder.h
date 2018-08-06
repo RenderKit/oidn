@@ -97,7 +97,7 @@ namespace oidn {
     {
       // Destination is in nChwKc format
       float* dst_c = dst_data + (H2*W2*K*(c/K)) + h*W2*K + w*K + (c%K);
-      *dst_c = value;
+      *dst_c = std::isfinite(value) ? value : 0.f; // filter out NaN and inf
     }
 
     __forceinline void store3(int h, int w, int c, const float* values)
@@ -112,11 +112,6 @@ namespace oidn {
       store(h, w, c+0, linear_to_srgb(values[0]));
       store(h, w, c+1, linear_to_srgb(values[1]));
       store(h, w, c+2, linear_to_srgb(values[2]));
-    }
-
-    __forceinline float linear_to_srgb(float x)
-    {
-      return std::pow(x, 1.f/2.2f);
     }
   };
 

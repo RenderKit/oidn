@@ -28,6 +28,7 @@ namespace oidn {
   using OIDN::BufferType;
   using OIDN::FilterType;
 
+
   inline memory::dims tensor_dims(const std::shared_ptr<memory>& mem)
   {
     const mkldnn_memory_desc_t& md = mem->get_primitive_desc().desc().data;
@@ -54,6 +55,7 @@ namespace oidn {
     return tensor_size(tensor_dims(mem));
   }
 
+
   template<int K>
   inline int padded(int dim)
   {
@@ -68,6 +70,7 @@ namespace oidn {
     pad_dims[1] = padded<K>(dims[1]); // pad C
     return pad_dims;
   }
+
 
   template<int K>
   struct BlockedFormat;
@@ -85,5 +88,16 @@ namespace oidn {
     static constexpr memory::format nChwKc   = memory::format::nChw16c;
     static constexpr memory::format OIhwKiKo = memory::format::OIhw16i16o;
   };
+
+
+  __forceinline float linear_to_srgb(float x)
+  {
+    return std::pow(x, 1.f/2.2f);
+  }
+
+  __forceinline float srgb_to_linear(float x)
+  {
+    return std::pow(x, 2.2f);
+  }
 
 } // ::oidn
