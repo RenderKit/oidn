@@ -24,9 +24,9 @@
 namespace oidn {
 
   // Loads the contents of a file into a buffer
-  static Ref<Buffer> load_file(const char* filename)
+  static Ref<Buffer> load_file(const std::string& filename)
   {
-    FILE* file = fopen(filename, "rb");
+    FILE* file = fopen(filename.c_str(), "rb");
     if (!file)
       throw std::runtime_error("cannot open file");
 
@@ -43,34 +43,39 @@ namespace oidn {
   }
 
   // Loads images stored in a tensor archive
-  static std::map<std::string, Tensor> load_images_tza(const char* filename)
+  static Tensor load_image_tza(const std::string& filename)
   {
     Ref<Buffer> buffer = load_file(filename);
-    std::map<std::string, Tensor> images = parse_tensors(buffer->data());
+    std::map<std::string, Tensor> tensors = parse_tensors(buffer->data());
+    auto image = tensors.find("image");
+    if (image == tensors.end())
+      throw std::runtime_error("image tensor not found");
 
-    // Add refs to the buffer
-    for (auto& i : images)
-      i.second.buffer = buffer;
+    // Add ref to the buffer
+    image->second.buffer = buffer;
 
-    return images;
+    return image->second;
   }
 
   // Saves a 3-channel image in HWC format to a PPM file
-  static void save_image_ppm(const Tensor& image, const char* filename)
+  static void save_image_ppm(const Tensor& image, const std::string& filename)
   {
-    if (image.ndims() != 3 || image.dims[2] != 3 || image.format != "hwc")
+    if (image.ndims() != 3 || image.dims[2] < 3 || image.format != "hwc")
       throw std::invalid_argument("image must have 3 channels");
 
-    FILE* file = fopen(filename, "wb");
+    FILE* file = fopen(filename.c_str(), "wb");
     if (!file)
       throw std::runtime_error("cannot create image");
 
     fprintf(file, "P6\n%d %d\n255\n", image.dims[1], image.dims[0]);
 
-    for (int i = 0; i < image.size(); ++i)
+    for (int i = 0; i < image.dims[0]*image.dims[1]; ++i)
     {
-      int c = std::min(std::max(int(image[i] * 255.f), 0), 255);
-      fputc(c, file);
+      for (int k = 0; k < 3; ++k)
+      {
+        int c = std::min(std::max(int(image[i*image.dims[2]+k] * 255.f), 0), 255);
+        fputc(c, file);
+      }
     }
 
     fclose(file);

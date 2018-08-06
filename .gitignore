@@ -74,3 +74,7 @@ Thumbs.db
 # Build directories
 # -----------------
 build*
+
+# Data directories
+# -----------------
+images

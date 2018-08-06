@@ -31,6 +31,15 @@ namespace oidn {
     Ref<Buffer> buffer; // optional, only for reference
 
     __forceinline Tensor() : data(nullptr) {}
+
+    __forceinline Tensor(const std::vector<int>& dims, const std::string& format)
+      : dims(dims),
+        format(format)
+    {
+      buffer = make_ref<Buffer>(size() * sizeof(float));
+      data = (float*)buffer->data();
+    }
+
     __forceinline int ndims() const { return (int)dims.size(); }
 
     // Returns the number of values
