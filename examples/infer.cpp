@@ -35,12 +35,11 @@ int main(int argc, char **argv)
   OIDN::Device device = OIDN::newDevice();
 
   std::string input_filename = "test0.tza";
-  std::string refoutput_filename = "test0_refout.tza";
+  if (argc > 1)
+    input_filename = argv[1];
+  std::string refoutput_filename = input_filename.substr(0, input_filename.find_last_of('.')) + "_refout.tza";
   if (argc > 2)
-  {
-      input_filename = argv[1];
       refoutput_filename = argv[2];
-  }
 
   Tensor input = load_image_tza(input_filename);
   const int H = input.dims[0];
@@ -66,6 +65,11 @@ int main(int argc, char **argv)
 
   // correctness check and warmup
   Tensor refoutput = load_image_tza(refoutput_filename);
+  if (refoutput.dims != output.dims)
+  {
+    cout << "error: reference output size mismatch" << endl;
+    exit(1);
+  }
   filter.execute();
   int nerr = 0;
   float maxre = 0;
