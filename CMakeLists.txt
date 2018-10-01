@@ -14,8 +14,9 @@
 ## limitations under the License.                                           ##
 ## ======================================================================== ##
 
-cmake_minimum_required(VERSION 2.8)
-project(OpenImageDenoise)
+cmake_minimum_required(VERSION 3.0)
+
+project(OpenImageDenoise VERSION 0.1.0 LANGUAGES CXX)
 
 set(CONFIGURATION_TYPES "Debug;Release;RelWithDebInfo")
 if (win32)
@@ -32,13 +33,19 @@ else()
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${CONFIGURATION_TYPES})
 endif()
 
+include(GNUInstallDirs)
+
+## MKL-DNN ####################################################################
+
 # Modified version of MKL-DNN
-add_subdirectory(mkl-dnn)
+add_subdirectory(mkl-dnn EXCLUDE_FROM_ALL)
 
 # Include some modules from MKL-DNN
 include(mkl-dnn/cmake/platform.cmake)
 include(mkl-dnn/cmake/TBB.cmake)
 include(mkl-dnn/cmake/SDL.cmake)
+
+## Helper Functions ###########################################################
 
 # Generates C++ resource files from the specified binary blobs
 find_package(PythonInterp REQUIRED)
@@ -64,20 +71,10 @@ function(generate_cpp_resources out_sources namespace)
   set(${out_sources} ${${out_sources}} PARENT_SCOPE)
 endfunction()
 
-# Set the include directories
-include_directories(
-  ${PROJECT_SOURCE_DIR}
-  ${PROJECT_SOURCE_DIR}/include
-  ${PROJECT_SOURCE_DIR}/mkl-dnn/src
-  ${PROJECT_SOURCE_DIR}/mkl-dnn/src/common
-  ${PROJECT_SOURCE_DIR}/mkl-dnn/src/cpu/xbyak
-  ${TBB_INCLUDE_DIR}
-)
+## OpenImageDenoise Library ###################################################
 
-# Add the OIDN common library
-add_subdirectory(common)
+add_subdirectory(common EXCLUDE_FROM_ALL)
 
-# The OIDN library
 set(SOURCES
   include/OpenImageDenoise/oidn.h
   include/OpenImageDenoise/oidn.hpp
@@ -103,7 +100,29 @@ generate_cpp_resources(WEIGHTS_SOURCES "oidn::Weights"
 )
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES} ${WEIGHTS_SOURCES})
-target_link_libraries(${PROJECT_NAME} common mkldnn ${TBB_LIBRARIES})
 
-# OIDN example apps
+target_include_directories(
+  ${PROJECT_NAME}
+INTERFACE
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+PRIVATE
+  ${PROJECT_SOURCE_DIR}/mkl-dnn/src
+  ${PROJECT_SOURCE_DIR}/mkl-dnn/src/common
+  ${PROJECT_SOURCE_DIR}/mkl-dnn/src/cpu/xbyak
+)
+
+target_link_libraries(${PROJECT_NAME}
+  PUBLIC
+    ${TBB_LIBRARIES}
+  PRIVATE
+    common mkldnn
+)
+
+## OpenImageDenoise Examples ##################################################
+
 add_subdirectory(examples)
+
+## OpenImageDenoise Install and Packaging #####################################
+
+include(cmake/package.cmake)
