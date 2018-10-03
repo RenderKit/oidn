@@ -18,6 +18,8 @@ cmake_minimum_required(VERSION 3.0)
 
 project(OpenImageDenoise VERSION 0.1.0 LANGUAGES CXX)
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+
 set(CONFIGURATION_TYPES "Debug;Release;RelWithDebInfo")
 if (win32)
   if (NOT OIDN_DEFAULT_CMAKE_CONFIGURATION_TYPES_SET)
@@ -125,4 +127,5 @@ add_subdirectory(examples)
 
 ## OpenImageDenoise Install and Packaging #####################################
 
-include(cmake/package.cmake)
+include(install)
+include(package)
