@@ -14,10 +14,17 @@
 ## limitations under the License.                                           ##
 ## ======================================================================== ##
 
-add_executable(infer
-  infer.cpp
-  image_io.h
-)
+# TODO: any specializations for macOS/Windows?
 
-target_link_libraries(infer PRIVATE common ${PROJECT_NAME})
+set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
+set(CPACK_PACKAGE_VENDOR Intel)
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "The OpenImageDenoise library")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY ${CPACK_PACKAGE_NAME})
+set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
+set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
+set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
+set(CPACK_VERBATIM_VARIABLES YES)
 
+set(CPACK_GENERATOR TGZ)
+
+include(CPack)

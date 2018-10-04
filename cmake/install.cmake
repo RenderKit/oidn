@@ -14,10 +14,23 @@
 ## limitations under the License.                                           ##
 ## ======================================================================== ##
 
-add_executable(infer
-  infer.cpp
-  image_io.h
+# TODO: any specializations for macOS/Windows?
+
+install(TARGETS ${PROJECT_NAME}
+  EXPORT
+    ${PROJECT_NAME}_Export
+  ARCHIVE
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  LIBRARY
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  INCLUDES
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
-target_link_libraries(infer PRIVATE common ${PROJECT_NAME})
+install(DIRECTORY include/OpenImageDenoise DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
+install(EXPORT ${PROJECT_NAME}_Export
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+  #NAMESPACE ${PROJECT_NAME}::
+  FILE ${PROJECT_NAME}Config.cmake
+)
