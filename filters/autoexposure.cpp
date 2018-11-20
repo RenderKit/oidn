@@ -20,7 +20,7 @@ namespace oidn {
 
   __forceinline float luminance(float r, float g, float b)
   {
-    return 0.212671f*r + 0.715160f*g + 0.072169f*b;
+    return 0.212671f * r + 0.715160f * g + 0.072169f * b;
   }
 
   float autoexposure(const BufferView2D& input)
@@ -42,7 +42,7 @@ namespace oidn {
               const float* color = (const float*)input.get(h, w);
               const float L = luminance(color[0], color[1], color[2]);
 
-              if (L > std::numeric_limits<float>::epsilon())
+              if (L > 1e-7f)
               {
                 sum.first += std::log2(L);
                 sum.second++;
