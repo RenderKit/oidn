@@ -30,6 +30,11 @@ extern "C" {
 #endif
 #endif
 
+enum OIDNDeviceType
+{
+  OIDN_DEVICE_TYPE_CPU,
+};
+
 enum OIDNFormat
 {
   OIDN_FORMAT_UNDEFINED,
@@ -37,26 +42,13 @@ enum OIDNFormat
   OIDN_FORMAT_FLOAT,
   OIDN_FORMAT_FLOAT2,
   OIDN_FORMAT_FLOAT3,
-  OIDN_FORMAT_FLOAT3_SRGB,
-};
-
-enum OIDNBufferType
-{
-  OIDN_BUFFER_TYPE_INPUT,
-  OIDN_BUFFER_TYPE_INPUT_ALBEDO,
-  OIDN_BUFFER_TYPE_INPUT_NORMAL,
-  OIDN_BUFFER_TYPE_OUTPUT,
-};
-
-enum OIDNFilterType
-{
-  OIDN_FILTER_TYPE_AUTOENCODER_LDR
 };
 
 // Device
 typedef struct OIDNDeviceImpl* OIDNDevice;
 
-OIDN_API OIDNDevice oidnNewDevice();
+// type: default or cpu.
+OIDN_API OIDNDevice oidnNewDevice(OIDNDeviceType type);
 
 OIDN_API void oidnRetainDevice(OIDNDevice device);
 
@@ -74,21 +66,24 @@ OIDN_API void oidnReleaseBuffer(OIDNBuffer buffer);
 // Filter
 typedef struct OIDNFilterImpl* OIDNFilter;
 
-OIDN_API OIDNFilter oidnNewFilter(OIDNDevice device, enum OIDNFilterType type);
+// type: DPAE
+OIDN_API OIDNFilter oidnNewFilter(OIDNDevice device, const char* type);
 
 OIDN_API void oidnRetainFilter(OIDNFilter filter);
 
 OIDN_API void oidnReleaseFilter(OIDNFilter filter);
 
-OIDN_API void oidnSetFilterBuffer2D(OIDNFilter filter, enum OIDNBufferType type, unsigned int slot,
+OIDN_API void oidnSetFilterBuffer2D(OIDNFilter filter, const char* name, unsigned int slot,
                                     enum OIDNFormat format,
                                     OIDNBuffer buffer, size_t byteOffset, size_t byteStride,
                                     size_t width, size_t height);
 
-OIDN_API void oidnSetSharedFilterBuffer2D(OIDNFilter filter, enum OIDNBufferType type, unsigned int slot,
+OIDN_API void oidnSetSharedFilterBuffer2D(OIDNFilter filter, const char* name, unsigned int slot,
                                           enum OIDNFormat format,
                                           const void* ptr, size_t byteOffset, size_t byteStride,
                                           size_t width, size_t height);
+
+OIDN_API void oidnSetFilter1i(OIDNFilter filter, const char* name, int value);
 
 OIDN_API void oidnCommitFilter(OIDNFilter filter);
 

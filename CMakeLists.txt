@@ -85,6 +85,7 @@ set(SOURCES
   filters/device.cpp
   filters/buffer_view.h
   filters/filter.h
+  filters/transfer_function.h
   filters/node.h
   filters/upsample.h
   filters/input_reorder.h
@@ -97,8 +98,8 @@ set(SOURCES
   filters/api.cpp
 )
 
-generate_cpp_resources(WEIGHTS_SOURCES "oidn::Weights"
-  weights/ae_ldr_albedo_normal.tza
+generate_cpp_resources(WEIGHTS_SOURCES "oidn::weights"
+  weights/autoencoder_ldr_alb_nrm.tza
 )
 
 add_library(${PROJECT_NAME} SHARED ${SOURCES} ${WEIGHTS_SOURCES})

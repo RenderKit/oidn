@@ -36,19 +36,14 @@ namespace oidn {
     return make_ref<Buffer>(ptr, byte_size);
   }
 
-  Ref<Filter> Device::new_filter(FilterType type)
+  Ref<Filter> Device::new_filter(const std::string& type)
   {
     Ref<Filter> filter;
 
-    switch (type)
-    {
-    case FilterType::AUTOENCODER_LDR:
+    if (type == "Autoencoder")
       filter = make_ref<Autoencoder>(Ref<Device>(this));
-      break;
-
-    default:
+    else
       throw std::invalid_argument("invalid filter type");
-    }
 
     return filter;
   }

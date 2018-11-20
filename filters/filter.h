@@ -30,7 +30,8 @@ namespace oidn {
   public:
     explicit Filter(const Ref<Device>& device) : device(device) {}
 
-    virtual void set_buffer(BufferType type, int slot, const BufferView2D& view) = 0;
+    virtual void set_buffer_2d(const std::string& name, int slot, const BufferView2D& view) = 0;
+    virtual void set1i(const std::string& name, int value) {};
     virtual void commit() = 0;
     virtual void execute() = 0;
 

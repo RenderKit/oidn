@@ -16,34 +16,22 @@
 
 #pragma once
 
-#include "filter.h"
-#include "network.h"
+#include "common.h"
 
 namespace oidn {
 
-  // Direct-predicting autoencoder
-  class Autoencoder : public Filter
-  {
-  private:
-    BufferView2D input;
-    BufferView2D input_albedo;
-    BufferView2D input_normal;
-    BufferView2D output;
-    bool srgb;
+class LinearTransferFunction
+{
+public:
+  __forceinline float forward(float x) const { return x; }
+  __forceinline float reverse(float x) const { return x; }
+};
 
-    std::shared_ptr<Node> net;
-
-  public:
-    Autoencoder(const Ref<Device>& device);
-
-    void set_buffer_2d(const std::string& name, int slot, const BufferView2D& view) override;
-    void set1i(const std::string& name, int value) override;
-    void commit() override;
-    void execute() override;
-
-  private:
-    template<int K>
-    std::shared_ptr<Node> build_net();
-  };
+class SrgbTransferFunction
+{
+public:
+  __forceinline float forward(float x) const { return linear_to_srgb(x); }
+  __forceinline float reverse(float x) const { return srgb_to_linear(x); }
+};
 
 } // ::oidn

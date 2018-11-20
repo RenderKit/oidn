@@ -25,24 +25,21 @@
 namespace oidn {
 
   using OIDN::Format;
-  using OIDN::BufferType;
-  using OIDN::FilterType;
 
-
-  inline memory::dims tensor_dims(const std::shared_ptr<memory>& mem)
+  inline memory::dims get_tensor_dims(const std::shared_ptr<memory>& mem)
   {
     const mkldnn_memory_desc_t& md = mem->get_primitive_desc().desc().data;
     return memory::dims(&md.dims[0], &md.dims[md.ndims]);
   }
 
-  inline memory::data_type tensor_type(const std::shared_ptr<memory>& mem)
+  inline memory::data_type get_tensor_type(const std::shared_ptr<memory>& mem)
   {
     const mkldnn_memory_desc_t& md = mem->get_primitive_desc().desc().data;
     return memory::data_type(md.data_type);
   }
 
   // Returns the number of values in a tensor
-  inline size_t tensor_size(const memory::dims& dims)
+  inline size_t get_tensor_size(const memory::dims& dims)
   {
     size_t res = 1;
     for (int i = 0; i < dims.size(); ++i)
@@ -50,24 +47,24 @@ namespace oidn {
     return res;
   }
 
-  inline size_t tensor_size(const std::shared_ptr<memory>& mem)
+  inline size_t get_tensor_size(const std::shared_ptr<memory>& mem)
   {
-    return tensor_size(tensor_dims(mem));
+    return get_tensor_size(get_tensor_dims(mem));
   }
 
 
   template<int K>
-  inline int padded(int dim)
+  inline int get_padded(int dim)
   {
     return (dim + (K-1)) & ~(K-1);
   }
 
   template<int K>
-  inline memory::dims padded_dims_nchw(const memory::dims& dims)
+  inline memory::dims get_padded_nchw(const memory::dims& dims)
   {
     assert(dims.size() == 4);
     memory::dims pad_dims = dims;
-    pad_dims[1] = padded<K>(dims[1]); // pad C
+    pad_dims[1] = get_padded<K>(dims[1]); // pad C
     return pad_dims;
   }
 

@@ -21,8 +21,8 @@
 
 namespace oidn {
 
-  // Input reorder with optional conversion from linear to sRGB
-  template<int K, bool srgb>
+  // Input reorder
+  template<int K, class TransferFunction>
   class InputReorder : public Node
   {
   private:
@@ -36,15 +36,19 @@ namespace oidn {
     int H2;
     int W2;
 
+    TransferFunction transfer;
+
     static constexpr int C1 = 9;
 
   public:
     InputReorder(const BufferView2D& src,
                  const BufferView2D& src_albedo,
                  const BufferView2D& src_normal,
-                 const std::shared_ptr<memory>& dst)
+                 const std::shared_ptr<memory>& dst,
+                 const TransferFunction& transfer)
       : src(src), src_albedo(src_albedo), src_normal(src_normal),
-        dst(dst)
+        dst(dst),
+        transfer(transfer)
     {
       memory::primitive_desc dst_mpd = dst->get_primitive_desc();
       const mkldnn_memory_desc_t& dst_md = dst_mpd.desc().data;
@@ -78,11 +82,7 @@ namespace oidn {
           {
             for (int w = 0; w < W1; ++w)
             {
-              if (srgb)
-                store3_srgb(h, w, 0, (float*)src.get(h, w));
-              else
-                store3(h, w, 0, (float*)src.get(h, w));
-
+              store3_transfer(h, w, 0, (float*)src.get(h, w));
               store3(h, w, 3, (float*)src_albedo.get(h, w));
               store3(h, w, 6, (float*)src_normal.get(h, w));
             }
@@ -107,11 +107,11 @@ namespace oidn {
       store(h, w, c+2, values[2]);
     }
 
-    __forceinline void store3_srgb(int h, int w, int c, const float* values)
+    __forceinline void store3_transfer(int h, int w, int c, const float* values)
     {
-      store(h, w, c+0, linear_to_srgb(values[0]));
-      store(h, w, c+1, linear_to_srgb(values[1]));
-      store(h, w, c+2, linear_to_srgb(values[2]));
+      store(h, w, c+0, transfer.forward(values[0]));
+      store(h, w, c+1, transfer.forward(values[1]));
+      store(h, w, c+2, transfer.forward(values[2]));
     }
   };
 

@@ -32,7 +32,7 @@ using namespace oidn;
 
 int main(int argc, char **argv)
 {
-  OIDN::Device device = OIDN::newDevice();
+  OIDN::Device device = OIDN::newDevice(OIDN::DeviceType::CPU);
 
   std::string input_filename = "test0.tza";
   if (argc > 1)
@@ -50,13 +50,14 @@ int main(int argc, char **argv)
 
   Timer timer;
 
-  OIDN::Filter filter = device.newFilter(OIDN::FilterType::AUTOENCODER_LDR);
+  OIDN::Filter filter = device.newFilter("Autoencoder");
 
   const size_t F = sizeof(float);
-  filter.setBuffer(OIDN::BufferType::INPUT,        0, OIDN::Format::FLOAT3_SRGB, input.data,  0*F, 9*F, W, H);
-  filter.setBuffer(OIDN::BufferType::INPUT_ALBEDO, 0, OIDN::Format::FLOAT3,      input.data,  3*F, 9*F, W, H);
-  filter.setBuffer(OIDN::BufferType::INPUT_NORMAL, 0, OIDN::Format::FLOAT3,      input.data,  6*F, 9*F, W, H);
-  filter.setBuffer(OIDN::BufferType::OUTPUT,       0, OIDN::Format::FLOAT3_SRGB, output.data, 0*F, 3*F, W, H);
+  filter.setBuffer2D("input",       0, OIDN::Format::FLOAT3, input.data,  0*F, 9*F, W, H);
+  filter.setBuffer2D("inputAlbedo", 0, OIDN::Format::FLOAT3, input.data,  3*F, 9*F, W, H);
+  filter.setBuffer2D("inputNormal", 0, OIDN::Format::FLOAT3, input.data,  6*F, 9*F, W, H);
+  filter.setBuffer2D("output",      0, OIDN::Format::FLOAT3, output.data, 0*F, 3*F, W, H);
+  filter.set1i("srgb", 1);
 
   filter.commit();
 

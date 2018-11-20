@@ -21,27 +21,18 @@
 
 namespace OIDN {
 
+  enum class DeviceType
+  {
+    CPU = OIDN_DEVICE_TYPE_CPU,
+  };
+
   enum class Format
   {
-    UNDEFINED   = OIDN_FORMAT_UNDEFINED,
+    UNDEFINED = OIDN_FORMAT_UNDEFINED,
 
-    FLOAT       = OIDN_FORMAT_FLOAT,
-    FLOAT2      = OIDN_FORMAT_FLOAT2,
-    FLOAT3      = OIDN_FORMAT_FLOAT3,
-    FLOAT3_SRGB = OIDN_FORMAT_FLOAT3_SRGB
-  };
-
-  enum class BufferType
-  {
-    INPUT        = OIDN_BUFFER_TYPE_INPUT,
-    INPUT_ALBEDO = OIDN_BUFFER_TYPE_INPUT_ALBEDO,
-    INPUT_NORMAL = OIDN_BUFFER_TYPE_INPUT_NORMAL,
-    OUTPUT       = OIDN_BUFFER_TYPE_OUTPUT
-  };
-
-  enum class FilterType
-  {
-    AUTOENCODER_LDR = OIDN_FILTER_TYPE_AUTOENCODER_LDR
+    FLOAT  = OIDN_FORMAT_FLOAT,
+    FLOAT2 = OIDN_FORMAT_FLOAT2,
+    FLOAT3 = OIDN_FORMAT_FLOAT3,
   };
 
   // Buffer object with reference counting
@@ -167,22 +158,27 @@ namespace OIDN {
       return handle;
     }
 
-    void setBuffer(BufferType type, unsigned int slot, Format format,
-                   const Buffer& buffer, size_t byteOffset, size_t byteStride,
-                   size_t width, size_t height)
+    void setBuffer2D(const char* name, unsigned int slot, Format format,
+                     const Buffer& buffer, size_t byteOffset, size_t byteStride,
+                     size_t width, size_t height)
     {
-      oidnSetFilterBuffer2D(handle, (OIDNBufferType)type, slot, (OIDNFormat)format,
+      oidnSetFilterBuffer2D(handle, name, slot, (OIDNFormat)format,
                             buffer.get(), byteOffset, byteStride,
                             width, height);
     }
 
-    void setBuffer(BufferType type, unsigned int slot, Format format,
-                   const void* ptr, size_t byteOffset, size_t byteStride,
-                   size_t width, size_t height)
+    void setBuffer2D(const char* name, unsigned int slot, Format format,
+                     const void* ptr, size_t byteOffset, size_t byteStride,
+                     size_t width, size_t height)
     {
-      oidnSetSharedFilterBuffer2D(handle, (OIDNBufferType)type, slot, (OIDNFormat)format,
+      oidnSetSharedFilterBuffer2D(handle, name, slot, (OIDNFormat)format,
                                   ptr, byteOffset, byteStride,
                                   width, height);
+    }
+
+    void set1i(const char* name, int value)
+    {
+      oidnSetFilter1i(handle, name, value);
     }
 
     void commit()
@@ -262,15 +258,15 @@ namespace OIDN {
       return oidnNewSharedBuffer(handle, ptr, byteSize);
     }
 
-    Filter newFilter(FilterType type)
+    Filter newFilter(const char* type)
     {
-      return oidnNewFilter(handle, (OIDNFilterType)type);
+      return oidnNewFilter(handle, type);
     }
   };
 
-  inline Device newDevice()
+  inline Device newDevice(DeviceType type)
   {
-    return Device(oidnNewDevice());
+    return Device(oidnNewDevice((OIDNDeviceType)type));
   }
 
 } // ::OIDN

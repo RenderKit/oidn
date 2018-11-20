@@ -48,7 +48,7 @@ namespace oidn {
     }
 
     Ref<Buffer> new_buffer(void* ptr, size_t byte_size);
-    Ref<Filter> new_filter(FilterType type);
+    Ref<Filter> new_filter(const std::string& type);
   };
 
 } // ::oidn
