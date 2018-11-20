@@ -102,14 +102,26 @@ namespace oidn {
     const int height = input.height;
 
     // Parse the weights
-    void* weightPtr = weights::autoencoder_ldr_alb_nrm;
+    int inputC;
+    void* weightPtr;
+
+    if (input && inputAlbedo && inputNormal)
+    {
+      inputC = 9;
+      weightPtr = weights::autoencoder_ldr_alb_nrm;
+    }
+    else
+    {
+      throw std::runtime_error("unsupported combination of input buffers");
+    }
+
     const auto weightMap = parseTensors(weightPtr);
 
     // Create the network
     std::shared_ptr<Network<K>> net = std::make_shared<Network<K>>(weightMap);
 
     // Compute the tensor sizes
-    const auto inputDims        = memory::dims({1, 9, height, width});
+    const auto inputDims        = memory::dims({1, inputC, height, width});
     const auto inputReorderDims = net->getInputReorderDims(inputDims, spatialPad);
 
     const auto conv1Dims   = net->getConvDims("conv1", inputReorderDims);

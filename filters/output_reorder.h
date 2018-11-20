@@ -31,16 +31,16 @@ namespace oidn {
     int H1;
     int W1;
 
-    BufferView2D dst;
+    BufferView2D output;
 
     TransferFunction transfer;
 
   public:
     OutputReorder(const std::shared_ptr<memory>& src,
-                  const BufferView2D& dst,
+                  const BufferView2D& output,
                   const TransferFunction& transfer)
       : src(src),
-        dst(dst),
+        output(output),
         transfer(transfer)
     {
       memory::primitive_desc srcPrimDesc = src->get_primitive_desc();
@@ -50,11 +50,11 @@ namespace oidn {
       assert(srcDesc.ndims == 4);
       assert(srcDesc.data_type == memory::data_type::f32);
       assert(srcDesc.dims[0] == 1);
-      // We assume dst data is <= K OC
+      // We assume output data is <= K OC
       assert(srcDesc.dims[1] == K);
 
-      assert(dst.height <= srcDesc.dims[2]);
-      assert(dst.width  <= srcDesc.dims[3]);
+      assert(output.height <= srcDesc.dims[2]);
+      assert(output.width  <= srcDesc.dims[3]);
 
       srcPtr = (float*)src->get_data_handle();
       H1 = srcDesc.dims[2];
@@ -64,8 +64,8 @@ namespace oidn {
     void execute() override
     {
       const int C1 = K;
-      const int H2 = dst.height;
-      const int W2 = dst.width;
+      const int H2 = output.height;
+      const int W2 = output.width;
 
       tbb::parallel_for(tbb::blocked_range<int>(0, H2),
         [&](const tbb::blocked_range<int>& r)
@@ -74,7 +74,7 @@ namespace oidn {
           {
             for (int w = 0; w < W2; ++w)
             {
-              float* dstPtr_C = (float*)dst.get(h, w);
+              float* dstPtr_C = (float*)output.get(h, w);
 
               // Source is in nChwKc format. In this case C is 1 so this is really nhwc
               const float* srcPtr_C = srcPtr + h*W1*C1 + w*C1;

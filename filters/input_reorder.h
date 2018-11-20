@@ -26,9 +26,9 @@ namespace oidn {
   class InputReorder : public Node
   {
   private:
-    BufferView2D src;
-    BufferView2D srcAlbedo;
-    BufferView2D srcNormal;
+    BufferView2D input;
+    BufferView2D inputAlbedo;
+    BufferView2D inputNormal;
 
     std::shared_ptr<memory> dst;
     float* dstPtr;
@@ -38,15 +38,13 @@ namespace oidn {
 
     TransferFunction transfer;
 
-    static constexpr int C1 = 9;
-
   public:
-    InputReorder(const BufferView2D& src,
-                 const BufferView2D& srcAlbedo,
-                 const BufferView2D& srcNormal,
+    InputReorder(const BufferView2D& input,
+                 const BufferView2D& inputAlbedo,
+                 const BufferView2D& inputNormal,
                  const std::shared_ptr<memory>& dst,
                  const TransferFunction& transfer)
-      : src(src), srcAlbedo(srcAlbedo), srcNormal(srcNormal),
+      : input(input), inputAlbedo(inputAlbedo), inputNormal(inputNormal),
         dst(dst),
         transfer(transfer)
     {
@@ -56,7 +54,7 @@ namespace oidn {
       assert(dstDesc.ndims == 4);
       assert(dstDesc.data_type == memory::data_type::f32);
       assert(dstDesc.dims[0] == 1);
-      assert(dstDesc.dims[1] >= getPadded<K>(C1));
+      //assert(dstDesc.dims[1] >= getPadded<K>(C1));
       assert(dstDesc.dims[2] >= src.height);
       assert(dstDesc.dims[3] >= src.width);
 
@@ -72,27 +70,30 @@ namespace oidn {
 
     void execute() override
     {
-      const int H1 = src.height;
-      const int W1 = src.width;
+      const int H1 = input.height;
+      const int W1 = input.width;
 
       // Do mirror padding to avoid filtering artifacts near the edges
-      const int Hp = std::min(H2, 2*H1-2);
-      const int Wp = std::min(W2, 2*W1-2);
+      const int H = std::min(H2, 2*H1-2);
+      const int W = std::min(W2, 2*W1-2);
 
-      tbb::parallel_for(tbb::blocked_range<int>(0, Hp),
+      tbb::parallel_for(tbb::blocked_range<int>(0, H),
         [&](const tbb::blocked_range<int>& r)
         {
           for (int h = r.begin(); h != r.end(); ++h)
           {
-            for (int w = 0; w < Wp; ++w)
+            for (int w = 0; w < W; ++w)
             {
               // Compute mirror padded coords
-              const int hp = h < H1 ? h : 2*H1-2-h;
-              const int wp = w < W1 ? w : 2*W1-2-w;
+              const int h1 = h < H1 ? h : 2*H1-2-h;
+              const int w1 = w < W1 ? w : 2*W1-2-w;
 
-              storeColor3(h, w, 0, (float*)src.get(hp, wp));
-              store3(h, w, 3, (float*)srcAlbedo.get(hp, wp));
-              store3(h, w, 6, (float*)srcNormal.get(hp, wp));
+              int c = 0;
+              storeColor3(h, w, c, (float*)input.get(h1, w1));
+              if (inputAlbedo)
+                store3(h, w, c, (float*)inputAlbedo.get(h1, w1));
+              if (inputNormal)
+                store3(h, w, c, (float*)inputNormal.get(h1, w1));
             }
           }
         }, tbb::static_partitioner());
@@ -101,25 +102,26 @@ namespace oidn {
     std::shared_ptr<memory> getDst() const override { return dst; }
 
   private:
-    __forceinline void store(int h, int w, int c, float value)
+    __forceinline void store(int h, int w, int& c, float value)
     {
       // Destination is in nChwKc format
       float* dst_c = dstPtr + (H2*W2*K*(c/K)) + h*W2*K + w*K + (c%K);
       *dst_c = std::isfinite(value) ? value : 0.f; // filter out NaN and inf
+      c++;
     }
 
-    __forceinline void store3(int h, int w, int c, const float* values)
+    __forceinline void store3(int h, int w, int& c, const float* values)
     {
-      store(h, w, c+0, values[0]);
-      store(h, w, c+1, values[1]);
-      store(h, w, c+2, values[2]);
+      store(h, w, c, values[0]);
+      store(h, w, c, values[1]);
+      store(h, w, c, values[2]);
     }
 
-    __forceinline void storeColor3(int h, int w, int c, const float* values)
+    __forceinline void storeColor3(int h, int w, int& c, const float* values)
     {
-      store(h, w, c+0, transfer.forward(values[0]));
-      store(h, w, c+1, transfer.forward(values[1]));
-      store(h, w, c+2, transfer.forward(values[2]));
+      store(h, w, c, transfer.forward(values[0]));
+      store(h, w, c, transfer.forward(values[1]));
+      store(h, w, c, transfer.forward(values[2]));
     }
   };
 
