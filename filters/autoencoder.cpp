@@ -28,7 +28,8 @@ namespace oidn {
 
   Autoencoder::Autoencoder(const Ref<Device>& device)
     : Filter(device),
-      srgb(false)
+      srgb(false),
+      hdr(false)
   {
   }
 
@@ -67,6 +68,8 @@ namespace oidn {
   {
     if (name == "srgb")
       srgb = value;
+    else if (name == "hdr")
+      hdr = value;
   }
 
   void Autoencoder::commit()
@@ -102,9 +105,12 @@ namespace oidn {
     const int width = input.width;
     const int height = input.height;
 
-    // Parse the weights
+    // Configure the network
     int inputC;
     void* weightPtr;
+
+    if (srgb && hdr)
+      throw std::runtime_error("srgb and hdr modes cannot be enabled at the same time");
 
     if (input && !inputAlbedo && !inputNormal)
     {
@@ -121,6 +127,7 @@ namespace oidn {
       throw std::runtime_error("unsupported combination of input buffers");
     }
 
+    // Parse the weights
     const auto weightMap = parseTensors(weightPtr);
 
     // Create the network
@@ -180,6 +187,8 @@ namespace oidn {
     std::shared_ptr<Node> inputReorder;
     if (srgb)
       inputReorder = net->addInputReorder(input, inputAlbedo, inputNormal, LinearTransferFunction(), spatialPad, inputReorderDst);
+    else if (hdr)
+      inputReorder = net->addInputReorder(input, inputAlbedo, inputNormal, HdrTransferFunction(), spatialPad, inputReorderDst);
     else
       inputReorder = net->addInputReorder(input, inputAlbedo, inputNormal, SrgbTransferFunction(), spatialPad, inputReorderDst);
 
@@ -280,6 +289,8 @@ namespace oidn {
     // Output reorder
     if (srgb)
       net->addOutputReorder(conv11->getDst(), LinearTransferFunction(), output);
+    else if (hdr)
+      net->addOutputReorder(conv11->getDst(), HdrTransferFunction(), output);
     else
       net->addOutputReorder(conv11->getDst(), SrgbTransferFunction(), output);
 

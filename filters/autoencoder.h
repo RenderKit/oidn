@@ -30,6 +30,7 @@ namespace oidn {
     BufferView2D inputNormal;
     BufferView2D output;
     bool srgb;
+    bool hdr;
 
     std::shared_ptr<Node> net;
 
