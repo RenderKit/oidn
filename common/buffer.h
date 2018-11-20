@@ -25,15 +25,15 @@ namespace oidn {
   {
   private:
     char* ptr;
-    size_t num_bytes;
+    size_t numBytes;
     bool shared;
 
   public:
     __forceinline Buffer(size_t size)
-      : ptr(new char[size]), num_bytes(size), shared(false) {}
+      : ptr(new char[size]), numBytes(size), shared(false) {}
 
     __forceinline Buffer(void* data, size_t size)
-      : ptr((char*)data), num_bytes(size), shared(true) {}
+      : ptr((char*)data), numBytes(size), shared(true) {}
 
     __forceinline ~Buffer()
     {
@@ -43,7 +43,7 @@ namespace oidn {
 
     __forceinline char* data() { return ptr; }
     __forceinline const char* data() const { return ptr; }
-    __forceinline size_t size() const { return num_bytes; }
+    __forceinline size_t size() const { return numBytes; }
   };
 
 } // ::oidn

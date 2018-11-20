@@ -44,21 +44,21 @@ namespace oidn {
   {
     std::lock_guard<std::mutex> lock(api_mutex);
     Device* device = (Device*)hdevice;
-    device->inc_ref();
+    device->incRef();
   }
 
   OIDN_API void oidnReleaseDevice(OIDNDevice hdevice)
   {
     std::lock_guard<std::mutex> lock(api_mutex);
     Device* device = (Device*)hdevice;
-    device->dec_ref();
+    device->decRef();
   }
 
   OIDN_API OIDNBuffer oidnNewSharedBuffer(OIDNDevice hdevice, void* ptr, size_t byteSize)
   {
     std::lock_guard<std::mutex> lock(api_mutex);
     Device* device = (Device*)hdevice;
-    Ref<Buffer> buffer = device->new_buffer(ptr, byteSize);
+    Ref<Buffer> buffer = device->newBuffer(ptr, byteSize);
     return (OIDNBuffer)buffer.detach();
   }
 
@@ -66,21 +66,21 @@ namespace oidn {
   {
     std::lock_guard<std::mutex> lock(api_mutex);
     Buffer* buffer = (Buffer*)hbuffer;
-    buffer->inc_ref();
+    buffer->incRef();
   }
 
   OIDN_API void oidnReleaseBuffer(OIDNBuffer hbuffer)
   {
     std::lock_guard<std::mutex> lock(api_mutex);
     Buffer* buffer = (Buffer*)hbuffer;
-    buffer->dec_ref();
+    buffer->decRef();
   }
 
   OIDN_API OIDNFilter oidnNewFilter(OIDNDevice hdevice, const char* type)
   {
     std::lock_guard<std::mutex> lock(api_mutex);
     Device* device = (Device*)hdevice;
-    Ref<Filter> filter = device->new_filter(type);
+    Ref<Filter> filter = device->newFilter(type);
     return (OIDNFilter)filter.detach();
   }
 
@@ -88,14 +88,14 @@ namespace oidn {
   {
     std::lock_guard<std::mutex> lock(api_mutex);
     Filter* filter = (Filter*)hfilter;
-    filter->inc_ref();
+    filter->incRef();
   }
 
   OIDN_API void oidnReleaseFilter(OIDNFilter hfilter)
   {
     std::lock_guard<std::mutex> lock(api_mutex);
     Filter* filter = (Filter*)hfilter;
-    filter->dec_ref();
+    filter->decRef();
   }
 
   OIDN_API void oidnSetFilterBuffer2D(OIDNFilter hfilter, const char* name, unsigned int slot,
@@ -107,7 +107,7 @@ namespace oidn {
     Filter* filter = (Filter*)hfilter;
     Ref<Buffer> buffer = (Buffer*)hbuffer;
     BufferView2D view(buffer, byteOffset, (int)byteStride, (int)width, (int)height, (Format)format);
-    filter->set_buffer_2d(name, slot, view);
+    filter->setBuffer2D(name, slot, view);
   }
 
   OIDN_API void oidnSetSharedFilterBuffer2D(OIDNFilter hfilter, const char* name, unsigned int slot,
@@ -118,9 +118,9 @@ namespace oidn {
     std::lock_guard<std::mutex> lock(api_mutex);
     Filter* filter = (Filter*)hfilter;
     size_t byteSize = width * height * byteStride;
-    Ref<Buffer> buffer = filter->get_device()->new_buffer((char*)ptr + byteOffset, byteSize);
+    Ref<Buffer> buffer = filter->getDevice()->newBuffer((char*)ptr + byteOffset, byteSize);
     BufferView2D view(buffer, 0, (int)byteStride, (int)width, (int)height, (Format)format);
-    filter->set_buffer_2d(name, slot, view);
+    filter->setBuffer2D(name, slot, view);
   }
 
   OIDN_API void oidnSetFilter1i(OIDNFilter hfilter, const char* name, int value)

@@ -32,40 +32,39 @@ namespace oidn {
     Upsample(const std::shared_ptr<memory>& src, const std::shared_ptr<memory>& dst)
       : src(src), dst(dst)
     {
-      memory::primitive_desc src_mpd = src->get_primitive_desc();
-      memory::primitive_desc dst_mpd = dst->get_primitive_desc();
-      const mkldnn_memory_desc_t& src_md = src_mpd.desc().data;
-      const mkldnn_memory_desc_t& dst_md = dst_mpd.desc().data;
-      MAYBE_UNUSED(src_md);
-      MAYBE_UNUSED(dst_md);
-      assert(src_md.format == BlockedFormat<K>::nChwKc);
-      assert(dst_md.format == BlockedFormat<K>::nChwKc);
-      assert(src_md.ndims == 4);
-      assert(dst_md.ndims == 4);
-      assert(src_md.data_type == memory::data_type::f32);
-      assert(dst_md.data_type == memory::data_type::f32);
-      assert(src_md.dims[0] == 1);
-      assert(dst_md.dims[0] == 1);
+      memory::primitive_desc srcPrimDesc = src->get_primitive_desc();
+      memory::primitive_desc dstPrimDesc = dst->get_primitive_desc();
+      const mkldnn_memory_desc_t& srcDesc = srcPrimDesc.desc().data;
+      const mkldnn_memory_desc_t& dstDesc = dstPrimDesc.desc().data;
+      MAYBE_UNUSED(srcDesc);
+      MAYBE_UNUSED(dstDesc);
+      assert(srcDesc.format == BlockedFormat<K>::nChwKc);
+      assert(dstDesc.format == BlockedFormat<K>::nChwKc);
+      assert(srcDesc.ndims == 4);
+      assert(dstDesc.ndims == 4);
+      assert(srcDesc.data_type == memory::data_type::f32);
+      assert(dstDesc.data_type == memory::data_type::f32);
+      assert(srcDesc.dims[0] == 1);
+      assert(dstDesc.dims[0] == 1);
       // 2x2 upsampling
-      assert(dst_md.dims[2] == src_md.dims[2] * 2);
-      assert(dst_md.dims[3] == src_md.dims[3] * 2);
+      assert(dstDesc.dims[2] == srcDesc.dims[2] * 2);
+      assert(dstDesc.dims[3] == srcDesc.dims[3] * 2);
     }
 
     void execute() override
     {
-      memory::primitive_desc src_mpd = src->get_primitive_desc();
-      const mkldnn_memory_desc_t& src_md = src_mpd.desc().data;
+      memory::primitive_desc srcPrimDesc = src->get_primitive_desc();
+      const mkldnn_memory_desc_t& srcDesc = srcPrimDesc.desc().data;
 
-      const float* src_data = (float*)src->get_data_handle();
-      float* dst_data = (float*)dst->get_data_handle();
+      const float* srcPtr = (float*)src->get_data_handle();
+      float* dstPtr = (float*)dst->get_data_handle();
 
-      const int C = src_md.dims[1];
-      const int H = src_md.dims[2];
-      const int W = src_md.dims[3];
+      const int C = srcDesc.dims[1];
+      const int H = srcDesc.dims[2];
+      const int W = srcDesc.dims[3];
       const int CK = C / K;
 
-      const size_t work_amount = CK * H;
-      tbb::parallel_for(tbb::blocked_range<size_t>(0, work_amount),
+      tbb::parallel_for(tbb::blocked_range<size_t>(0, CK * H),
         [&](const tbb::blocked_range<size_t>& r)
         {
           int ck{0}, h{0};
@@ -74,21 +73,21 @@ namespace oidn {
           for (size_t i = r.begin(); i != r.end(); ++i)
           {
             const size_t offset = ck*H*W*K + h*W*K;
-            const float* src_line = src_data + offset;
-            float* dst_line0 = dst_data + offset * 4;
-            float* dst_line1 = dst_line0 + W*2*K; // next line
+            const float* srcPtr_line = srcPtr + offset;
+            float* dstPtr_line0 = dstPtr + offset * 4;
+            float* dstPtr_line1 = dstPtr_line0 + W*2*K; // next line
 
             for (int w = 0; w < W; ++w)
             {
               #pragma unroll
               for (int k = 0; k < K; k += 4)
               {
-                const __m128 m = _mm_load_ps(&src_line[w*K + k]);
+                const __m128 m = _mm_load_ps(&srcPtr_line[w*K + k]);
 
-                _mm_stream_ps(&dst_line0[w*2*K   + k], m);
-                _mm_stream_ps(&dst_line0[w*2*K+K + k], m);
-                _mm_stream_ps(&dst_line1[w*2*K   + k], m);
-                _mm_stream_ps(&dst_line1[w*2*K+K + k], m);
+                _mm_stream_ps(&dstPtr_line0[w*2*K   + k], m);
+                _mm_stream_ps(&dstPtr_line0[w*2*K+K + k], m);
+                _mm_stream_ps(&dstPtr_line1[w*2*K   + k], m);
+                _mm_stream_ps(&dstPtr_line1[w*2*K+K + k], m);
               }
             }
 
@@ -97,7 +96,7 @@ namespace oidn {
         }, tbb::static_partitioner());
     }
 
-    std::shared_ptr<memory> get_dst() const override { return dst; }
+    std::shared_ptr<memory> getDst() const override { return dst; }
   };
 
 } // ::oidn

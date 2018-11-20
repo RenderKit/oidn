@@ -26,7 +26,7 @@ namespace oidn {
   public:
     virtual ~Node() = default;
     virtual void execute() = 0;
-    virtual std::shared_ptr<memory> get_dst() const { return nullptr; }
+    virtual std::shared_ptr<memory> getDst() const { return nullptr; }
   };
 
   // Node wrapping an MKL-DNN primitive
@@ -65,7 +65,7 @@ namespace oidn {
       : MklNode(convolution_forward(desc, *src, *weights, *bias, *dst)),
         src(src), weights(weights), bias(bias), dst(dst) {}
 
-    std::shared_ptr<memory> get_dst() const override { return dst; }
+    std::shared_ptr<memory> getDst() const override { return dst; }
   };
 
   // Pooling node
@@ -82,7 +82,7 @@ namespace oidn {
       : MklNode(pooling_forward(desc, *src, *dst)),
         src(src), dst(dst) {}
 
-    std::shared_ptr<memory> get_dst() const override { return dst; }
+    std::shared_ptr<memory> getDst() const override { return dst; }
   };
 
 } // ::oidn

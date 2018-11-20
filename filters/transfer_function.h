@@ -30,8 +30,8 @@ public:
 class SrgbTransferFunction
 {
 public:
-  __forceinline float forward(float x) const { return linear_to_srgb(x); }
-  __forceinline float reverse(float x) const { return srgb_to_linear(x); }
+  __forceinline float forward(float x) const { return linearToSrgb(x); }
+  __forceinline float reverse(float x) const { return srgbToLinear(x); }
 };
 
 } // ::oidn

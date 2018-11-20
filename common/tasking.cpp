@@ -19,24 +19,24 @@
 
 namespace oidn {
 
-  ThreadAffinity::ThreadAffinity(int threads_per_core)
+  ThreadAffinity::ThreadAffinity(int threadsPerCore)
   {
-    std::vector<int> thread_ids;
+    std::vector<int> threadIds;
 
     // Parse the thread/CPU topology
-    for (int cpu_id = 0; ; cpu_id++)
+    for (int cpuId = 0; ; cpuId++)
     {
       std::fstream fs;
-      std::string cpu = std::string("/sys/devices/system/cpu/cpu") + std::to_string(cpu_id) + std::string("/topology/thread_siblings_list");
+      std::string cpu = std::string("/sys/devices/system/cpu/cpu") + std::to_string(cpuId) + std::string("/topology/thread_siblings_list");
       fs.open(cpu.c_str(), std::fstream::in);
       if (fs.fail()) break;
 
       int i;
       int j = 0;
-      while ((j < threads_per_core) && (fs >> i))
+      while ((j < threadsPerCore) && (fs >> i))
       {
-        if (std::none_of(thread_ids.begin(), thread_ids.end(), [&](int id) { return id == i; }))
-          thread_ids.push_back(i);
+        if (std::none_of(threadIds.begin(), threadIds.end(), [&](int id) { return id == i; }))
+          threadIds.push_back(i);
 
         if (fs.peek() == ',')
           fs.ignore();
@@ -52,49 +52,49 @@ namespace oidn {
   #endif
 
     // Create the cpusets
-    cpusets.resize(thread_ids.size());
-    for (size_t i = 0; i < thread_ids.size(); ++i)
+    cpusets.resize(threadIds.size());
+    for (size_t i = 0; i < threadIds.size(); ++i)
     {
       cpu_set_t cpuset;
       CPU_ZERO(&cpuset);
-      CPU_SET(thread_ids[i], &cpuset);
+      CPU_SET(threadIds[i], &cpuset);
       cpusets[i] = cpuset;
     }
 
-    old_cpusets.resize(thread_ids.size());
-    for (size_t i = 0; i < old_cpusets.size(); ++i)
-      CPU_ZERO(&old_cpusets[i]);
+    oldCpusets.resize(threadIds.size());
+    for (size_t i = 0; i < oldCpusets.size(); ++i)
+      CPU_ZERO(&oldCpusets[i]);
   }
 
-  void ThreadAffinity::set(int thread_index)
+  void ThreadAffinity::set(int threadIndex)
   {
-    if (thread_index >= (int)cpusets.size())
+    if (threadIndex >= (int)cpusets.size())
       return;
 
     const pthread_t thread = pthread_self();
 
     // Save the current affinity
-    if (pthread_getaffinity_np(thread, sizeof(cpu_set_t), &old_cpusets[thread_index]) != 0)
+    if (pthread_getaffinity_np(thread, sizeof(cpu_set_t), &oldCpusets[threadIndex]) != 0)
     {
       WARNING("pthread_getaffinity_np failed");
-      old_cpusets[thread_index] = cpusets[thread_index];
+      oldCpusets[threadIndex] = cpusets[threadIndex];
       return;
     }
 
     // Set the new affinity
-    if (pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpusets[thread_index]) != 0)
+    if (pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpusets[threadIndex]) != 0)
       WARNING("pthread_setaffinity_np failed");
   }
 
-  void ThreadAffinity::restore(int thread_index)
+  void ThreadAffinity::restore(int threadIndex)
   {
-    if (thread_index >= (int)cpusets.size())
+    if (threadIndex >= (int)cpusets.size())
       return;
 
     const pthread_t thread = pthread_self();
 
     // Restore the original affinity
-    if (pthread_setaffinity_np(thread, sizeof(cpu_set_t), &old_cpusets[thread_index]) != 0)
+    if (pthread_setaffinity_np(thread, sizeof(cpu_set_t), &oldCpusets[threadIndex]) != 0)
       WARNING("pthread_setaffinity_np failed");
   }
 
@@ -117,16 +117,16 @@ namespace oidn {
     observe(false);
   }
 
-  void PinningObserver::on_scheduler_entry(bool is_worker)
+  void PinningObserver::on_scheduler_entry(bool isWorker)
   {
-    const int thread_index = tbb::this_task_arena::current_thread_index();
-    affinity->set(thread_index);
+    const int threadIndex = tbb::this_task_arena::current_thread_index();
+    affinity->set(threadIndex);
   }
 
-  void PinningObserver::on_scheduler_exit(bool is_worker)
+  void PinningObserver::on_scheduler_exit(bool isWorker)
   {
-    const int thread_index = tbb::this_task_arena::current_thread_index();
-    affinity->restore(thread_index);
+    const int threadIndex = tbb::this_task_arena::current_thread_index();
+    affinity->restore(threadIndex);
   }
 
 } // ::oidn

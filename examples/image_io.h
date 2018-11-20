@@ -46,7 +46,7 @@ namespace oidn {
   static Tensor load_image_tza(const std::string& filename)
   {
     Ref<Buffer> buffer = load_file(filename);
-    std::map<std::string, Tensor> tensors = parse_tensors(buffer->data());
+    std::map<std::string, Tensor> tensors = parseTensors(buffer->data());
     auto image = tensors.find("image");
     if (image == tensors.end())
       throw std::runtime_error("image tensor not found");

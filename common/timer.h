@@ -34,13 +34,13 @@ namespace oidn {
   {
   private:
   #if defined(_WIN32)
-    double inv_counts_per_sec;
-    LARGE_INTEGER start_count;
+    double invCountsPerSec;
+    LARGE_INTEGER startCount;
   #elif defined(__APPLE__)
-    double inv_counts_per_sec;
-    uint64_t start_time;
+    double invCountsPerSec;
+    uint64_t startTime;
   #else
-    timespec start_time;
+    timespec startTime;
   #endif
 
   public:
@@ -52,11 +52,11 @@ namespace oidn {
       BOOL result = QueryPerformanceFrequency(&frequency);
       assert(result != 0 && "timer is not supported");
 
-      inv_counts_per_sec = 1.0 / (double)frequency.QuadPart;
+      invCountsPerSec = 1.0 / (double)frequency.QuadPart;
   #elif defined(__APPLE__)
-      mach_timebase_info_data_t timebase_info;
-      mach_timebase_info(&timebase_info);
-      inv_counts_per_sec = (double)timebase_info.numer / (double)timebase_info.denom * 1e-9;
+      mach_timebaseInfo_data_t timebaseInfo;
+      mach_timebaseInfo(&timebaseInfo);
+      invCountsPerSec = (double)timebaseInfo.numer / (double)timebaseInfo.denom * 1e-9;
   #endif
 
       reset();
@@ -65,12 +65,12 @@ namespace oidn {
     void reset()
     {
   #if defined(_WIN32)
-      BOOL result = QueryPerformanceCounter(&start_count);
+      BOOL result = QueryPerformanceCounter(&startCount);
       assert(result != 0 && "could not query counter");
   #elif defined(__APPLE__)
-      start_time = mach_absolute_time();
+      startTime = mach_absolute_time();
   #else
-      int result = clock_gettime(CLOCK_MONOTONIC, &start_time);
+      int result = clock_gettime(CLOCK_MONOTONIC, &startTime);
       MAYBE_UNUSED(result);
       assert(result == 0 && "could not get time");
   #endif
@@ -79,24 +79,24 @@ namespace oidn {
     double query() const
     {
   #if defined(_WIN32)
-      LARGE_INTEGER current_count;
+      LARGE_INTEGER currentCount;
 
-      BOOL result = QueryPerformanceCounter(&current_count);
+      BOOL result = QueryPerformanceCounter(&currentCount);
       assert(result != 0 && "could not query counter");
 
-      return (current_count.QuadPart - start_count.QuadPart) * inv_counts_per_sec;
+      return (currentCount.QuadPart - startCount.QuadPart) * invCountsPerSec;
   #elif defined(__APPLE__)
-      uint64_t end_time = mach_absolute_time();
-      uint64_t elapsed_time = end_time - start_time;
-      return (double)elapsed_time * inv_counts_per_sec;
+      uint64_t endTime = mach_absolute_time();
+      uint64_t elapsedTime = endTime - startTime;
+      return (double)elapsedTime * invCountsPerSec;
   #else
-      timespec current_time;
+      timespec currentTime;
 
-      int result = clock_gettime(CLOCK_MONOTONIC, &current_time);
+      int result = clock_gettime(CLOCK_MONOTONIC, &currentTime);
       MAYBE_UNUSED(result);
       assert(result == 0 && "could not get time");
 
-      return (double)(current_time.tv_sec - start_time.tv_sec) + (double)(current_time.tv_nsec - start_time.tv_nsec) * 1e-9;
+      return (double)(currentTime.tv_sec - startTime.tv_sec) + (double)(currentTime.tv_nsec - startTime.tv_nsec) * 1e-9;
   #endif
     }
   };

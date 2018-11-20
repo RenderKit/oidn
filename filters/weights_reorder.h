@@ -32,40 +32,40 @@ namespace oidn {
     WeightsReorder(const std::shared_ptr<memory>& src, const std::shared_ptr<memory>& dst)
       : src(src), dst(dst)
     {
-      memory::primitive_desc src_mpd = src->get_primitive_desc();
-      memory::primitive_desc dst_mpd = dst->get_primitive_desc();
-      const mkldnn_memory_desc_t& src_md = src_mpd.desc().data;
-      const mkldnn_memory_desc_t& dst_md = dst_mpd.desc().data;
-      MAYBE_UNUSED(src_md);
-      MAYBE_UNUSED(dst_md);
-      assert(src_md.format == memory::format::oihw);
-      assert(dst_md.format == BlockedFormat<K>::OIhwKiKo);
-      assert(src_md.ndims == 4);
-      assert(dst_md.ndims == 4);
-      assert(src_md.data_type == memory::data_type::f32);
-      assert(dst_md.data_type == memory::data_type::f32);
-      assert(padded<K>(src_md.dims[0]) == dst_md.dims[0]); // OC
-      assert(padded<K>(src_md.dims[1]) == dst_md.dims[1]); // IC
-      assert(src_md.dims[2] == dst_md.dims[2]);
-      assert(src_md.dims[3] == dst_md.dims[3]);
+      memory::primitive_desc srcPrimDesc = src->get_primitive_desc();
+      memory::primitive_desc dstPrimDesc = dst->get_primitive_desc();
+      const mkldnn_memory_desc_t& srcDesc = srcPrimDesc.desc().data;
+      const mkldnn_memory_desc_t& dstDesc = dstPrimDesc.desc().data;
+      MAYBE_UNUSED(srcDesc);
+      MAYBE_UNUSED(dstDesc);
+      assert(srcDesc.format == memory::format::oihw);
+      assert(dstDesc.format == BlockedFormat<K>::OIhwKiKo);
+      assert(srcDesc.ndims == 4);
+      assert(dstDesc.ndims == 4);
+      assert(srcDesc.data_type == memory::data_type::f32);
+      assert(dstDesc.data_type == memory::data_type::f32);
+      assert(getPadded<K>(srcDesc.dims[0]) == dstDesc.dims[0]); // OC
+      assert(getPadded<K>(srcDesc.dims[1]) == dstDesc.dims[1]); // IC
+      assert(srcDesc.dims[2] == dstDesc.dims[2]);
+      assert(srcDesc.dims[3] == dstDesc.dims[3]);
     }
 
     void execute() override
     {
-      memory::primitive_desc src_mpd = src->get_primitive_desc();
-      memory::primitive_desc dst_mpd = dst->get_primitive_desc();
-      const mkldnn_memory_desc_t& src_md = src_mpd.desc().data;
-      const mkldnn_memory_desc_t& dst_md = dst_mpd.desc().data;
+      memory::primitive_desc srcPrimDesc = src->get_primitive_desc();
+      memory::primitive_desc dstPrimDesc = dst->get_primitive_desc();
+      const mkldnn_memory_desc_t& srcDesc = srcPrimDesc.desc().data;
+      const mkldnn_memory_desc_t& dstDesc = dstPrimDesc.desc().data;
 
-      const float* src_data = (float*)src->get_data_handle();
-      float* dst_data = (float*)dst->get_data_handle();
+      const float* srcPtr = (float*)src->get_data_handle();
+      float* dstPtr = (float*)dst->get_data_handle();
 
-      const int OC1 = src_md.dims[0];
-      const int OC2 = dst_md.dims[0];
-      const int IC1 = src_md.dims[1];
-      const int IC2 = dst_md.dims[1];
-      const int H   = dst_md.dims[2];
-      const int W   = dst_md.dims[3];
+      const int OC1 = srcDesc.dims[0];
+      const int OC2 = dstDesc.dims[0];
+      const int IC1 = srcDesc.dims[1];
+      const int IC2 = dstDesc.dims[1];
+      const int H   = dstDesc.dims[2];
+      const int W   = dstDesc.dims[3];
 
       for (int oc = 0; oc < OC2; ++oc)
       {
@@ -76,22 +76,22 @@ namespace oidn {
             for (int w = 0; w < W; ++w)
             {
               // Output is in OIhwKiKo format
-              float* dst_c = dst_data + (oc/K)*(IC2/K)*H*W*K*K +
-                                        (ic/K)*H*W*K*K +
-                                        h*W*K*K +
-                                        w*K*K +
-                                        (ic%K)*K + (oc%K);
+              float* dstPtr_c = dstPtr + (oc/K)*(IC2/K)*H*W*K*K +
+                                         (ic/K)*H*W*K*K +
+                                         h*W*K*K +
+                                         w*K*K +
+                                         (ic%K)*K + (oc%K);
 
               if (oc < OC1 && ic < IC1)
               {
                 // Input is in oihw format
-                const float* src_c = src_data + oc*IC1*H*W + ic*H*W + h*W + w;
-                *dst_c = *src_c;
+                const float* srcPtr_c = srcPtr + oc*IC1*H*W + ic*H*W + h*W + w;
+                *dstPtr_c = *srcPtr_c;
               }
               else
               {
                 // padding
-                *dst_c = 0;
+                *dstPtr_c = 0;
               }
             }
           }
@@ -99,7 +99,7 @@ namespace oidn {
       }
     }
 
-    std::shared_ptr<memory> get_dst() const override { return dst; }
+    std::shared_ptr<memory> getDst() const override { return dst; }
   };
 
 } // ::oidn

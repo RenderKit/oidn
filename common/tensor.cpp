@@ -18,7 +18,7 @@
 
 namespace oidn {
 
-  std::map<std::string, Tensor> parse_tensors(void* buffer)
+  std::map<std::string, Tensor> parseTensors(void* buffer)
   {
     char* input = (char*)buffer;
 
@@ -29,26 +29,26 @@ namespace oidn {
     input += sizeof(unsigned short);
 
     // Parse the version
-    const int major_version = *(unsigned char*)input++;
-    const int minor_version = *(unsigned char*)input++;
-    UNUSED(minor_version);
-    if (major_version > 1)
+    const int majorVersion = *(unsigned char*)input++;
+    const int minorVersion = *(unsigned char*)input++;
+    UNUSED(minorVersion);
+    if (majorVersion > 1)
       throw std::runtime_error("unsupported tensor archive version");
 
     // Parse the number of tensors
-    const int num_tensors = *(int*)input;
+    const int numTensors = *(int*)input;
     input += sizeof(int);
 
     // Parse the tensors
-    std::map<std::string, Tensor> tensor_map;
-    for (int i = 0; i < num_tensors; ++i)
+    std::map<std::string, Tensor> tensorMap;
+    for (int i = 0; i < numTensors; ++i)
     {
       Tensor tensor;
 
       // Parse the name
-      const int name_len = *(unsigned char*)input++;
-      std::string name(input, name_len);
-      input += name_len;
+      const int nameLen = *(unsigned char*)input++;
+      std::string name(input, nameLen);
+      input += nameLen;
 
       // Parse the number of dimensions
       const int ndims = *(unsigned char*)input++;
@@ -71,10 +71,10 @@ namespace oidn {
       input += tensor.size() * sizeof(float);
 
       // Add the tensor to the map
-      tensor_map.emplace(name, std::move(tensor));
+      tensorMap.emplace(name, std::move(tensor));
     }
 
-    return tensor_map;
+    return tensorMap;
   }
 
 } // ::oidn

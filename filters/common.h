@@ -26,20 +26,20 @@ namespace oidn {
 
   using OIDN::Format;
 
-  inline memory::dims get_tensor_dims(const std::shared_ptr<memory>& mem)
+  inline memory::dims getTensorDims(const std::shared_ptr<memory>& mem)
   {
     const mkldnn_memory_desc_t& md = mem->get_primitive_desc().desc().data;
     return memory::dims(&md.dims[0], &md.dims[md.ndims]);
   }
 
-  inline memory::data_type get_tensor_type(const std::shared_ptr<memory>& mem)
+  inline memory::data_type getTensorType(const std::shared_ptr<memory>& mem)
   {
     const mkldnn_memory_desc_t& md = mem->get_primitive_desc().desc().data;
     return memory::data_type(md.data_type);
   }
 
   // Returns the number of values in a tensor
-  inline size_t get_tensor_size(const memory::dims& dims)
+  inline size_t getTensorSize(const memory::dims& dims)
   {
     size_t res = 1;
     for (int i = 0; i < dims.size(); ++i)
@@ -47,25 +47,25 @@ namespace oidn {
     return res;
   }
 
-  inline size_t get_tensor_size(const std::shared_ptr<memory>& mem)
+  inline size_t getTensorSize(const std::shared_ptr<memory>& mem)
   {
-    return get_tensor_size(get_tensor_dims(mem));
+    return getTensorSize(getTensorDims(mem));
   }
 
 
   template<int K>
-  inline int get_padded(int dim)
+  inline int getPadded(int dim)
   {
     return (dim + (K-1)) & ~(K-1);
   }
 
   template<int K>
-  inline memory::dims get_padded_nchw(const memory::dims& dims)
+  inline memory::dims getPadded_nchw(const memory::dims& dims)
   {
     assert(dims.size() == 4);
-    memory::dims pad_dims = dims;
-    pad_dims[1] = get_padded<K>(dims[1]); // pad C
-    return pad_dims;
+    memory::dims padDims = dims;
+    padDims[1] = getPadded<K>(dims[1]); // pad C
+    return padDims;
   }
 
 
@@ -87,12 +87,12 @@ namespace oidn {
   };
 
 
-  __forceinline float linear_to_srgb(float x)
+  __forceinline float linearToSrgb(float x)
   {
     return std::pow(x, 1.f/2.2f);
   }
 
-  __forceinline float srgb_to_linear(float x)
+  __forceinline float srgbToLinear(float x)
   {
     return std::pow(x, 2.2f);
   }

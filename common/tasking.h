@@ -31,13 +31,13 @@ namespace oidn {
   class ThreadAffinity
   {
   private:
-    std::vector<cpu_set_t> cpusets;     // thread affinities
-    std::vector<cpu_set_t> old_cpusets; // original thread affinities
+    std::vector<cpu_set_t> cpusets;    // thread affinities
+    std::vector<cpu_set_t> oldCpusets; // original thread affinities
 
   public:
-    ThreadAffinity(int threads_per_core = INT_MAX);
+    ThreadAffinity(int threadsPerCore = INT_MAX);
 
-    int num_threads() const
+    int numThreads() const
     {
       if (cpusets.empty())
         return tbb::this_task_arena::max_concurrency();
@@ -45,10 +45,10 @@ namespace oidn {
     }
 
     // Sets the affinity (0..num_threads-1) of the thread after saving the current affinity
-    void set(int thread_index);
+    void set(int threadIndex);
 
     // Restores the affinity of the thread
-    void restore(int thread_index);
+    void restore(int threadIndex);
   };
 
   class PinningObserver : public tbb::task_scheduler_observer
@@ -61,8 +61,8 @@ namespace oidn {
     PinningObserver(const std::shared_ptr<ThreadAffinity>& affinity, tbb::task_arena& arena);
     ~PinningObserver();
 
-    void on_scheduler_entry(bool is_worker) override;
-    void on_scheduler_exit(bool is_worker) override;
+    void on_scheduler_entry(bool isWorker) override;
+    void on_scheduler_exit(bool isWorker) override;
   };
 
 } // ::oidn

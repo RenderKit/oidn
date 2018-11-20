@@ -26,8 +26,8 @@ namespace oidn {
   {
   private:
     BufferView2D input;
-    BufferView2D input_albedo;
-    BufferView2D input_normal;
+    BufferView2D inputAlbedo;
+    BufferView2D inputNormal;
     BufferView2D output;
     bool srgb;
 
@@ -36,14 +36,14 @@ namespace oidn {
   public:
     Autoencoder(const Ref<Device>& device);
 
-    void set_buffer_2d(const std::string& name, int slot, const BufferView2D& view) override;
+    void setBuffer2D(const std::string& name, int slot, const BufferView2D& view) override;
     void set1i(const std::string& name, int value) override;
     void commit() override;
     void execute() override;
 
   private:
     template<int K>
-    std::shared_ptr<Node> build_net();
+    std::shared_ptr<Node> buildNet();
   };
 
 } // ::oidn

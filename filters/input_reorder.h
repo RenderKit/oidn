@@ -27,11 +27,11 @@ namespace oidn {
   {
   private:
     BufferView2D src;
-    BufferView2D src_albedo;
-    BufferView2D src_normal;
+    BufferView2D srcAlbedo;
+    BufferView2D srcNormal;
 
     std::shared_ptr<memory> dst;
-    float* dst_data;
+    float* dstPtr;
     int C2;
     int H2;
     int W2;
@@ -42,32 +42,32 @@ namespace oidn {
 
   public:
     InputReorder(const BufferView2D& src,
-                 const BufferView2D& src_albedo,
-                 const BufferView2D& src_normal,
+                 const BufferView2D& srcAlbedo,
+                 const BufferView2D& srcNormal,
                  const std::shared_ptr<memory>& dst,
                  const TransferFunction& transfer)
-      : src(src), src_albedo(src_albedo), src_normal(src_normal),
+      : src(src), srcAlbedo(srcAlbedo), srcNormal(srcNormal),
         dst(dst),
         transfer(transfer)
     {
-      memory::primitive_desc dst_mpd = dst->get_primitive_desc();
-      const mkldnn_memory_desc_t& dst_md = dst_mpd.desc().data;
-      assert(dst_md.format == BlockedFormat<K>::nChwKc);
-      assert(dst_md.ndims == 4);
-      assert(dst_md.data_type == memory::data_type::f32);
-      assert(dst_md.dims[0] == 1);
-      assert(dst_md.dims[1] >= padded<K>(C1));
-      assert(dst_md.dims[2] >= src.height);
-      assert(dst_md.dims[3] >= src.width);
+      memory::primitive_desc dstPrimDesc = dst->get_primitive_desc();
+      const mkldnn_memory_desc_t& dstDesc = dstPrimDesc.desc().data;
+      assert(dstDesc.format == BlockedFormat<K>::nChwKc);
+      assert(dstDesc.ndims == 4);
+      assert(dstDesc.data_type == memory::data_type::f32);
+      assert(dstDesc.dims[0] == 1);
+      assert(dstDesc.dims[1] >= getPadded<K>(C1));
+      assert(dstDesc.dims[2] >= src.height);
+      assert(dstDesc.dims[3] >= src.width);
 
-      dst_data = (float*)dst->get_data_handle();
-      C2 = dst_md.dims[1];
-      H2 = dst_md.dims[2];
-      W2 = dst_md.dims[3];
+      dstPtr = (float*)dst->get_data_handle();
+      C2 = dstDesc.dims[1];
+      H2 = dstDesc.dims[2];
+      W2 = dstDesc.dims[3];
 
       // Zero the destination because it may be padded
       // We assume that the destination will not be modified by other nodes!
-      memset(dst_data, 0, C2*H2*W2*sizeof(float));
+      memset(dstPtr, 0, C2*H2*W2*sizeof(float));
     }
 
     void execute() override
@@ -82,21 +82,21 @@ namespace oidn {
           {
             for (int w = 0; w < W1; ++w)
             {
-              store3_transfer(h, w, 0, (float*)src.get(h, w));
-              store3(h, w, 3, (float*)src_albedo.get(h, w));
-              store3(h, w, 6, (float*)src_normal.get(h, w));
+              store3Transfer(h, w, 0, (float*)src.get(h, w));
+              store3(h, w, 3, (float*)srcAlbedo.get(h, w));
+              store3(h, w, 6, (float*)srcNormal.get(h, w));
             }
           }
         }, tbb::static_partitioner());
     }
 
-    std::shared_ptr<memory> get_dst() const override { return dst; }
+    std::shared_ptr<memory> getDst() const override { return dst; }
 
   private:
     __forceinline void store(int h, int w, int c, float value)
     {
       // Destination is in nChwKc format
-      float* dst_c = dst_data + (H2*W2*K*(c/K)) + h*W2*K + w*K + (c%K);
+      float* dst_c = dstPtr + (H2*W2*K*(c/K)) + h*W2*K + w*K + (c%K);
       *dst_c = std::isfinite(value) ? value : 0.f; // filter out NaN and inf
     }
 
@@ -107,7 +107,7 @@ namespace oidn {
       store(h, w, c+2, values[2]);
     }
 
-    __forceinline void store3_transfer(int h, int w, int c, const float* values)
+    __forceinline void store3Transfer(int h, int w, int c, const float* values)
     {
       store(h, w, c+0, transfer.forward(values[0]));
       store(h, w, c+1, transfer.forward(values[1]));

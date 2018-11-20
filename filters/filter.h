@@ -30,12 +30,12 @@ namespace oidn {
   public:
     explicit Filter(const Ref<Device>& device) : device(device) {}
 
-    virtual void set_buffer_2d(const std::string& name, int slot, const BufferView2D& view) = 0;
+    virtual void setBuffer2D(const std::string& name, int slot, const BufferView2D& view) = 0;
     virtual void set1i(const std::string& name, int value) {};
     virtual void commit() = 0;
     virtual void execute() = 0;
 
-    Ref<Device> get_device() const { return device; }
+    Ref<Device> getDevice() const { return device; }
   };
 
 } // ::oidn

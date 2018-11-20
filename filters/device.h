@@ -36,19 +36,19 @@ namespace oidn {
     ~Device();
 
     template<typename F>
-    void execute_task(F& f)
+    void executeTask(F& f)
     {
       arena->execute(f);
     }
 
     template<typename F>
-    void execute_task(const F& f)
+    void executeTask(const F& f)
     {
       arena->execute(f);
     }
 
-    Ref<Buffer> new_buffer(void* ptr, size_t byte_size);
-    Ref<Filter> new_filter(const std::string& type);
+    Ref<Buffer> newBuffer(void* ptr, size_t byteSize);
+    Ref<Filter> newFilter(const std::string& type);
   };
 
 } // ::oidn

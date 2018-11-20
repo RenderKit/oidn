@@ -27,7 +27,7 @@ namespace oidn {
   {
   private:
     std::shared_ptr<memory> src;
-    const float* src_data;
+    const float* srcPtr;
     int H1;
     int W1;
 
@@ -43,22 +43,22 @@ namespace oidn {
         dst(dst),
         transfer(transfer)
     {
-      memory::primitive_desc src_mpd = src->get_primitive_desc();
-      const mkldnn_memory_desc_t& src_md = src_mpd.desc().data;
-      MAYBE_UNUSED(src_md);
-      assert(src_md.format == BlockedFormat<K>::nChwKc);
-      assert(src_md.ndims == 4);
-      assert(src_md.data_type == memory::data_type::f32);
-      assert(src_md.dims[0] == 1);
+      memory::primitive_desc srcPrimDesc = src->get_primitive_desc();
+      const mkldnn_memory_desc_t& srcDesc = srcPrimDesc.desc().data;
+      MAYBE_UNUSED(srcDesc);
+      assert(srcDesc.format == BlockedFormat<K>::nChwKc);
+      assert(srcDesc.ndims == 4);
+      assert(srcDesc.data_type == memory::data_type::f32);
+      assert(srcDesc.dims[0] == 1);
       // We assume dst data is <= K OC
-      assert(src_md.dims[1] == K);
+      assert(srcDesc.dims[1] == K);
 
-      assert(dst.height <= src_md.dims[2]);
-      assert(dst.width  <= src_md.dims[3]);
+      assert(dst.height <= srcDesc.dims[2]);
+      assert(dst.width  <= srcDesc.dims[3]);
 
-      src_data = (float*)src->get_data_handle();
-      H1 = src_md.dims[2];
-      W1 = src_md.dims[3];
+      srcPtr = (float*)src->get_data_handle();
+      H1 = srcDesc.dims[2];
+      W1 = srcDesc.dims[3];
     }
 
     void execute() override
@@ -74,14 +74,14 @@ namespace oidn {
           {
             for (int w = 0; w < W2; ++w)
             {
-              float* dst_C = (float*)dst.get(h, w);
+              float* dstPtr_C = (float*)dst.get(h, w);
 
               // Source is in nChwKc format. In this case C is 1 so this is really nhwc
-              const float* src_C = src_data + h*W1*C1 + w*C1;
+              const float* srcPtr_C = srcPtr + h*W1*C1 + w*C1;
 
-              dst_C[0] = transfer.reverse(src_C[0]);
-              dst_C[1] = transfer.reverse(src_C[1]);
-              dst_C[2] = transfer.reverse(src_C[2]);
+              dstPtr_C[0] = transfer.reverse(srcPtr_C[0]);
+              dstPtr_C[1] = transfer.reverse(srcPtr_C[1]);
+              dstPtr_C[2] = transfer.reverse(srcPtr_C[2]);
             }
           }
         }, tbb::static_partitioner());

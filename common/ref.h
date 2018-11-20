@@ -28,12 +28,12 @@ namespace oidn {
   public:
     RefCount(int count = 0) : count(count) {}
   
-    void inc_ref()
+    void incRef()
     {
       count.fetch_add(1);
     }
 
-    void dec_ref()
+    void decRef()
     {
       if (count.fetch_add(-1) == 1)
         delete this;
@@ -52,24 +52,24 @@ namespace oidn {
   public:
     __forceinline Ref() : ptr(nullptr) {}
     __forceinline Ref(std::nullptr_t) : ptr(nullptr) {}
-    __forceinline Ref(const Ref& other) : ptr(other.ptr) { if (ptr) ptr->inc_ref(); }
+    __forceinline Ref(const Ref& other) : ptr(other.ptr) { if (ptr) ptr->incRef(); }
     __forceinline Ref(Ref&& other) : ptr(other.ptr) { other.ptr = nullptr; }
-    __forceinline Ref(T* ptr) : ptr(ptr) { if (ptr) ptr->inc_ref(); }
+    __forceinline Ref(T* ptr) : ptr(ptr) { if (ptr) ptr->incRef(); }
 
     template<typename Y>
-    __forceinline Ref(const Ref<Y>& other) : ptr(other.get()) { if (ptr) ptr->inc_ref(); }
+    __forceinline Ref(const Ref<Y>& other) : ptr(other.get()) { if (ptr) ptr->incRef(); }
 
     template<typename Y>
-    __forceinline explicit Ref(Y* ptr) : ptr(ptr) { if (ptr) ptr->inc_ref(); }
+    __forceinline explicit Ref(Y* ptr) : ptr(ptr) { if (ptr) ptr->incRef(); }
 
-    __forceinline ~Ref() { if (ptr) ptr->dec_ref(); }
+    __forceinline ~Ref() { if (ptr) ptr->decRef(); }
 
     __forceinline Ref& operator =(const Ref& other)
     {
       if (other.ptr)
-        other.ptr->inc_ref();
+        other.ptr->incRef();
       if (ptr)
-        ptr->dec_ref();
+        ptr->decRef();
       ptr = other.ptr;
       return *this;
     }
@@ -77,7 +77,7 @@ namespace oidn {
     __forceinline Ref& operator =(Ref&& other)
     {
       if (ptr)
-        ptr->dec_ref();
+        ptr->decRef();
       ptr = other.ptr;
       other.ptr = nullptr;
       return *this;
@@ -86,9 +86,9 @@ namespace oidn {
     __forceinline Ref& operator =(T* other)
     {
       if (other)
-        other->inc_ref();
+        other->incRef();
       if (ptr)
-        ptr->dec_ref();
+        ptr->decRef();
       ptr = other;
       return *this;
     }
@@ -96,7 +96,7 @@ namespace oidn {
     __forceinline Ref& operator =(std::nullptr_t)
     {
       if (ptr)
-        ptr->dec_ref();
+        ptr->decRef();
       ptr = nullptr;
       return *this;
     }

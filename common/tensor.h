@@ -56,6 +56,6 @@ namespace oidn {
   };
 
   // Parses tensors from a buffer
-  std::map<std::string, Tensor> parse_tensors(void* buffer);
+  std::map<std::string, Tensor> parseTensors(void* buffer);
 
 } // ::oidn

@@ -22,7 +22,7 @@ namespace oidn {
   Device::Device()
   {
     affinity = std::make_shared<ThreadAffinity>(1); // one thread per core
-    arena = std::make_shared<tbb::task_arena>(affinity->num_threads());
+    arena = std::make_shared<tbb::task_arena>(affinity->numThreads());
     observer = std::make_shared<PinningObserver>(affinity, *arena);
   }
 
@@ -31,12 +31,12 @@ namespace oidn {
     observer.reset();
   }
 
-  Ref<Buffer> Device::new_buffer(void* ptr, size_t byte_size)
+  Ref<Buffer> Device::newBuffer(void* ptr, size_t byteSize)
   {
-    return make_ref<Buffer>(ptr, byte_size);
+    return make_ref<Buffer>(ptr, byteSize);
   }
 
-  Ref<Filter> Device::new_filter(const std::string& type)
+  Ref<Filter> Device::newFilter(const std::string& type)
   {
     Ref<Filter> filter;
 
