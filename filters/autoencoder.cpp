@@ -100,12 +100,12 @@ namespace oidn {
   {
     constexpr int spatialPad = 32; // the image must be padded spatially
 
-    int width = input.width;
-    int height = input.height;
+    const int width = input.width;
+    const int height = input.height;
 
     // Parse the weights
     void* weightPtr = weights::autoencoder_ldr_alb_nrm;
-    auto weightMap = parseTensors(weightPtr);
+    const auto weightMap = parseTensors(weightPtr);
 
     // Create the network
     std::shared_ptr<Network<K>> net = std::make_shared<Network<K>>(weightMap);
