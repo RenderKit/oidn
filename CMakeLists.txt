@@ -99,6 +99,7 @@ set(SOURCES
 )
 
 generate_cpp_resources(WEIGHTS_SOURCES "oidn::weights"
+  weights/autoencoder_ldr.tza
   weights/autoencoder_ldr_alb_nrm.tza
 )
 

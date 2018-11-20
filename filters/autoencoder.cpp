@@ -22,7 +22,8 @@ namespace oidn {
   // Trained weights stored in binary blobs
   namespace weights
   {
-    extern unsigned char autoencoder_ldr_alb_nrm[]; // LDR color, albedo, normal
+    extern unsigned char autoencoder_ldr[];         // LDR
+    extern unsigned char autoencoder_ldr_alb_nrm[]; // LDR, albedo, normal
   }
 
   Autoencoder::Autoencoder(const Ref<Device>& device)
@@ -70,13 +71,13 @@ namespace oidn {
 
   void Autoencoder::commit()
   {
-    if (!input || !inputAlbedo || !inputNormal)
-      throw std::runtime_error("input buffer(s) not specified");
+    if (!input)
+      throw std::runtime_error("input buffer not specified");
     if (!output)
       throw std::runtime_error("output buffer not specified");
-    if (inputAlbedo.width != input.width || inputAlbedo.height != input.height ||
-        inputNormal.width != input.width || inputNormal.height != input.height ||
-        output.width != input.width || output.height != input.height)
+    if ((inputAlbedo && (inputAlbedo.width != input.width || inputAlbedo.height != input.height)) ||
+        (inputNormal && (inputNormal.width != input.width || inputNormal.height != input.height)) ||
+        (output.width != input.width || output.height != input.height))
       throw std::runtime_error("buffer size mismatch");
 
     device->executeTask([&]()
@@ -105,7 +106,12 @@ namespace oidn {
     int inputC;
     void* weightPtr;
 
-    if (input && inputAlbedo && inputNormal)
+    if (input && !inputAlbedo && !inputNormal)
+    {
+      inputC = 3;
+      weightPtr = weights::autoencoder_ldr;
+    }
+    else if (input && inputAlbedo && inputNormal)
     {
       inputC = 9;
       weightPtr = weights::autoencoder_ldr_alb_nrm;
