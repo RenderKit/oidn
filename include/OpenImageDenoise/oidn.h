@@ -47,7 +47,6 @@ enum OIDNFormat
 // Device
 typedef struct OIDNDeviceImpl* OIDNDevice;
 
-// type: default or cpu.
 OIDN_API OIDNDevice oidnNewDevice(OIDNDeviceType type);
 
 OIDN_API void oidnRetainDevice(OIDNDevice device);
@@ -66,7 +65,7 @@ OIDN_API void oidnReleaseBuffer(OIDNBuffer buffer);
 // Filter
 typedef struct OIDNFilterImpl* OIDNFilter;
 
-// type: DPAE
+// type: Autoencoder
 OIDN_API OIDNFilter oidnNewFilter(OIDNDevice device, const char* type);
 
 OIDN_API void oidnRetainFilter(OIDNFilter filter);
