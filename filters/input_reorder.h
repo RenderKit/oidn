@@ -90,7 +90,7 @@ namespace oidn {
               const int hp = h < H1 ? h : 2*H1-2-h;
               const int wp = w < W1 ? w : 2*W1-2-w;
 
-              store3Transfer(h, w, 0, (float*)src.get(hp, wp));
+              storeColor3(h, w, 0, (float*)src.get(hp, wp));
               store3(h, w, 3, (float*)srcAlbedo.get(hp, wp));
               store3(h, w, 6, (float*)srcNormal.get(hp, wp));
             }
@@ -115,7 +115,7 @@ namespace oidn {
       store(h, w, c+2, values[2]);
     }
 
-    __forceinline void store3Transfer(int h, int w, int c, const float* values)
+    __forceinline void storeColor3(int h, int w, int c, const float* values)
     {
       store(h, w, c+0, transfer.forward(values[0]));
       store(h, w, c+1, transfer.forward(values[1]));

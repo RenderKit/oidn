@@ -22,9 +22,7 @@ namespace oidn {
   // Trained weights stored in binary blobs
   namespace weights
   {
-    // LDR color, albedo, normal
-    extern unsigned char autoencoder_ldr_alb_nrm[];
-    extern const size_t autoencoder_ldr_alb_nrm_size;
+    extern unsigned char autoencoder_ldr_alb_nrm[]; // LDR color, albedo, normal
   }
 
   Autoencoder::Autoencoder(const Ref<Device>& device)
