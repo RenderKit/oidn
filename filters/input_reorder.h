@@ -75,16 +75,20 @@ namespace oidn {
       const int H1 = src.height;
       const int W1 = src.width;
 
-      tbb::parallel_for(tbb::blocked_range<int>(0, H1),
+      tbb::parallel_for(tbb::blocked_range<int>(0, H2),
         [&](const tbb::blocked_range<int>& r)
         {
           for (int h = r.begin(); h != r.end(); ++h)
           {
-            for (int w = 0; w < W1; ++w)
+            for (int w = 0; w < W2; ++w)
             {
-              store3Transfer(h, w, 0, (float*)src.get(h, w));
-              store3(h, w, 3, (float*)srcAlbedo.get(h, w));
-              store3(h, w, 6, (float*)srcNormal.get(h, w));
+              // Mirror padding to avoid filtering artifacts near the edges
+              int hm = h < H1 ? h : 2*H1-h-2;
+              int wm = w < W1 ? w : 2*W1-w-2;
+
+              store3Transfer(h, w, 0, (float*)src.get(hm, wm));
+              store3(h, w, 3, (float*)srcAlbedo.get(hm, wm));
+              store3(h, w, 6, (float*)srcNormal.get(hm, wm));
             }
           }
         }, tbb::static_partitioner());
