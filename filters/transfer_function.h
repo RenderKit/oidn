@@ -20,44 +20,44 @@
 
 namespace oidn {
 
-class LinearTransferFunction
-{
-public:
-  __forceinline float forward(float x) const { return x; }
-  __forceinline float reverse(float x) const { return x; }
-};
-
-class SrgbTransferFunction
-{
-public:
-  __forceinline float forward(float x) const { return std::pow(x, 1.f/2.2f); }
-  __forceinline float reverse(float x) const { return std::pow(x, 2.2f); }
-};
-
-// HDR = Reinhard + sRGB
-class HdrTransferFunction
-{
-private:
-  float exposure;
-  float invExposure;
-
-public:
-  HdrTransferFunction(float exposure = 1.f)
-    : exposure(exposure),
-      invExposure(1.f / exposure)
-  {}
-
-  __forceinline float forward(float x) const
+  class LinearTransferFunction
   {
-    x *= exposure;
-    return std::pow(x / (1.f + x), 1.f/2.2f);
-  }
+  public:
+    __forceinline float forward(float x) const { return x; }
+    __forceinline float reverse(float x) const { return x; }
+  };
 
-  __forceinline float reverse(float x) const
+  class SrgbTransferFunction
   {
-    const float y = std::pow(x, 2.2f);
-    return (y / (1.f - y)) * invExposure;
-  }
-};
+  public:
+    __forceinline float forward(float x) const { return std::pow(x, 1.f/2.2f); }
+    __forceinline float reverse(float x) const { return std::pow(x, 2.2f); }
+  };
+
+  // HDR = Reinhard + sRGB
+  class HdrTransferFunction
+  {
+  private:
+    float exposure;
+    float invExposure;
+
+  public:
+    HdrTransferFunction(float exposure = 1.f)
+      : exposure(exposure),
+        invExposure(1.f / exposure)
+    {}
+
+    __forceinline float forward(float x) const
+    {
+      x *= exposure;
+      return std::pow(x / (1.f + x), 1.f/2.2f);
+    }
+
+    __forceinline float reverse(float x) const
+    {
+      const float y = std::pow(x, 2.2f);
+      return (y / (1.f - y)) * invExposure;
+    }
+  };
 
 } // ::oidn
