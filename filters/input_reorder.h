@@ -75,20 +75,24 @@ namespace oidn {
       const int H1 = src.height;
       const int W1 = src.width;
 
-      tbb::parallel_for(tbb::blocked_range<int>(0, H2),
+      // Do mirror padding to avoid filtering artifacts near the edges
+      const int Hp = std::min(H2, 2*H1-2);
+      const int Wp = std::min(W2, 2*W1-2);
+
+      tbb::parallel_for(tbb::blocked_range<int>(0, Hp),
         [&](const tbb::blocked_range<int>& r)
         {
           for (int h = r.begin(); h != r.end(); ++h)
           {
-            for (int w = 0; w < W2; ++w)
+            for (int w = 0; w < Wp; ++w)
             {
-              // Mirror padding to avoid filtering artifacts near the edges
-              int hm = h < H1 ? h : 2*H1-h-2;
-              int wm = w < W1 ? w : 2*W1-w-2;
+              // Compute mirror padded coords
+              const int hp = h < H1 ? h : 2*H1-2-h;
+              const int wp = w < W1 ? w : 2*W1-2-w;
 
-              store3Transfer(h, w, 0, (float*)src.get(hm, wm));
-              store3(h, w, 3, (float*)srcAlbedo.get(hm, wm));
-              store3(h, w, 6, (float*)srcNormal.get(hm, wm));
+              store3Transfer(h, w, 0, (float*)src.get(hp, wp));
+              store3(h, w, 3, (float*)srcAlbedo.get(hp, wp));
+              store3(h, w, 6, (float*)srcNormal.get(hp, wp));
             }
           }
         }, tbb::static_partitioner());
