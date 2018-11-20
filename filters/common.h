@@ -28,14 +28,14 @@ namespace oidn {
 
   inline memory::dims getTensorDims(const std::shared_ptr<memory>& mem)
   {
-    const mkldnn_memory_desc_t& md = mem->get_primitive_desc().desc().data;
-    return memory::dims(&md.dims[0], &md.dims[md.ndims]);
+    const mkldnn_memory_desc_t& desc = mem->get_primitive_desc().desc().data;
+    return memory::dims(&desc.dims[0], &desc.dims[desc.ndims]);
   }
 
   inline memory::data_type getTensorType(const std::shared_ptr<memory>& mem)
   {
-    const mkldnn_memory_desc_t& md = mem->get_primitive_desc().desc().data;
-    return memory::data_type(md.data_type);
+    const mkldnn_memory_desc_t& desc = mem->get_primitive_desc().desc().data;
+    return memory::data_type(desc.data_type);
   }
 
   // Returns the number of values in a tensor
@@ -85,16 +85,5 @@ namespace oidn {
     static constexpr memory::format nChwKc   = memory::format::nChw16c;
     static constexpr memory::format OIhwKiKo = memory::format::OIhw16i16o;
   };
-
-
-  __forceinline float linearToSrgb(float x)
-  {
-    return std::pow(x, 1.f/2.2f);
-  }
-
-  __forceinline float srgbToLinear(float x)
-  {
-    return std::pow(x, 2.2f);
-  }
 
 } // ::oidn

@@ -30,8 +30,8 @@ public:
 class SrgbTransferFunction
 {
 public:
-  __forceinline float forward(float x) const { return linearToSrgb(x); }
-  __forceinline float reverse(float x) const { return srgbToLinear(x); }
+  __forceinline float forward(float x) const { return std::pow(x, 1.f/2.2f); }
+  __forceinline float reverse(float x) const { return std::pow(x, 2.2f); }
 };
 
 } // ::oidn
