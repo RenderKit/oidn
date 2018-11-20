@@ -33,15 +33,15 @@ namespace oidn {
 
     BufferView2D output;
 
-    TransferFunction transfer;
+    std::shared_ptr<TransferFunction> transferFunc;
 
   public:
     OutputReorder(const std::shared_ptr<memory>& src,
                   const BufferView2D& output,
-                  const TransferFunction& transfer)
+                  const std::shared_ptr<TransferFunction>& transferFunc)
       : src(src),
         output(output),
-        transfer(transfer)
+        transferFunc(transferFunc)
     {
       memory::primitive_desc srcPrimDesc = src->get_primitive_desc();
       const mkldnn_memory_desc_t& srcDesc = srcPrimDesc.desc().data;
@@ -79,9 +79,9 @@ namespace oidn {
               // Source is in nChwKc format. In this case C is 1 so this is really nhwc
               const float* srcPtr_C = srcPtr + h*W1*C1 + w*C1;
 
-              dstPtr_C[0] = transfer.reverse(srcPtr_C[0]);
-              dstPtr_C[1] = transfer.reverse(srcPtr_C[1]);
-              dstPtr_C[2] = transfer.reverse(srcPtr_C[2]);
+              dstPtr_C[0] = transferFunc->reverse(srcPtr_C[0]);
+              dstPtr_C[1] = transferFunc->reverse(srcPtr_C[1]);
+              dstPtr_C[2] = transferFunc->reverse(srcPtr_C[2]);
             }
           }
         }, tbb::static_partitioner());

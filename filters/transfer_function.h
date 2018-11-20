@@ -20,22 +20,38 @@
 
 namespace oidn {
 
-  class LinearTransferFunction
+  class TransferFunction
   {
   public:
-    __forceinline float forward(float x) const { return x; }
-    __forceinline float reverse(float x) const { return x; }
+    virtual ~TransferFunction() = default;
+
+    virtual float forward(float x) const = 0;
+    virtual float reverse(float x) const = 0;
   };
 
-  class SrgbTransferFunction
+  class LinearTransferFunction : public TransferFunction
   {
   public:
-    __forceinline float forward(float x) const { return std::pow(x, 1.f/2.2f); }
-    __forceinline float reverse(float x) const { return std::pow(x, 2.2f); }
+    __forceinline float forward(float x) const override { return x; }
+    __forceinline float reverse(float x) const override { return x; }
+  };
+
+  class SrgbTransferFunction : public TransferFunction
+  {
+  public:
+    __forceinline float forward(float x) const override
+    {
+      return std::pow(x, 1.f/2.2f);
+    }
+
+    __forceinline float reverse(float x) const override
+    {
+      return std::pow(x, 2.2f);
+    }
   };
 
   // HDR = Reinhard + sRGB
-  class HdrTransferFunction
+  class HdrTransferFunction : public TransferFunction
   {
   private:
     float exposure;
@@ -43,19 +59,25 @@ namespace oidn {
 
   public:
     HdrTransferFunction(float exposure = 1.f)
-      : exposure(exposure),
-        invExposure(1.f / exposure)
-    {}
+    {
+      setExposure(exposure);
+    }
 
-    __forceinline float forward(float x) const
+    void setExposure(float exposure)
+    {
+      this->exposure = exposure;
+      this->invExposure = 1.f / exposure;
+    }
+
+    __forceinline float forward(float x) const override
     {
       x *= exposure;
       return std::pow(x / (1.f + x), 1.f/2.2f);
     }
 
-    __forceinline float reverse(float x) const
+    __forceinline float reverse(float x) const override
     {
-      const float y = std::pow(x, 2.2f);
+      const float y = std::min(std::pow(x, 2.2f), 0.9999999f); // must clamp due to low precision
       return (y / (1.f - y)) * invExposure;
     }
   };

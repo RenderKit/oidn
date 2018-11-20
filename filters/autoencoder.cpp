@@ -15,6 +15,7 @@
 // ======================================================================== //
 
 #include "transfer_function.h"
+#include "autoexposure.h"
 #include "autoencoder.h"
 
 namespace oidn {
@@ -94,7 +95,17 @@ namespace oidn {
 
   void Autoencoder::execute()
   {
-    device->executeTask([&]() { net->execute(); });
+    device->executeTask([&]()
+    {
+      if (hdr)
+      {
+        const float exposure = autoexposure(input);
+        //printf("exposure = %f\n", exposure);
+        std::static_pointer_cast<HdrTransferFunction>(transferFunc)->setExposure(exposure);
+      }
+
+      net->execute();
+    });
   }
 
   template<int K>
@@ -186,11 +197,26 @@ namespace oidn {
     auto inputReorderDst = net->castTensor(inputReorderDims, concat0Dst, unpool0Dims);
     std::shared_ptr<Node> inputReorder;
     if (srgb)
-      inputReorder = net->addInputReorder(input, inputAlbedo, inputNormal, LinearTransferFunction(), spatialPad, inputReorderDst);
+    {
+      transferFunc = std::make_shared<LinearTransferFunction>();
+      inputReorder = net->addInputReorder(input, inputAlbedo, inputNormal,
+                                          std::static_pointer_cast<LinearTransferFunction>(transferFunc),
+                                          spatialPad, inputReorderDst);
+    }
     else if (hdr)
-      inputReorder = net->addInputReorder(input, inputAlbedo, inputNormal, HdrTransferFunction(), spatialPad, inputReorderDst);
+    {
+      transferFunc = std::make_shared<HdrTransferFunction>();
+      inputReorder = net->addInputReorder(input, inputAlbedo, inputNormal,
+                                          std::static_pointer_cast<HdrTransferFunction>(transferFunc),
+                                          spatialPad, inputReorderDst);
+    }
     else
-      inputReorder = net->addInputReorder(input, inputAlbedo, inputNormal, SrgbTransferFunction(), spatialPad, inputReorderDst);
+    {
+      transferFunc = std::make_shared<SrgbTransferFunction>();
+      inputReorder = net->addInputReorder(input, inputAlbedo, inputNormal,
+                                          std::static_pointer_cast<SrgbTransferFunction>(transferFunc),
+                                          spatialPad, inputReorderDst);
+    }
 
     // conv1
     auto conv1 = net->addConv("conv1", inputReorder->getDst());
@@ -288,11 +314,11 @@ namespace oidn {
 
     // Output reorder
     if (srgb)
-      net->addOutputReorder(conv11->getDst(), LinearTransferFunction(), output);
+      net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<LinearTransferFunction>(transferFunc), output);
     else if (hdr)
-      net->addOutputReorder(conv11->getDst(), HdrTransferFunction(), output);
+      net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<HdrTransferFunction>(transferFunc), output);
     else
-      net->addOutputReorder(conv11->getDst(), SrgbTransferFunction(), output);
+      net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<SrgbTransferFunction>(transferFunc), output);
 
     return net;
   }

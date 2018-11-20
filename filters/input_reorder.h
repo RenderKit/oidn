@@ -36,17 +36,17 @@ namespace oidn {
     int H2;
     int W2;
 
-    TransferFunction transfer;
+    std::shared_ptr<TransferFunction> transferFunc;
 
   public:
     InputReorder(const BufferView2D& input,
                  const BufferView2D& inputAlbedo,
                  const BufferView2D& inputNormal,
                  const std::shared_ptr<memory>& dst,
-                 const TransferFunction& transfer)
+                 const std::shared_ptr<TransferFunction>& transferFunc)
       : input(input), inputAlbedo(inputAlbedo), inputNormal(inputNormal),
         dst(dst),
-        transfer(transfer)
+        transferFunc(transferFunc)
     {
       memory::primitive_desc dstPrimDesc = dst->get_primitive_desc();
       const mkldnn_memory_desc_t& dstDesc = dstPrimDesc.desc().data;
@@ -119,9 +119,9 @@ namespace oidn {
 
     __forceinline void storeColor3(int h, int w, int& c, const float* values)
     {
-      store(h, w, c, transfer.forward(values[0]));
-      store(h, w, c, transfer.forward(values[1]));
-      store(h, w, c, transfer.forward(values[2]));
+      store(h, w, c, transferFunc->forward(values[0]));
+      store(h, w, c, transferFunc->forward(values[1]));
+      store(h, w, c, transferFunc->forward(values[2]));
     }
   };
 

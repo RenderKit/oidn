@@ -18,6 +18,7 @@
 
 #include "filter.h"
 #include "network.h"
+#include "transfer_function.h"
 
 namespace oidn {
 
@@ -33,6 +34,7 @@ namespace oidn {
     bool hdr;
 
     std::shared_ptr<Node> net;
+    std::shared_ptr<TransferFunction> transferFunc;
 
   public:
     Autoencoder(const Ref<Device>& device);

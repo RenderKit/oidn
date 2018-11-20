@@ -16,44 +16,10 @@
 
 #pragma once
 
-#include "common.h"
+#include "buffer_view.h"
 
 namespace oidn {
 
-  struct BufferView2D
-  {
-    char* ptr;
-    int stride;
-    int width;
-    int height;
-    Format format;
-    Ref<Buffer> buffer;
-
-    BufferView2D() : ptr(nullptr), stride(0), width(0), height(0), format(Format::UNDEFINED) {}
-
-    BufferView2D(const Ref<Buffer>& buffer, size_t offset, int stride, int width, int height, Format format)
-      : ptr(buffer->data() + offset),
-        stride(stride),
-        width(width),
-        height(height),
-        format(format)
-    {
-    }
-
-    __forceinline char* get(int y, int x)
-    {
-      return ptr + ((size_t(y) * width) + x) * stride;
-    }
-
-    __forceinline const char* get(int y, int x) const
-    {
-      return ptr + ((size_t(y) * width) + x) * stride;
-    }
-
-    operator bool() const
-    {
-      return ptr != nullptr;
-    }
-  };
+  float autoexposure(const BufferView2D& input);
 
 } // ::oidn

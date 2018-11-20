@@ -95,6 +95,8 @@ set(SOURCES
   filters/network.cpp
   filters/autoencoder.h
   filters/autoencoder.cpp
+  filters/autoexposure.h
+  filters/autoexposure.cpp
   filters/api.cpp
 )
 

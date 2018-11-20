@@ -14,46 +14,48 @@
 // limitations under the License.                                           //
 // ======================================================================== //
 
-#pragma once
-
-#include "common.h"
+#include "autoexposure.h"
 
 namespace oidn {
 
-  struct BufferView2D
+  __forceinline float luminance(float r, float g, float b)
   {
-    char* ptr;
-    int stride;
-    int width;
-    int height;
-    Format format;
-    Ref<Buffer> buffer;
+    return 0.212671f*r + 0.715160f*g + 0.072169f*b;
+  }
 
-    BufferView2D() : ptr(nullptr), stride(0), width(0), height(0), format(Format::UNDEFINED) {}
+  float autoexposure(const BufferView2D& input)
+  {
+    constexpr float key = 0.18f;
 
-    BufferView2D(const Ref<Buffer>& buffer, size_t offset, int stride, int width, int height, Format format)
-      : ptr(buffer->data() + offset),
-        stride(stride),
-        width(width),
-        height(height),
-        format(format)
-    {
-    }
+    using Sum = std::pair<float, int>;
 
-    __forceinline char* get(int y, int x)
-    {
-      return ptr + ((size_t(y) * width) + x) * stride;
-    }
+    Sum sum =
+      tbb::parallel_reduce(
+        tbb::blocked_range<int>(0, input.height),
+        Sum(0.f, 0),
+        [&](const tbb::blocked_range<int>& r, Sum sum) -> Sum
+        {
+          for (int h = r.begin(); h != r.end(); ++h)
+          {
+            for (int w = 0; w < input.width; ++w)
+            {
+              const float* color = (const float*)input.get(h, w);
+              const float L = luminance(color[0], color[1], color[2]);
 
-    __forceinline const char* get(int y, int x) const
-    {
-      return ptr + ((size_t(y) * width) + x) * stride;
-    }
+              if (L > std::numeric_limits<float>::epsilon())
+              {
+                sum.first += std::log2(L);
+                sum.second++;
+              }
+            }
+          }
+          return sum;
+        },
+        [](Sum a, Sum b) -> Sum { return Sum(a.first+b.first, a.second+b.second); },
+        tbb::static_partitioner()
+      );
 
-    operator bool() const
-    {
-      return ptr != nullptr;
-    }
-  };
+    return (sum.second > 0) ? (key / std::exp2(sum.first / float(sum.second))) : 1.f;
+  }
 
 } // ::oidn
