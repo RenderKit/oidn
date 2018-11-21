@@ -34,34 +34,31 @@ namespace oidn {
   {
   }
 
-  void Autoencoder::setBuffer2D(const std::string& name, int slot, const BufferView2D& view)
+  void Autoencoder::setData2D(const std::string& name, const Data2D& data)
   {
-    if (slot != 0)
-      throw std::invalid_argument("invalid buffer slot");
-
-    if (name == "input")
+    if (name == "color")
     {
-      if (view.format != Format::FLOAT3)
+      if (data.format != Format::FLOAT3)
         throw std::invalid_argument("invalid buffer format");
-      input = view;
+      color = data;
     }
-    else if (name == "inputAlbedo")
+    else if (name == "albedo")
     {
-      if (view.format != Format::FLOAT3)
+      if (data.format != Format::FLOAT3)
         throw std::invalid_argument("invalid buffer format");
-      inputAlbedo = view;
+      albedo = data;
     }
-    else if (name == "inputNormal")
+    else if (name == "normal")
     {
-      if (view.format != Format::FLOAT3)
+      if (data.format != Format::FLOAT3)
         throw std::invalid_argument("invalid buffer format");
-      inputNormal = view;
+      normal = data;
     }
     else if (name == "output")
     {
-      if (view.format != Format::FLOAT3)
+      if (data.format != Format::FLOAT3)
         throw std::invalid_argument("invalid buffer format");
-      output = view;
+      output = data;
     }
   }
 
@@ -75,13 +72,13 @@ namespace oidn {
 
   void Autoencoder::commit()
   {
-    if (!input)
+    if (!color)
       throw std::runtime_error("input buffer not specified");
     if (!output)
       throw std::runtime_error("output buffer not specified");
-    if ((inputAlbedo && (inputAlbedo.width != input.width || inputAlbedo.height != input.height)) ||
-        (inputNormal && (inputNormal.width != input.width || inputNormal.height != input.height)) ||
-        (output.width != input.width || output.height != input.height))
+    if ((albedo && (albedo.width != color.width || albedo.height != color.height)) ||
+        (normal && (normal.width != color.width || normal.height != color.height)) ||
+        (output.width != color.width || output.height != color.height))
       throw std::runtime_error("buffer size mismatch");
 
     device->executeTask([&]()
@@ -99,7 +96,7 @@ namespace oidn {
     {
       if (hdr)
       {
-        const float exposure = autoexposure(input);
+        const float exposure = autoexposure(color);
         //printf("exposure = %f\n", exposure);
         std::static_pointer_cast<HdrTransferFunction>(transferFunc)->setExposure(exposure);
       }
@@ -113,8 +110,8 @@ namespace oidn {
   {
     constexpr int spatialPad = 32; // the image must be padded spatially
 
-    const int width = input.width;
-    const int height = input.height;
+    const int width = color.width;
+    const int height = color.height;
 
     // Configure the network
     int inputC;
@@ -123,12 +120,12 @@ namespace oidn {
     if (srgb && hdr)
       throw std::runtime_error("srgb and hdr modes cannot be enabled at the same time");
 
-    if (input && !inputAlbedo && !inputNormal)
+    if (color && !albedo && !normal)
     {
       inputC = 3;
       weightPtr = weights::autoencoder_ldr;
     }
-    else if (input && inputAlbedo && inputNormal)
+    else if (color && albedo && normal)
     {
       inputC = 9;
       weightPtr = weights::autoencoder_ldr_alb_nrm;
@@ -199,21 +196,21 @@ namespace oidn {
     if (srgb)
     {
       transferFunc = std::make_shared<LinearTransferFunction>();
-      inputReorder = net->addInputReorder(input, inputAlbedo, inputNormal,
+      inputReorder = net->addInputReorder(color, albedo, normal,
                                           std::static_pointer_cast<LinearTransferFunction>(transferFunc),
                                           spatialPad, inputReorderDst);
     }
     else if (hdr)
     {
       transferFunc = std::make_shared<HdrTransferFunction>();
-      inputReorder = net->addInputReorder(input, inputAlbedo, inputNormal,
+      inputReorder = net->addInputReorder(color, albedo, normal,
                                           std::static_pointer_cast<HdrTransferFunction>(transferFunc),
                                           spatialPad, inputReorderDst);
     }
     else
     {
       transferFunc = std::make_shared<SrgbTransferFunction>();
-      inputReorder = net->addInputReorder(input, inputAlbedo, inputNormal,
+      inputReorder = net->addInputReorder(color, albedo, normal,
                                           std::static_pointer_cast<SrgbTransferFunction>(transferFunc),
                                           spatialPad, inputReorderDst);
     }

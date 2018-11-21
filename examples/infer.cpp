@@ -53,10 +53,10 @@ int main(int argc, char **argv)
   OIDN::Filter filter = device.newFilter("Autoencoder");
 
   const size_t F = sizeof(float);
-  filter.setBuffer2D("input",       0, OIDN::Format::FLOAT3, input.data,  0*F, 9*F, W, H);
-  filter.setBuffer2D("inputAlbedo", 0, OIDN::Format::FLOAT3, input.data,  3*F, 9*F, W, H);
-  filter.setBuffer2D("inputNormal", 0, OIDN::Format::FLOAT3, input.data,  6*F, 9*F, W, H);
-  filter.setBuffer2D("output",      0, OIDN::Format::FLOAT3, output.data, 0*F, 3*F, W, H);
+  filter.setData2D("color",  input.data,  OIDN::Format::FLOAT3, W, H, 0*F, 9*F);
+  filter.setData2D("albedo", input.data,  OIDN::Format::FLOAT3, W, H, 3*F, 9*F);
+  filter.setData2D("normal", input.data,  OIDN::Format::FLOAT3, W, H, 6*F, 9*F);
+  filter.setData2D("output", output.data, OIDN::Format::FLOAT3, W, H, 0*F, 3*F);
   filter.set1i("srgb", 1);
 
   filter.commit();

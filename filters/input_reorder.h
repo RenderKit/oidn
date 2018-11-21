@@ -17,7 +17,7 @@
 #pragma once
 
 #include "node.h"
-#include "buffer_view.h"
+#include "data.h"
 
 namespace oidn {
 
@@ -26,9 +26,9 @@ namespace oidn {
   class InputReorder : public Node
   {
   private:
-    BufferView2D input;
-    BufferView2D inputAlbedo;
-    BufferView2D inputNormal;
+    Data2D color;
+    Data2D albedo;
+    Data2D normal;
 
     std::shared_ptr<memory> dst;
     float* dstPtr;
@@ -39,12 +39,12 @@ namespace oidn {
     std::shared_ptr<TransferFunction> transferFunc;
 
   public:
-    InputReorder(const BufferView2D& input,
-                 const BufferView2D& inputAlbedo,
-                 const BufferView2D& inputNormal,
+    InputReorder(const Data2D& color,
+                 const Data2D& albedo,
+                 const Data2D& normal,
                  const std::shared_ptr<memory>& dst,
                  const std::shared_ptr<TransferFunction>& transferFunc)
-      : input(input), inputAlbedo(inputAlbedo), inputNormal(inputNormal),
+      : color(color), albedo(albedo), normal(normal),
         dst(dst),
         transferFunc(transferFunc)
     {
@@ -70,8 +70,8 @@ namespace oidn {
 
     void execute() override
     {
-      const int H1 = input.height;
-      const int W1 = input.width;
+      const int H1 = color.height;
+      const int W1 = color.width;
 
       // Do mirror padding to avoid filtering artifacts near the edges
       const int H = std::min(H2, 2*H1-2);
@@ -89,11 +89,11 @@ namespace oidn {
               const int w1 = w < W1 ? w : 2*W1-2-w;
 
               int c = 0;
-              storeColor3(h, w, c, (float*)input.get(h1, w1));
-              if (inputAlbedo)
-                store3(h, w, c, (float*)inputAlbedo.get(h1, w1));
-              if (inputNormal)
-                store3(h, w, c, (float*)inputNormal.get(h1, w1));
+              storeColor3(h, w, c, (float*)color.get(h1, w1));
+              if (albedo)
+                store3(h, w, c, (float*)albedo.get(h1, w1));
+              if (normal)
+                store3(h, w, c, (float*)normal.get(h1, w1));
             }
           }
         }, tbb::static_partitioner());

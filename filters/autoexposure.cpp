@@ -23,8 +23,9 @@ namespace oidn {
     return 0.212671f * r + 0.715160f * g + 0.072169f * b;
   }
 
-  float autoexposure(const BufferView2D& input)
+  float autoexposure(const Data2D& input)
   {
+    assert(input.format == Format::FLOAT3);
     constexpr float key = 0.18f;
 
     using Sum = std::pair<float, int>;

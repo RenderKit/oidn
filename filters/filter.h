@@ -18,7 +18,7 @@
 
 #include "common.h"
 #include "device.h"
-#include "buffer_view.h"
+#include "data.h"
 
 namespace oidn {
 
@@ -30,7 +30,7 @@ namespace oidn {
   public:
     explicit Filter(const Ref<Device>& device) : device(device) {}
 
-    virtual void setBuffer2D(const std::string& name, int slot, const BufferView2D& view) = 0;
+    virtual void setData2D(const std::string& name, const Data2D& data) = 0;
     virtual void set1i(const std::string& name, int value) {};
     virtual void commit() = 0;
     virtual void execute() = 0;

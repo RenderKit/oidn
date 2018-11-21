@@ -98,29 +98,27 @@ namespace oidn {
     filter->decRef();
   }
 
-  OIDN_API void oidnSetFilterBuffer2D(OIDNFilter hfilter, const char* name, unsigned int slot,
-                                      OIDNFormat format,
-                                      OIDNBuffer hbuffer, size_t byteOffset, size_t byteStride,
-                                      size_t width, size_t height)
+  OIDN_API void oidnSetFilterData2D(OIDNFilter hfilter, const char* name,
+                                    OIDNBuffer hbuffer, OIDNFormat format,
+                                    size_t width, size_t height,
+                                    size_t byteOffset, size_t byteStride, size_t byteRowStride)
   {
     std::lock_guard<std::mutex> lock(api_mutex);
     Filter* filter = (Filter*)hfilter;
     Ref<Buffer> buffer = (Buffer*)hbuffer;
-    BufferView2D view(buffer, byteOffset, (int)byteStride, (int)width, (int)height, (Format)format);
-    filter->setBuffer2D(name, slot, view);
+    Data2D data(buffer, (Format)format, (int)width, (int)height, byteOffset, byteStride, byteRowStride);
+    filter->setData2D(name, data);
   }
 
-  OIDN_API void oidnSetSharedFilterBuffer2D(OIDNFilter hfilter, const char* name, unsigned int slot,
-                                            OIDNFormat format,
-                                            const void* ptr, size_t byteOffset, size_t byteStride,
-                                            size_t width, size_t height)
+  OIDN_API void oidnSetSharedFilterData2D(OIDNFilter hfilter, const char* name,
+                                          void* ptr, OIDNFormat format,
+                                          size_t width, size_t height,
+                                          size_t byteOffset, size_t byteStride, size_t byteRowStride)
   {
     std::lock_guard<std::mutex> lock(api_mutex);
     Filter* filter = (Filter*)hfilter;
-    size_t byteSize = width * height * byteStride;
-    Ref<Buffer> buffer = filter->getDevice()->newBuffer((char*)ptr + byteOffset, byteSize);
-    BufferView2D view(buffer, 0, (int)byteStride, (int)width, (int)height, (Format)format);
-    filter->setBuffer2D(name, slot, view);
+    Data2D data(ptr, (Format)format, (int)width, (int)height, byteOffset, byteStride, byteRowStride);
+    filter->setData2D(name, data);
   }
 
   OIDN_API void oidnSetFilter1i(OIDNFilter hfilter, const char* name, int value)

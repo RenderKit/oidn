@@ -26,10 +26,10 @@ namespace oidn {
   class Autoencoder : public Filter
   {
   private:
-    BufferView2D input;
-    BufferView2D inputAlbedo;
-    BufferView2D inputNormal;
-    BufferView2D output;
+    Data2D color;
+    Data2D albedo;
+    Data2D normal;
+    Data2D output;
     bool srgb;
     bool hdr;
 
@@ -39,7 +39,7 @@ namespace oidn {
   public:
     Autoencoder(const Ref<Device>& device);
 
-    void setBuffer2D(const std::string& name, int slot, const BufferView2D& view) override;
+    void setData2D(const std::string& name, const Data2D& data) override;
     void set1i(const std::string& name, int value) override;
     void commit() override;
     void execute() override;

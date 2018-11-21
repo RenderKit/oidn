@@ -158,22 +158,26 @@ namespace OIDN {
       return handle;
     }
 
-    void setBuffer2D(const char* name, unsigned int slot, Format format,
-                     const Buffer& buffer, size_t byteOffset, size_t byteStride,
-                     size_t width, size_t height)
+    void setData2D(const char* name,
+                   const Buffer& buffer, Format format,
+                   size_t width, size_t height,
+                   size_t byteOffset = 0, size_t byteStride = 0, size_t byteRowStride = 0)
     {
-      oidnSetFilterBuffer2D(handle, name, slot, (OIDNFormat)format,
-                            buffer.get(), byteOffset, byteStride,
-                            width, height);
+      oidnSetFilterData2D(handle, name,
+                          buffer.get(), (OIDNFormat)format,
+                          width, height,
+                          byteOffset, byteStride, byteRowStride);
     }
 
-    void setBuffer2D(const char* name, unsigned int slot, Format format,
-                     const void* ptr, size_t byteOffset, size_t byteStride,
-                     size_t width, size_t height)
+    void setData2D(const char* name,
+                   void* ptr, Format format,
+                   size_t width, size_t height,
+                   size_t byteOffset = 0, size_t byteStride = 0, size_t byteRowStride = 0)
     {
-      oidnSetSharedFilterBuffer2D(handle, name, slot, (OIDNFormat)format,
-                                  ptr, byteOffset, byteStride,
-                                  width, height);
+      oidnSetSharedFilterData2D(handle, name,
+                                ptr, (OIDNFormat)format,
+                                width, height,
+                                byteOffset, byteStride, byteRowStride);
     }
 
     void set1i(const char* name, int value)

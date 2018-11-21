@@ -15,7 +15,7 @@
 // ======================================================================== //
 
 #include "common/tensor.h"
-#include "buffer_view.h"
+#include "data.h"
 #include "node.h"
 #include "input_reorder.h"
 #include "output_reorder.h"
@@ -51,9 +51,9 @@ namespace oidn {
     memory::dims getInputReorderDims(const memory::dims& srcDims, int spatialPad);
 
     template<class TransferFunction>
-    std::shared_ptr<Node> addInputReorder(const BufferView2D& input,
-                                          const BufferView2D& inputAlbedo,
-                                          const BufferView2D& inputNormal,
+    std::shared_ptr<Node> addInputReorder(const Data2D& color,
+                                          const Data2D& albedo,
+                                          const Data2D& normal,
                                           const std::shared_ptr<TransferFunction>& transferFunc,
                                           int spatialPad,
                                           const std::shared_ptr<memory>& userDst = nullptr);
@@ -61,7 +61,7 @@ namespace oidn {
     template<class TransferFunction>
     std::shared_ptr<Node> addOutputReorder(const std::shared_ptr<memory>& src,
                                            const std::shared_ptr<TransferFunction>& transferFunc,
-                                           const BufferView2D& output);
+                                           const Data2D& output);
 
     memory::dims getConvDims(const std::string& name, const memory::dims& srcDims);
     std::shared_ptr<Node> addConv(const std::string& name,
@@ -87,19 +87,19 @@ namespace oidn {
 
   template<int K>
   template<class TransferFunction>
-  std::shared_ptr<Node> Network<K>::addInputReorder(const BufferView2D& input,
-                                                    const BufferView2D& inputAlbedo,
-                                                    const BufferView2D& inputNormal,
+  std::shared_ptr<Node> Network<K>::addInputReorder(const Data2D& color,
+                                                    const Data2D& albedo,
+                                                    const Data2D& normal,
                                                     const std::shared_ptr<TransferFunction>& transferFunc,
                                                     int spatialPad,
                                                     const std::shared_ptr<memory>& userDst)
   {
     assert(input);
     int inputC = 3;
-    if (inputAlbedo) inputC += 3;
-    if (inputNormal) inputC += 3;
+    if (albedo) inputC += 3;
+    if (normal) inputC += 3;
 
-    memory::dims srcDims = {1, inputC, input.height, input.width};
+    memory::dims srcDims = {1, inputC, color.height, color.width};
     memory::dims dstDims = getInputReorderDims(srcDims, spatialPad);
 
     // Allocate padded memory
@@ -109,7 +109,7 @@ namespace oidn {
     assert(getTensorDims(dst) == dstDims);
 
     // Push node
-    auto node = std::make_shared<InputReorder<K, TransferFunction>>(input, inputAlbedo, inputNormal, dst, transferFunc);
+    auto node = std::make_shared<InputReorder<K, TransferFunction>>(color, albedo, normal, dst, transferFunc);
     nodes.push_back(node);
     return node;
   }
@@ -118,7 +118,7 @@ namespace oidn {
   template<class TransferFunction>
   std::shared_ptr<Node> Network<K>::addOutputReorder(const std::shared_ptr<memory>& src,
                                                      const std::shared_ptr<TransferFunction>& transferFunc,
-                                                     const BufferView2D& output)
+                                                     const Data2D& output)
   {
     memory::dims srcDims = getTensorDims(src);
     assert(srcDims[1] == K);

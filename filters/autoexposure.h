@@ -16,10 +16,10 @@
 
 #pragma once
 
-#include "buffer_view.h"
+#include "data.h"
 
 namespace oidn {
 
-  float autoexposure(const BufferView2D& input);
+  float autoexposure(const Data2D& input);
 
 } // ::oidn

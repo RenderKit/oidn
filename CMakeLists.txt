@@ -83,7 +83,7 @@ set(SOURCES
   filters/common.h
   filters/device.h
   filters/device.cpp
-  filters/buffer_view.h
+  filters/data.h
   filters/filter.h
   filters/transfer_function.h
   filters/node.h

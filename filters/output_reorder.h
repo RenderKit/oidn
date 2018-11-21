@@ -17,7 +17,7 @@
 #pragma once
 
 #include "node.h"
-#include "buffer_view.h"
+#include "data.h"
 
 namespace oidn {
 
@@ -31,13 +31,13 @@ namespace oidn {
     int H1;
     int W1;
 
-    BufferView2D output;
+    Data2D output;
 
     std::shared_ptr<TransferFunction> transferFunc;
 
   public:
     OutputReorder(const std::shared_ptr<memory>& src,
-                  const BufferView2D& output,
+                  const Data2D& output,
                   const std::shared_ptr<TransferFunction>& transferFunc)
       : src(src),
         output(output),

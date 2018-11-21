@@ -72,15 +72,15 @@ OIDN_API void oidnRetainFilter(OIDNFilter filter);
 
 OIDN_API void oidnReleaseFilter(OIDNFilter filter);
 
-OIDN_API void oidnSetFilterBuffer2D(OIDNFilter filter, const char* name, unsigned int slot,
-                                    enum OIDNFormat format,
-                                    OIDNBuffer buffer, size_t byteOffset, size_t byteStride,
-                                    size_t width, size_t height);
+OIDN_API void oidnSetFilterData2D(OIDNFilter filter, const char* name,
+                                  OIDNBuffer buffer, enum OIDNFormat format,
+                                  size_t width, size_t height,
+                                  size_t byteOffset, size_t byteStride, size_t byteRowStride);
 
-OIDN_API void oidnSetSharedFilterBuffer2D(OIDNFilter filter, const char* name, unsigned int slot,
-                                          enum OIDNFormat format,
-                                          const void* ptr, size_t byteOffset, size_t byteStride,
-                                          size_t width, size_t height);
+OIDN_API void oidnSetSharedFilterData2D(OIDNFilter filter, const char* name,
+                                        void* ptr, enum OIDNFormat format,
+                                        size_t width, size_t height,
+                                        size_t byteOffset, size_t byteStride, size_t byteRowStride);
 
 OIDN_API void oidnSetFilter1i(OIDNFilter filter, const char* name, int value);
 

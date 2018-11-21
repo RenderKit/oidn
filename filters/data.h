@@ -20,34 +20,59 @@
 
 namespace oidn {
 
-  struct BufferView2D
+  inline size_t getDataStride(Format format)
+  {
+    switch (format)
+    {
+    case Format::UNDEFINED: return 1;
+    case Format::FLOAT:     return sizeof(float);
+    case Format::FLOAT2:    return sizeof(float)*2;
+    case Format::FLOAT3:    return sizeof(float)*3;
+    }
+    assert(0);
+    return 0;
+  }
+
+  struct Data2D
   {
     char* ptr;
-    int stride;
     int width;
     int height;
+    size_t stride;
+    size_t rowStride;
     Format format;
     Ref<Buffer> buffer;
 
-    BufferView2D() : ptr(nullptr), stride(0), width(0), height(0), format(Format::UNDEFINED) {}
+    Data2D() : ptr(nullptr), width(0), height(0), stride(0), rowStride(0), format(Format::UNDEFINED) {}
 
-    BufferView2D(const Ref<Buffer>& buffer, size_t offset, int stride, int width, int height, Format format)
-      : ptr(buffer->data() + offset),
-        stride(stride),
-        width(width),
-        height(height),
-        format(format)
+    Data2D(void* ptr, Format format, int width, int height, size_t offset, size_t stride, size_t rowStride)
     {
+      init((char*)ptr + offset, format, width, height, stride, rowStride);
+    }
+
+    Data2D(const Ref<Buffer>& buffer, Format format, int width, int height, size_t offset, size_t stride, size_t rowStride)
+    {
+      init(buffer->data() + offset, format, width, height, stride, rowStride);
+    }
+
+    void init(char* ptr, Format format, int width, int height, size_t stride, size_t rowStride)
+    {
+      this->ptr = ptr;
+      this->width = width;
+      this->height = height;
+      this->stride = (stride != 0) ? stride : getDataStride(format);
+      this->rowStride = (rowStride != 0) ? rowStride : (width * this->stride);
+      this->format = format;
     }
 
     __forceinline char* get(int y, int x)
     {
-      return ptr + ((size_t(y) * width) + x) * stride;
+      return ptr + (size_t(y) * rowStride) + (size_t(x) * stride);
     }
 
     __forceinline const char* get(int y, int x) const
     {
-      return ptr + ((size_t(y) * width) + x) * stride;
+      return ptr + (size_t(y) * rowStride) + (size_t(x) * stride);
     }
 
     operator bool() const
