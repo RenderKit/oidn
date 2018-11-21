@@ -38,25 +38,25 @@ namespace oidn {
   {
     if (name == "color")
     {
-      if (data.format != Format::FLOAT3)
+      if (data.format != Format::Float3)
         throw std::invalid_argument("invalid buffer format");
       color = data;
     }
     else if (name == "albedo")
     {
-      if (data.format != Format::FLOAT3)
+      if (data.format != Format::Float3)
         throw std::invalid_argument("invalid buffer format");
       albedo = data;
     }
     else if (name == "normal")
     {
-      if (data.format != Format::FLOAT3)
+      if (data.format != Format::Float3)
         throw std::invalid_argument("invalid buffer format");
       normal = data;
     }
     else if (name == "output")
     {
-      if (data.format != Format::FLOAT3)
+      if (data.format != Format::Float3)
         throw std::invalid_argument("invalid buffer format");
       output = data;
     }

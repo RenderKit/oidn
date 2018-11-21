@@ -24,10 +24,10 @@ namespace oidn {
   {
     switch (format)
     {
-    case Format::UNDEFINED: return 1;
-    case Format::FLOAT:     return sizeof(float);
-    case Format::FLOAT2:    return sizeof(float)*2;
-    case Format::FLOAT3:    return sizeof(float)*3;
+    case Format::Undefined: return 1;
+    case Format::Float:     return sizeof(float);
+    case Format::Float2:    return sizeof(float)*2;
+    case Format::Float3:    return sizeof(float)*3;
     }
     assert(0);
     return 0;
@@ -43,7 +43,7 @@ namespace oidn {
     Format format;
     Ref<Buffer> buffer;
 
-    Data2D() : ptr(nullptr), width(0), height(0), stride(0), rowStride(0), format(Format::UNDEFINED) {}
+    Data2D() : ptr(nullptr), width(0), height(0), stride(0), rowStride(0), format(Format::Undefined) {}
 
     Data2D(void* ptr, Format format, int width, int height, size_t offset, size_t stride, size_t rowStride)
     {

@@ -19,7 +19,7 @@
 #include <algorithm>
 #include "oidn.h"
 
-namespace OIDN {
+namespace oidn {
 
   enum class DeviceType
   {
@@ -28,35 +28,35 @@ namespace OIDN {
 
   enum class Format
   {
-    UNDEFINED = OIDN_FORMAT_UNDEFINED,
+    Undefined = OIDN_FORMAT_UNDEFINED,
 
-    FLOAT  = OIDN_FORMAT_FLOAT,
-    FLOAT2 = OIDN_FORMAT_FLOAT2,
-    FLOAT3 = OIDN_FORMAT_FLOAT3,
+    Float  = OIDN_FORMAT_FLOAT,
+    Float2 = OIDN_FORMAT_FLOAT2,
+    Float3 = OIDN_FORMAT_FLOAT3,
   };
 
-  // Buffer object with reference counting
-  class Buffer
+  // Buffer object with automatic reference counting
+  class BufferRef
   {
   private:
     OIDNBuffer handle;
 
   public:
-    Buffer() : handle(nullptr) {}
-    Buffer(OIDNBuffer handle) : handle(handle) {}
+    BufferRef() : handle(nullptr) {}
+    BufferRef(OIDNBuffer handle) : handle(handle) {}
 
-    Buffer(const Buffer& other) : handle(other.handle)
+    BufferRef(const BufferRef& other) : handle(other.handle)
     {
       if (handle)
         oidnRetainBuffer(handle);
     }
 
-    Buffer(Buffer&& other) : handle(other.handle)
+    BufferRef(BufferRef&& other) : handle(other.handle)
     {
       other.handle = nullptr;
     }
 
-    Buffer& operator =(const Buffer& other)
+    BufferRef& operator =(const BufferRef& other)
     {
       if (&other != this)
       {
@@ -69,13 +69,13 @@ namespace OIDN {
       return *this;
     }
 
-    Buffer& operator =(Buffer&& other)
+    BufferRef& operator =(BufferRef&& other)
     {
       std::swap(handle, other.handle);
       return *this;
     }
 
-    Buffer& operator =(OIDNBuffer other)
+    BufferRef& operator =(OIDNBuffer other)
     {
       if (other)
         oidnRetainBuffer(other);
@@ -85,40 +85,40 @@ namespace OIDN {
       return *this;
     }
 
-    ~Buffer()
+    ~BufferRef()
     {
       if (handle)
         oidnReleaseBuffer(handle);
     }
 
-    OIDNBuffer get() const
+    OIDNBuffer getHandle() const
     {
       return handle;
     }
   };
 
-  // Filter object with reference counting
-  class Filter
+  // Filter object with automatic reference counting
+  class FilterRef
   {
   private:
     OIDNFilter handle;
 
   public:
-    Filter() : handle(nullptr) {}
-    Filter(OIDNFilter handle) : handle(handle) {}
+    FilterRef() : handle(nullptr) {}
+    FilterRef(OIDNFilter handle) : handle(handle) {}
 
-    Filter(const Filter& other) : handle(other.handle)
+    FilterRef(const FilterRef& other) : handle(other.handle)
     {
       if (handle)
         oidnRetainFilter(handle);
     }
 
-    Filter(Filter&& other) : handle(other.handle)
+    FilterRef(FilterRef&& other) : handle(other.handle)
     {
       other.handle = nullptr;
     }
 
-    Filter& operator =(const Filter& other)
+    FilterRef& operator =(const FilterRef& other)
     {
       if (&other != this)
       {
@@ -131,13 +131,13 @@ namespace OIDN {
       return *this;
     }
 
-    Filter& operator =(Filter&& other)
+    FilterRef& operator =(FilterRef&& other)
     {
       std::swap(handle, other.handle);
       return *this;
     }
 
-    Filter& operator =(OIDNFilter other)
+    FilterRef& operator =(OIDNFilter other)
     {
       if (other)
         oidnRetainFilter(other);
@@ -147,24 +147,24 @@ namespace OIDN {
       return *this;
     }
 
-    ~Filter()
+    ~FilterRef()
     {
       if (handle)
         oidnReleaseFilter(handle);
     }
 
-    OIDNFilter get() const
+    OIDNFilter getHandle() const
     {
       return handle;
     }
 
     void setData2D(const char* name,
-                   const Buffer& buffer, Format format,
+                   const BufferRef& buffer, Format format,
                    size_t width, size_t height,
                    size_t byteOffset = 0, size_t byteStride = 0, size_t byteRowStride = 0)
     {
       oidnSetFilterData2D(handle, name,
-                          buffer.get(), (OIDNFormat)format,
+                          buffer.getHandle(), (OIDNFormat)format,
                           width, height,
                           byteOffset, byteStride, byteRowStride);
     }
@@ -196,28 +196,28 @@ namespace OIDN {
     }
   };
 
-  // Device object with reference counting
-  class Device
+  // Device object with automatic reference counting
+  class DeviceRef
   {
   private:
     OIDNDevice handle;
 
   public:
-    Device() : handle(nullptr) {}
-    Device(OIDNDevice handle) : handle(handle) {}
+    DeviceRef() : handle(nullptr) {}
+    DeviceRef(OIDNDevice handle) : handle(handle) {}
 
-    Device(const Device& other) : handle(other.handle)
+    DeviceRef(const DeviceRef& other) : handle(other.handle)
     {
       if (handle)
         oidnRetainDevice(handle);
     }
 
-    Device(Device&& other) : handle(other.handle)
+    DeviceRef(DeviceRef&& other) : handle(other.handle)
     {
       other.handle = nullptr;
     }
 
-    Device& operator =(const Device& other)
+    DeviceRef& operator =(const DeviceRef& other)
     {
       if (&other != this)
       {
@@ -230,13 +230,13 @@ namespace OIDN {
       return *this;
     }
 
-    Device& operator =(Device&& other)
+    DeviceRef& operator =(DeviceRef&& other)
     {
       std::swap(handle, other.handle);
       return *this;
     }
 
-    Device& operator =(OIDNDevice other)
+    DeviceRef& operator =(OIDNDevice other)
     {
       if (other)
         oidnRetainDevice(other);
@@ -246,36 +246,36 @@ namespace OIDN {
       return *this;
     }
 
-    ~Device()
+    ~DeviceRef()
     {
       if (handle)
         oidnReleaseDevice(handle);
     }
 
-    OIDNDevice get() const
+    OIDNDevice getHandle() const
     {
       return handle;
     }
 
-    Buffer newBuffer(size_t byteSize)
+    BufferRef newBuffer(size_t byteSize)
     {
       return oidnNewBuffer(handle, byteSize);
     }
 
-    Buffer newBuffer(void* ptr, size_t byteSize)
+    BufferRef newBuffer(void* ptr, size_t byteSize)
     {
       return oidnNewSharedBuffer(handle, ptr, byteSize);
     }
 
-    Filter newFilter(const char* type)
+    FilterRef newFilter(const char* type)
     {
       return oidnNewFilter(handle, type);
     }
   };
 
-  inline Device newDevice(DeviceType type)
+  inline DeviceRef newDevice(DeviceType type)
   {
-    return Device(oidnNewDevice((OIDNDeviceType)type));
+    return DeviceRef(oidnNewDevice((OIDNDeviceType)type));
   }
 
-} // ::OIDN
+} // ::oidn

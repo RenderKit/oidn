@@ -24,8 +24,6 @@
 
 namespace oidn {
 
-  using OIDN::Format;
-
   inline memory::dims getTensorDims(const std::shared_ptr<memory>& mem)
   {
     const mkldnn_memory_desc_t& desc = mem->get_primitive_desc().desc().data;
