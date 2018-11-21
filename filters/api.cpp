@@ -26,11 +26,11 @@
 
 namespace oidn {
 
-  static std::mutex api_mutex;
+  static std::mutex apiMutex;
 
   OIDN_API OIDNDevice oidnNewDevice(OIDNDeviceType type)
   {
-    std::lock_guard<std::mutex> lock(api_mutex);
+    std::lock_guard<std::mutex> lock(apiMutex);
 
     Ref<Device> device = nullptr;
 
@@ -42,21 +42,21 @@ namespace oidn {
 
   OIDN_API void oidnRetainDevice(OIDNDevice hdevice)
   {
-    std::lock_guard<std::mutex> lock(api_mutex);
+    std::lock_guard<std::mutex> lock(apiMutex);
     Device* device = (Device*)hdevice;
     device->incRef();
   }
 
   OIDN_API void oidnReleaseDevice(OIDNDevice hdevice)
   {
-    std::lock_guard<std::mutex> lock(api_mutex);
+    std::lock_guard<std::mutex> lock(apiMutex);
     Device* device = (Device*)hdevice;
     device->decRef();
   }
 
   OIDN_API OIDNBuffer oidnNewSharedBuffer(OIDNDevice hdevice, void* ptr, size_t byteSize)
   {
-    std::lock_guard<std::mutex> lock(api_mutex);
+    std::lock_guard<std::mutex> lock(apiMutex);
     Device* device = (Device*)hdevice;
     Ref<Buffer> buffer = device->newBuffer(ptr, byteSize);
     return (OIDNBuffer)buffer.detach();
@@ -64,21 +64,21 @@ namespace oidn {
 
   OIDN_API void oidnRetainBuffer(OIDNBuffer hbuffer)
   {
-    std::lock_guard<std::mutex> lock(api_mutex);
+    std::lock_guard<std::mutex> lock(apiMutex);
     Buffer* buffer = (Buffer*)hbuffer;
     buffer->incRef();
   }
 
   OIDN_API void oidnReleaseBuffer(OIDNBuffer hbuffer)
   {
-    std::lock_guard<std::mutex> lock(api_mutex);
+    std::lock_guard<std::mutex> lock(apiMutex);
     Buffer* buffer = (Buffer*)hbuffer;
     buffer->decRef();
   }
 
   OIDN_API OIDNFilter oidnNewFilter(OIDNDevice hdevice, const char* type)
   {
-    std::lock_guard<std::mutex> lock(api_mutex);
+    std::lock_guard<std::mutex> lock(apiMutex);
     Device* device = (Device*)hdevice;
     Ref<Filter> filter = device->newFilter(type);
     return (OIDNFilter)filter.detach();
@@ -86,14 +86,14 @@ namespace oidn {
 
   OIDN_API void oidnRetainFilter(OIDNFilter hfilter)
   {
-    std::lock_guard<std::mutex> lock(api_mutex);
+    std::lock_guard<std::mutex> lock(apiMutex);
     Filter* filter = (Filter*)hfilter;
     filter->incRef();
   }
 
   OIDN_API void oidnReleaseFilter(OIDNFilter hfilter)
   {
-    std::lock_guard<std::mutex> lock(api_mutex);
+    std::lock_guard<std::mutex> lock(apiMutex);
     Filter* filter = (Filter*)hfilter;
     filter->decRef();
   }
@@ -103,7 +103,7 @@ namespace oidn {
                                     size_t width, size_t height,
                                     size_t byteOffset, size_t byteStride, size_t byteRowStride)
   {
-    std::lock_guard<std::mutex> lock(api_mutex);
+    std::lock_guard<std::mutex> lock(apiMutex);
     Filter* filter = (Filter*)hfilter;
     Ref<Buffer> buffer = (Buffer*)hbuffer;
     Data2D data(buffer, (Format)format, (int)width, (int)height, byteOffset, byteStride, byteRowStride);
@@ -115,7 +115,7 @@ namespace oidn {
                                           size_t width, size_t height,
                                           size_t byteOffset, size_t byteStride, size_t byteRowStride)
   {
-    std::lock_guard<std::mutex> lock(api_mutex);
+    std::lock_guard<std::mutex> lock(apiMutex);
     Filter* filter = (Filter*)hfilter;
     Data2D data(ptr, (Format)format, (int)width, (int)height, byteOffset, byteStride, byteRowStride);
     filter->setData2D(name, data);
@@ -123,21 +123,21 @@ namespace oidn {
 
   OIDN_API void oidnSetFilter1i(OIDNFilter hfilter, const char* name, int value)
   {
-    std::lock_guard<std::mutex> lock(api_mutex);
+    std::lock_guard<std::mutex> lock(apiMutex);
     Filter* filter = (Filter*)hfilter;
     filter->set1i(name, value);
   }
 
   OIDN_API void oidnCommitFilter(OIDNFilter hfilter)
   {
-    std::lock_guard<std::mutex> lock(api_mutex);
+    std::lock_guard<std::mutex> lock(apiMutex);
     Filter* filter = (Filter*)hfilter;
     filter->commit();
   }
 
   OIDN_API void oidnExecuteFilter(OIDNFilter hfilter)
   {
-    std::lock_guard<std::mutex> lock(api_mutex);
+    std::lock_guard<std::mutex> lock(apiMutex);
     Filter* filter = (Filter*)hfilter;
     filter->execute();
   }
