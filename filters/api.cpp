@@ -54,6 +54,14 @@ namespace oidn {
     device->decRef();
   }
 
+  OIDN_API OIDNBuffer oidnNewBuffer(OIDNDevice hdevice, size_t byteSize)
+  {
+    std::lock_guard<std::mutex> lock(apiMutex);
+    Device* device = (Device*)hdevice;
+    Ref<Buffer> buffer = device->newBuffer(byteSize);
+    return (OIDNBuffer)buffer.detach();
+  }
+
   OIDN_API OIDNBuffer oidnNewSharedBuffer(OIDNDevice hdevice, void* ptr, size_t byteSize)
   {
     std::lock_guard<std::mutex> lock(apiMutex);

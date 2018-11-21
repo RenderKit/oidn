@@ -47,6 +47,7 @@ namespace oidn {
       arena->execute(f);
     }
 
+    Ref<Buffer> newBuffer(size_t byteSize);
     Ref<Buffer> newBuffer(void* ptr, size_t byteSize);
     Ref<Filter> newFilter(const std::string& type);
   };

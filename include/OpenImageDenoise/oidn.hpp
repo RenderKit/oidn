@@ -257,6 +257,11 @@ namespace OIDN {
       return handle;
     }
 
+    Buffer newBuffer(size_t byteSize)
+    {
+      return oidnNewBuffer(handle, byteSize);
+    }
+
     Buffer newBuffer(void* ptr, size_t byteSize)
     {
       return oidnNewSharedBuffer(handle, ptr, byteSize);

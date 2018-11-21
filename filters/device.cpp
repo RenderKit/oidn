@@ -31,6 +31,11 @@ namespace oidn {
     observer.reset();
   }
 
+  Ref<Buffer> Device::newBuffer(size_t byteSize)
+  {
+    return make_ref<Buffer>(byteSize);
+  }
+
   Ref<Buffer> Device::newBuffer(void* ptr, size_t byteSize)
   {
     return make_ref<Buffer>(ptr, byteSize);

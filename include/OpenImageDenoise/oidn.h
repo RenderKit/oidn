@@ -56,6 +56,8 @@ OIDN_API void oidnReleaseDevice(OIDNDevice device);
 // Buffer
 typedef struct OIDNBufferImpl* OIDNBuffer;
 
+OIDN_API OIDNBuffer oidnNewBuffer(OIDNDevice device, size_t byteSize);
+
 OIDN_API OIDNBuffer oidnNewSharedBuffer(OIDNDevice device, void* ptr, size_t byteSize);
 
 OIDN_API void oidnRetainBuffer(OIDNBuffer buffer);
