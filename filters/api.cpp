@@ -20,6 +20,21 @@
 #  define OIDN_API extern "C" __attribute__ ((visibility ("default")))
 #endif
 
+#define OIDN_TRY \
+  std::lock_guard<std::mutex> apiLock(apiMutex); \
+  try {
+
+#define OIDN_CATCH(device) \
+  } catch (Exception& e) {                                                \
+    Device::setError(device, e.code(), e.what());                         \
+  } catch (std::bad_alloc&) {                                             \
+    Device::setError(device, Error::OutOfMemory, "out of memory");        \
+  } catch (std::exception& e) {                                           \
+    Device::setError(device, Error::Unknown, e.what());                   \
+  } catch (...) {                                                         \
+    Device::setError(device, Error::Unknown, "unknown exception caught"); \
+  }
+
 #include "device.h"
 #include "filter.h"
 #include <mutex>
@@ -28,82 +43,122 @@ namespace oidn {
 
   static std::mutex apiMutex;
 
+  namespace
+  {
+    void verifyHandle(void* handle)
+    {
+      if (handle == nullptr)
+        throw Exception(Error::InvalidArgument, "invalid handle");
+    }
+  }
+
   OIDN_API OIDNDevice oidnNewDevice(OIDNDeviceType type)
   {
-    std::lock_guard<std::mutex> lock(apiMutex);
-
     Ref<Device> device = nullptr;
-
-    if (type == OIDN_DEVICE_TYPE_CPU)
-      device = make_ref<Device>();
-
+    OIDN_TRY
+      if (type == OIDN_DEVICE_TYPE_CPU)
+        device = makeRef<Device>();
+      else
+        throw Exception(Error::InvalidArgument, "invalid device type");
+    OIDN_CATCH(device.get())
     return (OIDNDevice)device.detach();
   }
 
   OIDN_API void oidnRetainDevice(OIDNDevice hdevice)
   {
-    std::lock_guard<std::mutex> lock(apiMutex);
     Device* device = (Device*)hdevice;
-    device->incRef();
+    OIDN_TRY
+      verifyHandle(hdevice);
+      device->incRef();
+    OIDN_CATCH(device)
   }
 
   OIDN_API void oidnReleaseDevice(OIDNDevice hdevice)
   {
-    std::lock_guard<std::mutex> lock(apiMutex);
     Device* device = (Device*)hdevice;
-    device->decRef();
+    OIDN_TRY
+      verifyHandle(hdevice);
+      device->decRef();
+    OIDN_CATCH(device)
+  }
+
+  OIDN_API OIDNError oidnGetDeviceError(OIDNDevice hdevice, const char** message)
+  {
+    Device* device = (Device*)hdevice;
+    OIDN_TRY
+      return (OIDNError)Device::getError(device, message);
+    OIDN_CATCH(device)
+    if (message) *message = "";
+    return OIDN_ERROR_UNKNOWN;
   }
 
   OIDN_API OIDNBuffer oidnNewBuffer(OIDNDevice hdevice, size_t byteSize)
   {
-    std::lock_guard<std::mutex> lock(apiMutex);
     Device* device = (Device*)hdevice;
-    Ref<Buffer> buffer = device->newBuffer(byteSize);
-    return (OIDNBuffer)buffer.detach();
+    OIDN_TRY
+      verifyHandle(hdevice);
+      Ref<Buffer> buffer = device->newBuffer(byteSize);
+      return (OIDNBuffer)buffer.detach();
+    OIDN_CATCH(device)
+    return nullptr;
   }
 
   OIDN_API OIDNBuffer oidnNewSharedBuffer(OIDNDevice hdevice, void* ptr, size_t byteSize)
   {
-    std::lock_guard<std::mutex> lock(apiMutex);
     Device* device = (Device*)hdevice;
-    Ref<Buffer> buffer = device->newBuffer(ptr, byteSize);
-    return (OIDNBuffer)buffer.detach();
+    OIDN_TRY
+      verifyHandle(hdevice);
+      Ref<Buffer> buffer = device->newBuffer(ptr, byteSize);
+      return (OIDNBuffer)buffer.detach();
+    OIDN_CATCH(device)
+    return nullptr;
   }
 
   OIDN_API void oidnRetainBuffer(OIDNBuffer hbuffer)
   {
-    std::lock_guard<std::mutex> lock(apiMutex);
     Buffer* buffer = (Buffer*)hbuffer;
-    buffer->incRef();
+    OIDN_TRY
+      verifyHandle(hbuffer);
+      buffer->incRef();
+    OIDN_CATCH(buffer->getDevice().get())
   }
 
   OIDN_API void oidnReleaseBuffer(OIDNBuffer hbuffer)
   {
-    std::lock_guard<std::mutex> lock(apiMutex);
     Buffer* buffer = (Buffer*)hbuffer;
-    buffer->decRef();
+    OIDN_TRY
+      verifyHandle(hbuffer);
+      buffer->decRef();
+    OIDN_CATCH(buffer->getDevice().get())
   }
 
   OIDN_API OIDNFilter oidnNewFilter(OIDNDevice hdevice, const char* type)
   {
-    std::lock_guard<std::mutex> lock(apiMutex);
     Device* device = (Device*)hdevice;
-    Ref<Filter> filter = device->newFilter(type);
-    return (OIDNFilter)filter.detach();
+    OIDN_TRY
+      verifyHandle(hdevice);
+      Ref<Filter> filter = device->newFilter(type);
+      return (OIDNFilter)filter.detach();
+    OIDN_CATCH(device)
+    return nullptr;
   }
 
   OIDN_API void oidnRetainFilter(OIDNFilter hfilter)
   {
-    std::lock_guard<std::mutex> lock(apiMutex);
     Filter* filter = (Filter*)hfilter;
-    filter->incRef();
+    OIDN_TRY
+      verifyHandle(hfilter);
+      filter->incRef();
+    OIDN_CATCH(filter->getDevice().get())
   }
 
   OIDN_API void oidnReleaseFilter(OIDNFilter hfilter)
   {
-    std::lock_guard<std::mutex> lock(apiMutex);
     Filter* filter = (Filter*)hfilter;
-    filter->decRef();
+    OIDN_TRY
+      verifyHandle(hfilter);
+      filter->decRef();
+    OIDN_CATCH(filter->getDevice().get())
   }
 
   OIDN_API void oidnSetFilterData2D(OIDNFilter hfilter, const char* name,
@@ -111,11 +166,14 @@ namespace oidn {
                                     size_t width, size_t height,
                                     size_t byteOffset, size_t byteStride, size_t byteRowStride)
   {
-    std::lock_guard<std::mutex> lock(apiMutex);
     Filter* filter = (Filter*)hfilter;
-    Ref<Buffer> buffer = (Buffer*)hbuffer;
-    Data2D data(buffer, (Format)format, (int)width, (int)height, byteOffset, byteStride, byteRowStride);
-    filter->setData2D(name, data);
+    OIDN_TRY
+      verifyHandle(hfilter);
+      verifyHandle(hbuffer);
+      Ref<Buffer> buffer = (Buffer*)hbuffer;
+      Data2D data(buffer, (Format)format, (int)width, (int)height, byteOffset, byteStride, byteRowStride);
+      filter->setData2D(name, data);
+    OIDN_CATCH(filter->getDevice().get())
   }
 
   OIDN_API void oidnSetSharedFilterData2D(OIDNFilter hfilter, const char* name,
@@ -123,31 +181,39 @@ namespace oidn {
                                           size_t width, size_t height,
                                           size_t byteOffset, size_t byteStride, size_t byteRowStride)
   {
-    std::lock_guard<std::mutex> lock(apiMutex);
     Filter* filter = (Filter*)hfilter;
-    Data2D data(ptr, (Format)format, (int)width, (int)height, byteOffset, byteStride, byteRowStride);
-    filter->setData2D(name, data);
+    OIDN_TRY
+      verifyHandle(hfilter);
+      Data2D data(ptr, (Format)format, (int)width, (int)height, byteOffset, byteStride, byteRowStride);
+      filter->setData2D(name, data);
+    OIDN_CATCH(filter->getDevice().get())
   }
 
   OIDN_API void oidnSetFilter1i(OIDNFilter hfilter, const char* name, int value)
   {
-    std::lock_guard<std::mutex> lock(apiMutex);
     Filter* filter = (Filter*)hfilter;
-    filter->set1i(name, value);
+    OIDN_TRY
+      verifyHandle(hfilter);
+      filter->set1i(name, value);
+    OIDN_CATCH(filter->getDevice().get())
   }
 
   OIDN_API void oidnCommitFilter(OIDNFilter hfilter)
   {
-    std::lock_guard<std::mutex> lock(apiMutex);
     Filter* filter = (Filter*)hfilter;
-    filter->commit();
+    OIDN_TRY
+      verifyHandle(hfilter);
+      filter->commit();
+    OIDN_CATCH(filter->getDevice().get())
   }
 
   OIDN_API void oidnExecuteFilter(OIDNFilter hfilter)
   {
-    std::lock_guard<std::mutex> lock(apiMutex);
     Filter* filter = (Filter*)hfilter;
-    filter->execute();
+    OIDN_TRY
+      verifyHandle(hfilter);
+      filter->execute();
+    OIDN_CATCH(filter->getDevice().get())
   }
 
 } // ::oidn

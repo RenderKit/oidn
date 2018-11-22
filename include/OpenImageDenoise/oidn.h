@@ -35,6 +35,16 @@ enum OIDNDeviceType
   OIDN_DEVICE_TYPE_CPU,
 };
 
+enum OIDNError
+{
+  OIDN_ERROR_NONE,
+  OIDN_ERROR_UNKNOWN,
+  OIDN_ERROR_INVALID_ARGUMENT,
+  OIDN_ERROR_INVALID_OPERATION,
+  OIDN_ERROR_OUT_OF_MEMORY,
+  OIDN_ERROR_UNSUPPORTED_HARDWARE,
+};
+
 enum OIDNFormat
 {
   OIDN_FORMAT_UNDEFINED,
@@ -52,6 +62,8 @@ OIDN_API OIDNDevice oidnNewDevice(OIDNDeviceType type);
 OIDN_API void oidnRetainDevice(OIDNDevice device);
 
 OIDN_API void oidnReleaseDevice(OIDNDevice device);
+
+OIDN_API OIDNError oidnGetDeviceError(OIDNDevice device, const char** message);
 
 // Buffer
 typedef struct OIDNBufferImpl* OIDNBuffer;

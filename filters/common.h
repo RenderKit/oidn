@@ -18,9 +18,8 @@
 
 #include "common/mkldnn.h"
 #include "common/ref.h"
-#include "common/buffer.h"
+#include "common/exception.h"
 #include "common/tasking.h"
-#include "include/OpenImageDenoise/oidn.hpp"
 
 namespace oidn {
 

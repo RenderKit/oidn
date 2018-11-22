@@ -14,6 +14,7 @@
 // limitations under the License.                                           //
 // ======================================================================== //
 
+#include "exception.h"
 #include "tensor.h"
 
 namespace oidn {
@@ -25,7 +26,7 @@ namespace oidn {
     // Parse the magic value
     const int magic = *(unsigned short*)input;
     if (magic != 0x41D7)
-      throw std::runtime_error("invalid tensor archive");
+      throw Exception(Error::InvalidOperation, "invalid tensor archive");
     input += sizeof(unsigned short);
 
     // Parse the version
@@ -33,7 +34,7 @@ namespace oidn {
     const int minorVersion = *(unsigned char*)input++;
     UNUSED(minorVersion);
     if (majorVersion > 1)
-      throw std::runtime_error("unsupported tensor archive version");
+      throw Exception(Error::InvalidOperation, "unsupported tensor archive version");
 
     // Parse the number of tensors
     const int numTensors = *(int*)input;
@@ -64,7 +65,7 @@ namespace oidn {
       // Parse the data type of the tensor
       const char type = *(unsigned char*)input++;
       if (type != 'f') // only float32 is supported
-        throw std::runtime_error("unsupported tensor data type");
+        throw Exception(Error::InvalidOperation, "unsupported tensor data type");
 
       // Skip the data
       tensor.data = (float*)input;

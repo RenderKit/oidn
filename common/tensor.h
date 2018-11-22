@@ -16,11 +16,14 @@
 
 #pragma once
 
-#include "buffer.h"
+#include "platform.h"
 #include <vector>
 #include <map>
 
 namespace oidn {
+
+  template<typename T>
+  using shared_vector = std::shared_ptr<std::vector<T>>;
 
   // Generic tensor
   struct Tensor
@@ -28,7 +31,7 @@ namespace oidn {
     float* data;
     std::vector<int> dims;
     std::string format;
-    Ref<Buffer> buffer; // optional, only for reference
+    shared_vector<char> buffer; // optional, only for reference counting
 
     __forceinline Tensor() : data(nullptr) {}
 
@@ -36,7 +39,7 @@ namespace oidn {
       : dims(dims),
         format(format)
     {
-      buffer = make_ref<Buffer>(size() * sizeof(float));
+      buffer = std::make_shared<std::vector<char>>(size() * sizeof(float));
       data = (float*)buffer->data();
     }
 

@@ -19,8 +19,16 @@
 
 namespace oidn {
 
+  thread_local Error Device::threadError = Error::None;
+  thread_local const char* Device::threadErrorMessage = nullptr;
+
   Device::Device()
+    : error(Error::None),
+      errorMessage(nullptr)
   {
+    if (!mayiuse(sse42))
+      throw Exception(Error::UnsupportedHardware, "SSE4.2 support is required at minimum");
+
     affinity = std::make_shared<ThreadAffinity>(1); // one thread per core
     arena = std::make_shared<tbb::task_arena>(affinity->numThreads());
     observer = std::make_shared<PinningObserver>(affinity, *arena);
@@ -31,14 +39,58 @@ namespace oidn {
     observer.reset();
   }
 
+  void Device::setError(Device* device, Error error, const char* errorMessage)
+  {
+    // Update the stored error only if the previous error was queried
+    if (device)
+    {
+      if (device->error == Error::None)
+      {
+        device->error = error;
+        device->errorMessage = errorMessage;
+      }
+    }
+    else
+    {
+      if (threadError == Error::None)
+      {
+        threadError = error;
+        threadErrorMessage = errorMessage;
+      }
+    }
+  }
+
+  Error Device::getError(Device* device, const char** errorMessage)
+  {
+    // Return and clear the stored error
+    if (device)
+    {
+      const Error error = device->error;
+      if (errorMessage)
+        *errorMessage = device->errorMessage;
+      device->error = Error::None;
+      device->errorMessage = nullptr;
+      return error;
+    }
+    else
+    {
+      const Error error = threadError;
+      if (errorMessage)
+        *errorMessage = threadErrorMessage;
+      threadError = Error::None;
+      threadErrorMessage = nullptr;
+      return error;
+    }
+  }
+
   Ref<Buffer> Device::newBuffer(size_t byteSize)
   {
-    return make_ref<Buffer>(byteSize);
+    return makeRef<Buffer>(Ref<Device>(this), byteSize);
   }
 
   Ref<Buffer> Device::newBuffer(void* ptr, size_t byteSize)
   {
-    return make_ref<Buffer>(ptr, byteSize);
+    return makeRef<Buffer>(Ref<Device>(this), ptr, byteSize);
   }
 
   Ref<Filter> Device::newFilter(const std::string& type)
@@ -46,9 +98,9 @@ namespace oidn {
     Ref<Filter> filter;
 
     if (type == "Autoencoder")
-      filter = make_ref<Autoencoder>(Ref<Device>(this));
+      filter = makeRef<Autoencoder>(Ref<Device>(this));
     else
-      throw std::invalid_argument("invalid filter type");
+      throw Exception(Error::InvalidArgument, "unknown filter type");
 
     return filter;
   }

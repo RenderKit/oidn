@@ -127,19 +127,19 @@ namespace oidn {
   template<typename T> __forceinline bool operator !=(const Ref<T>& a, const Ref<T>& b) { return a.ptr   != b.ptr;   }
 
   template<typename T, typename... Args>
-  __forceinline Ref<T> make_ref(Args&&... args)
+  __forceinline Ref<T> makeRef(Args&&... args)
   {
     return Ref<T>(new T(std::forward<Args>(args)...));
   }
 
   template<typename T, typename Y>
-  __forceinline Ref<Y> static_pointer_cast(const Ref<T>& a)
+  __forceinline Ref<Y> staticRefCast(const Ref<T>& a)
   {
     return Ref<Y>(static_cast<Y*>(a.get()));
   }
 
   template<typename T, typename Y>
-  __forceinline Ref<Y> dynamic_pointer_cast(const Ref<T>& a)
+  __forceinline Ref<Y> dynamicRefCast(const Ref<T>& a)
   {
     return Ref<Y>(dynamic_cast<Y*>(a.get()));
   }

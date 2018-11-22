@@ -16,49 +16,30 @@
 
 #pragma once
 
-#include "common.h"
+#include <exception>
+#include "platform.h"
 
 namespace oidn {
 
-  class Buffer;
-  class Filter;
-
-  class Device : public RefCount
+  class Exception : public std::exception
   {
   private:
-    // Error handling
-    static thread_local Error threadError;
-    static thread_local const char* threadErrorMessage;
     Error error;
-    const char* errorMessage;
-
-    // Tasking
-    std::shared_ptr<tbb::task_arena> arena;
-    std::shared_ptr<PinningObserver> observer;
-    std::shared_ptr<ThreadAffinity> affinity;
+    const char* str;
 
   public:
-    Device();
-    ~Device();
+    Exception(Error error, const char* str)
+      : error(error), str(str) {}
 
-    static void setError(Device* device, Error error, const char* errorMessage);
-    static Error getError(Device* device, const char** errorMessage);
-
-    template<typename F>
-    void executeTask(F& f)
+    Error code() const noexcept
     {
-      arena->execute(f);
+      return error;
     }
 
-    template<typename F>
-    void executeTask(const F& f)
+    const char* what() const noexcept override
     {
-      arena->execute(f);
+      return str;
     }
-
-    Ref<Buffer> newBuffer(size_t byteSize);
-    Ref<Buffer> newBuffer(void* ptr, size_t byteSize);
-    Ref<Filter> newFilter(const std::string& type);
   };
 
 } // ::oidn

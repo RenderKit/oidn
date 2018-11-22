@@ -23,6 +23,7 @@
 #include <cmath>
 #include <iostream>
 #include <cassert>
+#include "include/OpenImageDenoise/oidn.hpp"
 
 #if !defined(__forceinline)
   #define __forceinline  inline __attribute__((always_inline))

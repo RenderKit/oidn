@@ -16,9 +16,9 @@
 
 add_library(common STATIC
   platform.h
+  exception.h
   mkldnn.h
   ref.h
-  buffer.h
   barrier.h
   timer.h
   tasking.h

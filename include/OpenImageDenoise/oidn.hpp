@@ -26,6 +26,16 @@ namespace oidn {
     CPU = OIDN_DEVICE_TYPE_CPU,
   };
 
+  enum class Error
+  {
+    None                = OIDN_ERROR_NONE,
+    Unknown             = OIDN_ERROR_UNKNOWN,
+    InvalidArgument     = OIDN_ERROR_INVALID_ARGUMENT,
+    InvalidOperation    = OIDN_ERROR_INVALID_OPERATION,
+    OutOfMemory         = OIDN_ERROR_OUT_OF_MEMORY,
+    UnsupportedHardware = OIDN_ERROR_UNSUPPORTED_HARDWARE,
+  };
+
   enum class Format
   {
     Undefined = OIDN_FORMAT_UNDEFINED,
@@ -255,6 +265,11 @@ namespace oidn {
     OIDNDevice getHandle() const
     {
       return handle;
+    }
+
+    Error getError(const char** message = nullptr)
+    {
+      return (Error)oidnGetDeviceError(handle, message);
     }
 
     BufferRef newBuffer(size_t byteSize)

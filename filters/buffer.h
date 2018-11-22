@@ -16,9 +16,12 @@
 
 #pragma once
 
-#include "ref.h"
+#include "common.h"
+#include "device.h"
 
 namespace oidn {
+
+  class Device;
 
   // Buffer which may or may not own its data
   class Buffer : public RefCount
@@ -27,13 +30,20 @@ namespace oidn {
     char* ptr;
     size_t numBytes;
     bool shared;
+    Ref<Device> device;
 
   public:
-    __forceinline Buffer(size_t size)
-      : ptr(new char[size]), numBytes(size), shared(false) {}
+    __forceinline Buffer(const Ref<Device>& device, size_t size)
+      : ptr(new char[size]),
+        numBytes(size),
+        shared(false),
+        device(device) {}
 
-    __forceinline Buffer(void* data, size_t size)
-      : ptr((char*)data), numBytes(size), shared(true) {}
+    __forceinline Buffer(const Ref<Device>& device, void* data, size_t size)
+      : ptr((char*)data),
+        numBytes(size),
+        shared(true),
+        device(device) {}
 
     __forceinline ~Buffer()
     {
@@ -44,6 +54,8 @@ namespace oidn {
     __forceinline char* data() { return ptr; }
     __forceinline const char* data() const { return ptr; }
     __forceinline size_t size() const { return numBytes; }
+
+    Ref<Device> getDevice() const { return device; }
   };
 
 } // ::oidn

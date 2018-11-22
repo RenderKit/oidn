@@ -39,25 +39,25 @@ namespace oidn {
     if (name == "color")
     {
       if (data.format != Format::Float3)
-        throw std::invalid_argument("invalid buffer format");
+        throw Exception(Error::InvalidOperation, "unsupported data format");
       color = data;
     }
     else if (name == "albedo")
     {
       if (data.format != Format::Float3)
-        throw std::invalid_argument("invalid buffer format");
+        throw Exception(Error::InvalidOperation, "unsupported data format");
       albedo = data;
     }
     else if (name == "normal")
     {
       if (data.format != Format::Float3)
-        throw std::invalid_argument("invalid buffer format");
+        throw Exception(Error::InvalidOperation, "unsupported data format");
       normal = data;
     }
     else if (name == "output")
     {
       if (data.format != Format::Float3)
-        throw std::invalid_argument("invalid buffer format");
+        throw Exception(Error::InvalidOperation, "unsupported data format");
       output = data;
     }
   }
@@ -72,15 +72,6 @@ namespace oidn {
 
   void Autoencoder::commit()
   {
-    if (!color)
-      throw std::runtime_error("input buffer not specified");
-    if (!output)
-      throw std::runtime_error("output buffer not specified");
-    if ((albedo && (albedo.width != color.width || albedo.height != color.height)) ||
-        (normal && (normal.width != color.width || normal.height != color.height)) ||
-        (output.width != color.width || output.height != color.height))
-      throw std::runtime_error("buffer size mismatch");
-
     device->executeTask([&]()
     {
       if (mayiuse(avx512_common))
@@ -118,7 +109,7 @@ namespace oidn {
     void* weightPtr;
 
     if (srgb && hdr)
-      throw std::runtime_error("srgb and hdr modes cannot be enabled at the same time");
+      throw Exception(Error::InvalidOperation, "srgb and hdr modes cannot be enabled at the same time");
 
     if (color && !albedo && !normal)
     {
@@ -132,8 +123,15 @@ namespace oidn {
     }
     else
     {
-      throw std::runtime_error("unsupported combination of input buffers");
+      throw Exception(Error::InvalidOperation, "unsupported combination of input images");
     }
+
+    if (!output)
+      throw Exception(Error::InvalidOperation, "output image not specified");
+    if ((albedo && (albedo.width != width || albedo.height != height)) ||
+        (normal && (normal.width != width || normal.height != height)) ||
+        (output.width != width || output.height != height))
+      throw Exception(Error::InvalidOperation, "image size mismatch");
 
     // Parse the weights
     const auto weightMap = parseTensors(weightPtr);

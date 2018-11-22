@@ -58,8 +58,16 @@ int main(int argc, char **argv)
   filter.setData2D("normal", input.data,  oidn::Format::Float3, W, H, 6*F, 9*F);
   filter.setData2D("output", output.data, oidn::Format::Float3, W, H, 0*F, 3*F);
   filter.set1i("srgb", 1);
+  //filter.set1i("hdr", 1);
 
   filter.commit();
+
+  const char* errorMessage;
+  if (device.getError(&errorMessage) != oidn::Error::None)
+  {
+    cout << "error: " << errorMessage << endl;
+    exit(1);
+  }
 
   double initd = timer.query();
   cout << "init=" << (1000. * initd) << " msec" << endl;

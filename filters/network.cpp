@@ -131,7 +131,7 @@ namespace oidn {
     // Get the weights
     const auto& W = weightMap[name + "/W"];
     if (W.ndims() != 4 || W.format != "oihw")
-      throw std::runtime_error("invalid weights");
+      throw Exception(Error::InvalidOperation, "invalid convolution weights");
     memory::dims weightsDims = W.dims;
     auto userWeights = allocTensor(weightsDims, memory::format::oihw, W.data);
 
@@ -146,7 +146,7 @@ namespace oidn {
     // Get the biases
     const auto& b = weightMap[name + "/b"];
     if (b.ndims() != 1)
-      throw std::runtime_error("invalid biases");
+      throw Exception(Error::InvalidOperation, "invalid convolution biases");
     memory::dims biasDims = b.dims;
 
     // Copy/pad the biases

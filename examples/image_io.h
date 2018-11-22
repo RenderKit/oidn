@@ -24,7 +24,7 @@
 namespace oidn {
 
   // Loads the contents of a file into a buffer
-  static Ref<Buffer> load_file(const std::string& filename)
+  static shared_vector<char> load_file(const std::string& filename)
   {
     FILE* file = fopen(filename.c_str(), "rb");
     if (!file)
@@ -34,7 +34,7 @@ namespace oidn {
     size_t size = ftell(file);
     fseek(file, 0, SEEK_SET);
 
-    Ref<Buffer> buffer = make_ref<Buffer>(size);
+    shared_vector<char> buffer = std::make_shared<std::vector<char>>(size);
     if (fread(buffer->data(), 1, size, file) != size)
       throw std::runtime_error("read error");
 
@@ -45,7 +45,7 @@ namespace oidn {
   // Loads images stored in a tensor archive
   static Tensor load_image_tza(const std::string& filename)
   {
-    Ref<Buffer> buffer = load_file(filename);
+    shared_vector<char> buffer = load_file(filename);
     std::map<std::string, Tensor> tensors = parseTensors(buffer->data());
     auto image = tensors.find("image");
     if (image == tensors.end())
