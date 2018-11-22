@@ -31,17 +31,24 @@ namespace oidn {
     // First call the function with an empty buffer to get the required buffer size
     BOOL result = GetLogicalProcessorInformationEx(RelationProcessorCore, buffer, &bufferSize);
     if (result || GetLastError() != ERROR_INSUFFICIENT_BUFFER)
-      return; // error
+    {
+      WARNING("GetLogicalProcessorInformationEx failed");
+      return;
+    }
     
     // Allocate the buffer
     buffer = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)malloc(bufferSize);
     if (!buffer)
-      return; // allocation error
+    {
+      WARNING("SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX allocation failed");
+      return;
+    }
       
     // Call again the function but now with the properly sized buffer
     result = GetLogicalProcessorInformationEx(RelationProcessorCore, buffer, &bufferSize);
     if (!result)
     {
+      WARNING("GetLogicalProcessorInformationEx failed");
       free(buffer);
       return;
     }
@@ -64,8 +71,6 @@ namespace oidn {
             // Extract the next set bit/thread from the mask
             GROUP_AFFINITY affinity = curAffinity;
             affinity.Mask = affinity.Mask & -affinity.Mask;
-
-            //printf("thread %d\n", affinity.Mask);
 
             // Push the affinity for this thread
             affinities.push_back(affinity);
