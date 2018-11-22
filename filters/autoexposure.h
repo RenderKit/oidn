@@ -22,4 +22,4 @@ namespace oidn {
 
   float autoexposure(const Image& color);
 
-} // ::oidn
+} // namespace oidn

@@ -99,4 +99,4 @@ namespace oidn {
     std::shared_ptr<memory> getDst() const override { return dst; }
   };
 
-} // ::oidn
+} // namespace oidn

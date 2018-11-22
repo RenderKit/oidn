@@ -59,4 +59,4 @@ namespace oidn {
     return (sum.second > 0) ? (key / std::exp2(sum.first / float(sum.second))) : 1.f;
   }
 
-} // ::oidn
+} // namespace oidn

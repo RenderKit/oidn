@@ -129,4 +129,4 @@ namespace oidn {
     affinity->restore(threadIndex);
   }
 
-} // ::oidn
+} // namespace oidn

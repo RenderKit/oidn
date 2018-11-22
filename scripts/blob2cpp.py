@@ -61,11 +61,8 @@ def generate(in_path, out_path, namespace):
     # Close the namespaces
     if scopes:
       out_file.write('\n')
-    for i in reversed(range(len(scopes))):
-      out_file.write('} // ')
-      for j in range(i+1):
-        out_file.write('::%s' % scopes[j])
-      out_file.write('\n')
+    for scope in reversed(scopes):
+      out_file.write('} // namespace %s\n' % scope)
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()

@@ -293,4 +293,4 @@ namespace oidn {
     return DeviceRef(oidnNewDevice((OIDNDeviceType)type));
   }
 
-} // ::oidn
+} // namespace oidn

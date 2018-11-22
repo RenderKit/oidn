@@ -105,4 +105,4 @@ namespace oidn {
     return filter;
   }
 
-} // ::oidn
+} // namespace oidn

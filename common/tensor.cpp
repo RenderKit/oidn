@@ -78,4 +78,4 @@ namespace oidn {
     return tensorMap;
   }
 
-} // ::oidn
+} // namespace oidn

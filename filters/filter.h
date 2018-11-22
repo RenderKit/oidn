@@ -38,4 +38,4 @@ namespace oidn {
     Device* getDevice() { return device.get(); }
   };
 
-} // ::oidn
+} // namespace oidn

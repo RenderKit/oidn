@@ -129,4 +129,4 @@ namespace oidn {
     return node;
   }
 
-} // ::oidn
+} // namespace oidn

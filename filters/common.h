@@ -108,4 +108,4 @@ namespace oidn {
     static constexpr memory::format OIhwKiKo = memory::format::OIhw16i16o;
   };
 
-} // ::oidn
+} // namespace oidn

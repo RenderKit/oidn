@@ -273,4 +273,4 @@ namespace oidn {
   template class Network<8>;
   template class Network<16>;
 
-} // ::oidn
+} // namespace oidn

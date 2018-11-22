@@ -225,4 +225,4 @@ namespace oidn {
     OIDN_CATCH(filter)
   }
 
-} // ::oidn
+} // namespace oidn

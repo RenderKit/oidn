@@ -156,4 +156,4 @@ namespace oidn {
     return Ref<Y>(dynamic_cast<Y*>(a.get()));
   }
 
-} // ::oidn
+} // namespace oidn

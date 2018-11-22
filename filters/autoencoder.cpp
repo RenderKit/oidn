@@ -318,4 +318,4 @@ namespace oidn {
     return net;
   }
 
-} // ::oidn
+} // namespace oidn

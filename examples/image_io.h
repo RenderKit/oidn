@@ -81,5 +81,5 @@ namespace oidn {
     fclose(file);
   }
 
-} // ::oidn
+} // namespace oidn
 

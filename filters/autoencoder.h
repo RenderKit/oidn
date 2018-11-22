@@ -49,4 +49,4 @@ namespace oidn {
     std::shared_ptr<Node> buildNet();
   };
 
-} // ::oidn
+} // namespace oidn

@@ -65,4 +65,4 @@ namespace oidn {
     void on_scheduler_exit(bool isWorker) override;
   };
 
-} // ::oidn
+} // namespace oidn

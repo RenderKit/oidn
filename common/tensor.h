@@ -61,4 +61,4 @@ namespace oidn {
   // Parses tensors from a buffer
   std::map<std::string, Tensor> parseTensors(void* buffer);
 
-} // ::oidn
+} // namespace oidn

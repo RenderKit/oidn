@@ -125,4 +125,4 @@ namespace oidn {
     }
   };
 
-} // ::oidn
+} // namespace oidn
