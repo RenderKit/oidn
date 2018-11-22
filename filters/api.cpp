@@ -24,14 +24,18 @@
   std::lock_guard<std::mutex> apiLock(apiMutex); \
   try {
 
-#define OIDN_CATCH(device) \
+#define OIDN_CATCH(object) \
   } catch (Exception& e) {                                                \
+    Device* device = object ? object->getDevice() : nullptr;              \
     Device::setError(device, e.code(), e.what());                         \
   } catch (std::bad_alloc&) {                                             \
+    Device* device = object ? object->getDevice() : nullptr;              \
     Device::setError(device, Error::OutOfMemory, "out of memory");        \
   } catch (std::exception& e) {                                           \
+    Device* device = object ? object->getDevice() : nullptr;              \
     Device::setError(device, Error::Unknown, e.what());                   \
   } catch (...) {                                                         \
+    Device* device = object ? object->getDevice() : nullptr;              \
     Device::setError(device, Error::Unknown, "unknown exception caught"); \
   }
 
@@ -45,10 +49,37 @@ namespace oidn {
 
   namespace
   {
-    void verifyHandle(void* handle)
+    __forceinline void verifyHandle(void* handle)
     {
       if (handle == nullptr)
         throw Exception(Error::InvalidArgument, "invalid handle");
+    }
+
+    template<typename T>
+    __forceinline void retainObject(T* object)
+    {
+      if (object)
+      {
+        object->incRef();
+      }
+      else
+      {
+        OIDN_TRY
+          verifyHandle(object);
+        OIDN_CATCH(object)
+      }
+    }
+
+    template<typename T>
+    __forceinline void releaseObject(T* object)
+    {
+      if (object == nullptr || object->decRefKeep() == 0)
+      {
+        OIDN_TRY
+          verifyHandle(object);
+          object->destroy();
+        OIDN_CATCH(object)
+      }
     }
   }
 
@@ -60,7 +91,7 @@ namespace oidn {
         device = makeRef<Device>();
       else
         throw Exception(Error::InvalidArgument, "invalid device type");
-    OIDN_CATCH(device.get())
+    OIDN_CATCH(device)
     return (OIDNDevice)device.detach();
   }
 
@@ -120,7 +151,7 @@ namespace oidn {
     OIDN_TRY
       verifyHandle(hbuffer);
       buffer->incRef();
-    OIDN_CATCH(buffer->getDevice().get())
+    OIDN_CATCH(buffer)
   }
 
   OIDN_API void oidnReleaseBuffer(OIDNBuffer hbuffer)
@@ -129,7 +160,7 @@ namespace oidn {
     OIDN_TRY
       verifyHandle(hbuffer);
       buffer->decRef();
-    OIDN_CATCH(buffer->getDevice().get())
+    OIDN_CATCH(buffer)
   }
 
   OIDN_API OIDNFilter oidnNewFilter(OIDNDevice hdevice, const char* type)
@@ -149,7 +180,7 @@ namespace oidn {
     OIDN_TRY
       verifyHandle(hfilter);
       filter->incRef();
-    OIDN_CATCH(filter->getDevice().get())
+    OIDN_CATCH(filter)
   }
 
   OIDN_API void oidnReleaseFilter(OIDNFilter hfilter)
@@ -158,7 +189,7 @@ namespace oidn {
     OIDN_TRY
       verifyHandle(hfilter);
       filter->decRef();
-    OIDN_CATCH(filter->getDevice().get())
+    OIDN_CATCH(filter)
   }
 
   OIDN_API void oidnSetFilterImage(OIDNFilter hfilter, const char* name,
@@ -173,7 +204,7 @@ namespace oidn {
       Ref<Buffer> buffer = (Buffer*)hbuffer;
       Image data(buffer, (Format)format, (int)width, (int)height, byteOffset, byteItemStride, byteRowStride);
       filter->setImage(name, data);
-    OIDN_CATCH(filter->getDevice().get())
+    OIDN_CATCH(filter)
   }
 
   OIDN_API void oidnSetSharedFilterImage(OIDNFilter hfilter, const char* name,
@@ -186,7 +217,7 @@ namespace oidn {
       verifyHandle(hfilter);
       Image data(ptr, (Format)format, (int)width, (int)height, byteOffset, byteItemStride, byteRowStride);
       filter->setImage(name, data);
-    OIDN_CATCH(filter->getDevice().get())
+    OIDN_CATCH(filter)
   }
 
   OIDN_API void oidnSetFilter1i(OIDNFilter hfilter, const char* name, int value)
@@ -195,7 +226,7 @@ namespace oidn {
     OIDN_TRY
       verifyHandle(hfilter);
       filter->set1i(name, value);
-    OIDN_CATCH(filter->getDevice().get())
+    OIDN_CATCH(filter)
   }
 
   OIDN_API void oidnCommitFilter(OIDNFilter hfilter)
@@ -204,7 +235,7 @@ namespace oidn {
     OIDN_TRY
       verifyHandle(hfilter);
       filter->commit();
-    OIDN_CATCH(filter->getDevice().get())
+    OIDN_CATCH(filter)
   }
 
   OIDN_API void oidnExecuteFilter(OIDNFilter hfilter)
@@ -213,7 +244,7 @@ namespace oidn {
     OIDN_TRY
       verifyHandle(hfilter);
       filter->execute();
-    OIDN_CATCH(filter->getDevice().get())
+    OIDN_CATCH(filter)
   }
 
 } // ::oidn

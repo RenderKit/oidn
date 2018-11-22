@@ -35,7 +35,7 @@ namespace oidn {
     virtual void commit() = 0;
     virtual void execute() = 0;
 
-    Ref<Device> getDevice() const { return device; }
+    Device* getDevice() { return device.get(); }
   };
 
 } // ::oidn

@@ -55,7 +55,7 @@ namespace oidn {
     __forceinline const char* data() const { return ptr; }
     __forceinline size_t size() const { return numBytes; }
 
-    Ref<Device> getDevice() const { return device; }
+    Device* getDevice() { return device.get(); }
   };
 
 } // ::oidn

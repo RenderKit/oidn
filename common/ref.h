@@ -26,21 +26,33 @@ namespace oidn {
     std::atomic<size_t> count;
 
   public:
-    RefCount(int count = 0) : count(count) {}
+    __forceinline RefCount(int count = 0) noexcept : count(count) {}
   
-    void incRef()
+    __forceinline size_t incRef() noexcept
     {
-      count.fetch_add(1);
+      return count.fetch_add(1) + 1;
     }
 
-    void decRef()
+    __forceinline size_t decRef()
     {
-      if (count.fetch_add(-1) == 1)
-        delete this;
+      const size_t newCount = decRefKeep();
+      if (newCount == 0)
+        destroy();
+      return newCount;
+    }
+
+    __forceinline size_t decRefKeep() noexcept
+    {
+      return count.fetch_add(-1) - 1;
+    }
+
+    __forceinline void destroy()
+    {
+      delete this;
     }
 
   protected:
-    virtual ~RefCount() = default;
+    virtual ~RefCount() noexcept = default;
   };
 
   template<typename T>
@@ -50,17 +62,17 @@ namespace oidn {
     T* ptr;
 
   public:
-    __forceinline Ref() : ptr(nullptr) {}
-    __forceinline Ref(std::nullptr_t) : ptr(nullptr) {}
-    __forceinline Ref(const Ref& other) : ptr(other.ptr) { if (ptr) ptr->incRef(); }
-    __forceinline Ref(Ref&& other) : ptr(other.ptr) { other.ptr = nullptr; }
-    __forceinline Ref(T* ptr) : ptr(ptr) { if (ptr) ptr->incRef(); }
+    __forceinline Ref() noexcept : ptr(nullptr) {}
+    __forceinline Ref(std::nullptr_t) noexcept : ptr(nullptr) {}
+    __forceinline Ref(const Ref& other) noexcept : ptr(other.ptr) { if (ptr) ptr->incRef(); }
+    __forceinline Ref(Ref&& other) noexcept : ptr(other.ptr) { other.ptr = nullptr; }
+    __forceinline Ref(T* ptr) noexcept : ptr(ptr) { if (ptr) ptr->incRef(); }
 
     template<typename Y>
-    __forceinline Ref(const Ref<Y>& other) : ptr(other.get()) { if (ptr) ptr->incRef(); }
+    __forceinline Ref(const Ref<Y>& other) noexcept : ptr(other.get()) { if (ptr) ptr->incRef(); }
 
     template<typename Y>
-    __forceinline explicit Ref(Y* ptr) : ptr(ptr) { if (ptr) ptr->incRef(); }
+    __forceinline explicit Ref(Y* ptr) noexcept : ptr(ptr) { if (ptr) ptr->incRef(); }
 
     __forceinline ~Ref() { if (ptr) ptr->decRef(); }
 
@@ -101,14 +113,14 @@ namespace oidn {
       return *this;
     }
 
-    __forceinline operator bool() const { return ptr != nullptr; }
+    __forceinline operator bool() const noexcept { return ptr != nullptr; }
 
-    __forceinline T& operator  *() const { return *ptr; }
-    __forceinline T* operator ->() const { return  ptr; }
+    __forceinline T& operator  *() const noexcept { return *ptr; }
+    __forceinline T* operator ->() const noexcept { return  ptr; }
 
-    __forceinline T* get() const { return ptr; }
+    __forceinline T* get() const noexcept { return ptr; }
 
-    __forceinline T* detach()
+    __forceinline T* detach() noexcept
     {
       T* res = ptr;
       ptr = nullptr;
@@ -116,15 +128,15 @@ namespace oidn {
     }
   };
 
-  template<typename T> __forceinline bool operator < (const Ref<T>& a, const Ref<T>& b) { return a.ptr   <  b.ptr;   }
+  template<typename T> __forceinline bool operator < (const Ref<T>& a, const Ref<T>& b) noexcept { return a.ptr   <  b.ptr;   }
 
-  template<typename T> __forceinline bool operator ==(const Ref<T>& a, std::nullptr_t)  { return a.ptr   == nullptr; }
-  template<typename T> __forceinline bool operator ==(std::nullptr_t,  const Ref<T>& b) { return nullptr == b.ptr;   }
-  template<typename T> __forceinline bool operator ==(const Ref<T>& a, const Ref<T>& b) { return a.ptr   == b.ptr;   }
+  template<typename T> __forceinline bool operator ==(const Ref<T>& a, std::nullptr_t)  noexcept { return a.ptr   == nullptr; }
+  template<typename T> __forceinline bool operator ==(std::nullptr_t,  const Ref<T>& b) noexcept { return nullptr == b.ptr;   }
+  template<typename T> __forceinline bool operator ==(const Ref<T>& a, const Ref<T>& b) noexcept { return a.ptr   == b.ptr;   }
 
-  template<typename T> __forceinline bool operator !=(const Ref<T>& a, std::nullptr_t)  { return a.ptr   != nullptr; }
-  template<typename T> __forceinline bool operator !=(std::nullptr_t,  const Ref<T>& b) { return nullptr != b.ptr;   }
-  template<typename T> __forceinline bool operator !=(const Ref<T>& a, const Ref<T>& b) { return a.ptr   != b.ptr;   }
+  template<typename T> __forceinline bool operator !=(const Ref<T>& a, std::nullptr_t)  noexcept { return a.ptr   != nullptr; }
+  template<typename T> __forceinline bool operator !=(std::nullptr_t,  const Ref<T>& b) noexcept { return nullptr != b.ptr;   }
+  template<typename T> __forceinline bool operator !=(const Ref<T>& a, const Ref<T>& b) noexcept { return a.ptr   != b.ptr;   }
 
   template<typename T, typename... Args>
   __forceinline Ref<T> makeRef(Args&&... args)
