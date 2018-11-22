@@ -24,19 +24,15 @@
   std::lock_guard<std::mutex> apiLock(apiMutex); \
   try {
 
-#define OIDN_CATCH(object) \
-  } catch (Exception& e) {                                                \
-    Device* device = object ? object->getDevice() : nullptr;              \
-    Device::setError(device, e.code(), e.what());                         \
-  } catch (std::bad_alloc&) {                                             \
-    Device* device = object ? object->getDevice() : nullptr;              \
-    Device::setError(device, Error::OutOfMemory, "out of memory");        \
-  } catch (std::exception& e) {                                           \
-    Device* device = object ? object->getDevice() : nullptr;              \
-    Device::setError(device, Error::Unknown, e.what());                   \
-  } catch (...) {                                                         \
-    Device* device = object ? object->getDevice() : nullptr;              \
-    Device::setError(device, Error::Unknown, "unknown exception caught"); \
+#define OIDN_CATCH(obj) \
+  } catch (Exception& e) {                                                                          \
+    Device::setError(obj ? obj->getDevice() : nullptr, e.code(), e.what());                         \
+  } catch (std::bad_alloc&) {                                                                       \
+    Device::setError(obj ? obj->getDevice() : nullptr, Error::OutOfMemory, "out of memory");        \
+  } catch (std::exception& e) {                                                                     \
+    Device::setError(obj ? obj->getDevice() : nullptr, Error::Unknown, e.what());                   \
+  } catch (...) {                                                                                   \
+    Device::setError(obj ? obj->getDevice() : nullptr, Error::Unknown, "unknown exception caught"); \
   }
 
 #include "device.h"
@@ -56,29 +52,29 @@ namespace oidn {
     }
 
     template<typename T>
-    __forceinline void retainObject(T* object)
+    __forceinline void retainObject(T* obj)
     {
-      if (object)
+      if (obj)
       {
-        object->incRef();
+        obj->incRef();
       }
       else
       {
         OIDN_TRY
-          verifyHandle(object);
-        OIDN_CATCH(object)
+          verifyHandle(obj);
+        OIDN_CATCH(obj)
       }
     }
 
     template<typename T>
-    __forceinline void releaseObject(T* object)
+    __forceinline void releaseObject(T* obj)
     {
-      if (object == nullptr || object->decRefKeep() == 0)
+      if (obj == nullptr || obj->decRefKeep() == 0)
       {
         OIDN_TRY
-          verifyHandle(object);
-          object->destroy();
-        OIDN_CATCH(object)
+          verifyHandle(obj);
+          obj->destroy();
+        OIDN_CATCH(obj)
       }
     }
   }
@@ -98,19 +94,13 @@ namespace oidn {
   OIDN_API void oidnRetainDevice(OIDNDevice hdevice)
   {
     Device* device = (Device*)hdevice;
-    OIDN_TRY
-      verifyHandle(hdevice);
-      device->incRef();
-    OIDN_CATCH(device)
+    retainObject(device);
   }
 
   OIDN_API void oidnReleaseDevice(OIDNDevice hdevice)
   {
     Device* device = (Device*)hdevice;
-    OIDN_TRY
-      verifyHandle(hdevice);
-      device->decRef();
-    OIDN_CATCH(device)
+    releaseObject(device);
   }
 
   OIDN_API OIDNError oidnGetDeviceError(OIDNDevice hdevice, const char** message)
@@ -148,19 +138,13 @@ namespace oidn {
   OIDN_API void oidnRetainBuffer(OIDNBuffer hbuffer)
   {
     Buffer* buffer = (Buffer*)hbuffer;
-    OIDN_TRY
-      verifyHandle(hbuffer);
-      buffer->incRef();
-    OIDN_CATCH(buffer)
+    retainObject(buffer);
   }
 
   OIDN_API void oidnReleaseBuffer(OIDNBuffer hbuffer)
   {
     Buffer* buffer = (Buffer*)hbuffer;
-    OIDN_TRY
-      verifyHandle(hbuffer);
-      buffer->decRef();
-    OIDN_CATCH(buffer)
+    releaseObject(buffer);
   }
 
   OIDN_API OIDNFilter oidnNewFilter(OIDNDevice hdevice, const char* type)
@@ -177,19 +161,13 @@ namespace oidn {
   OIDN_API void oidnRetainFilter(OIDNFilter hfilter)
   {
     Filter* filter = (Filter*)hfilter;
-    OIDN_TRY
-      verifyHandle(hfilter);
-      filter->incRef();
-    OIDN_CATCH(filter)
+    retainObject(filter);
   }
 
   OIDN_API void oidnReleaseFilter(OIDNFilter hfilter)
   {
     Filter* filter = (Filter*)hfilter;
-    OIDN_TRY
-      verifyHandle(hfilter);
-      filter->decRef();
-    OIDN_CATCH(filter)
+    releaseObject(filter);
   }
 
   OIDN_API void oidnSetFilterImage(OIDNFilter hfilter, const char* name,
