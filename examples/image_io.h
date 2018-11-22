@@ -24,7 +24,7 @@
 namespace oidn {
 
   // Loads the contents of a file into a buffer
-  static shared_vector<char> load_file(const std::string& filename)
+  static shared_vector<char> loadFile(const std::string& filename)
   {
     FILE* file = fopen(filename.c_str(), "rb");
     if (!file)
@@ -43,9 +43,9 @@ namespace oidn {
   }
 
   // Loads images stored in a tensor archive
-  static Tensor load_image_tza(const std::string& filename)
+  static Tensor loadImageTZA(const std::string& filename)
   {
-    shared_vector<char> buffer = load_file(filename);
+    shared_vector<char> buffer = loadFile(filename);
     std::map<std::string, Tensor> tensors = parseTensors(buffer->data());
     auto image = tensors.find("image");
     if (image == tensors.end())
@@ -58,7 +58,7 @@ namespace oidn {
   }
 
   // Saves a 3-channel image in HWC format to a PPM file
-  static void save_image_ppm(const Tensor& image, const std::string& filename)
+  static void saveImagePPM(const Tensor& image, const std::string& filename)
   {
     if (image.ndims() != 3 || image.dims[2] < 3 || image.format != "hwc")
       throw std::invalid_argument("image must have 3 channels");

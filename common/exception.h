@@ -25,11 +25,11 @@ namespace oidn {
   {
   private:
     Error error;
-    const char* str;
+    const char* message;
 
   public:
-    Exception(Error error, const char* str)
-      : error(error), str(str) {}
+    Exception(Error error, const char* message)
+      : error(error), message(message) {}
 
     Error code() const noexcept
     {
@@ -38,7 +38,7 @@ namespace oidn {
 
     const char* what() const noexcept override
     {
-      return str;
+      return message;
     }
   };
 

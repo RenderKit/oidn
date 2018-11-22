@@ -34,17 +34,17 @@ int main(int argc, char **argv)
 {
   oidn::DeviceRef device = oidn::newDevice(oidn::DeviceType::CPU);
 
-  std::string input_filename = "test0.tza";
+  std::string inputFilename = "test0.tza";
   if (argc > 1)
-    input_filename = argv[1];
-  std::string refoutput_filename = input_filename.substr(0, input_filename.find_last_of('.')) + "_refout.tza";
+    inputFilename = argv[1];
+  std::string refoutputFilename = inputFilename.substr(0, inputFilename.find_last_of('.')) + "_refout.tza";
   if (argc > 2)
-      refoutput_filename = argv[2];
+      refoutputFilename = argv[2];
 
-  Tensor input = load_image_tza(input_filename);
+  Tensor input = loadImageTZA(inputFilename);
   const int H = input.dims[0];
   const int W = input.dims[1];
-  cout << input_filename << ": " << W << "x" << H << endl;
+  cout << inputFilename << ": " << W << "x" << H << endl;
 
   Tensor output({H, W, 3}, "hwc");
 
@@ -73,7 +73,7 @@ int main(int argc, char **argv)
   cout << "init=" << (1000. * initd) << " msec" << endl;
 
   // correctness check and warmup
-  Tensor refoutput = load_image_tza(refoutput_filename);
+  Tensor refoutput = loadImageTZA(refoutputFilename);
   if (refoutput.dims != output.dims)
   {
     cout << "error: reference output size mismatch" << endl;
@@ -103,9 +103,9 @@ int main(int argc, char **argv)
   cout << "checked " << output.size() << " floats, nerr=" << nerr << ", maxre=" << maxre << endl;
 
   // save images
-  save_image_ppm(output,    "infer_out.ppm");
-  save_image_ppm(refoutput, "infer_refout.ppm");
-  save_image_ppm(input,     "infer_in.ppm");
+  saveImagePPM(output,    "infer_out.ppm");
+  saveImagePPM(refoutput, "infer_refout.ppm");
+  saveImagePPM(input,     "infer_in.ppm");
 
   // benchmark loop
   #ifdef VTUNE
