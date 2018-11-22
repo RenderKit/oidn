@@ -16,12 +16,37 @@
 
 #pragma once
 
-#include "common/mkldnn.h"
+#include "common/platform.h"
+
+#include "mkl-dnn/include/mkldnn.hpp"
+#include "mkl-dnn/include/mkldnn_debug.h"
+#include "mkl-dnn/src/common/utils.hpp"
+#include "mkl-dnn/src/cpu/jit_generator.hpp"
+
 #include "common/ref.h"
 #include "common/exception.h"
 #include "common/tasking.h"
 
 namespace oidn {
+
+  using namespace mkldnn;
+  using namespace mkldnn::impl::utils;
+  using namespace mkldnn::impl::cpu;
+
+
+  inline size_t getFormatBytes(Format format)
+  {
+    switch (format)
+    {
+    case Format::Undefined: return 1;
+    case Format::Float:     return sizeof(float);
+    case Format::Float2:    return sizeof(float)*2;
+    case Format::Float3:    return sizeof(float)*3;
+    }
+    assert(0);
+    return 0;
+  }
+
 
   inline memory::dims getTensorDims(const std::shared_ptr<memory>& mem)
   {

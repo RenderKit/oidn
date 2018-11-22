@@ -16,10 +16,10 @@
 
 #pragma once
 
-#include "data.h"
+#include "image.h"
 
 namespace oidn {
 
-  float autoexposure(const Data2D& input);
+  float autoexposure(const Image& color);
 
 } // ::oidn

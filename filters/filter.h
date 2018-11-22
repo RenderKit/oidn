@@ -18,7 +18,7 @@
 
 #include "common.h"
 #include "device.h"
-#include "data.h"
+#include "image.h"
 
 namespace oidn {
 
@@ -30,7 +30,7 @@ namespace oidn {
   public:
     explicit Filter(const Ref<Device>& device) : device(device) {}
 
-    virtual void setData2D(const std::string& name, const Data2D& data) = 0;
+    virtual void setImage(const std::string& name, const Image& data) = 0;
     virtual void set1i(const std::string& name, int value) {};
     virtual void commit() = 0;
     virtual void execute() = 0;

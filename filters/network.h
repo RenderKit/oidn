@@ -15,7 +15,7 @@
 // ======================================================================== //
 
 #include "common/tensor.h"
-#include "data.h"
+#include "image.h"
 #include "node.h"
 #include "input_reorder.h"
 #include "output_reorder.h"
@@ -51,9 +51,9 @@ namespace oidn {
     memory::dims getInputReorderDims(const memory::dims& srcDims, int spatialPad);
 
     template<class TransferFunction>
-    std::shared_ptr<Node> addInputReorder(const Data2D& color,
-                                          const Data2D& albedo,
-                                          const Data2D& normal,
+    std::shared_ptr<Node> addInputReorder(const Image& color,
+                                          const Image& albedo,
+                                          const Image& normal,
                                           const std::shared_ptr<TransferFunction>& transferFunc,
                                           int spatialPad,
                                           const std::shared_ptr<memory>& userDst = nullptr);
@@ -61,7 +61,7 @@ namespace oidn {
     template<class TransferFunction>
     std::shared_ptr<Node> addOutputReorder(const std::shared_ptr<memory>& src,
                                            const std::shared_ptr<TransferFunction>& transferFunc,
-                                           const Data2D& output);
+                                           const Image& output);
 
     memory::dims getConvDims(const std::string& name, const memory::dims& srcDims);
     std::shared_ptr<Node> addConv(const std::string& name,
@@ -87,14 +87,14 @@ namespace oidn {
 
   template<int K>
   template<class TransferFunction>
-  std::shared_ptr<Node> Network<K>::addInputReorder(const Data2D& color,
-                                                    const Data2D& albedo,
-                                                    const Data2D& normal,
+  std::shared_ptr<Node> Network<K>::addInputReorder(const Image& color,
+                                                    const Image& albedo,
+                                                    const Image& normal,
                                                     const std::shared_ptr<TransferFunction>& transferFunc,
                                                     int spatialPad,
                                                     const std::shared_ptr<memory>& userDst)
   {
-    assert(input);
+    assert(color);
     int inputC = 3;
     if (albedo) inputC += 3;
     if (normal) inputC += 3;
@@ -118,7 +118,7 @@ namespace oidn {
   template<class TransferFunction>
   std::shared_ptr<Node> Network<K>::addOutputReorder(const std::shared_ptr<memory>& src,
                                                      const std::shared_ptr<TransferFunction>& transferFunc,
-                                                     const Data2D& output)
+                                                     const Image& output)
   {
     memory::dims srcDims = getTensorDims(src);
     assert(srcDims[1] == K);

@@ -53,10 +53,10 @@ int main(int argc, char **argv)
   oidn::FilterRef filter = device.newFilter("Autoencoder");
 
   const size_t F = sizeof(float);
-  filter.setData2D("color",  input.data,  oidn::Format::Float3, W, H, 0*F, 9*F);
-  filter.setData2D("albedo", input.data,  oidn::Format::Float3, W, H, 3*F, 9*F);
-  filter.setData2D("normal", input.data,  oidn::Format::Float3, W, H, 6*F, 9*F);
-  filter.setData2D("output", output.data, oidn::Format::Float3, W, H, 0*F, 3*F);
+  filter.setImage("color",  input.data,  oidn::Format::Float3, W, H, 0*F, 9*F);
+  filter.setImage("albedo", input.data,  oidn::Format::Float3, W, H, 3*F, 9*F);
+  filter.setImage("normal", input.data,  oidn::Format::Float3, W, H, 6*F, 9*F);
+  filter.setImage("output", output.data, oidn::Format::Float3, W, H, 0*F, 3*F);
   filter.set1i("srgb", 1);
   //filter.set1i("hdr", 1);
 

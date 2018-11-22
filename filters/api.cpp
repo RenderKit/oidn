@@ -161,31 +161,31 @@ namespace oidn {
     OIDN_CATCH(filter->getDevice().get())
   }
 
-  OIDN_API void oidnSetFilterData2D(OIDNFilter hfilter, const char* name,
-                                    OIDNBuffer hbuffer, OIDNFormat format,
-                                    size_t width, size_t height,
-                                    size_t byteOffset, size_t byteStride, size_t byteRowStride)
+  OIDN_API void oidnSetFilterImage(OIDNFilter hfilter, const char* name,
+                                   OIDNBuffer hbuffer, OIDNFormat format,
+                                   size_t width, size_t height,
+                                   size_t byteOffset, size_t byteItemStride, size_t byteRowStride)
   {
     Filter* filter = (Filter*)hfilter;
     OIDN_TRY
       verifyHandle(hfilter);
       verifyHandle(hbuffer);
       Ref<Buffer> buffer = (Buffer*)hbuffer;
-      Data2D data(buffer, (Format)format, (int)width, (int)height, byteOffset, byteStride, byteRowStride);
-      filter->setData2D(name, data);
+      Image data(buffer, (Format)format, (int)width, (int)height, byteOffset, byteItemStride, byteRowStride);
+      filter->setImage(name, data);
     OIDN_CATCH(filter->getDevice().get())
   }
 
-  OIDN_API void oidnSetSharedFilterData2D(OIDNFilter hfilter, const char* name,
-                                          void* ptr, OIDNFormat format,
-                                          size_t width, size_t height,
-                                          size_t byteOffset, size_t byteStride, size_t byteRowStride)
+  OIDN_API void oidnSetSharedFilterImage(OIDNFilter hfilter, const char* name,
+                                         void* ptr, OIDNFormat format,
+                                         size_t width, size_t height,
+                                         size_t byteOffset, size_t byteItemStride, size_t byteRowStride)
   {
     Filter* filter = (Filter*)hfilter;
     OIDN_TRY
       verifyHandle(hfilter);
-      Data2D data(ptr, (Format)format, (int)width, (int)height, byteOffset, byteStride, byteRowStride);
-      filter->setData2D(name, data);
+      Image data(ptr, (Format)format, (int)width, (int)height, byteOffset, byteItemStride, byteRowStride);
+      filter->setImage(name, data);
     OIDN_CATCH(filter->getDevice().get())
   }
 

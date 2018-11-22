@@ -34,30 +34,30 @@ namespace oidn {
   {
   }
 
-  void Autoencoder::setData2D(const std::string& name, const Data2D& data)
+  void Autoencoder::setImage(const std::string& name, const Image& data)
   {
     if (name == "color")
     {
       if (data.format != Format::Float3)
-        throw Exception(Error::InvalidOperation, "unsupported data format");
+        throw Exception(Error::InvalidOperation, "unsupported image format");
       color = data;
     }
     else if (name == "albedo")
     {
       if (data.format != Format::Float3)
-        throw Exception(Error::InvalidOperation, "unsupported data format");
+        throw Exception(Error::InvalidOperation, "unsupported image format");
       albedo = data;
     }
     else if (name == "normal")
     {
       if (data.format != Format::Float3)
-        throw Exception(Error::InvalidOperation, "unsupported data format");
+        throw Exception(Error::InvalidOperation, "unsupported image format");
       normal = data;
     }
     else if (name == "output")
     {
       if (data.format != Format::Float3)
-        throw Exception(Error::InvalidOperation, "unsupported data format");
+        throw Exception(Error::InvalidOperation, "unsupported image format");
       output = data;
     }
   }

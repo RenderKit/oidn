@@ -17,7 +17,7 @@
 #pragma once
 
 #include "node.h"
-#include "data.h"
+#include "image.h"
 
 namespace oidn {
 
@@ -26,9 +26,9 @@ namespace oidn {
   class InputReorder : public Node
   {
   private:
-    Data2D color;
-    Data2D albedo;
-    Data2D normal;
+    Image color;
+    Image albedo;
+    Image normal;
 
     std::shared_ptr<memory> dst;
     float* dstPtr;
@@ -39,9 +39,9 @@ namespace oidn {
     std::shared_ptr<TransferFunction> transferFunc;
 
   public:
-    InputReorder(const Data2D& color,
-                 const Data2D& albedo,
-                 const Data2D& normal,
+    InputReorder(const Image& color,
+                 const Image& albedo,
+                 const Image& normal,
                  const std::shared_ptr<memory>& dst,
                  const std::shared_ptr<TransferFunction>& transferFunc)
       : color(color), albedo(albedo), normal(normal),
@@ -55,8 +55,8 @@ namespace oidn {
       assert(dstDesc.data_type == memory::data_type::f32);
       assert(dstDesc.dims[0] == 1);
       //assert(dstDesc.dims[1] >= getPadded<K>(C1));
-      assert(dstDesc.dims[2] >= src.height);
-      assert(dstDesc.dims[3] >= src.width);
+      assert(dstDesc.dims[2] >= color.height);
+      assert(dstDesc.dims[3] >= color.width);
 
       dstPtr = (float*)dst->get_data_handle();
       C2 = dstDesc.dims[1];

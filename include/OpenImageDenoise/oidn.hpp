@@ -168,26 +168,26 @@ namespace oidn {
       return handle;
     }
 
-    void setData2D(const char* name,
-                   const BufferRef& buffer, Format format,
-                   size_t width, size_t height,
-                   size_t byteOffset = 0, size_t byteStride = 0, size_t byteRowStride = 0)
+    void setImage(const char* name,
+                  const BufferRef& buffer, Format format,
+                  size_t width, size_t height,
+                  size_t byteOffset = 0, size_t byteItemStride = 0, size_t byteRowStride = 0)
     {
-      oidnSetFilterData2D(handle, name,
-                          buffer.getHandle(), (OIDNFormat)format,
-                          width, height,
-                          byteOffset, byteStride, byteRowStride);
+      oidnSetFilterImage(handle, name,
+                         buffer.getHandle(), (OIDNFormat)format,
+                         width, height,
+                         byteOffset, byteItemStride, byteRowStride);
     }
 
-    void setData2D(const char* name,
+    void setImage(const char* name,
                    void* ptr, Format format,
                    size_t width, size_t height,
-                   size_t byteOffset = 0, size_t byteStride = 0, size_t byteRowStride = 0)
+                   size_t byteOffset = 0, size_t byteItemStride = 0, size_t byteRowStride = 0)
     {
-      oidnSetSharedFilterData2D(handle, name,
-                                ptr, (OIDNFormat)format,
-                                width, height,
-                                byteOffset, byteStride, byteRowStride);
+      oidnSetSharedFilterImage(handle, name,
+                               ptr, (OIDNFormat)format,
+                               width, height,
+                               byteOffset, byteItemStride, byteRowStride);
     }
 
     void set1i(const char* name, int value)

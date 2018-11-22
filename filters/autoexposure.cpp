@@ -23,25 +23,25 @@ namespace oidn {
     return 0.212671f * r + 0.715160f * g + 0.072169f * b;
   }
 
-  float autoexposure(const Data2D& input)
+  float autoexposure(const Image& color)
   {
-    assert(input.format == Format::FLOAT3);
+    assert(color.format == Format::Float3);
     constexpr float key = 0.18f;
 
     using Sum = std::pair<float, int>;
 
     Sum sum =
       tbb::parallel_reduce(
-        tbb::blocked_range<int>(0, input.height),
+        tbb::blocked_range<int>(0, color.height),
         Sum(0.f, 0),
         [&](const tbb::blocked_range<int>& r, Sum sum) -> Sum
         {
           for (int h = r.begin(); h != r.end(); ++h)
           {
-            for (int w = 0; w < input.width; ++w)
+            for (int w = 0; w < color.width; ++w)
             {
-              const float* color = (const float*)input.get(h, w);
-              const float L = luminance(color[0], color[1], color[2]);
+              const float* rgb = (const float*)color.get(h, w);
+              const float L = luminance(rgb[0], rgb[1], rgb[2]);
 
               if (L > 1e-7f)
               {

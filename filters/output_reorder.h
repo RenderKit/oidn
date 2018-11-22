@@ -17,7 +17,7 @@
 #pragma once
 
 #include "node.h"
-#include "data.h"
+#include "image.h"
 
 namespace oidn {
 
@@ -31,13 +31,13 @@ namespace oidn {
     int H1;
     int W1;
 
-    Data2D output;
+    Image output;
 
     std::shared_ptr<TransferFunction> transferFunc;
 
   public:
     OutputReorder(const std::shared_ptr<memory>& src,
-                  const Data2D& output,
+                  const Image& output,
                   const std::shared_ptr<TransferFunction>& transferFunc)
       : src(src),
         output(output),

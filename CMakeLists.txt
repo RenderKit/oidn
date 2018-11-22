@@ -84,7 +84,7 @@ set(SOURCES
   filters/device.h
   filters/device.cpp
   filters/buffer.h
-  filters/data.h
+  filters/image.h
   filters/filter.h
   filters/transfer_function.h
   filters/node.h

@@ -26,10 +26,10 @@ namespace oidn {
   class Autoencoder : public Filter
   {
   private:
-    Data2D color;
-    Data2D albedo;
-    Data2D normal;
-    Data2D output;
+    Image color;
+    Image albedo;
+    Image normal;
+    Image output;
     bool srgb;
     bool hdr;
 
@@ -39,7 +39,7 @@ namespace oidn {
   public:
     Autoencoder(const Ref<Device>& device);
 
-    void setData2D(const std::string& name, const Data2D& data) override;
+    void setImage(const std::string& name, const Image& data) override;
     void set1i(const std::string& name, int value) override;
     void commit() override;
     void execute() override;
