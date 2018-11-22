@@ -15,7 +15,6 @@
 // ======================================================================== //
 
 #include <iostream>
-#include <sys/time.h>
 #include <cassert>
 #include <cmath>
 
@@ -112,22 +111,20 @@ int main(int argc, char **argv)
   __itt_resume();
   #endif
   double mind = INFINITY;
-  struct timeval tv1, tv2;
-  gettimeofday(&tv1, 0);
+  Timer totalTimer;
   cout << "===== start =====" << endl;
   int ntimes = 100;
+  //int ntimes = 5;
   for (int i = 0; i < ntimes; ++i)
   {
     timer.reset();
     filter.execute();
     mind = min(mind, timer.query());
   }
-  gettimeofday(&tv2, 0);
+  double totald = totalTimer.query();
   cout << "===== stop =====" << endl;
-  double d1 = tv1.tv_sec + (double)tv1.tv_usec * 1e-6;
-  double d2 = tv2.tv_sec + (double)tv2.tv_usec * 1e-6;
-  cout << "ntimes=" << ntimes << " secs=" << (d2-d1)
-       << " msec/image=" << (1000.*(d2-d1)/ntimes)
+  cout << "ntimes=" << ntimes << " secs=" << totald
+       << " msec/image=" << (1000.*totald/ntimes)
        << " (min=" << (1000.*mind) << ")" << endl;
   #ifdef VTUNE
   __itt_pause();

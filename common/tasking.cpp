@@ -19,6 +19,100 @@
 
 namespace oidn {
 
+#if defined(_WIN32)
+
+  // Windows
+  ThreadAffinity::ThreadAffinity(int threadsPerCore)
+  {
+    // Get logical processor information
+    PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX buffer = nullptr;
+    DWORD bufferSize = 0;
+
+    // First call the function with an empty buffer to get the required buffer size
+    BOOL result = GetLogicalProcessorInformationEx(RelationProcessorCore, buffer, &bufferSize);
+    if (result || GetLastError() != ERROR_INSUFFICIENT_BUFFER)
+      return; // error
+    
+    // Allocate the buffer
+    buffer = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)malloc(bufferSize);
+    if (!buffer)
+      return; // allocation error
+      
+    // Call again the function but now with the properly sized buffer
+    result = GetLogicalProcessorInformationEx(RelationProcessorCore, buffer, &bufferSize);
+    if (!result)
+    {
+      free(buffer);
+      return;
+    }
+
+    // Iterate over the logical processor information structures
+    // There should be one structure for each physical core
+    char* ptr = (char*)buffer;
+    while (ptr < (char*)buffer + bufferSize)
+    {
+      PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX item = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)ptr;
+      if (item->Relationship == RelationProcessorCore && item->Processor.GroupCount > 0)
+      {
+        // Iterate over the groups
+        int numThreads = 0;
+        for (int group = 0; (group < item->Processor.GroupCount) && (numThreads < threadsPerCore); ++group)
+        {
+          GROUP_AFFINITY curAffinity = item->Processor.GroupMask[group];
+          while ((curAffinity.Mask != 0) && (numThreads < threadsPerCore))
+          {
+            // Extract the next set bit/thread from the mask
+            GROUP_AFFINITY affinity = curAffinity;
+            affinity.Mask = affinity.Mask & -affinity.Mask;
+
+            //printf("thread %d\n", affinity.Mask);
+
+            // Push the affinity for this thread
+            affinities.push_back(affinity);
+            oldAffinities.push_back(affinity);
+            numThreads++;
+
+            // Remove this bit/thread from the mask
+            curAffinity.Mask ^= affinity.Mask;
+          }
+        }
+      }
+
+      // Next structure
+      ptr += item->Size;
+    }
+
+    // Free the buffer
+    free(buffer);
+  }
+
+  void ThreadAffinity::set(int threadIndex)
+  {
+    if (threadIndex >= (int)affinities.size())
+      return;
+
+    const HANDLE thread = GetCurrentThread();
+
+    // Save the current affinity and set the new one
+    if (!SetThreadGroupAffinity(thread, &affinities[threadIndex], &oldAffinities[threadIndex]))
+      WARNING("SetThreadGroupAffinity failed");
+  }
+
+  void ThreadAffinity::restore(int threadIndex)
+  {
+    if (threadIndex >= (int)affinities.size())
+      return;
+
+    const HANDLE thread = GetCurrentThread();
+
+    // Restore the original affinity
+    if (!SetThreadGroupAffinity(thread, &oldAffinities[threadIndex], nullptr))
+      WARNING("SetThreadGroupAffinity failed");
+  }
+
+#else
+
+  // Linux
   ThreadAffinity::ThreadAffinity(int threadsPerCore)
   {
     std::vector<int> threadIds;
@@ -97,6 +191,8 @@ namespace oidn {
     if (pthread_setaffinity_np(thread, sizeof(cpu_set_t), &oldCpusets[threadIndex]) != 0)
       WARNING("pthread_setaffinity_np failed");
   }
+
+#endif
 
 
   PinningObserver::PinningObserver(const std::shared_ptr<ThreadAffinity>& affinity)

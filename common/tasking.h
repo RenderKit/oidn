@@ -28,6 +28,35 @@
 
 namespace oidn {
 
+#if defined(_WIN32)
+
+  // Windows
+  class ThreadAffinity
+  {
+  private:
+    std::vector<GROUP_AFFINITY> affinities;    // thread affinities
+    std::vector<GROUP_AFFINITY> oldAffinities; // original thread affinities
+
+  public:
+    ThreadAffinity(int threadsPerCore = INT_MAX);
+
+    int numThreads() const
+    {
+      if (affinities.empty())
+        return tbb::this_task_arena::max_concurrency();
+      return (int)affinities.size();
+    }
+
+    // Sets the affinity (0..num_threads-1) of the thread after saving the current affinity
+    void set(int threadIndex);
+
+    // Restores the affinity of the thread
+    void restore(int threadIndex);
+  };
+
+#else
+
+  // Linux
   class ThreadAffinity
   {
   private:
@@ -50,6 +79,8 @@ namespace oidn {
     // Restores the affinity of the thread
     void restore(int threadIndex);
   };
+
+#endif
 
   class PinningObserver : public tbb::task_scheduler_observer
   {

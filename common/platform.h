@@ -16,17 +16,29 @@
 
 #pragma once
 
+#if defined(_WIN32)
+#define WIN32_LEAN_AND_MEAN
+#define NOMINMAX
+#include <Windows.h>
+#endif
+
 #include <xmmintrin.h>
 #include <atomic>
 #include <algorithm>
 #include <memory>
 #include <cmath>
+#include <string>
 #include <iostream>
 #include <cassert>
 #include "include/OpenImageDenoise/oidn.hpp"
 
-#if !defined(__forceinline)
-  #define __forceinline  inline __attribute__((always_inline))
+#if defined(_WIN32)
+  // Windows
+#else
+  // Linux
+  #if !defined(__forceinline)
+    #define __forceinline  inline __attribute__((always_inline))
+  #endif
 #endif
 
 #ifndef UNUSED
