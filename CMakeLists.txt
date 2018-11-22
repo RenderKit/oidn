@@ -80,25 +80,25 @@ add_subdirectory(common EXCLUDE_FROM_ALL)
 set(SOURCES
   include/OpenImageDenoise/oidn.h
   include/OpenImageDenoise/oidn.hpp
-  filters/common.h
-  filters/device.h
-  filters/device.cpp
-  filters/buffer.h
-  filters/image.h
-  filters/filter.h
-  filters/transfer_function.h
-  filters/node.h
-  filters/upsample.h
-  filters/input_reorder.h
-  filters/output_reorder.h
-  filters/weights_reorder.h
-  filters/network.h
-  filters/network.cpp
-  filters/autoencoder.h
-  filters/autoencoder.cpp
-  filters/autoexposure.h
-  filters/autoexposure.cpp
-  filters/api.cpp
+  core/common.h
+  core/device.h
+  core/device.cpp
+  core/buffer.h
+  core/image.h
+  core/filter.h
+  core/transfer_function.h
+  core/node.h
+  core/upsample.h
+  core/input_reorder.h
+  core/output_reorder.h
+  core/weights_reorder.h
+  core/network.h
+  core/network.cpp
+  core/autoencoder.h
+  core/autoencoder.cpp
+  core/autoexposure.h
+  core/autoexposure.cpp
+  core/api.cpp
 )
 
 generate_cpp_resources(WEIGHTS_SOURCES "oidn::weights"
