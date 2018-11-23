@@ -138,7 +138,7 @@ OIDN_API void oidnReleaseFilter(OIDNFilter filter);
 // Supported parameters:
 //   color  - input color to denoise
 //   albedo - input albedo (optional)
-//   normal - input normal (optional, requires albedo set too)
+//   normal - input normal (optional)
 //   output - denoised output color
 // All images must have FLOAT3 format and the same size.
 // If byteItemStride and/or byteRowStride are zero, these will be computed
