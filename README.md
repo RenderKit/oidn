@@ -5,6 +5,12 @@ Version 0.2.0 CLOSED ALPHA - DO *NOT* REDISTRIBUTE\
 Intel Corporation
 
 
+Introduction
+============
+
+Open Image Denoise is an open source library for denoising Monte Carlo ray traced images.
+
+
 Requirements
 ============
 
