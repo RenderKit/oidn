@@ -117,10 +117,10 @@ OIDN_API void oidnReleaseFilter(OIDNFilter filter);
 
 // Sets an image parameter of the filter (stored in a buffer).
 // Supported parameter names:
-//   color  - input color
+//   color  - input color to denoise
 //   albedo - input albedo (optional)
-//   normal - input normal (optional)
-//   output - output color
+//   normal - input normal (optional, requires albedo set too)
+//   output - denoised output color
 // All images must have FLOAT3 format and the same size.
 // If byteItemStride and/or byteRowStride are zero, these will be computed
 // automatically.
@@ -138,7 +138,7 @@ OIDN_API void oidnSetSharedFilterImage(OIDNFilter filter, const char* name,
 // Sets an integer parameter of the filter.
 // Supported parameter names:
 //   hdr  - the color image has high dynamic range (HDR), if non-zero (default is 0)
-//   srgb - the color image has the sRGB tone curve applied, if non-zero (default is 0)
+//   srgb - the color image is encoded in sRGB or 2.2 gamma space, if non-zero (default is 0)
 OIDN_API void oidnSetFilter1i(OIDNFilter filter, const char* name, int value);
 
 // Commits all previous changes to the filter.
