@@ -230,7 +230,7 @@ namespace oidn {
   // Device
   // ------
 
-  // OpenImageDenoise device types
+  // Open Image Denoise device types
   enum class DeviceType
   {
     CPU = OIDN_DEVICE_TYPE_CPU,
