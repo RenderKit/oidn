@@ -65,7 +65,7 @@ namespace oidn {
   inline size_t getTensorSize(const memory::dims& dims)
   {
     size_t res = 1;
-    for (int i = 0; i < dims.size(); ++i)
+    for (int i = 0; i < (int)dims.size(); ++i)
       res *= dims[i];
     return res;
   }
