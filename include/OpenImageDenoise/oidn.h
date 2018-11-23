@@ -82,6 +82,15 @@ enum OIDNFormat
   OIDN_FORMAT_FLOAT3,
 };
 
+// Access modes for mapping buffers
+enum OIDNAccess
+{
+  OIDN_ACCESS_READ,          // read-only access
+  OIDN_ACCESS_WRITE,         // write-only access
+  OIDN_ACCESS_READ_WRITE,    // read and write access
+  OIDN_ACCESS_WRITE_DISCARD, // write-only access, previous contents discarded
+};
+
 // Buffer handle
 typedef struct OIDNBufferImpl* OIDNBuffer;
 
@@ -90,6 +99,14 @@ OIDN_API OIDNBuffer oidnNewBuffer(OIDNDevice device, size_t byteSize);
 
 // Creates a new shared buffer (data owned by the user).
 OIDN_API OIDNBuffer oidnNewSharedBuffer(OIDNDevice device, void* ptr, size_t byteSize);
+
+// Maps a region of the buffer to host memory.
+// If byteSize is 0, the maximum available amount of memory will be mapped.
+OIDN_API void* oidnMapBuffer(OIDNBuffer buffer, OIDNAccess access, size_t byteOffset, size_t byteSize);
+
+// Unmaps a region of the buffer.
+// mappedPtr must be a pointer returned by a previous call to oidnMapBuffer for the specified buffer.
+OIDN_API void oidnUnmapBuffer(OIDNBuffer buffer, void* mappedPtr);
 
 // Retains the buffer (increments the reference count).
 OIDN_API void oidnRetainBuffer(OIDNBuffer buffer);

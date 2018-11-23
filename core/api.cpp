@@ -147,6 +147,25 @@ namespace oidn {
     releaseObject(buffer);
   }
 
+  OIDN_API void* oidnMapBuffer(OIDNBuffer hbuffer, OIDNAccess access, size_t byteOffset, size_t byteSize)
+  {
+    Buffer* buffer = (Buffer*)hbuffer;
+    OIDN_TRY
+      verifyHandle(hbuffer);
+      return buffer->map(byteOffset, byteSize);
+    OIDN_CATCH(buffer)
+    return nullptr;
+  }
+
+  OIDN_API void oidnUnmapBuffer(OIDNBuffer hbuffer, void* mappedPtr)
+  {
+    Buffer* buffer = (Buffer*)hbuffer;
+    OIDN_TRY
+      verifyHandle(hbuffer);
+      return buffer->unmap(mappedPtr);
+    OIDN_CATCH(buffer)
+  }
+
   OIDN_API OIDNFilter oidnNewFilter(OIDNDevice hdevice, const char* type)
   {
     Device* device = (Device*)hdevice;

@@ -28,20 +28,20 @@ namespace oidn {
   {
   private:
     char* ptr;
-    size_t numBytes;
+    size_t byteSize;
     bool shared;
     Ref<Device> device;
 
   public:
     __forceinline Buffer(const Ref<Device>& device, size_t size)
       : ptr(new char[size]),
-        numBytes(size),
+        byteSize(size),
         shared(false),
         device(device) {}
 
     __forceinline Buffer(const Ref<Device>& device, void* data, size_t size)
       : ptr((char*)data),
-        numBytes(size),
+        byteSize(size),
         shared(true),
         device(device) {}
 
@@ -53,7 +53,16 @@ namespace oidn {
 
     __forceinline char* data() { return ptr; }
     __forceinline const char* data() const { return ptr; }
-    __forceinline size_t size() const { return numBytes; }
+    __forceinline size_t size() const { return byteSize; }
+
+    void* map(size_t offset, size_t size)
+    {
+      if (offset + size > byteSize)
+        throw Exception(Error::InvalidArgument, "buffer region out of range");
+      return ptr + offset;
+    }
+
+    void unmap(void* mappedPtr) {}
 
     Device* getDevice() { return device.get(); }
   };

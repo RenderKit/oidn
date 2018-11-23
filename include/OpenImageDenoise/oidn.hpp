@@ -34,6 +34,15 @@ namespace oidn {
     Float3 = OIDN_FORMAT_FLOAT3,
   };
 
+  // Access modes for mapping buffers
+  enum class Access
+  {
+    Read         = OIDN_ACCESS_READ,          // read-only access
+    Write        = OIDN_ACCESS_WRITE,         // write-only access
+    ReadWrite    = OIDN_ACCESS_READ_WRITE,    // read and write access
+    WriteDiscard = OIDN_ACCESS_WRITE_DISCARD, // write-only access, previous contents discarded
+  };
+
   // Buffer object with automatic reference counting
   class BufferRef
   {
@@ -93,6 +102,18 @@ namespace oidn {
     OIDNBuffer getHandle() const
     {
       return handle;
+    }
+
+    // Maps a region of the buffer to host memory.
+    void map(Access access = Access::ReadWrite, size_t byteOffset = 0, size_t byteSize = 0)
+    {
+      oidnMapBuffer(handle, (OIDNAccess)access, byteOffset, byteSize);
+    }
+
+    // Unmaps a region of the buffer.
+    void unmap(void* mappedPtr)
+    {
+      oidnUnmapBuffer(handle, mappedPtr);
     }
   };
 
