@@ -63,7 +63,7 @@ oidnSetSharedFilterImage(filter, "color",  colorPtr,  OIDN_FORMAT_FLOAT3, width,
 oidnSetSharedFilterImage(filter, "albedo", albedoPtr, OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0); // optional
 oidnSetSharedFilterImage(filter, "normal", normalPtr, OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0); // optional
 oidnSetSharedFilterImage(filter, "output", outputPtr, OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0);
-oidnSetFilter1i(filter, "hdr", 1); // for HDR inputs
+oidnSetFilter1i(filter, "hdr", 1); // enable HDR mode
 oidnCommitFilter(filter);
 
 // Filter the image
@@ -96,7 +96,7 @@ filter.setImage("color",  colorPtr,  oidn::Format::Float3, width, height);
 filter.setImage("albedo", albedoPtr, oidn::Format::Float3, width, height); // optional
 filter.setImage("normal", normalPtr, oidn::Format::Float3, width, height); // optional
 filter.setImage("output", outputPtr, oidn::Format::Float3, width, height);
-filter.set1i("hdr", 1); // for HDR inputs
+filter.set1i("hdr", 1); // enable HDR mode
 filter.commit();
 
 // Filter the image
