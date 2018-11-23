@@ -36,9 +36,9 @@ int main(int argc, char **argv)
   std::string inputFilename = "test0.tza";
   if (argc > 1)
     inputFilename = argv[1];
-  std::string refoutputFilename = inputFilename.substr(0, inputFilename.find_last_of('.')) + "_refout.tza";
+  std::string refFilename = inputFilename.substr(0, inputFilename.find_last_of('.')) + "_ref.tza";
   if (argc > 2)
-      refoutputFilename = argv[2];
+      refFilename = argv[2];
 
   Tensor input = loadImageTZA(inputFilename);
   const int H = input.dims[0];
@@ -72,8 +72,8 @@ int main(int argc, char **argv)
   cout << "init=" << (1000. * initd) << " msec" << endl;
 
   // correctness check and warmup
-  Tensor refoutput = loadImageTZA(refoutputFilename);
-  if (refoutput.dims != output.dims)
+  Tensor ref = loadImageTZA(refFilename);
+  if (ref.dims != output.dims)
   {
     cout << "error: reference output size mismatch" << endl;
     exit(1);
@@ -83,7 +83,7 @@ int main(int argc, char **argv)
   float maxre = 0;
   for (size_t i = 0; i < output.size(); ++i)
   {
-    float expect = refoutput.data[i];
+    float expect = ref.data[i];
     float actual = output.data[i];
     float re;
     if (abs(expect) < 1e-5 && abs(actual) < 1e-5)
@@ -102,9 +102,9 @@ int main(int argc, char **argv)
   cout << "checked " << output.size() << " floats, nerr=" << nerr << ", maxre=" << maxre << endl;
 
   // save images
-  saveImagePPM(output,    "infer_out.ppm");
-  saveImagePPM(refoutput, "infer_refout.ppm");
-  saveImagePPM(input,     "infer_in.ppm");
+  saveImagePPM(output, "infer_out.ppm");
+  saveImagePPM(ref,    "infer_ref.ppm");
+  saveImagePPM(input,  "infer_in.ppm");
 
   // benchmark loop
   #ifdef VTUNE
