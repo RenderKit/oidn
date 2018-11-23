@@ -334,7 +334,7 @@ namespace oidn {
     }
   };
 
-  // Creates a new OpenImageDenoise device.
+  // Creates a new Open Image Denoise device.
   inline DeviceRef newDevice(DeviceType type)
   {
     return DeviceRef(oidnNewDevice((OIDNDeviceType)type));

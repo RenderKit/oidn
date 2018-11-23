@@ -54,7 +54,7 @@ enum OIDNError
 // Device handle
 typedef struct OIDNDeviceImpl* OIDNDevice;
 
-// Creates a new OpenImageDenoise device.
+// Creates a new Open Image Denoise device.
 OIDN_API OIDNDevice oidnNewDevice(OIDNDeviceType type);
 
 // Retains the device (increments the reference count).
