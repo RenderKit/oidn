@@ -62,6 +62,11 @@ oidnCommitFilter(filter);
 // Filter the image
 oidnExecuteFilter(filter);
 
+// Check for errors
+const char* errorMessage;
+if (oidnGetDeviceError(device, &errorMessage) != OIDN_ERROR_NONE)
+  printf("Error: %s\n", errorMessage);
+
 // Cleanup
 oidnReleaseFilter(filter);
 oidnReleaseDevice(device);
@@ -89,4 +94,9 @@ filter.commit();
 
 // Filter the image
 filter.execute();
+
+// Check for errors
+const char* errorMessage;
+if (device.getError(&errorMessage) != oidn::Error::None)
+  std::cout << "Error: " << errorMessage << std::endl;
 ```
