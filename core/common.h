@@ -42,6 +42,7 @@ namespace oidn {
     case Format::Float:     return sizeof(float);
     case Format::Float2:    return sizeof(float)*2;
     case Format::Float3:    return sizeof(float)*3;
+    case Format::Float4:    return sizeof(float)*4;
     }
     assert(0);
     return 0;

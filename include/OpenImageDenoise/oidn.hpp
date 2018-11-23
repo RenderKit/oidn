@@ -32,6 +32,7 @@ namespace oidn {
     Float  = OIDN_FORMAT_FLOAT,
     Float2 = OIDN_FORMAT_FLOAT2,
     Float3 = OIDN_FORMAT_FLOAT3,
+    Float4 = OIDN_FORMAT_FLOAT4,
   };
 
   // Access modes for mapping buffers

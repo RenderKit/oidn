@@ -81,6 +81,7 @@ enum OIDNFormat
   OIDN_FORMAT_FLOAT,
   OIDN_FORMAT_FLOAT2,
   OIDN_FORMAT_FLOAT3,
+  OIDN_FORMAT_FLOAT4,
 };
 
 // Access modes for mapping buffers
