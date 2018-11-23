@@ -35,6 +35,8 @@ namespace oidn {
 
     Image(void* ptr, Format format, int width, int height, size_t byteOffset, size_t byteItemStride, size_t byteRowStride)
     {
+      if (ptr == nullptr)
+        throw Exception(Error::InvalidArgument, "buffer pointer cannot be null");
       init((char*)ptr + byteOffset, format, width, height, byteItemStride, byteRowStride);
     }
 

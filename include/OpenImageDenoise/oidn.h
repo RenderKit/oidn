@@ -94,10 +94,10 @@ enum OIDNAccess
 // Buffer handle
 typedef struct OIDNBufferImpl* OIDNBuffer;
 
-// Creates a new buffer (data owned by the library).
+// Creates a new buffer (data allocated and owned by the device).
 OIDN_API OIDNBuffer oidnNewBuffer(OIDNDevice device, size_t byteSize);
 
-// Creates a new shared buffer (data owned by the user).
+// Creates a new shared buffer (data allocated and owned by the user).
 OIDN_API OIDNBuffer oidnNewSharedBuffer(OIDNDevice device, void* ptr, size_t byteSize);
 
 // Maps a region of the buffer to host memory.

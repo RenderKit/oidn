@@ -314,13 +314,13 @@ namespace oidn {
       return (Error)oidnGetDeviceError(handle, message);
     }
 
-    // Creates a new buffer (data owned by the library).
+    // Creates a new buffer (data allocated and owned by the device).
     BufferRef newBuffer(size_t byteSize)
     {
       return oidnNewBuffer(handle, byteSize);
     }
 
-    // Creates a new shared buffer (data owned by the user).
+    // Creates a new shared buffer (data allocated and owned by the user).
     BufferRef newBuffer(void* ptr, size_t byteSize)
     {
       return oidnNewSharedBuffer(handle, ptr, byteSize);

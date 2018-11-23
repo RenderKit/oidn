@@ -43,7 +43,11 @@ namespace oidn {
       : ptr((char*)data),
         byteSize(size),
         shared(true),
-        device(device) {}
+        device(device)
+    {
+      if (data == nullptr)
+        throw Exception(Error::InvalidArgument, "buffer pointer cannot be null");
+    }
 
     __forceinline ~Buffer()
     {
