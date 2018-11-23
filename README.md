@@ -36,6 +36,7 @@ Known Issues
 * Crashes when running on Windows and a CPU with AVX-512 support.
 * HDR support is currently only a placeholder. It is functional, but the
   quality is low. This will be addressed in a future version.
+* The convolutional neural networks of the filters are not fully trained yet. Quality will improve.
 * Inputs with only color and albedo are not supported yet.
 * Windows versions earlier than 7 are not supported yet. This restriction will
   be lifted in a future release.
