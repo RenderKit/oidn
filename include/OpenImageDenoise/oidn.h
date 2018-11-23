@@ -30,11 +30,29 @@ extern "C" {
 #endif
 #endif
 
+
+// Formats of images and other data
+enum OIDNFormat
+{
+  OIDN_FORMAT_UNDEFINED,
+
+  OIDN_FORMAT_FLOAT,
+  OIDN_FORMAT_FLOAT2,
+  OIDN_FORMAT_FLOAT3,
+};
+
+
+// ------
+// Device
+// ------
+
+// OpenImageDenoise device types
 enum OIDNDeviceType
 {
   OIDN_DEVICE_TYPE_CPU,
 };
 
+// Error codes
 enum OIDNError
 {
   OIDN_ERROR_NONE,
@@ -45,61 +63,89 @@ enum OIDNError
   OIDN_ERROR_UNSUPPORTED_HARDWARE,
 };
 
-enum OIDNFormat
-{
-  OIDN_FORMAT_UNDEFINED,
-
-  OIDN_FORMAT_FLOAT,
-  OIDN_FORMAT_FLOAT2,
-  OIDN_FORMAT_FLOAT3,
-};
-
-// Device
+// Device handle
 typedef struct OIDNDeviceImpl* OIDNDevice;
 
+// Creates a new OpenImageDenoise device.
 OIDN_API OIDNDevice oidnNewDevice(OIDNDeviceType type);
 
+// Retains the device (increments the reference count).
 OIDN_API void oidnRetainDevice(OIDNDevice device);
 
+// Releases the device (decrements the reference count).
 OIDN_API void oidnReleaseDevice(OIDNDevice device);
 
+// Returns the first unqueried error code stored in the device, optionally
+// returning a string message too (if not null), and clears the stored error.
 OIDN_API OIDNError oidnGetDeviceError(OIDNDevice device, const char** message);
 
+
+// ------
 // Buffer
+// ------
+
+// Buffer handle
 typedef struct OIDNBufferImpl* OIDNBuffer;
 
+// Creates a new buffer (data owned by the library).
 OIDN_API OIDNBuffer oidnNewBuffer(OIDNDevice device, size_t byteSize);
 
+// Creates a new shared buffer (data owned by the user).
 OIDN_API OIDNBuffer oidnNewSharedBuffer(OIDNDevice device, void* ptr, size_t byteSize);
 
+// Retains the buffer (increments the reference count).
 OIDN_API void oidnRetainBuffer(OIDNBuffer buffer);
 
+// Releases the buffer (decrements the reference count).
 OIDN_API void oidnReleaseBuffer(OIDNBuffer buffer);
 
+
+// ------
 // Filter
+// ------
+
+// Filter handle
 typedef struct OIDNFilterImpl* OIDNFilter;
 
-// type: Autoencoder
+// Creates a new filter of the specified type.
+// Supported filter types:
+//   Autoencoder   AI denoising filter
 OIDN_API OIDNFilter oidnNewFilter(OIDNDevice device, const char* type);
 
+// Retains the filter (increments the reference count).
 OIDN_API void oidnRetainFilter(OIDNFilter filter);
 
+// Releases the filter (decrements the reference count).
 OIDN_API void oidnReleaseFilter(OIDNFilter filter);
 
+// Sets an image parameter of the filter (stored in a buffer).
+// Supported parameters:
+//   color    input color
+//   albedo   input albedo (optional)
+//   normal   input normal (optional)
+//   output   output color
+// All images must have FLOAT3 format.
 OIDN_API void oidnSetFilterImage(OIDNFilter filter, const char* name,
                                  OIDNBuffer buffer, enum OIDNFormat format,
                                  size_t width, size_t height,
                                  size_t byteOffset, size_t byteItemStride, size_t byteRowStride);
 
+// Sets an image parameter of the filter (owned by the user).
 OIDN_API void oidnSetSharedFilterImage(OIDNFilter filter, const char* name,
                                        void* ptr, enum OIDNFormat format,
                                        size_t width, size_t height,
                                        size_t byteOffset, size_t byteItemStride, size_t byteRowStride);
 
+// Sets an integer parameter of the filter.
+// Supported parameters:
+//   hdr    the color image has high dynamic range (HDR), if non-zero
+//   srgb   the color image is stored using the sRGB tone curve, if non-zero
 OIDN_API void oidnSetFilter1i(OIDNFilter filter, const char* name, int value);
 
+// Commits changes to the filter. Must be called before execution.
 OIDN_API void oidnCommitFilter(OIDNFilter filter);
 
+// Executes the filter.
 OIDN_API void oidnExecuteFilter(OIDNFilter filter);
 
 #if defined(__cplusplus)
