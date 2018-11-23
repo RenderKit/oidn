@@ -60,17 +60,17 @@ namespace oidn {
   class ThreadAffinity
   {
   private:
-    std::vector<cpu_set_t> cpusets;    // thread affinities
-    std::vector<cpu_set_t> oldCpusets; // original thread affinities
+    std::vector<cpu_set_t> affinities;    // thread affinities
+    std::vector<cpu_set_t> oldAffinities; // original thread affinities
 
   public:
     ThreadAffinity(int threadsPerCore = INT_MAX);
 
     int numThreads() const
     {
-      if (cpusets.empty())
+      if (affinities.empty())
         return tbb::this_task_arena::max_concurrency();
-      return (int)cpusets.size();
+      return (int)affinities.size();
     }
 
     // Sets the affinity (0..num_threads-1) of the thread after saving the current affinity

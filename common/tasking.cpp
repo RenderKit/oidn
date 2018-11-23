@@ -150,50 +150,50 @@ namespace oidn {
       std::cout << "thread " << i << " -> " << thread_ids[i] << std::endl;
   #endif
 
-    // Create the cpusets
-    cpusets.resize(threadIds.size());
+    // Create the affinity structures
+    affinities.resize(threadIds.size());
+    oldAffinities.resize(threadIds.size());
+
     for (size_t i = 0; i < threadIds.size(); ++i)
     {
-      cpu_set_t cpuset;
-      CPU_ZERO(&cpuset);
-      CPU_SET(threadIds[i], &cpuset);
-      cpusets[i] = cpuset;
-    }
+      cpu_set_t affinity;
+      CPU_ZERO(&affinity);
+      CPU_SET(threadIds[i], &affinity);
 
-    oldCpusets.resize(threadIds.size());
-    for (size_t i = 0; i < oldCpusets.size(); ++i)
-      CPU_ZERO(&oldCpusets[i]);
+      affinities[i] = affinity;
+      oldAffinities[i] = affinity;
+    }
   }
 
   void ThreadAffinity::set(int threadIndex)
   {
-    if (threadIndex >= (int)cpusets.size())
+    if (threadIndex >= (int)affinities.size())
       return;
 
     const pthread_t thread = pthread_self();
 
     // Save the current affinity
-    if (pthread_getaffinity_np(thread, sizeof(cpu_set_t), &oldCpusets[threadIndex]) != 0)
+    if (pthread_getaffinity_np(thread, sizeof(cpu_set_t), &oldAffinities[threadIndex]) != 0)
     {
       WARNING("pthread_getaffinity_np failed");
-      oldCpusets[threadIndex] = cpusets[threadIndex];
+      oldAffinities[threadIndex] = affinities[threadIndex];
       return;
     }
 
     // Set the new affinity
-    if (pthread_setaffinity_np(thread, sizeof(cpu_set_t), &cpusets[threadIndex]) != 0)
+    if (pthread_setaffinity_np(thread, sizeof(cpu_set_t), &affinities[threadIndex]) != 0)
       WARNING("pthread_setaffinity_np failed");
   }
 
   void ThreadAffinity::restore(int threadIndex)
   {
-    if (threadIndex >= (int)cpusets.size())
+    if (threadIndex >= (int)affinities.size())
       return;
 
     const pthread_t thread = pthread_self();
 
     // Restore the original affinity
-    if (pthread_setaffinity_np(thread, sizeof(cpu_set_t), &oldCpusets[threadIndex]) != 0)
+    if (pthread_setaffinity_np(thread, sizeof(cpu_set_t), &oldAffinities[threadIndex]) != 0)
       WARNING("pthread_setaffinity_np failed");
   }
 
