@@ -175,9 +175,9 @@ namespace oidn {
 
     // Sets an image parameter of the filter (owned by the user).
     void setImage(const char* name,
-                   void* ptr, Format format,
-                   size_t width, size_t height,
-                   size_t byteOffset = 0, size_t byteItemStride = 0, size_t byteRowStride = 0)
+                  void* ptr, Format format,
+                  size_t width, size_t height,
+                  size_t byteOffset = 0, size_t byteItemStride = 0, size_t byteRowStride = 0)
     {
       oidnSetSharedFilterImage(handle, name,
                                ptr, (OIDNFormat)format,
