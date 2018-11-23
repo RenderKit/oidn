@@ -91,21 +91,21 @@ namespace oidn {
     return (OIDNDevice)device.detach();
   }
 
-  OIDN_API void oidnRetainDevice(OIDNDevice hdevice)
+  OIDN_API void oidnRetainDevice(OIDNDevice hDevice)
   {
-    Device* device = (Device*)hdevice;
+    Device* device = (Device*)hDevice;
     retainObject(device);
   }
 
-  OIDN_API void oidnReleaseDevice(OIDNDevice hdevice)
+  OIDN_API void oidnReleaseDevice(OIDNDevice hDevice)
   {
-    Device* device = (Device*)hdevice;
+    Device* device = (Device*)hDevice;
     releaseObject(device);
   }
 
-  OIDN_API OIDNError oidnGetDeviceError(OIDNDevice hdevice, const char** message)
+  OIDN_API OIDNError oidnGetDeviceError(OIDNDevice hDevice, const char** message)
   {
-    Device* device = (Device*)hdevice;
+    Device* device = (Device*)hDevice;
     OIDN_TRY
       return (OIDNError)Device::getError(device, message);
     OIDN_CATCH(device)
@@ -113,133 +113,133 @@ namespace oidn {
     return OIDN_ERROR_UNKNOWN;
   }
 
-  OIDN_API OIDNBuffer oidnNewBuffer(OIDNDevice hdevice, size_t byteSize)
+  OIDN_API OIDNBuffer oidnNewBuffer(OIDNDevice hDevice, size_t byteSize)
   {
-    Device* device = (Device*)hdevice;
+    Device* device = (Device*)hDevice;
     OIDN_TRY
-      verifyHandle(hdevice);
+      verifyHandle(hDevice);
       Ref<Buffer> buffer = device->newBuffer(byteSize);
       return (OIDNBuffer)buffer.detach();
     OIDN_CATCH(device)
     return nullptr;
   }
 
-  OIDN_API OIDNBuffer oidnNewSharedBuffer(OIDNDevice hdevice, void* ptr, size_t byteSize)
+  OIDN_API OIDNBuffer oidnNewSharedBuffer(OIDNDevice hDevice, void* ptr, size_t byteSize)
   {
-    Device* device = (Device*)hdevice;
+    Device* device = (Device*)hDevice;
     OIDN_TRY
-      verifyHandle(hdevice);
+      verifyHandle(hDevice);
       Ref<Buffer> buffer = device->newBuffer(ptr, byteSize);
       return (OIDNBuffer)buffer.detach();
     OIDN_CATCH(device)
     return nullptr;
   }
 
-  OIDN_API void oidnRetainBuffer(OIDNBuffer hbuffer)
+  OIDN_API void oidnRetainBuffer(OIDNBuffer hBuffer)
   {
-    Buffer* buffer = (Buffer*)hbuffer;
+    Buffer* buffer = (Buffer*)hBuffer;
     retainObject(buffer);
   }
 
-  OIDN_API void oidnReleaseBuffer(OIDNBuffer hbuffer)
+  OIDN_API void oidnReleaseBuffer(OIDNBuffer hBuffer)
   {
-    Buffer* buffer = (Buffer*)hbuffer;
+    Buffer* buffer = (Buffer*)hBuffer;
     releaseObject(buffer);
   }
 
-  OIDN_API void* oidnMapBuffer(OIDNBuffer hbuffer, OIDNAccess access, size_t byteOffset, size_t byteSize)
+  OIDN_API void* oidnMapBuffer(OIDNBuffer hBuffer, OIDNAccess access, size_t byteOffset, size_t byteSize)
   {
-    Buffer* buffer = (Buffer*)hbuffer;
+    Buffer* buffer = (Buffer*)hBuffer;
     OIDN_TRY
-      verifyHandle(hbuffer);
+      verifyHandle(hBuffer);
       return buffer->map(byteOffset, byteSize);
     OIDN_CATCH(buffer)
     return nullptr;
   }
 
-  OIDN_API void oidnUnmapBuffer(OIDNBuffer hbuffer, void* mappedPtr)
+  OIDN_API void oidnUnmapBuffer(OIDNBuffer hBuffer, void* mappedPtr)
   {
-    Buffer* buffer = (Buffer*)hbuffer;
+    Buffer* buffer = (Buffer*)hBuffer;
     OIDN_TRY
-      verifyHandle(hbuffer);
+      verifyHandle(hBuffer);
       return buffer->unmap(mappedPtr);
     OIDN_CATCH(buffer)
   }
 
-  OIDN_API OIDNFilter oidnNewFilter(OIDNDevice hdevice, const char* type)
+  OIDN_API OIDNFilter oidnNewFilter(OIDNDevice hDevice, const char* type)
   {
-    Device* device = (Device*)hdevice;
+    Device* device = (Device*)hDevice;
     OIDN_TRY
-      verifyHandle(hdevice);
+      verifyHandle(hDevice);
       Ref<Filter> filter = device->newFilter(type);
       return (OIDNFilter)filter.detach();
     OIDN_CATCH(device)
     return nullptr;
   }
 
-  OIDN_API void oidnRetainFilter(OIDNFilter hfilter)
+  OIDN_API void oidnRetainFilter(OIDNFilter hFilter)
   {
-    Filter* filter = (Filter*)hfilter;
+    Filter* filter = (Filter*)hFilter;
     retainObject(filter);
   }
 
-  OIDN_API void oidnReleaseFilter(OIDNFilter hfilter)
+  OIDN_API void oidnReleaseFilter(OIDNFilter hFilter)
   {
-    Filter* filter = (Filter*)hfilter;
+    Filter* filter = (Filter*)hFilter;
     releaseObject(filter);
   }
 
-  OIDN_API void oidnSetFilterImage(OIDNFilter hfilter, const char* name,
-                                   OIDNBuffer hbuffer, OIDNFormat format,
+  OIDN_API void oidnSetFilterImage(OIDNFilter hFilter, const char* name,
+                                   OIDNBuffer hBuffer, OIDNFormat format,
                                    size_t width, size_t height,
                                    size_t byteOffset, size_t byteItemStride, size_t byteRowStride)
   {
-    Filter* filter = (Filter*)hfilter;
+    Filter* filter = (Filter*)hFilter;
     OIDN_TRY
-      verifyHandle(hfilter);
-      verifyHandle(hbuffer);
-      Ref<Buffer> buffer = (Buffer*)hbuffer;
+      verifyHandle(hFilter);
+      verifyHandle(hBuffer);
+      Ref<Buffer> buffer = (Buffer*)hBuffer;
       Image data(buffer, (Format)format, (int)width, (int)height, byteOffset, byteItemStride, byteRowStride);
       filter->setImage(name, data);
     OIDN_CATCH(filter)
   }
 
-  OIDN_API void oidnSetSharedFilterImage(OIDNFilter hfilter, const char* name,
+  OIDN_API void oidnSetSharedFilterImage(OIDNFilter hFilter, const char* name,
                                          void* ptr, OIDNFormat format,
                                          size_t width, size_t height,
                                          size_t byteOffset, size_t byteItemStride, size_t byteRowStride)
   {
-    Filter* filter = (Filter*)hfilter;
+    Filter* filter = (Filter*)hFilter;
     OIDN_TRY
-      verifyHandle(hfilter);
+      verifyHandle(hFilter);
       Image data(ptr, (Format)format, (int)width, (int)height, byteOffset, byteItemStride, byteRowStride);
       filter->setImage(name, data);
     OIDN_CATCH(filter)
   }
 
-  OIDN_API void oidnSetFilter1i(OIDNFilter hfilter, const char* name, int value)
+  OIDN_API void oidnSetFilter1i(OIDNFilter hFilter, const char* name, int value)
   {
-    Filter* filter = (Filter*)hfilter;
+    Filter* filter = (Filter*)hFilter;
     OIDN_TRY
-      verifyHandle(hfilter);
+      verifyHandle(hFilter);
       filter->set1i(name, value);
     OIDN_CATCH(filter)
   }
 
-  OIDN_API void oidnCommitFilter(OIDNFilter hfilter)
+  OIDN_API void oidnCommitFilter(OIDNFilter hFilter)
   {
-    Filter* filter = (Filter*)hfilter;
+    Filter* filter = (Filter*)hFilter;
     OIDN_TRY
-      verifyHandle(hfilter);
+      verifyHandle(hFilter);
       filter->commit();
     OIDN_CATCH(filter)
   }
 
-  OIDN_API void oidnExecuteFilter(OIDNFilter hfilter)
+  OIDN_API void oidnExecuteFilter(OIDNFilter hFilter)
   {
-    Filter* filter = (Filter*)hfilter;
+    Filter* filter = (Filter*)hFilter;
     OIDN_TRY
-      verifyHandle(hfilter);
+      verifyHandle(hFilter);
       filter->execute();
     OIDN_CATCH(filter)
   }
