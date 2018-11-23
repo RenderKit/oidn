@@ -8,7 +8,7 @@ Intel Corporation
 Requirements
 ============
 
-Open Image Denoise requires a CPU with at least SSE4.2 support.
+Open Image Denoise requires a CPU with at least SSE 4.2 support.
 
 The software dependencies are:
 * Operating system:
@@ -27,10 +27,13 @@ The software dependencies are:
 Known Issues
 ============
 
-* Crashes when running on Windows and a CPU with AVX-512 support
+* Crashes when running on Windows and a CPU with AVX-512 support.
 * HDR support is currently only a placeholder. It is functional, but the
   quality is low. This will be addressed in a future version.
 * Inputs with only color and albedo are not supported yet.
+* Windows versions earlier than 7 are not supported yet. This restriction will
+  be lifted in a future release.
+* macOS is not supported yet. Support will be added in a future release.
 
 
 Examples
