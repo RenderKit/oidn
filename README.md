@@ -17,30 +17,30 @@ Requirements
 Open Image Denoise requires a CPU with at least SSE 4.2 support.
 
 The software dependencies are:
-* Operating system:
-  * Linux
-  * Windows 7 or later
-* C++ compiler with C++11 standard support:
-  * GNU Compiler Collection
-  * Clang
-  * Intel C/C++ Compiler
-  * Microsoft Visual C++
-* CMake 3.0 or later
-* Python 2.7 or later
-* Intel Threading Building Blocks (TBB) 2017 or later
+- Operating system:
+  - Linux
+  - Windows 7 or later
+- C++ compiler with C++11 standard support:
+  - GNU Compiler Collection
+  - Clang
+  - Intel C/C++ Compiler
+  - Microsoft Visual C++
+- CMake 3.0 or later
+- Python 2.7 or later
+- Intel Threading Building Blocks (TBB) 2017 or later
 
 
 Known Issues
 ============
 
-* Crashes when running on Windows and a CPU with AVX-512 support.
-* HDR support is currently only a placeholder. It is functional, but the
+- Crashes when running on Windows and a CPU with AVX-512 support.
+- HDR support is currently only a placeholder. It is functional, but the
   quality is low. This will be addressed in a future version.
-* The convolutional neural networks of the filters are not fully trained yet. Quality will improve.
-* Inputs with only color and albedo are not supported yet.
-* Windows versions earlier than 7 are not supported yet. This restriction will
+- The convolutional neural networks of the filters are not fully trained yet. Quality will improve.
+- Inputs with only color and albedo are not supported yet.
+- Windows versions earlier than 7 are not supported yet. This restriction will
   be lifted in a future release.
-* macOS is not supported yet. Support will be added in a future release.
+- macOS is not supported yet. Support will be added in a future release.
 
 
 Examples
