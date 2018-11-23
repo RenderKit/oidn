@@ -21,21 +21,10 @@
 
 namespace oidn {
 
-  enum class DeviceType
-  {
-    CPU = OIDN_DEVICE_TYPE_CPU,
-  };
+  // Buffer
+  // ------
 
-  enum class Error
-  {
-    None                = OIDN_ERROR_NONE,
-    Unknown             = OIDN_ERROR_UNKNOWN,
-    InvalidArgument     = OIDN_ERROR_INVALID_ARGUMENT,
-    InvalidOperation    = OIDN_ERROR_INVALID_OPERATION,
-    OutOfMemory         = OIDN_ERROR_OUT_OF_MEMORY,
-    UnsupportedHardware = OIDN_ERROR_UNSUPPORTED_HARDWARE,
-  };
-
+  // Formats for images and other data stored in buffers
   enum class Format
   {
     Undefined = OIDN_FORMAT_UNDEFINED,
@@ -107,6 +96,10 @@ namespace oidn {
     }
   };
 
+
+  // Filter
+  // ------
+
   // Filter object with automatic reference counting
   class FilterRef
   {
@@ -168,6 +161,7 @@ namespace oidn {
       return handle;
     }
 
+    // Sets an image parameter of the filter (stored in a buffer).
     void setImage(const char* name,
                   const BufferRef& buffer, Format format,
                   size_t width, size_t height,
@@ -179,6 +173,7 @@ namespace oidn {
                          byteOffset, byteItemStride, byteRowStride);
     }
 
+    // Sets an image parameter of the filter (owned by the user).
     void setImage(const char* name,
                    void* ptr, Format format,
                    size_t width, size_t height,
@@ -190,20 +185,44 @@ namespace oidn {
                                byteOffset, byteItemStride, byteRowStride);
     }
 
+    // Sets an integer parameter of the filter.
     void set1i(const char* name, int value)
     {
       oidnSetFilter1i(handle, name, value);
     }
 
+    // Commits all previous changes to the filter.
     void commit()
     {
       oidnCommitFilter(handle);
     }
 
+    // Executes the filter.
     void execute()
     {
       oidnExecuteFilter(handle);
     }
+  };
+
+
+  // Device
+  // ------
+
+  // OpenImageDenoise device types
+  enum class DeviceType
+  {
+    CPU = OIDN_DEVICE_TYPE_CPU,
+  };
+
+  // Error codes
+  enum class Error
+  {
+    None                = OIDN_ERROR_NONE,
+    Unknown             = OIDN_ERROR_UNKNOWN,
+    InvalidArgument     = OIDN_ERROR_INVALID_ARGUMENT,
+    InvalidOperation    = OIDN_ERROR_INVALID_OPERATION,
+    OutOfMemory         = OIDN_ERROR_OUT_OF_MEMORY,
+    UnsupportedHardware = OIDN_ERROR_UNSUPPORTED_HARDWARE,
   };
 
   // Device object with automatic reference counting
@@ -267,27 +286,33 @@ namespace oidn {
       return handle;
     }
 
+    // Returns the first unqueried error code stored for the device, optionally
+    // also returning a string message (if not null), and clears the stored error.
     Error getError(const char** message = nullptr)
     {
       return (Error)oidnGetDeviceError(handle, message);
     }
 
+    // Creates a new buffer (data owned by the library).
     BufferRef newBuffer(size_t byteSize)
     {
       return oidnNewBuffer(handle, byteSize);
     }
 
+    // Creates a new shared buffer (data owned by the user).
     BufferRef newBuffer(void* ptr, size_t byteSize)
     {
       return oidnNewSharedBuffer(handle, ptr, byteSize);
     }
 
+    // Creates a new filter of the specified type.
     FilterRef newFilter(const char* type)
     {
       return oidnNewFilter(handle, type);
     }
   };
 
+  // Creates a new OpenImageDenoise device.
   inline DeviceRef newDevice(DeviceType type)
   {
     return DeviceRef(oidnNewDevice((OIDNDeviceType)type));

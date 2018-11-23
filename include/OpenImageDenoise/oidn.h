@@ -30,19 +30,6 @@ extern "C" {
 #endif
 #endif
 
-
-// Formats of images and other data
-enum OIDNFormat
-{
-  OIDN_FORMAT_UNDEFINED,
-
-  OIDN_FORMAT_FLOAT,
-  OIDN_FORMAT_FLOAT2,
-  OIDN_FORMAT_FLOAT3,
-};
-
-
-// ------
 // Device
 // ------
 
@@ -75,14 +62,25 @@ OIDN_API void oidnRetainDevice(OIDNDevice device);
 // Releases the device (decrements the reference count).
 OIDN_API void oidnReleaseDevice(OIDNDevice device);
 
-// Returns the first unqueried error code stored in the device, optionally
-// returning a string message too (if not null), and clears the stored error.
+// Returns the first unqueried error code stored for the device, optionally
+// also returning a string message (if not null), and clears the stored error.
+// If the device is null (e.g., the device creation failed), a thread-local
+// error will be returned.
 OIDN_API OIDNError oidnGetDeviceError(OIDNDevice device, const char** message);
 
 
-// ------
 // Buffer
 // ------
+
+// Formats for images and other data stored in buffers
+enum OIDNFormat
+{
+  OIDN_FORMAT_UNDEFINED,
+
+  OIDN_FORMAT_FLOAT,
+  OIDN_FORMAT_FLOAT2,
+  OIDN_FORMAT_FLOAT3,
+};
 
 // Buffer handle
 typedef struct OIDNBufferImpl* OIDNBuffer;
@@ -100,7 +98,6 @@ OIDN_API void oidnRetainBuffer(OIDNBuffer buffer);
 OIDN_API void oidnReleaseBuffer(OIDNBuffer buffer);
 
 
-// ------
 // Filter
 // ------
 
@@ -108,8 +105,8 @@ OIDN_API void oidnReleaseBuffer(OIDNBuffer buffer);
 typedef struct OIDNFilterImpl* OIDNFilter;
 
 // Creates a new filter of the specified type.
-// Supported filter types:
-//   Autoencoder   AI denoising filter
+// Supported types:
+//   Autoencoder - AI denoising filter
 OIDN_API OIDNFilter oidnNewFilter(OIDNDevice device, const char* type);
 
 // Retains the filter (increments the reference count).
@@ -119,12 +116,14 @@ OIDN_API void oidnRetainFilter(OIDNFilter filter);
 OIDN_API void oidnReleaseFilter(OIDNFilter filter);
 
 // Sets an image parameter of the filter (stored in a buffer).
-// Supported parameters:
-//   color    input color
-//   albedo   input albedo (optional)
-//   normal   input normal (optional)
-//   output   output color
-// All images must have FLOAT3 format.
+// Supported parameter names:
+//   color  - input color
+//   albedo - input albedo (optional)
+//   normal - input normal (optional)
+//   output - output color
+// All images must have FLOAT3 format and the same size.
+// If byteItemStride and/or byteRowStride are zero, these will be computed
+// automatically.
 OIDN_API void oidnSetFilterImage(OIDNFilter filter, const char* name,
                                  OIDNBuffer buffer, enum OIDNFormat format,
                                  size_t width, size_t height,
@@ -137,12 +136,13 @@ OIDN_API void oidnSetSharedFilterImage(OIDNFilter filter, const char* name,
                                        size_t byteOffset, size_t byteItemStride, size_t byteRowStride);
 
 // Sets an integer parameter of the filter.
-// Supported parameters:
-//   hdr    the color image has high dynamic range (HDR), if non-zero
-//   srgb   the color image is stored using the sRGB tone curve, if non-zero
+// Supported parameter names:
+//   hdr  - the color image has high dynamic range (HDR), if non-zero (default is 0)
+//   srgb - the color image has the sRGB tone curve applied, if non-zero (default is 0)
 OIDN_API void oidnSetFilter1i(OIDNFilter filter, const char* name, int value);
 
-// Commits changes to the filter. Must be called before execution.
+// Commits all previous changes to the filter.
+// Must be called before execution.
 OIDN_API void oidnCommitFilter(OIDNFilter filter);
 
 // Executes the filter.
