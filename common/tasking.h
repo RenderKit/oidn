@@ -19,6 +19,12 @@
 #include "platform.h"
 #include <vector>
 
+// We need to define these to avoid implicit linkage against
+// tbb_debug.lib under Windows. When removing these lines debug build
+// under Windows fails.
+#define __TBB_NO_IMPLICIT_LINKAGE 1
+#define __TBBMALLOC_NO_IMPLICIT_LINKAGE 1
+
 #define TBB_PREVIEW_LOCAL_OBSERVER 1
 #include "tbb/task_scheduler_init.h"
 #include "tbb/task_scheduler_observer.h"
