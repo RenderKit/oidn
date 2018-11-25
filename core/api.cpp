@@ -83,7 +83,7 @@ namespace oidn {
   {
     Ref<Device> device = nullptr;
     OIDN_TRY
-      if (type == OIDN_DEVICE_TYPE_CPU)
+      if (type == OIDN_DEVICE_TYPE_CPU || type == OIDN_DEVICE_TYPE_DEFAULT)
         device = makeRef<Device>();
       else
         throw Exception(Error::InvalidArgument, "invalid device type");

@@ -37,6 +37,8 @@ extern "C" {
 // Open Image Denoise device types
 enum OIDNDeviceType
 {
+  OIDN_DEVICE_TYPE_DEFAULT,
+
   OIDN_DEVICE_TYPE_CPU,
 };
 

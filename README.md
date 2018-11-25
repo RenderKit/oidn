@@ -54,7 +54,7 @@ C API
 ...
 
 // Create an Open Image Denoise device
-OIDNDevice device = oidnNewDevice(OIDN_DEVICE_TYPE_CPU);
+OIDNDevice device = oidnNewDevice(OIDN_DEVICE_TYPE_DEFAULT);
 
 // Create an AI denoising filter
 OIDNFilter filter = oidnNewFilter(device, "Autoencoder");
@@ -87,7 +87,7 @@ C++ API
 ...
 
 // Create an Open Image Denoise device
-oidn::DeviceRef device = oidn::newDevice(oidn::DeviceType::CPU);
+oidn::DeviceRef device = oidn::newDevice();
 
 // Create an AI denoising filter
 oidn::FilterRef filter = device.newFilter("Autoencoder");

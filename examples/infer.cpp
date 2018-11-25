@@ -31,7 +31,7 @@ using namespace oidn;
 
 int main(int argc, char **argv)
 {
-  oidn::DeviceRef device = oidn::newDevice(oidn::DeviceType::CPU);
+  oidn::DeviceRef device = oidn::newDevice();
 
   std::string inputFilename = "test0.tza";
   if (argc > 1)
