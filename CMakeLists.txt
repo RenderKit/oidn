@@ -37,6 +37,11 @@ endif()
 
 include(GNUInstallDirs)
 
+# Output paths
+SET(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+SET(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+
 ## MKL-DNN ####################################################################
 
 # Modified version of MKL-DNN
@@ -73,7 +78,7 @@ function(generate_cpp_resources out_sources namespace)
   set(${out_sources} ${${out_sources}} PARENT_SCOPE)
 endfunction()
 
-## OpenImageDenoise Library ###################################################
+## Open Image Denoise Library #################################################
 
 add_subdirectory(common EXCLUDE_FROM_ALL)
 
@@ -128,11 +133,11 @@ target_link_libraries(${PROJECT_NAME}
 set_property(TARGET ${PROJECT_NAME} PROPERTY VERSION ${PROJECT_VERSION})
 set_property(TARGET ${PROJECT_NAME} PROPERTY SOVERSION "0")
 
-## OpenImageDenoise Examples ##################################################
+## Open Image Denoise Examples ################################################
 
 add_subdirectory(examples)
 
-## OpenImageDenoise Install and Packaging #####################################
+## Open Image Denoise Install and Packaging ###################################
 
 include(install)
 include(package)
