@@ -28,7 +28,7 @@ namespace oidn {
   {
     FILE* file = fopen(filename.c_str(), "rb");
     if (!file)
-      throw std::runtime_error("cannot open file");
+      throw std::runtime_error("cannot open file '" + filename + "'");
 
     fseek(file, 0, SEEK_END);
     size_t size = ftell(file);
@@ -49,7 +49,7 @@ namespace oidn {
     std::map<std::string, Tensor> tensors = parseTensors(buffer->data());
     auto image = tensors.find("image");
     if (image == tensors.end())
-      throw std::runtime_error("image tensor not found");
+      throw std::runtime_error("invalid tensor image '" + filename + "'");
 
     // Add ref to the buffer
     image->second.buffer = buffer;
@@ -65,7 +65,7 @@ namespace oidn {
 
     FILE* file = fopen(filename.c_str(), "wb");
     if (!file)
-      throw std::runtime_error("cannot create image");
+      throw std::runtime_error("cannot save image: '" + filename + "'");
 
     fprintf(file, "P6\n%d %d\n255\n", image.dims[1], image.dims[0]);
 
