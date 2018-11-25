@@ -1,7 +1,7 @@
 Open Image Denoise
 ==================
 
-Version 0.2.0 CLOSED ALPHA - DO *NOT* REDISTRIBUTE\
+Version 0.2.1 CLOSED ALPHA - DO *NOT* REDISTRIBUTE\
 Intel Corporation
 
 
@@ -33,7 +33,6 @@ The software dependencies are:
 Known Issues
 ============
 
-- Crashes when running on Windows and a CPU with AVX-512 support.
 - HDR support is currently only a placeholder. It is functional, but the
   quality is low. This will be addressed in a future version.
 - The convolutional neural networks of the filters are not fully trained yet. Quality will soon improve.
