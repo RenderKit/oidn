@@ -14,6 +14,10 @@
 // limitations under the License.                                           //
 // ======================================================================== //
 
+#if defined(_MSC_VER)
+  #pragma warning (disable : 4146) // unary minus operator applied to unsigned type, result still unsigned
+#endif
+
 #include "tasking.h"
 #include <fstream>
 
@@ -65,20 +69,20 @@ namespace oidn {
         int numThreads = 0;
         for (int group = 0; (group < item->Processor.GroupCount) && (numThreads < threadsPerCore); ++group)
         {
-          GROUP_AFFINITY curAffinity = item->Processor.GroupMask[group];
-          while ((curAffinity.Mask != 0) && (numThreads < threadsPerCore))
+          GROUP_AFFINITY coreAffinity = item->Processor.GroupMask[group];
+          while ((coreAffinity.Mask != 0) && (numThreads < threadsPerCore))
           {
             // Extract the next set bit/thread from the mask
-            GROUP_AFFINITY affinity = curAffinity;
-            affinity.Mask = affinity.Mask & -affinity.Mask;
+            GROUP_AFFINITY threadAffinity = coreAffinity;
+            threadAffinity.Mask = threadAffinity.Mask & -threadAffinity.Mask;
 
             // Push the affinity for this thread
-            affinities.push_back(affinity);
-            oldAffinities.push_back(affinity);
+            affinities.push_back(threadAffinity);
+            oldAffinities.push_back(threadAffinity);
             numThreads++;
 
             // Remove this bit/thread from the mask
-            curAffinity.Mask ^= affinity.Mask;
+            coreAffinity.Mask ^= threadAffinity.Mask;
           }
         }
       }
