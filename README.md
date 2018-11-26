@@ -19,7 +19,7 @@ Open Image Denoise requires a CPU with at least SSE 4.2 support.
 The software dependencies are:
 - Operating system:
   - Linux
-  - Windows 7 or later
+  - Windows 7 or later is recommended
 - C++ compiler with C++11 standard support:
   - GNU Compiler Collection
   - Clang
@@ -38,8 +38,6 @@ Known Issues
 - The convolutional neural networks of the filters are not fully trained yet.
   Quality will soon improve.
 - Inputs with only color and albedo are not supported yet.
-- Windows versions earlier than 7 are not supported yet. This restriction will
-  be lifted in a future release.
 - macOS is not supported yet. Support will be added in a future release.
 
 

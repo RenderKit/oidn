@@ -40,6 +40,17 @@ namespace oidn {
   class ThreadAffinity
   {
   private:
+    typedef BOOL (WINAPI *GetLogicalProcessorInformationExFunc)(LOGICAL_PROCESSOR_RELATIONSHIP,
+                                                                PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX,
+                                                                PDWORD);
+
+    typedef BOOL (WINAPI *SetThreadGroupAffinityFunc)(HANDLE,
+                                                      CONST GROUP_AFFINITY*,
+                                                      PGROUP_AFFINITY);
+
+    GetLogicalProcessorInformationExFunc pGetLogicalProcessorInformationEx = nullptr;
+    SetThreadGroupAffinityFunc pSetThreadGroupAffinity = nullptr;
+
     std::vector<GROUP_AFFINITY> affinities;    // thread affinities
     std::vector<GROUP_AFFINITY> oldAffinities; // original thread affinities
 

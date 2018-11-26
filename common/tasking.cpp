@@ -28,71 +28,78 @@ namespace oidn {
   // Windows
   ThreadAffinity::ThreadAffinity(int threadsPerCore)
   {
-    // Get logical processor information
-    PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX buffer = nullptr;
-    DWORD bufferSize = 0;
+    HMODULE hLib = GetModuleHandle(TEXT("kernel32"));
+    pGetLogicalProcessorInformationEx = (GetLogicalProcessorInformationExFunc)GetProcAddress(hLib, "GetLogicalProcessorInformationEx");
+    pSetThreadGroupAffinity = (SetThreadGroupAffinityFunc)GetProcAddress(hLib, "SetThreadGroupAffinity");
 
-    // First call the function with an empty buffer to get the required buffer size
-    BOOL result = GetLogicalProcessorInformationEx(RelationProcessorCore, buffer, &bufferSize);
-    if (result || GetLastError() != ERROR_INSUFFICIENT_BUFFER)
+    if (pGetLogicalProcessorInformationEx && pSetThreadGroupAffinity)
     {
-      WARNING("GetLogicalProcessorInformationEx failed");
-      return;
-    }
-    
-    // Allocate the buffer
-    buffer = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)malloc(bufferSize);
-    if (!buffer)
-    {
-      WARNING("SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX allocation failed");
-      return;
-    }
-      
-    // Call again the function but now with the properly sized buffer
-    result = GetLogicalProcessorInformationEx(RelationProcessorCore, buffer, &bufferSize);
-    if (!result)
-    {
-      WARNING("GetLogicalProcessorInformationEx failed");
-      free(buffer);
-      return;
-    }
+      // Get logical processor information
+      PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX buffer = nullptr;
+      DWORD bufferSize = 0;
 
-    // Iterate over the logical processor information structures
-    // There should be one structure for each physical core
-    char* ptr = (char*)buffer;
-    while (ptr < (char*)buffer + bufferSize)
-    {
-      PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX item = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)ptr;
-      if (item->Relationship == RelationProcessorCore && item->Processor.GroupCount > 0)
+      // First call the function with an empty buffer to get the required buffer size
+      BOOL result = pGetLogicalProcessorInformationEx(RelationProcessorCore, buffer, &bufferSize);
+      if (result || GetLastError() != ERROR_INSUFFICIENT_BUFFER)
       {
-        // Iterate over the groups
-        int numThreads = 0;
-        for (int group = 0; (group < item->Processor.GroupCount) && (numThreads < threadsPerCore); ++group)
-        {
-          GROUP_AFFINITY coreAffinity = item->Processor.GroupMask[group];
-          while ((coreAffinity.Mask != 0) && (numThreads < threadsPerCore))
-          {
-            // Extract the next set bit/thread from the mask
-            GROUP_AFFINITY threadAffinity = coreAffinity;
-            threadAffinity.Mask = threadAffinity.Mask & -threadAffinity.Mask;
-
-            // Push the affinity for this thread
-            affinities.push_back(threadAffinity);
-            oldAffinities.push_back(threadAffinity);
-            numThreads++;
-
-            // Remove this bit/thread from the mask
-            coreAffinity.Mask ^= threadAffinity.Mask;
-          }
-        }
+        WARNING("GetLogicalProcessorInformationEx failed");
+        return;
+      }
+      
+      // Allocate the buffer
+      buffer = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)malloc(bufferSize);
+      if (!buffer)
+      {
+        WARNING("SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX allocation failed");
+        return;
+      }
+        
+      // Call again the function but now with the properly sized buffer
+      result = pGetLogicalProcessorInformationEx(RelationProcessorCore, buffer, &bufferSize);
+      if (!result)
+      {
+        WARNING("GetLogicalProcessorInformationEx failed");
+        free(buffer);
+        return;
       }
 
-      // Next structure
-      ptr += item->Size;
-    }
+      // Iterate over the logical processor information structures
+      // There should be one structure for each physical core
+      char* ptr = (char*)buffer;
+      while (ptr < (char*)buffer + bufferSize)
+      {
+        PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX item = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)ptr;
+        if (item->Relationship == RelationProcessorCore && item->Processor.GroupCount > 0)
+        {
+          // Iterate over the groups
+          int numThreads = 0;
+          for (int group = 0; (group < item->Processor.GroupCount) && (numThreads < threadsPerCore); ++group)
+          {
+            GROUP_AFFINITY coreAffinity = item->Processor.GroupMask[group];
+            while ((coreAffinity.Mask != 0) && (numThreads < threadsPerCore))
+            {
+              // Extract the next set bit/thread from the mask
+              GROUP_AFFINITY threadAffinity = coreAffinity;
+              threadAffinity.Mask = threadAffinity.Mask & -threadAffinity.Mask;
 
-    // Free the buffer
-    free(buffer);
+              // Push the affinity for this thread
+              affinities.push_back(threadAffinity);
+              oldAffinities.push_back(threadAffinity);
+              numThreads++;
+
+              // Remove this bit/thread from the mask
+              coreAffinity.Mask ^= threadAffinity.Mask;
+            }
+          }
+        }
+
+        // Next structure
+        ptr += item->Size;
+      }
+
+      // Free the buffer
+      free(buffer);
+    }
   }
 
   void ThreadAffinity::set(int threadIndex)
@@ -100,10 +107,9 @@ namespace oidn {
     if (threadIndex >= (int)affinities.size())
       return;
 
-    const HANDLE thread = GetCurrentThread();
-
     // Save the current affinity and set the new one
-    if (!SetThreadGroupAffinity(thread, &affinities[threadIndex], &oldAffinities[threadIndex]))
+    const HANDLE thread = GetCurrentThread();
+    if (!pSetThreadGroupAffinity(thread, &affinities[threadIndex], &oldAffinities[threadIndex]))
       WARNING("SetThreadGroupAffinity failed");
   }
 
@@ -112,10 +118,9 @@ namespace oidn {
     if (threadIndex >= (int)affinities.size())
       return;
 
-    const HANDLE thread = GetCurrentThread();
-
     // Restore the original affinity
-    if (!SetThreadGroupAffinity(thread, &oldAffinities[threadIndex], nullptr))
+    const HANDLE thread = GetCurrentThread();
+    if (!pSetThreadGroupAffinity(thread, &oldAffinities[threadIndex], nullptr))
       WARNING("SetThreadGroupAffinity failed");
   }
 
