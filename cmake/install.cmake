@@ -14,23 +14,44 @@
 ## limitations under the License.                                           ##
 ## ======================================================================== ##
 
-# TODO: any specializations for macOS/Windows?
-
 install(TARGETS ${PROJECT_NAME}
   EXPORT
-    ${PROJECT_NAME}_Export
+    ${PROJECT_NAME}_Export COMPONENT devel
   ARCHIVE
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT devel
   LIBRARY
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT devel
+  # On Windows put the dlls into bin
+  RUNTIME
+    DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT lib
   INCLUDES
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT devel
 )
 
-install(DIRECTORY include/OpenImageDenoise DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+# Install headers
+install(DIRECTORY include/OpenImageDenoise DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT devel)
+
+# Install documentation
+set(CMAKE_INSTALL_DOCDIR doc)
+install(FILES ${PROJECT_SOURCE_DIR}/LICENSE.txt DESTINATION ${CMAKE_INSTALL_DOCDIR} COMPONENT lib)
+install(FILES ${PROJECT_SOURCE_DIR}/CHANGELOG.md DESTINATION ${CMAKE_INSTALL_DOCDIR} COMPONENT lib)
+install(FILES ${PROJECT_SOURCE_DIR}/README.md DESTINATION ${CMAKE_INSTALL_DOCDIR} COMPONENT lib)
+
+# Install TBB
+if(OIDN_INSTALL_DEPENDENCIES)
+  if(WIN32)
+    install(PROGRAMS ${TBB_BINDIR}/tbb.dll ${TBB_BINDIR}/tbbmalloc.dll DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT lib)
+    install(PROGRAMS ${TBB_LIBDIR}/tbb.lib ${TBB_LIBDIR}/tbbmalloc.lib DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib)
+  elseif(APPLE)
+    install(PROGRAMS ${TBB_ROOT}/lib/libtbb.dylib ${TBB_ROOT}/lib/libtbbmalloc.dylib DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib)
+  else()
+    install(PROGRAMS ${TBB_ROOT}/lib/intel64/gcc4.4/libtbb.so.2 ${TBB_ROOT}/lib/intel64/gcc4.4/libtbbmalloc.so.2 DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib)
+  endif()
+endif()
 
 install(EXPORT ${PROJECT_NAME}_Export
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
   #NAMESPACE ${PROJECT_NAME}::
   FILE ${PROJECT_NAME}Config.cmake
+  COMPONENT devel
 )

@@ -14,10 +14,11 @@
 ## limitations under the License.                                           ##
 ## ======================================================================== ##
 
-add_executable(infer
-  infer.cpp
-  image_io.h
-)
+macro(add_example EXAMPLE_NAME)
+  add_executable(${EXAMPLE_NAME} ${EXAMPLE_NAME}.cpp)
+  target_link_libraries(${EXAMPLE_NAME} PRIVATE common ${PROJECT_NAME})
+  install(TARGETS ${EXAMPLE_NAME} DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT examples)
+endmacro()
 
-target_link_libraries(infer PRIVATE common ${PROJECT_NAME})
+add_example(infer image_io.h)
 

@@ -14,17 +14,52 @@
 ## limitations under the License.                                           ##
 ## ======================================================================== ##
 
-# TODO: any specializations for macOS/Windows?
-
 set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
-set(CPACK_PACKAGE_VENDOR Intel)
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "The Open Image Denoise library")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Open Image Denoise library")
+set(CPACK_PACKAGE_VENDOR "Intel Corporation")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY ${CPACK_PACKAGE_NAME})
+set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
 set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
 set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
+set(CPACK_PACKAGE_FILE_NAME oidn-${CPACK_PACKAGE_VERSION})
 set(CPACK_VERBATIM_VARIABLES YES)
 
-set(CPACK_GENERATOR TGZ)
+if(WIN32)
+
+  # Windows specific settings
+  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+    set(ARCH x64)
+    set(CPACK_PACKAGE_NAME "${CPACK_PACKAGE_NAME} x64")
+  else()
+    set(ARCH win32)
+    set(CPACK_PACKAGE_NAME "${CPACK_PACKAGE_NAME} Win32")
+  endif()
+
+  if(MSVC12)
+    set(VCVER vc12)
+  elseif(MSVC14) # also for VC15, which is toolset v141
+    set(VCVER vc14)
+  endif()
+
+  set(CPACK_GENERATOR ZIP)
+  set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}.${ARCH}.${VCVER}.windows")
+  set(CPACK_MONOLITHIC_INSTALL 1)
+
+elseif(APPLE)
+
+  # macOS specific settings
+  set(CPACK_GENERATOR TGZ)
+  set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}.x86_64.macosx")
+  set(CPACK_MONOLITHIC_INSTALL 1)
+
+else()
+
+  # Linux specific settings
+  set(CPACK_GENERATOR TGZ)
+  set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}.x86_64.linux")
+  set(CPACK_MONOLITHIC_INSTALL 1)
+
+endif()
 
 include(CPack)
