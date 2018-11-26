@@ -43,8 +43,8 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 
 # Configuration
-option(OIDN_INSTALL_DEPENDENCIES "Install Open Image Denoise dependencies in binary packages and install" off)
-mark_as_advanced(OIDN_INSTALL_DEPENDENCIES)
+option(OIDN_ZIP_MODE off)
+mark_as_advanced(OIDN_ZIP_MODE)
 
 ## MKL-DNN ####################################################################
 
