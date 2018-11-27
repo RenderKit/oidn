@@ -87,8 +87,8 @@ int main(int argc, char **argv)
     float maxre = 0;
     for (size_t i = 0; i < output.size(); ++i)
     {
-      float expect = ref.data[i];
-      float actual = output.data[i];
+      float expect = std::max(ref.data[i], 0.f);
+      float actual = std::max(output.data[i], 0.f);
       float re;
       if (abs(expect) < 1e-5 && abs(actual) < 1e-5)
         re = 0;

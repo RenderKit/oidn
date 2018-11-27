@@ -20,6 +20,7 @@
 
 namespace oidn {
 
+  // Color transfer function
   class TransferFunction
   {
   public:
@@ -41,12 +42,12 @@ namespace oidn {
   public:
     __forceinline float forward(float x) const override
     {
-      return std::pow(x, 1.f/2.2f);
+      return pow(x, 1.f/2.2f);
     }
 
     __forceinline float reverse(float x) const override
     {
-      return std::pow(x, 2.2f);
+      return pow(x, 2.2f);
     }
   };
 
@@ -72,12 +73,12 @@ namespace oidn {
     __forceinline float forward(float x) const override
     {
       x *= exposure;
-      return std::pow(x / (1.f + x), 1.f/2.2f);
+      return pow(x / (1.f + x), 1.f/2.2f);
     }
 
     __forceinline float reverse(float x) const override
     {
-      const float y = std::min(std::pow(x, 2.2f), 0.9999999f); // must clamp due to low precision
+      const float y = min(pow(x, 2.2f), 0.9999999f); // must clamp to avoid infinity
       return (y / (1.f - y)) * invExposure;
     }
   };

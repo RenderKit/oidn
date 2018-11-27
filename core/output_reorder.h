@@ -79,9 +79,10 @@ namespace oidn {
               // Source is in nChwKc format. In this case C is 1 so this is really nhwc
               const float* srcPtr_C = srcPtr + h*W1*C1 + w*C1;
 
-              dstPtr_C[0] = transferFunc->reverse(srcPtr_C[0]);
-              dstPtr_C[1] = transferFunc->reverse(srcPtr_C[1]);
-              dstPtr_C[2] = transferFunc->reverse(srcPtr_C[2]);
+              // The CNN output may contain negative values or even NaNs, so it must be sanitized
+              dstPtr_C[0] = transferFunc->reverse(sanitize<true>(srcPtr_C[0]));
+              dstPtr_C[1] = transferFunc->reverse(sanitize<true>(srcPtr_C[1]));
+              dstPtr_C[2] = transferFunc->reverse(sanitize<true>(srcPtr_C[2]));
             }
           }
         }, tbb::static_partitioner());

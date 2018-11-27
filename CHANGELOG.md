@@ -1,6 +1,7 @@
 Version History
 ---------------
 
+-   Fixed NaNs in the output for certain inputs
 -   Windows versions earlier than 7 are now supported
 
 ### Changes in v0.2.1:

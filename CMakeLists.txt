@@ -90,6 +90,7 @@ set(SOURCES
   include/OpenImageDenoise/oidn.h
   include/OpenImageDenoise/oidn.hpp
   core/common.h
+  core/math.h
   core/device.h
   core/device.cpp
   core/buffer.h

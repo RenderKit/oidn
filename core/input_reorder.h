@@ -74,8 +74,8 @@ namespace oidn {
       const int W1 = color.width;
 
       // Do mirror padding to avoid filtering artifacts near the edges
-      const int H = std::min(H2, 2*H1-2);
-      const int W = std::min(W2, 2*W1-2);
+      const int H = min(H2, 2*H1-2);
+      const int W = min(W2, 2*W1-2);
 
       tbb::parallel_for(tbb::blocked_range<int>(0, H),
         [&](const tbb::blocked_range<int>& r)
@@ -89,11 +89,11 @@ namespace oidn {
               const int w1 = w < W1 ? w : 2*W1-2-w;
 
               int c = 0;
-              storeColor3(h, w, c, (float*)color.get(h1, w1));
+              copyColor3(h, w, c, (float*)color.get(h1, w1));
               if (albedo)
-                store3(h, w, c, (float*)albedo.get(h1, w1));
+                copy3<true>(h, w, c, (float*)albedo.get(h1, w1)); // clamp
               if (normal)
-                store3(h, w, c, (float*)normal.get(h1, w1));
+                copy3<false>(h, w, c, (float*)normal.get(h1, w1)); // don't clamp
             }
           }
         }, tbb::static_partitioner());
@@ -102,26 +102,30 @@ namespace oidn {
     std::shared_ptr<memory> getDst() const override { return dst; }
 
   private:
+    // Stores a single value
     __forceinline void store(int h, int w, int& c, float value)
     {
       // Destination is in nChwKc format
       float* dst_c = dstPtr + (H2*W2*K*(c/K)) + h*W2*K + w*K + (c%K);
-      *dst_c = std::isfinite(value) ? value : 0.f; // filter out NaN and inf
+      *dst_c = value;
       c++;
     }
 
-    __forceinline void store3(int h, int w, int& c, const float* values)
+    // Copies 3 values with sanitization
+    template<bool doClamp>
+    __forceinline void copy3(int h, int w, int& c, const float* values)
     {
-      store(h, w, c, values[0]);
-      store(h, w, c, values[1]);
-      store(h, w, c, values[2]);
+      store(h, w, c, sanitize<doClamp>(values[0]));
+      store(h, w, c, sanitize<doClamp>(values[1]));
+      store(h, w, c, sanitize<doClamp>(values[2]));
     }
 
-    __forceinline void storeColor3(int h, int w, int& c, const float* values)
+    // Copies 3 color values with sanitization and applying the transfer function
+    __forceinline void copyColor3(int h, int w, int& c, const float* values)
     {
-      store(h, w, c, transferFunc->forward(values[0]));
-      store(h, w, c, transferFunc->forward(values[1]));
-      store(h, w, c, transferFunc->forward(values[2]));
+      store(h, w, c, transferFunc->forward(sanitize<true>(values[0])));
+      store(h, w, c, transferFunc->forward(sanitize<true>(values[1])));
+      store(h, w, c, transferFunc->forward(sanitize<true>(values[2])));
     }
   };
 
