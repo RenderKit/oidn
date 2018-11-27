@@ -22,6 +22,8 @@ namespace oidn {
 
   using std::min;
   using std::max;
+  using std::log2;
+  using std::exp2;
   using std::pow;
   using std::isfinite;
 

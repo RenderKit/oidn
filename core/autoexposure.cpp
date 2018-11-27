@@ -45,7 +45,7 @@ namespace oidn {
 
               if (L > 1e-7f)
               {
-                sum.first += std::log2(L);
+                sum.first += log2(L);
                 sum.second++;
               }
             }
@@ -56,7 +56,7 @@ namespace oidn {
         tbb::static_partitioner()
       );
 
-    return (sum.second > 0) ? (key / std::exp2(sum.first / float(sum.second))) : 1.f;
+    return (sum.second > 0) ? (key / exp2(sum.first / float(sum.second))) : 1.f;
   }
 
 } // namespace oidn
