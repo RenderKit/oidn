@@ -51,12 +51,15 @@ namespace oidn {
     }
   };
 
-  // HDR = Reinhard + sRGB
+  // HDR = log + sRGB
   class HdrTransferFunction : public TransferFunction
   {
   private:
+    static constexpr float scale = 0.16604764621f; // 1/log2(64+1)
+    static constexpr float rcpScale = 1.f / scale;
+
     float exposure;
-    float invExposure;
+    float rcpExposure;
 
   public:
     HdrTransferFunction(float exposure = 1.f)
@@ -67,19 +70,19 @@ namespace oidn {
     void setExposure(float exposure)
     {
       this->exposure = exposure;
-      this->invExposure = 1.f / exposure;
+      this->rcpExposure = 1.f / exposure;
     }
 
     __forceinline float forward(float x) const override
     {
       x *= exposure;
-      return pow(x / (1.f + x), 1.f/2.2f);
+      return pow(log2(x+1.f) * scale, 1.f/2.2f);
     }
 
     __forceinline float reverse(float x) const override
     {
-      const float y = min(pow(x, 2.2f), 0.9999999f); // must clamp to avoid infinity
-      return (y / (1.f - y)) * invExposure;
+      const float y = pow(x, 2.2f);
+      return (exp2(y * rcpScale) - 1.f) * rcpExposure;
     }
   };
 

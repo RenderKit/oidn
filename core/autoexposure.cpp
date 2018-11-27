@@ -43,9 +43,9 @@ namespace oidn {
               const float* rgb = (const float*)color.get(h, w);
               const float L = luminance(rgb[0], rgb[1], rgb[2]);
 
-              if (L > 1e-7f)
+              if (L > 1e-8f)
               {
-                sum.first += log2(L);
+                sum.first += max(log2(L), -12.f);
                 sum.second++;
               }
             }
