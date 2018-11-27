@@ -1,6 +1,7 @@
 Version History
 ---------------
 
+-   Major HDR quality improvement (still experimental)
 -   Fixed NaNs in the output for certain inputs
 -   Windows versions earlier than 7 are now supported
 
