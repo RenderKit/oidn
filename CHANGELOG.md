@@ -1,6 +1,8 @@
 Version History
 ---------------
 
+### Changes in v0.3.0:
+
 -   Major HDR quality improvement (still experimental)
 -   Fixed NaNs in the output for certain inputs
 -   Windows versions earlier than 7 are now supported
