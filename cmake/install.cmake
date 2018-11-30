@@ -14,6 +14,8 @@
 ## limitations under the License.                                           ##
 ## ======================================================================== ##
 
+set(CMAKE_INSTALL_LIBDIR lib)
+
 install(TARGETS ${PROJECT_NAME}
   EXPORT
     ${PROJECT_NAME}_Export COMPONENT devel
