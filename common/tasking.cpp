@@ -30,7 +30,10 @@ namespace oidn {
 
 #if defined(_WIN32)
 
-  // Windows
+  // -------------------------------------------------------------------------
+  // ThreadAffinity - Windows
+  // -------------------------------------------------------------------------
+
   ThreadAffinity::ThreadAffinity(int numThreadsPerCore)
   {
     HMODULE hLib = GetModuleHandle(TEXT("kernel32"));
@@ -129,9 +132,12 @@ namespace oidn {
       WARNING("SetThreadGroupAffinity failed");
   }
 
-#elif defined(__LINUX__)
+#elif defined(__linux__)
 
-  // Linux
+  // -------------------------------------------------------------------------
+  // ThreadAffinity - Linux
+  // -------------------------------------------------------------------------
+
   ThreadAffinity::ThreadAffinity(int numThreadsPerCore)
   {
     std::vector<int> threadIds;
@@ -213,7 +219,10 @@ namespace oidn {
 
 #elif defined(__APPLE__)
 
-  // macOS
+  // -------------------------------------------------------------------------
+  // ThreadAffinity - macOS
+  // -------------------------------------------------------------------------
+
   ThreadAffinity::ThreadAffinity(int numThreadsPerCore)
   {
     // Query the thread/CPU topology
@@ -282,6 +291,9 @@ namespace oidn {
 
 #endif
 
+  // -------------------------------------------------------------------------
+  // PinningObserver
+  // -------------------------------------------------------------------------
 
   PinningObserver::PinningObserver(const std::shared_ptr<ThreadAffinity>& affinity)
     : affinity(affinity)

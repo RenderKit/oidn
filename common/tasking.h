@@ -40,7 +40,10 @@ namespace oidn {
 
 #if defined(_WIN32)
 
-  // Windows
+  // -------------------------------------------------------------------------
+  // ThreadAffinity - Windows
+  // -------------------------------------------------------------------------
+
   class ThreadAffinity
   {
   private:
@@ -75,9 +78,12 @@ namespace oidn {
     void restore(int threadIndex);
   };
 
-#elif defined(__LINUX__)
+#elif defined(__linux__)
 
-  // Linux
+  // -------------------------------------------------------------------------
+  // ThreadAffinity - Linux
+  // -------------------------------------------------------------------------
+
   class ThreadAffinity
   {
   private:
@@ -103,7 +109,10 @@ namespace oidn {
 
 #elif defined(__APPLE__)
 
-  // macOS
+  // -------------------------------------------------------------------------
+  // ThreadAffinity - macOS
+  // -------------------------------------------------------------------------
+
   class ThreadAffinity
   {
   private:
@@ -128,6 +137,10 @@ namespace oidn {
   };
 
 #endif
+
+  // -------------------------------------------------------------------------
+  // PinningObserver
+  // -------------------------------------------------------------------------
 
   class PinningObserver : public tbb::task_scheduler_observer
   {

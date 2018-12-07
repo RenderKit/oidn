@@ -35,12 +35,22 @@
 #include <cassert>
 #include "include/OpenImageDenoise/oidn.hpp"
 
+// ---------------------------------------------------------------------------
+// Macros
+// ---------------------------------------------------------------------------
+
 #if defined(_WIN32)
   // Windows
+  #if !defined(__noinline)
+    #define __noinline     __declspec(noinline)
+  #endif
 #else
-  // Linux
+  // Unix
   #if !defined(__forceinline)
     #define __forceinline  inline __attribute__((always_inline))
+  #endif
+  #if !defined(__noinline)
+    #define __noinline     __attribute__((noinline))
   #endif
 #endif
 
@@ -51,7 +61,15 @@
   #define MAYBE_UNUSED(x) UNUSED(x)
 #endif
 
+// ---------------------------------------------------------------------------
+// Error handling and debugging
+// ---------------------------------------------------------------------------
+
 #define WARNING(x) { std::cerr << "Warning: " << x << std::endl << std::flush; }
+
+// ---------------------------------------------------------------------------
+// Common functions
+// ---------------------------------------------------------------------------
 
 namespace oidn {
 
