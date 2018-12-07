@@ -17,12 +17,15 @@
 #pragma once
 
 #if defined(_WIN32)
-#define WIN32_LEAN_AND_MEAN
-#define NOMINMAX
-#include <Windows.h>
+  #define WIN32_LEAN_AND_MEAN
+  #define NOMINMAX
+  #include <Windows.h>
+#elif defined(__APPLE__)
+  #include <sys/sysctl.h>
 #endif
 
 #include <xmmintrin.h>
+#include <cstdint>
 #include <atomic>
 #include <algorithm>
 #include <memory>
@@ -49,4 +52,26 @@
 #endif
 
 #define WARNING(x) { std::cerr << "Warning: " << x << std::endl << std::flush; }
+
+namespace oidn {
+
+  using std::min;
+  using std::max;
+
+#if defined(__APPLE__)
+  template<typename T>
+  bool getSysctl(const char* name, T& value)
+  {
+    int64_t result = 0;
+    size_t size = sizeof(result);
+
+    if (sysctlbyname(name, &result, &size, nullptr, 0) != 0)
+      return false;
+
+    value = T(result);
+    return true;
+  }
+#endif
+
+} // namespace oidn
 

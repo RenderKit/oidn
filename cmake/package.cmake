@@ -50,7 +50,7 @@ elseif(APPLE)
 
   # macOS specific settings
   set(CPACK_GENERATOR TGZ)
-  set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}.x86_64.macosx")
+  set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}.x86_64.macos")
   set(CPACK_MONOLITHIC_INSTALL 1)
 
 else()

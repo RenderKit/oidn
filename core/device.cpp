@@ -30,7 +30,7 @@ namespace oidn {
       throw Exception(Error::UnsupportedHardware, "SSE4.2 support is required at minimum");
 
     affinity = std::make_shared<ThreadAffinity>(1); // one thread per core
-    arena = std::make_shared<tbb::task_arena>(affinity->numThreads());
+    arena = std::make_shared<tbb::task_arena>(affinity->getNumThreads());
     observer = std::make_shared<PinningObserver>(affinity, *arena);
   }
 

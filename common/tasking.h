@@ -17,7 +17,9 @@
 #pragma once
 
 #include "platform.h"
-#include <vector>
+#if defined(__APPLE__)
+  #include <mach/thread_policy.h>
+#endif
 
 // We need to define these to avoid implicit linkage against
 // tbb_debug.lib under Windows. When removing these lines debug build
@@ -31,6 +33,8 @@
 #include "tbb/task_arena.h"
 #include "tbb/parallel_for.h"
 #include "tbb/blocked_range.h"
+
+#include <vector>
 
 namespace oidn {
 
@@ -55,23 +59,23 @@ namespace oidn {
     std::vector<GROUP_AFFINITY> oldAffinities; // original thread affinities
 
   public:
-    ThreadAffinity(int threadsPerCore = INT_MAX);
+    ThreadAffinity(int numThreadsPerCore = INT_MAX);
 
-    int numThreads() const
+    int getNumThreads() const
     {
       if (affinities.empty())
         return tbb::this_task_arena::max_concurrency();
       return (int)affinities.size();
     }
 
-    // Sets the affinity (0..num_threads-1) of the thread after saving the current affinity
+    // Sets the affinity (0..numThreads-1) of the thread after saving the current affinity
     void set(int threadIndex);
 
     // Restores the affinity of the thread
     void restore(int threadIndex);
   };
 
-#else
+#elif defined(__LINUX__)
 
   // Linux
   class ThreadAffinity
@@ -81,16 +85,42 @@ namespace oidn {
     std::vector<cpu_set_t> oldAffinities; // original thread affinities
 
   public:
-    ThreadAffinity(int threadsPerCore = INT_MAX);
+    ThreadAffinity(int numThreadsPerCore = INT_MAX);
 
-    int numThreads() const
+    int getNumThreads() const
     {
       if (affinities.empty())
         return tbb::this_task_arena::max_concurrency();
       return (int)affinities.size();
     }
 
-    // Sets the affinity (0..num_threads-1) of the thread after saving the current affinity
+    // Sets the affinity (0..numThreads-1) of the thread after saving the current affinity
+    void set(int threadIndex);
+
+    // Restores the affinity of the thread
+    void restore(int threadIndex);
+  };
+
+#elif defined(__APPLE__)
+
+  // macOS
+  class ThreadAffinity
+  {
+  private:
+    std::vector<thread_affinity_policy> affinities;    // thread affinities
+    std::vector<thread_affinity_policy> oldAffinities; // original thread affinities
+
+  public:
+    ThreadAffinity(int numThreadsPerCore = INT_MAX);
+
+    int getNumThreads() const
+    {
+      if (affinities.empty())
+        return tbb::this_task_arena::max_concurrency();
+      return (int)affinities.size();
+    }
+
+    // Sets the affinity (0..numThreads-1) of the thread after saving the current affinity
     void set(int threadIndex);
 
     // Restores the affinity of the thread

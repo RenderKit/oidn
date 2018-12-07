@@ -18,6 +18,11 @@
   #pragma warning (disable : 4146) // unary minus operator applied to unsigned type, result still unsigned
 #endif
 
+#if defined(__APPLE__)
+  #include <mach/thread_act.h>
+  #include <mach/mach_init.h>
+#endif
+
 #include "tasking.h"
 #include <fstream>
 
@@ -26,7 +31,7 @@ namespace oidn {
 #if defined(_WIN32)
 
   // Windows
-  ThreadAffinity::ThreadAffinity(int threadsPerCore)
+  ThreadAffinity::ThreadAffinity(int numThreadsPerCore)
   {
     HMODULE hLib = GetModuleHandle(TEXT("kernel32"));
     pGetLogicalProcessorInformationEx = (GetLogicalProcessorInformationExFunc)GetProcAddress(hLib, "GetLogicalProcessorInformationEx");
@@ -73,10 +78,10 @@ namespace oidn {
         {
           // Iterate over the groups
           int numThreads = 0;
-          for (int group = 0; (group < item->Processor.GroupCount) && (numThreads < threadsPerCore); ++group)
+          for (int group = 0; (group < item->Processor.GroupCount) && (numThreads < numThreadsPerCore); ++group)
           {
             GROUP_AFFINITY coreAffinity = item->Processor.GroupMask[group];
-            while ((coreAffinity.Mask != 0) && (numThreads < threadsPerCore))
+            while ((coreAffinity.Mask != 0) && (numThreads < numThreadsPerCore))
             {
               // Extract the next set bit/thread from the mask
               GROUP_AFFINITY threadAffinity = coreAffinity;
@@ -124,10 +129,10 @@ namespace oidn {
       WARNING("SetThreadGroupAffinity failed");
   }
 
-#else
+#elif defined(__LINUX__)
 
   // Linux
-  ThreadAffinity::ThreadAffinity(int threadsPerCore)
+  ThreadAffinity::ThreadAffinity(int numThreadsPerCore)
   {
     std::vector<int> threadIds;
 
@@ -141,7 +146,7 @@ namespace oidn {
 
       int i;
       int j = 0;
-      while ((j < threadsPerCore) && (fs >> i))
+      while ((j < numThreadsPerCore) && (fs >> i))
       {
         if (std::none_of(threadIds.begin(), threadIds.end(), [&](int id) { return id == i; }))
           threadIds.push_back(i);
@@ -204,6 +209,75 @@ namespace oidn {
     // Restore the original affinity
     if (pthread_setaffinity_np(thread, sizeof(cpu_set_t), &oldAffinities[threadIndex]) != 0)
       WARNING("pthread_setaffinity_np failed");
+  }
+
+#elif defined(__APPLE__)
+
+  // macOS
+  ThreadAffinity::ThreadAffinity(int numThreadsPerCore)
+  {
+    // Query the thread/CPU topology
+    int numPhysicalCpus;
+    int numLogicalCpus;
+
+    if (!getSysctl("hw.physicalcpu", numPhysicalCpus) || !getSysctl("hw.logicalcpu", numLogicalCpus))
+    {
+      WARNING("sysctlbyname failed");
+      return;
+    }
+
+    if ((numLogicalCpus % numPhysicalCpus != 0) && (numThreadsPerCore > 1))
+      return; // this shouldn't happen
+    const int maxThreadsPerCore = numLogicalCpus / numPhysicalCpus;
+
+    // Create the affinity structures
+    // macOS doesn't support binding a thread to a specific core, but we can at least group threads which
+    // should be on the same core together
+    for (int core = 1; core <= numPhysicalCpus; ++core) // tags start from 1!
+    {
+      thread_affinity_policy affinity;
+      affinity.affinity_tag = core;
+
+      for (int thread = 0; thread < min(numThreadsPerCore, maxThreadsPerCore); ++thread)
+      {
+        affinities.push_back(affinity);
+        oldAffinities.push_back(affinity);
+      }
+    }
+  }
+
+  void ThreadAffinity::set(int threadIndex)
+  {
+    if (threadIndex >= (int)affinities.size())
+      return;
+
+    const auto thread = mach_thread_self();
+
+    // Save the current affinity
+    mach_msg_type_number_t policyCount = THREAD_AFFINITY_POLICY_COUNT;
+    boolean_t getDefault = FALSE;
+    if (thread_policy_get(thread, THREAD_AFFINITY_POLICY, (thread_policy_t)&oldAffinities[threadIndex], &policyCount, &getDefault) != KERN_SUCCESS)
+    {
+      WARNING("thread_policy_get failed");
+      oldAffinities[threadIndex] = affinities[threadIndex];
+      return;
+    }
+
+    // Set the new affinity
+    if (thread_policy_set(thread, THREAD_AFFINITY_POLICY, (thread_policy_t)&affinities[threadIndex], THREAD_AFFINITY_POLICY_COUNT) != KERN_SUCCESS)
+      WARNING("thread_policy_set failed");
+  }
+
+  void ThreadAffinity::restore(int threadIndex)
+  {
+    if (threadIndex >= (int)affinities.size())
+      return;
+
+    const auto thread = mach_thread_self();
+
+    // Restore the original affinity
+    if (thread_policy_set(thread, THREAD_AFFINITY_POLICY, (thread_policy_t)&oldAffinities[threadIndex], THREAD_AFFINITY_POLICY_COUNT) != KERN_SUCCESS)
+      WARNING("thread_policy_set failed");
   }
 
 #endif

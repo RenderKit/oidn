@@ -1,6 +1,8 @@
 Version History
 ---------------
 
+-   Added support for macOS
+
 ### Changes in v0.3.0:
 
 -   Major HDR quality improvement (still experimental)
