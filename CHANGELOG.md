@@ -1,6 +1,9 @@
 Version History
 ---------------
 
+### Changes in v0.4.0:
+
+-   Improved performance on processors with AVX-512 support
 -   Added support for macOS
 
 ### Changes in v0.3.0:
