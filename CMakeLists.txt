@@ -124,6 +124,7 @@ INTERFACE
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 PRIVATE
+  ${PROJECT_SOURCE_DIR}/mkl-dnn/include
   ${PROJECT_SOURCE_DIR}/mkl-dnn/src
   ${PROJECT_SOURCE_DIR}/mkl-dnn/src/common
   ${PROJECT_SOURCE_DIR}/mkl-dnn/src/cpu/xbyak

@@ -20,7 +20,7 @@
 
 namespace oidn {
 
-  // Reorders weights from oihw to OIhwKiKo format
+  // Reorders weights from oihw to padded oihw format
   template<int K>
   class WeightsReorder : public Node
   {
@@ -39,7 +39,7 @@ namespace oidn {
       MAYBE_UNUSED(srcDesc);
       MAYBE_UNUSED(dstDesc);
       assert(srcDesc.format == memory::format::oihw);
-      assert(dstDesc.format == BlockedFormat<K>::OIhwKiKo);
+      assert(dstDesc.format == memory::format::oihw);
       assert(srcDesc.ndims == 4);
       assert(dstDesc.ndims == 4);
       assert(srcDesc.data_type == memory::data_type::f32);
@@ -75,12 +75,8 @@ namespace oidn {
           {
             for (int w = 0; w < W; ++w)
             {
-              // Output is in OIhwKiKo format
-              float* dstPtr_c = dstPtr + (oc/K)*(IC2/K)*H*W*K*K +
-                                         (ic/K)*H*W*K*K +
-                                         h*W*K*K +
-                                         w*K*K +
-                                         (ic%K)*K + (oc%K);
+              // Output is in oihw format
+              float* dstPtr_c = dstPtr + oc*IC2*H*W + ic*H*W + h*W + w;
 
               if (oc < OC1 && ic < IC1)
               {

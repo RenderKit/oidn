@@ -32,6 +32,7 @@
 #include "tbb/task_scheduler_observer.h"
 #include "tbb/task_arena.h"
 #include "tbb/parallel_for.h"
+#include "tbb/parallel_reduce.h"
 #include "tbb/blocked_range.h"
 
 #include <vector>

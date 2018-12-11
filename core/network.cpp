@@ -93,13 +93,6 @@ namespace oidn {
   }
 
   template<int K>
-  void Network<K>::weightsReorder(const std::shared_ptr<memory>& src,
-                                  const std::shared_ptr<memory>& dst)
-  {
-    WeightsReorder<K>(src, dst).execute();
-  }
-
-  template<int K>
   memory::dims Network<K>::getInputReorderDims(const memory::dims& srcDims, int spatialPad)
   {
     memory::dims dstDims = srcDims;
@@ -135,13 +128,13 @@ namespace oidn {
     memory::dims weightsDims = W.dims;
     auto userWeights = allocTensor(weightsDims, memory::format::oihw, W.data);
 
-    // Reorder/pad the weights
+    // Pad the weights
     memory::dims weightsPadDims = weightsDims;
     weightsPadDims[1] = getPadded<K>(weightsDims[1]); // IC
     weightsPadDims[0] = getPadded<K>(weightsDims[0]); // OC
     assert(srcDims[1] == weightsPadDims[1]); // srcDims[C] == weightsPadDims[IC]
-    auto weights = allocTensor(weightsPadDims, BlockedFormat<K>::OIhwKiKo);
-    weightsReorder(userWeights, weights);
+    auto weightsPad = allocTensor(weightsPadDims, memory::format::oihw);
+    WeightsReorder<K>(userWeights, weightsPad).execute();
 
     // Get the biases
     const auto& b = weightMap[name + "/b"];
@@ -163,11 +156,14 @@ namespace oidn {
     assert(getTensorDims(dst) == dstDims);
 
     // Create a convolution
+    // Let the convolution primitive choose the weights format
+    auto weightsDesc = memory::desc({ weightsPadDims }, memory::data_type::f32, memory::format::any);
+
     auto convAlgo = (K == 16) ? convolution_winograd : convolution_direct;
     auto convDesc = convolution_forward::desc(
       prop_kind::forward_inference, convAlgo,
       src->get_primitive_desc().desc(),
-      weights->get_primitive_desc().desc(),
+      weightsDesc,
       bias->get_primitive_desc().desc(),
       dst->get_primitive_desc().desc(),
       strides, padding, padding, padding_kind::zero);
@@ -187,6 +183,14 @@ namespace oidn {
     }
 
     auto convPrimDesc = convolution_forward::primitive_desc(convDesc, convAttr, cpuEngine);
+
+    // Reorder the weights to the final format, if necessary
+    auto weights = weightsPad;
+    if (memory::primitive_desc(convPrimDesc.weights_primitive_desc()) != weightsPad->get_primitive_desc())
+    {
+      weights = std::make_shared<memory>(convPrimDesc.weights_primitive_desc());
+      MklNode(reorder(*weightsPad, *weights)).execute();
+    }
 
     // Create convolution node and add it to the net
     auto node = std::make_shared<Conv>(convPrimDesc, src, weights, bias, dst);

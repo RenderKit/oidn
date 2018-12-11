@@ -45,9 +45,6 @@ namespace oidn {
 
     void zeroTensor(const std::shared_ptr<memory>& dst);
 
-    void weightsReorder(const std::shared_ptr<memory>& userWeights,
-                        const std::shared_ptr<memory>& weights);
-
     memory::dims getInputReorderDims(const memory::dims& srcDims, int spatialPad);
 
     template<class TransferFunction>
