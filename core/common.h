@@ -20,7 +20,7 @@
 
 #include "mkl-dnn/include/mkldnn.hpp"
 #include "mkl-dnn/include/mkldnn_debug.h"
-#include "mkl-dnn/src/common/utils.hpp"
+#include "mkl-dnn/src/common/mkldnn_thread.hpp"
 #include "mkl-dnn/src/cpu/jit_generator.hpp"
 
 #include "common/ref.h"
@@ -31,8 +31,8 @@
 namespace oidn {
 
   using namespace mkldnn;
-  using namespace mkldnn::impl::utils;
   using namespace mkldnn::impl::cpu;
+  using mkldnn::impl::parallel_nd;
 
 
   inline size_t getFormatBytes(Format format)

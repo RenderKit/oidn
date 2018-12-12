@@ -64,36 +64,27 @@ namespace oidn {
       const int W = srcDesc.dims[3];
       const int CK = C / K;
 
-      tbb::parallel_for(tbb::blocked_range<size_t>(0, CK * H),
-        [&](const tbb::blocked_range<size_t>& r)
+      parallel_nd(CK, H, [&](int ck, int h)
+      {
+        const size_t offset = ck*H*W*K + h*W*K;
+        const float* srcPtr_line = srcPtr + offset;
+        float* dstPtr_line0 = dstPtr + offset * 4;
+        float* dstPtr_line1 = dstPtr_line0 + W*2*K; // next line
+
+        for (int w = 0; w < W; ++w)
         {
-          int ck{0}, h{0};
-          nd_iterator_init(r.begin(), ck, CK, h, H);
-
-          for (size_t i = r.begin(); i != r.end(); ++i)
+          #pragma unroll
+          for (int k = 0; k < K; k += 4)
           {
-            const size_t offset = ck*H*W*K + h*W*K;
-            const float* srcPtr_line = srcPtr + offset;
-            float* dstPtr_line0 = dstPtr + offset * 4;
-            float* dstPtr_line1 = dstPtr_line0 + W*2*K; // next line
+            const __m128 m = _mm_load_ps(&srcPtr_line[w*K + k]);
 
-            for (int w = 0; w < W; ++w)
-            {
-              #pragma unroll
-              for (int k = 0; k < K; k += 4)
-              {
-                const __m128 m = _mm_load_ps(&srcPtr_line[w*K + k]);
-
-                _mm_stream_ps(&dstPtr_line0[w*2*K   + k], m);
-                _mm_stream_ps(&dstPtr_line0[w*2*K+K + k], m);
-                _mm_stream_ps(&dstPtr_line1[w*2*K   + k], m);
-                _mm_stream_ps(&dstPtr_line1[w*2*K+K + k], m);
-              }
-            }
-
-            nd_iterator_step(ck, CK, h, H);
+            _mm_stream_ps(&dstPtr_line0[w*2*K   + k], m);
+            _mm_stream_ps(&dstPtr_line0[w*2*K+K + k], m);
+            _mm_stream_ps(&dstPtr_line1[w*2*K   + k], m);
+            _mm_stream_ps(&dstPtr_line1[w*2*K+K + k], m);
           }
-        }, tbb::static_partitioner());
+        }
+      });
     }
 
     std::shared_ptr<memory> getDst() const override { return dst; }

@@ -52,8 +52,9 @@ mark_as_advanced(OIDN_ZIP_MODE)
 add_subdirectory(mkl-dnn EXCLUDE_FROM_ALL)
 
 # Include some modules from MKL-DNN
-include(mkl-dnn/cmake/platform.cmake)
+include(mkl-dnn/cmake/Threading.cmake)
 include(mkl-dnn/cmake/TBB.cmake)
+include(mkl-dnn/cmake/platform.cmake)
 include(mkl-dnn/cmake/SDL.cmake)
 
 ## Helper Functions ###########################################################

@@ -77,26 +77,22 @@ namespace oidn {
       const int H = min(H2, 2*H1-2);
       const int W = min(W2, 2*W1-2);
 
-      tbb::parallel_for(tbb::blocked_range<int>(0, H),
-        [&](const tbb::blocked_range<int>& r)
+      parallel_nd(H, [&](int h)
+      {
+        for (int w = 0; w < W; ++w)
         {
-          for (int h = r.begin(); h != r.end(); ++h)
-          {
-            for (int w = 0; w < W; ++w)
-            {
-              // Compute mirror padded coords
-              const int h1 = h < H1 ? h : 2*H1-2-h;
-              const int w1 = w < W1 ? w : 2*W1-2-w;
+          // Compute mirror padded coords
+          const int h1 = h < H1 ? h : 2*H1-2-h;
+          const int w1 = w < W1 ? w : 2*W1-2-w;
 
-              int c = 0;
-              copyColor3(h, w, c, (float*)color.get(h1, w1));
-              if (albedo)
-                copy3<true>(h, w, c, (float*)albedo.get(h1, w1)); // clamp
-              if (normal)
-                copy3<false>(h, w, c, (float*)normal.get(h1, w1)); // don't clamp
-            }
-          }
-        }, tbb::static_partitioner());
+          int c = 0;
+          copyColor3(h, w, c, (float*)color.get(h1, w1));
+          if (albedo)
+            copy3<true>(h, w, c, (float*)albedo.get(h1, w1)); // clamp
+          if (normal)
+            copy3<false>(h, w, c, (float*)normal.get(h1, w1)); // don't clamp
+        }
+      });
     }
 
     std::shared_ptr<memory> getDst() const override { return dst; }

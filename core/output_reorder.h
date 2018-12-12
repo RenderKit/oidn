@@ -67,25 +67,21 @@ namespace oidn {
       const int H2 = output.height;
       const int W2 = output.width;
 
-      tbb::parallel_for(tbb::blocked_range<int>(0, H2),
-        [&](const tbb::blocked_range<int>& r)
+      parallel_nd(H2, [&](int h)
+      {
+        for (int w = 0; w < W2; ++w)
         {
-          for (int h = r.begin(); h != r.end(); ++h)
-          {
-            for (int w = 0; w < W2; ++w)
-            {
-              float* dstPtr_C = (float*)output.get(h, w);
+          float* dstPtr_C = (float*)output.get(h, w);
 
-              // Source is in nChwKc format. In this case C is 1 so this is really nhwc
-              const float* srcPtr_C = srcPtr + h*W1*C1 + w*C1;
+          // Source is in nChwKc format. In this case C is 1 so this is really nhwc
+          const float* srcPtr_C = srcPtr + h*W1*C1 + w*C1;
 
-              // The CNN output may contain negative values or even NaNs, so it must be sanitized
-              dstPtr_C[0] = transferFunc->reverse(sanitize<true>(srcPtr_C[0]));
-              dstPtr_C[1] = transferFunc->reverse(sanitize<true>(srcPtr_C[1]));
-              dstPtr_C[2] = transferFunc->reverse(sanitize<true>(srcPtr_C[2]));
-            }
-          }
-        }, tbb::static_partitioner());
+          // The CNN output may contain negative values or even NaNs, so it must be sanitized
+          dstPtr_C[0] = transferFunc->reverse(sanitize<true>(srcPtr_C[0]));
+          dstPtr_C[1] = transferFunc->reverse(sanitize<true>(srcPtr_C[1]));
+          dstPtr_C[2] = transferFunc->reverse(sanitize<true>(srcPtr_C[2]));
+        }
+      });
     }
   };
 
