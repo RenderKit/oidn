@@ -93,11 +93,23 @@ endfunction()
 
 ## Open Image Denoise Library #################################################
 
+include_directories(
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+  ${PROJECT_SOURCE_DIR}
+  ${PROJECT_SOURCE_DIR}/mkl-dnn/include
+  ${PROJECT_SOURCE_DIR}/mkl-dnn/src
+  ${PROJECT_SOURCE_DIR}/mkl-dnn/src/common
+  ${PROJECT_SOURCE_DIR}/mkl-dnn/src/cpu/xbyak
+  ${TBB_INCLUDE_DIR}
+)
+
 add_subdirectory(common EXCLUDE_FROM_ALL)
 
-set(SOURCES
+set(CORE_SOURCES
   include/OpenImageDenoise/oidn.h
   include/OpenImageDenoise/oidn.hpp
+  core/api.cpp
   core/common.h
   core/math.h
   core/device.h
@@ -105,19 +117,21 @@ set(SOURCES
   core/buffer.h
   core/image.h
   core/filter.h
-  core/transfer_function.h
   core/node.h
-  core/upsample.h
   core/input_reorder.h
   core/output_reorder.h
   core/weights_reorder.h
+  core/transfer_function.h
+  core/upsample.h
   core/network.h
-  core/network.cpp
   core/autoencoder.h
-  core/autoencoder.cpp
   core/autoexposure.h
+)
+
+set(CORE_SOURCES_SSE42
+  core/network.cpp
+  core/autoencoder.cpp
   core/autoexposure.cpp
-  core/api.cpp
 )
 
 generate_cpp_resources(WEIGHTS_SOURCES "oidn::weights"
@@ -125,26 +139,19 @@ generate_cpp_resources(WEIGHTS_SOURCES "oidn::weights"
   weights/autoencoder_ldr_alb_nrm.tza
 )
 
-add_library(${PROJECT_NAME} SHARED ${SOURCES} ${WEIGHTS_SOURCES})
+add_library(${PROJECT_NAME} SHARED ${CORE_SOURCES} ${WEIGHTS_SOURCES})
 
-target_include_directories(
-  ${PROJECT_NAME}
-INTERFACE
-  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-PRIVATE
-  ${PROJECT_SOURCE_DIR}/mkl-dnn/include
-  ${PROJECT_SOURCE_DIR}/mkl-dnn/src
-  ${PROJECT_SOURCE_DIR}/mkl-dnn/src/common
-  ${PROJECT_SOURCE_DIR}/mkl-dnn/src/cpu/xbyak
-)
+add_library("${PROJECT_NAME}_sse42" STATIC ${CORE_SOURCES_SSE42})
+set_target_properties("${PROJECT_NAME}_sse42" PROPERTIES COMPILE_FLAGS "${ISA_FLAGS_SSE42}")
 
 target_link_libraries(${PROJECT_NAME}
   PUBLIC
     ${TBB_LIBRARIES}
   PRIVATE
+    "${PROJECT_NAME}_sse42"
     common mkldnn
 )
+
 set_property(TARGET ${PROJECT_NAME} PROPERTY VERSION ${PROJECT_VERSION})
 set_property(TARGET ${PROJECT_NAME} PROPERTY SOVERSION "0")
 

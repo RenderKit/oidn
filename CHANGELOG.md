@@ -5,6 +5,7 @@ Version History
 
 -   Improved performance on processors with AVX-512 support
 -   Added support for macOS
+-   Fixed crash when creating a device on an unsupported CPU
 
 ### Changes in v0.3.0:
 
