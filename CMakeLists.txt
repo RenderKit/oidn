@@ -48,7 +48,15 @@ mark_as_advanced(OIDN_ZIP_MODE)
 
 ## MKL-DNN ####################################################################
 
-# Modified version of MKL-DNN
+# Configure MKL-DNN
+set(MKLDNN_LIBRARY_TYPE "STATIC" CACHE INTERNAL "")
+set(MKLDNN_THREADING "TBB" CACHE INTERNAL "")
+set(MKLDNN_USE_MKL "NONE" CACHE INTERNAL "")
+set(MKLDNN_VERBOSE OFF CACHE BOOL "")
+set(WITH_EXAMPLE OFF CACHE INTERNAL "")
+set(WITH_TEST OFF CACHE INTERNAL "")
+
+# Add modified version of MKL-DNN
 add_subdirectory(mkl-dnn EXCLUDE_FROM_ALL)
 
 # Include some modules from MKL-DNN
