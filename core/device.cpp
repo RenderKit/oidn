@@ -20,11 +20,10 @@
 namespace oidn {
 
   thread_local Error Device::threadError = Error::None;
-  thread_local const char* Device::threadErrorMessage = nullptr;
+  thread_local std::string Device::threadErrorMessage;
 
   Device::Device()
-    : error(Error::None),
-      errorMessage(nullptr)
+    : error(Error::None)
   {
     if (!mayiuse(sse42))
       throw Exception(Error::UnsupportedHardware, "SSE4.2 support is required at minimum");
@@ -39,7 +38,7 @@ namespace oidn {
     observer.reset();
   }
 
-  void Device::setError(Device* device, Error error, const char* errorMessage)
+  void Device::setError(Device* device, Error error, const std::string& errorMessage)
   {
     // Update the stored error only if the previous error was queried
     if (device)
@@ -67,18 +66,16 @@ namespace oidn {
     {
       const Error error = device->error;
       if (errorMessage)
-        *errorMessage = device->errorMessage;
+        *errorMessage = (error == Error::None) ? nullptr : device->errorMessage.c_str();
       device->error = Error::None;
-      device->errorMessage = nullptr;
       return error;
     }
     else
     {
       const Error error = threadError;
       if (errorMessage)
-        *errorMessage = threadErrorMessage;
+        *errorMessage = (error == Error::None) ? nullptr : threadErrorMessage.c_str();
       threadError = Error::None;
-      threadErrorMessage = nullptr;
       return error;
     }
   }

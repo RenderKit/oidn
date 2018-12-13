@@ -28,9 +28,9 @@ namespace oidn {
   private:
     // Error handling
     static thread_local Error threadError;
-    static thread_local const char* threadErrorMessage;
+    static thread_local std::string threadErrorMessage;
     Error error;
-    const char* errorMessage;
+    std::string errorMessage;
 
     // Tasking
     std::shared_ptr<tbb::task_arena> arena;
@@ -41,7 +41,7 @@ namespace oidn {
     Device();
     ~Device();
 
-    static void setError(Device* device, Error error, const char* errorMessage);
+    static void setError(Device* device, Error error, const std::string& errorMessage);
     static Error getError(Device* device, const char** errorMessage);
 
     template<typename F>
