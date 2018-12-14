@@ -31,8 +31,9 @@ extern "C" {
 #endif
 
 
+// ---------------------------------------------------------------------------
 // Device
-// ------
+// ---------------------------------------------------------------------------
 
 // Open Image Denoise device types
 enum OIDNDeviceType
@@ -72,8 +73,9 @@ OIDN_API void oidnReleaseDevice(OIDNDevice device);
 OIDN_API OIDNError oidnGetDeviceError(OIDNDevice device, const char** message);
 
 
+// ---------------------------------------------------------------------------
 // Buffer
-// ------
+// ---------------------------------------------------------------------------
 
 // Formats for images and other data stored in buffers
 enum OIDNFormat
@@ -119,15 +121,16 @@ OIDN_API void oidnRetainBuffer(OIDNBuffer buffer);
 OIDN_API void oidnReleaseBuffer(OIDNBuffer buffer);
 
 
+// ---------------------------------------------------------------------------
 // Filter
-// ------
+// ---------------------------------------------------------------------------
 
 // Filter handle
 typedef struct OIDNFilterImpl* OIDNFilter;
 
 // Creates a new filter of the specified type.
 // Supported types:
-//   Autoencoder - AI denoising filter
+//   RT - ray tracing denoising filter
 OIDN_API OIDNFilter oidnNewFilter(OIDNDevice device, const char* type);
 
 // Retains the filter (increments the reference count).

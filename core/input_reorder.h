@@ -21,9 +21,9 @@
 
 namespace oidn {
 
-  // Input reorder
+  // Input reorder node
   template<int K, class TransferFunction>
-  class InputReorder : public Node
+  class InputReorderNode : public Node
   {
   private:
     Image color;
@@ -39,11 +39,11 @@ namespace oidn {
     std::shared_ptr<TransferFunction> transferFunc;
 
   public:
-    InputReorder(const Image& color,
-                 const Image& albedo,
-                 const Image& normal,
-                 const std::shared_ptr<memory>& dst,
-                 const std::shared_ptr<TransferFunction>& transferFunc)
+    InputReorderNode(const Image& color,
+                     const Image& albedo,
+                     const Image& normal,
+                     const std::shared_ptr<memory>& dst,
+                     const std::shared_ptr<TransferFunction>& transferFunc)
       : color(color), albedo(albedo), normal(normal),
         dst(dst),
         transferFunc(transferFunc)

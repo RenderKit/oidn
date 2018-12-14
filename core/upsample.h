@@ -20,17 +20,19 @@
 
 namespace oidn {
 
-  // 2x2 nearest-neighbor upsampling
+  // 2x2 nearest-neighbor upsampling node
   template<int K>
-  class Upsample : public Node
+  class UpsampleNode : public Node
   {
   private:
     std::shared_ptr<memory> src;
     std::shared_ptr<memory> dst;
 
   public:
-    Upsample(const std::shared_ptr<memory>& src, const std::shared_ptr<memory>& dst)
-      : src(src), dst(dst)
+    UpsampleNode(const std::shared_ptr<memory>& src,
+                 const std::shared_ptr<memory>& dst)
+      : src(src),
+        dst(dst)
     {
       memory::primitive_desc srcPrimDesc = src->get_primitive_desc();
       memory::primitive_desc dstPrimDesc = dst->get_primitive_desc();

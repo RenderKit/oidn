@@ -20,21 +20,19 @@
 
 namespace oidn {
 
-  // Trained weights stored in binary blobs
-  namespace weights
-  {
-    extern unsigned char autoencoder_ldr[];         // LDR
-    extern unsigned char autoencoder_ldr_alb_nrm[]; // LDR, albedo, normal
-  }
+  // -------------------------------------------------------------------------
+  // AutoencoderFilter
+  // -------------------------------------------------------------------------
 
-  Autoencoder::Autoencoder(const Ref<Device>& device)
+  AutoencoderFilter::AutoencoderFilter(const Ref<Device>& device)
     : Filter(device),
       srgb(false),
-      hdr(false)
+      hdr(false),
+      weightData { nullptr, nullptr }
   {
   }
 
-  void Autoencoder::setImage(const std::string& name, const Image& data)
+  void AutoencoderFilter::setImage(const std::string& name, const Image& data)
   {
     if (name == "color")
     {
@@ -62,7 +60,7 @@ namespace oidn {
     }
   }
 
-  void Autoencoder::set1i(const std::string& name, int value)
+  void AutoencoderFilter::set1i(const std::string& name, int value)
   {
     if (name == "srgb")
       srgb = value;
@@ -70,7 +68,7 @@ namespace oidn {
       hdr = value;
   }
 
-  void Autoencoder::commit()
+  void AutoencoderFilter::commit()
   {
     device->executeTask([&]()
     {
@@ -81,7 +79,7 @@ namespace oidn {
     });
   }
 
-  void Autoencoder::execute()
+  void AutoencoderFilter::execute()
   {
     device->executeTask([&]()
     {
@@ -89,7 +87,7 @@ namespace oidn {
       {
         const float exposure = autoexposure(color);
         //printf("exposure = %f\n", exposure);
-        std::static_pointer_cast<HdrTransferFunction>(transferFunc)->setExposure(exposure);
+        std::static_pointer_cast<HDRTransferFunction>(transferFunc)->setExposure(exposure);
       }
 
       net->execute();
@@ -97,7 +95,7 @@ namespace oidn {
   }
 
   template<int K>
-  std::shared_ptr<Node> Autoencoder::buildNet()
+  std::shared_ptr<Node> AutoencoderFilter::buildNet()
   {
     constexpr int spatialPad = 32; // the image must be padded spatially
 
@@ -111,15 +109,15 @@ namespace oidn {
     if (srgb && hdr)
       throw Exception(Error::InvalidOperation, "srgb and hdr modes cannot be enabled at the same time");
 
-    if (color && !albedo && !normal)
+    if (color && !albedo && !normal && weightData.ldr)
     {
       inputC = 3;
-      weightPtr = weights::autoencoder_ldr;
+      weightPtr = weightData.ldr;
     }
-    else if (color && albedo && normal)
+    else if (color && albedo && normal && weightData.ldr_alb_nrm)
     {
       inputC = 9;
-      weightPtr = weights::autoencoder_ldr_alb_nrm;
+      weightPtr = weightData.ldr_alb_nrm;
     }
     else
     {
@@ -200,16 +198,16 @@ namespace oidn {
     }
     else if (hdr)
     {
-      transferFunc = std::make_shared<HdrTransferFunction>();
+      transferFunc = std::make_shared<HDRTransferFunction>();
       inputReorder = net->addInputReorder(color, albedo, normal,
-                                          std::static_pointer_cast<HdrTransferFunction>(transferFunc),
+                                          std::static_pointer_cast<HDRTransferFunction>(transferFunc),
                                           spatialPad, inputReorderDst);
     }
     else
     {
-      transferFunc = std::make_shared<SrgbTransferFunction>();
+      transferFunc = std::make_shared<SRGBTransferFunction>();
       inputReorder = net->addInputReorder(color, albedo, normal,
-                                          std::static_pointer_cast<SrgbTransferFunction>(transferFunc),
+                                          std::static_pointer_cast<SRGBTransferFunction>(transferFunc),
                                           spatialPad, inputReorderDst);
     }
 
@@ -311,11 +309,29 @@ namespace oidn {
     if (srgb)
       net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<LinearTransferFunction>(transferFunc), output);
     else if (hdr)
-      net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<HdrTransferFunction>(transferFunc), output);
+      net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<HDRTransferFunction>(transferFunc), output);
     else
-      net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<SrgbTransferFunction>(transferFunc), output);
+      net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<SRGBTransferFunction>(transferFunc), output);
 
     return net;
+  }
+
+  // -------------------------------------------------------------------------
+  // RTFilter
+  // -------------------------------------------------------------------------
+
+  namespace weights
+  {
+    // LDR
+    extern unsigned char rt_ldr[];         // color
+    extern unsigned char rt_ldr_alb_nrm[]; // color, albedo, normal
+  }
+
+  RTFilter::RTFilter(const Ref<Device>& device)
+    : AutoencoderFilter(device)
+  {
+    weightData.ldr         = weights::rt_ldr;
+    weightData.ldr_alb_nrm = weights::rt_ldr_alb_nrm;
   }
 
 } // namespace oidn

@@ -94,8 +94,14 @@ namespace oidn {
   {
     Ref<Filter> filter;
 
-    if (type == "Autoencoder")
-      filter = makeRef<Autoencoder>(Ref<Device>(this));
+    if (type == "RT")
+      filter = makeRef<RTFilter>(Ref<Device>(this));
+    else if (type == "Autoencoder")
+    {
+      // FIXME: remove
+      WARNING("The 'Autoencoder' filter is deprecated and will be removed soon, please use 'RT' instead!");
+      filter = makeRef<RTFilter>(Ref<Device>(this));
+    }
     else
       throw Exception(Error::InvalidArgument, "unknown filter type");
 

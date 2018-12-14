@@ -52,7 +52,7 @@ int main(int argc, char **argv)
     Timer timer;
 
     oidn::DeviceRef device = oidn::newDevice();
-    oidn::FilterRef filter = device.newFilter("Autoencoder");
+    oidn::FilterRef filter = device.newFilter("RT");
 
     const size_t F = sizeof(float);
     filter.setImage("color",  input.data,  oidn::Format::Float3, W, H, 0 * F, 9 * F);

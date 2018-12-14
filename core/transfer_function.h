@@ -37,7 +37,7 @@ namespace oidn {
     __forceinline float reverse(float x) const override { return x; }
   };
 
-  class SrgbTransferFunction : public TransferFunction
+  class SRGBTransferFunction : public TransferFunction
   {
   public:
     __forceinline float forward(float x) const override
@@ -52,7 +52,7 @@ namespace oidn {
   };
 
   // HDR = log + sRGB
-  class HdrTransferFunction : public TransferFunction
+  class HDRTransferFunction : public TransferFunction
   {
   private:
     static constexpr float scale = 0.16604764621f; // 1/log2(64+1)
@@ -62,7 +62,7 @@ namespace oidn {
     float rcpExposure;
 
   public:
-    HdrTransferFunction(float exposure = 1.f)
+    HDRTransferFunction(float exposure = 1.f)
     {
       setExposure(exposure);
     }

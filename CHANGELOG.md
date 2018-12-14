@@ -3,6 +3,7 @@ Version History
 
 ### Changes in v0.4.0:
 
+-   Renamed "Autoencoder" filter to "RT" (ray tracing)
 -   Improved performance on processors with AVX-512 support
 -   Added support for Intel(R) Xeon Phi(TM) processor x200 family (formerly Knights Landing)
 -   Added support for macOS

@@ -48,7 +48,7 @@ namespace oidn {
   };
 
   // Convolution node
-  class Conv : public MklNode
+  class ConvNode : public MklNode
   {
   private:
     std::shared_ptr<memory> src;
@@ -57,11 +57,11 @@ namespace oidn {
     std::shared_ptr<memory> dst;
 
   public:
-    Conv(const convolution_forward::primitive_desc& desc,
-         const std::shared_ptr<memory>& src,
-         const std::shared_ptr<memory>& weights,
-         const std::shared_ptr<memory>& bias,
-         const std::shared_ptr<memory>& dst)
+    ConvNode(const convolution_forward::primitive_desc& desc,
+             const std::shared_ptr<memory>& src,
+             const std::shared_ptr<memory>& weights,
+             const std::shared_ptr<memory>& bias,
+             const std::shared_ptr<memory>& dst)
       : MklNode(convolution_forward(desc, *src, *weights, *bias, *dst)),
         src(src), weights(weights), bias(bias), dst(dst) {}
 
@@ -69,16 +69,16 @@ namespace oidn {
   };
 
   // Pooling node
-  class Pool : public MklNode
+  class PoolNode : public MklNode
   {
   private:
     std::shared_ptr<memory> src;
     std::shared_ptr<memory> dst;
 
   public:
-    Pool(const pooling_forward::primitive_desc& desc,
-         const std::shared_ptr<memory>& src,
-         const std::shared_ptr<memory>& dst)
+    PoolNode(const pooling_forward::primitive_desc& desc,
+             const std::shared_ptr<memory>& src,
+             const std::shared_ptr<memory>& dst)
       : MklNode(pooling_forward(desc, *src, *dst)),
         src(src), dst(dst) {}
 

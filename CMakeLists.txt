@@ -135,8 +135,8 @@ set(CORE_SOURCES_SSE42
 )
 
 generate_cpp_resources(WEIGHTS_SOURCES "oidn::weights"
-  weights/autoencoder_ldr.tza
-  weights/autoencoder_ldr_alb_nrm.tza
+  weights/rt_ldr.tza
+  weights/rt_ldr_alb_nrm.tza
 )
 
 add_library(${PROJECT_NAME} SHARED ${CORE_SOURCES} ${WEIGHTS_SOURCES})

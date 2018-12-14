@@ -21,9 +21,9 @@
 
 namespace oidn {
 
-  // Output reorder
+  // Output reorder node
   template<int K, class TransferFunction>
-  class OutputReorder : public Node
+  class OutputReorderNode : public Node
   {
   private:
     std::shared_ptr<memory> src;
@@ -36,9 +36,9 @@ namespace oidn {
     std::shared_ptr<TransferFunction> transferFunc;
 
   public:
-    OutputReorder(const std::shared_ptr<memory>& src,
-                  const Image& output,
-                  const std::shared_ptr<TransferFunction>& transferFunc)
+    OutputReorderNode(const std::shared_ptr<memory>& src,
+                      const Image& output,
+                      const std::shared_ptr<TransferFunction>& transferFunc)
       : src(src),
         output(output),
         transferFunc(transferFunc)

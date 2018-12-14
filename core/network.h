@@ -106,7 +106,7 @@ namespace oidn {
     assert(getTensorDims(dst) == dstDims);
 
     // Push node
-    auto node = std::make_shared<InputReorder<K, TransferFunction>>(color, albedo, normal, dst, transferFunc);
+    auto node = std::make_shared<InputReorderNode<K, TransferFunction>>(color, albedo, normal, dst, transferFunc);
     nodes.push_back(node);
     return node;
   }
@@ -121,7 +121,7 @@ namespace oidn {
     assert(srcDims[1] == K);
 
     // Push node
-    auto node = std::make_shared<OutputReorder<K, TransferFunction>>(src, output, transferFunc);
+    auto node = std::make_shared<OutputReorderNode<K, TransferFunction>>(src, output, transferFunc);
     nodes.push_back(node);
     return node;
   }

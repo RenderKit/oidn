@@ -134,7 +134,7 @@ namespace oidn {
     weightsPadDims[0] = getPadded<K>(weightsDims[0]); // OC
     assert(srcDims[1] == weightsPadDims[1]); // srcDims[C] == weightsPadDims[IC]
     auto weightsPad = allocTensor(weightsPadDims, memory::format::oihw);
-    WeightsReorder<K>(userWeights, weightsPad).execute();
+    WeightsReorderNode<K>(userWeights, weightsPad).execute();
 
     // Get the biases
     const auto& b = weightMap[name + "/b"];
@@ -193,7 +193,7 @@ namespace oidn {
     }
 
     // Create convolution node and add it to the net
-    auto node = std::make_shared<Conv>(convPrimDesc, src, weights, bias, dst);
+    auto node = std::make_shared<ConvNode>(convPrimDesc, src, weights, bias, dst);
     nodes.push_back(node);
     return node;
   }
@@ -230,7 +230,7 @@ namespace oidn {
       strides, kernel, padding, padding, padding_kind::zero);
     auto poolPrimDesc = pooling_forward::primitive_desc(poolDesc, cpuEngine);
 
-    auto node = std::make_shared<Pool>(poolPrimDesc, src, dst);
+    auto node = std::make_shared<PoolNode>(poolPrimDesc, src, dst);
     nodes.push_back(node);
     return node;
   }
@@ -257,7 +257,7 @@ namespace oidn {
     assert(getTensorDims(dst) == dstDims);
 
     // Create upsampling node and add it to net
-    auto node = std::make_shared<Upsample<K>>(src, dst);
+    auto node = std::make_shared<UpsampleNode<K>>(src, dst);
     nodes.push_back(node);
     return node;
   }

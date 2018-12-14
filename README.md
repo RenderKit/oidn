@@ -55,8 +55,8 @@ C API
 // Create an Open Image Denoise device
 OIDNDevice device = oidnNewDevice(OIDN_DEVICE_TYPE_DEFAULT);
 
-// Create an AI denoising filter
-OIDNFilter filter = oidnNewFilter(device, "Autoencoder");
+// Create a denoising filter for ray traced images
+OIDNFilter filter = oidnNewFilter(device, "RT");
 oidnSetSharedFilterImage(filter, "color",  colorPtr,  OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0);
 oidnSetSharedFilterImage(filter, "albedo", albedoPtr, OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0); // optional
 oidnSetSharedFilterImage(filter, "normal", normalPtr, OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0); // optional
@@ -88,8 +88,8 @@ C++ API
 // Create an Open Image Denoise device
 oidn::DeviceRef device = oidn::newDevice();
 
-// Create an AI denoising filter
-oidn::FilterRef filter = device.newFilter("Autoencoder");
+// Create a denoising filter for ray traced images
+oidn::FilterRef filter = device.newFilter("RT");
 filter.setImage("color",  colorPtr,  oidn::Format::Float3, width, height);
 filter.setImage("albedo", albedoPtr, oidn::Format::Float3, width, height); // optional
 filter.setImage("normal", normalPtr, oidn::Format::Float3, width, height); // optional

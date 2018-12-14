@@ -22,8 +22,11 @@
 
 namespace oidn {
 
-  // Direct-predicting autoencoder
-  class Autoencoder : public Filter
+  // -------------------------------------------------------------------------
+  // AutoencoderFilter - Direct-predicting denoising autoencoder
+  // -------------------------------------------------------------------------
+
+  class AutoencoderFilter : public Filter
   {
   private:
     Image color;
@@ -36,9 +39,16 @@ namespace oidn {
     std::shared_ptr<Node> net;
     std::shared_ptr<TransferFunction> transferFunc;
 
-  public:
-    Autoencoder(const Ref<Device>& device);
+  protected:
+    struct
+    {
+      void* ldr;
+      void* ldr_alb_nrm;
+    } weightData;
 
+    explicit AutoencoderFilter(const Ref<Device>& device);
+
+  public:
     void setImage(const std::string& name, const Image& data) override;
     void set1i(const std::string& name, int value) override;
     void commit() override;
@@ -47,6 +57,16 @@ namespace oidn {
   private:
     template<int K>
     std::shared_ptr<Node> buildNet();
+  };
+
+  // -------------------------------------------------------------------------
+  // RTFilter - Generic ray tracing denoiser
+  // -------------------------------------------------------------------------
+
+  class RTFilter : public AutoencoderFilter
+  {
+  public:
+    explicit RTFilter(const Ref<Device>& device);
   };
 
 } // namespace oidn
