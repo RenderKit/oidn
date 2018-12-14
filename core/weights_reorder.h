@@ -67,29 +67,32 @@ namespace oidn {
       const int H   = dstDesc.dims[2];
       const int W   = dstDesc.dims[3];
 
-      parallel_nd(OC2, IC2, [&](int oc, int ic)
+      for (int oc = 0; oc < OC2; ++oc)
       {
-        for (int h = 0; h < H; ++h)
+        for (int ic = 0; ic < IC2; ++ic)
         {
-          for (int w = 0; w < W; ++w)
+          for (int h = 0; h < H; ++h)
           {
-            // Output is in oihw format
-            float* dstPtr_c = dstPtr + oc*IC2*H*W + ic*H*W + h*W + w;
+            for (int w = 0; w < W; ++w)
+            {
+              // Output is in oihw format
+              float* dstPtr_c = dstPtr + oc*IC2*H*W + ic*H*W + h*W + w;
 
-            if (oc < OC1 && ic < IC1)
-            {
-              // Input is in oihw format
-              const float* srcPtr_c = srcPtr + oc*IC1*H*W + ic*H*W + h*W + w;
-              *dstPtr_c = *srcPtr_c;
-            }
-            else
-            {
-              // padding
-              *dstPtr_c = 0;
+              if (oc < OC1 && ic < IC1)
+              {
+                // Input is in oihw format
+                const float* srcPtr_c = srcPtr + oc*IC1*H*W + ic*H*W + h*W + w;
+                *dstPtr_c = *srcPtr_c;
+              }
+              else
+              {
+                // padding
+                *dstPtr_c = 0;
+              }
             }
           }
         }
-      });
+      }
     }
 
     std::shared_ptr<memory> getDst() const override { return dst; }
