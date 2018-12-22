@@ -26,23 +26,51 @@ namespace oidn {
   float autoexposure(const Image& color)
   {
     assert(color.format == Format::Float3);
+
     constexpr float key = 0.18f;
 
+    // Downsample the image to minimize sensitivity to noise
+    constexpr int K = 16; // downsampling amount
+
+    const int H  = color.height;  // original height
+    const int W  = color.width;   // original width
+    const int HK = (H + K/2) / K; // downsampled height
+    const int WK = (W + K/2) / K; // downsampled width
+
+    // Compute the average log luminance of the downsampled image
     using Sum = std::pair<float, int>;
 
     Sum sum =
       tbb::parallel_reduce(
-        tbb::blocked_range<int>(0, color.height),
+        tbb::blocked_range2d<int>(0, HK, 0, WK),
         Sum(0.f, 0),
-        [&](const tbb::blocked_range<int>& r, Sum sum) -> Sum
+        [&](const tbb::blocked_range2d<int>& r, Sum sum) -> Sum
         {
-          for (int h = r.begin(); h != r.end(); ++h)
+          // Iterate over blocks
+          for (int i = r.rows().begin(); i != r.rows().end(); ++i)
           {
-            for (int w = 0; w < color.width; ++w)
+            for (int j = r.cols().begin(); j != r.cols().end(); ++j)
             {
-              const float* rgb = (const float*)color.get(h, w);
-              const float L = luminance(rgb[0], rgb[1], rgb[2]);
+              // Compute the average luminance in the current block
+              const int beginH = int(ptrdiff_t(i)   * H / HK);
+              const int beginW = int(ptrdiff_t(j)   * W / WK);
+              const int endH   = int(ptrdiff_t(i+1) * H / HK);
+              const int endW   = int(ptrdiff_t(j+1) * W / WK);
 
+              float L = 0.f;
+
+              for (int h = beginH; h < endH; ++h)
+              {
+                for (int w = beginW; w < endW; ++w)
+                {
+                  const float* rgb = (const float*)color.get(h, w);
+                  L += luminance(rgb[0], rgb[1], rgb[2]);
+                }
+              }
+
+              L /= (endH - beginH) * (endW - beginW);
+
+              // Accumulate the log luminance
               if (L > 1e-8f)
               {
                 sum.first += max(log2(L), -12.f);
@@ -50,6 +78,7 @@ namespace oidn {
               }
             }
           }
+
           return sum;
         },
         [](Sum a, Sum b) -> Sum { return Sum(a.first+b.first, a.second+b.second); },
