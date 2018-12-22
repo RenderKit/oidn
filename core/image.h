@@ -23,6 +23,8 @@ namespace oidn {
 
   struct Image
   {
+    static constexpr int maxSize = 65536;
+
     char* ptr;             // pointer to the first item
     int width;             // width in number of items
     int height;            // height in number of items
@@ -49,6 +51,8 @@ namespace oidn {
     {
       assert(width >= 0);
       assert(height >= 0);
+      if (width > maxSize || height > maxSize)
+        throw Exception(Error::InvalidArgument, "image size is too large");
 
       this->ptr = ptr;
       this->width = width;
