@@ -28,10 +28,10 @@ namespace oidn {
     assert(color.format == Format::Float3);
 
     constexpr float key = 0.18f;
-
-    // Downsample the image to minimize sensitivity to noise
+    constexpr float eps = 1e-8f;
     constexpr int K = 16; // downsampling amount
 
+    // Downsample the image to minimize sensitivity to noise
     const int H  = color.height;  // original height
     const int W  = color.width;   // original width
     const int HK = (H + K/2) / K; // downsampled height
@@ -71,9 +71,9 @@ namespace oidn {
               L /= (endH - beginH) * (endW - beginW);
 
               // Accumulate the log luminance
-              if (L > 1e-8f)
+              if (L > eps)
               {
-                sum.first += max(log2(L), -12.f);
+                sum.first += log2(L);
                 sum.second++;
               }
             }
