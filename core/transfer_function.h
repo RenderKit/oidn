@@ -37,6 +37,7 @@ namespace oidn {
     __forceinline float reverse(float x) const override { return x; }
   };
 
+  // sRGB transfer function
   class SRGBTransferFunction : public TransferFunction
   {
   public:
@@ -51,13 +52,11 @@ namespace oidn {
     }
   };
 
-  // HDR = log + sRGB
+  // HDR transfer function: log + sRGB curve
+  // Compresses [0..65536] to [0..1]
   class HDRTransferFunction : public TransferFunction
   {
   private:
-    static constexpr float scale = 0.16604764621f; // 1/log2(64+1)
-    static constexpr float rcpScale = 1.f / scale;
-
     float exposure;
     float rcpExposure;
 
@@ -76,13 +75,13 @@ namespace oidn {
     __forceinline float forward(float x) const override
     {
       x *= exposure;
-      return pow(log2(x+1.f) * scale, 1.f/2.2f);
+      return pow(log2(x+1.f) * (1.f/16.f), 1.f/2.2f);
     }
 
     __forceinline float reverse(float x) const override
     {
       const float y = pow(x, 2.2f);
-      return (exp2(y * rcpScale) - 1.f) * rcpExposure;
+      return (exp2(y * 16.f) - 1.f) * rcpExposure;
     }
   };
 
