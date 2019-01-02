@@ -86,11 +86,11 @@ namespace oidn {
           const int w1 = w < W1 ? w : 2*W1-2-w;
 
           int c = 0;
-          copyColor3(h, w, c, (float*)color.get(h1, w1));
+          storeColor(h, w, c, (float*)color.get(h1, w1));
           if (albedo)
-            copy3<true>(h, w, c, (float*)albedo.get(h1, w1)); // clamp
+            storeAlbedo(h, w, c, (float*)albedo.get(h1, w1));
           if (normal)
-            copy3<false>(h, w, c, (float*)normal.get(h1, w1)); // don't clamp
+            storeNormal(h, w, c, (float*)normal.get(h1, w1));
         }
       });
     }
@@ -107,21 +107,74 @@ namespace oidn {
       c++;
     }
 
-    // Copies 3 values with sanitization
-    template<bool doClamp>
-    __forceinline void copy3(int h, int w, int& c, const float* values)
+    // Stores a color
+    __forceinline void storeColor(int h, int w, int& c, const float* values)
     {
-      store(h, w, c, sanitize<doClamp>(values[0]));
-      store(h, w, c, sanitize<doClamp>(values[1]));
-      store(h, w, c, sanitize<doClamp>(values[2]));
+      #pragma unroll
+      for (int i = 0; i < 3; ++i)
+      {
+        // Load the value
+        float x = values[i];
+
+        // Sanitize the value
+        x = isfinite(x) ? max(x, 0.f) : 0.f;
+
+        // Apply the transfer function
+        x = transferFunc->forward(x);
+
+        // Store the value
+        store(h, w, c, x);
+      }
     }
 
-    // Copies 3 color values with sanitization and applying the transfer function
-    __forceinline void copyColor3(int h, int w, int& c, const float* values)
+    // Stores an albedo
+    __forceinline void storeAlbedo(int h, int w, int& c, const float* values)
     {
-      store(h, w, c, transferFunc->forward(sanitize<true>(values[0])));
-      store(h, w, c, transferFunc->forward(sanitize<true>(values[1])));
-      store(h, w, c, transferFunc->forward(sanitize<true>(values[2])));
+      #pragma unroll
+      for (int i = 0; i < 3; ++i)
+      {
+        // Load the value
+        float x = values[i];
+
+        // Sanitize the value
+        x = isfinite(x) ? max(x, 0.f) : 0.f;
+
+        // Store the value
+        store(h, w, c, x);
+      }
+    }
+
+    // Stores a normal
+    __forceinline void storeNormal(int h, int w, int& c, const float* values)
+    {
+      // Load the normal
+      float x = values[0];
+      float y = values[1];
+      float z = values[2];
+
+      // Compute the length of the normal
+      const float length2 = sqr(x) + sqr(y) + sqr(z);
+
+      // Normalize the normal and transform it to [0..1]
+      if (isfinite(length2) && length2 > 1e-8f)
+      {
+        const float scale  = rsqrt(length2) * 0.5f;
+        const float offset = 0.5f;
+        x = x * scale + offset;
+        y = y * scale + offset;
+        z = z * scale + offset;
+      }
+      else
+      {
+        x = 0.f;
+        y = 0.f;
+        z = 0.f;
+      }
+
+      // Store the normal
+      store(h, w, c, x);
+      store(h, w, c, y);
+      store(h, w, c, z);
     }
   };
 

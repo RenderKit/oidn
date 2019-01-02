@@ -16,7 +16,7 @@
 
 cmake_minimum_required(VERSION 3.0)
 
-project(OpenImageDenoise VERSION 0.4.0 LANGUAGES CXX)
+project(OpenImageDenoise VERSION 0.5.0 LANGUAGES CXX)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -137,6 +137,8 @@ set(CORE_SOURCES_SSE42
 generate_cpp_resources(WEIGHTS_SOURCES "oidn::weights"
   weights/rt_ldr.tza
   weights/rt_ldr_alb_nrm.tza
+  weights/rt_hdr.tza
+  weights/rt_hdr_alb_nrm.tza
 )
 
 add_library(${PROJECT_NAME} SHARED ${CORE_SOURCES} ${WEIGHTS_SOURCES})

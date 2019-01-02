@@ -44,6 +44,8 @@ namespace oidn {
     {
       void* ldr;
       void* ldr_alb_nrm;
+      void* hdr;
+      void* hdr_alb_nrm;
     } weightData;
 
     explicit AutoencoderFilter(const Ref<Device>& device);

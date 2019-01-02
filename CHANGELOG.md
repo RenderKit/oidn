@@ -1,6 +1,8 @@
 Version History
 ---------------
 
+### Changes in v0.5.0:
+
 ### Changes in v0.4.0:
 
 -   Renamed "Autoencoder" filter to "RT" (ray tracing)

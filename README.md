@@ -1,7 +1,7 @@
 Open Image Denoise
 ==================
 
-Version 0.4.0 CLOSED ALPHA - DO *NOT* REDISTRIBUTE\
+Version 0.5.0 CLOSED ALPHA - DO *NOT* REDISTRIBUTE\
 Intel Corporation
 
 

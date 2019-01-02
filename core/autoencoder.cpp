@@ -81,6 +81,9 @@ namespace oidn {
 
   void AutoencoderFilter::execute()
   {
+    if (!net)
+      throw Exception(Error::InvalidOperation, "the filter is not committed");
+
     device->executeTask([&]()
     {
       if (hdr)
@@ -109,15 +112,15 @@ namespace oidn {
     if (srgb && hdr)
       throw Exception(Error::InvalidOperation, "srgb and hdr modes cannot be enabled at the same time");
 
-    if (color && !albedo && !normal && weightData.ldr)
+    if (color && !albedo && !normal && weightData.hdr)
     {
       inputC = 3;
-      weightPtr = weightData.ldr;
+      weightPtr = hdr ? weightData.hdr : weightData.ldr;
     }
-    else if (color && albedo && normal && weightData.ldr_alb_nrm)
+    else if (color && albedo && normal && weightData.hdr_alb_nrm)
     {
       inputC = 9;
-      weightPtr = weightData.ldr_alb_nrm;
+      weightPtr = hdr ? weightData.hdr_alb_nrm : weightData.ldr_alb_nrm;
     }
     else
     {
@@ -325,6 +328,10 @@ namespace oidn {
     // LDR
     extern unsigned char rt_ldr[];         // color
     extern unsigned char rt_ldr_alb_nrm[]; // color, albedo, normal
+
+    // HDR
+    extern unsigned char rt_hdr[];         // color
+    extern unsigned char rt_hdr_alb_nrm[]; // color, albedo, normal
   }
 
   RTFilter::RTFilter(const Ref<Device>& device)
@@ -332,6 +339,8 @@ namespace oidn {
   {
     weightData.ldr         = weights::rt_ldr;
     weightData.ldr_alb_nrm = weights::rt_ldr_alb_nrm;
+    weightData.hdr         = weights::rt_hdr;
+    weightData.hdr_alb_nrm = weights::rt_hdr_alb_nrm;
   }
 
 } // namespace oidn
