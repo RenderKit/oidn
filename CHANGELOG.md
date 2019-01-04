@@ -3,6 +3,9 @@ Version History
 
 ### Changes in v0.5.0:
 
+-   Added high-quality HDR denoising
+-   Improved LDR denoising quality
+
 ### Changes in v0.4.0:
 
 -   Renamed "Autoencoder" filter to "RT" (ray tracing)
