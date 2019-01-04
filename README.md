@@ -34,10 +34,6 @@ The software dependencies are:
 Known Issues
 ============
 
-- HDR support is currently only a placeholder. It is functional, but the
-  quality is low. This will be addressed in a future version.
-- The convolutional neural networks of the filters are not fully trained yet.
-  Quality will soon improve.
 - Inputs with only color and albedo are not supported yet.
 
 
