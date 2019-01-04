@@ -27,14 +27,14 @@ namespace oidn {
     virtual ~TransferFunction() = default;
 
     virtual float forward(float x) const = 0;
-    virtual float reverse(float x) const = 0;
+    virtual float inverse(float x) const = 0;
   };
 
   class LinearTransferFunction : public TransferFunction
   {
   public:
     __forceinline float forward(float x) const override { return x; }
-    __forceinline float reverse(float x) const override { return x; }
+    __forceinline float inverse(float x) const override { return x; }
   };
 
   // sRGB transfer function
@@ -46,7 +46,7 @@ namespace oidn {
       return pow(x, 1.f/2.2f);
     }
 
-    __forceinline float reverse(float x) const override
+    __forceinline float inverse(float x) const override
     {
       return pow(x, 2.2f);
     }
@@ -78,7 +78,7 @@ namespace oidn {
       return pow(log2(x+1.f) * (1.f/16.f), 1.f/2.2f);
     }
 
-    __forceinline float reverse(float x) const override
+    __forceinline float inverse(float x) const override
     {
       const float y = pow(x, 2.2f);
       return (exp2(y * 16.f) - 1.f) * rcpExposure;
