@@ -76,6 +76,12 @@ namespace oidn {
   using std::min;
   using std::max;
 
+  template<typename T>
+  __forceinline T clamp(const T& value, const T& minValue, const T& maxValue)
+  {
+    return min(max(value, minValue), maxValue);
+  }
+
 #if defined(__APPLE__)
   template<typename T>
   bool getSysctl(const char* name, T& value)
