@@ -16,70 +16,19 @@
 
 #pragma once
 
-#include <cstdio>
-#include <algorithm>
-#include <map>
+#include <string>
 #include "common/tensor.h"
 
 namespace oidn {
 
-  // Loads the contents of a file into a buffer
-  static shared_vector<char> loadFile(const std::string& filename)
-  {
-    FILE* file = fopen(filename.c_str(), "rb");
-    if (!file)
-      throw std::runtime_error("cannot open file '" + filename + "'");
+  // Loads an image from a PFM file
+  Tensor loadImagePFM(const std::string& filename);
 
-    fseek(file, 0, SEEK_END);
-    size_t size = ftell(file);
-    fseek(file, 0, SEEK_SET);
+  // Saves an image to a PFM file
+  void saveImagePFM(const Tensor& image, const std::string& filename);
 
-    shared_vector<char> buffer = std::make_shared<std::vector<char>>(size);
-    if (fread(buffer->data(), 1, size, file) != size)
-      throw std::runtime_error("read error");
-
-    fclose(file);
-    return buffer;
-  }
-
-  // Loads images stored in a tensor archive
-  static Tensor loadImageTZA(const std::string& filename)
-  {
-    shared_vector<char> buffer = loadFile(filename);
-    std::map<std::string, Tensor> tensors = parseTensors(buffer->data());
-    auto image = tensors.find("image");
-    if (image == tensors.end())
-      throw std::runtime_error("invalid tensor image '" + filename + "'");
-
-    // Add ref to the buffer
-    image->second.buffer = buffer;
-
-    return image->second;
-  }
-
-  // Saves a 3-channel image in HWC format to a PPM file
-  static void saveImagePPM(const Tensor& image, const std::string& filename)
-  {
-    if (image.ndims() != 3 || image.dims[2] < 3 || image.format != "hwc")
-      throw std::invalid_argument("image must have 3 channels");
-
-    FILE* file = fopen(filename.c_str(), "wb");
-    if (!file)
-      throw std::runtime_error("cannot save image: '" + filename + "'");
-
-    fprintf(file, "P6\n%d %d\n255\n", image.dims[1], image.dims[0]);
-
-    for (int i = 0; i < image.dims[0]*image.dims[1]; ++i)
-    {
-      for (int k = 0; k < 3; ++k)
-      {
-        int c = std::min(std::max(int(image[i*image.dims[2]+k] * 255.f), 0), 255);
-        fputc(c, file);
-      }
-    }
-
-    fclose(file);
-  }
+  // Saves an image to a PPM file
+  void saveImagePPM(const Tensor& image, const std::string& filename);
 
 } // namespace oidn
 

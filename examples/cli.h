@@ -16,51 +16,61 @@
 
 #pragma once
 
-#include "platform.h"
-#include <vector>
-#include <map>
+#include <cstdlib>
+#include <stdexcept>
+#include <string>
 
 namespace oidn {
 
-  template<typename T>
-  using shared_vector = std::shared_ptr<std::vector<T>>;
-
-  // Generic tensor
-  struct Tensor
+  // Command-line argument parser
+  class ArgParser
   {
-    float* data;
-    std::vector<int> dims;
-    std::string format;
-    shared_vector<char> buffer; // optional, only for reference counting
+  private:
+    int argc;
+    char** argv;
+    int pos;
 
-    __forceinline Tensor() : data(nullptr) {}
+  public:
+    ArgParser(int argc, char* argv[])
+      : argc(argc), argv(argv),
+        pos(1)
+    {}
 
-    __forceinline Tensor(const std::vector<int>& dims, const std::string& format)
-      : dims(dims),
-        format(format)
+    bool hasNext() const
     {
-      buffer = std::make_shared<std::vector<char>>(size() * sizeof(float));
-      data = (float*)buffer->data();
+      return pos < argc;
     }
 
-    __forceinline operator bool() const { return data != nullptr; }
-
-    __forceinline int ndims() const { return (int)dims.size(); }
-
-    // Returns the number of values
-    __forceinline size_t size() const
+    std::string getNext()
     {
-      size_t size = 1;
-      for (int i = 0; i < ndims(); ++i)
-        size *= dims[i];
-      return size;
+      if (pos < argc)
+        return argv[pos++];
+      else
+        throw std::invalid_argument("argument expected");
     }
 
-    __forceinline float& operator [](size_t i) { return data[i]; }
-    __forceinline const float& operator [](size_t i) const { return data[i]; }
+    std::string getNextOpt()
+    {
+      std::string str = getNext();
+      if (str.empty() || str[0] != '-')
+        throw std::invalid_argument("option expected");
+      return str.substr(str.find_first_not_of("-"));
+    }
+
+    std::string getNextValue()
+    {
+      std::string str = getNext();
+      if (!str.empty() && str[0] == '-')
+        throw std::invalid_argument("value expected");
+      return str;
+    }
+
+    int getNextValueInt()
+    {
+      std::string str = getNextValue();
+      return atoi(str.c_str());
+    }
   };
 
-  // Parses tensors from a buffer
-  std::map<std::string, Tensor> parseTensors(void* buffer);
-
 } // namespace oidn
+

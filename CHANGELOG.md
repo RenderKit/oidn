@@ -1,6 +1,8 @@
 Version History
 ---------------
 
+-   Improved and cleaned up the example application
+
 ### Changes in v0.5.0:
 
 -   Added high-quality HDR denoising
