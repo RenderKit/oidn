@@ -17,6 +17,7 @@
 #pragma once
 
 #include <stddef.h>
+#include <stdbool.h>
 
 #if defined(__cplusplus)
 extern "C" {
@@ -159,10 +160,13 @@ OIDN_API void oidnSetSharedFilterImage(OIDNFilter filter, const char* name,
                                        size_t width, size_t height,
                                        size_t byteOffset, size_t byteItemStride, size_t byteRowStride);
 
-// Sets an integer parameter of the filter.
+// Sets a boolean parameter of the filter.
 // Supported parameters:
-//   hdr  - the color image has high dynamic range (HDR), if non-zero (default is 0)
-//   srgb - the color image is encoded in sRGB or 2.2 gamma space, if non-zero (default is 0)
+//   hdr  - the color image has high dynamic range (HDR), if non-zero (default is false)
+//   srgb - the color image is encoded in sRGB or 2.2 gamma space, if non-zero (default is false)
+OIDN_API void oidnSetFilter1b(OIDNFilter filter, const char* name, bool value);
+
+// Sets an integer parameter of the filter.
 OIDN_API void oidnSetFilter1i(OIDNFilter filter, const char* name, int value);
 
 // Commits all previous changes to the filter.

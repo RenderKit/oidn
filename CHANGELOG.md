@@ -1,6 +1,9 @@
 Version History
 ---------------
 
+### Changes in v0.6.0:
+
+-   Added boolean setter functions to the API
 -   Improved and cleaned up the example application
 
 ### Changes in v0.5.0:

@@ -219,6 +219,15 @@ namespace oidn {
     OIDN_CATCH(filter)
   }
 
+  OIDN_API void oidnSetFilter1b(OIDNFilter hFilter, const char* name, bool value)
+  {
+    Filter* filter = (Filter*)hFilter;
+    OIDN_TRY
+      verifyHandle(hFilter);
+      filter->set1i(name, int(value));
+    OIDN_CATCH(filter)
+  }
+
   OIDN_API void oidnSetFilter1i(OIDNFilter hFilter, const char* name, int value)
   {
     Filter* filter = (Filter*)hFilter;

@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
   filter.setImage("output", output.data, oidn::Format::Float3, W, H);
 
   if (hdr)
-    filter.set1i("hdr", 1);
+    filter.set1b("hdr", true);
 
   filter.commit();
 

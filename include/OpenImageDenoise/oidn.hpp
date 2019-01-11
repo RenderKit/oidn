@@ -209,6 +209,12 @@ namespace oidn {
                                byteOffset, byteItemStride, byteRowStride);
     }
 
+    // Sets a boolean parameter of the filter.
+    void set1b(const char* name, bool value)
+    {
+      oidnSetFilter1b(handle, name, value);
+    }
+
     // Sets an integer parameter of the filter.
     void set1i(const char* name, int value)
     {
