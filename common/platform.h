@@ -33,7 +33,7 @@
 #include <string>
 #include <iostream>
 #include <cassert>
-#include "include/OpenImageDenoise/oidn.hpp"
+#include "OpenImageDenoise/oidn.hpp"
 
 // ---------------------------------------------------------------------------
 // Macros
