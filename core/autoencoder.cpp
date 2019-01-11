@@ -115,6 +115,11 @@ namespace oidn {
       inputC = 3;
       weightPtr = hdr ? weightData.hdr : weightData.ldr;
     }
+    else if (color && albedo && !normal && weightData.hdr_alb)
+    {
+      inputC = 6;
+      weightPtr = hdr ? weightData.hdr_alb : weightData.ldr_alb;
+    }
     else if (color && albedo && normal && weightData.hdr_alb_nrm)
     {
       inputC = 9;
@@ -122,7 +127,7 @@ namespace oidn {
     }
     else
     {
-      throw Exception(Error::InvalidOperation, "unsupported combination of input images");
+      throw Exception(Error::InvalidOperation, "unsupported combination of input features");
     }
 
     if (!output)
@@ -325,10 +330,12 @@ namespace oidn {
   {
     // LDR
     extern unsigned char rt_ldr[];         // color
+    extern unsigned char rt_ldr_alb[];     // color, albedo
     extern unsigned char rt_ldr_alb_nrm[]; // color, albedo, normal
 
     // HDR
     extern unsigned char rt_hdr[];         // color
+    extern unsigned char rt_hdr_alb[];     // color, albedo
     extern unsigned char rt_hdr_alb_nrm[]; // color, albedo, normal
   }
 
@@ -336,8 +343,10 @@ namespace oidn {
     : AutoencoderFilter(device)
   {
     weightData.ldr         = weights::rt_ldr;
+    weightData.ldr_alb     = weights::rt_ldr_alb;
     weightData.ldr_alb_nrm = weights::rt_ldr_alb_nrm;
     weightData.hdr         = weights::rt_hdr;
+    weightData.hdr_alb     = weights::rt_hdr_alb;
     weightData.hdr_alb_nrm = weights::rt_hdr_alb_nrm;
   }
 

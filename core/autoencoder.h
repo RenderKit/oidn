@@ -43,8 +43,10 @@ namespace oidn {
     struct
     {
       void* ldr;
+      void* ldr_alb;
       void* ldr_alb_nrm;
       void* hdr;
+      void* hdr_alb;
       void* hdr_alb_nrm;
     } weightData;
 

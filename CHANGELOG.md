@@ -3,6 +3,7 @@ Version History
 
 ### Changes in v0.6.0:
 
+-   Added support for color and albedo only input
 -   Added boolean setter functions to the API
 -   Improved and cleaned up the example application
 

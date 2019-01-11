@@ -31,12 +31,6 @@ The software dependencies are:
 - Intel Threading Building Blocks (TBB) 2017 or later
 
 
-Known Issues
-============
-
-- Inputs with only color and albedo are not supported yet.
-
-
 Examples
 ========
 
