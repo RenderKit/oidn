@@ -16,9 +16,14 @@
 
 #pragma once
 
-#include "common.h"
+#include "image.h"
 
 namespace oidn {
+
+  __forceinline float luminance(float r, float g, float b)
+  {
+    return 0.212671f * r + 0.715160f * g + 0.072169f * b;
+  }
 
   // Color transfer function
   class TransferFunction
@@ -53,7 +58,7 @@ namespace oidn {
   };
 
   // HDR transfer function: log + sRGB curve
-  // Compresses [0..65536] to [0..1]
+  // Compresses [0..65535] to [0..1]
   class HDRTransferFunction : public TransferFunction
   {
   private:
@@ -84,5 +89,7 @@ namespace oidn {
       return (exp2(y * 16.f) - 1.f) * rcpExposure;
     }
   };
+
+  float autoexposure(const Image& color);
 
 } // namespace oidn

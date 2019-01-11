@@ -14,14 +14,9 @@
 // limitations under the License.                                           //
 // ======================================================================== //
 
-#include "autoexposure.h"
+#include "tone_mapping.h"
 
 namespace oidn {
-
-  __forceinline float luminance(float r, float g, float b)
-  {
-    return 0.212671f * r + 0.715160f * g + 0.072169f * b;
-  }
 
   float autoexposure(const Image& color)
   {

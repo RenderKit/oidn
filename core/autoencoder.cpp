@@ -14,8 +14,6 @@
 // limitations under the License.                                           //
 // ======================================================================== //
 
-#include "transfer_function.h"
-#include "autoexposure.h"
 #include "autoencoder.h"
 
 namespace oidn {

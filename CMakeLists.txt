@@ -121,17 +121,16 @@ set(CORE_SOURCES
   core/input_reorder.h
   core/output_reorder.h
   core/weights_reorder.h
-  core/transfer_function.h
+  core/tone_mapping.h
   core/upsample.h
   core/network.h
   core/autoencoder.h
-  core/autoexposure.h
 )
 
 set(CORE_SOURCES_SSE42
   core/network.cpp
   core/autoencoder.cpp
-  core/autoexposure.cpp
+  core/tone_mapping.cpp
 )
 
 generate_cpp_resources(WEIGHTS_SOURCES "oidn::weights"
