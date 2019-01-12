@@ -52,6 +52,10 @@ namespace oidn {
     }
 
   protected:
+    // Disable copying
+    RefCount(const RefCount&) = delete;
+    RefCount& operator =(const RefCount&) = delete;
+
     virtual ~RefCount() noexcept = default;
   };
 
