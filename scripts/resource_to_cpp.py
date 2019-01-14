@@ -21,7 +21,7 @@ import sys
 import argparse
 from array import array
 
-# Generates a C++ file from the specified binary blob
+# Generates a C++ file from the specified binary resource file
 def generate(in_path, out_path, namespace):
   scopes = []
   if namespace:

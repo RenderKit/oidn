@@ -65,32 +65,6 @@ include(mkl-dnn/cmake/TBB.cmake)
 include(mkl-dnn/cmake/platform.cmake)
 include(mkl-dnn/cmake/SDL.cmake)
 
-## Helper Functions ###########################################################
-
-# Generates C++ resource files from the specified binary blobs
-find_package(PythonInterp REQUIRED)
-function(generate_cpp_resources out_sources namespace)
-  set(${out_sources})
-  foreach(in_file ${ARGN})
-    get_filename_component(in_file_we ${in_file} NAME_WE)
-    get_filename_component(in_dir ${in_file} PATH)
-    get_filename_component(in_path ${in_file} ABSOLUTE)
-    set(out_dir ${CMAKE_CURRENT_BINARY_DIR}/${in_dir})
-    set(out_path ${out_dir}/${in_file_we}.cpp)
-    list(APPEND ${out_sources} ${out_path})
-    add_custom_command(
-      OUTPUT ${out_path}
-      COMMAND ${CMAKE_COMMAND} -E make_directory ${out_dir}
-      COMMAND ${PYTHON_EXECUTABLE}
-      ARGS ${PROJECT_SOURCE_DIR}/scripts/blob2cpp.py ${in_path} -o ${out_path} -n ${namespace}
-      DEPENDS ${in_path}
-      COMMENT "Generating CXX resource object ${out_path}"
-      VERBATIM)
-  endforeach()
-  set_source_files_properties(${${out_sources}} PROPERTIES GENERATED TRUE)
-  set(${out_sources} ${${out_sources}} PARENT_SCOPE)
-endfunction()
-
 ## Open Image Denoise Library #################################################
 
 include_directories(
@@ -133,6 +107,7 @@ set(CORE_SOURCES_SSE42
   core/tone_mapping.cpp
 )
 
+include(resource)
 generate_cpp_resources(WEIGHTS_SOURCES "oidn::weights"
   weights/rt_ldr.tza
   weights/rt_ldr_alb.tza
