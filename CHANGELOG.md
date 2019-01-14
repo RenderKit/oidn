@@ -5,6 +5,7 @@ Version History
 
 -   Added support for color and albedo only input
 -   Added boolean setter functions to the API
+-   Minor C++ API changes
 -   Improved and cleaned up the example application
 
 ### Changes in v0.5.0:

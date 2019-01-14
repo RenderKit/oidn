@@ -210,13 +210,13 @@ namespace oidn {
     }
 
     // Sets a boolean parameter of the filter.
-    void set1b(const char* name, bool value)
+    void set(const char* name, bool value)
     {
       oidnSetFilter1b(handle, name, value);
     }
 
     // Sets an integer parameter of the filter.
-    void set1i(const char* name, int value)
+    void set(const char* name, int value)
     {
       oidnSetFilter1i(handle, name, value);
     }
