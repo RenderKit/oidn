@@ -25,11 +25,3 @@ add_library(common STATIC
   tensor.h
   tensor.cpp
 )
-
-target_include_directories(common
-  PUBLIC
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-    ${TBB_INCLUDE_DIR}
-    ${CMAKE_CURRENT_LIST_DIR}/..
-)

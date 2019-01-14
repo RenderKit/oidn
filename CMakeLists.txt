@@ -65,10 +65,98 @@ include(mkl-dnn/cmake/TBB.cmake)
 include(mkl-dnn/cmake/platform.cmake)
 include(mkl-dnn/cmake/SDL.cmake)
 
+## Helper Functions ###########################################################
+
+# Generates C++ resource files from the specified binary blobs
+find_package(PythonInterp REQUIRED)
+function(generate_cpp_resources out_sources namespace)
+  set(${out_sources})
+  foreach(in_file ${ARGN})
+    get_filename_component(in_file_we ${in_file} NAME_WE)
+    get_filename_component(in_dir ${in_file} PATH)
+    get_filename_component(in_path ${in_file} ABSOLUTE)
+    set(out_dir ${CMAKE_CURRENT_BINARY_DIR}/${in_dir})
+    set(out_path ${out_dir}/${in_file_we}.cpp)
+    list(APPEND ${out_sources} ${out_path})
+    add_custom_command(
+      OUTPUT ${out_path}
+      COMMAND ${CMAKE_COMMAND} -E make_directory ${out_dir}
+      COMMAND ${PYTHON_EXECUTABLE}
+      ARGS ${PROJECT_SOURCE_DIR}/scripts/blob2cpp.py ${in_path} -o ${out_path} -n ${namespace}
+      DEPENDS ${in_path}
+      COMMENT "Generating CXX resource object ${out_path}"
+      VERBATIM)
+  endforeach()
+  set_source_files_properties(${${out_sources}} PROPERTIES GENERATED TRUE)
+  set(${out_sources} ${${out_sources}} PARENT_SCOPE)
+endfunction()
+
 ## Open Image Denoise Library #################################################
 
+include_directories(
+  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+  ${PROJECT_SOURCE_DIR}
+  ${PROJECT_SOURCE_DIR}/mkl-dnn/include
+  ${PROJECT_SOURCE_DIR}/mkl-dnn/src
+  ${PROJECT_SOURCE_DIR}/mkl-dnn/src/common
+  ${PROJECT_SOURCE_DIR}/mkl-dnn/src/cpu/xbyak
+  ${TBB_INCLUDE_DIR}
+)
+
 add_subdirectory(common EXCLUDE_FROM_ALL)
-add_subdirectory(core)
+
+set(CORE_SOURCES
+  include/OpenImageDenoise/oidn.h
+  include/OpenImageDenoise/oidn.hpp
+  core/api.cpp
+  core/common.h
+  core/math.h
+  core/device.h
+  core/device.cpp
+  core/buffer.h
+  core/image.h
+  core/filter.h
+  core/node.h
+  core/input_reorder.h
+  core/output_reorder.h
+  core/weights_reorder.h
+  core/tone_mapping.h
+  core/upsample.h
+  core/network.h
+  core/autoencoder.h
+)
+
+set(CORE_SOURCES_SSE42
+  core/network.cpp
+  core/autoencoder.cpp
+  core/tone_mapping.cpp
+)
+
+generate_cpp_resources(WEIGHTS_SOURCES "oidn::weights"
+  weights/rt_ldr.tza
+  weights/rt_ldr_alb.tza
+  weights/rt_ldr_alb_nrm.tza
+  weights/rt_hdr.tza
+  weights/rt_hdr_alb.tza
+  weights/rt_hdr_alb_nrm.tza
+)
+
+add_library(${PROJECT_NAME} SHARED ${CORE_SOURCES} ${WEIGHTS_SOURCES})
+
+add_library("${PROJECT_NAME}_sse42" STATIC ${CORE_SOURCES_SSE42})
+set_target_properties("${PROJECT_NAME}_sse42" PROPERTIES COMPILE_FLAGS "${ISA_FLAGS_SSE42}")
+
+target_link_libraries(${PROJECT_NAME}
+  PUBLIC
+    ${TBB_LIBRARIES}
+  PRIVATE
+    "${PROJECT_NAME}_sse42"
+    common mkldnn
+)
+
+set_property(TARGET ${PROJECT_NAME} PROPERTY VERSION ${PROJECT_VERSION})
+set_property(TARGET ${PROJECT_NAME} PROPERTY SOVERSION "0")
 
 ## Open Image Denoise Examples ################################################
 
