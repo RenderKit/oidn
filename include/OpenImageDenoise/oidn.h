@@ -18,6 +18,7 @@
 
 #include <stddef.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 #if defined(__cplusplus)
 extern "C" {
@@ -37,15 +38,21 @@ extern "C" {
 // ---------------------------------------------------------------------------
 
 // Open Image Denoise device types
-enum OIDNDeviceType
+typedef enum
+# if __cplusplus >= 201103L
+: uint32_t
+#endif
 {
   OIDN_DEVICE_TYPE_DEFAULT,
 
   OIDN_DEVICE_TYPE_CPU,
-};
+} OIDNDeviceType;
 
 // Error codes
-enum OIDNError
+typedef enum
+# if __cplusplus >= 201103L
+: uint32_t
+#endif
 {
   OIDN_ERROR_NONE,
   OIDN_ERROR_UNKNOWN,
@@ -53,7 +60,7 @@ enum OIDNError
   OIDN_ERROR_INVALID_OPERATION,
   OIDN_ERROR_OUT_OF_MEMORY,
   OIDN_ERROR_UNSUPPORTED_HARDWARE,
-};
+} OIDNError;
 
 // Device handle
 typedef struct OIDNDeviceImpl* OIDNDevice;
@@ -79,7 +86,10 @@ OIDN_API OIDNError oidnGetDeviceError(OIDNDevice device, const char** message);
 // ---------------------------------------------------------------------------
 
 // Formats for images and other data stored in buffers
-enum OIDNFormat
+typedef enum
+# if __cplusplus >= 201103L
+: uint32_t
+#endif
 {
   OIDN_FORMAT_UNDEFINED,
 
@@ -87,16 +97,19 @@ enum OIDNFormat
   OIDN_FORMAT_FLOAT2,
   OIDN_FORMAT_FLOAT3,
   OIDN_FORMAT_FLOAT4,
-};
+} OIDNFormat;
 
 // Access modes for mapping buffers
-enum OIDNAccess
+typedef enum
+# if __cplusplus >= 201103L
+: uint32_t
+#endif
 {
   OIDN_ACCESS_READ,          // read-only access
   OIDN_ACCESS_WRITE,         // write-only access
   OIDN_ACCESS_READ_WRITE,    // read and write access
   OIDN_ACCESS_WRITE_DISCARD, // write-only access, previous contents discarded
-};
+} OIDNAccess;
 
 // Buffer handle
 typedef struct OIDNBufferImpl* OIDNBuffer;
@@ -150,13 +163,13 @@ OIDN_API void oidnReleaseFilter(OIDNFilter filter);
 // If byteItemStride and/or byteRowStride are zero, these will be computed
 // automatically.
 OIDN_API void oidnSetFilterImage(OIDNFilter filter, const char* name,
-                                 OIDNBuffer buffer, enum OIDNFormat format,
+                                 OIDNBuffer buffer, OIDNFormat format,
                                  size_t width, size_t height,
                                  size_t byteOffset, size_t byteItemStride, size_t byteRowStride);
 
 // Sets an image parameter of the filter (owned by the user).
 OIDN_API void oidnSetSharedFilterImage(OIDNFilter filter, const char* name,
-                                       void* ptr, enum OIDNFormat format,
+                                       void* ptr, OIDNFormat format,
                                        size_t width, size_t height,
                                        size_t byteOffset, size_t byteItemStride, size_t byteRowStride);
 
