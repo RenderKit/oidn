@@ -147,21 +147,34 @@ namespace oidn {
     // Stores a normal
     __forceinline void storeNormal(int h, int w, int& c, const float* values)
     {
-      #pragma unroll
-      for (int i = 0; i < 3; ++i)
+      // Load the normal
+      float x = values[0];
+      float y = values[1];
+      float z = values[2];
+
+      // Compute the length of the normal
+      const float length2 = sqr(x) + sqr(y) + sqr(z);
+
+      // Normalize the normal and transform it to [0..1]
+      if (isfinite(length2) && length2 > 1e-8f)
       {
-        // Load the value
-        float x = values[i];
-
-        // Sanitize the value
-        x = isfinite(x) ? clamp(x, -1.f, 1.f) : 0.f;
-
-        // Transform it to [0..1]
-        x = x * 0.5f + 0.5f;
-
-        // Store the value
-        store(h, w, c, x);
+        const float scale  = rsqrt(length2) * 0.5f;
+        const float offset = 0.5f;
+        x = x * scale + offset;
+        y = y * scale + offset;
+        z = z * scale + offset;
       }
+      else
+      {
+        x = 0.f;
+        y = 0.f;
+        z = 0.f;
+      }
+
+      // Store the normal
+      store(h, w, c, x);
+      store(h, w, c, y);
+      store(h, w, c, z);
     }
   };
 
