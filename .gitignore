@@ -35,7 +35,8 @@ Thumbs.db
 /.qmake.cache
 /.qmake.stash
 
-# qtcreator generated files
+# Qt Creator generated files
+*.txt.user*
 *.pro.user*
 
 # xemacs temporary files
@@ -67,14 +68,14 @@ Thumbs.db
 *.pyc
 
 # Binaries
-# --------
 *.dll
 *.exe
 
 # Build directories
-# -----------------
 build*
 
 # Data directories
-# -----------------
 images
+
+# Generated files
+include/OpenImageDenoise/version.h
