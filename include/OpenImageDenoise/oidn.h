@@ -39,27 +39,21 @@ extern "C" {
 
 // Open Image Denoise device types
 typedef enum
-# if __cplusplus >= 201103L
-: uint32_t
-#endif
 {
-  OIDN_DEVICE_TYPE_DEFAULT,
+  OIDN_DEVICE_TYPE_DEFAULT = 0,
 
-  OIDN_DEVICE_TYPE_CPU,
+  OIDN_DEVICE_TYPE_CPU = 1,
 } OIDNDeviceType;
 
 // Error codes
 typedef enum
-# if __cplusplus >= 201103L
-: uint32_t
-#endif
 {
-  OIDN_ERROR_NONE,
-  OIDN_ERROR_UNKNOWN,
-  OIDN_ERROR_INVALID_ARGUMENT,
-  OIDN_ERROR_INVALID_OPERATION,
-  OIDN_ERROR_OUT_OF_MEMORY,
-  OIDN_ERROR_UNSUPPORTED_HARDWARE,
+  OIDN_ERROR_NONE                 = 0,
+  OIDN_ERROR_UNKNOWN              = 1,
+  OIDN_ERROR_INVALID_ARGUMENT     = 2,
+  OIDN_ERROR_INVALID_OPERATION    = 3,
+  OIDN_ERROR_OUT_OF_MEMORY        = 4,
+  OIDN_ERROR_UNSUPPORTED_HARDWARE = 5,
 } OIDNError;
 
 // Device handle
@@ -87,28 +81,22 @@ OIDN_API OIDNError oidnGetDeviceError(OIDNDevice device, const char** message);
 
 // Formats for images and other data stored in buffers
 typedef enum
-# if __cplusplus >= 201103L
-: uint32_t
-#endif
 {
-  OIDN_FORMAT_UNDEFINED,
+  OIDN_FORMAT_UNDEFINED = 0,
 
-  OIDN_FORMAT_FLOAT,
-  OIDN_FORMAT_FLOAT2,
-  OIDN_FORMAT_FLOAT3,
-  OIDN_FORMAT_FLOAT4,
+  OIDN_FORMAT_FLOAT  = 1,
+  OIDN_FORMAT_FLOAT2 = 2,
+  OIDN_FORMAT_FLOAT3 = 3,
+  OIDN_FORMAT_FLOAT4 = 4,
 } OIDNFormat;
 
 // Access modes for mapping buffers
 typedef enum
-# if __cplusplus >= 201103L
-: uint32_t
-#endif
 {
-  OIDN_ACCESS_READ,          // read-only access
-  OIDN_ACCESS_WRITE,         // write-only access
-  OIDN_ACCESS_READ_WRITE,    // read and write access
-  OIDN_ACCESS_WRITE_DISCARD, // write-only access, previous contents discarded
+  OIDN_ACCESS_READ          = 0, // read-only access
+  OIDN_ACCESS_WRITE         = 1, // write-only access
+  OIDN_ACCESS_READ_WRITE    = 2, // read and write access
+  OIDN_ACCESS_WRITE_DISCARD = 3, // write-only access, previous contents discarded
 } OIDNAccess;
 
 // Buffer handle
