@@ -122,6 +122,8 @@ int main(int argc, char* argv[])
   Tensor output({H, W, 3}, "hwc");
 
   // Initialize the denoising filter
+  cout << "Init";
+  cout.flush();
   Timer timer;
 
   oidn::DeviceRef device = oidn::newDevice();
@@ -139,7 +141,7 @@ int main(int argc, char* argv[])
 
   filter.commit();
 
-  double initTime = timer.query();
+  const double initTime = timer.query();
 
   const char* errorMessage;
   if (device.getError(&errorMessage) != oidn::Error::None)
@@ -148,12 +150,17 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  cout << "Init: " << (1000. * initTime) << " msec" << endl;
+  cout << ": " << (1000. * initTime) << " msec" << endl;
 
   // Denoise the image
-  cout << "Denoising" << endl;
+  cout << "Denoising";
+  cout.flush();
+  timer.reset();
 
   filter.execute();
+
+  const double denoiseTime = timer.query();
+  cout << ": " << (1000. * denoiseTime) << " msec" << endl;
 
   if (device.getError(&errorMessage) != oidn::Error::None)
   {
@@ -174,8 +181,8 @@ int main(int argc, char* argv[])
     float maxre = 0;
     for (size_t i = 0; i < output.size(); ++i)
     {
-      float expect = std::max(ref.data[i], 0.f);
-      float actual = std::max(output.data[i], 0.f);
+      const float expect = std::max(ref.data[i], 0.f);
+      const float actual = std::max(output.data[i], 0.f);
       float re;
       if (abs(expect) < 1e-5 && abs(actual) < 1e-5)
         re = 0;
@@ -213,15 +220,15 @@ int main(int argc, char* argv[])
     __itt_resume();
   #endif
 
-    cout << "Benchmarking" << endl;
+    cout << "Benchmarking: " << "ntimes=" << benchmarkN;
+    cout.flush();
     timer.reset();
 
     for (int i = 0; i < benchmarkN; ++i)
       filter.execute();
 
-    double totalTime = timer.query();
-    cout << "Done: " << "ntimes=" << benchmarkN << ", sec=" << totalTime
-      << ", msec/image=" << (1000.*totalTime / benchmarkN) << endl;
+    const double totalTime = timer.query();
+    cout << ", sec=" << totalTime << ", msec/image=" << (1000.*totalTime / benchmarkN) << endl;
 
   #ifdef VTUNE
     __itt_pause();
