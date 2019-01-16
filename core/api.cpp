@@ -105,6 +105,16 @@ namespace oidn {
     releaseObject(device);
   }
 
+  OIDN_API int oidnGetDevice1i(OIDNDevice hDevice, const char* name)
+  {
+    Device* device = (Device*)hDevice;
+    OIDN_TRY
+      verifyHandle(hDevice);
+      return device->get1i(name);
+    OIDN_CATCH(device)
+    return 0;
+  }
+
   OIDN_API OIDNError oidnGetDeviceError(OIDNDevice hDevice, const char** message)
   {
     Device* device = (Device*)hDevice;

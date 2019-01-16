@@ -44,6 +44,8 @@ namespace oidn {
     static void setError(Device* device, Error error, const std::string& errorMessage);
     static Error getError(Device* device, const char** errorMessage);
 
+    int get1i(const std::string& name);
+
     template<typename F>
     void executeTask(F& f)
     {

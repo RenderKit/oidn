@@ -122,7 +122,7 @@ int main(int argc, char* argv[])
   Tensor output({H, W, 3}, "hwc");
 
   // Initialize the denoising filter
-  cout << "Init";
+  cout << "Initializing";
   cout.flush();
   Timer timer;
 
@@ -143,14 +143,19 @@ int main(int argc, char* argv[])
 
   const double initTime = timer.query();
 
+  const int versionMajor = device.get<int>("versionMajor");
+  const int versionMinor = device.get<int>("versionMinor");
+  const int versionPatch = device.get<int>("versionPatch");
+
   const char* errorMessage;
   if (device.getError(&errorMessage) != oidn::Error::None)
   {
-    cout << "Error: " << errorMessage << endl;
+    cout << endl << "Error: " << errorMessage << endl;
     return 1;
   }
 
-  cout << ": " << (1000. * initTime) << " msec" << endl;
+  cout << ": version=" << versionMajor << "." << versionMinor << "." << versionPatch
+       << ", msec=" << (1000. * initTime) << endl;
 
   // Denoise the image
   cout << "Denoising";
@@ -160,11 +165,11 @@ int main(int argc, char* argv[])
   filter.execute();
 
   const double denoiseTime = timer.query();
-  cout << ": " << (1000. * denoiseTime) << " msec" << endl;
+  cout << ": msec=" << (1000. * denoiseTime) << endl;
 
   if (device.getError(&errorMessage) != oidn::Error::None)
   {
-    cout << "Error: " << errorMessage << endl;
+    cout << endl << "Error: " << errorMessage << endl;
     return 1;
   }
 

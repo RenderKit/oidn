@@ -319,6 +319,10 @@ namespace oidn {
       return handle;
     }
 
+    // Gets a parameter of the device.
+    template<typename T>
+    T get(const char* name);
+
     // Returns the first unqueried error code stored for the device, optionally
     // also returning a string message (if not null), and clears the stored error.
     Error getError(const char** message = nullptr)
@@ -344,6 +348,13 @@ namespace oidn {
       return oidnNewFilter(handle, type);
     }
   };
+
+  // Gets an integer parameter of the device (e.g., "version").
+  template<>
+  inline int DeviceRef::get(const char* name)
+  {
+    return oidnGetDevice1i(handle, name);
+  }
 
   // Creates a new Open Image Denoise device.
   inline DeviceRef newDevice(DeviceType type = DeviceType::Default)

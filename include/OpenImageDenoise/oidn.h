@@ -20,6 +20,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "version.h"
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
@@ -67,6 +69,9 @@ OIDN_API void oidnRetainDevice(OIDNDevice device);
 
 // Releases the device (decrements the reference count).
 OIDN_API void oidnReleaseDevice(OIDNDevice device);
+
+// Gets an integer parameter of the device (e.g., "version").
+OIDN_API int oidnGetDevice1i(OIDNDevice device, const char* name);
 
 // Returns the first unqueried error code stored for the device, optionally
 // also returning a string message (if not null), and clears the stored error.

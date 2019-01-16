@@ -41,7 +41,11 @@ else()
 endif()
 
 # Install headers
-install(DIRECTORY include/OpenImageDenoise DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT devel)
+install(DIRECTORY include/OpenImageDenoise
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  COMPONENT devel
+  PATTERN "*.in" EXCLUDE
+)
 
 # Install documentation
 set(CMAKE_INSTALL_DOCDIR doc)

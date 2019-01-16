@@ -16,7 +16,18 @@
 
 cmake_minimum_required(VERSION 3.0)
 
-project(OpenImageDenoise VERSION 0.6.0 LANGUAGES CXX)
+set(OIDN_VERSION_MAJOR 0)
+set(OIDN_VERSION_MINOR 6)
+set(OIDN_VERSION_PATCH 0)
+set(OIDN_VERSION_NOTE "")
+
+set(OIDN_VERSION ${OIDN_VERSION_MAJOR}.${OIDN_VERSION_MINOR}.${OIDN_VERSION_PATCH})
+math(EXPR OIDN_VERSION_NUMBER "10000*${OIDN_VERSION_MAJOR} + 100*${OIDN_VERSION_MINOR} + ${OIDN_VERSION_PATCH}")
+
+project(OpenImageDenoise
+  VERSION ${OIDN_VERSION}
+  LANGUAGES CXX
+)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -67,6 +78,12 @@ include(mkl-dnn/cmake/SDL.cmake)
 
 ## Open Image Denoise Library #################################################
 
+# Generate version.h
+configure_file(
+  "${PROJECT_SOURCE_DIR}/include/OpenImageDenoise/version.h.in"
+  "${PROJECT_SOURCE_DIR}/include/OpenImageDenoise/version.h"
+)
+
 include_directories(
   $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
@@ -83,6 +100,7 @@ add_subdirectory(common EXCLUDE_FROM_ALL)
 set(CORE_SOURCES
   include/OpenImageDenoise/oidn.h
   include/OpenImageDenoise/oidn.hpp
+  include/OpenImageDenoise/version.h
   core/api.cpp
   core/common.h
   core/math.h

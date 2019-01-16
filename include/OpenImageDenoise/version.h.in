@@ -16,26 +16,8 @@
 
 #pragma once
 
-#include "common.h"
-#include "device.h"
-#include "image.h"
-
-namespace oidn {
-
-  class Filter : public RefCount
-  {
-  protected:
-    Ref<Device> device;
-
-  public:
-    explicit Filter(const Ref<Device>& device) : device(device) {}
-
-    virtual void setImage(const std::string& name, const Image& data) = 0;
-    virtual void set1i(const std::string& name, int value) = 0;
-    virtual void commit() = 0;
-    virtual void execute() = 0;
-
-    Device* getDevice() { return device.get(); }
-  };
-
-} // namespace oidn
+#define OIDN_VERSION_MAJOR @OIDN_VERSION_MAJOR@
+#define OIDN_VERSION_MINOR @OIDN_VERSION_MINOR@
+#define OIDN_VERSION_PATCH @OIDN_VERSION_PATCH@
+#define OIDN_VERSION @OIDN_VERSION_NUMBER@
+#define OIDN_VERSION_STRING "@OIDN_VERSION_MAJOR@.@OIDN_VERSION_MINOR@.@OIDN_VERSION_PATCH@@OIDN_VERSION_NOTE@"

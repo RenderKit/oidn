@@ -80,6 +80,20 @@ namespace oidn {
     }
   }
 
+  int Device::get1i(const std::string& name)
+  {
+    if (name == "version")
+      return OIDN_VERSION;
+    else if (name == "versionMajor")
+      return OIDN_VERSION_MAJOR;
+    else if (name == "versionMinor")
+      return OIDN_VERSION_MINOR;
+    else if (name == "versionPatch")
+      return OIDN_VERSION_PATCH;
+    else
+      throw Exception(Error::InvalidArgument, "unknown parameter");
+  }
+
   Ref<Buffer> Device::newBuffer(size_t byteSize)
   {
     return makeRef<Buffer>(Ref<Device>(this), byteSize);
