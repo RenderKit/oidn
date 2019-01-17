@@ -32,6 +32,7 @@ namespace oidn {
 
     virtual void setImage(const std::string& name, const Image& data) = 0;
     virtual void set1i(const std::string& name, int value) = 0;
+    virtual int get1i(const std::string& name) = 0;
     virtual void commit() = 0;
     virtual void execute() = 0;
 

@@ -23,10 +23,7 @@ namespace oidn {
   // -------------------------------------------------------------------------
 
   AutoencoderFilter::AutoencoderFilter(const Ref<Device>& device)
-    : Filter(device),
-      srgb(false),
-      hdr(false),
-      weightData { nullptr, nullptr }
+    : Filter(device)
   {
   }
 
@@ -60,10 +57,20 @@ namespace oidn {
 
   void AutoencoderFilter::set1i(const std::string& name, int value)
   {
-    if (name == "srgb")
-      srgb = value;
-    else if (name == "hdr")
+    if (name == "hdr")
       hdr = value;
+    else if (name == "srgb")
+      srgb = value;
+  }
+
+  int AutoencoderFilter::get1i(const std::string& name)
+  {
+    if (name == "hdr")
+      return hdr;
+    else if (name == "srgb")
+      return srgb;
+    else
+      throw Exception(Error::InvalidArgument, "invalid parameter");
   }
 
   void AutoencoderFilter::commit()

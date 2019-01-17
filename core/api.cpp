@@ -284,6 +284,26 @@ namespace oidn {
     OIDN_CATCH(filter)
   }
 
+  OIDN_API bool oidnGetFilter1b(OIDNFilter hFilter, const char* name)
+  {
+    Filter* filter = (Filter*)hFilter;
+    OIDN_TRY
+      verifyHandle(hFilter);
+      return filter->get1i(name);
+    OIDN_CATCH(filter)
+    return false;
+  }
+
+  OIDN_API int oidnGetFilter1i(OIDNFilter hFilter, const char* name)
+  {
+    Filter* filter = (Filter*)hFilter;
+    OIDN_TRY
+      verifyHandle(hFilter);
+      return filter->get1i(name);
+    OIDN_CATCH(filter)
+    return 0;
+  }
+
   OIDN_API void oidnCommitFilter(OIDNFilter hFilter)
   {
     Filter* filter = (Filter*)hFilter;

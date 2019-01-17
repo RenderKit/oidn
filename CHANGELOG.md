@@ -7,7 +7,8 @@ Version History
 -   Added oidnDeviceCommit, which must be called before using the device
 -   Added device parameters for changing the number of threads and setting the affinity
 -   Added device parameters for querying the version of the library
--   Added boolean setter API functions
+-   Added boolean setter and getter API functions
+-   Added some filter getter API functions
 -   Minor C++ API changes
 -   Improved and cleaned up the example application
 

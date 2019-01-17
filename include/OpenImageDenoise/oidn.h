@@ -188,6 +188,12 @@ OIDN_API void oidnSetFilter1b(OIDNFilter filter, const char* name, bool value);
 // Sets an integer parameter of the filter.
 OIDN_API void oidnSetFilter1i(OIDNFilter filter, const char* name, int value);
 
+// Gets a boolean parameter of the filter.
+OIDN_API bool oidnGetFilter1b(OIDNFilter filter, const char* name);
+
+// Gets an integer parameter of the filter.
+OIDN_API int oidnGetFilter1i(OIDNFilter filter, const char* name);
+
 // Commits all previous changes to the filter.
 // Must be called before execution.
 OIDN_API void oidnCommitFilter(OIDNFilter filter);

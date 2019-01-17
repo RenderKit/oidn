@@ -33,8 +33,8 @@ namespace oidn {
     Image albedo;
     Image normal;
     Image output;
-    bool srgb;
-    bool hdr;
+    bool hdr = false;
+    bool srgb = false;
 
     std::shared_ptr<Node> net;
     std::shared_ptr<TransferFunction> transferFunc;
@@ -42,12 +42,12 @@ namespace oidn {
   protected:
     struct
     {
-      void* ldr;
-      void* ldr_alb;
-      void* ldr_alb_nrm;
-      void* hdr;
-      void* hdr_alb;
-      void* hdr_alb_nrm;
+      void* ldr         = nullptr;
+      void* ldr_alb     = nullptr;
+      void* ldr_alb_nrm = nullptr;
+      void* hdr         = nullptr;
+      void* hdr_alb     = nullptr;
+      void* hdr_alb_nrm = nullptr;
     } weightData;
 
     explicit AutoencoderFilter(const Ref<Device>& device);
@@ -55,6 +55,7 @@ namespace oidn {
   public:
     void setImage(const std::string& name, const Image& data) override;
     void set1i(const std::string& name, int value) override;
+    int get1i(const std::string& name) override;
     void commit() override;
     void execute() override;
 

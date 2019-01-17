@@ -221,6 +221,10 @@ namespace oidn {
       oidnSetFilter1i(handle, name, value);
     }
 
+    // Gets a parameter of the filter.
+    template<typename T>
+    T get(const char* name);
+
     // Commits all previous changes to the filter.
     void commit()
     {
@@ -233,6 +237,20 @@ namespace oidn {
       oidnExecuteFilter(handle);
     }
   };
+
+  // Gets a boolean parameter of the filter.
+  template<>
+  inline bool FilterRef::get(const char* name)
+  {
+    return oidnGetFilter1b(handle, name);
+  }
+
+  // Gets an integer parameter of the filter.
+  template<>
+  inline int FilterRef::get(const char* name)
+  {
+    return oidnGetFilter1i(handle, name);
+  }
 
 
   // ---------------------------------------------------------------------------
