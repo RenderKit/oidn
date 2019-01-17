@@ -36,7 +36,7 @@ void printUsage()
   cout << "Usage: denoise [-ldr ldr_color.pfm] [-hdr hdr_color.pfm]" << endl
        << "               [-alb albedo.pfm] [-nrm normal.pfm]" << endl
        << "               [-o output.pfm] [-ref reference_output.pfm]" << endl
-       << "               [-bench ntimes]" << endl;
+       << "               [-bench ntimes] [-threads n] [-affinity 0|1]" << endl;
 }
 
 int main(int argc, char* argv[])
@@ -44,7 +44,9 @@ int main(int argc, char* argv[])
   std::string colorFilename, albedoFilename, normalFilename;
   std::string outputFilename, refFilename;
   bool hdr = false;
-  int benchmarkN = 0;
+  int numBenchmarkRuns = 0;
+  int numThreads = -1;
+  int setAffinity = -1;
 
   // Parse the arguments
   if (argc == 1)
@@ -78,7 +80,11 @@ int main(int argc, char* argv[])
       else if (opt == "ref" || opt == "reference")
         refFilename = args.getNextValue();
       else if (opt == "bench" || opt == "benchmark")
-        benchmarkN = std::max(args.getNextValueInt(), 0);
+        numBenchmarkRuns = std::max(args.getNextValueInt(), 0);
+      else if (opt == "threads")
+        numThreads = args.getNextValueInt();
+      else if (opt == "affinity")
+        setAffinity = args.getNextValueInt();
       else if (opt == "h" || opt == "help")
       {
         printUsage();
@@ -127,6 +133,10 @@ int main(int argc, char* argv[])
   Timer timer;
 
   oidn::DeviceRef device = oidn::newDevice();
+  if (numThreads > 0)
+    device.set("numThreads", numThreads);
+  if (setAffinity >= 0)
+    device.set("setAffinity", (bool)setAffinity);
   device.commit();
 
   oidn::FilterRef filter = device.newFilter("RT");
@@ -220,22 +230,22 @@ int main(int argc, char* argv[])
     saveImagePFM(output, outputFilename);
   }
 
-  if (benchmarkN > 0)
+  if (numBenchmarkRuns > 0)
   {
     // Benchmark loop
   #ifdef VTUNE
     __itt_resume();
   #endif
 
-    cout << "Benchmarking: " << "ntimes=" << benchmarkN;
+    cout << "Benchmarking: " << "ntimes=" << numBenchmarkRuns;
     cout.flush();
     timer.reset();
 
-    for (int i = 0; i < benchmarkN; ++i)
+    for (int i = 0; i < numBenchmarkRuns; ++i)
       filter.execute();
 
     const double totalTime = timer.query();
-    cout << ", sec=" << totalTime << ", msec/image=" << (1000.*totalTime / benchmarkN) << endl;
+    cout << ", sec=" << totalTime << ", msec/image=" << (1000.*totalTime / numBenchmarkRuns) << endl;
 
   #ifdef VTUNE
     __itt_pause();
