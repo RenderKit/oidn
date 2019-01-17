@@ -319,17 +319,6 @@ namespace oidn {
       return handle;
     }
 
-    // Gets a parameter of the device.
-    template<typename T>
-    T get(const char* name);
-
-    // Returns the first unqueried error code stored for the device, optionally
-    // also returning a string message (if not null), and clears the stored error.
-    Error getError(const char** message = nullptr)
-    {
-      return (Error)oidnGetDeviceError(handle, message);
-    }
-
     // Sets a boolean parameter of the device.
     void set(const char* name, bool value)
     {
@@ -340,6 +329,17 @@ namespace oidn {
     void set(const char* name, int value)
     {
       oidnSetDevice1i(handle, name, value);
+    }
+
+    // Gets a parameter of the device.
+    template<typename T>
+    T get(const char* name);
+
+    // Returns the first unqueried error code stored for the device, optionally
+    // also returning a string message (if not null), and clears the stored error.
+    Error getError(const char** message = nullptr)
+    {
+      return (Error)oidnGetDeviceError(handle, message);
     }
 
     // Commits all previous changes to the device.
