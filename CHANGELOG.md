@@ -4,9 +4,10 @@ Version History
 ### Changes in v0.6.0:
 
 -   Added support for color and albedo only input
--   Added boolean setter functions to the API
--   Minor C++ API changes
--   Added ability to query the version of the library
+-   API: Added oidnDeviceCommit, which must be called before using the device
+-   API: Minor C++ API changes
+-   API: Added boolean setter functions
+-   API: Added ability to query the version of the library
 -   Improved and cleaned up the example application
 
 ### Changes in v0.5.0:

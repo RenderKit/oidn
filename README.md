@@ -44,6 +44,7 @@ C99 API
 
 // Create an Open Image Denoise device
 OIDNDevice device = oidnNewDevice(OIDN_DEVICE_TYPE_DEFAULT);
+oidnCommitDevice(device);
 
 // Create a denoising filter for ray traced images
 OIDNFilter filter = oidnNewFilter(device, "RT");
@@ -77,6 +78,7 @@ C++ API
 
 // Create an Open Image Denoise device
 oidn::DeviceRef device = oidn::newDevice();
+device.commit();
 
 // Create a denoising filter for ray traced images
 oidn::FilterRef filter = device.newFilter("RT");

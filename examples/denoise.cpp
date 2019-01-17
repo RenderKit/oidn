@@ -127,6 +127,8 @@ int main(int argc, char* argv[])
   Timer timer;
 
   oidn::DeviceRef device = oidn::newDevice();
+  device.commit();
+
   oidn::FilterRef filter = device.newFilter("RT");
 
   filter.setImage("color", color.data, oidn::Format::Float3, W, H);

@@ -61,6 +61,8 @@ namespace oidn {
   private:
     template<int K>
     std::shared_ptr<Node> buildNet();
+
+    bool isCommitted() const { return bool(net); }
   };
 
   // -------------------------------------------------------------------------

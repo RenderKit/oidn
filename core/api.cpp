@@ -125,6 +125,15 @@ namespace oidn {
     return OIDN_ERROR_UNKNOWN;
   }
 
+  OIDN_API void oidnCommitDevice(OIDNDevice hDevice)
+  {
+    Device* device = (Device*)hDevice;
+    OIDN_TRY
+      verifyHandle(hDevice);
+      device->commit();
+    OIDN_CATCH(device)
+  }
+
   OIDN_API OIDNBuffer oidnNewBuffer(OIDNDevice hDevice, size_t byteSize)
   {
     Device* device = (Device*)hDevice;

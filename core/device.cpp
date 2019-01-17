@@ -27,10 +27,6 @@ namespace oidn {
   {
     if (!mayiuse(sse42))
       throw Exception(Error::UnsupportedHardware, "SSE4.2 support is required at minimum");
-
-    affinity = std::make_shared<ThreadAffinity>(1); // one thread per core
-    arena = std::make_shared<tbb::task_arena>(affinity->getNumThreads());
-    observer = std::make_shared<PinningObserver>(affinity, *arena);
   }
 
   Device::~Device()
@@ -94,18 +90,38 @@ namespace oidn {
       throw Exception(Error::InvalidArgument, "unknown parameter");
   }
 
+  void Device::commit()
+  {
+    if (isCommitted())
+      throw Exception(Error::InvalidOperation, "a device can be committed only once");
+
+    affinity = std::make_shared<ThreadAffinity>(1); // one thread per core
+    arena = std::make_shared<tbb::task_arena>(affinity->getNumThreads());
+    observer = std::make_shared<PinningObserver>(affinity, *arena);
+  }
+
+  void Device::checkCommitted()
+  {
+    if (!isCommitted())
+      throw Exception(Error::InvalidOperation, "the device is not committed");
+  }
+
   Ref<Buffer> Device::newBuffer(size_t byteSize)
   {
+    checkCommitted();
     return makeRef<Buffer>(Ref<Device>(this), byteSize);
   }
 
   Ref<Buffer> Device::newBuffer(void* ptr, size_t byteSize)
   {
+    checkCommitted();
     return makeRef<Buffer>(Ref<Device>(this), ptr, byteSize);
   }
 
   Ref<Filter> Device::newFilter(const std::string& type)
   {
+    checkCommitted();
+
     Ref<Filter> filter;
 
     if (type == "RT")

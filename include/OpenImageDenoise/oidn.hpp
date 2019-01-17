@@ -330,6 +330,12 @@ namespace oidn {
       return (Error)oidnGetDeviceError(handle, message);
     }
 
+    // Commits all previous changes to the device.
+    void commit()
+    {
+      oidnCommitDevice(handle);
+    }
+
     // Creates a new buffer (data allocated and owned by the device).
     BufferRef newBuffer(size_t byteSize)
     {

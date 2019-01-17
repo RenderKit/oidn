@@ -79,6 +79,10 @@ OIDN_API int oidnGetDevice1i(OIDNDevice device, const char* name);
 // error will be returned.
 OIDN_API OIDNError oidnGetDeviceError(OIDNDevice device, const char** message);
 
+// Commits all previous changes to the device.
+// Must be called before using the device.
+OIDN_API void oidnCommitDevice(OIDNDevice device);
+
 
 // ---------------------------------------------------------------------------
 // Buffer

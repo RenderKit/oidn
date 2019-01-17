@@ -79,7 +79,7 @@ namespace oidn {
 
   void AutoencoderFilter::execute()
   {
-    if (!net)
+    if (!isCommitted())
       throw Exception(Error::InvalidOperation, "the filter is not committed");
 
     device->executeTask([&]()

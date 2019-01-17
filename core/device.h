@@ -46,6 +46,8 @@ namespace oidn {
 
     int get1i(const std::string& name);
 
+    void commit();
+
     template<typename F>
     void executeTask(F& f)
     {
@@ -63,6 +65,11 @@ namespace oidn {
     Ref<Filter> newFilter(const std::string& type);
 
     Device* getDevice() { return this; }
+
+  private:
+    bool isCommitted() const { return bool(arena); }
+
+    void checkCommitted();
   };
 
 } // namespace oidn
