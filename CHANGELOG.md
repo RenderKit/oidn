@@ -7,6 +7,7 @@ Version History
 -   Added device parameters for changing the number of threads and setting the affinity
 -   Added device parameters for querying the version of the library
 -   Added some filter getter API functions
+-   Minor C++ API change
 
 ### Changes in v0.6.0:
 

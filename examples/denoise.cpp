@@ -150,7 +150,7 @@ int main(int argc, char* argv[])
   const int versionPatch = device.get<int>("versionPatch");
 
   const char* errorMessage;
-  if (device.getError(&errorMessage) != oidn::Error::None)
+  if (device.getError(errorMessage) != oidn::Error::None)
   {
     cout << endl << "Error: " << errorMessage << endl;
     return 1;
@@ -169,7 +169,7 @@ int main(int argc, char* argv[])
   const double denoiseTime = timer.query();
   cout << ": msec=" << (1000. * denoiseTime) << endl;
 
-  if (device.getError(&errorMessage) != oidn::Error::None)
+  if (device.getError(errorMessage) != oidn::Error::None)
   {
     cout << endl << "Error: " << errorMessage << endl;
     return 1;

@@ -94,6 +94,6 @@ filter.execute();
 
 // Check for errors
 const char* errorMessage;
-if (device.getError(&errorMessage) != oidn::Error::None)
+if (device.getError(errorMessage) != oidn::Error::None)
   std::cout << "Error: " << errorMessage << std::endl;
 ```

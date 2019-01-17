@@ -353,11 +353,16 @@ namespace oidn {
     template<typename T>
     T get(const char* name);
 
-    // Returns the first unqueried error code stored for the device, optionally
-    // also returning a string message (if not null), and clears the stored error.
-    Error getError(const char** message = nullptr)
+    // Returns the first unqueried error code and clears the stored error.
+    Error getError()
     {
-      return (Error)oidnGetDeviceError(handle, message);
+      return (Error)oidnGetDeviceError(handle, nullptr);
+    }
+
+    // Returns the first unqueried error code and string message, and clears the stored error.
+    Error getError(const char*& message)
+    {
+      return (Error)oidnGetDeviceError(handle, &message);
     }
 
     // Commits all previous changes to the device.
