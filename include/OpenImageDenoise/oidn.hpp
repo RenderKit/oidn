@@ -330,6 +330,18 @@ namespace oidn {
       return (Error)oidnGetDeviceError(handle, message);
     }
 
+    // Sets a boolean parameter of the device.
+    void set(const char* name, bool value)
+    {
+      oidnSetDevice1b(handle, name, value);
+    }
+
+    // Sets an integer parameter of the device.
+    void set(const char* name, int value)
+    {
+      oidnSetDevice1i(handle, name, value);
+    }
+
     // Commits all previous changes to the device.
     void commit()
     {
@@ -354,6 +366,13 @@ namespace oidn {
       return oidnNewFilter(handle, type);
     }
   };
+
+  // Gets a boolean parameter of the device.
+  template<>
+  inline bool DeviceRef::get(const char* name)
+  {
+    return oidnGetDevice1b(handle, name);
+  }
 
   // Gets an integer parameter of the device (e.g., "version").
   template<>

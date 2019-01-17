@@ -23,7 +23,6 @@ namespace oidn {
   thread_local std::string Device::threadErrorMessage;
 
   Device::Device()
-    : error(Error::None)
   {
     if (!mayiuse(sse42))
       throw Exception(Error::UnsupportedHardware, "SSE4.2 support is required at minimum");
@@ -78,7 +77,11 @@ namespace oidn {
 
   int Device::get1i(const std::string& name)
   {
-    if (name == "version")
+    if (name == "numThreads")
+      return numThreads;
+    else if (name == "setAffinity")
+      return setAffinity;
+    else if (name == "version")
       return OIDN_VERSION;
     else if (name == "versionMajor")
       return OIDN_VERSION_MAJOR;
@@ -87,7 +90,15 @@ namespace oidn {
     else if (name == "versionPatch")
       return OIDN_VERSION_PATCH;
     else
-      throw Exception(Error::InvalidArgument, "unknown parameter");
+      throw Exception(Error::InvalidArgument, "invalid parameter");
+  }
+
+  void Device::set1i(const std::string& name, int value)
+  {
+    if (name == "numThreads")
+      numThreads = value;
+    else if (name == "setAffinity")
+      setAffinity = value;
   }
 
   void Device::commit()
@@ -95,9 +106,17 @@ namespace oidn {
     if (isCommitted())
       throw Exception(Error::InvalidOperation, "a device can be committed only once");
 
+    // Get the optimal thread affinities
     affinity = std::make_shared<ThreadAffinity>(1); // one thread per core
-    arena = std::make_shared<tbb::task_arena>(affinity->getNumThreads());
-    observer = std::make_shared<PinningObserver>(affinity, *arena);
+
+    // Create the task arena
+    const int maxNumThreads = affinity->getNumThreads();
+    numThreads = (numThreads > 0) ? min(numThreads, maxNumThreads) : maxNumThreads;
+    arena = std::make_shared<tbb::task_arena>(numThreads);
+
+    // Automatically set the thread affinities
+    if (setAffinity)
+      observer = std::make_shared<PinningObserver>(affinity, *arena);
   }
 
   void Device::checkCommitted()

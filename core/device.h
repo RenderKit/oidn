@@ -29,13 +29,17 @@ namespace oidn {
     // Error handling
     static thread_local Error threadError;
     static thread_local std::string threadErrorMessage;
-    Error error;
+    Error error = Error::None;
     std::string errorMessage;
 
     // Tasking
     std::shared_ptr<tbb::task_arena> arena;
     std::shared_ptr<PinningObserver> observer;
     std::shared_ptr<ThreadAffinity> affinity;
+
+    // Parameters
+    int numThreads = 0; // autodetect by default
+    bool setAffinity = true;
 
   public:
     Device();
@@ -45,6 +49,7 @@ namespace oidn {
     static Error getError(Device* device, const char** errorMessage);
 
     int get1i(const std::string& name);
+    void set1i(const std::string& name, int value);
 
     void commit();
 

@@ -70,8 +70,17 @@ OIDN_API void oidnRetainDevice(OIDNDevice device);
 // Releases the device (decrements the reference count).
 OIDN_API void oidnReleaseDevice(OIDNDevice device);
 
+// Gets a boolean parameter of the device.
+OIDN_API bool oidnGetDevice1b(OIDNDevice device, const char* name);
+
 // Gets an integer parameter of the device (e.g., "version").
 OIDN_API int oidnGetDevice1i(OIDNDevice device, const char* name);
+
+// Sets a boolean parameter of the device.
+OIDN_API void oidnSetDevice1b(OIDNDevice device, const char* name, bool value);
+
+// Sets an integer parameter of the device.
+OIDN_API void oidnSetDevice1i(OIDNDevice device, const char* name, int value);
 
 // Returns the first unqueried error code stored for the device, optionally
 // also returning a string message (if not null), and clears the stored error.

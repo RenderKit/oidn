@@ -105,6 +105,16 @@ namespace oidn {
     releaseObject(device);
   }
 
+  OIDN_API bool oidnGetDevice1b(OIDNDevice hDevice, const char* name)
+  {
+    Device* device = (Device*)hDevice;
+    OIDN_TRY
+      verifyHandle(hDevice);
+      return device->get1i(name);
+    OIDN_CATCH(device)
+    return false;
+  }
+
   OIDN_API int oidnGetDevice1i(OIDNDevice hDevice, const char* name)
   {
     Device* device = (Device*)hDevice;
@@ -113,6 +123,24 @@ namespace oidn {
       return device->get1i(name);
     OIDN_CATCH(device)
     return 0;
+  }
+
+  OIDN_API void oidnSetDevice1b(OIDNDevice hDevice, const char* name, bool value)
+  {
+    Device* device = (Device*)hDevice;
+    OIDN_TRY
+      verifyHandle(hDevice);
+      device->set1i(name, value);
+    OIDN_CATCH(device)
+  }
+
+  OIDN_API void oidnSetDevice1i(OIDNDevice hDevice, const char* name, int value)
+  {
+    Device* device = (Device*)hDevice;
+    OIDN_TRY
+      verifyHandle(hDevice);
+      device->set1i(name, value);
+    OIDN_CATCH(device)
   }
 
   OIDN_API OIDNError oidnGetDeviceError(OIDNDevice hDevice, const char** message)
