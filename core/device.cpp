@@ -107,10 +107,11 @@ namespace oidn {
       throw Exception(Error::InvalidOperation, "a device can be committed only once");
 
     // Get the optimal thread affinities
-    affinity = std::make_shared<ThreadAffinity>(1); // one thread per core
+    if (setAffinity)
+      affinity = std::make_shared<ThreadAffinity>(1); // one thread per core
 
     // Create the task arena
-    const int maxNumThreads = affinity->getNumThreads();
+    const int maxNumThreads = setAffinity ? affinity->getNumThreads() : tbb::this_task_arena::max_concurrency();
     numThreads = (numThreads > 0) ? min(numThreads, maxNumThreads) : maxNumThreads;
     arena = std::make_shared<tbb::task_arena>(numThreads);
 
