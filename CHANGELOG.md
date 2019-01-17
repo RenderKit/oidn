@@ -1,14 +1,17 @@
 Version History
 ---------------
 
-### Changes in v0.6.0:
+### Changes in v0.7.0:
 
--   Added support for color and albedo only input
 -   Added oidnDeviceCommit, which must be called before using the device
 -   Added device parameters for changing the number of threads and setting the affinity
 -   Added device parameters for querying the version of the library
--   Added boolean setter and getter API functions
 -   Added some filter getter API functions
+
+### Changes in v0.6.0:
+
+-   Added support for color and albedo only input
+-   Added boolean setter functions to the API
 -   Minor C++ API changes
 -   Improved and cleaned up the example application
 
