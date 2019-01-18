@@ -53,9 +53,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 
-# Configuration
+# Packaging
 option(OIDN_ZIP_MODE off)
 mark_as_advanced(OIDN_ZIP_MODE)
+if(OIDN_ZIP_MODE)
+  set(CMAKE_INSTALL_BINDIR bin)
+  set(CMAKE_INSTALL_LIBDIR lib)
+  set(CMAKE_INSTALL_DOCDIR doc)
+endif()
 
 ## MKL-DNN ####################################################################
 

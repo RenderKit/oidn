@@ -14,8 +14,6 @@
 ## limitations under the License.                                           ##
 ## ======================================================================== ##
 
-set(CMAKE_INSTALL_LIBDIR lib)
-
 install(TARGETS ${PROJECT_NAME}
   EXPORT
     ${PROJECT_NAME}_Export
@@ -48,7 +46,6 @@ install(DIRECTORY include/OpenImageDenoise
 )
 
 # Install documentation
-set(CMAKE_INSTALL_DOCDIR doc)
 install(FILES ${PROJECT_SOURCE_DIR}/LICENSE.txt DESTINATION ${CMAKE_INSTALL_DOCDIR} COMPONENT lib)
 install(FILES ${PROJECT_SOURCE_DIR}/CHANGELOG.md DESTINATION ${CMAKE_INSTALL_DOCDIR} COMPONENT lib)
 install(FILES ${PROJECT_SOURCE_DIR}/README.md DESTINATION ${CMAKE_INSTALL_DOCDIR} COMPONENT lib)
