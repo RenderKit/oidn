@@ -49,11 +49,6 @@ function check_symbols
   done
 }
 
-# Make sure we do not include nor link against wrong libraries
-export CPATH=
-export LIBRARY_PATH=
-export LD_LIBRARY_PATH=
-
 # Fetch dependencies
 ROOT_DIR=$PWD
 DEP_DIR=$ROOT_DIR/deps
