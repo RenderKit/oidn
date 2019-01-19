@@ -49,17 +49,18 @@ function check_symbols
   done
 }
 
-# Fetch dependencies
+# Set up dependencies
 ROOT_DIR=$PWD
 DEP_DIR=$ROOT_DIR/deps
 mkdir -p $DEP_DIR
 cd $DEP_DIR
 
-# Fetch TBB
-TBB_RELEASE=https://github.com/01org/tbb/releases/download/2019_U2/tbb2019_20181010oss
-TBB_DIR=$DEP_DIR/`basename $TBB_RELEASE`
+# Set up TBB
+TBB_VERSION=2019_U2
+TBB_BUILD=tbb2019_20181010oss
+TBB_DIR=$DEP_DIR/$TBB_BUILD
 if [ ! -d $TBB_DIR ]; then
-  TBB_URL=${TBB_RELEASE}_lin.tgz
+  TBB_URL=https://github.com/01org/tbb/releases/download/$TBB_VERSION/${TBB_BUILD}_lin.tgz
   wget $TBB_URL
   tar xaf `basename $TBB_URL`
 fi
