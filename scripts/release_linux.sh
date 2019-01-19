@@ -62,7 +62,7 @@ TBB_DIR=$DEP_DIR/$TBB_BUILD
 if [ ! -d $TBB_DIR ]; then
   TBB_URL=https://github.com/01org/tbb/releases/download/$TBB_VERSION/${TBB_BUILD}_lin.tgz
   wget $TBB_URL
-  tar xaf `basename $TBB_URL`
+  tar -xf `basename $TBB_URL`
 fi
 
 # Get the number of build threads
