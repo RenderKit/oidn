@@ -34,10 +34,9 @@ extern "C" {
 #endif
 #endif
 
-
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // Device
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 // Open Image Denoise device types
 typedef enum
@@ -89,13 +88,13 @@ OIDN_API int oidnGetDevice1i(OIDNDevice device, const char* name);
 OIDN_API OIDNError oidnGetDeviceError(OIDNDevice device, const char** message);
 
 // Commits all previous changes to the device.
-// Must be called before using the device.
+// Must be called before first using the device (e.g., creating filters).
 OIDN_API void oidnCommitDevice(OIDNDevice device);
 
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // Buffer
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 // Formats for images and other data stored in buffers
 typedef enum
@@ -131,7 +130,7 @@ OIDN_API OIDNBuffer oidnNewSharedBuffer(OIDNDevice device, void* ptr, size_t byt
 OIDN_API void* oidnMapBuffer(OIDNBuffer buffer, OIDNAccess access, size_t byteOffset, size_t byteSize);
 
 // Unmaps a region of the buffer.
-// mappedPtr must be a pointer returned by a previous call to oidnMapBuffer for the specified buffer.
+// mappedPtr must be a pointer returned by a previous call to oidnMapBuffer.
 OIDN_API void oidnUnmapBuffer(OIDNBuffer buffer, void* mappedPtr);
 
 // Retains the buffer (increments the reference count).
@@ -141,16 +140,14 @@ OIDN_API void oidnRetainBuffer(OIDNBuffer buffer);
 OIDN_API void oidnReleaseBuffer(OIDNBuffer buffer);
 
 
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 // Filter
-// ---------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
 
 // Filter handle
 typedef struct OIDNFilterImpl* OIDNFilter;
 
-// Creates a new filter of the specified type.
-// Supported types:
-//   RT - ray tracing denoising filter
+// Creates a new filter of the specified type (e.g., "RT").
 OIDN_API OIDNFilter oidnNewFilter(OIDNDevice device, const char* type);
 
 // Retains the filter (increments the reference count).
@@ -160,29 +157,20 @@ OIDN_API void oidnRetainFilter(OIDNFilter filter);
 OIDN_API void oidnReleaseFilter(OIDNFilter filter);
 
 // Sets an image parameter of the filter (stored in a buffer).
-// Supported parameters:
-//   color  - input color to denoise
-//   albedo - input albedo (optional)
-//   normal - input normal (optional)
-//   output - denoised output color
-// All images must have FLOAT3 format and the same size.
-// If byteItemStride and/or byteRowStride are zero, these will be computed
-// automatically.
+// If byteItemStride and/or byteRowStride are zero, these will be computed automatically.
 OIDN_API void oidnSetFilterImage(OIDNFilter filter, const char* name,
                                  OIDNBuffer buffer, OIDNFormat format,
                                  size_t width, size_t height,
                                  size_t byteOffset, size_t byteItemStride, size_t byteRowStride);
 
 // Sets an image parameter of the filter (owned by the user).
+// If byteItemStride and/or byteRowStride are zero, these will be computed automatically.
 OIDN_API void oidnSetSharedFilterImage(OIDNFilter filter, const char* name,
                                        void* ptr, OIDNFormat format,
                                        size_t width, size_t height,
                                        size_t byteOffset, size_t byteItemStride, size_t byteRowStride);
 
 // Sets a boolean parameter of the filter.
-// Supported parameters:
-//   hdr  - the color image has high dynamic range (HDR), if non-zero (default is false)
-//   srgb - the color image is encoded in sRGB or 2.2 gamma space, if non-zero (default is false)
 OIDN_API void oidnSetFilter1b(OIDNFilter filter, const char* name, bool value);
 
 // Sets an integer parameter of the filter.
@@ -195,7 +183,7 @@ OIDN_API bool oidnGetFilter1b(OIDNFilter filter, const char* name);
 OIDN_API int oidnGetFilter1i(OIDNFilter filter, const char* name);
 
 // Commits all previous changes to the filter.
-// Must be called before execution.
+// Must be called before first executing the filter.
 OIDN_API void oidnCommitFilter(OIDNFilter filter);
 
 // Executes the filter.

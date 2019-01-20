@@ -16,7 +16,7 @@
 ## limitations under the License.                                           ##
 ## ======================================================================== ##
 
-# check version of symbols
+# Check version of symbols
 function check_symbols
 {
   for sym in `nm $1 | grep $2_`

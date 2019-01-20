@@ -21,9 +21,9 @@
 
 namespace oidn {
 
-  // ---------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
   // Buffer
-  // ---------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
 
   // Formats for images and other data stored in buffers
   enum class Format
@@ -107,22 +107,23 @@ namespace oidn {
     }
 
     // Maps a region of the buffer to host memory.
+    // If byteSize is 0, the maximum available amount of memory will be mapped.
     void map(Access access = Access::ReadWrite, size_t byteOffset = 0, size_t byteSize = 0)
     {
       oidnMapBuffer(handle, (OIDNAccess)access, byteOffset, byteSize);
     }
 
     // Unmaps a region of the buffer.
+    // mappedPtr must be a pointer returned by a previous call to map.
     void unmap(void* mappedPtr)
     {
       oidnUnmapBuffer(handle, mappedPtr);
     }
   };
 
-
-  // ---------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
   // Filter
-  // ---------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
 
   // Filter object with automatic reference counting
   class FilterRef
@@ -252,10 +253,9 @@ namespace oidn {
     return oidnGetFilter1i(handle, name);
   }
 
-
-  // ---------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
   // Device
-  // ---------------------------------------------------------------------------
+  // --------------------------------------------------------------------------
 
   // Open Image Denoise device types
   enum class DeviceType
@@ -366,6 +366,7 @@ namespace oidn {
     }
 
     // Commits all previous changes to the device.
+    // Must be called before first using the device (e.g., creating filters).
     void commit()
     {
       oidnCommitDevice(handle);

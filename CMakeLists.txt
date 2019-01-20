@@ -62,7 +62,9 @@ if(OIDN_ZIP_MODE)
   set(CMAKE_INSTALL_DOCDIR doc)
 endif()
 
-## MKL-DNN ####################################################################
+## ----------------------------------------------------------------------------
+## MKL-DNN
+## ----------------------------------------------------------------------------
 
 # Configure MKL-DNN
 set(MKLDNN_LIBRARY_TYPE "STATIC" CACHE INTERNAL "")
@@ -84,7 +86,9 @@ include(mkl-dnn/cmake/TBB.cmake)
 include(mkl-dnn/cmake/platform.cmake)
 include(mkl-dnn/cmake/SDL.cmake)
 
-## Open Image Denoise Library #################################################
+## ----------------------------------------------------------------------------
+## Open Image Denoise library
+## ----------------------------------------------------------------------------
 
 # Generate version.h
 configure_file(
@@ -159,11 +163,15 @@ target_link_libraries(${PROJECT_NAME}
 set_property(TARGET ${PROJECT_NAME} PROPERTY VERSION ${PROJECT_VERSION})
 set_property(TARGET ${PROJECT_NAME} PROPERTY SOVERSION "0")
 
-## Open Image Denoise Examples ################################################
+## ----------------------------------------------------------------------------
+## Open Image Denoise examples
+## ----------------------------------------------------------------------------
 
 add_subdirectory(examples)
 
-## Open Image Denoise Install and Packaging ###################################
+## ----------------------------------------------------------------------------
+## Open Image Denoise install and packaging
+## ----------------------------------------------------------------------------
 
 include(install)
 include(package)
