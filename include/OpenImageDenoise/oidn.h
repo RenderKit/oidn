@@ -91,7 +91,6 @@ OIDN_API OIDNError oidnGetDeviceError(OIDNDevice device, const char** message);
 // Must be called before first using the device (e.g., creating filters).
 OIDN_API void oidnCommitDevice(OIDNDevice device);
 
-
 // ----------------------------------------------------------------------------
 // Buffer
 // ----------------------------------------------------------------------------
@@ -138,7 +137,6 @@ OIDN_API void oidnRetainBuffer(OIDNBuffer buffer);
 
 // Releases the buffer (decrements the reference count).
 OIDN_API void oidnReleaseBuffer(OIDNBuffer buffer);
-
 
 // ----------------------------------------------------------------------------
 // Filter
