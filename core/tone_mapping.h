@@ -26,16 +26,16 @@ namespace oidn {
   }
 
   // Color transfer function
-  class TransferFunction
+  class TransferFunc
   {
   public:
-    virtual ~TransferFunction() = default;
+    virtual ~TransferFunc() = default;
 
     virtual float forward(float x) const = 0;
     virtual float inverse(float x) const = 0;
   };
 
-  class LinearTransferFunction : public TransferFunction
+  class LinearTransferFunc : public TransferFunc
   {
   public:
     __forceinline float forward(float x) const override { return x; }
@@ -43,7 +43,7 @@ namespace oidn {
   };
 
   // sRGB transfer function
-  class SRGBTransferFunction : public TransferFunction
+  class SRGBTransferFunc : public TransferFunc
   {
   public:
     __forceinline float forward(float x) const override
@@ -59,14 +59,14 @@ namespace oidn {
 
   // HDR transfer function: log + sRGB curve
   // Compresses [0..65535] to [0..1]
-  class HDRTransferFunction : public TransferFunction
+  class HDRTransferFunc : public TransferFunc
   {
   private:
     float exposure;
     float rcpExposure;
 
   public:
-    HDRTransferFunction(float exposure = 1.f)
+    HDRTransferFunc(float exposure = 1.f)
     {
       setExposure(exposure);
     }

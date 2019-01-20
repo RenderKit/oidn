@@ -95,7 +95,7 @@ namespace oidn {
       {
         const float exposure = autoexposure(color);
         //printf("exposure = %f\n", exposure);
-        std::static_pointer_cast<HDRTransferFunction>(transferFunc)->setExposure(exposure);
+        std::static_pointer_cast<HDRTransferFunc>(transferFunc)->setExposure(exposure);
       }
 
       net->execute();
@@ -204,23 +204,23 @@ namespace oidn {
     std::shared_ptr<Node> inputReorder;
     if (srgb)
     {
-      transferFunc = std::make_shared<LinearTransferFunction>();
+      transferFunc = std::make_shared<LinearTransferFunc>();
       inputReorder = net->addInputReorder(color, albedo, normal,
-                                          std::static_pointer_cast<LinearTransferFunction>(transferFunc),
+                                          std::static_pointer_cast<LinearTransferFunc>(transferFunc),
                                           spatialPad, inputReorderDst);
     }
     else if (hdr)
     {
-      transferFunc = std::make_shared<HDRTransferFunction>();
+      transferFunc = std::make_shared<HDRTransferFunc>();
       inputReorder = net->addInputReorder(color, albedo, normal,
-                                          std::static_pointer_cast<HDRTransferFunction>(transferFunc),
+                                          std::static_pointer_cast<HDRTransferFunc>(transferFunc),
                                           spatialPad, inputReorderDst);
     }
     else
     {
-      transferFunc = std::make_shared<SRGBTransferFunction>();
+      transferFunc = std::make_shared<SRGBTransferFunc>();
       inputReorder = net->addInputReorder(color, albedo, normal,
-                                          std::static_pointer_cast<SRGBTransferFunction>(transferFunc),
+                                          std::static_pointer_cast<SRGBTransferFunc>(transferFunc),
                                           spatialPad, inputReorderDst);
     }
 
@@ -320,11 +320,11 @@ namespace oidn {
 
     // Output reorder
     if (srgb)
-      net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<LinearTransferFunction>(transferFunc), output);
+      net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<LinearTransferFunc>(transferFunc), output);
     else if (hdr)
-      net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<HDRTransferFunction>(transferFunc), output);
+      net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<HDRTransferFunc>(transferFunc), output);
     else
-      net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<SRGBTransferFunction>(transferFunc), output);
+      net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<SRGBTransferFunc>(transferFunc), output);
 
     return net;
   }

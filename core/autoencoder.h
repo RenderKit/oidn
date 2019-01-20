@@ -37,7 +37,7 @@ namespace oidn {
     bool srgb = false;
 
     std::shared_ptr<Node> net;
-    std::shared_ptr<TransferFunction> transferFunc;
+    std::shared_ptr<TransferFunc> transferFunc;
 
   protected:
     struct
