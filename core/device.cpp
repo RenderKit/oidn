@@ -61,23 +61,23 @@ namespace oidn {
     }
   }
 
-  Error Device::getError(Device* device, const char** errorMessage)
+  Error Device::getError(Device* device, const char** outMessage)
   {
     // Return and clear the stored error code, but keep the error message so pointers to it will
     // remain valid until the next getError call
     if (device)
     {
       const Error error = device->error;
-      if (errorMessage)
-        *errorMessage = (error == Error::None) ? nullptr : device->errorMessage.c_str();
+      if (outMessage)
+        *outMessage = (error == Error::None) ? nullptr : device->errorMessage.c_str();
       device->error = Error::None;
       return error;
     }
     else
     {
       const Error error = threadError;
-      if (errorMessage)
-        *errorMessage = (error == Error::None) ? nullptr : threadErrorMessage.c_str();
+      if (outMessage)
+        *outMessage = (error == Error::None) ? nullptr : threadErrorMessage.c_str();
       threadError = Error::None;
       return error;
     }

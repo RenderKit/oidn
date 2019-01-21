@@ -370,9 +370,9 @@ namespace oidn {
     }
 
     // Returns the first unqueried error code and string message, and clears the stored error.
-    Error getError(const char*& message)
+    Error getError(const char*& outMessage)
     {
-      return (Error)oidnGetDeviceError(handle, &message);
+      return (Error)oidnGetDeviceError(handle, &outMessage);
     }
 
     // Commits all previous changes to the device.

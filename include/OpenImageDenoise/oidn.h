@@ -91,7 +91,7 @@ OIDN_API void oidnSetDeviceErrorFunction(OIDNDevice device, OIDNErrorFunction fu
 // also returning a string message (if not null), and clears the stored error.
 // If the device is null (e.g., the device creation failed), a thread-local
 // error will be returned.
-OIDN_API OIDNError oidnGetDeviceError(OIDNDevice device, const char** message);
+OIDN_API OIDNError oidnGetDeviceError(OIDNDevice device, const char** outMessage);
 
 // Commits all previous changes to the device.
 // Must be called before first using the device (e.g., creating filters).

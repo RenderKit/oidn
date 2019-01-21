@@ -152,13 +152,13 @@ namespace oidn {
     OIDN_CATCH(device)
   }
 
-  OIDN_API OIDNError oidnGetDeviceError(OIDNDevice hDevice, const char** message)
+  OIDN_API OIDNError oidnGetDeviceError(OIDNDevice hDevice, const char** outMessage)
   {
     Device* device = (Device*)hDevice;
     OIDN_TRY
-      return (OIDNError)Device::getError(device, message);
+      return (OIDNError)Device::getError(device, outMessage);
     OIDN_CATCH(device)
-    if (message) *message = "";
+    if (outMessage) *outMessage = "";
     return OIDN_ERROR_UNKNOWN;
   }
 
