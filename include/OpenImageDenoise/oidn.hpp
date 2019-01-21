@@ -30,6 +30,7 @@ namespace oidn {
   {
     Undefined = OIDN_FORMAT_UNDEFINED,
 
+    // 32-bit single-precision floating point scalar and vector formats
     Float  = OIDN_FORMAT_FLOAT,
     Float2 = OIDN_FORMAT_FLOAT2,
     Float3 = OIDN_FORMAT_FLOAT3,
@@ -260,20 +261,20 @@ namespace oidn {
   // Open Image Denoise device types
   enum class DeviceType
   {
-    Default = OIDN_DEVICE_TYPE_DEFAULT,
+    Default = OIDN_DEVICE_TYPE_DEFAULT, // select device automatically
 
-    CPU = OIDN_DEVICE_TYPE_CPU,
+    CPU = OIDN_DEVICE_TYPE_CPU, // CPU device
   };
 
   // Error codes
   enum class Error
   {
-    None                = OIDN_ERROR_NONE,
-    Unknown             = OIDN_ERROR_UNKNOWN,
-    InvalidArgument     = OIDN_ERROR_INVALID_ARGUMENT,
-    InvalidOperation    = OIDN_ERROR_INVALID_OPERATION,
-    OutOfMemory         = OIDN_ERROR_OUT_OF_MEMORY,
-    UnsupportedHardware = OIDN_ERROR_UNSUPPORTED_HARDWARE,
+    None                = OIDN_ERROR_NONE,                 // no error occurred
+    Unknown             = OIDN_ERROR_UNKNOWN,              // an unknown error occurred
+    InvalidArgument     = OIDN_ERROR_INVALID_ARGUMENT,     // an invalid argument was specified
+    InvalidOperation    = OIDN_ERROR_INVALID_OPERATION,    // the operation is not allowed
+    OutOfMemory         = OIDN_ERROR_OUT_OF_MEMORY,        // not enough memory to execute the operation
+    UnsupportedHardware = OIDN_ERROR_UNSUPPORTED_HARDWARE, // the hardware (e.g., CPU) is not supported
   };
 
   // Error callback function

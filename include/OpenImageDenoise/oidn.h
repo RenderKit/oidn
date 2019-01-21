@@ -41,20 +41,20 @@ extern "C" {
 // Open Image Denoise device types
 typedef enum
 {
-  OIDN_DEVICE_TYPE_DEFAULT = 0,
+  OIDN_DEVICE_TYPE_DEFAULT = 0, // select device automatically
 
-  OIDN_DEVICE_TYPE_CPU = 1,
+  OIDN_DEVICE_TYPE_CPU = 1, // CPU device
 } OIDNDeviceType;
 
 // Error codes
 typedef enum
 {
-  OIDN_ERROR_NONE                 = 0,
-  OIDN_ERROR_UNKNOWN              = 1,
-  OIDN_ERROR_INVALID_ARGUMENT     = 2,
-  OIDN_ERROR_INVALID_OPERATION    = 3,
-  OIDN_ERROR_OUT_OF_MEMORY        = 4,
-  OIDN_ERROR_UNSUPPORTED_HARDWARE = 5,
+  OIDN_ERROR_NONE                 = 0, // no error occurred
+  OIDN_ERROR_UNKNOWN              = 1, // an unknown error occurred
+  OIDN_ERROR_INVALID_ARGUMENT     = 2, // an invalid argument was specified
+  OIDN_ERROR_INVALID_OPERATION    = 3, // the operation is not allowed
+  OIDN_ERROR_OUT_OF_MEMORY        = 4, // not enough memory to execute the operation
+  OIDN_ERROR_UNSUPPORTED_HARDWARE = 5, // the hardware (e.g., CPU) is not supported
 } OIDNError;
 
 // Error callback function
@@ -106,6 +106,7 @@ typedef enum
 {
   OIDN_FORMAT_UNDEFINED = 0,
 
+  // 32-bit single-precision floating point scalar and vector formats
   OIDN_FORMAT_FLOAT  = 1,
   OIDN_FORMAT_FLOAT2 = 2,
   OIDN_FORMAT_FLOAT3 = 3,
