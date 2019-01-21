@@ -276,6 +276,9 @@ namespace oidn {
     UnsupportedHardware = OIDN_ERROR_UNSUPPORTED_HARDWARE,
   };
 
+  // Error callback function
+  typedef void (*ErrorFunction)(void* userPtr, Error error, const char* message);
+
   // Device object with automatic reference counting
   class DeviceRef
   {
@@ -352,6 +355,12 @@ namespace oidn {
     // Gets a parameter of the device.
     template<typename T>
     T get(const char* name);
+
+    // Sets the error callback function of the device.
+    void setErrorFunction(ErrorFunction func, void* userPtr = nullptr)
+    {
+      oidnSetDeviceErrorFunction(handle, (OIDNErrorFunction)func, userPtr);
+    }
 
     // Returns the first unqueried error code and clears the stored error.
     Error getError()

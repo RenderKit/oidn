@@ -57,6 +57,9 @@ typedef enum
   OIDN_ERROR_UNSUPPORTED_HARDWARE = 5,
 } OIDNError;
 
+// Error callback function
+typedef void (*OIDNErrorFunction)(void* userPtr, OIDNError error, const char* message);
+
 // Device handle
 typedef struct OIDNDeviceImpl* OIDNDevice;
 
@@ -80,6 +83,9 @@ OIDN_API bool oidnGetDevice1b(OIDNDevice device, const char* name);
 
 // Gets an integer parameter of the device (e.g., "version").
 OIDN_API int oidnGetDevice1i(OIDNDevice device, const char* name);
+
+// Sets the error callback function of the device.
+OIDN_API void oidnSetDeviceErrorFunction(OIDNDevice device, OIDNErrorFunction func, void* userPtr);
 
 // Returns the first unqueried error code stored for the device, optionally
 // also returning a string message (if not null), and clears the stored error.

@@ -31,6 +31,8 @@ namespace oidn {
     static thread_local std::string threadErrorMessage;
     Error error = Error::None;
     std::string errorMessage;
+    ErrorFunction errorFunc = nullptr;
+    void* errorUserPtr = nullptr;
 
     // Tasking
     std::shared_ptr<tbb::task_arena> arena;
@@ -47,6 +49,8 @@ namespace oidn {
 
     static void setError(Device* device, Error error, const std::string& errorMessage);
     static Error getError(Device* device, const char** errorMessage);
+
+    void setErrorFunction(ErrorFunction func, void* userPtr);
 
     int get1i(const std::string& name);
     void set1i(const std::string& name, int value);

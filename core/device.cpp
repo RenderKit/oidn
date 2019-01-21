@@ -43,6 +43,13 @@ namespace oidn {
         device->error = error;
         device->errorMessage = errorMessage;
       }
+
+      // Call the error callback function
+      if (device->errorFunc)
+      {
+        device->errorFunc(device->errorUserPtr,
+                          error, (error == Error::None) ? nullptr : device->errorMessage.c_str());
+      }
     }
     else
     {
@@ -56,7 +63,8 @@ namespace oidn {
 
   Error Device::getError(Device* device, const char** errorMessage)
   {
-    // Return and clear the stored error
+    // Return and clear the stored error code, but keep the error message so pointers to it will
+    // remain valid until the next getError call
     if (device)
     {
       const Error error = device->error;
@@ -73,6 +81,12 @@ namespace oidn {
       threadError = Error::None;
       return error;
     }
+  }
+
+  void Device::setErrorFunction(ErrorFunction func, void* userPtr)
+  {
+    errorFunc = func;
+    errorUserPtr = userPtr;
   }
 
   int Device::get1i(const std::string& name)

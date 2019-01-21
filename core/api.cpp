@@ -143,6 +143,15 @@ namespace oidn {
     return 0;
   }
 
+  OIDN_API void oidnSetDeviceErrorFunction(OIDNDevice hDevice, OIDNErrorFunction func, void* userPtr)
+  {
+    Device* device = (Device*)hDevice;
+    OIDN_TRY
+      verifyHandle(hDevice);
+      device->setErrorFunction((ErrorFunction)func, userPtr);
+    OIDN_CATCH(device)
+  }
+
   OIDN_API OIDNError oidnGetDeviceError(OIDNDevice hDevice, const char** message)
   {
     Device* device = (Device*)hDevice;
