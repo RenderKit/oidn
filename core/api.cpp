@@ -20,9 +20,14 @@
 #  define OIDN_API extern "C" __attribute__ ((visibility ("default")))
 #endif
 
+// Locks the device that owns the specified object
+// Use *only* inside OIDN_TRY/CATCH!
+#define OIDN_LOCK(obj) \
+  std::lock_guard<std::mutex> lock(obj->getDevice()->getMutex());
+
+// Try/catch for converting exceptions to errors
 #define OIDN_TRY \
-  try { \
-    std::lock_guard<std::mutex> apiLock(apiMutex);
+  try {
 
 #define OIDN_CATCH(obj) \
   } catch (Exception& e) {                                                                          \
@@ -43,11 +48,9 @@
 
 namespace oidn {
 
-  static std::mutex apiMutex;
-
   namespace
   {
-    __forceinline void verifyHandle(void* handle)
+    __forceinline void checkHandle(void* handle)
     {
       if (handle == nullptr)
         throw Exception(Error::InvalidArgument, "invalid handle");
@@ -63,7 +66,7 @@ namespace oidn {
       else
       {
         OIDN_TRY
-          verifyHandle(obj);
+          checkHandle(obj);
         OIDN_CATCH(obj)
       }
     }
@@ -74,7 +77,21 @@ namespace oidn {
       if (obj == nullptr || obj->decRefKeep() == 0)
       {
         OIDN_TRY
-          verifyHandle(obj);
+          checkHandle(obj);
+          OIDN_LOCK(obj);
+          obj->destroy();
+        OIDN_CATCH(obj)
+      }
+    }
+
+    template<>
+    __forceinline void releaseObject(Device* obj)
+    {
+      if (obj == nullptr || obj->decRefKeep() == 0)
+      {
+        OIDN_TRY
+          checkHandle(obj);
+          // Do NOT lock the device because it owns the mutex
           obj->destroy();
         OIDN_CATCH(obj)
       }
@@ -109,7 +126,8 @@ namespace oidn {
   {
     Device* device = (Device*)hDevice;
     OIDN_TRY
-      verifyHandle(hDevice);
+      checkHandle(hDevice);
+      OIDN_LOCK(device);
       device->set1i(name, value);
     OIDN_CATCH(device)
   }
@@ -118,7 +136,8 @@ namespace oidn {
   {
     Device* device = (Device*)hDevice;
     OIDN_TRY
-      verifyHandle(hDevice);
+      checkHandle(hDevice);
+      OIDN_LOCK(device);
       device->set1i(name, value);
     OIDN_CATCH(device)
   }
@@ -127,7 +146,8 @@ namespace oidn {
   {
     Device* device = (Device*)hDevice;
     OIDN_TRY
-      verifyHandle(hDevice);
+      checkHandle(hDevice);
+      OIDN_LOCK(device);
       return device->get1i(name);
     OIDN_CATCH(device)
     return false;
@@ -137,7 +157,8 @@ namespace oidn {
   {
     Device* device = (Device*)hDevice;
     OIDN_TRY
-      verifyHandle(hDevice);
+      checkHandle(hDevice);
+      OIDN_LOCK(device);
       return device->get1i(name);
     OIDN_CATCH(device)
     return 0;
@@ -147,7 +168,8 @@ namespace oidn {
   {
     Device* device = (Device*)hDevice;
     OIDN_TRY
-      verifyHandle(hDevice);
+      checkHandle(hDevice);
+      OIDN_LOCK(device);
       device->setErrorFunction((ErrorFunction)func, userPtr);
     OIDN_CATCH(device)
   }
@@ -166,7 +188,8 @@ namespace oidn {
   {
     Device* device = (Device*)hDevice;
     OIDN_TRY
-      verifyHandle(hDevice);
+      checkHandle(hDevice);
+      OIDN_LOCK(device);
       device->commit();
     OIDN_CATCH(device)
   }
@@ -175,7 +198,8 @@ namespace oidn {
   {
     Device* device = (Device*)hDevice;
     OIDN_TRY
-      verifyHandle(hDevice);
+      checkHandle(hDevice);
+      OIDN_LOCK(device);
       Ref<Buffer> buffer = device->newBuffer(byteSize);
       return (OIDNBuffer)buffer.detach();
     OIDN_CATCH(device)
@@ -186,7 +210,8 @@ namespace oidn {
   {
     Device* device = (Device*)hDevice;
     OIDN_TRY
-      verifyHandle(hDevice);
+      checkHandle(hDevice);
+      OIDN_LOCK(device);
       Ref<Buffer> buffer = device->newBuffer(ptr, byteSize);
       return (OIDNBuffer)buffer.detach();
     OIDN_CATCH(device)
@@ -209,7 +234,8 @@ namespace oidn {
   {
     Buffer* buffer = (Buffer*)hBuffer;
     OIDN_TRY
-      verifyHandle(hBuffer);
+      checkHandle(hBuffer);
+      OIDN_LOCK(buffer);
       return buffer->map(byteOffset, byteSize);
     OIDN_CATCH(buffer)
     return nullptr;
@@ -219,7 +245,8 @@ namespace oidn {
   {
     Buffer* buffer = (Buffer*)hBuffer;
     OIDN_TRY
-      verifyHandle(hBuffer);
+      checkHandle(hBuffer);
+      OIDN_LOCK(buffer);
       return buffer->unmap(mappedPtr);
     OIDN_CATCH(buffer)
   }
@@ -228,7 +255,8 @@ namespace oidn {
   {
     Device* device = (Device*)hDevice;
     OIDN_TRY
-      verifyHandle(hDevice);
+      checkHandle(hDevice);
+      OIDN_LOCK(device);
       Ref<Filter> filter = device->newFilter(type);
       return (OIDNFilter)filter.detach();
     OIDN_CATCH(device)
@@ -254,8 +282,9 @@ namespace oidn {
   {
     Filter* filter = (Filter*)hFilter;
     OIDN_TRY
-      verifyHandle(hFilter);
-      verifyHandle(hBuffer);
+      checkHandle(hFilter);
+      checkHandle(hBuffer);
+      OIDN_LOCK(filter);
       Ref<Buffer> buffer = (Buffer*)hBuffer;
       Image data(buffer, (Format)format, (int)width, (int)height, byteOffset, byteItemStride, byteRowStride);
       filter->setImage(name, data);
@@ -269,7 +298,8 @@ namespace oidn {
   {
     Filter* filter = (Filter*)hFilter;
     OIDN_TRY
-      verifyHandle(hFilter);
+      checkHandle(hFilter);
+      OIDN_LOCK(filter);
       Image data(ptr, (Format)format, (int)width, (int)height, byteOffset, byteItemStride, byteRowStride);
       filter->setImage(name, data);
     OIDN_CATCH(filter)
@@ -279,7 +309,8 @@ namespace oidn {
   {
     Filter* filter = (Filter*)hFilter;
     OIDN_TRY
-      verifyHandle(hFilter);
+      checkHandle(hFilter);
+      OIDN_LOCK(filter);
       filter->set1i(name, int(value));
     OIDN_CATCH(filter)
   }
@@ -288,7 +319,8 @@ namespace oidn {
   {
     Filter* filter = (Filter*)hFilter;
     OIDN_TRY
-      verifyHandle(hFilter);
+      checkHandle(hFilter);
+      OIDN_LOCK(filter);
       filter->set1i(name, value);
     OIDN_CATCH(filter)
   }
@@ -297,7 +329,8 @@ namespace oidn {
   {
     Filter* filter = (Filter*)hFilter;
     OIDN_TRY
-      verifyHandle(hFilter);
+      checkHandle(hFilter);
+      OIDN_LOCK(filter);
       return filter->get1i(name);
     OIDN_CATCH(filter)
     return false;
@@ -307,7 +340,8 @@ namespace oidn {
   {
     Filter* filter = (Filter*)hFilter;
     OIDN_TRY
-      verifyHandle(hFilter);
+      checkHandle(hFilter);
+      OIDN_LOCK(filter);
       return filter->get1i(name);
     OIDN_CATCH(filter)
     return 0;
@@ -317,7 +351,8 @@ namespace oidn {
   {
     Filter* filter = (Filter*)hFilter;
     OIDN_TRY
-      verifyHandle(hFilter);
+      checkHandle(hFilter);
+      OIDN_LOCK(filter);
       filter->commit();
     OIDN_CATCH(filter)
   }
@@ -326,7 +361,8 @@ namespace oidn {
   {
     Filter* filter = (Filter*)hFilter;
     OIDN_TRY
-      verifyHandle(hFilter);
+      checkHandle(hFilter);
+      OIDN_LOCK(filter);
       filter->execute();
     OIDN_CATCH(filter)
   }

@@ -46,11 +46,17 @@ namespace oidn {
       }
 
       // Call the error callback function
-      if (device->errorFunc)
+      ErrorFunction errorFunc;
+      void* errorUserPtr;
+
       {
-        device->errorFunc(device->errorUserPtr,
-                          code, (code == Error::None) ? nullptr : message.c_str());
+        std::lock_guard<std::mutex> lock(device->mutex);
+        errorFunc = device->errorFunc;
+        errorUserPtr = device->errorUserPtr;
       }
+
+      if (errorFunc)
+        errorFunc(errorUserPtr, code, (code == Error::None) ? nullptr : message.c_str());
     }
     else
     {

@@ -26,6 +26,9 @@ namespace oidn {
   class Device : public RefCount
   {
   private:
+    // Thread-safety
+    std::mutex mutex;
+
     // Error handling
     struct ErrorState
     {
@@ -78,6 +81,7 @@ namespace oidn {
     Ref<Filter> newFilter(const std::string& type);
 
     Device* getDevice() { return this; }
+    std::mutex& getMutex() { return mutex; }
 
   private:
     bool isCommitted() const { return bool(arena); }
