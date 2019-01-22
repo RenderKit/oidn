@@ -55,10 +55,10 @@ namespace oidn {
     #if defined(_WIN32)
       key = TlsAlloc();
       if (key == TLS_OUT_OF_INDEXES)
-        FATAL("TlsAlloc failed");
+        OIDN_FATAL("TlsAlloc failed");
     #else
       if (pthread_key_create(&key, nullptr) != 0)
-        FATAL("pthread_key_create failed");
+        OIDN_FATAL("pthread_key_create failed");
     #endif
     }
 
@@ -70,10 +70,10 @@ namespace oidn {
 
     #if defined(_WIN32)
       if (!TlsFree(key))
-        WARNING("TlsFree failed");
+        OIDN_WARNING("TlsFree failed");
     #else
       if (pthread_key_delete(key) != 0)
-        WARNING("pthread_key_delete failed");
+        OIDN_WARNING("pthread_key_delete failed");
     #endif
     }
 
@@ -94,10 +94,10 @@ namespace oidn {
 
     #if defined(_WIN32)
       if (!TlsSetValue(key, ptr))
-        FATAL("TlsSetValue failed");
+        OIDN_FATAL("TlsSetValue failed");
     #else
       if (pthread_setspecific(key, ptr) != 0)
-        FATAL("pthread_setspecific failed");
+        OIDN_FATAL("pthread_setspecific failed");
     #endif
 
       return *ptr;

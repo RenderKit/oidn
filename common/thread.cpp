@@ -50,7 +50,7 @@ namespace oidn {
       BOOL result = pGetLogicalProcessorInformationEx(RelationProcessorCore, buffer, &bufferSize);
       if (result || GetLastError() != ERROR_INSUFFICIENT_BUFFER)
       {
-        WARNING("GetLogicalProcessorInformationEx failed");
+        OIDN_WARNING("GetLogicalProcessorInformationEx failed");
         return;
       }
 
@@ -58,7 +58,7 @@ namespace oidn {
       buffer = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)malloc(bufferSize);
       if (!buffer)
       {
-        WARNING("SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX allocation failed");
+        OIDN_WARNING("SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX allocation failed");
         return;
       }
 
@@ -66,7 +66,7 @@ namespace oidn {
       result = pGetLogicalProcessorInformationEx(RelationProcessorCore, buffer, &bufferSize);
       if (!result)
       {
-        WARNING("GetLogicalProcessorInformationEx failed");
+        OIDN_WARNING("GetLogicalProcessorInformationEx failed");
         free(buffer);
         return;
       }
@@ -118,7 +118,7 @@ namespace oidn {
     // Save the current affinity and set the new one
     const HANDLE thread = GetCurrentThread();
     if (!pSetThreadGroupAffinity(thread, &affinities[threadIndex], &oldAffinities[threadIndex]))
-      WARNING("SetThreadGroupAffinity failed");
+      OIDN_WARNING("SetThreadGroupAffinity failed");
   }
 
   void ThreadAffinity::restore(int threadIndex)
@@ -129,7 +129,7 @@ namespace oidn {
     // Restore the original affinity
     const HANDLE thread = GetCurrentThread();
     if (!pSetThreadGroupAffinity(thread, &oldAffinities[threadIndex], nullptr))
-      WARNING("SetThreadGroupAffinity failed");
+      OIDN_WARNING("SetThreadGroupAffinity failed");
   }
 
 #elif defined(__linux__)
@@ -195,14 +195,14 @@ namespace oidn {
     // Save the current affinity
     if (pthread_getaffinity_np(thread, sizeof(cpu_set_t), &oldAffinities[threadIndex]) != 0)
     {
-      WARNING("pthread_getaffinity_np failed");
+      OIDN_WARNING("pthread_getaffinity_np failed");
       oldAffinities[threadIndex] = affinities[threadIndex];
       return;
     }
 
     // Set the new affinity
     if (pthread_setaffinity_np(thread, sizeof(cpu_set_t), &affinities[threadIndex]) != 0)
-      WARNING("pthread_setaffinity_np failed");
+      OIDN_WARNING("pthread_setaffinity_np failed");
   }
 
   void ThreadAffinity::restore(int threadIndex)
@@ -214,7 +214,7 @@ namespace oidn {
 
     // Restore the original affinity
     if (pthread_setaffinity_np(thread, sizeof(cpu_set_t), &oldAffinities[threadIndex]) != 0)
-      WARNING("pthread_setaffinity_np failed");
+      OIDN_WARNING("pthread_setaffinity_np failed");
   }
 
 #elif defined(__APPLE__)
@@ -231,7 +231,7 @@ namespace oidn {
 
     if (!getSysctl("hw.physicalcpu", numPhysicalCpus) || !getSysctl("hw.logicalcpu", numLogicalCpus))
     {
-      WARNING("sysctlbyname failed");
+      OIDN_WARNING("sysctlbyname failed");
       return;
     }
 
@@ -267,14 +267,14 @@ namespace oidn {
     boolean_t getDefault = FALSE;
     if (thread_policy_get(thread, THREAD_AFFINITY_POLICY, (thread_policy_t)&oldAffinities[threadIndex], &policyCount, &getDefault) != KERN_SUCCESS)
     {
-      WARNING("thread_policy_get failed");
+      OIDN_WARNING("thread_policy_get failed");
       oldAffinities[threadIndex] = affinities[threadIndex];
       return;
     }
 
     // Set the new affinity
     if (thread_policy_set(thread, THREAD_AFFINITY_POLICY, (thread_policy_t)&affinities[threadIndex], THREAD_AFFINITY_POLICY_COUNT) != KERN_SUCCESS)
-      WARNING("thread_policy_set failed");
+      OIDN_WARNING("thread_policy_set failed");
   }
 
   void ThreadAffinity::restore(int threadIndex)
@@ -286,7 +286,7 @@ namespace oidn {
 
     // Restore the original affinity
     if (thread_policy_set(thread, THREAD_AFFINITY_POLICY, (thread_policy_t)&oldAffinities[threadIndex], THREAD_AFFINITY_POLICY_COUNT) != KERN_SUCCESS)
-      WARNING("thread_policy_set failed");
+      OIDN_WARNING("thread_policy_set failed");
   }
 
 #endif
