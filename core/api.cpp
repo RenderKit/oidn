@@ -286,6 +286,8 @@ namespace oidn {
       checkHandle(hBuffer);
       OIDN_LOCK(filter);
       Ref<Buffer> buffer = (Buffer*)hBuffer;
+      if (buffer->getDevice() != filter->getDevice())
+        throw Exception(Error::InvalidArgument, "the specified objects are bound to different devices");
       Image data(buffer, (Format)format, (int)width, (int)height, byteOffset, byteItemStride, byteRowStride);
       filter->setImage(name, data);
     OIDN_CATCH(filter)
