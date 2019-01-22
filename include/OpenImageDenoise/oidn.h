@@ -54,7 +54,7 @@ typedef enum
   OIDN_ERROR_INVALID_ARGUMENT     = 2, // an invalid argument was specified
   OIDN_ERROR_INVALID_OPERATION    = 3, // the operation is not allowed
   OIDN_ERROR_OUT_OF_MEMORY        = 4, // not enough memory to execute the operation
-  OIDN_ERROR_UNSUPPORTED_HARDWARE = 5, // the hardware (e.g., CPU) is not supported
+  OIDN_ERROR_UNSUPPORTED_HARDWARE = 5, // the hardware (e.g. CPU) is not supported
 } OIDNError;
 
 // Error callback function
@@ -81,20 +81,20 @@ OIDN_API void oidnSetDevice1i(OIDNDevice device, const char* name, int value);
 // Gets a boolean parameter of the device.
 OIDN_API bool oidnGetDevice1b(OIDNDevice device, const char* name);
 
-// Gets an integer parameter of the device (e.g., "version").
+// Gets an integer parameter of the device (e.g. "version").
 OIDN_API int oidnGetDevice1i(OIDNDevice device, const char* name);
 
 // Sets the error callback function of the device.
 OIDN_API void oidnSetDeviceErrorFunction(OIDNDevice device, OIDNErrorFunction func, void* userPtr);
 
 // Returns the first unqueried error code stored for the device, optionally
-// also returning a string message (if not null), and clears the stored error.
-// If the device is null (e.g., the device creation failed), a thread-local
+// also returning a string message (if not NULL), and clears the stored error.
+// If the device is NULL (e.g. the device creation failed), a thread-local
 // error will be returned.
 OIDN_API OIDNError oidnGetDeviceError(OIDNDevice device, const char** outMessage);
 
 // Commits all previous changes to the device.
-// Must be called before first using the device (e.g., creating filters).
+// Must be called before first using the device (e.g. creating filters).
 OIDN_API void oidnCommitDevice(OIDNDevice device);
 
 // ----------------------------------------------------------------------------
@@ -152,7 +152,7 @@ OIDN_API void oidnReleaseBuffer(OIDNBuffer buffer);
 // Filter handle
 typedef struct OIDNFilterImpl* OIDNFilter;
 
-// Creates a new filter of the specified type (e.g., "RT").
+// Creates a new filter of the specified type (e.g. "RT").
 OIDN_API OIDNFilter oidnNewFilter(OIDNDevice device, const char* type);
 
 // Retains the filter (increments the reference count).

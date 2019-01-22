@@ -274,7 +274,7 @@ namespace oidn {
     InvalidArgument     = OIDN_ERROR_INVALID_ARGUMENT,     // an invalid argument was specified
     InvalidOperation    = OIDN_ERROR_INVALID_OPERATION,    // the operation is not allowed
     OutOfMemory         = OIDN_ERROR_OUT_OF_MEMORY,        // not enough memory to execute the operation
-    UnsupportedHardware = OIDN_ERROR_UNSUPPORTED_HARDWARE, // the hardware (e.g., CPU) is not supported
+    UnsupportedHardware = OIDN_ERROR_UNSUPPORTED_HARDWARE, // the hardware (e.g. CPU) is not supported
   };
 
   // Error callback function
@@ -376,7 +376,7 @@ namespace oidn {
     }
 
     // Commits all previous changes to the device.
-    // Must be called before first using the device (e.g., creating filters).
+    // Must be called before first using the device (e.g. creating filters).
     void commit()
     {
       oidnCommitDevice(handle);
@@ -394,7 +394,7 @@ namespace oidn {
       return oidnNewSharedBuffer(handle, ptr, byteSize);
     }
 
-    // Creates a new filter of the specified type.
+    // Creates a new filter of the specified type (e.g. "RT").
     FilterRef newFilter(const char* type)
     {
       return oidnNewFilter(handle, type);
@@ -408,7 +408,7 @@ namespace oidn {
     return oidnGetDevice1b(handle, name);
   }
 
-  // Gets an integer parameter of the device (e.g., "version").
+  // Gets an integer parameter of the device (e.g. "version").
   template<>
   inline int DeviceRef::get(const char* name)
   {
