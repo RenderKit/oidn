@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
     Tensor color, albedo, normal;
     Tensor ref;
 
-    cout << "Loading input"; cout.flush();
+    cout << "Loading input" << flush;
 
     color = loadImagePFM(colorFilename);
     if (!albedoFilename.empty())
@@ -124,7 +124,7 @@ int main(int argc, char* argv[])
     Tensor output({H, W, 3}, "hwc");
 
     // Initialize the denoising filter
-    cout << "Initializing"; cout.flush();
+    cout << "Initializing" << flush;
     Timer timer;
 
     oidn::DeviceRef device = oidn::newDevice();
@@ -164,7 +164,7 @@ int main(int argc, char* argv[])
          << ", msec=" << (1000. * initTime) << endl;
 
     // Denoise the image
-    cout << "Denoising"; cout.flush();
+    cout << "Denoising" << flush;
     timer.reset();
 
     filter.execute();
@@ -201,7 +201,7 @@ int main(int argc, char* argv[])
       cout << "Verified output: nfloats=" << output.size() << ", nerr=" << nerr << ", maxre=" << maxre << endl;
 
       // Save debug images
-      cout << "Saving debug images"; cout.flush();
+      cout << "Saving debug images" << flush;
       saveImagePPM(color,  "denoise.in.ppm");
       saveImagePPM(output, "denoise.out.ppm");
       saveImagePPM(ref,    "denoise.ref.ppm");
@@ -211,7 +211,7 @@ int main(int argc, char* argv[])
     if (!outputFilename.empty())
     {
       // Save output image
-      cout << "Saving output"; cout.flush();
+      cout << "Saving output" << flush;
       saveImagePFM(output, outputFilename);
       cout << endl;
     }
@@ -223,7 +223,7 @@ int main(int argc, char* argv[])
       __itt_resume();
     #endif
 
-      cout << "Benchmarking: " << "ntimes=" << numBenchmarkRuns; cout.flush();
+      cout << "Benchmarking: " << "ntimes=" << numBenchmarkRuns << flush;
       timer.reset();
 
       for (int i = 0; i < numBenchmarkRuns; ++i)
