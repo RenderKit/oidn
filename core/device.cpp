@@ -122,15 +122,19 @@ namespace oidn {
 
     // Get the optimal thread affinities
     if (setAffinity)
+    {
       affinity = std::make_shared<ThreadAffinity>(1); // one thread per core
+      if (affinity->getNumThreads() == 0)
+        affinity.reset();
+    }
 
     // Create the task arena
-    const int maxNumThreads = setAffinity ? affinity->getNumThreads() : tbb::this_task_arena::max_concurrency();
+    const int maxNumThreads = affinity ? affinity->getNumThreads() : tbb::this_task_arena::max_concurrency();
     numThreads = (numThreads > 0) ? min(numThreads, maxNumThreads) : maxNumThreads;
     arena = std::make_shared<tbb::task_arena>(numThreads);
 
     // Automatically set the thread affinities
-    if (setAffinity)
+    if (affinity)
       observer = std::make_shared<PinningObserver>(affinity, *arena);
   }
 

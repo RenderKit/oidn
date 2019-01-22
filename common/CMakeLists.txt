@@ -20,6 +20,8 @@ add_library(common STATIC
   ref.h
   barrier.h
   timer.h
+  thread.h
+  thread.cpp
   tasking.h
   tasking.cpp
   tensor.h

@@ -16,10 +16,7 @@
 
 #pragma once
 
-#include "platform.h"
-#if defined(__APPLE__)
-  #include <mach/thread_policy.h>
-#endif
+#include "thread.h"
 
 // We need to define these to avoid implicit linkage against
 // tbb_debug.lib under Windows. When removing these lines debug build
@@ -36,109 +33,7 @@
 #include "tbb/blocked_range.h"
 #include "tbb/blocked_range2d.h"
 
-#include <vector>
-
 namespace oidn {
-
-#if defined(_WIN32)
-
-  // --------------------------------------------------------------------------
-  // ThreadAffinity - Windows
-  // --------------------------------------------------------------------------
-
-  class ThreadAffinity
-  {
-  private:
-    typedef BOOL (WINAPI *GetLogicalProcessorInformationExFunc)(LOGICAL_PROCESSOR_RELATIONSHIP,
-                                                                PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX,
-                                                                PDWORD);
-
-    typedef BOOL (WINAPI *SetThreadGroupAffinityFunc)(HANDLE,
-                                                      CONST GROUP_AFFINITY*,
-                                                      PGROUP_AFFINITY);
-
-    GetLogicalProcessorInformationExFunc pGetLogicalProcessorInformationEx = nullptr;
-    SetThreadGroupAffinityFunc pSetThreadGroupAffinity = nullptr;
-
-    std::vector<GROUP_AFFINITY> affinities;    // thread affinities
-    std::vector<GROUP_AFFINITY> oldAffinities; // original thread affinities
-
-  public:
-    ThreadAffinity(int numThreadsPerCore = INT_MAX);
-
-    int getNumThreads() const
-    {
-      if (affinities.empty())
-        return tbb::this_task_arena::max_concurrency();
-      return (int)affinities.size();
-    }
-
-    // Sets the affinity (0..numThreads-1) of the thread after saving the current affinity
-    void set(int threadIndex);
-
-    // Restores the affinity of the thread
-    void restore(int threadIndex);
-  };
-
-#elif defined(__linux__)
-
-  // --------------------------------------------------------------------------
-  // ThreadAffinity - Linux
-  // --------------------------------------------------------------------------
-
-  class ThreadAffinity
-  {
-  private:
-    std::vector<cpu_set_t> affinities;    // thread affinities
-    std::vector<cpu_set_t> oldAffinities; // original thread affinities
-
-  public:
-    ThreadAffinity(int numThreadsPerCore = INT_MAX);
-
-    int getNumThreads() const
-    {
-      if (affinities.empty())
-        return tbb::this_task_arena::max_concurrency();
-      return (int)affinities.size();
-    }
-
-    // Sets the affinity (0..numThreads-1) of the thread after saving the current affinity
-    void set(int threadIndex);
-
-    // Restores the affinity of the thread
-    void restore(int threadIndex);
-  };
-
-#elif defined(__APPLE__)
-
-  // --------------------------------------------------------------------------
-  // ThreadAffinity - macOS
-  // --------------------------------------------------------------------------
-
-  class ThreadAffinity
-  {
-  private:
-    std::vector<thread_affinity_policy> affinities;    // thread affinities
-    std::vector<thread_affinity_policy> oldAffinities; // original thread affinities
-
-  public:
-    ThreadAffinity(int numThreadsPerCore = INT_MAX);
-
-    int getNumThreads() const
-    {
-      if (affinities.empty())
-        return tbb::this_task_arena::max_concurrency();
-      return (int)affinities.size();
-    }
-
-    // Sets the affinity (0..numThreads-1) of the thread after saving the current affinity
-    void set(int threadIndex);
-
-    // Restores the affinity of the thread
-    void restore(int threadIndex);
-  };
-
-#endif
 
   // --------------------------------------------------------------------------
   // PinningObserver
