@@ -58,7 +58,7 @@ typedef enum
 } OIDNError;
 
 // Error callback function
-typedef void (*OIDNErrorFunction)(void* userPtr, OIDNError error, const char* message);
+typedef void (*OIDNErrorFunction)(void* userPtr, OIDNError code, const char* message);
 
 // Device handle
 typedef struct OIDNDeviceImpl* OIDNDevice;

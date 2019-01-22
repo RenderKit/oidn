@@ -278,7 +278,7 @@ namespace oidn {
   };
 
   // Error callback function
-  typedef void (*ErrorFunction)(void* userPtr, Error error, const char* message);
+  typedef void (*ErrorFunction)(void* userPtr, Error code, const char* message);
 
   // Device object with automatic reference counting
   class DeviceRef
