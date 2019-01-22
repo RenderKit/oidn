@@ -25,6 +25,7 @@
 
 #include "common/ref.h"
 #include "common/exception.h"
+#include "common/thread.h"
 #include "common/tasking.h"
 #include "math.h"
 

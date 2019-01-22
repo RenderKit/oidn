@@ -27,10 +27,14 @@ namespace oidn {
   {
   private:
     // Error handling
-    static thread_local Error threadError;
-    static thread_local std::string threadErrorMessage;
-    Error error = Error::None;
-    std::string errorMessage;
+    struct ErrorState
+    {
+      Error code = Error::None;
+      std::string message;
+    };
+
+    static thread_local ErrorState globalError;
+    ThreadLocal<ErrorState> error;
     ErrorFunction errorFunc = nullptr;
     void* errorUserPtr = nullptr;
 
@@ -47,8 +51,8 @@ namespace oidn {
     Device();
     ~Device();
 
-    static void setError(Device* device, Error error, const std::string& errorMessage);
-    static Error getError(Device* device, const char** errorMessage);
+    static void setError(Device* device, Error code, const std::string& message);
+    static Error getError(Device* device, const char** outMessage);
 
     void setErrorFunction(ErrorFunction func, void* userPtr);
 

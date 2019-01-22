@@ -66,7 +66,8 @@
 // Error handling and debugging
 // ----------------------------------------------------------------------------
 
-#define WARNING(x) { std::cerr << "Warning: " << x << std::endl << std::flush; }
+#define WARNING(message) { std::cerr << "Warning: " << message << std::endl << std::flush; }
+#define FATAL(message)   throw std::runtime_error(message);
 
 // ----------------------------------------------------------------------------
 // Common functions

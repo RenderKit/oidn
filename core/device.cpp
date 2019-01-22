@@ -19,8 +19,7 @@
 
 namespace oidn {
 
-  thread_local Error Device::threadError = Error::None;
-  thread_local std::string Device::threadErrorMessage;
+  thread_local Device::ErrorState Device::globalError;
 
   Device::Device()
   {
@@ -33,30 +32,32 @@ namespace oidn {
     observer.reset();
   }
 
-  void Device::setError(Device* device, Error error, const std::string& errorMessage)
+  void Device::setError(Device* device, Error code, const std::string& message)
   {
     // Update the stored error only if the previous error was queried
     if (device)
     {
-      if (device->error == Error::None)
+      ErrorState& curError = device->error.get();
+
+      if (curError.code == Error::None)
       {
-        device->error = error;
-        device->errorMessage = errorMessage;
+        curError.code = code;
+        curError.message = message;
       }
 
       // Call the error callback function
       if (device->errorFunc)
       {
         device->errorFunc(device->errorUserPtr,
-                          error, (error == Error::None) ? nullptr : device->errorMessage.c_str());
+                          code, (code == Error::None) ? nullptr : message.c_str());
       }
     }
     else
     {
-      if (threadError == Error::None)
+      if (globalError.code == Error::None)
       {
-        threadError = error;
-        threadErrorMessage = errorMessage;
+        globalError.code = code;
+        globalError.message = message;
       }
     }
   }
@@ -67,19 +68,20 @@ namespace oidn {
     // remain valid until the next getError call
     if (device)
     {
-      const Error error = device->error;
+      ErrorState& curError = device->error.get();
+      const Error code = curError.code;
       if (outMessage)
-        *outMessage = (error == Error::None) ? nullptr : device->errorMessage.c_str();
-      device->error = Error::None;
-      return error;
+        *outMessage = (code == Error::None) ? nullptr : curError.message.c_str();
+      curError.code = Error::None;
+      return code;
     }
     else
     {
-      const Error error = threadError;
+      const Error code = globalError.code;
       if (outMessage)
-        *outMessage = (error == Error::None) ? nullptr : threadErrorMessage.c_str();
-      threadError = Error::None;
-      return error;
+        *outMessage = (code == Error::None) ? nullptr : globalError.message.c_str();
+      globalError.code = Error::None;
+      return code;
     }
   }
 

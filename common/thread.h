@@ -17,13 +17,92 @@
 #pragma once
 
 #include "platform.h"
-#if defined(__APPLE__)
-  #include <mach/thread_policy.h>
+
+#if !defined(_WIN32)
+  #include <pthread.h>
+  #include <sched.h>
+  #if defined(__APPLE__)
+    #include <mach/thread_policy.h>
+  #endif
 #endif
 
 #include <vector>
+#include <mutex>
 
 namespace oidn {
+
+  // --------------------------------------------------------------------------
+  // ThreadLocal
+  // --------------------------------------------------------------------------
+
+  // Wrapper which makes any variable thread-local
+  template<typename T>
+  class ThreadLocal
+  {
+  private:
+  #if defined(_WIN32)
+    DWORD key;
+  #else
+    pthread_key_t key;
+  #endif
+
+    std::vector<T*> instances;
+    std::mutex mutex;
+
+  public:
+    ThreadLocal()
+    {
+    #if defined(_WIN32)
+      key = TlsAlloc();
+      if (key == TLS_OUT_OF_INDEXES)
+        FATAL("TlsAlloc failed");
+    #else
+      if (pthread_key_create(&key, nullptr) != 0)
+        FATAL("pthread_key_create failed");
+    #endif
+    }
+
+    ~ThreadLocal()
+    {
+      std::lock_guard<std::mutex> lock(mutex);
+      for (T* ptr : instances)
+        delete ptr;
+
+    #if defined(_WIN32)
+      if (!TlsFree(key))
+        WARNING("TlsFree failed");
+    #else
+      if (pthread_key_delete(key) != 0)
+        WARNING("pthread_key_delete failed");
+    #endif
+    }
+
+    T& get()
+    {
+    #if defined(_WIN32)
+      T* ptr = (T*)TlsGetValue(key);
+    #else
+      T* ptr = (T*)pthread_getspecific(key);
+    #endif
+
+      if (ptr)
+        return *ptr;
+
+      ptr = new T;
+      std::lock_guard<std::mutex> lock(mutex);
+      instances.push_back(ptr);
+
+    #if defined(_WIN32)
+      if (!TlsSetValue(key, ptr))
+        FATAL("TlsSetValue failed");
+    #else
+      if (pthread_setspecific(key, ptr) != 0)
+        FATAL("pthread_setspecific failed");
+    #endif
+
+      return *ptr;
+    }
+  };
 
 #if defined(_WIN32)
 

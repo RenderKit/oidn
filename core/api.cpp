@@ -21,8 +21,8 @@
 #endif
 
 #define OIDN_TRY \
-  std::lock_guard<std::mutex> apiLock(apiMutex); \
-  try {
+  try { \
+    std::lock_guard<std::mutex> apiLock(apiMutex);
 
 #define OIDN_CATCH(obj) \
   } catch (Exception& e) {                                                                          \
