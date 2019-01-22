@@ -166,14 +166,16 @@ OIDN_API void oidnReleaseFilter(OIDNFilter filter);
 OIDN_API void oidnSetFilterImage(OIDNFilter filter, const char* name,
                                  OIDNBuffer buffer, OIDNFormat format,
                                  size_t width, size_t height,
-                                 size_t byteOffset, size_t byteItemStride, size_t byteRowStride);
+                                 size_t byteOffset,
+                                 size_t byteItemStride, size_t byteRowStride);
 
 // Sets an image parameter of the filter (owned by the user).
 // If byteItemStride and/or byteRowStride are zero, these will be computed automatically.
 OIDN_API void oidnSetSharedFilterImage(OIDNFilter filter, const char* name,
                                        void* ptr, OIDNFormat format,
                                        size_t width, size_t height,
-                                       size_t byteOffset, size_t byteItemStride, size_t byteRowStride);
+                                       size_t byteOffset,
+                                       size_t byteItemStride, size_t byteRowStride);
 
 // Sets a boolean parameter of the filter.
 OIDN_API void oidnSetFilter1b(OIDNFilter filter, const char* name, bool value);

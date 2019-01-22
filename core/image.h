@@ -62,7 +62,7 @@ namespace oidn {
       if (byteRowStride != 0)
       {
         if (byteRowStride % this->byteItemStride != 0)
-          throw Exception(Error::InvalidArgument, "the row stride must be a multiple of the item stride");
+          throw Exception(Error::InvalidArgument, "the row stride must be an integer multiple of the item stride");
         this->rowStride = byteRowStride / this->byteItemStride;
       }
       else

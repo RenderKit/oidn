@@ -278,7 +278,8 @@ namespace oidn {
   OIDN_API void oidnSetFilterImage(OIDNFilter hFilter, const char* name,
                                    OIDNBuffer hBuffer, OIDNFormat format,
                                    size_t width, size_t height,
-                                   size_t byteOffset, size_t byteItemStride, size_t byteRowStride)
+                                   size_t byteOffset,
+                                   size_t byteItemStride, size_t byteRowStride)
   {
     Filter* filter = (Filter*)hFilter;
     OIDN_TRY
@@ -296,7 +297,8 @@ namespace oidn {
   OIDN_API void oidnSetSharedFilterImage(OIDNFilter hFilter, const char* name,
                                          void* ptr, OIDNFormat format,
                                          size_t width, size_t height,
-                                         size_t byteOffset, size_t byteItemStride, size_t byteRowStride)
+                                         size_t byteOffset,
+                                         size_t byteItemStride, size_t byteRowStride)
   {
     Filter* filter = (Filter*)hFilter;
     OIDN_TRY
