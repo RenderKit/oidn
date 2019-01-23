@@ -109,9 +109,9 @@ namespace oidn {
 
     // Maps a region of the buffer to host memory.
     // If byteSize is 0, the maximum available amount of memory will be mapped.
-    void map(Access access = Access::ReadWrite, size_t byteOffset = 0, size_t byteSize = 0)
+    void* map(Access access = Access::ReadWrite, size_t byteOffset = 0, size_t byteSize = 0)
     {
-      oidnMapBuffer(handle, (OIDNAccess)access, byteOffset, byteSize);
+      return oidnMapBuffer(handle, (OIDNAccess)access, byteOffset, byteSize);
     }
 
     // Unmaps a region of the buffer.
