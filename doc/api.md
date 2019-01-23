@@ -335,10 +335,11 @@ argument), the width and height of the image in number of pixels (`width` and
 `height` arguments), the starting offset of the image data (`byteOffset`
 argument), the pixel stride (`byteItemStride` argument) and the row stride
 (`byteRowStride` argument), in number of bytes. Note that the row stride must
-be an integer multiple of the pixel stride. If the pixels and/or rows are
-stored contiguously (tightly packed without any gaps), you can set
-`byteItemStride` and/or `byteRowStride` to `0` to let the library compute the
-actual strides automatically, as a convenience.
+be an integer multiple of the pixel stride.
+
+If the pixels and/or rows are stored contiguously (tightly packed without any
+gaps), you can set `byteItemStride` and/or `byteRowStride` to `0` to let the
+library compute the actual strides automatically, as a convenience.
 
 Filters may have parameters other than buffers as well, which you can set and
 get using the following functions:
