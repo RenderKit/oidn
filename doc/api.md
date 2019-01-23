@@ -12,11 +12,12 @@ can be released by calling the appropriate release function (e.g.
 `oidnReleaseDevice`) or retained by incrementing the reference count (e.g.
 `oidnRetainDevice`).
 
-An important aspect of setting object parameters is that parameters do not get
-passed to objects immediately. Instead, parameters are not visible at all to
-objects until they get explicitly committed to a given object. The commit
-semantic allows for batching up multiple small changes, and specifies exactly
-when changes to objects will occur.
+An important aspect of objects is that setting their parameters do not have
+an immediate effect (with a few exceptions). Instead, objects with updated
+parameters are in an unusable state until the parameters get explicitly
+committed to a given object. The commit semantic allows for batching up
+multiple small changes, and specifies exactly when changes to objects will
+occur.
 
 All API calls are thread-safe, but operations that use the same device will be
 serialized, so API calls from multiple threads should be usually avoided.
@@ -357,7 +358,7 @@ commmited by calling
 The parameters can be updated after committing the filter, but it must be
 re-committed for the changes to take effect.
 
-Finally, the filter can be executed for an image with
+Finally, an image can be filtered by executing the filter with
 
     void oidnExecuteFilter(OIDNFilter filter);
 
