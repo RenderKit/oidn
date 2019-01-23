@@ -30,29 +30,15 @@ namespace oidn {
   void AutoencoderFilter::setImage(const std::string& name, const Image& data)
   {
     if (name == "color")
-    {
-      if (data.format != Format::Float3)
-        throw Exception(Error::InvalidOperation, "unsupported image format");
       color = data;
-    }
     else if (name == "albedo")
-    {
-      if (data.format != Format::Float3)
-        throw Exception(Error::InvalidOperation, "unsupported image format");
       albedo = data;
-    }
     else if (name == "normal")
-    {
-      if (data.format != Format::Float3)
-        throw Exception(Error::InvalidOperation, "unsupported image format");
       normal = data;
-    }
     else if (name == "output")
-    {
-      if (data.format != Format::Float3)
-        throw Exception(Error::InvalidOperation, "unsupported image format");
       output = data;
-    }
+
+    dirty = true;
   }
 
   void AutoencoderFilter::set1i(const std::string& name, int value)
@@ -61,6 +47,8 @@ namespace oidn {
       hdr = value;
     else if (name == "srgb")
       srgb = value;
+
+    dirty = true;
   }
 
   int AutoencoderFilter::get1i(const std::string& name)
@@ -75,6 +63,9 @@ namespace oidn {
 
   void AutoencoderFilter::commit()
   {
+    if (!dirty)
+      return;
+
     device->executeTask([&]()
     {
       if (mayiuse(avx512_common))
@@ -82,12 +73,14 @@ namespace oidn {
       else
         net = buildNet<8>();
     });
+
+    dirty = false;
   }
 
   void AutoencoderFilter::execute()
   {
-    if (!isCommitted())
-      throw Exception(Error::InvalidOperation, "the filter is not committed");
+    if (dirty)
+      throw Exception(Error::InvalidOperation, "changes to the filter are not committed");
 
     device->executeTask([&]()
     {
@@ -139,9 +132,16 @@ namespace oidn {
 
     if (!output)
       throw Exception(Error::InvalidOperation, "output image not specified");
-    if ((albedo && (albedo.width != width || albedo.height != height)) ||
-        (normal && (normal.width != width || normal.height != height)) ||
-        (output.width != width || output.height != height))
+
+    if ((color.format != Format::Float3)
+        || (albedo && albedo.format != Format::Float3)
+        || (normal && normal.format != Format::Float3)
+        || (output.format != Format::Float3))
+      throw Exception(Error::InvalidOperation, "unsupported image format");
+
+    if ((albedo && (albedo.width != width || albedo.height != height))
+        || (normal && (normal.width != width || normal.height != height))
+        || (output.width != width || output.height != height))
       throw Exception(Error::InvalidOperation, "image size mismatch");
 
     // Parse the weights

@@ -50,6 +50,8 @@ namespace oidn {
     int numThreads = 0; // autodetect by default
     bool setAffinity = true;
 
+    bool dirty = true;
+
   public:
     Device();
     ~Device();
@@ -85,7 +87,6 @@ namespace oidn {
 
   private:
     bool isCommitted() const { return bool(arena); }
-
     void checkCommitted();
   };
 

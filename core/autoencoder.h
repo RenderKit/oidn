@@ -39,6 +39,8 @@ namespace oidn {
     std::shared_ptr<Node> net;
     std::shared_ptr<TransferFunc> transferFunc;
 
+    bool dirty = true;
+
   protected:
     struct
     {

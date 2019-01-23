@@ -121,6 +121,8 @@ namespace oidn {
       numThreads = value;
     else if (name == "setAffinity")
       setAffinity = value;
+
+    dirty = true;
   }
 
   void Device::commit()
@@ -144,12 +146,14 @@ namespace oidn {
     // Automatically set the thread affinities
     if (affinity)
       observer = std::make_shared<PinningObserver>(affinity, *arena);
+
+    dirty = false;
   }
 
   void Device::checkCommitted()
   {
-    if (!isCommitted())
-      throw Exception(Error::InvalidOperation, "the device is not committed");
+    if (dirty)
+      throw Exception(Error::InvalidOperation, "changes to the device are not committed");
   }
 
   Ref<Buffer> Device::newBuffer(size_t byteSize)
