@@ -120,7 +120,7 @@ const int version      combined version number (major.minor.patch) with two deci
 const int versionMajor major version number
 const int versionMinor minor version number
 const int versionPatch patch version number
------- ------------ -----------------------------------------------------------
+--------- ------------ --------------------------------------------------------
 : Parameters supported by all devices.
 
 Type   Name         Description
@@ -210,7 +210,7 @@ OIDN_ERROR_INVALID_OPERATION    the operation is not allowed
 OIDN_ERROR_OUT_OF_MEMORY        not enough memory to execute the operation
 
 OIDN_ERROR_UNSUPPORTED_HARDWARE the hardware (e.g., CPU) is not supported
----------------------- --------------------------------------------------------
+------------------------------- ------------------------------------------------
 : Possible error codes, i.e., valid constants of type `OIDNError`.
 
 
@@ -364,4 +364,47 @@ Finally, an image can be filtered by executing the filter with
 
 which will read the input image data from the specified buffers and produce the
 denoised output image.
+
+In the following we describe the different filters that are currently
+implemented in Open Image Denoise.
+
+### RT
+
+The `RT` (**r**ay **t**racing) filter is a generic ray tracing denoising filter
+which is suitable for denoising images rendered with Monte Carlo ray tracing
+methods like path tracing. The `RT` filter is based on a deep learning based
+denoising algorithm, and it aims to provide a good balance between denoising
+performance and quality.
+
+It accepts either a low dynamic range (LDR) or high dynamic
+range (HDR) color buffer as input. Optionally, it also accepts certain
+auxiliary features buffers, e.g. albedo and normal, which improve the denoising
+quality, preserving more details in the image.
+
+The filter can be created by passing `"RT"` to the `oidnNewFilter` function
+as the filter type. The filter supports the following parameters:
+
+------- -------- ----------- -------- -----------------------------------------
+Type    Format   Name         Default Description
+------- -------- ----------- -------- -----------------------------------------
+Image   float3   color                color buffer to denoise
+
+Image   float3   albedo               albedo buffer; optional
+
+Image   float3   normal               normal buffer (world-space); optional,
+                                      requires setting the albedo buffer too
+
+Image   float3   output               denoised output buffer; can be one of the
+                                      input buffers
+
+bool             hdr            false whether the color is HDR
+
+bool             srgb           false whether the color is encoded with the
+                                      sRGB (2.2 gamma) curve or is linear;
+                                      the output will be encoded with the same
+                                      curve
+------- -------- ----------- -------- -----------------------------------------
+: Parameters supported by the `RT` filter.
+
+All image buffers must have the same dimensions.
 
