@@ -20,7 +20,7 @@ multiple small changes, and specifies exactly when changes to objects will
 occur.
 
 All API calls are thread-safe, but operations that use the same device will be
-serialized, so API calls from multiple threads should be usually avoided.
+serialized, so the amount of API calls from different threads should be minimized.
 
 To have a quick overview of the C99 and C++11 APIs, see the following
 simple example code snippets.
@@ -327,7 +327,7 @@ To bind image buffers to the filter, you can use one of the following functions:
                                   size_t byteItemStride, size_t byteRowStride);
 
 It is possible to specify either a data buffer object (`buffer` argument) with
-the `oidnSetFilterImage` function or directly a pointer to shared user-managed
+the `oidnSetFilterImage` function, or directly a pointer to shared user-managed
 data (`ptr` argument) with the `oidnSetSharedFilterImage` function.
 
 In both cases, you must also specify the name of the image parameter to set
@@ -351,7 +351,7 @@ get using the following functions:
     int  oidnGetFilter1i(OIDNFilter filter, const char* name);
 
 After setting all necessary parameters for the filter, the changes must be
-commmited by calling
+commmitted by calling
 
     void oidnCommitFilter(OIDNFilter filter);
 
