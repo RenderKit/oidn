@@ -16,6 +16,7 @@
 
 add_library(common STATIC
   platform.h
+  platform.cpp
   exception.h
   ref.h
   barrier.h

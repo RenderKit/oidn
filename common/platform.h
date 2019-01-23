@@ -84,6 +84,9 @@ namespace oidn {
     return min(max(value, minValue), maxValue);
   }
 
+  void* alignedMalloc(size_t size, size_t alignment);
+  void alignedFree(void* ptr);
+
 #if defined(__APPLE__)
   template<typename T>
   bool getSysctl(const char* name, T& value)

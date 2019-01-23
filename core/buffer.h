@@ -34,7 +34,7 @@ namespace oidn {
 
   public:
     __forceinline Buffer(const Ref<Device>& device, size_t size)
-      : ptr(new char[size]),
+      : ptr((char*)alignedMalloc(size, 64)),
         byteSize(size),
         shared(false),
         device(device) {}
@@ -52,7 +52,7 @@ namespace oidn {
     __forceinline ~Buffer()
     {
       if (!shared)
-        delete[] ptr;
+        alignedFree(ptr);
     }
 
     __forceinline char* data() { return ptr; }
