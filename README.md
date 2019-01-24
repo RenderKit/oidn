@@ -1,12 +1,10 @@
-Open Image Denoise
-==================
+# Open Image Denoise
 
 This is release v0.8.0 (devel) of Open Image Denoise. For changes and
 new features see the [changelog](CHANGELOG.md). Visit
 http://www.openimagedenoise.org for more information.
 
-Open Image Denoise Overview
-===========================
+# Open Image Denoise Overview
 
 Intel® Open Image Denoise is a collection of high-performance,
 high-quality denoising filters for images rendered with ray tracing.
@@ -34,8 +32,7 @@ instruction sets like Intel SSE4, AVX2, and AVX-512 to achieve high
 denoising performance, thus a CPU with support for at least SSE4.2 is
 required to run Open Image Denoise.
 
-Support and Contact
--------------------
+## Support and Contact
 
 Open Image Denoise is under active development, and though we do our
 best to guarantee stable release versions a certain number of bugs,
@@ -45,7 +42,7 @@ via the [Open Image Denoise GitHub Issue
 Tracker](https://github.com/OpenImageDenoise/oidn/issues) (or, if you
 should happen to have a fix for it, you can also send us a pull
 request); for missing features please contact us via email at
-<a href="mailto:openimagedenoise@googlegroups.com" class="email">openimagedenoise@googlegroups.com</a>.
+<openimagedenoise@googlegroups.com>.
 
 For recent news, updates, and announcements, please see our complete
 [news/updates](https://openimagedenoise.github.io/news.html) page.
@@ -54,31 +51,31 @@ Join our [mailing
 list](https://groups.google.com/d/forum/openimagedenoise/) to receive
 release announcements and major news regarding Open Image Denoise.
 
-Building Open Image Denoise from Source
-=======================================
+# Building Open Image Denoise from Source
 
 The latest Open Image Denoise sources are always available at the [Open
 Image Denoise GitHub
 repository](http://github.com/OpenImageDenoise/oidn). The default
 `master` branch should always point to the latest tested bugfix release.
 
-Prerequisites
--------------
+## Prerequisites
 
 Open Image Denoise currently supports Linux, Windows, and macOS. In
 addition, before you can build Open Image Denoise you need the following
 prerequisites:
 
--   You can clone the latest Open Image Denoise sources via:
-
+  - You can clone the latest Open Image Denoise sources
+        via:
+    
         git clone --recursive https://github.com/OpenImageDenoise/oidn.git
 
--   To build Open Image Denoise you need [CMake](http://www.cmake.org)
+  - To build Open Image Denoise you need [CMake](http://www.cmake.org)
     3.0 or later, a C++11 compiler (we recommend using Clang, but also
     support GCC, Microsoft Visual Studio 2015 or later, and [Intel® C++
     Compiler](https://software.intel.com/en-us/c-compilers) 17.0 or
     later), and Python 2.7 or later.
--   Additionally you require a copy of [Intel® Threading Building
+
+  - Additionally you require a copy of [Intel® Threading Building
     Blocks](https://www.threadingbuildingblocks.org/) (TBB) 2017 or
     later.
 
@@ -106,70 +103,68 @@ for [CMake](https://cmake.org/download/),
 [Python](https://www.python.org/downloads/), and
 [TBB](https://github.com/01org/tbb/releases).
 
-Compiling Open Image Denoise on Linux/macOS
--------------------------------------------
+## Compiling Open Image Denoise on Linux/macOS
 
 Assuming the above prerequisites are all fulfilled, building Open Image
 Denoise through CMake is easy:
 
--   Create a build directory, and go into it
-
+  - Create a build directory, and go into it
+    
         mkdir oidn/build
         cd oidn/build
-
+    
     (We do recommend having separate build directories for different
     configurations such as release, debug, etc.).
 
--   The compiler CMake will use by default will be whatever the `CC` and
+  - The compiler CMake will use by default will be whatever the `CC` and
     `CXX` environment variables point to. Should you want to specify a
     different compiler, run cmake manually while specifying the desired
     compiler. The default compiler on most Linux machines is `gcc`, but
     it can be pointed to `clang` instead by executing the following:
-
+    
         cmake -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang ..
-
+    
     CMake will now use Clang instead of GCC. If you are OK with using
     the default compiler on your system, then simply skip this step.
     Note that the compiler variables cannot be changed after the first
     `cmake` or `ccmake` run.
 
--   Open the CMake configuration dialog
-
+  - Open the CMake configuration dialog
+    
         ccmake ..
 
--   Make sure to properly set build mode and enable the components you
+  - Make sure to properly set build mode and enable the components you
     need, etc.; then type ’c’onfigure and ’g’enerate. When back on the
     command prompt, build it using
-
+    
         make
 
--   You should now have `libOpenImageDenoise.so` as well as a set of
+  - You should now have `libOpenImageDenoise.so` as well as a set of
     example applications.
 
-Compiling Open Image Denoise on Windows
----------------------------------------
+## Compiling Open Image Denoise on Windows
 
 On Windows using the CMake GUI (`cmake-gui.exe`) is the most convenient
 way to configure Open Image Denoise and to create the Visual Studio
 solution files:
 
--   Browse to the Open Image Denoise sources and specify a build
+  - Browse to the Open Image Denoise sources and specify a build
     directory (if it does not exist yet CMake will create it).
 
--   Click “Configure” and select as generator the Visual Studio version
+  - Click “Configure” and select as generator the Visual Studio version
     you have (Open Image Denoise needs Visual Studio 14 2015 or newer),
     for Win64 (32-bit builds are not supported), e.g., “Visual Studio 15
     2017 Win64”.
 
--   If the configuration fails because some dependencies could not be
+  - If the configuration fails because some dependencies could not be
     found then follow the instructions given in the error message, e.g.,
     set the variable `TBB_ROOT` to the folder where TBB was installed.
 
--   Optionally change the default build options, and then click
+  - Optionally change the default build options, and then click
     “Generate” to create the solution and project files in the build
     directory.
 
--   Open the generated `OpenImageDenoise.sln` in Visual Studio, select
+  - Open the generated `OpenImageDenoise.sln` in Visual Studio, select
     the build configuration and compile the project.
 
 Alternatively, Open Image Denoise can also be built without any GUI,
@@ -181,17 +176,15 @@ entirely on the console. In the Visual Studio command prompt type:
     cmake -G "Visual Studio 15 2017 Win64" [-D VARIABLE=value] ..
     cmake --build . --config Release
 
-Use `-D` to set variables for CMake, e.g., the path to TBB with
-“`-D TBB_ROOT=\path\to\tbb`”.
+Use `-D` to set variables for CMake, e.g., the path to TBB with “`-D
+TBB_ROOT=\path\to\tbb`”.
 
-Documentation
-=============
+# Documentation
 
 The following \[API documentation\]\[readme\] of Open Image Denoise can
 also be found as a \[pdf document\]\[readme\].
 
-Open Image Denoise API
-======================
+# Open Image Denoise API
 
 Open Image Denoise provides a C99 API (also compatible with C++) and a
 C++11 wrapper API as well. For simplicity, this document mostly refers
@@ -280,8 +273,7 @@ if (device.getError(errorMessage) != oidn::Error::None)
   std::cout << "Error: " << errorMessage << std::endl;
 ```
 
-Device
-------
+## Device
 
 Open Image Denoise supports a device concept, which allows different
 components of the application to use the Open Image Denoise API without
@@ -293,12 +285,15 @@ OIDNDevice oidnNewDevice(OIDNDeviceType type);
 ```
 
 where the `type` enumeration maps to a specific device implementation,
-which can be one of the following:
+which can be one of the
+following:
 
 | Name                        | Description                             |
-|:----------------------------|:----------------------------------------|
+| :-------------------------- | :-------------------------------------- |
 | OIDN\_DEVICE\_TYPE\_DEFAULT | select the approximately fastest device |
 | OIDN\_DEVICE\_TYPE\_CPU     | CPU device (requires SSE4.2 support)    |
+
+Supported device types, i.e., valid constants of type `OIDNDeviceType`.
 
 Once a device is created, you can call
 
@@ -311,19 +306,25 @@ int  oidnGetDevice1i(OIDNDevice device, const char* name);
 
 to set and get parameter values on the device. Note that some parameters
 are constants, thus trying to set them is an error. See the tables below
-for the parameters supported by devices.
+for the parameters supported by
+devices.
 
 | Type      | Name         | Description                                                                       |
-|:----------|:-------------|:----------------------------------------------------------------------------------|
+| :-------- | :----------- | :-------------------------------------------------------------------------------- |
 | const int | version      | combined version number (major.minor.patch) with two decimal digits per component |
 | const int | versionMajor | major version number                                                              |
 | const int | versionMinor | minor version number                                                              |
 | const int | versionPatch | patch version number                                                              |
 
+Parameters supported by all
+devices.
+
 | Type | Name        | Description                                                                      |
-|:-----|:------------|:---------------------------------------------------------------------------------|
+| :--- | :---------- | :------------------------------------------------------------------------------- |
 | int  | numThreads  | number of threads which Open Image Denoise should use; 0 will let it decide      |
 | bool | setAffinity | bind software threads to hardware threads if set to true; false disables binding |
+
+Additional parameters supported only by CPU devices.
 
 Note that the CPU device heavily relies on setting the thread affinities
 to achieve optimal performance, so it is highly recommended to leave
@@ -369,7 +370,8 @@ time.
 Each user thread has its own error code per device. If an error occurs
 when calling an API function, this error code is set to the occurred
 error if it stores no previous error. The currently stored error can be
-queried by the application via
+queried by the application
+via
 
 ``` cpp
 OIDNError oidnGetDeviceError(OIDNDevice device, const char** outMessage);
@@ -408,50 +410,21 @@ argument) that further describes the error. The error code is always set
 even if an error callback function is registered. It is recommended to
 always set a error callback function, to detect all errors.
 
-The following errors are currently used by Open Image Denoise:
+The following errors are currently used by Open Image
+Denoise:
 
-<table style="width:98%;">
-<caption>Possible error codes, i.e., valid constants of type <code>OIDNError</code>.</caption>
-<colgroup>
-<col style="width: 45%" />
-<col style="width: 52%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">Name</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">OIDN_ERROR_NONE</td>
-<td style="text-align: left;">no error occurred</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">OIDN_ERROR_UNKNOWN</td>
-<td style="text-align: left;">an unknown error occurred</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">OIDN_ERROR_INVALID_ARGUMENT</td>
-<td style="text-align: left;">an invalid argument was specified</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">OIDN_ERROR_INVALID_OPERATION</td>
-<td style="text-align: left;">the operation is not allowed</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">OIDN_ERROR_OUT_OF_MEMORY</td>
-<td style="text-align: left;">not enough memory to execute the operation</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">OIDN_ERROR_UNSUPPORTED_HARDWARE</td>
-<td style="text-align: left;">the hardware (e.g., CPU) is not supported</td>
-</tr>
-</tbody>
-</table>
+| Name                               | Description                                |
+| :--------------------------------- | :----------------------------------------- |
+| OIDN\_ERROR\_NONE                  | no error occurred                          |
+| OIDN\_ERROR\_UNKNOWN               | an unknown error occurred                  |
+| OIDN\_ERROR\_INVALID\_ARGUMENT     | an invalid argument was specified          |
+| OIDN\_ERROR\_INVALID\_OPERATION    | the operation is not allowed               |
+| OIDN\_ERROR\_OUT\_OF\_MEMORY       | not enough memory to execute the operation |
+| OIDN\_ERROR\_UNSUPPORTED\_HARDWARE | the hardware (e.g., CPU) is not supported  |
 
-Buffer
-------
+Possible error codes, i.e., valid constants of type `OIDNError`.
+
+## Buffer
 
 Data like images can be passed to Open Image Denoise either via pointers
 to memory allocated and managed by the user or by creating buffer
@@ -467,7 +440,8 @@ The specified number of bytes are allocated at buffer construction time
 and deallocated when the buffer is destroyed.
 
 It is also possible to create a “shared” data buffer with memory
-allocated and managed by the user with
+allocated and managed by the user
+with
 
 ``` cpp
 OIDNBuffer oidnNewSharedBuffer(OIDNDevice device, void* ptr, size_t byteSize);
@@ -488,7 +462,8 @@ void oidnReleaseBuffer(OIDNBuffer buffer);
 ```
 
 Accessing the data stored in a buffer object is possible by mapping it
-into the address space of the application using
+into the address space of the application
+using
 
 ``` cpp
 void* oidnMapBuffer(OIDNBuffer buffer, OIDNAccess access, size_t byteOffset, size_t byteSize)
@@ -503,11 +478,14 @@ is `0`, the maximum available amount of memory will be mapped. The
 table:
 
 | Name                         | Description                                                   |
-|:-----------------------------|:--------------------------------------------------------------|
+| :--------------------------- | :------------------------------------------------------------ |
 | OIDN\_ACCESS\_READ           | read-only access                                              |
 | OIDN\_ACCESS\_WRITE          | write-only access                                             |
 | OIDN\_ACCESS\_READ\_WRITE    | read and write access                                         |
 | OIDN\_ACCESS\_WRITE\_DISCARD | write-only access but the previous contents will be discarded |
+
+Access modes for mapped memory regions that can be passed to
+`oidnMapBuffer`, i.e., valid constants of type `OIDNAccess`.
 
 After accessing the mapped data in the buffer, the memory region must be
 unmapped with
@@ -526,16 +504,18 @@ Buffers store opaque data and thus have no information about the type
 and format of the data. Other objects, e.g. filters, typically require
 specifying the format of the data stored in buffers or shared via
 pointers to be able to use that data. This can be done using the
-`OIDNFormat` enumeration type:
+`OIDNFormat` enumeration
+type:
 
 | Name                       | Description                                   |
-|:---------------------------|:----------------------------------------------|
+| :------------------------- | :-------------------------------------------- |
 | OIDN\_FORMAT\_UNDEFINED    | undefined format                              |
 | OIDN\_FORMAT\_FLOAT        | 32-bit single-precision floating point scalar |
 | OIDN\_FORMAT\_FLOAT\[234\] | … and \[234\]-element vector                  |
 
-Filter
-------
+Supported data formats, i.e., valid constants of type `OIDNFormat`.
+
+## Filter
 
 Filters are the main objects in Open Image Denoise that are responsible
 for the actual denoising. The library ships with a collection of filters
@@ -644,77 +624,22 @@ The filter can be created by passing `"RT"` to the `oidnNewFilter`
 function as the filter type. The filter supports the following
 parameters:
 
-<table style="width:97%;">
-<caption>Parameters supported by the <code>RT</code> filter.</caption>
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 11%" />
-<col style="width: 14%" />
-<col style="width: 12%" />
-<col style="width: 48%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Format</th>
-<th style="text-align: left;">Name</th>
-<th style="text-align: right;">Default</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">Image</td>
-<td style="text-align: left;">float3</td>
-<td style="text-align: left;">color</td>
-<td style="text-align: right;"></td>
-<td style="text-align: left;">color buffer to denoise</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Image</td>
-<td style="text-align: left;">float3</td>
-<td style="text-align: left;">albedo</td>
-<td style="text-align: right;"></td>
-<td style="text-align: left;">albedo buffer; optional</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Image</td>
-<td style="text-align: left;">float3</td>
-<td style="text-align: left;">normal</td>
-<td style="text-align: right;"></td>
-<td style="text-align: left;">normal buffer (world-space); optional, requires setting the albedo buffer too</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Image</td>
-<td style="text-align: left;">float3</td>
-<td style="text-align: left;">output</td>
-<td style="text-align: right;"></td>
-<td style="text-align: left;">denoised output buffer; can be one of the input buffers</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">bool</td>
-<td style="text-align: left;"></td>
-<td style="text-align: left;">hdr</td>
-<td style="text-align: right;">false</td>
-<td style="text-align: left;">whether the color is HDR</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">bool</td>
-<td style="text-align: left;"></td>
-<td style="text-align: left;">srgb</td>
-<td style="text-align: right;">false</td>
-<td style="text-align: left;">whether the color is encoded with the sRGB (2.2 gamma) curve or is linear; the output will be encoded with the same curve</td>
-</tr>
-</tbody>
-</table>
+| Type  | Format | Name   | Default | Description                                                                                                               |
+| :---- | :----- | :----- | ------: | :------------------------------------------------------------------------------------------------------------------------ |
+| Image | float3 | color  |         | color buffer to denoise                                                                                                   |
+| Image | float3 | albedo |         | albedo buffer; optional                                                                                                   |
+| Image | float3 | normal |         | normal buffer (world-space); optional, requires setting the albedo buffer too                                             |
+| Image | float3 | output |         | denoised output buffer; can be one of the input buffers                                                                   |
+| bool  |        | hdr    |   false | whether the color is HDR                                                                                                  |
+| bool  |        | srgb   |   false | whether the color is encoded with the sRGB (2.2 gamma) curve or is linear; the output will be encoded with the same curve |
+
+Parameters supported by the `RT` filter.
 
 All image buffers must have the same dimensions.
 
-Examples
-========
+# Examples
 
-Denoise
--------
+## Denoise
 
 A minimal working example demonstrating how to use Open Image Denoise
 can be found at `examples/denoise.cpp`, which uses the C++11 convenience
