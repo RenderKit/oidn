@@ -219,9 +219,9 @@ Buffer
 
 Large data like images can be passed to Open Image Denoise either via pointers to
 memory allocated and managed by the user (this is the recommended, often easier
-and more efficient approach) or by creating buffer objects. To create a new data
-buffer with memory allocated and owned by the library, holding `byteSize` number
-of bytes, use
+and more efficient approach, if supported by the device) or by creating buffer
+objects (supported by all devices). To create a new data buffer with memory allocated and owned by the
+library, holding `byteSize` number of bytes, use
 
     OIDNBuffer oidnNewBuffer(OIDNDevice device, size_t byteSize);
 
@@ -379,7 +379,7 @@ performance and quality.
 
 It accepts either a low dynamic range (LDR) or high dynamic
 range (HDR) color buffer as input. Optionally, it also accepts certain
-auxiliary features buffers, e.g. albedo and normal, which improve the denoising
+auxiliary feature buffers, e.g. albedo and normal, which improve the denoising
 quality, preserving more details in the image.
 
 The filter can be created by passing `"RT"` to the `oidnNewFilter` function
