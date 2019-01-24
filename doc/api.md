@@ -217,7 +217,7 @@ OIDN_ERROR_UNSUPPORTED_HARDWARE the hardware (e.g., CPU) is not supported
 Buffer
 ------
 
-Data like images can be passed to Open Image Denoise either via pointers to
+Large data like images can be passed to Open Image Denoise either via pointers to
 memory allocated and managed by the user (this is the recommended, often easier
 and more efficient approach) or by creating buffer objects. To create a new data
 buffer with memory allocated and owned by the library, holding `byteSize` number
