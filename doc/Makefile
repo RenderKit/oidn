@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 
 webpages := $(addprefix www/, $(addsuffix .html, index news documentation gallery downloads related_projects legal))
-process_version := $(addprefix tmp/, $(addsuffix .md, getting_oidn readme_head))
+process_version := $(addprefix tmp/, $(addsuffix .md, downloads readme_head))
 tmptexfiles := $(addprefix tmp/, $(addsuffix .tex, overview changelog compilation api examples))
 images_jpg :=
 images_png :=
@@ -90,7 +90,7 @@ tmp/api_html.md: api.md tmp/links.md tmp/images_local_png.md
 www/index.html: teaser.html overview.md changelog.md
 www/news.html: news.md
 www/gallery.html: gallery.md
-www/downloads.html: tmp/getting_oidn.md compilation.md
+www/downloads.html: tmp/downloads.md compilation.md
 www/related_projects.html: related_projects.md
 www/legal.html: legal.md
 www/documentation.html: documentation.md tmp/api_html.md examples.md
