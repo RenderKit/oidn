@@ -181,8 +181,10 @@ TBB_ROOT=\path\to\tbb`”.
 
 # Documentation
 
-The following \[API documentation\]\[readme\] of Open Image Denoise can
-also be found as a \[pdf document\]\[readme\].
+The following [API
+documentation](https://github.com/OpenImageDenoise/oidn/blob/master/readme.pdf "Open Image Denoise Documentation")
+of Open Image Denoise can also be found as a [pdf
+document](https://github.com/OpenImageDenoise/oidn/blob/master/readme.pdf "Open Image Denoise Documentation").
 
 # Open Image Denoise API
 
@@ -354,8 +356,8 @@ void oidnReleaseDevice(OIDNDevice device);
 
 Note that Open Image Denoise uses reference counting for all object
 types, so this function decreases the reference count of the device, and
-if the count reaches `0` the device will automatically get deleted. It
-is also possible to increase the reference count by calling
+if the count reaches 0 the device will automatically get deleted. It is
+also possible to increase the reference count by calling
 
 ``` cpp
 void oidnRetainDevice(OIDNDevice device);

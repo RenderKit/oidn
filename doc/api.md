@@ -151,7 +151,7 @@ Before the application exits, it should release all devices by invoking
 
 Note that Open Image Denoise uses reference counting for all object types, so
 this function decreases the reference count of the device, and if the count
-reaches `0` the device will automatically get deleted. It is also possible to
+reaches 0 the device will automatically get deleted. It is also possible to
 increase the reference count by calling
 
     void oidnRetainDevice(OIDNDevice device);
