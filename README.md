@@ -429,9 +429,10 @@ Possible error codes, i.e., valid constants of type `OIDNError`.
 ## Buffer
 
 Data like images can be passed to Open Image Denoise either via pointers
-to memory allocated and managed by the user or by creating buffer
-objects. To create a new data buffer with memory allocated and owned by
-the library, holding `byteSize` number of bytes, use
+to memory allocated and managed by the user (this is the recommended,
+often easier approach) or by creating buffer objects. To create a new
+data buffer with memory allocated and owned by the library, holding
+`byteSize` number of bytes, use
 
 ``` cpp
 OIDNBuffer oidnNewBuffer(OIDNDevice device, size_t byteSize);

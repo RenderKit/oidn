@@ -218,9 +218,10 @@ Buffer
 ------
 
 Data like images can be passed to Open Image Denoise either via pointers to
-memory allocated and managed by the user or by creating buffer objects. To
-create a new data buffer with memory allocated and owned by the library,
-holding `byteSize` number of bytes, use
+memory allocated and managed by the user (this is the recommended, often easier
+and more efficient approach) or by creating buffer objects. To create a new data
+buffer with memory allocated and owned by the library, holding `byteSize` number
+of bytes, use
 
     OIDNBuffer oidnNewBuffer(OIDNDevice device, size_t byteSize);
 
