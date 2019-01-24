@@ -138,7 +138,7 @@ Denoise through CMake is easy:
         ccmake ..
 
 -   Make sure to properly set build mode and enable the components you
-    need, etc.; then type ’c’onfigure and ’g’enerate. When back on the
+    need, etc.; then type 'c'onfigure and 'g'enerate. When back on the
     command prompt, build it using
 
         make
@@ -156,17 +156,17 @@ solution files:
 -   Browse to the Open Image Denoise sources and specify a build
     directory (if it does not exist yet CMake will create it).
 
--   Click “Configure” and select as generator the Visual Studio version
+-   Click "Configure" and select as generator the Visual Studio version
     you have (Open Image Denoise needs Visual Studio 14 2015 or newer),
-    for Win64 (32-bit builds are not supported), e.g., “Visual Studio 15
-    2017 Win64”.
+    for Win64 (32-bit builds are not supported), e.g., "Visual Studio 15
+    2017 Win64".
 
 -   If the configuration fails because some dependencies could not be
     found then follow the instructions given in the error message, e.g.,
     set the variable `TBB_ROOT` to the folder where TBB was installed.
 
 -   Optionally change the default build options, and then click
-    “Generate” to create the solution and project files in the build
+    "Generate" to create the solution and project files in the build
     directory.
 
 -   Open the generated `OpenImageDenoise.sln` in Visual Studio, select
@@ -182,7 +182,7 @@ entirely on the console. In the Visual Studio command prompt type:
     cmake --build . --config Release
 
 Use `-D` to set variables for CMake, e.g., the path to TBB with
-“`-D TBB_ROOT=\path\to\tbb`”.
+"`-D TBB_ROOT=\path\to\tbb`".
 
 Documentation
 =============
@@ -295,13 +295,13 @@ OIDNDevice oidnNewDevice(OIDNDeviceType type);
 where the `type` enumeration maps to a specific device implementation,
 which can be one of the following:
 
-| Name                        | Description                             |
-|:----------------------------|:----------------------------------------|
-| OIDN\_DEVICE\_TYPE\_DEFAULT | select the approximately fastest device |
-| OIDN\_DEVICE\_TYPE\_CPU     | CPU device (requires SSE4.2 support)    |
+  Name                          Description
+  ----------------------------- -----------------------------------------
+  OIDN\_DEVICE\_TYPE\_DEFAULT   select the approximately fastest device
+  OIDN\_DEVICE\_TYPE\_CPU       CPU device (requires SSE4.2 support)
 
-: Supported device types, i.e., valid constants of type
-`OIDNDeviceType`.
+  : Supported device types, i.e., valid constants of type
+  `OIDNDeviceType`.
 
 Once a device is created, you can call
 
@@ -316,21 +316,21 @@ to set and get parameter values on the device. Note that some parameters
 are constants, thus trying to set them is an error. See the tables below
 for the parameters supported by devices.
 
-| Type      | Name         | Description                                                                       |
-|:----------|:-------------|:----------------------------------------------------------------------------------|
-| const int | version      | combined version number (major.minor.patch) with two decimal digits per component |
-| const int | versionMajor | major version number                                                              |
-| const int | versionMinor | minor version number                                                              |
-| const int | versionPatch | patch version number                                                              |
+  Type        Name           Description
+  ----------- -------------- -----------------------------------------------------------------------------------
+  const int   version        combined version number (major.minor.patch) with two decimal digits per component
+  const int   versionMajor   major version number
+  const int   versionMinor   minor version number
+  const int   versionPatch   patch version number
 
-: Parameters supported by all devices.
+  : Parameters supported by all devices.
 
-| Type | Name        | Description                                                                      |
-|:-----|:------------|:---------------------------------------------------------------------------------|
-| int  | numThreads  | number of threads which Open Image Denoise should use; 0 will let it decide      |
-| bool | setAffinity | bind software threads to hardware threads if set to true; false disables binding |
+  Type   Name          Description
+  ------ ------------- ----------------------------------------------------------------------------------
+  int    numThreads    number of threads which Open Image Denoise should use; 0 will let it decide
+  bool   setAffinity   bind software threads to hardware threads if set to true; false disables binding
 
-: Additional parameters supported only by CPU devices.
+  : Additional parameters supported only by CPU devices.
 
 Note that the CPU device heavily relies on setting the thread affinities
 to achieve optimal performance, so it is highly recommended to leave
@@ -417,47 +417,25 @@ always set a error callback function, to detect all errors.
 
 The following errors are currently used by Open Image Denoise:
 
-<table style="width:98%;">
-<caption>Possible error codes, i.e., valid constants of type <code>OIDNError</code>.</caption>
-<colgroup>
-<col style="width: 45%" />
-<col style="width: 52%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">Name</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">OIDN_ERROR_NONE</td>
-<td style="text-align: left;">no error occurred</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">OIDN_ERROR_UNKNOWN</td>
-<td style="text-align: left;">an unknown error occurred</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">OIDN_ERROR_INVALID_ARGUMENT</td>
-<td style="text-align: left;">an invalid argument was specified</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">OIDN_ERROR_INVALID_OPERATION</td>
-<td style="text-align: left;">the operation is not allowed</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">OIDN_ERROR_OUT_OF_MEMORY</td>
-<td style="text-align: left;">not enough memory to execute the operation</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">OIDN_ERROR_UNSUPPORTED_HARDWARE</td>
-<td style="text-align: left;">the hardware (e.g., CPU) is not supported</td>
-</tr>
-</tbody>
-</table>
+  --------------------------------------------------------------------------
+  Name                                 Description
+  ------------------------------------ -------------------------------------
+  OIDN\_ERROR\_NONE                    no error occurred
 
-: Possible error codes, i.e., valid constants of type `OIDNError`.
+  OIDN\_ERROR\_UNKNOWN                 an unknown error occurred
+
+  OIDN\_ERROR\_INVALID\_ARGUMENT       an invalid argument was specified
+
+  OIDN\_ERROR\_INVALID\_OPERATION      the operation is not allowed
+
+  OIDN\_ERROR\_OUT\_OF\_MEMORY         not enough memory to execute the
+                                       operation
+
+  OIDN\_ERROR\_UNSUPPORTED\_HARDWARE   the hardware (e.g., CPU) is not
+                                       supported
+  --------------------------------------------------------------------------
+
+  : Possible error codes, i.e., valid constants of type `OIDNError`.
 
 Buffer
 ------
@@ -475,7 +453,7 @@ The created buffer is bound to the specified device (`device` argument).
 The specified number of bytes are allocated at buffer construction time
 and deallocated when the buffer is destroyed.
 
-It is also possible to create a “shared” data buffer with memory
+It is also possible to create a "shared" data buffer with memory
 allocated and managed by the user with
 
 ``` {.cpp}
@@ -511,15 +489,15 @@ is `0`, the maximum available amount of memory will be mapped. The
 `access` argument must be one of the access modes in the following
 table:
 
-| Name                         | Description                                                   |
-|:-----------------------------|:--------------------------------------------------------------|
-| OIDN\_ACCESS\_READ           | read-only access                                              |
-| OIDN\_ACCESS\_WRITE          | write-only access                                             |
-| OIDN\_ACCESS\_READ\_WRITE    | read and write access                                         |
-| OIDN\_ACCESS\_WRITE\_DISCARD | write-only access but the previous contents will be discarded |
+  Name                           Description
+  ------------------------------ ---------------------------------------------------------------
+  OIDN\_ACCESS\_READ             read-only access
+  OIDN\_ACCESS\_WRITE            write-only access
+  OIDN\_ACCESS\_READ\_WRITE      read and write access
+  OIDN\_ACCESS\_WRITE\_DISCARD   write-only access but the previous contents will be discarded
 
-: Access modes for mapped memory regions that can be passed to
-`oidnMapBuffer`, i.e., valid constants of type `OIDNAccess`.
+  : Access modes for mapped memory regions that can be passed to
+  `oidnMapBuffer`, i.e., valid constants of type `OIDNAccess`.
 
 After accessing the mapped data in the buffer, the memory region must be
 unmapped with
@@ -540,13 +518,13 @@ specifying the format of the data stored in buffers or shared via
 pointers to be able to use that data. This can be done using the
 `OIDNFormat` enumeration type:
 
-| Name                       | Description                                   |
-|:---------------------------|:----------------------------------------------|
-| OIDN\_FORMAT\_UNDEFINED    | undefined format                              |
-| OIDN\_FORMAT\_FLOAT        | 32-bit single-precision floating point scalar |
-| OIDN\_FORMAT\_FLOAT\[234\] | … and \[234\]-element vector                  |
+  Name                         Description
+  ---------------------------- -----------------------------------------------
+  OIDN\_FORMAT\_UNDEFINED      undefined format
+  OIDN\_FORMAT\_FLOAT          32-bit single-precision floating point scalar
+  OIDN\_FORMAT\_FLOAT\[234\]   ... and \[234\]-element vector
 
-: Supported data formats, i.e., valid constants of type `OIDNFormat`.
+  : Supported data formats, i.e., valid constants of type `OIDNFormat`.
 
 Filter
 ------
@@ -658,71 +636,29 @@ The filter can be created by passing `"RT"` to the `oidnNewFilter`
 function as the filter type. The filter supports the following
 parameters:
 
-<table style="width:97%;">
-<caption>Parameters supported by the <code>RT</code> filter.</caption>
-<colgroup>
-<col style="width: 10%" />
-<col style="width: 11%" />
-<col style="width: 14%" />
-<col style="width: 12%" />
-<col style="width: 48%" />
-</colgroup>
-<thead>
-<tr class="header">
-<th style="text-align: left;">Type</th>
-<th style="text-align: left;">Format</th>
-<th style="text-align: left;">Name</th>
-<th style="text-align: right;">Default</th>
-<th style="text-align: left;">Description</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">Image</td>
-<td style="text-align: left;">float3</td>
-<td style="text-align: left;">color</td>
-<td style="text-align: right;"></td>
-<td style="text-align: left;">color buffer to denoise</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Image</td>
-<td style="text-align: left;">float3</td>
-<td style="text-align: left;">albedo</td>
-<td style="text-align: right;"></td>
-<td style="text-align: left;">albedo buffer; optional</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">Image</td>
-<td style="text-align: left;">float3</td>
-<td style="text-align: left;">normal</td>
-<td style="text-align: right;"></td>
-<td style="text-align: left;">normal buffer (world-space); optional, requires setting the albedo buffer too</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">Image</td>
-<td style="text-align: left;">float3</td>
-<td style="text-align: left;">output</td>
-<td style="text-align: right;"></td>
-<td style="text-align: left;">denoised output buffer; can be one of the input buffers</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">bool</td>
-<td style="text-align: left;"></td>
-<td style="text-align: left;">hdr</td>
-<td style="text-align: right;">false</td>
-<td style="text-align: left;">whether the color is HDR</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">bool</td>
-<td style="text-align: left;"></td>
-<td style="text-align: left;">srgb</td>
-<td style="text-align: right;">false</td>
-<td style="text-align: left;">whether the color is encoded with the sRGB (2.2 gamma) curve or is linear; the output will be encoded with the same curve</td>
-</tr>
-</tbody>
-</table>
+  ------------------------------------------------------------------------
+  Type    Format   Name         Default Description
+  ------- -------- ---------- --------- ----------------------------------
+  Image   float3   color                color buffer to denoise
 
-: Parameters supported by the `RT` filter.
+  Image   float3   albedo               albedo buffer; optional
+
+  Image   float3   normal               normal buffer (world-space);
+                                        optional, requires setting the
+                                        albedo buffer too
+
+  Image   float3   output               denoised output buffer; can be one
+                                        of the input buffers
+
+  bool             hdr            false whether the color is HDR
+
+  bool             srgb           false whether the color is encoded with
+                                        the sRGB (2.2 gamma) curve or is
+                                        linear; the output will be encoded
+                                        with the same curve
+  ------------------------------------------------------------------------
+
+  : Parameters supported by the `RT` filter.
 
 All image buffers must have the same dimensions.
 
