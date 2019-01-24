@@ -1,7 +1,7 @@
 # Open Image Denoise
 
-This is release v0.8.0 (devel) of Open Image Denoise. For changes and
-new features see the [changelog](CHANGELOG.md). Visit
+This is release v0.8.0 of Open Image Denoise. For changes and new
+features see the [changelog](CHANGELOG.md). Visit
 http://www.openimagedenoise.org for more information.
 
 # Open Image Denoise Overview

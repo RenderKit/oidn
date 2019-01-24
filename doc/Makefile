@@ -33,7 +33,7 @@ tmp/version: ../CMakeLists.txt $(wildcard ../.git/HEAD)
 	sed -n $< -e "s/^SET(OIDN_VERSION_MAJOR \([0-9]\+\))/\1./ip" | tr -d '\n' > $@
 	sed -n $< -e "s/^SET(OIDN_VERSION_MINOR \([0-9]\+\))/\1./ip" | tr -d '\n' >> $@
 	sed -n $< -e "s/^SET(OIDN_VERSION_PATCH \([0-9]\+\))/\1/ip" | tr -d '\n' >> $@
-	$(if_is_devel_then) echo " (devel)"; else echo; fi >> $@
+	#$(if_is_devel_then) echo " (devel)"; else echo; fi >> $@
 
 replace_version = sed -e "s/<OIDN_VERSION>/`cat tmp/version`/g" $< > $@
 
