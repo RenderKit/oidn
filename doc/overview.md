@@ -14,16 +14,17 @@ reduce rendering times in ray tracing based rendering applications. It filters
 out the Monte Carlo noise inherent to stochastic ray tracing methods like path
 tracing, reducing the amount of necessary samples per pixel by even multiple
 orders of magnitude (depending on the desired closeness to the ground truth).
-Open Image Denoise is CPU-based, and runs on anything from laptops,
-to workstations, to compute nodes in HPC systems. It is efficient enough to be
-suitable not only for offline rendering, but also for interactive or even
-real-time ray tracing.
+
+Open Image Denoise supports Intel® 64 architecture based CPUs and compatible
+architectures. It runs on anything from laptops, to workstations, to compute
+nodes in HPC systems. It is efficient enough to be suitable not only for
+offline rendering, but also for interactive or even real-time ray tracing.
 
 Open Image Denoise internally builds on top of
 [Intel® Math Kernel Library for Deep Neural Networks (MKL-DNN)](https://github.com/intel/mkl-dnn),
 and fully exploits modern instruction sets like Intel SSE4, AVX2, and AVX-512
-to achieve high denoising performance, thus a CPU with support for at least
-SSE4.2 is required to run Open Image Denoise.
+to achieve high denoising performance. A CPU with support for at least SSE4.2
+is required to run Open Image Denoise.
 
 
 Support and Contact

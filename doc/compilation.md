@@ -9,8 +9,9 @@ release.
 Prerequisites
 -------------
 
-Open Image Denoise currently supports Linux, Windows, and macOS. In addition,
-before you can build Open Image Denoise you need the following prerequisites:
+Open Image Denoise currently supports 64-bit Linux, Windows, and macOS
+operating systems. In addition, before you can build Open Image Denoise
+you need the following prerequisites:
 
 -   You can clone the latest Open Image Denoise sources via:
 
