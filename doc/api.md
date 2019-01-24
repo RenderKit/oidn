@@ -123,10 +123,10 @@ const int versionPatch patch version number
 --------- ------------ --------------------------------------------------------
 : Parameters supported by all devices.
 
-Type   Name         Description
------- ------------ -----------------------------------------------------------
-int    numThreads   number of threads which Open Image Denoise should use; 0 will let it decide
-bool   setAffinity  bind software threads to hardware threads if set to true; false disables binding
+Type   Name          Default Description
+------ ------------ -------- --------------------------------------------------
+int    numThreads          0 maximum number of threads which Open Image Denoise should use; 0 will set it automatically to get the best performance
+bool   setAffinity      true bind software threads to hardware threads if set to true (improves performance); false disables binding
 ------ ------------ -----------------------------------------------------------
 : Additional parameters supported only by CPU devices.
 
