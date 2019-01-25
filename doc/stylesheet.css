@@ -68,6 +68,7 @@ br { clear:both; }
     padding-top: 5px;
     margin: 0;
     text-align: center;
+    z-index: 9;
     background:#212121;
     position:fixed;
     bottom:0px;
@@ -101,7 +102,7 @@ br { clear:both; }
     width: 100%;
     letter-spacing: -1px;
     background: #379;
-    z-index: 1;
+    z-index: 10;
     display: block;
 }
 
@@ -172,7 +173,7 @@ br { clear:both; }
     top:0;
     right: 20px;
     width:250px;
-    z-index: 10;
+    z-index: 20;
     padding: 10px 0px 10px 20px;
     color: #fff;
     background: url('images/blacktocat.png') #0090ff no-repeat 80% 50%;
@@ -304,7 +305,7 @@ div.feature h2 {
     font-size: 36px;
 }
 
-.fadein {
+.img-slider {
     display: block;
     margin-left: auto;
     margin-right: auto;
@@ -312,18 +313,26 @@ div.feature h2 {
     margin-top: 0px;
     padding: 0;
     position: relative;
-    padding-bottom: 41.875%; /* 536/1280 */
-    max-width: 1024px;
 }
-#f1 {
+.img-slider > img {
     box-shadow: 4px 4px 18px -5px rgba(0,0,0,0.86);
 }
-.fadein img {
+.img-slider img {
+    position: absolute;
     margin-left: auto;
-    max-width: 100%;
     height: 100%;
     padding: 0;
+}
+.img-slider-left {
     position: absolute;
+    bottom: 0px;
+    left: 0px;
+    z-index: 1;
+    border-right: 1px solid #fff;
+    width: 50%;
+    height: 100%;
+    overflow: hidden;
+    pointer-events: none;
 }
 
 .teaser-img {
@@ -334,23 +343,6 @@ div.feature h2 {
 .teaser-features {
   margin-top: 250px;
   margin-bottom: 150px;
-}
-
-.fade {
-    animation: fade 30s 1;
-}
-@keyframes fade {
-      0% {opacity: 0;}
-      5% {opacity: 0;}
-     20% {opacity: 1;}
-     25% {opacity: 1;}
-     45% {opacity: 0;}
-     50% {opacity: 0;}
-     60% {opacity: 1;}
-     65% {opacity: 1;}
-     75% {opacity: 0;}
-     80% {opacity: 0;}
-    100% {opacity: 1;}
 }
 
 hr {

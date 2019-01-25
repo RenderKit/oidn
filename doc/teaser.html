@@ -2,18 +2,9 @@
   <h1> Intel<sup>®</sup> Open Image Denoise </h1>
   <h2> High-Performance Denoising Library for Ray Tracing </h2>
 </div>
-<hr>
 <div class="teaser-img">
-  <div class="fadein">
-   <img id="f1" src="images/rm_volume.jpg">
-   <img id="f2" class="fade" src="images/rm_volume_ao_shadows.jpg"></div><!-- do not change formatting here! -->
+  <div class="img-slider" style="padding-bottom: 41.875%; /* 536/1280 */" onmousemove="this.getElementsByTagName('div')[0].style.width=event.offsetX+'px'">
+   <img src="images/teaser_input.jpg">
+   <div class="img-slider-left"><img src="images/teaser_oidn.jpg"></div></div><!-- do not change formatting here! -->
 </div>
-<script type="text/javascript">
-el=document.getElementById("f2");
-el.addEventListener("click", function(e) {
- e.preventDefault;
- el.classList.remove("fade");
- void el.offsetWidth;
- el.classList.add("fade");
-}, false);
-</script>
+
