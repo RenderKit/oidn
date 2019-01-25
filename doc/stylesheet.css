@@ -334,6 +334,24 @@ div.feature h2 {
     overflow: hidden;
     pointer-events: none;
 }
+/* left label */
+.img-slider-left > span {
+    position: absolute;
+    bottom: 8px;
+    left: 16px;
+    font-size: 18px;
+    white-space: nowrap;
+    color: #fff;
+}
+/* right label */
+.img-slider > span {
+    position: absolute;
+    bottom: 8px;
+    right: 16px;
+    font-size: 18px;
+    white-space: nowrap;
+    color: #fff;
+}
 
 .teaser-img {
   margin-top: 60px;
