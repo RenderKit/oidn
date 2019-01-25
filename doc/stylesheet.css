@@ -312,8 +312,8 @@ div.feature h2 {
     margin-top: 0px;
     padding: 0;
     position: relative;
-    padding-bottom: 58.59375%; /* 600/1024 */
-    max-width: 1000px;
+    padding-bottom: 41.875%; /* 536/1280 */
+    max-width: 1024px;
 }
 #f1 {
     box-shadow: 4px 4px 18px -5px rgba(0,0,0,0.86);
