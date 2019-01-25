@@ -68,3 +68,11 @@ install(EXPORT ${PROJECT_NAME}_Export
   FILE ${PROJECT_NAME}Config.cmake
   COMPONENT devel
 )
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(${PROJECT_NAME}ConfigVersion.cmake
+  COMPATIBILITY SameMajorVersion)
+install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+  COMPONENT devel
+)
