@@ -315,9 +315,6 @@ div.feature h2 {
     padding: 0;
     position: relative;
 }
-.img-compare > img {
-    box-shadow: 4px 4px 18px -5px rgba(0,0,0,0.86);
-}
 .img-compare img {
     position: absolute;
     margin-left: auto;
@@ -344,6 +341,7 @@ div.feature h2 {
     font-size: 18px;
     white-space: nowrap;
     color: #fff;
+    text-shadow: 0px 0px 6px rgba(0,0,0,0.6);
 }
 /* right label */
 .img-compare > span {
@@ -353,6 +351,7 @@ div.feature h2 {
     font-size: 18px;
     white-space: nowrap;
     color: #fff;
+    text-shadow: 0px 0px 6px rgba(0,0,0,0.6);
 }
 
 .teaser-img {
