@@ -305,7 +305,8 @@ div.feature h2 {
     font-size: 36px;
 }
 
-.img-slider {
+/* image compare div */
+.img-compare {
     display: block;
     margin-left: auto;
     margin-right: auto;
@@ -314,28 +315,29 @@ div.feature h2 {
     padding: 0;
     position: relative;
 }
-.img-slider > img {
+.img-compare > img {
     box-shadow: 4px 4px 18px -5px rgba(0,0,0,0.86);
 }
-.img-slider img {
+.img-compare img {
     position: absolute;
     margin-left: auto;
     height: 100%;
     padding: 0;
 }
-.img-slider-left {
+/* left div */
+.img-compare > div {
     position: absolute;
     bottom: 0px;
     left: 0px;
     z-index: 1;
-    border-right: 1px solid #fff;
+    border-right: 2px solid #fff;
     width: 50%;
     height: 100%;
     overflow: hidden;
     pointer-events: none;
 }
 /* left label */
-.img-slider-left > span {
+.img-compare > div > span {
     position: absolute;
     bottom: 8px;
     left: 16px;
@@ -344,7 +346,7 @@ div.feature h2 {
     color: #fff;
 }
 /* right label */
-.img-slider > span {
+.img-compare > span {
     position: absolute;
     bottom: 8px;
     right: 16px;
