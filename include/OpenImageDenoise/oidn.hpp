@@ -192,13 +192,13 @@ namespace oidn {
                   const BufferRef& buffer, Format format,
                   size_t width, size_t height,
                   size_t byteOffset = 0,
-                  size_t byteItemStride = 0, size_t byteRowStride = 0)
+                  size_t bytePixelStride = 0, size_t byteRowStride = 0)
     {
       oidnSetFilterImage(handle, name,
                          buffer.getHandle(), (OIDNFormat)format,
                          width, height,
                          byteOffset,
-                         byteItemStride, byteRowStride);
+                         bytePixelStride, byteRowStride);
     }
 
     // Sets an image parameter of the filter (owned by the user).
@@ -206,13 +206,13 @@ namespace oidn {
                   void* ptr, Format format,
                   size_t width, size_t height,
                   size_t byteOffset = 0,
-                  size_t byteItemStride = 0, size_t byteRowStride = 0)
+                  size_t bytePixelStride = 0, size_t byteRowStride = 0)
     {
       oidnSetSharedFilterImage(handle, name,
                                ptr, (OIDNFormat)format,
                                width, height,
                                byteOffset,
-                               byteItemStride, byteRowStride);
+                               bytePixelStride, byteRowStride);
     }
 
     // Sets a boolean parameter of the filter.

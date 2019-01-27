@@ -279,7 +279,7 @@ namespace oidn {
                                    OIDNBuffer hBuffer, OIDNFormat format,
                                    size_t width, size_t height,
                                    size_t byteOffset,
-                                   size_t byteItemStride, size_t byteRowStride)
+                                   size_t bytePixelStride, size_t byteRowStride)
   {
     Filter* filter = (Filter*)hFilter;
     OIDN_TRY
@@ -289,7 +289,7 @@ namespace oidn {
       Ref<Buffer> buffer = (Buffer*)hBuffer;
       if (buffer->getDevice() != filter->getDevice())
         throw Exception(Error::InvalidArgument, "the specified objects are bound to different devices");
-      Image data(buffer, (Format)format, (int)width, (int)height, byteOffset, byteItemStride, byteRowStride);
+      Image data(buffer, (Format)format, (int)width, (int)height, byteOffset, bytePixelStride, byteRowStride);
       filter->setImage(name, data);
     OIDN_CATCH(filter)
   }
@@ -298,13 +298,13 @@ namespace oidn {
                                          void* ptr, OIDNFormat format,
                                          size_t width, size_t height,
                                          size_t byteOffset,
-                                         size_t byteItemStride, size_t byteRowStride)
+                                         size_t bytePixelStride, size_t byteRowStride)
   {
     Filter* filter = (Filter*)hFilter;
     OIDN_TRY
       checkHandle(hFilter);
       OIDN_LOCK(filter);
-      Image data(ptr, (Format)format, (int)width, (int)height, byteOffset, byteItemStride, byteRowStride);
+      Image data(ptr, (Format)format, (int)width, (int)height, byteOffset, bytePixelStride, byteRowStride);
       filter->setImage(name, data);
     OIDN_CATCH(filter)
   }
