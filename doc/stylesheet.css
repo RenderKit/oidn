@@ -341,7 +341,7 @@ div.feature h2 {
     font-size: 18px;
     white-space: nowrap;
     color: #fff;
-    text-shadow: 0px 0px 6px rgba(0,0,0,0.6);
+    text-shadow: 0px 0px 5px #111;
 }
 /* right label */
 .img-compare > span {
@@ -351,7 +351,7 @@ div.feature h2 {
     font-size: 18px;
     white-space: nowrap;
     color: #fff;
-    text-shadow: 0px 0px 6px rgba(0,0,0,0.6);
+    text-shadow: 0px 0px 5px #111;
 }
 
 .teaser-img {
