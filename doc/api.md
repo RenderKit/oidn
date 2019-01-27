@@ -36,13 +36,13 @@ simple example code snippets.
     // Create a denoising filter
     OIDNFilter filter = oidnNewFilter(device, "RT"); // generic ray tracing filter
     oidnSetSharedFilterImage(filter, "color",  colorPtr, 
-                            OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0);
+                             OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0);
     oidnSetSharedFilterImage(filter, "albedo", albedoPtr,
-                            OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0); // optional
+                             OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0); // optional
     oidnSetSharedFilterImage(filter, "normal", normalPtr,
-                            OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0); // optional
+                             OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0); // optional
     oidnSetSharedFilterImage(filter, "output", outputPtr,
-                            OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0);
+                             OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0);
     oidnSetFilter1b(filter, "hdr", true); // image is HDR
     oidnCommitFilter(filter);
 
