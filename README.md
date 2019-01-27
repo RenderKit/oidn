@@ -622,26 +622,26 @@ deep learning based denoising algorithm, and it aims to provide a good
 balance between denoising performance and quality.
 
 It accepts either a low dynamic range (LDR) or high dynamic range (HDR)
-color buffer as input. Optionally, it also accepts additional auxiliary
-feature buffers, e.g. albedo and normal, which improve the denoising
+color image as input. Optionally, it also accepts additional auxiliary
+feature images, e.g. albedo and normal, which improve the denoising
 quality, preserving more details in the image.
 
 The filter can be created by passing `"RT"` to the `oidnNewFilter`
 function as the filter type. The filter supports the following
 parameters:
 
-| Type  | Format | Name   | Default | Description                                                                                                               |
-| :---- | :----- | :----- | ------: | :------------------------------------------------------------------------------------------------------------------------ |
-| Image | float3 | color  |         | color buffer to denoise                                                                                                   |
-| Image | float3 | albedo |         | albedo buffer; optional                                                                                                   |
-| Image | float3 | normal |         | normal buffer (world-space); optional, requires setting the albedo buffer too                                             |
-| Image | float3 | output |         | denoised output buffer; can be one of the input buffers                                                                   |
-| bool  |        | hdr    |   false | whether the color is HDR                                                                                                  |
-| bool  |        | srgb   |   false | whether the color is encoded with the sRGB (2.2 gamma) curve or is linear; the output will be encoded with the same curve |
+| Type  | Format | Name   | Default | Description                                                                                                                                                   |
+| :---- | :----- | :----- | ------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Image | float3 | color  |         | input color image (LDR or HDR)                                                                                                                                |
+| Image | float3 | albedo |         | input image containing the albedo value of the first hit per pixel; *optional*                                                                                |
+| Image | float3 | normal |         | input image containing the normal (world-space or view-space, arbitrary length) of the first hit per pixel; *optional*, requires setting the albedo image too |
+| Image | float3 | output |         | output image; can be one of the input images                                                                                                                  |
+| bool  |        | hdr    |   false | whether the color is HDR                                                                                                                                      |
+| bool  |        | srgb   |   false | whether the color is encoded with the sRGB (2.2 gamma) curve (LDR only) or is linear; the output will be encoded with the same curve                          |
 
 Parameters supported by the `RT` filter.
 
-All image buffers must have the same dimensions.
+All specified images must have the same dimensions.
 
 # Examples
 

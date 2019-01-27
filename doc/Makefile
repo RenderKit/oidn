@@ -3,8 +3,8 @@ SHELL := /bin/bash
 webpages := $(addprefix www/, $(addsuffix .html, index news documentation gallery downloads related_projects legal))
 process_version := $(addprefix tmp/, $(addsuffix .md, downloads readme_head))
 tmptexfiles := $(addprefix tmp/, $(addsuffix .tex, overview changelog compilation api examples))
-images_jpg := $(addprefix images/, $(addsuffix .jpg, teaser_16spp_input teaser_16spp_oidn))
-images_png :=
+images_jpg := $(addprefix images/, $(addsuffix .jpg, teaser_16spp_input teaser_16spp_oidn bistro_128spp_input bistro_128spp_oidn bistro2_64spp_input bistro2_64spp_oidn sponza_16spp_input sponza_16spp_oidn mazda_64spp_input mazda_64spp_oidn villa_64spp_input villa_64spp_oidn artdeco_2048spp_input artdeco_2048spp_oidn))
+images_png := $(addprefix images/, $(addsuffix .png, blacktocat))
 images_fig :=
 images_svg :=
 
