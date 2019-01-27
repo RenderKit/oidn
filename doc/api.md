@@ -378,7 +378,7 @@ denoising algorithm, and it aims to provide a good balance between denoising
 performance and quality.
 
 It accepts either a low dynamic range (LDR) or high dynamic
-range (HDR) color buffer as input. Optionally, it also accepts certain
+range (HDR) color buffer as input. Optionally, it also accepts additional
 auxiliary feature buffers, e.g. albedo and normal, which improve the denoising
 quality, preserving more details in the image.
 
