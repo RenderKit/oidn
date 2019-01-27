@@ -35,38 +35,59 @@ namespace oidn {
 
     Image() : ptr(nullptr), width(0), height(0), byteItemStride(0), rowStride(0), format(Format::Undefined) {}
 
-    Image(void* ptr, Format format, int width, int height, size_t byteOffset, size_t byteItemStride, size_t byteRowStride)
+    Image(void* ptr, Format format, int width, int height, size_t byteOffset, size_t inByteItemStride, size_t inByteRowStride)
     {
       if (ptr == nullptr)
-        throw Exception(Error::InvalidArgument, "buffer pointer cannot be null");
-      init((char*)ptr + byteOffset, format, width, height, byteItemStride, byteRowStride);
+        throw Exception(Error::InvalidArgument, "buffer pointer null");
+
+      init((char*)ptr + byteOffset, format, width, height, inByteItemStride, inByteRowStride);
     }
 
-    Image(const Ref<Buffer>& buffer, Format format, int width, int height, size_t byteOffset, size_t byteItemStride, size_t byteRowStride)
+    Image(const Ref<Buffer>& buffer, Format format, int width, int height, size_t byteOffset, size_t inByteItemStride, size_t inByteRowStride)
     {
-      init(buffer->data() + byteOffset, format, width, height, byteItemStride, byteRowStride);
+      init(buffer->data() + byteOffset, format, width, height, inByteItemStride, inByteRowStride);
+
+      if (byteOffset + height * rowStride * byteItemStride > buffer->size())
+        throw Exception(Error::InvalidArgument, "buffer region out of range");
     }
 
-    void init(char* ptr, Format format, int width, int height, size_t byteItemStride, size_t byteRowStride)
+    void init(char* ptr, Format format, int width, int height, size_t inByteItemStride, size_t inByteRowStride)
     {
       assert(width >= 0);
       assert(height >= 0);
       if (width > maxSize || height > maxSize)
-        throw Exception(Error::InvalidArgument, "image size is too large");
+        throw Exception(Error::InvalidArgument, "image size too large");
 
       this->ptr = ptr;
       this->width = width;
       this->height = height;
 
-      this->byteItemStride = (byteItemStride != 0) ? byteItemStride : getFormatBytes(format);
-      if (byteRowStride != 0)
+      const size_t itemSize = getFormatBytes(format);
+      if (inByteItemStride != 0)
       {
-        if (byteRowStride % this->byteItemStride != 0)
-          throw Exception(Error::InvalidArgument, "the row stride must be an integer multiple of the item stride");
-        this->rowStride = byteRowStride / this->byteItemStride;
+        if (inByteItemStride < itemSize)
+          throw Exception(Error::InvalidArgument, "item stride smaller than item size");
+
+        this->byteItemStride = inByteItemStride;
       }
       else
+      {
+        this->byteItemStride = itemSize;
+      }
+
+      if (inByteRowStride != 0)
+      {
+        if (inByteRowStride < width * this->byteItemStride)
+          throw Exception(Error::InvalidArgument, "row stride smaller than width * item stride");
+        if (inByteRowStride % this->byteItemStride != 0)
+          throw Exception(Error::InvalidArgument, "row stride not integer multiple of item stride");
+
+        this->rowStride = inByteRowStride / this->byteItemStride;
+      }
+      else
+      {
         this->rowStride = width;
+      }
 
       this->format = format;
     }

@@ -46,7 +46,7 @@ namespace oidn {
         device(device)
     {
       if (data == nullptr)
-        throw Exception(Error::InvalidArgument, "buffer pointer cannot be null");
+        throw Exception(Error::InvalidArgument, "buffer pointer null");
     }
 
     __forceinline ~Buffer()
@@ -63,6 +63,7 @@ namespace oidn {
     {
       if (offset + size > byteSize)
         throw Exception(Error::InvalidArgument, "buffer region out of range");
+
       return ptr + offset;
     }
 

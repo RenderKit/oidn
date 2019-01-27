@@ -128,7 +128,7 @@ namespace oidn {
   void Device::commit()
   {
     if (isCommitted())
-      throw Exception(Error::InvalidOperation, "a device can be committed only once");
+      throw Exception(Error::InvalidOperation, "device can be committed only once");
 
     // Get the optimal thread affinities
     if (setAffinity)
