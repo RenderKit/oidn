@@ -116,12 +116,12 @@ int main(int argc, char* argv[])
     if (!refFilename.empty())
       ref = loadImagePFM(refFilename);
 
-    const int H = color.dims[0];
-    const int W = color.dims[1];
-    cout << endl << "Resolution: " << W << "x" << H << endl;
+    const int height = color.dims[0];
+    const int width  = color.dims[1];
+    cout << endl << "Resolution: " << width << "x" << height << endl;
 
     // Initialize the output image
-    Tensor output({H, W, 3}, "hwc");
+    Tensor output({height, width, 3}, "hwc");
 
     // Initialize the denoising filter
     cout << "Initializing" << flush;
@@ -142,12 +142,12 @@ int main(int argc, char* argv[])
 
     oidn::FilterRef filter = device.newFilter("RT");
 
-    filter.setImage("color", color.data, oidn::Format::Float3, W, H);
+    filter.setImage("color", color.data, oidn::Format::Float3, width, height);
     if (albedo)
-      filter.setImage("albedo", albedo.data, oidn::Format::Float3, W, H);
+      filter.setImage("albedo", albedo.data, oidn::Format::Float3, width, height);
     if (normal)
-      filter.setImage("normal", normal.data, oidn::Format::Float3, W, H);
-    filter.setImage("output", output.data, oidn::Format::Float3, W, H);
+      filter.setImage("normal", normal.data, oidn::Format::Float3, width, height);
+    filter.setImage("output", output.data, oidn::Format::Float3, width, height);
 
     if (hdr)
       filter.set("hdr", true);
@@ -202,9 +202,9 @@ int main(int argc, char* argv[])
 
       // Save debug images
       cout << "Saving debug images" << flush;
-      saveImagePPM(color,  "denoise.in.ppm");
-      saveImagePPM(output, "denoise.out.ppm");
-      saveImagePPM(ref,    "denoise.ref.ppm");
+      saveImagePPM(color,  "denoise_in.ppm");
+      saveImagePPM(output, "denoise_out.ppm");
+      saveImagePPM(ref,    "denoise_ref.ppm");
       cout << endl;
     }
 
