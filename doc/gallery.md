@@ -9,14 +9,12 @@ email](mailto:openimagedenoise@googlegroups.com).
 Amazon Lumberyard Bistro
 ------------------------
 
-Rendered at 128 spp:
+Rendered at 64 spp:
 
 <div class="img-compare" style="padding-bottom: 56.25%; /* 9/16 */" onmousemove="this.getElementsByTagName('div')[0].style.width=event.offsetX+'px'">
-<img src="images/bistro_128spp_input.jpg"><span>Original</span>
-<div><img src="images/bistro_128spp_oidn.jpg"><span>Denoised</span></div>
+<img src="images/bistro_64spp_input.jpg"><span>Original</span>
+<div><img src="images/bistro_64spp_oidn.jpg"><span>Denoised</span></div>
 </div>
-
-Rendered at 64 spp:
 
 <div class="img-compare" style="padding-bottom: 56.25%; /* 9/16 */" onmousemove="this.getElementsByTagName('div')[0].style.width=event.offsetX+'px'">
 <img src="images/bistro2_64spp_input.jpg"><span>Original</span>

@@ -348,6 +348,7 @@ div.feature h2 {
     white-space: nowrap;
     color: #fff;
     text-shadow: 0px 0px 5px #111;
+    pointer-events: none;
 }
 /* right label */
 .img-compare > span {
@@ -358,6 +359,7 @@ div.feature h2 {
     white-space: nowrap;
     color: #fff;
     text-shadow: 0px 0px 5px #111;
+    pointer-events: none;
 }
 
 .teaser-img {
