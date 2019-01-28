@@ -192,7 +192,7 @@ int main(int argc, char* argv[])
         else
           re = abs(expect - actual);
         if (maxre < re) maxre = re;
-        if (re > 1e-4)
+        if (re > 1e-3)
         {
           //cout << "i=" << i << " expect=" << expect << " actual=" << actual << endl;
           ++nerr;
