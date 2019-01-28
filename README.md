@@ -22,7 +22,7 @@ necessary samples per pixel by even multiple orders of magnitude
 (depending on the desired closeness to the ground truth).
 
 Open Image Denoise supports Intel® 64 architecture based CPUs and
-compatible architectures. It runs on anything from laptops, to
+compatible architectures, and runs on anything from laptops, to
 workstations, to compute nodes in HPC systems. It is efficient enough to
 be suitable not only for offline rendering, but also for interactive or
 even real-time ray tracing.
@@ -490,8 +490,8 @@ table:
 | OIDN\_ACCESS\_READ\_WRITE    | read and write access                                         |
 | OIDN\_ACCESS\_WRITE\_DISCARD | write-only access but the previous contents will be discarded |
 
-Access modes for mapped memory regions that can be passed to
-`oidnMapBuffer`, i.e., valid constants of type `OIDNAccess`.
+Access modes for memory regions mapped with `oidnMapBuffer`, i.e., valid
+constants of type `OIDNAccess`.
 
 After accessing the mapped data in the buffer, the memory region must be
 unmapped with
@@ -509,8 +509,7 @@ is guaranteed to take effect only after unmapping the memory region.
 Buffers store opaque data and thus have no information about the type
 and format of the data. Other objects, e.g. filters, typically require
 specifying the format of the data stored in buffers or shared via
-pointers to be able to use that data. This can be done using the
-`OIDNFormat` enumeration
+pointers. This can be done using the `OIDNFormat` enumeration
 type:
 
 | Name                       | Description                                   |
@@ -622,9 +621,9 @@ deep learning based denoising algorithm, and it aims to provide a good
 balance between denoising performance and quality.
 
 It accepts either a low dynamic range (LDR) or high dynamic range (HDR)
-color image as input. Optionally, it also accepts additional auxiliary
-feature images, e.g. albedo and normal, which improve the denoising
-quality, preserving more details in the image.
+color image as input. Optionally, it also accepts auxiliary feature
+images, e.g. albedo and normal, which improve the denoising quality,
+preserving more details in the image.
 
 The filter can be created by passing `"RT"` to the `oidnNewFilter`
 function as the filter type. The filter supports the following

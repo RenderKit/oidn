@@ -265,8 +265,8 @@ OIDN_ACCESS_WRITE         write-only access
 OIDN_ACCESS_READ_WRITE    read and write access
 OIDN_ACCESS_WRITE_DISCARD write-only access but the previous contents will be discarded
 ------------------------- -----------------------------------------------------
-: Access modes for mapped memory regions that can be passed to `oidnMapBuffer`,
-  i.e., valid constants of type `OIDNAccess`.
+: Access modes for memory regions mapped with `oidnMapBuffer`, i.e., valid
+  constants of type `OIDNAccess`.
 
 After accessing the mapped data in the buffer, the memory region must be
 unmapped with
@@ -281,8 +281,8 @@ effect only after unmapping the memory region.
 
 Buffers store opaque data and thus have no information about the type and
 format of the data. Other objects, e.g. filters, typically require specifying
-the format of the data stored in buffers or shared via pointers to be able to
-use that data. This can be done using the `OIDNFormat` enumeration type:
+the format of the data stored in buffers or shared via pointers. This can be
+done using the `OIDNFormat` enumeration type:
 
 Name                   Description
 ---------------------- --------------------------------------------------------
@@ -378,9 +378,9 @@ denoising algorithm, and it aims to provide a good balance between denoising
 performance and quality.
 
 It accepts either a low dynamic range (LDR) or high dynamic
-range (HDR) color image as input. Optionally, it also accepts additional
-auxiliary feature images, e.g. albedo and normal, which improve the denoising
-quality, preserving more details in the image.
+range (HDR) color image as input. Optionally, it also accepts auxiliary feature
+images, e.g. albedo and normal, which improve the denoising quality, preserving
+more details in the image.
 
 The filter can be created by passing `"RT"` to the `oidnNewFilter` function
 as the filter type. The filter supports the following parameters:

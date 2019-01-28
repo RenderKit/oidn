@@ -16,7 +16,7 @@ tracing, reducing the amount of necessary samples per pixel by even multiple
 orders of magnitude (depending on the desired closeness to the ground truth).
 
 Open Image Denoise supports Intel® 64 architecture based CPUs and compatible
-architectures. It runs on anything from laptops, to workstations, to compute
+architectures, and runs on anything from laptops, to workstations, to compute
 nodes in HPC systems. It is efficient enough to be suitable not only for
 offline rendering, but also for interactive or even real-time ray tracing.
 
