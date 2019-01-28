@@ -87,10 +87,10 @@ OIDN_API int oidnGetDevice1i(OIDNDevice device, const char* name);
 // Sets the error callback function of the device.
 OIDN_API void oidnSetDeviceErrorFunction(OIDNDevice device, OIDNErrorFunction func, void* userPtr);
 
-// Returns the first unqueried error code stored for the device, optionally
-// also returning a string message (if not NULL), and clears the stored error.
-// If the device is NULL (e.g. the device creation failed), a thread-local
-// error will be returned.
+// Returns the first unqueried error code stored in the device for the current
+// thread, optionally also returning a string message (if not NULL), and clears
+// the stored error. Can be called with a NULL device as well to check why a
+// device creation failed.
 OIDN_API OIDNError oidnGetDeviceError(OIDNDevice device, const char** outMessage);
 
 // Commits all previous changes to the device.

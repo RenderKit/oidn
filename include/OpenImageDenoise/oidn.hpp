@@ -107,6 +107,11 @@ namespace oidn {
       return handle;
     }
 
+    operator bool() const
+    {
+      return handle != nullptr;
+    }
+
     // Maps a region of the buffer to host memory.
     // If byteSize is 0, the maximum available amount of memory will be mapped.
     void* map(Access access = Access::ReadWrite, size_t byteOffset = 0, size_t byteSize = 0)
@@ -185,6 +190,11 @@ namespace oidn {
     OIDNFilter getHandle() const
     {
       return handle;
+    }
+
+    operator bool() const
+    {
+      return handle != nullptr;
     }
 
     // Sets an image parameter of the filter (stored in a buffer).
@@ -345,6 +355,11 @@ namespace oidn {
       return handle;
     }
 
+    operator bool() const
+    {
+      return handle != nullptr;
+    }
+
     // Sets a boolean parameter of the device.
     void set(const char* name, bool value)
     {
@@ -368,12 +383,14 @@ namespace oidn {
     }
 
     // Returns the first unqueried error code and clears the stored error.
+    // Can be called for a null device as well to check why a device creation failed.
     Error getError()
     {
       return (Error)oidnGetDeviceError(handle, nullptr);
     }
 
     // Returns the first unqueried error code and string message, and clears the stored error.
+    // Can be called for a null device as well to check why a device creation failed.
     Error getError(const char*& outMessage)
     {
       return (Error)oidnGetDeviceError(handle, &outMessage);
