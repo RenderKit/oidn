@@ -414,6 +414,12 @@ argument) that further describes the error. The error code is always set
 even if an error callback function is registered. It is recommended to
 always set a error callback function, to detect all errors.
 
+When the device construction fails, `oidnNewDevice` returns `NULL` as
+device. To detect the error code of a such failed device construction,
+pass `NULL` as device to the `oidnGetDeviceError` function. For all
+other invocations of `oidnGetDeviceError`, a proper device handle must
+be specified.
+
 The following errors are currently used by Open Image
 Denoise:
 
