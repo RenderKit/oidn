@@ -21,7 +21,7 @@ For macOS we provide Open Image Denoise as a TGZ file:
 
 For Windows we provide Open Image Denoise binaries precompiled for 64-bit as a ZIP archive:
 
-[oidn-<OIDN_VERSION>.windows.zip](https://github.com/OpenImageDenoise/oidn/releases/download/v<OIDN_VERSION>/oidn-<OIDN_VERSION>.windows.zip)
+[oidn-<OIDN_VERSION>.x64.vc14.windows.zip](https://github.com/OpenImageDenoise/oidn/releases/download/v<OIDN_VERSION>/oidn-<OIDN_VERSION>.x64.vc14.windows.zip)
 
 The source code of the latest Open Image Denoise version can be downloaded here:
 

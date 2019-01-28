@@ -135,9 +135,9 @@ Denoise through CMake is easy:
     
         ccmake ..
 
-  - Make sure to properly set build mode and enable the components you
-    need, etc.; then type ’c’onfigure and ’g’enerate. When back on the
-    command prompt, build it using
+  - Make sure to properly set the build mode and enable the components
+    you need, etc.; then type ’c’onfigure and ’g’enerate. When back on
+    the command prompt, build it using
     
         make
 
