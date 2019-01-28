@@ -440,7 +440,7 @@ Large data like images can be passed to Open Image Denoise either via
 pointers to memory allocated and managed by the user (this is the
 recommended, often easier and more efficient approach, if supported by
 the device) or by creating buffer objects (supported by all devices). To
-create a new data buffer with memory allocated and owned by the library,
+create a new data buffer with memory allocated and owned by the device,
 holding `byteSize` number of bytes, use
 
 ``` cpp

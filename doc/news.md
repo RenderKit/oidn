@@ -1,7 +1,7 @@
 News, Updates, and Announcements
 ================================
 
-Jan 28, 2019: Version v0.8.0 now released on GitHub
+Jan 29, 2019: Version v0.8.0 now released on GitHub
 ---------------------------------------------------
 
 Initial beta release version 0.8.0 is now available on the [Open Image Denoise
