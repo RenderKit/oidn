@@ -85,8 +85,7 @@ namespace oidn {
 
     __forceinline float inverse(float x) const override
     {
-      const float y = pow(x, 2.2f);
-      return (exp2(y * 16.f) - 1.f) * rcpExposure;
+      return (exp2(pow(x, 2.2f) * 16.f) - 1.f) * rcpExposure;
     }
   };
 
