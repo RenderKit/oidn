@@ -3,7 +3,8 @@ Open Image Denoise Gallery
 
 This page contains a few sample screenshots of different renderings denoised
 with Open Image Denoise. The original noisy images are also shown. Hover over an
-image to move the slider between the original and denoised versions.
+image (or tap on it if you have a touchscreen) to move the slider between the
+original and denoised versions.
 
 If *you* have created any notable images using Open Image Denoise and would
 like to share them on this page, please [send us an
