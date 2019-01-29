@@ -74,6 +74,11 @@ Rendered at 64 spp:
 <div><img src="images/villa_64spp_oidn.jpg"><span>Denoised</span></div>
 </div>
 
+<div class="img-compare" style="padding-bottom: 56.25%; /* 9/16 */" onmousemove="this.getElementsByTagName('div')[0].style.width=event.offsetX+'px'">
+<img src="images/villa2_64spp_input.jpg"><span>Original</span>
+<div><img src="images/villa2_64spp_oidn.jpg"><span>Denoised</span></div>
+</div>
+
 *Scene by Evermotion.*
 
 Art Deco
