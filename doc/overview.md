@@ -19,7 +19,7 @@ Open Image Denoise supports Intel® 64 architecture based CPUs and compatible
 architectures, and runs on anything from laptops, to workstations, to compute
 nodes in HPC systems. It is efficient enough to be suitable not only for
 offline rendering, but, depending on the hardware used, also for interactive
-(or in some cases even real-time) ray tracing.
+ray tracing.
 
 Open Image Denoise internally builds on top of
 [Intel® Math Kernel Library for Deep Neural Networks (MKL-DNN)](https://github.com/intel/mkl-dnn),
