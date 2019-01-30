@@ -46,21 +46,13 @@ else()
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${CONFIGURATION_TYPES})
 endif()
 
-include(GNUInstallDirs)
-
 # Output paths
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 
-# Packaging
-option(OIDN_ZIP_MODE off)
-mark_as_advanced(OIDN_ZIP_MODE)
-if(OIDN_ZIP_MODE)
-  set(CMAKE_INSTALL_BINDIR bin)
-  set(CMAKE_INSTALL_LIBDIR lib)
-  set(CMAKE_INSTALL_DOCDIR doc)
-endif()
+# Configure packaging
+include(package)
 
 ## ----------------------------------------------------------------------------
 ## MKL-DNN
@@ -174,4 +166,6 @@ add_subdirectory(examples)
 ## ----------------------------------------------------------------------------
 
 include(install)
-include(package)
+
+# Has to be last
+include(CPack)

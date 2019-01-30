@@ -14,6 +14,49 @@
 ## limitations under the License.                                           ##
 ## ======================================================================== ##
 
+option(OIDN_ZIP_MODE off)
+mark_as_advanced(OIDN_ZIP_MODE)
+
+## ----------------------------------------------------------------------------
+## Set install directories
+## ----------------------------------------------------------------------------
+
+include(GNUInstallDirs)
+
+if(OIDN_ZIP_MODE)
+  set(CMAKE_INSTALL_BINDIR bin)
+  set(CMAKE_INSTALL_LIBDIR lib)
+  set(CMAKE_INSTALL_DOCDIR doc)
+endif()
+
+## ----------------------------------------------------------------------------
+## Set rpath
+## ----------------------------------------------------------------------------
+
+if(OIDN_ZIP_MODE)
+  # In tgz / zip let's have relative rpath
+  set(CMAKE_SKIP_INSTALL_RPATH OFF)
+  if(APPLE)
+    set(CMAKE_MACOSX_RPATH ON)
+    set(CMAKE_INSTALL_RPATH "@executable_path/" "@executable_path/../lib")
+  else()
+    set(CMAKE_INSTALL_RPATH "\$ORIGIN:\$ORIGIN/../lib")
+  endif()
+else()
+  set(CMAKE_INSTALL_NAME_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
+  if(APPLE)
+    # Use rpath on macOS
+    set(CMAKE_SKIP_INSTALL_RPATH OFF)
+  else()
+    # We do not want any rpath for installed binaries
+    set(CMAKE_SKIP_INSTALL_RPATH ON)
+  endif()
+endif()
+
+## ----------------------------------------------------------------------------
+## Configure CPack
+## ----------------------------------------------------------------------------
+
 set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Open Image Denoise library")
 set(CPACK_PACKAGE_VENDOR "Intel Corporation")
@@ -61,5 +104,3 @@ else()
   set(CPACK_MONOLITHIC_INSTALL 1)
 
 endif()
-
-include(CPack)
