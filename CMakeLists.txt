@@ -145,11 +145,10 @@ add_library("${PROJECT_NAME}_sse42" STATIC ${CORE_SOURCES_SSE42})
 set_target_properties("${PROJECT_NAME}_sse42" PROPERTIES COMPILE_FLAGS "${ISA_FLAGS_SSE42}")
 
 target_link_libraries(${PROJECT_NAME}
-  PUBLIC
-    ${TBB_LIBRARIES}
   PRIVATE
     "${PROJECT_NAME}_sse42"
     common mkldnn
+    ${TBB_LIBRARIES}
 )
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY VERSION ${PROJECT_VERSION})
