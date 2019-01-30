@@ -69,9 +69,9 @@ namespace oidn {
     std::shared_ptr<Node> addPool(const std::shared_ptr<memory>& src,
                                   const std::shared_ptr<memory>& userDst = nullptr);
 
-    memory::dims getUnpoolDims(const memory::dims& srcDims);
-    std::shared_ptr<Node> addUnpool(const std::shared_ptr<memory>& src,
-                                    const std::shared_ptr<memory>& userDst = nullptr);
+    memory::dims getUpsampleDims(const memory::dims& srcDims);
+    std::shared_ptr<Node> addUpsample(const std::shared_ptr<memory>& src,
+                                      const std::shared_ptr<memory>& userDst = nullptr);
 
     memory::dims getConcatDims(const memory::dims& src1Dims, const memory::dims& src2Dims);
 

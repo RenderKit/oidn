@@ -236,7 +236,7 @@ namespace oidn {
   }
 
   template<int K>
-  memory::dims Network<K>::getUnpoolDims(const memory::dims& srcDims)
+  memory::dims Network<K>::getUpsampleDims(const memory::dims& srcDims)
   {
     memory::dims dstDims = srcDims;
     dstDims[2] *= 2; // H*2
@@ -245,11 +245,11 @@ namespace oidn {
   }
 
   template<int K>
-  std::shared_ptr<Node> Network<K>::addUnpool(const std::shared_ptr<memory>& src,
-                                              const std::shared_ptr<memory>& userDst)
+  std::shared_ptr<Node> Network<K>::addUpsample(const std::shared_ptr<memory>& src,
+                                                const std::shared_ptr<memory>& userDst)
   {
     memory::dims srcDims = getTensorDims(src);
-    memory::dims dstDims = getUnpoolDims(srcDims);
+    memory::dims dstDims = getUpsampleDims(srcDims);
 
     auto dst = userDst;
     if (!dst)

@@ -154,38 +154,38 @@ namespace oidn {
     const auto inputDims        = memory::dims({1, inputC, height, width});
     const auto inputReorderDims = net->getInputReorderDims(inputDims, spatialPad);
 
-    const auto conv1Dims   = net->getConvDims("conv1", inputReorderDims);
-    const auto conv1bDims  = net->getConvDims("conv1b", conv1Dims);
-    const auto pool1Dims   = net->getPoolDims(conv1bDims);
-    const auto conv2Dims   = net->getConvDims("conv2", pool1Dims);
-    const auto pool2Dims   = net->getPoolDims(conv2Dims);
-    const auto conv3Dims   = net->getConvDims("conv3", pool2Dims);
-    const auto pool3Dims   = net->getPoolDims(conv3Dims);
-    const auto conv4Dims   = net->getConvDims("conv4", pool3Dims);
-    const auto pool4Dims   = net->getPoolDims(conv4Dims);
-    const auto conv5Dims   = net->getConvDims("conv5", pool4Dims);
-    const auto pool5Dims   = net->getPoolDims(conv5Dims);
-    const auto unpool4Dims = net->getUnpoolDims(pool5Dims);
-    const auto concat4Dims = net->getConcatDims(unpool4Dims, pool4Dims);
-    const auto conv6Dims   = net->getConvDims("conv6", concat4Dims);
-    const auto conv6bDims  = net->getConvDims("conv6b", conv6Dims);
-    const auto unpool3Dims = net->getUnpoolDims(conv6bDims);
-    const auto concat3Dims = net->getConcatDims(unpool3Dims, pool3Dims);
-    const auto conv7Dims   = net->getConvDims("conv7", concat3Dims);
-    const auto conv7bDims  = net->getConvDims("conv7b", conv7Dims);
-    const auto unpool2Dims = net->getUnpoolDims(conv7bDims);
-    const auto concat2Dims = net->getConcatDims(unpool2Dims, pool2Dims);
-    const auto conv8Dims   = net->getConvDims("conv8", concat2Dims);
-    const auto conv8bDims  = net->getConvDims("conv8b", conv8Dims);
-    const auto unpool1Dims = net->getUnpoolDims(conv8bDims);
-    const auto concat1Dims = net->getConcatDims(unpool1Dims, pool1Dims);
-    const auto conv9Dims   = net->getConvDims("conv9", concat1Dims);
-    const auto conv9bDims  = net->getConvDims("conv9b", conv9Dims);
-    const auto unpool0Dims = net->getUnpoolDims(conv9bDims);
-    const auto concat0Dims = net->getConcatDims(unpool0Dims, inputReorderDims);
-    const auto conv10Dims  = net->getConvDims("conv10", concat0Dims);
-    const auto conv10bDims = net->getConvDims("conv10b", conv10Dims);
-    const auto conv11Dims  = net->getConvDims("conv11", conv10bDims);
+    const auto conv1Dims     = net->getConvDims("conv1", inputReorderDims);
+    const auto conv1bDims    = net->getConvDims("conv1b", conv1Dims);
+    const auto pool1Dims     = net->getPoolDims(conv1bDims);
+    const auto conv2Dims     = net->getConvDims("conv2", pool1Dims);
+    const auto pool2Dims     = net->getPoolDims(conv2Dims);
+    const auto conv3Dims     = net->getConvDims("conv3", pool2Dims);
+    const auto pool3Dims     = net->getPoolDims(conv3Dims);
+    const auto conv4Dims     = net->getConvDims("conv4", pool3Dims);
+    const auto pool4Dims     = net->getPoolDims(conv4Dims);
+    const auto conv5Dims     = net->getConvDims("conv5", pool4Dims);
+    const auto pool5Dims     = net->getPoolDims(conv5Dims);
+    const auto upsample4Dims = net->getUpsampleDims(pool5Dims);
+    const auto concat4Dims   = net->getConcatDims(upsample4Dims, pool4Dims);
+    const auto conv6Dims     = net->getConvDims("conv6", concat4Dims);
+    const auto conv6bDims    = net->getConvDims("conv6b", conv6Dims);
+    const auto upsample3Dims = net->getUpsampleDims(conv6bDims);
+    const auto concat3Dims   = net->getConcatDims(upsample3Dims, pool3Dims);
+    const auto conv7Dims     = net->getConvDims("conv7", concat3Dims);
+    const auto conv7bDims    = net->getConvDims("conv7b", conv7Dims);
+    const auto upsample2Dims = net->getUpsampleDims(conv7bDims);
+    const auto concat2Dims   = net->getConcatDims(upsample2Dims, pool2Dims);
+    const auto conv8Dims     = net->getConvDims("conv8", concat2Dims);
+    const auto conv8bDims    = net->getConvDims("conv8b", conv8Dims);
+    const auto upsample1Dims = net->getUpsampleDims(conv8bDims);
+    const auto concat1Dims   = net->getConcatDims(upsample1Dims, pool1Dims);
+    const auto conv9Dims     = net->getConvDims("conv9", concat1Dims);
+    const auto conv9bDims    = net->getConvDims("conv9b", conv9Dims);
+    const auto upsample0Dims = net->getUpsampleDims(conv9bDims);
+    const auto concat0Dims   = net->getConcatDims(upsample0Dims, inputReorderDims);
+    const auto conv10Dims    = net->getConvDims("conv10", concat0Dims);
+    const auto conv10bDims   = net->getConvDims("conv10b", conv10Dims);
+    const auto conv11Dims    = net->getConvDims("conv11", conv10bDims);
 
     const auto outputDims = memory::dims({1, 3, height, width});
 
@@ -200,7 +200,7 @@ namespace oidn {
     auto concat4Dst = net->allocTensor(concat4Dims);
 
     // Input reorder
-    auto inputReorderDst = net->castTensor(inputReorderDims, concat0Dst, unpool0Dims);
+    auto inputReorderDst = net->castTensor(inputReorderDims, concat0Dst, upsample0Dims);
     std::shared_ptr<Node> inputReorder;
     if (srgb)
     {
@@ -232,7 +232,7 @@ namespace oidn {
 
     // pool1
     // Adjust pointer for pool1 to eliminate concat1
-    auto pool1Dst = net->castTensor(pool1Dims, concat1Dst, unpool1Dims);
+    auto pool1Dst = net->castTensor(pool1Dims, concat1Dst, upsample1Dims);
     auto pool1 = net->addPool(conv1b->getDst(), pool1Dst);
 
     // conv2
@@ -240,7 +240,7 @@ namespace oidn {
 
     // pool2
     // Adjust pointer for pool2 to eliminate concat2
-    auto pool2Dst = net->castTensor(pool2Dims, concat2Dst, unpool2Dims);
+    auto pool2Dst = net->castTensor(pool2Dims, concat2Dst, upsample2Dims);
     auto pool2 = net->addPool(conv2->getDst(), pool2Dst);
 
     // conv3
@@ -248,7 +248,7 @@ namespace oidn {
 
     // pool3
     // Adjust pointer for pool3 to eliminate concat3
-    auto pool3Dst = net->castTensor(pool3Dims, concat3Dst, unpool3Dims);
+    auto pool3Dst = net->castTensor(pool3Dims, concat3Dst, upsample3Dims);
     auto pool3 = net->addPool(conv3->getDst(), pool3Dst);
 
     // conv4
@@ -256,7 +256,7 @@ namespace oidn {
 
     // pool4
     // Adjust pointer for pool4 to eliminate concat4
-    auto pool4Dst = net->castTensor(pool4Dims, concat4Dst, unpool4Dims);
+    auto pool4Dst = net->castTensor(pool4Dims, concat4Dst, upsample4Dims);
     auto pool4 = net->addPool(conv4->getDst(), pool4Dst);
 
     // conv5
@@ -265,9 +265,9 @@ namespace oidn {
     // pool5
     auto pool5 = net->addPool(conv5->getDst());
 
-    // unpool4
-    auto unpool4Dst = net->castTensor(unpool4Dims, concat4Dst);
-    auto unpool4 = net->addUnpool(pool5->getDst(), unpool4Dst);
+    // upsample4
+    auto upsample4Dst = net->castTensor(upsample4Dims, concat4Dst);
+    auto upsample4 = net->addUpsample(pool5->getDst(), upsample4Dst);
 
     // conv6
     auto conv6 = net->addConv("conv6", concat4Dst);
@@ -275,9 +275,9 @@ namespace oidn {
     // conv6b
     auto conv6b = net->addConv("conv6b", conv6->getDst());
 
-    // unpool3
-    auto unpool3Dst = net->castTensor(unpool3Dims, concat3Dst);
-    auto unpool3 = net->addUnpool(conv6b->getDst(), unpool3Dst);
+    // upsample3
+    auto upsample3Dst = net->castTensor(upsample3Dims, concat3Dst);
+    auto upsample3 = net->addUpsample(conv6b->getDst(), upsample3Dst);
 
     // conv7
     auto conv7 = net->addConv("conv7", concat3Dst);
@@ -285,9 +285,9 @@ namespace oidn {
     // conv7b
     auto conv7b = net->addConv("conv7b", conv7->getDst());
 
-    // unpool2
-    auto unpool2Dst = net->castTensor(unpool2Dims, concat2Dst);
-    auto unpool2 = net->addUnpool(conv7b->getDst(), unpool2Dst);
+    // upsample2
+    auto upsample2Dst = net->castTensor(upsample2Dims, concat2Dst);
+    auto upsample2 = net->addUpsample(conv7b->getDst(), upsample2Dst);
 
     // conv8
     auto conv8 = net->addConv("conv8", concat2Dst);
@@ -295,9 +295,9 @@ namespace oidn {
     // conv8b
     auto conv8b = net->addConv("conv8b", conv8->getDst());
 
-    // unpool1
-    auto unpool1Dst = net->castTensor(unpool1Dims, concat1Dst);
-    auto unpool1 = net->addUnpool(conv8b->getDst(), unpool1Dst);
+    // upsample1
+    auto upsample1Dst = net->castTensor(upsample1Dims, concat1Dst);
+    auto upsample1 = net->addUpsample(conv8b->getDst(), upsample1Dst);
 
     // conv9
     auto conv9 = net->addConv("conv9", concat1Dst);
@@ -305,9 +305,9 @@ namespace oidn {
     // conv9b
     auto conv9b = net->addConv("conv9b", conv9->getDst());
 
-    // unpool0
-    auto unpool0Dst = net->castTensor(unpool0Dims, concat0Dst);
-    auto unpool0 = net->addUnpool(conv9b->getDst(), unpool0Dst);
+    // upsample0
+    auto upsample0Dst = net->castTensor(upsample0Dims, concat0Dst);
+    auto upsample0 = net->addUpsample(conv9b->getDst(), upsample0Dst);
 
     // conv10
     auto conv10 = net->addConv("conv10", concat0Dst);
