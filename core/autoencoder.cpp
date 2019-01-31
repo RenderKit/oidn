@@ -44,9 +44,9 @@ namespace oidn {
   void AutoencoderFilter::set1i(const std::string& name, int value)
   {
     if (name == "hdr")
-      hdr = value;
+      hdr = value != 0;
     else if (name == "srgb")
-      srgb = value;
+      srgb = value != 0;
 
     dirty = true;
   }

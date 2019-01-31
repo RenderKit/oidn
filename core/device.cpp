@@ -120,7 +120,7 @@ namespace oidn {
     if (name == "numThreads")
       numThreads = value;
     else if (name == "setAffinity")
-      setAffinity = value;
+      setAffinity = value != 0;
 
     dirty = true;
   }

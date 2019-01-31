@@ -148,7 +148,7 @@ namespace oidn {
     OIDN_TRY
       checkHandle(hDevice);
       OIDN_LOCK(device);
-      return device->get1i(name);
+      return device->get1i(name) != 0;
     OIDN_CATCH(device)
     return false;
   }
@@ -335,7 +335,7 @@ namespace oidn {
     OIDN_TRY
       checkHandle(hFilter);
       OIDN_LOCK(filter);
-      return filter->get1i(name);
+      return filter->get1i(name) != 0;
     OIDN_CATCH(filter)
     return false;
   }

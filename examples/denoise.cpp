@@ -137,7 +137,7 @@ int main(int argc, char* argv[])
     if (numThreads > 0)
       device.set("numThreads", numThreads);
     if (setAffinity >= 0)
-      device.set("setAffinity", (bool)setAffinity);
+      device.set("setAffinity", setAffinity != 0);
     device.commit();
 
     oidn::FilterRef filter = device.newFilter("RT");
