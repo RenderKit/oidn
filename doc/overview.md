@@ -24,7 +24,7 @@ ray tracing.
 Open Image Denoise internally builds on top of
 [Intel® Math Kernel Library for Deep Neural Networks (MKL-DNN)](https://github.com/intel/mkl-dnn),
 and fully exploits modern instruction sets like Intel SSE4, AVX2, and AVX-512
-to achieve high denoising performance. A CPU with support for at least SSE4.2
+to achieve high denoising performance. A CPU with support for at least SSE4.1
 is required to run Open Image Denoise.
 
 

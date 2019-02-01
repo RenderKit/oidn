@@ -4,7 +4,7 @@ Download Precompiled Open Image Denoise Binary Packages
 Prerequisites
 -------------
 
-Your CPU must support at least SSE4.2 to run Open Image Denoise, and you need
+Your CPU must support at least SSE4.1 to run Open Image Denoise, and you need
 a 64-bit operating system as well. The TGZ/ZIP packages contain most needed
 3rd party dependencies.
 

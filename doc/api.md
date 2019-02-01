@@ -99,7 +99,7 @@ can be one of the following:
 Name                     Description
 ------------------------ ------------------------------------------------------
 OIDN_DEVICE_TYPE_DEFAULT select the approximately fastest device
-OIDN_DEVICE_TYPE_CPU     CPU device (requires SSE4.2 support)
+OIDN_DEVICE_TYPE_CPU     CPU device (requires SSE4.1 support)
 ------------------------ ------------------------------------------------------
 : Supported device types, i.e., valid constants of type `OIDNDeviceType`.
 

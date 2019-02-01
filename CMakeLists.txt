@@ -141,12 +141,12 @@ generate_cpp_resources(WEIGHTS_SOURCES "oidn::weights"
 
 add_library(${PROJECT_NAME} SHARED ${CORE_SOURCES} ${WEIGHTS_SOURCES})
 
-add_library("${PROJECT_NAME}_sse42" STATIC ${CORE_SOURCES_SSE42})
-set_target_properties("${PROJECT_NAME}_sse42" PROPERTIES COMPILE_FLAGS "${ISA_FLAGS_SSE42}")
+add_library("${PROJECT_NAME}_sse41" STATIC ${CORE_SOURCES_SSE42})
+set_target_properties("${PROJECT_NAME}_sse41" PROPERTIES COMPILE_FLAGS "${ISA_FLAGS_SSE41}")
 
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
-    "${PROJECT_NAME}_sse42"
+    "${PROJECT_NAME}_sse41"
     common mkldnn
     ${TBB_LIBRARIES}
 )
