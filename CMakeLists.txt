@@ -123,7 +123,7 @@ set(CORE_SOURCES
   core/autoencoder.h
 )
 
-set(CORE_SOURCES_SSE42
+set(CORE_SOURCES_SSE41
   core/network.cpp
   core/autoencoder.cpp
   core/tone_mapping.cpp
@@ -139,14 +139,12 @@ generate_cpp_resources(WEIGHTS_SOURCES "oidn::weights"
   weights/rt_hdr_alb_nrm.tza
 )
 
-add_library(${PROJECT_NAME} SHARED ${CORE_SOURCES} ${WEIGHTS_SOURCES})
+set_source_files_properties(${CORE_SOURCES_SSE41} PROPERTIES COMPILE_FLAGS "${ISA_FLAGS_SSE41}")
 
-add_library("${PROJECT_NAME}_sse41" STATIC ${CORE_SOURCES_SSE42})
-set_target_properties("${PROJECT_NAME}_sse41" PROPERTIES COMPILE_FLAGS "${ISA_FLAGS_SSE41}")
+add_library(${PROJECT_NAME} SHARED ${CORE_SOURCES} ${CORE_SOURCES_SSE41} ${WEIGHTS_SOURCES})
 
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
-    "${PROJECT_NAME}_sse41"
     common mkldnn
     ${TBB_LIBRARIES}
 )
