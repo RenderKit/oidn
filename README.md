@@ -1,6 +1,6 @@
 # Intel® Open Image Denoise
 
-This is release v0.8.0 of Open Image Denoise. For changes and new
+This is release v0.8.1 of Open Image Denoise. For changes and new
 features see the [changelog](CHANGELOG.md). Visit
 http://www.openimagedenoise.org for more information.
 
@@ -31,7 +31,7 @@ Open Image Denoise internally builds on top of [Intel® Math Kernel
 Library for Deep Neural Networks
 (MKL-DNN)](https://github.com/intel/mkl-dnn), and fully exploits modern
 instruction sets like Intel SSE4, AVX2, and AVX-512 to achieve high
-denoising performance. A CPU with support for at least SSE4.2 is
+denoising performance. A CPU with support for at least SSE4.1 is
 required to run Open Image Denoise.
 
 ## Support and Contact
@@ -295,7 +295,7 @@ following:
 | Name                        | Description                             |
 | :-------------------------- | :-------------------------------------- |
 | OIDN\_DEVICE\_TYPE\_DEFAULT | select the approximately fastest device |
-| OIDN\_DEVICE\_TYPE\_CPU     | CPU device (requires SSE4.2 support)    |
+| OIDN\_DEVICE\_TYPE\_CPU     | CPU device (requires SSE4.1 support)    |
 
 Supported device types, i.e., valid constants of type `OIDNDeviceType`.
 
