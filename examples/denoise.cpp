@@ -33,7 +33,7 @@ using namespace oidn;
 void printUsage()
 {
   std::cout << "Open Image Denoise Example" << std::endl;
-  std::cout << "Usage: denoise [-ldr ldr_color.pfm] [-hdr hdr_color.pfm]" << std::endl
+  std::cout << "Usage: denoise [-ldr ldr_color.pfm] [-srgb] [-hdr hdr_color.pfm]" << std::endl
             << "               [-alb albedo.pfm] [-nrm normal.pfm]" << std::endl
             << "               [-o output.pfm] [-ref reference_output.pfm]" << std::endl
             << "               [-bench ntimes] [-threads n] [-affinity 0|1]" << std::endl;
@@ -49,6 +49,7 @@ int main(int argc, char* argv[])
   std::string colorFilename, albedoFilename, normalFilename;
   std::string outputFilename, refFilename;
   bool hdr = false;
+  bool srgb = false;
   int numBenchmarkRuns = 0;
   int numThreads = -1;
   int setAffinity = -1;
@@ -76,6 +77,8 @@ int main(int argc, char* argv[])
         colorFilename = args.getNextValue();
         hdr = true;
       }
+      else if (opt == "srgb")
+        srgb = true;
       else if (opt == "alb" || opt == "albedo")
         albedoFilename = args.getNextValue();
       else if (opt == "nrm" || opt == "normal")
@@ -151,6 +154,8 @@ int main(int argc, char* argv[])
 
     if (hdr)
       filter.set("hdr", true);
+    if (srgb)
+      filter.set("srgb", true);
 
     filter.commit();
 
