@@ -60,6 +60,9 @@ Thumbs.db
 *vcxproj.*
 *.log
 
+# Visual Studio Code generated files
+.vscode
+
 # MinGW generated files
 *.Debug
 *.Release
