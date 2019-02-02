@@ -190,12 +190,12 @@ int main(int argc, char* argv[])
         const float expect = std::max(ref.data[i], 0.f);
         const float actual = std::max(output.data[i], 0.f);
         float re;
-        if (abs(expect) < 1e-5 && abs(actual) < 1e-5)
+        if (std::abs(expect) < 1e-5 && std::abs(actual) < 1e-5)
           re = 0;
         else if (expect != 0)
-          re = abs((expect - actual) / expect);
+          re = std::abs((expect - actual) / expect);
         else
-          re = abs(expect - actual);
+          re = std::abs(expect - actual);
         if (maxre < re) maxre = re;
         if (re > 1e-3)
         {
