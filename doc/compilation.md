@@ -17,7 +17,7 @@ you need the following prerequisites:
 
         git clone --recursive https://github.com/OpenImageDenoise/oidn.git
 
--   To build Open Image Denoise you need [CMake](http://www.cmake.org) 3.0 or
+-   To build Open Image Denoise you need [CMake](http://www.cmake.org) 3.1 or
     later, a C++11 compiler (we recommend using Clang, but also support GCC,
     Microsoft Visual Studio 2015 or later, and
     [Intel® C++ Compiler](https://software.intel.com/en-us/c-compilers) 17.0 or
