@@ -14,7 +14,7 @@
 ## limitations under the License.                                           ##
 ## ======================================================================== ##
 
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.1)
 
 set(OIDN_VERSION_MAJOR 0)
 set(OIDN_VERSION_MINOR 8)
@@ -77,6 +77,10 @@ include(mkl-dnn/cmake/Threading.cmake)
 include(mkl-dnn/cmake/TBB.cmake)
 include(mkl-dnn/cmake/platform.cmake)
 include(mkl-dnn/cmake/SDL.cmake)
+
+# Propagate no warning flags
+append(CMAKE_C_FLAGS "${CMAKE_CCXX_NOWARN_FLAGS}")
+append(CMAKE_CXX_FLAGS "${CMAKE_CCXX_NOWARN_FLAGS}")
 
 ## ----------------------------------------------------------------------------
 ## Open Image Denoise library
