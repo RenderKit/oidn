@@ -22,21 +22,21 @@
 #include <ittnotify.h>
 #endif
 
-#include "OpenImageDenoise/oidn.hpp"
+#include <OpenImageDenoise/oidn.hpp>
+
 #include "common/timer.h"
 #include "image_io.h"
 #include "cli.h"
 
-using namespace std;
 using namespace oidn;
 
 void printUsage()
 {
-  cout << "Open Image Denoise Example" << endl;
-  cout << "Usage: denoise [-ldr ldr_color.pfm] [-hdr hdr_color.pfm]" << endl
-       << "               [-alb albedo.pfm] [-nrm normal.pfm]" << endl
-       << "               [-o output.pfm] [-ref reference_output.pfm]" << endl
-       << "               [-bench ntimes] [-threads n] [-affinity 0|1]" << endl;
+  std::cout << "Open Image Denoise Example" << std::endl;
+  std::cout << "Usage: denoise [-ldr ldr_color.pfm] [-hdr hdr_color.pfm]" << std::endl
+            << "               [-alb albedo.pfm] [-nrm normal.pfm]" << std::endl
+            << "               [-o output.pfm] [-ref reference_output.pfm]" << std::endl
+            << "               [-bench ntimes] [-threads n] [-affinity 0|1]" << std::endl;
 }
 
 void errorCallback(void* userPtr, Error error, const char* message)
@@ -106,7 +106,7 @@ int main(int argc, char* argv[])
     Tensor color, albedo, normal;
     Tensor ref;
 
-    cout << "Loading input" << flush;
+    std::cout << "Loading input" << std::flush;
 
     color = loadImagePFM(colorFilename);
     if (!albedoFilename.empty())
@@ -118,13 +118,13 @@ int main(int argc, char* argv[])
 
     const int height = color.dims[0];
     const int width  = color.dims[1];
-    cout << endl << "Resolution: " << width << "x" << height << endl;
+    std::cout << std::endl << "Resolution: " << width << "x" << height << std::endl;
 
     // Initialize the output image
     Tensor output({height, width, 3}, "hwc");
 
     // Initialize the denoising filter
-    cout << "Initializing" << flush;
+    std::cout << "Initializing" << std::flush;
     Timer timer;
 
     oidn::DeviceRef device = oidn::newDevice();
@@ -137,7 +137,7 @@ int main(int argc, char* argv[])
     if (numThreads > 0)
       device.set("numThreads", numThreads);
     if (setAffinity >= 0)
-      device.set("setAffinity", (bool)setAffinity);
+      device.set("setAffinity", bool(setAffinity));
     device.commit();
 
     oidn::FilterRef filter = device.newFilter("RT");
@@ -160,17 +160,17 @@ int main(int argc, char* argv[])
     const int versionMinor = device.get<int>("versionMinor");
     const int versionPatch = device.get<int>("versionPatch");
 
-    cout << ": version=" << versionMajor << "." << versionMinor << "." << versionPatch
-         << ", msec=" << (1000. * initTime) << endl;
+    std::cout << ": version=" << versionMajor << "." << versionMinor << "." << versionPatch
+         << ", msec=" << (1000. * initTime) << std::endl;
 
     // Denoise the image
-    cout << "Denoising" << flush;
+    std::cout << "Denoising" << std::flush;
     timer.reset();
 
     filter.execute();
 
     const double denoiseTime = timer.query();
-    cout << ": msec=" << (1000. * denoiseTime) << endl;
+    std::cout << ": msec=" << (1000. * denoiseTime) << std::endl;
 
     if (ref)
     {
@@ -194,26 +194,26 @@ int main(int argc, char* argv[])
         if (maxre < re) maxre = re;
         if (re > 1e-3)
         {
-          //cout << "i=" << i << " expect=" << expect << " actual=" << actual << endl;
+          //std::cout << "i=" << i << " expect=" << expect << " actual=" << actual << std::endl;
           ++nerr;
         }
       }
-      cout << "Verified output: nfloats=" << output.size() << ", nerr=" << nerr << ", maxre=" << maxre << endl;
+      std::cout << "Verified output: nfloats=" << output.size() << ", nerr=" << nerr << ", maxre=" << maxre << std::endl;
 
       // Save debug images
-      cout << "Saving debug images" << flush;
+      std::cout << "Saving debug images" << std::flush;
       saveImagePPM(color,  "denoise_in.ppm");
       saveImagePPM(output, "denoise_out.ppm");
       saveImagePPM(ref,    "denoise_ref.ppm");
-      cout << endl;
+      std::cout << std::endl;
     }
 
     if (!outputFilename.empty())
     {
       // Save output image
-      cout << "Saving output" << flush;
+      std::cout << "Saving output" << std::flush;
       saveImagePFM(output, outputFilename);
-      cout << endl;
+      std::cout << std::endl;
     }
 
     if (numBenchmarkRuns > 0)
@@ -223,14 +223,14 @@ int main(int argc, char* argv[])
       __itt_resume();
     #endif
 
-      cout << "Benchmarking: " << "ntimes=" << numBenchmarkRuns << flush;
+      std::cout << "Benchmarking: " << "ntimes=" << numBenchmarkRuns << std::flush;
       timer.reset();
 
       for (int i = 0; i < numBenchmarkRuns; ++i)
         filter.execute();
 
       const double totalTime = timer.query();
-      cout << ", sec=" << totalTime << ", msec/image=" << (1000.*totalTime / numBenchmarkRuns) << endl;
+      std::cout << ", sec=" << totalTime << ", msec/image=" << (1000.*totalTime / numBenchmarkRuns) << std::endl;
 
     #ifdef VTUNE
       __itt_pause();
@@ -239,7 +239,7 @@ int main(int argc, char* argv[])
   }
   catch (std::exception& e)
   {
-    cout << endl << "Error: " << e.what() << endl;
+    std::cout << std::endl << "Error: " << e.what() << std::endl;
     return 1;
   }
 
