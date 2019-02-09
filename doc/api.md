@@ -507,7 +507,7 @@ possible. Similar to the albedo, the normal can be stored for either the first
 or a subsequent hit (if the first hit has a specular/delta BSDF).
 
 ![Example normal image rendered using the first hit (the values are actually
-in $[-1, 1]$ but were remapped to [0, 255] for illustration
+in $[-1, 1]$ but were remapped to [0, 1] for illustration
 purposes).][imgMazdaNormalFirstHit]
 
 ![Example normal image rendered using the first diffuse or glossy (non-delta)
