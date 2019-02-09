@@ -379,25 +379,26 @@ implemented in Open Image Denoise.
 
 The `RT` (**r**ay **t**racing) filter is a generic ray tracing denoising filter
 which is suitable for denoising images rendered with Monte Carlo ray tracing
-methods like unidirectional and bidirectional path tracing. The `RT` filter is
-based on a deep learning based denoising algorithm, and it aims to provide a
+methods like unidirectional and bidirectional path tracing. It supports depth
+of field and motion blur as well, but it is *not* temporally stable. The filter
+is based on a deep learning based denoising algorithm, and it aims to provide a
 good balance between denoising performance and quality for a wide range of
-samples per pixel. Note that the filter cannot denoise images that were not
-rendered with ray tracing.
+samples per pixel.
 
 It accepts either a low dynamic range (LDR) or high dynamic range (HDR) color
 image as input. Optionally, it also accepts auxiliary feature images, e.g.
 albedo and normal, which improve the denoising quality, preserving more details
 in the image.
 
-The `RT` filter has certain limitations. The most notable one is related to
-anti-aliasing filters. Most renderers use a high-quality pixel reconstruction
-filter instead of the trivial box filter to minimize aliasing artifacts
-(e.g. Gaussian, Blackman-Harris). The `RT` filter does support such pixel
-filters but only if implemented with importance sampling. Weighted pixel
-sampling (or sometimes called *splatting*) introduces correlation between
-neighboring pixels, which causes the denoising to fail (the noise will not be
-filtered), thus it is not supported.
+The `RT` filter has certain limitations regarding the supported input images.
+Most notably, it cannot denoise images that were not rendered with ray tracing.
+Another important limitation is related to anti-aliasing filters. Most
+renderers use a high-quality pixel reconstruction filter instead of the trivial
+box filter to minimize aliasing artifacts (e.g. Gaussian, Blackman-Harris). The
+`RT` filter does support such pixel filters but only if implemented with
+importance sampling. Weighted pixel sampling (or sometimes called *splatting*)
+introduces correlation between neighboring pixels, which causes the denoising
+to fail (the noise will not be filtered), thus it is not supported.
 
 The filter can be created by passing `"RT"` to the `oidnNewFilter` function
 as the filter type. The filter supports the following parameters:
@@ -405,16 +406,18 @@ as the filter type. The filter supports the following parameters:
 ------- -------- ----------- -------- -----------------------------------------
 Type    Format   Name         Default Description
 ------- -------- ----------- -------- -----------------------------------------
-Image   float3   color                input color image (LDR or HDR)
+Image   float3   color                input color image (LDR values in $[0, 1]$
+                                      or HDR values in $[0, +\infty)$)
 
-Image   float3   albedo               input image containing the albedo value of
-                                      the first hit per pixel; *optional*
+Image   float3   albedo               input image containing the albedo value
+                                      (in $[0, 1]$) of the first hit;
+                                      *optional*
 
-Image   float3   normal               input image containing the normal
+Image   float3   normal               input image containing the shading normal
                                       (world-space or view-space, arbitrary
-                                      length) of the first hit per pixel;
-                                      *optional*, requires setting the albedo
-                                      image too
+                                      length, in $(-\infty, +\infty)$) of the
+                                      first hit; *optional*, requires setting
+                                      the albedo image too
 
 Image   float3   output               output image; can be one of the input
                                       images
@@ -430,44 +433,83 @@ bool             srgb           false whether the color is encoded with the
 
 All specified images must have the same dimensions.
 
-Using feature images like albedo and normal helps preserving fine details and
-textures in the image thus can significantly improve denoising quality. All
-feature images should contain information for the first hit per pixel. This
-works well for most surfaces but usually cannot provide any benefits for
-reflections and transparent/refractive surfaces. Note that denoising does work
-for such complex surfaces but the quality will not be better than just using
-the color as input. However, in some cases this issue can be fixed by storing
-feature information for a subsequent hit (i.e. the reflection or refraction)
-instead of the first hit, e.g. for perfect mirrors.
+![Example noisy color image rendered using unidirectional path tracing (512
+spp). *Scene by Evermotion.*][imgMazdaColor]
 
-All images, including the color and feature images should use the sample pixel
-reconstruction method/filter. Using a properly anti-aliased color image but
-aliased albedo or normal images will introduce artifacts in the denoised
-result.
+![Example output image denoised using auxiliary (first-hit) albedo and normal
+images too.][imgMazdaDenoised]
 
-#### Albedo image
+Using auxiliary feature images like albedo and normal helps preserving fine
+details and textures in the image thus can significantly improve denoising
+quality. These images should typically contain feature values for the first hit
+(i.e. the surface which is directly visible). This works well for most surfaces
+but does not provide any benefits for reflections and objects visible through
+transparent surfaces (compared to just using the color as input). However, in
+certain cases this issue can be fixed by storing auxiliary feature values for
+a subsequent hit (i.e. the reflection and/or refraction) instead of the first
+hit. For example, it usually works well to follow specular (delta) paths and
+store auxiliary features for the first diffuse or glossy surface hit instead.
+This can greatly improve the quality of specular reflection and transmission.
 
-The albedo image should contain the approximate color of the surfaces
-independent of viewing angle and illumination. For simple, matte surfaces this
-means simply using the diffuse (possibly textured) color as the albedo. For
-other, more complex surfaces it is not always obvious what is the best way to
-compute the albedo but the denoising filter is flexibile to a certain extent
-and works well with different albedo computation approaches. It is not
-necessary to compute the strict, exact albedo values, but these must always be
-between `0` and `1`.
+The auxiliary feature images should be as noise-free as possible. It is not a
+strict requirement but too much noise in the feature images may cause residual
+noise in the output. Also, all auxiliary feature images should use the
+same pixel reconstruction filter as the color image. Using a properly
+anti-aliased color image but aliased albedo or normal images will likely
+introduce artifacts around edges.
+
+#### Albedo
+
+The albedo image is the feature image that usually provides the biggest quality
+improvement. It should contain the approximate color of the surfaces
+independent of viewing angle and illumination.
+
+For simple matte surfaces this means using the diffuse color/texture as the
+albedo. For other, more complex surfaces it is not always obvious what is
+the best way to compute the albedo but the denoising filter is flexibile to
+a certain extent and works well with different ways to compute the albedo.
+Thus it is not necessary to compute the strict, exact albedo values, but these
+must always be between `0` and `1`.
+
+For metallic surfaces the albedo should be either the reflectivity at normal
+incidence (e.g. from the artist friendly metallic Fresnel model) or the
+average reflectivity, or if these are constant (not textured) or unknown, the
+albedo can be simply `1` as well.
+
+The albedo for dielectric surfaces (e.g. glass) should be either `1` or if the
+surface is perfectly smooth (has a delta BSDF), it is often better to store the
+albedo for both the reflection and transmission instead (as previously
+discussed).
 
 The albedo for layered surfaces can be computed as the weighted sum of the
 albedos of the individual layers. Non-absorbing clear coat layers can be simply
-ignored but absorption should be taken into account. The albedo for pure
-dielectric surfaces (e.g. glass) should be `1`. For metallic surfaces the
-albedo should be the reflectivity at normal incidence (e.g. from the artist
-friendly metallic Fresnel model), or if this is constant or unknown, the albedo
-can be simply `1` as well.
+ignored (or the specularly reflected albedo can be used as well) but absorption
+should be taken into account.
 
-#### Normal image
+![Example albedo image rendered using the first hit. Note that the albedos of
+all transparent surfaces are $1$.][imgMazdaAlbedoFirstHit]
+
+![Example albedo image rendered using the first diffuse or glossy (non-delta)
+hit. Note that the albedos of specular (delta) transparent surfaces are the
+Fresnel blend of the reflection and transmission albedos.][imgMazdaAlbedoNonDeltaHit]
+
+#### Normal
 
 The normal image should contain the shading normals of the surfaces either in
 world-space or view-space. Just like any other feauture image, the normal image
 should be anti-aliased (i.e. by accumulating the normalized normals per pixel).
-The final accumulated normals do not have to be normalized. It is recommended to
-include normal mapping to preserve as much detail as possible.
+The final accumulated normals do not have to be normalized but must be in a range
+symmetric about $0$ (i.e. normals mapped to $[0, 1]$ are *not* acceptable and
+must be remapped to e.g. $[-1, 1]$).
+
+It is recommended to include normal mapping to preserve as much detail as
+possible. Similar to the albedo, the normal can be stored for either the first
+or a subsequent hit (if the first hit has a specular/delta BSDF).
+
+![Example normal image rendered using the first hit (the values are actually
+in $[-1, 1]$ but were remapped to [0, 255] for illustration
+purposes).][imgMazdaNormalFirstHit]
+
+![Example normal image rendered using the first diffuse or glossy (non-delta)
+hit. Note that the normals of specular (delta) transparent surfaces are the
+Fresnel blend of the reflection and transmission normals.][imgMazdaNormalNonDeltaHit]
