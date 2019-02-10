@@ -723,9 +723,10 @@ unknown, the albedo can be simply `1` as well.
 
 The albedo for dielectric surfaces (e.g. glass) should be either `1` or,
 if the surface is perfect specular (i.e. has a delta BSDF), the Fresnel
-blend of the reflected and transmitted albedos, which usually works
-better (as previously discussed). The reflected albedo can be used for
-mirror-like surfaces as well.
+blend of the reflected and transmitted albedos (as previously
+discussed). The latter usually works better but *only* if it does not
+introduce too much additional noise due to random sampling. The
+reflected albedo can be used for mirror-like surfaces as well.
 
 The albedo for layered surfaces can be computed as the weighted sum of
 the albedos of the individual layers. Non-absorbing clear coat layers
