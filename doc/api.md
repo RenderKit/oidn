@@ -386,7 +386,7 @@ good balance between denoising performance and quality for a wide range of
 samples per pixel.
 
 It accepts either a low dynamic range (LDR) or high dynamic range (HDR) color
-image as input. Optionally, it also accepts auxiliary feature images, e.g.
+image as input. Optionally, it also accepts auxiliary *feature* images, e.g.
 albedo and normal, which improve the denoising quality, preserving more details
 in the image.
 
@@ -396,7 +396,7 @@ Another important limitation is related to anti-aliasing filters. Most
 renderers use a high-quality pixel reconstruction filter instead of the trivial
 box filter to minimize aliasing artifacts (e.g. Gaussian, Blackman-Harris). The
 `RT` filter does support such pixel filters but only if implemented with
-importance sampling. Weighted pixel sampling (or sometimes called *splatting*)
+importance sampling. Weighted pixel sampling (sometimes called *splatting*)
 introduces correlation between neighboring pixels, which causes the denoising
 to fail (the noise will not be filtered), thus it is not supported.
 
@@ -409,15 +409,16 @@ Type    Format   Name         Default Description
 Image   float3   color                input color image (LDR values in $[0, 1]$
                                       or HDR values in $[0, +\infty)$)
 
-Image   float3   albedo               input image containing the albedo value
-                                      (in $[0, 1]$) of the first hit;
-                                      *optional*
+Image   float3   albedo               input feature image containing the albedo
+                                      (values in $[0, 1]$) of the first hit per
+                                      pixel; *optional*
 
-Image   float3   normal               input image containing the shading normal
-                                      (world-space or view-space, arbitrary
-                                      length, in $(-\infty, +\infty)$) of the
-                                      first hit; *optional*, requires setting
-                                      the albedo image too
+Image   float3   normal               input feature image containing the shading
+                                      normal (world-space or view-space,
+                                      arbitrary length, values in
+                                      $(-\infty,+\infty)$) of the first hit per
+                                      pixel; *optional*, requires setting the
+                                      albedo image too
 
 Image   float3   output               output image; can be one of the input
                                       images
@@ -436,80 +437,83 @@ All specified images must have the same dimensions.
 ![Example noisy color image rendered using unidirectional path tracing (512
 spp). *Scene by Evermotion.*][imgMazdaColor]
 
-![Example output image denoised using auxiliary (first-hit) albedo and normal
-images too.][imgMazdaDenoised]
+![Example output image denoised using color and auxiliary (first-hit) feature
+images (albedo and normal)][imgMazdaDenoised]
 
 Using auxiliary feature images like albedo and normal helps preserving fine
 details and textures in the image thus can significantly improve denoising
-quality. These images should typically contain feature values for the first hit
-(i.e. the surface which is directly visible). This works well for most surfaces
-but does not provide any benefits for reflections and objects visible through
-transparent surfaces (compared to just using the color as input). However, in
-certain cases this issue can be fixed by storing auxiliary feature values for
-a subsequent hit (i.e. the reflection and/or refraction) instead of the first
-hit. For example, it usually works well to follow specular (delta) paths and
-store auxiliary features for the first diffuse or glossy surface hit instead.
-This can greatly improve the quality of specular reflection and transmission.
+quality. These images should typically contain feature values for the first
+hit (i.e. the surface which is directly visible) per pixel. This works well for
+most surfaces but does not provide any benefits for reflections and objects
+visible through transparent surfaces (compared to just using the color as
+input). However, in certain cases this issue can be fixed by storing feature
+values for a subsequent hit (i.e. the reflection and/or refraction) instead of
+the first hit. For example, it usually works well to follow perfect specular
+(*delta*) paths and store features for the first diffuse or glossy surface hit
+instead (e.g. for perfect specular dielectrics and mirrors). This can greatly
+improve the quality of reflections and transmission.
 
 The auxiliary feature images should be as noise-free as possible. It is not a
 strict requirement but too much noise in the feature images may cause residual
-noise in the output. Also, all auxiliary feature images should use the
-same pixel reconstruction filter as the color image. Using a properly
-anti-aliased color image but aliased albedo or normal images will likely
-introduce artifacts around edges.
+noise in the output. Also, all feature images should use the same pixel
+reconstruction filter as the color image. Using a properly anti-aliased color
+image but aliased albedo or normal images will likely introduce artifacts
+around edges.
 
 #### Albedo
 
 The albedo image is the feature image that usually provides the biggest quality
 improvement. It should contain the approximate color of the surfaces
-independent of viewing angle and illumination.
+independent of illumination and viewing angle.
 
 For simple matte surfaces this means using the diffuse color/texture as the
 albedo. For other, more complex surfaces it is not always obvious what is
-the best way to compute the albedo but the denoising filter is flexibile to
-a certain extent and works well with different ways to compute the albedo.
-Thus it is not necessary to compute the strict, exact albedo values, but these
-must always be between `0` and `1`.
+the best way to compute the albedo, but the denoising filter is flexibile to
+a certain extent and works well with differently computed albedos. Thus it is
+not necessary to compute the strict, exact albedo values but must be always
+between `0` and `1`.
 
 For metallic surfaces the albedo should be either the reflectivity at normal
 incidence (e.g. from the artist friendly metallic Fresnel model) or the
 average reflectivity, or if these are constant (not textured) or unknown, the
 albedo can be simply `1` as well.
 
-The albedo for dielectric surfaces (e.g. glass) should be either `1` or if the
-surface is perfectly smooth (has a delta BSDF), it is often better to store the
-albedo for both the reflection and transmission instead (as previously
-discussed).
+The albedo for dielectric surfaces (e.g. glass) should be either `1` or, if the
+surface is perfect specular (i.e. has a delta BSDF), the Fresnel blend of the
+reflected and transmitted albedos, which usually works better (as previously
+discussed). The reflected albedo can be used for mirror-like surfaces as well.
 
 The albedo for layered surfaces can be computed as the weighted sum of the
 albedos of the individual layers. Non-absorbing clear coat layers can be simply
-ignored (or the specularly reflected albedo can be used as well) but absorption
-should be taken into account.
+ignored (or the albedo of the perfect specular reflection can be used as well)
+but absorption should be taken into account.
 
 ![Example albedo image rendered using the first hit. Note that the albedos of
 all transparent surfaces are $1$.][imgMazdaAlbedoFirstHit]
 
 ![Example albedo image rendered using the first diffuse or glossy (non-delta)
-hit. Note that the albedos of specular (delta) transparent surfaces are the
-Fresnel blend of the reflection and transmission albedos.][imgMazdaAlbedoNonDeltaHit]
+hit. Note that the albedos of perfect specular (delta) transparent surfaces
+are computed as the Fresnel blend of the reflected and transmitted
+albedos.][imgMazdaAlbedoNonDeltaHit]
 
 #### Normal
 
 The normal image should contain the shading normals of the surfaces either in
-world-space or view-space. Just like any other feauture image, the normal image
+world-space or view-space. Just like any other input image, the normal image
 should be anti-aliased (i.e. by accumulating the normalized normals per pixel).
-The final accumulated normals do not have to be normalized but must be in a range
-symmetric about $0$ (i.e. normals mapped to $[0, 1]$ are *not* acceptable and
-must be remapped to e.g. $[-1, 1]$).
+The final accumulated normals do not have to be normalized but must be in a
+range symmetric about $0$ (i.e. normals mapped to $[0, 1]$ are *not* acceptable
+and must be remapped to e.g. $[-1, 1]$).
 
 It is recommended to include normal mapping to preserve as much detail as
 possible. Similar to the albedo, the normal can be stored for either the first
-or a subsequent hit (if the first hit has a specular/delta BSDF).
+or a subsequent hit (if the first hit has a perfect specular/delta BSDF).
 
 ![Example normal image rendered using the first hit (the values are actually
-in $[-1, 1]$ but were remapped to [0, 1] for illustration
+in $[-1, 1]$ but were mapped to [0, 1] for illustration
 purposes).][imgMazdaNormalFirstHit]
 
 ![Example normal image rendered using the first diffuse or glossy (non-delta)
-hit. Note that the normals of specular (delta) transparent surfaces are the
-Fresnel blend of the reflection and transmission normals.][imgMazdaNormalNonDeltaHit]
+hit. Note that the normals of perfect specular (delta) transparent surfaces
+are computed as the Fresnel blend of the reflected and transmitted
+normals.][imgMazdaNormalNonDeltaHit]

@@ -23,7 +23,7 @@ pixel (spp), from 1 spp to almost fully converged. Thus it is suitable for both
 preview and final-frame rendering. The filters can denoise images either using
 only the noisy color (*beauty*) buffer, or, to preserve as much detail as
 possible, can optionally utilize auxiliary feature buffers as well (e.g.
-albedo and normal). Such buffers are supported by most renderers as arbitrary
+albedo, normal). Such buffers are supported by most renderers as arbitrary
 output variables (AOVs) or can be usually implemented with little effort.
 
 Open Image Denoise supports Intel® 64 architecture based CPUs and compatible

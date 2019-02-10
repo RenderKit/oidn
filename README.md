@@ -19,7 +19,19 @@ significantly reduce rendering times in ray tracing based rendering
 applications. It filters out the Monte Carlo noise inherent to
 stochastic ray tracing methods like path tracing, reducing the amount of
 necessary samples per pixel by even multiple orders of magnitude
-(depending on the desired closeness to the ground truth).
+(depending on the desired closeness to the ground truth). A simple but
+flexible C/C++ API ensures that the library can be easily integrated
+into most existing or new rendering solutions.
+
+At the heart of the Open Image Denoise library is an efficient deep
+learning based denoising filter, which was trained to handle a wide
+range of samples per pixel (spp), from 1 spp to almost fully converged.
+Thus it is suitable for both preview and final-frame rendering. The
+filters can denoise images either using only the noisy color (*beauty*)
+buffer, or, to preserve as much detail as possible, can optionally
+utilize auxiliary feature buffers as well (e.g. albedo, normal). Such
+buffers are supported by most renderers as arbitrary output variables
+(AOVs) or can be usually implemented with little effort.
 
 Open Image Denoise supports Intel® 64 architecture based CPUs and
 compatible architectures, and runs on anything from laptops, to
@@ -29,9 +41,9 @@ hardware used, also for interactive ray tracing.
 
 Open Image Denoise internally builds on top of [Intel® Math Kernel
 Library for Deep Neural Networks
-(MKL-DNN)](https://github.com/intel/mkl-dnn), and fully exploits modern
-instruction sets like Intel SSE4, AVX2, and AVX-512 to achieve high
-denoising performance. A CPU with support for at least SSE4.1 is
+(MKL-DNN)](https://github.com/intel/mkl-dnn), and automatically exploits
+modern instruction sets like Intel SSE4, AVX2, and AVX-512 to achieve
+high denoising performance. A CPU with support for at least SSE4.1 is
 required to run Open Image Denoise.
 
 ## Support and Contact
@@ -622,31 +634,138 @@ implemented in Open Image Denoise.
 
 The `RT` (**r**ay **t**racing) filter is a generic ray tracing denoising
 filter which is suitable for denoising images rendered with Monte Carlo
-ray tracing methods like path tracing. The `RT` filter is based on a
-deep learning based denoising algorithm, and it aims to provide a good
-balance between denoising performance and quality.
+ray tracing methods like unidirectional and bidirectional path tracing.
+It supports depth of field and motion blur as well, but it is *not*
+temporally stable. The filter is based on a deep learning based
+denoising algorithm, and it aims to provide a good balance between
+denoising performance and quality for a wide range of samples per pixel.
 
 It accepts either a low dynamic range (LDR) or high dynamic range (HDR)
-color image as input. Optionally, it also accepts auxiliary feature
+color image as input. Optionally, it also accepts auxiliary *feature*
 images, e.g. albedo and normal, which improve the denoising quality,
 preserving more details in the image.
+
+The `RT` filter has certain limitations regarding the supported input
+images. Most notably, it cannot denoise images that were not rendered
+with ray tracing. Another important limitation is related to
+anti-aliasing filters. Most renderers use a high-quality pixel
+reconstruction filter instead of the trivial box filter to minimize
+aliasing artifacts (e.g. Gaussian, Blackman-Harris). The `RT` filter
+does support such pixel filters but only if implemented with importance
+sampling. Weighted pixel sampling (sometimes called *splatting*)
+introduces correlation between neighboring pixels, which causes the
+denoising to fail (the noise will not be filtered), thus it is not
+supported.
 
 The filter can be created by passing `"RT"` to the `oidnNewFilter`
 function as the filter type. The filter supports the following
 parameters:
 
-| Type  | Format | Name   | Default | Description                                                                                                                                                   |
-| :---- | :----- | :----- | ------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Image | float3 | color  |         | input color image (LDR or HDR)                                                                                                                                |
-| Image | float3 | albedo |         | input image containing the albedo value of the first hit per pixel; *optional*                                                                                |
-| Image | float3 | normal |         | input image containing the normal (world-space or view-space, arbitrary length) of the first hit per pixel; *optional*, requires setting the albedo image too |
-| Image | float3 | output |         | output image; can be one of the input images                                                                                                                  |
-| bool  |        | hdr    |   false | whether the color is HDR                                                                                                                                      |
-| bool  |        | srgb   |   false | whether the color is encoded with the sRGB (2.2 gamma) curve (LDR only) or is linear; the output will be encoded with the same curve                          |
+| Type  | Format | Name   | Default | Description                                                                                                                                                                                                    |
+| :---- | :----- | :----- | ------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Image | float3 | color  |         | input color image (LDR values in \([0, 1]\) or HDR values in \([0, +\infty)\))                                                                                                                                 |
+| Image | float3 | albedo |         | input feature image containing the albedo (values in \([0, 1]\)) of the first hit per pixel; *optional*                                                                                                        |
+| Image | float3 | normal |         | input feature image containing the shading normal (world-space or view-space, arbitrary length, values in \((-\infty,+\infty)\)) of the first hit per pixel; *optional*, requires setting the albedo image too |
+| Image | float3 | output |         | output image; can be one of the input images                                                                                                                                                                   |
+| bool  |        | hdr    |   false | whether the color is HDR                                                                                                                                                                                       |
+| bool  |        | srgb   |   false | whether the color is encoded with the sRGB (2.2 gamma) curve (LDR only) or is linear; the output will be encoded with the same curve                                                                           |
 
 Parameters supported by the `RT` filter.
 
 All specified images must have the same dimensions.
+
+![Example noisy color image rendered using unidirectional path tracing
+(512 spp). *Scene by
+Evermotion.*](https://openimagedenoise.github.io/images/mazda_512spp_color.jpg)
+
+![Example output image denoised using color and auxiliary (first-hit)
+feature images (albedo and
+normal)](https://openimagedenoise.github.io/images/mazda_512spp_oidn.jpg)
+
+Using auxiliary feature images like albedo and normal helps preserving
+fine details and textures in the image thus can significantly improve
+denoising quality. These images should typically contain feature values
+for the first hit (i.e. the surface which is directly visible) per
+pixel. This works well for most surfaces but does not provide any
+benefits for reflections and objects visible through transparent
+surfaces (compared to just using the color as input). However, in
+certain cases this issue can be fixed by storing feature values for a
+subsequent hit (i.e. the reflection and/or refraction) instead of the
+first hit. For example, it usually works well to follow perfect specular
+(*delta*) paths and store features for the first diffuse or glossy
+surface hit instead (e.g. for perfect specular dielectrics and mirrors).
+This can greatly improve the quality of reflections and transmission.
+
+The auxiliary feature images should be as noise-free as possible. It is
+not a strict requirement but too much noise in the feature images may
+cause residual noise in the output. Also, all feature images should use
+the same pixel reconstruction filter as the color image. Using a
+properly anti-aliased color image but aliased albedo or normal images
+will likely introduce artifacts around edges.
+
+#### Albedo
+
+The albedo image is the feature image that usually provides the biggest
+quality improvement. It should contain the approximate color of the
+surfaces independent of illumination and viewing angle.
+
+For simple matte surfaces this means using the diffuse color/texture as
+the albedo. For other, more complex surfaces it is not always obvious
+what is the best way to compute the albedo, but the denoising filter is
+flexibile to a certain extent and works well with differently computed
+albedos. Thus it is not necessary to compute the strict, exact albedo
+values but must be always between `0` and `1`.
+
+For metallic surfaces the albedo should be either the reflectivity at
+normal incidence (e.g. from the artist friendly metallic Fresnel model)
+or the average reflectivity, or if these are constant (not textured) or
+unknown, the albedo can be simply `1` as well.
+
+The albedo for dielectric surfaces (e.g. glass) should be either `1` or,
+if the surface is perfect specular (i.e. has a delta BSDF), the Fresnel
+blend of the reflected and transmitted albedos, which usually works
+better (as previously discussed). The reflected albedo can be used for
+mirror-like surfaces as well.
+
+The albedo for layered surfaces can be computed as the weighted sum of
+the albedos of the individual layers. Non-absorbing clear coat layers
+can be simply ignored (or the albedo of the perfect specular reflection
+can be used as well) but absorption should be taken into account.
+
+![Example albedo image rendered using the first hit. Note that the
+albedos of all transparent surfaces are
+\(1\).](https://openimagedenoise.github.io/images/mazda_512spp_albedo_firsthit.jpg)
+
+![Example albedo image rendered using the first diffuse or glossy
+(non-delta) hit. Note that the albedos of perfect specular (delta)
+transparent surfaces are computed as the Fresnel blend of the reflected
+and transmitted
+albedos.](https://openimagedenoise.github.io/images/mazda_512spp_albedo_nondeltahit.jpg)
+
+#### Normal
+
+The normal image should contain the shading normals of the surfaces
+either in world-space or view-space. Just like any other input image,
+the normal image should be anti-aliased (i.e. by accumulating the
+normalized normals per pixel). The final accumulated normals do not have
+to be normalized but must be in a range symmetric about \(0\)
+(i.e. normals mapped to \([0, 1]\) are *not* acceptable and must be
+remapped to e.g. \([-1, 1]\)).
+
+It is recommended to include normal mapping to preserve as much detail
+as possible. Similar to the albedo, the normal can be stored for either
+the first or a subsequent hit (if the first hit has a perfect
+specular/delta BSDF).
+
+![Example normal image rendered using the first hit (the values are
+actually in \([-1, 1]\) but were mapped to \[0, 1\] for illustration
+purposes).](https://openimagedenoise.github.io/images/mazda_512spp_normal_firsthit.jpg)
+
+![Example normal image rendered using the first diffuse or glossy
+(non-delta) hit. Note that the normals of perfect specular (delta)
+transparent surfaces are computed as the Fresnel blend of the reflected
+and transmitted
+normals.](https://openimagedenoise.github.io/images/mazda_512spp_normal_nondeltahit.jpg)
 
 # Examples
 
@@ -660,7 +779,7 @@ This example is a simple command-line application that denoises the
 provided image, which can optionally have auxiliary feature images as
 well (e.g. albedo and normal). The images must be stored in the
 [Portable FloatMap](http://www.pauldebevec.com/Research/HDR/PFM/) (PFM)
-format.
+format, and the color values must be encoded in little-endian format.
 
 Running `./denoise` without any arguments will bring up a list of
 command line options.
