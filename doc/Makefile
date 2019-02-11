@@ -128,14 +128,14 @@ images/%:
 ## Markdown
 ## ----------------------------------------------------------------------------
 
-# also works around pandoc #5121, should be fixed in v2.5.1
-convert_nbsp_width = sed -e 's@\\ @ @g' -e 's/" style="width:/" width="/g' -e "s@^</figure>@\0\n\n@"
+# Pandoc doesn't convert the alt text of an image to a caption in markdown, so we need to do it manually
+convert_image_alt_to_caption = perl -0pe 's/!\[((?:\[.*?\]|.)+?)\]\((.*?)\)/![]\(\2)\n\1/sg'
 
 tmp/api.md: api.md tmp/links.md tmp/images_web.md
 	$(PANDOC) $+ --indented-code-classes=cpp -t markdown-fenced_code_attributes -o $@
 
 ../README.md: tmp/readme_head.md overview.md compilation.md documentation.md tmp/api.md examples.md tmp/links.md tmp/images_web.md
-	$(PANDOC) $+ -t gfm | $(convert_nbsp_width) > $@
+	$(PANDOC) $+ -t gfm | $(convert_image_alt_to_caption) > $@
 
 ## ----------------------------------------------------------------------------
 ## PDF
