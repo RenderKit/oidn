@@ -674,13 +674,15 @@ Parameters supported by the `RT` filter.
 
 All specified images must have the same dimensions.
 
-![Example noisy color image rendered using unidirectional path tracing
+![](https://openimagedenoise.github.io/images/mazda_512spp_color.jpg)
+Example noisy color image rendered using unidirectional path tracing
 (512 spp). *Scene by
-Evermotion.*](https://openimagedenoise.github.io/images/mazda_512spp_color.jpg)
+Evermotion.*
 
-![Example output image denoised using color and auxiliary (first-hit)
+![](https://openimagedenoise.github.io/images/mazda_512spp_oidn.jpg)
+Example output image denoised using color and auxiliary (first-hit)
 feature images (albedo and
-normal)](https://openimagedenoise.github.io/images/mazda_512spp_oidn.jpg)
+normal)
 
 Using auxiliary feature images like albedo and normal helps preserving
 fine details and textures in the image thus can significantly improve
@@ -737,15 +739,17 @@ the albedos of the individual layers. Non-absorbing clear coat layers
 can be simply ignored (or the albedo of the perfect specular reflection
 can be used as well) but absorption should be taken into account.
 
-![Example albedo image rendered using the first hit. Note that the
+![](https://openimagedenoise.github.io/images/mazda_512spp_albedo_firsthit.jpg)
+Example albedo image rendered using the first hit. Note that the
 albedos of all transparent surfaces are
-\(1\).](https://openimagedenoise.github.io/images/mazda_512spp_albedo_firsthit.jpg)
+\(1\).
 
-![Example albedo image rendered using the first diffuse or glossy
+![](https://openimagedenoise.github.io/images/mazda_512spp_albedo_nondeltahit.jpg)
+Example albedo image rendered using the first diffuse or glossy
 (non-delta) hit. Note that the albedos of perfect specular (delta)
 transparent surfaces are computed as the Fresnel blend of the reflected
 and transmitted
-albedos.](https://openimagedenoise.github.io/images/mazda_512spp_albedo_nondeltahit.jpg)
+albedos.
 
 #### Normal
 
@@ -762,15 +766,17 @@ acceptable and must be remapped to e.g. \([-1, 1]\)).
 Similar to the albedo, the normal can be stored for either the first or
 a subsequent hit (if the first hit has a perfect specular/delta BSDF).
 
-![Example normal image rendered using the first hit (the values are
+![](https://openimagedenoise.github.io/images/mazda_512spp_normal_firsthit.jpg)
+Example normal image rendered using the first hit (the values are
 actually in \([-1, 1]\) but were mapped to \[0, 1\] for illustration
-purposes).](https://openimagedenoise.github.io/images/mazda_512spp_normal_firsthit.jpg)
+purposes).
 
-![Example normal image rendered using the first diffuse or glossy
+![](https://openimagedenoise.github.io/images/mazda_512spp_normal_nondeltahit.jpg)
+Example normal image rendered using the first diffuse or glossy
 (non-delta) hit. Note that the normals of perfect specular (delta)
 transparent surfaces are computed as the Fresnel blend of the reflected
 and transmitted
-normals.](https://openimagedenoise.github.io/images/mazda_512spp_normal_nondeltahit.jpg)
+normals.
 
 # Examples
 
