@@ -451,7 +451,8 @@ values for a subsequent hit (i.e. the reflection and/or refraction) instead of
 the first hit. For example, it usually works well to follow perfect specular
 (*delta*) paths and store features for the first diffuse or glossy surface hit
 instead (e.g. for perfect specular dielectrics and mirrors). This can greatly
-improve the quality of reflections and transmission.
+improve the quality of reflections and transmission. We will describe this
+approach in more detail in the following subsections.
 
 The auxiliary feature images should be as noise-free as possible. It is not a
 strict requirement but too much noise in the feature images may cause residual
@@ -482,8 +483,10 @@ The albedo for dielectric surfaces (e.g. glass) should be either `1` or, if the
 surface is perfect specular (i.e. has a delta BSDF), the Fresnel blend of the
 reflected and transmitted albedos (as previously discussed). The latter usually
 works better but *only* if it does not introduce too much additional noise due to
-random sampling. The reflected albedo can be used for mirror-like surfaces as
-well.
+random sampling. Thus we recommend to split the path into a reflected and a
+transmitted path at the first hit, and perhaps fall back to an albedo of `1` for
+subsequent dielectric hits, to avoid noise. The reflected albedo can be used for
+mirror-like surfaces as well.
 
 The albedo for layered surfaces can be computed as the weighted sum of the
 albedos of the individual layers. Non-absorbing clear coat layers can be simply
@@ -501,14 +504,16 @@ albedos.][imgMazdaAlbedoNonDeltaHit]
 #### Normal
 
 The normal image should contain the shading normals of the surfaces either in
-world-space or view-space. Just like any other input image, the normal image
-should be anti-aliased (i.e. by accumulating the normalized normals per pixel).
-The final accumulated normals do not have to be normalized but must be in a
-range symmetric about $0$ (i.e. normals mapped to $[0, 1]$ are *not* acceptable
-and must be remapped to e.g. $[-1, 1]$).
+world-space or view-space. It is recommended to include normal mapping to
+preserve as much detail as possible.
 
-It is recommended to include normal mapping to preserve as much detail as
-possible. Similar to the albedo, the normal can be stored for either the first
+Just like any other input image, the normal image should be anti-aliased (i.e.
+by accumulating the normalized normals per pixel). The final accumulated
+normals do not have to be normalized but must be in a range symmetric about $0$
+(i.e. normals mapped to $[0, 1]$ are *not* acceptable and must be remapped to
+e.g. $[-1, 1]$).
+
+Similar to the albedo, the normal can be stored for either the first
 or a subsequent hit (if the first hit has a perfect specular/delta BSDF).
 
 ![Example normal image rendered using the first hit (the values are actually
