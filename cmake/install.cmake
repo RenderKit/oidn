@@ -28,7 +28,6 @@ install(TARGETS ${PROJECT_NAME}
   # On Windows put the dlls into bin
   RUNTIME
     DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT lib
-  INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 ## ----------------------------------------------------------------------------
