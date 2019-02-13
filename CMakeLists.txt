@@ -29,7 +29,7 @@ project(OpenImageDenoise
   LANGUAGES CXX
 )
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 
 set(CONFIGURATION_TYPES "Debug;Release;RelWithDebInfo")
 if(win32)
@@ -92,17 +92,6 @@ configure_file(
   "${PROJECT_SOURCE_DIR}/include/OpenImageDenoise/version.h"
 )
 
-include_directories(
-  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-  $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-  ${PROJECT_SOURCE_DIR}
-  ${PROJECT_SOURCE_DIR}/mkl-dnn/include
-  ${PROJECT_SOURCE_DIR}/mkl-dnn/src
-  ${PROJECT_SOURCE_DIR}/mkl-dnn/src/common
-  ${PROJECT_SOURCE_DIR}/mkl-dnn/src/cpu/xbyak
-  ${TBB_INCLUDE_DIR}
-)
-
 add_subdirectory(common EXCLUDE_FROM_ALL)
 
 set(CORE_SOURCES
@@ -146,6 +135,17 @@ generate_cpp_resources(WEIGHTS_SOURCES "oidn::weights"
 set_source_files_properties(${CORE_SOURCES_SSE41} PROPERTIES COMPILE_FLAGS "${ISA_FLAGS_SSE41}")
 
 add_library(${PROJECT_NAME} SHARED ${CORE_SOURCES} ${CORE_SOURCES_SSE41} ${WEIGHTS_SOURCES})
+
+target_include_directories(${PROJECT_NAME}
+  PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+  PRIVATE
+    ${PROJECT_SOURCE_DIR}/mkl-dnn/include
+    ${PROJECT_SOURCE_DIR}/mkl-dnn/src
+    ${PROJECT_SOURCE_DIR}/mkl-dnn/src/common
+    ${PROJECT_SOURCE_DIR}/mkl-dnn/src/cpu/xbyak
+)
 
 target_link_libraries(${PROJECT_NAME}
   PRIVATE

@@ -28,3 +28,9 @@ add_library(common STATIC
   tensor.h
   tensor.cpp
 )
+
+target_include_directories(common
+  PUBLIC
+    ${PROJECT_SOURCE_DIR}
+    ${TBB_INCLUDE_DIR}
+)
