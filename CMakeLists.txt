@@ -31,6 +31,22 @@ project(OpenImageDenoise
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 
+# Build as shared or static library
+if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.13.0")
+  option(OIDN_STATIC_LIB "Build Open Image Denoise as a static library.")
+  mark_as_advanced(CLEAR OIDN_STATIC_LIB)
+else()
+  set(OIDN_STATIC_LIB OFF CACHE BOOL "Build Open Image Denoise as a static library." FORCE)
+  mark_as_advanced(OIDN_STATIC_LIB)
+endif()
+if(OIDN_STATIC_LIB)
+  set(OIDN_LIB_TYPE STATIC)
+  add_definitions(-DOIDN_STATIC_LIB)
+else()
+  set(OIDN_LIB_TYPE SHARED)
+endif()
+
+# Configuration types
 set(CONFIGURATION_TYPES "Debug;Release;RelWithDebInfo")
 if(win32)
   if(NOT OIDN_DEFAULT_CMAKE_CONFIGURATION_TYPES_SET)
@@ -134,7 +150,7 @@ generate_cpp_resources(WEIGHTS_SOURCES "oidn::weights"
 
 set_source_files_properties(${CORE_SOURCES_SSE41} PROPERTIES COMPILE_FLAGS "${ISA_FLAGS_SSE41}")
 
-add_library(${PROJECT_NAME} SHARED ${CORE_SOURCES} ${CORE_SOURCES_SSE41} ${WEIGHTS_SOURCES})
+add_library(${PROJECT_NAME} ${OIDN_LIB_TYPE} ${CORE_SOURCES} ${CORE_SOURCES_SSE41} ${WEIGHTS_SOURCES})
 
 target_include_directories(${PROJECT_NAME}
   PUBLIC

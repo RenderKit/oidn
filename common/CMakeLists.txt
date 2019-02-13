@@ -31,6 +31,6 @@ add_library(common STATIC
 
 target_include_directories(common
   PUBLIC
-    ${PROJECT_SOURCE_DIR}
-    ${TBB_INCLUDE_DIR}
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${TBB_INCLUDE_DIR}>
 )

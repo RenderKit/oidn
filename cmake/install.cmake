@@ -30,6 +30,15 @@ install(TARGETS ${PROJECT_NAME}
     DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT lib
 )
 
+if(OIDN_STATIC_LIB)
+  install(TARGETS common mkldnn
+    EXPORT
+      ${PROJECT_NAME}_Export
+    ARCHIVE
+      DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT devel
+  )
+endif()
+
 ## ----------------------------------------------------------------------------
 ## Install headers
 ## ----------------------------------------------------------------------------
