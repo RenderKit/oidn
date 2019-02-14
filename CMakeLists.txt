@@ -41,7 +41,6 @@ else()
 endif()
 if(OIDN_STATIC_LIB)
   set(OIDN_LIB_TYPE STATIC)
-  add_definitions(-DOIDN_STATIC_LIB)
 else()
   set(OIDN_LIB_TYPE SHARED)
 endif()
@@ -152,6 +151,10 @@ set_source_files_properties(${CORE_SOURCES_SSE41} PROPERTIES COMPILE_FLAGS "${IS
 
 add_library(${PROJECT_NAME} ${OIDN_LIB_TYPE} ${CORE_SOURCES} ${CORE_SOURCES_SSE41} ${WEIGHTS_SOURCES})
 
+if(OIDN_STATIC_LIB)
+  target_compile_definitions(${PROJECT_NAME} INTERFACE -DOIDN_STATIC_LIB)
+endif()
+
 target_include_directories(${PROJECT_NAME}
   PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
@@ -166,7 +169,6 @@ target_include_directories(${PROJECT_NAME}
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
     common mkldnn
-    ${TBB_LIBRARIES}
 )
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY VERSION ${PROJECT_VERSION})
