@@ -1,6 +1,10 @@
 Version History
 ---------------
 
+-   Added OIDN_STATIC_LIB CMake option for building as a static library
+    (requires CMake 3.13.0 or later)
+-   Fixed CMake error when adding the library with add_subdirectory() to a project
+
 ### Changes in v0.8.1:
 
 -   Fixed wrong path to TBB in the generated CMake configs
