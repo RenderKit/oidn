@@ -156,10 +156,13 @@ namespace oidn {
       const float length2 = sqr(x) + sqr(y) + sqr(z);
 
       // Normalize the normal and transform it to [0..1]
-      if (isfinite(length2) && length2 > 1e-8f)
+      if (isfinite(length2))
       {
-        const float scale  = rsqrt(length2) * 0.5f;
+        const float invLength = (length2 > 1e-37) ? rsqrt(length2) : 1.f;
+
+        const float scale  = invLength * 0.5f;
         const float offset = 0.5f;
+
         x = x * scale + offset;
         y = y * scale + offset;
         z = z * scale + offset;
