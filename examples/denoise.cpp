@@ -39,7 +39,7 @@ void printUsage()
             << "               [-bench ntimes] [-threads n] [-affinity 0|1]" << std::endl;
 }
 
-void errorCallback(void* userPtr, Error error, const char* message)
+void errorCallback(void* userPtr, oidn::Error error, const char* message)
 {
   throw std::runtime_error(message);
 }
