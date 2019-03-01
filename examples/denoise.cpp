@@ -106,25 +106,42 @@ int main(int argc, char* argv[])
       throw std::runtime_error("no color image specified");
 
     // Load the input image
-    Tensor color, albedo, normal;
-    Tensor ref;
+    ImageBuffer color, albedo, normal;
+    ImageBuffer ref;
 
     std::cout << "Loading input" << std::flush;
 
-    color = loadImagePFM(colorFilename);
-    if (!albedoFilename.empty())
-      albedo = loadImagePFM(albedoFilename);
-    if (!normalFilename.empty())
-      normal = loadImagePFM(normalFilename);
-    if (!refFilename.empty())
-      ref = loadImagePFM(refFilename);
+    color = loadImage(colorFilename);
+    if (color.getChannels() != 3)
+      throw std::runtime_error("invalid color image");
 
-    const int height = color.dims[0];
-    const int width  = color.dims[1];
+    if (!albedoFilename.empty())
+    {
+      albedo = loadImage(albedoFilename);
+      if (albedo.getChannels() != 3 || albedo.getSize() != color.getSize())
+        throw std::runtime_error("invalid albedo image");
+    }
+
+    if (!normalFilename.empty())
+    {
+      normal = loadImage(normalFilename);
+      if (normal.getChannels() != 3 || normal.getSize() != color.getSize())
+        throw std::runtime_error("invalid normal image");
+    }
+
+    if (!refFilename.empty())
+    {
+      ref = loadImage(refFilename);
+      if (ref.getChannels() != 3 || ref.getSize() != color.getSize())
+        throw std::runtime_error("invalid reference output image");
+    }
+
+    const int width  = color.getWidth();
+    const int height = color.getHeight();
     std::cout << std::endl << "Resolution: " << width << "x" << height << std::endl;
 
     // Initialize the output image
-    Tensor output({height, width, 3}, "hwc");
+    ImageBuffer output(width, height, 3);
 
     // Initialize the denoising filter
     std::cout << "Initializing" << std::flush;
@@ -145,12 +162,12 @@ int main(int argc, char* argv[])
 
     oidn::FilterRef filter = device.newFilter("RT");
 
-    filter.setImage("color", color.data, oidn::Format::Float3, width, height);
+    filter.setImage("color", color.getData(), oidn::Format::Float3, width, height);
     if (albedo)
-      filter.setImage("albedo", albedo.data, oidn::Format::Float3, width, height);
+      filter.setImage("albedo", albedo.getData(), oidn::Format::Float3, width, height);
     if (normal)
-      filter.setImage("normal", normal.data, oidn::Format::Float3, width, height);
-    filter.setImage("output", output.data, oidn::Format::Float3, width, height);
+      filter.setImage("normal", normal.getData(), oidn::Format::Float3, width, height);
+    filter.setImage("output", output.getData(), oidn::Format::Float3, width, height);
 
     if (hdr)
       filter.set("hdr", true);
@@ -179,16 +196,13 @@ int main(int argc, char* argv[])
 
     if (ref)
     {
-      if (ref.dims != output.dims)
-        throw std::runtime_error("the reference image size does not match the input size");
-
       // Verify the output values
       int nerr = 0;
       float maxre = 0;
-      for (size_t i = 0; i < output.size(); ++i)
+      for (size_t i = 0; i < output.getDataSize(); ++i)
       {
-        const float expect = std::max(ref.data[i], 0.f);
-        const float actual = std::max(output.data[i], 0.f);
+        const float expect = std::max(ref[i], 0.f);
+        const float actual = std::max(output[i], 0.f);
         float re;
         if (std::abs(expect) < 1e-5 && std::abs(actual) < 1e-5)
           re = 0;
@@ -203,13 +217,13 @@ int main(int argc, char* argv[])
           ++nerr;
         }
       }
-      std::cout << "Verified output: nfloats=" << output.size() << ", nerr=" << nerr << ", maxre=" << maxre << std::endl;
+      std::cout << "Verified output: nfloats=" << output.getDataSize() << ", nerr=" << nerr << ", maxre=" << maxre << std::endl;
 
       // Save debug images
       std::cout << "Saving debug images" << std::flush;
-      saveImagePPM(color,  "denoise_in.ppm");
-      saveImagePPM(output, "denoise_out.ppm");
-      saveImagePPM(ref,    "denoise_ref.ppm");
+      saveImage("denoise_in.ppm",  color);
+      saveImage("denoise_out.ppm", output);
+      saveImage("denoise_ref.ppm", ref);
       std::cout << std::endl;
     }
 
@@ -217,7 +231,7 @@ int main(int argc, char* argv[])
     {
       // Save output image
       std::cout << "Saving output" << std::flush;
-      saveImagePFM(output, outputFilename);
+      saveImage(outputFilename, output);
       std::cout << std::endl;
     }
 

@@ -14,130 +14,156 @@
 // limitations under the License.                                           //
 // ======================================================================== //
 
-#include <cmath>
-#include <algorithm>
 #include <fstream>
+#include <cmath>
 #include "image_io.h"
 
 namespace oidn {
 
-  Tensor loadImagePFM(const std::string& filename)
+  namespace
   {
-    // Open the file
-    std::ifstream file(filename, std::ios::binary);
-    if (file.fail())
-      throw std::runtime_error("cannot open file '" + filename + "'");
-
-    // Read the header
-    std::string id;
-    file >> id;
-    int C;
-    if (id == "PF")
-      C = 3;
-    else if (id == "Pf")
-      C = 1;
-    else
-      throw std::runtime_error("invalid PFM image");
-
-    int H, W;
-    file >> W >> H;
-
-    float scale;
-    file >> scale;
-
-    file.get(); // skip newline
-
-    if (file.fail())
-      throw std::runtime_error("invalid PFM image");
-
-    if (scale >= 0.f)
-      throw std::runtime_error("big-endian PFM images are not supported");
-    scale = fabs(scale);
-
-    // Read the pixels
-    Tensor image({H, W, C}, "hwc");
-
-    for (int h = 0; h < H; ++h)
+    std::string getExtension(const std::string& filename)
     {
-      for (int w = 0; w < W; ++w)
+      const size_t pos = filename.find_last_of('.');
+      if (pos == std::string::npos)
+        return ""; // no extension
+      else
+        return filename.substr(pos + 1);
+    }
+
+    ImageBuffer loadImagePFM(const std::string& filename)
+    {
+      // Open the file
+      std::ifstream file(filename, std::ios::binary);
+      if (file.fail())
+        throw std::runtime_error("cannot open file '" + filename + "'");
+
+      // Read the header
+      std::string id;
+      file >> id;
+      int C;
+      if (id == "PF")
+        C = 3;
+      else if (id == "Pf")
+        C = 1;
+      else
+        throw std::runtime_error("invalid PFM image");
+
+      int H, W;
+      file >> W >> H;
+
+      float scale;
+      file >> scale;
+
+      file.get(); // skip newline
+
+      if (file.fail())
+        throw std::runtime_error("invalid PFM image");
+
+      if (scale >= 0.f)
+        throw std::runtime_error("big-endian PFM images are not supported");
+      scale = fabs(scale);
+
+      // Read the pixels
+      ImageBuffer image(W, H, C);
+
+      for (int h = 0; h < H; ++h)
       {
-        for (int c = 0; c < C; ++c)
+        for (int w = 0; w < W; ++w)
         {
-          float x;
-          file.read((char*)&x, sizeof(float));
-          image[((H-1-h)*W + w) * C + c] = x * scale;
+          for (int c = 0; c < C; ++c)
+          {
+            float x;
+            file.read((char*)&x, sizeof(float));
+            image[((H-1-h)*W + w) * C + c] = x * scale;
+          }
+        }
+      }
+
+      if (file.fail())
+        throw std::runtime_error("invalid PFM image");
+
+      return image;
+    }
+
+    void saveImagePFM(const std::string& filename, const ImageBuffer& image)
+    {
+      const int H = image.getHeight();
+      const int W = image.getWidth();
+      const int C = image.getChannels();
+
+      // Open the file
+      std::ofstream file(filename, std::ios::binary);
+      if (file.fail())
+        throw std::runtime_error("cannot open file: '" + filename + "'");
+
+      // Write the header
+      file << "PF" << std::endl;
+      file << W << " " << H << std::endl;
+      file << "-1.0" << std::endl;
+
+      // Write the pixels
+      for (int h = 0; h < H; ++h)
+      {
+        for (int w = 0; w < W; ++w)
+        {
+          for (int c = 0; c < 3; ++c)
+          {
+            const float x = image[((H-1-h)*W + w) * C + c];
+            file.write((char*)&x, sizeof(float));
+          }
         }
       }
     }
 
-    if (file.fail())
-      throw std::runtime_error("invalid PFM image");
-
-    return image;
-  }
-
-  void saveImagePFM(const Tensor& image, const std::string& filename)
-  {
-    if (image.ndims() != 3 || image.dims[2] != 3 || image.format != "hwc")
-      throw std::invalid_argument("image must have 3 channels");
-    const int H = image.dims[0];
-    const int W = image.dims[1];
-    const int C = image.dims[2];
-
-    // Open the file
-    std::ofstream file(filename, std::ios::binary);
-    if (file.fail())
-      throw std::runtime_error("cannot open file: '" + filename + "'");
-
-    // Write the header
-    file << "PF" << std::endl;
-    file << W << " " << H << std::endl;
-    file << "-1.0" << std::endl;
-
-    // Write the pixels
-    for (int h = 0; h < H; ++h)
+    void saveImagePPM(const std::string& filename, const ImageBuffer& image)
     {
-      for (int w = 0; w < W; ++w)
+      if (image.getChannels() != 3)
+        throw std::invalid_argument("image must have 3 channels");
+      const int H = image.getHeight();
+      const int W = image.getWidth();
+      const int C = image.getChannels();
+
+      // Open the file
+      std::ofstream file(filename, std::ios::binary);
+      if (file.fail())
+        throw std::runtime_error("cannot open file: '" + filename + "'");
+
+      // Write the header
+      file << "P6" << std::endl;
+      file << W << " " << H << std::endl;
+      file << "255" << std::endl;
+
+      // Write the pixels
+      for (int i = 0; i < W*H; ++i)
       {
         for (int c = 0; c < 3; ++c)
         {
-          const float x = image[((H-1-h)*W + w) * C + c];
-          file.write((char*)&x, sizeof(float));
+          float x = image[i*C+c];
+          x = pow(x, 1.f/2.2f);
+          int ch = std::min(std::max(int(x * 255.f), 0), 255);
+          file.put(char(ch));
         }
       }
     }
   }
 
-  void saveImagePPM(const Tensor& image, const std::string& filename)
+  ImageBuffer loadImage(const std::string& filename)
   {
-    if (image.ndims() != 3 || image.dims[2] != 3 || image.format != "hwc")
-      throw std::invalid_argument("image must have 3 channels");
-    const int H = image.dims[0];
-    const int W = image.dims[1];
-    const int C = image.dims[2];
+    if (getExtension(filename) != "pfm")
+      throw std::runtime_error("unsupported image file format");
+    return loadImagePFM(filename);
+  }
 
-    // Open the file
-    std::ofstream file(filename, std::ios::binary);
-    if (file.fail())
-      throw std::runtime_error("cannot open file: '" + filename + "'");
-
-    // Write the header
-    file << "P6" << std::endl;
-    file << W << " " << H << std::endl;
-    file << "255" << std::endl;
-
-    // Write the pixels
-    for (int i = 0; i < W*H; ++i)
-    {
-      for (int c = 0; c < 3; ++c)
-      {
-        float x = image[i*C+c];
-        x = pow(x, 1.f/2.2f);
-        int ch = std::min(std::max(int(x * 255.f), 0), 255);
-        file.put(char(ch));
-      }
-    }
+  void saveImage(const std::string& filename, const ImageBuffer& image)
+  {
+    const std::string ext = getExtension(filename);
+    if (ext == "pfm")
+      saveImagePFM(filename, image);
+    else if (ext == "ppm")
+      saveImagePPM(filename, image);
+    else
+      throw std::runtime_error("unsupported image file format");
   }
 
 } // namespace oidn
-
