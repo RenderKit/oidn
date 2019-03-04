@@ -59,7 +59,12 @@ namespace oidn {
                 for (int w = beginW; w < endW; ++w)
                 {
                   const float* rgb = (const float*)color.get(h, w);
-                  L += luminance(rgb[0], rgb[1], rgb[2]);
+
+                  const float r = maxSafe(rgb[0], 0.f);
+                  const float g = maxSafe(rgb[1], 0.f);
+                  const float b = maxSafe(rgb[2], 0.f);
+
+                  L += luminance(r, g, b);
                 }
               }
 

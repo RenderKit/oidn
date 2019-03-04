@@ -117,7 +117,7 @@ namespace oidn {
         float x = values[i];
 
         // Sanitize the value
-        x = isfinite(x) ? max(x, 0.f) : 0.f;
+        x = maxSafe(x, 0.f);
 
         // Apply the transfer function
         x = transferFunc->forward(x);
@@ -137,7 +137,7 @@ namespace oidn {
         float x = values[i];
 
         // Sanitize the value
-        x = isfinite(x) ? clamp(x, 0.f, 1.f) : 0.f;
+        x = clampSafe(x, 0.f, 1.f);
 
         // Store the value
         store(h, w, c, x);

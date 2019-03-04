@@ -1,6 +1,7 @@
 Version History
 ---------------
 
+-   Fixed wrong HDR output when the input contains infinities/NaNs
 -   Added OIDN_STATIC_LIB CMake option for building as a static library
     (requires CMake 3.13.0 or later)
 -   Fixed CMake error when adding the library with add_subdirectory() to a project

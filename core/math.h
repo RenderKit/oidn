@@ -43,4 +43,14 @@ namespace oidn {
              _mm_mul_ss(_mm_mul_ss(_mm_mul_ss(_mm_set_ss(x), _mm_set_ss(-0.5f)), r), _mm_mul_ss(r, r))));
   }
 
+  __forceinline float maxSafe(float value, float minValue)
+  {
+    return isfinite(value) ? max(value, minValue) : minValue;
+  }
+
+  __forceinline float clampSafe(float value, float minValue, float maxValue)
+  {
+    return isfinite(value) ? clamp(value, minValue, maxValue) : minValue;
+  }
+
 } // namespace oidn
