@@ -24,15 +24,22 @@
 
 namespace oidn {
 
+  class Executable
+  {
+  public:
+    virtual ~Executable() {}
+    virtual void execute() = 0;
+  };
+
   template<int K>
-  class Network : public Node
+  class Network : public Executable
   {
   public:
     Network(const std::map<std::string, Tensor>& weight_map);
     void execute() override;
 
     std::shared_ptr<memory> allocTensor(const memory::dims& dims,
-                                        memory::format format = memory::format::any,
+                                        memory::format_tag format = memory::format_tag::any,
                                         void* data = nullptr);
 
     std::shared_ptr<memory> castTensor(const memory::dims& dims,
@@ -76,7 +83,8 @@ namespace oidn {
     memory::dims getConcatDims(const memory::dims& src1Dims, const memory::dims& src2Dims);
 
   private:
-    engine cpuEngine;
+    engine eng;
+    stream sm;
     std::vector<std::shared_ptr<Node>> nodes;
     std::map<std::string, Tensor> weightMap;
   };

@@ -22,7 +22,8 @@ namespace oidn {
 
   template<int K>
   Network<K>::Network(const std::map<std::string, Tensor>& weightMap)
-    : cpuEngine(engine::cpu, 0),
+    : eng(engine::cpu, 0),
+      sm(eng),
       weightMap(weightMap)
   {
   }
@@ -31,29 +32,28 @@ namespace oidn {
   void Network<K>::execute()
   {
     for (size_t i = 0; i < nodes.size(); ++i)
-      nodes[i]->execute();
+      nodes[i]->execute(sm);
   }
 
   template<int K>
   std::shared_ptr<memory> Network<K>::allocTensor(const memory::dims& dims,
-                                                  memory::format format,
+                                                  memory::format_tag format,
                                                   void* data)
   {
-    if (format == memory::format::any)
+    if (format == memory::format_tag::any)
     {
       if (dims.size() == 4)
         format = BlockedFormat<K>::nChwKc;
       else if (dims.size() == 1)
-        format = memory::format::x;
+        format = memory::format_tag::x;
       else
         assert(0);
     }
     memory::desc desc(dims, memory::data_type::f32, format);
-    memory::primitive_desc primDesc(desc, cpuEngine);
     if (data == nullptr)
-      return std::make_shared<memory>(primDesc);
-    else
-      return std::make_shared<memory>(primDesc, data);
+      return std::make_shared<memory>(desc, eng);
+    else;
+      return std::make_shared<memory>(desc, eng, data);
   }
 
   template<int K>
@@ -61,17 +61,15 @@ namespace oidn {
                                                  const std::shared_ptr<memory>& src,
                                                  size_t srcOffset)
   {
-    memory::primitive_desc srcPrimDesc = src->get_primitive_desc();
-    const mkldnn_memory_desc_t& srcDesc = srcPrimDesc.desc().data;
+    const mkldnn_memory_desc_t& srcDesc = src->get_desc().data;
     MAYBE_UNUSED(srcDesc);
     assert(srcDesc.data_type == memory::data_type::f32);
-    assert(srcDesc.format == BlockedFormat<K>::nChwKc);
+    assert(memory_desc_matches_tag(srcDesc, mkldnn_format_tag_t(BlockedFormat<K>::nChwKc)));
     assert(dims[1] % K == 0); // C
 
     memory::desc desc(dims, memory::data_type::f32, BlockedFormat<K>::nChwKc);
-    memory::primitive_desc primDesc(desc, cpuEngine);
     float* srcPtr = (float*)src->get_data_handle() + srcOffset;
-    return std::make_shared<memory>(primDesc, srcPtr);
+    return std::make_shared<memory>(desc, eng, srcPtr);
   }
 
   template<int K>
@@ -126,15 +124,15 @@ namespace oidn {
     if (W.ndims() != 4 || W.format != "oihw")
       throw Exception(Error::InvalidOperation, "invalid convolution weights");
     memory::dims weightsDims = W.dims;
-    auto userWeights = allocTensor(weightsDims, memory::format::oihw, W.data);
+    auto userWeights = allocTensor(weightsDims, memory::format_tag::oihw, W.data);
 
     // Pad the weights
     memory::dims weightsPadDims = weightsDims;
     weightsPadDims[1] = getPadded<K>(weightsDims[1]); // IC
     weightsPadDims[0] = getPadded<K>(weightsDims[0]); // OC
     assert(srcDims[1] == weightsPadDims[1]); // srcDims[C] == weightsPadDims[IC]
-    auto weightsPad = allocTensor(weightsPadDims, memory::format::oihw);
-    WeightsReorderNode<K>(userWeights, weightsPad).execute();
+    auto weightsPad = allocTensor(weightsPadDims, memory::format_tag::oihw);
+    WeightsReorderNode<K>(userWeights, weightsPad).execute(sm);
 
     // Get the biases
     const auto& b = weightMap[name + "/b"];
@@ -157,15 +155,15 @@ namespace oidn {
 
     // Create a convolution
     // Let the convolution primitive choose the weights format
-    auto weightsDesc = memory::desc({ weightsPadDims }, memory::data_type::f32, memory::format::any);
+    auto weightsDesc = memory::desc({ weightsPadDims }, memory::data_type::f32, memory::format_tag::any);
 
     auto convAlgo = (K == 16) ? convolution_winograd : convolution_direct;
     auto convDesc = convolution_forward::desc(
       prop_kind::forward_inference, convAlgo,
-      src->get_primitive_desc().desc(),
+      src->get_desc(),
       weightsDesc,
-      bias->get_primitive_desc().desc(),
-      dst->get_primitive_desc().desc(),
+      bias->get_desc(),
+      dst->get_desc(),
       strides, padding, padding, padding_kind::zero);
 
     // Incorporate relu
@@ -182,14 +180,14 @@ namespace oidn {
       convAttr.set_post_ops(ops);
     }
 
-    auto convPrimDesc = convolution_forward::primitive_desc(convDesc, convAttr, cpuEngine);
+    auto convPrimDesc = convolution_forward::primitive_desc(convDesc, convAttr, eng);
 
     // Reorder the weights to the final format, if necessary
     auto weights = weightsPad;
-    if (memory::primitive_desc(convPrimDesc.weights_primitive_desc()) != weightsPad->get_primitive_desc())
+    if (convPrimDesc.weights_desc() != weightsPad->get_desc())
     {
-      weights = std::make_shared<memory>(convPrimDesc.weights_primitive_desc());
-      MklNode(reorder(*weightsPad, *weights)).execute();
+      weights = std::make_shared<memory>(convPrimDesc.weights_desc(), eng);
+      ReorderNode(weightsPad, weights).execute(sm);
     }
 
     // Create convolution node and add it to the net
@@ -225,10 +223,10 @@ namespace oidn {
 
     auto poolDesc = pooling_forward::desc(
       prop_kind::forward_inference, pooling_max,
-      src->get_primitive_desc().desc(),
-      dst->get_primitive_desc().desc(),
+      src->get_desc(),
+      dst->get_desc(),
       strides, kernel, padding, padding, padding_kind::zero);
-    auto poolPrimDesc = pooling_forward::primitive_desc(poolDesc, cpuEngine);
+    auto poolPrimDesc = pooling_forward::primitive_desc(poolDesc, eng);
 
     auto node = std::make_shared<PoolNode>(poolPrimDesc, src, dst);
     nodes.push_back(node);

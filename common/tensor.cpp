@@ -55,7 +55,9 @@ namespace oidn {
       const int ndims = *(unsigned char*)input++;
 
       // Parse the shape of the tensor
-      tensor.dims = std::vector<int>((int*)input, (int*)input + ndims);
+      tensor.dims.resize(ndims);
+      for (int i = 0; i < ndims; ++i)
+        tensor.dims[i] = ((int*)input)[i];
       input += ndims * sizeof(int);
 
       // Parse the format of the tensor

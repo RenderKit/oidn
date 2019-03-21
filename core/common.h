@@ -21,6 +21,7 @@
 #include "mkl-dnn/include/mkldnn.hpp"
 #include "mkl-dnn/include/mkldnn_debug.h"
 #include "mkl-dnn/src/common/mkldnn_thread.hpp"
+#include "mkl-dnn/src/common/type_helpers.hpp"
 #include "mkl-dnn/src/cpu/jit_generator.hpp"
 
 #include "common/ref.h"
@@ -34,6 +35,7 @@ namespace oidn {
   using namespace mkldnn;
   using namespace mkldnn::impl::cpu;
   using mkldnn::impl::parallel_nd;
+  using mkldnn::impl::memory_desc_matches_tag;
 
 
   inline size_t getFormatBytes(Format format)
@@ -53,13 +55,13 @@ namespace oidn {
 
   inline memory::dims getTensorDims(const std::shared_ptr<memory>& mem)
   {
-    const mkldnn_memory_desc_t& desc = mem->get_primitive_desc().desc().data;
+    const mkldnn_memory_desc_t& desc = mem->get_desc().data;
     return memory::dims(&desc.dims[0], &desc.dims[desc.ndims]);
   }
 
   inline memory::data_type getTensorType(const std::shared_ptr<memory>& mem)
   {
-    const mkldnn_memory_desc_t& desc = mem->get_primitive_desc().desc().data;
+    const mkldnn_memory_desc_t& desc = mem->get_desc().data;
     return memory::data_type(desc.data_type);
   }
 
@@ -100,15 +102,15 @@ namespace oidn {
   template<>
   struct BlockedFormat<8>
   {
-    static constexpr memory::format nChwKc   = memory::format::nChw8c;
-    static constexpr memory::format OIhwKiKo = memory::format::OIhw8i8o;
+    static constexpr memory::format_tag nChwKc   = memory::format_tag::nChw8c;
+    static constexpr memory::format_tag OIhwKiKo = memory::format_tag::OIhw8i8o;
   };
 
   template<>
   struct BlockedFormat<16>
   {
-    static constexpr memory::format nChwKc   = memory::format::nChw16c;
-    static constexpr memory::format OIhwKiKo = memory::format::OIhw16i16o;
+    static constexpr memory::format_tag nChwKc   = memory::format_tag::nChw16c;
+    static constexpr memory::format_tag OIhwKiKo = memory::format_tag::OIhw16i16o;
   };
 
 } // namespace oidn

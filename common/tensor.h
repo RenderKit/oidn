@@ -29,13 +29,13 @@ namespace oidn {
   struct Tensor
   {
     float* data;
-    std::vector<int> dims;
+    std::vector<int64_t> dims;
     std::string format;
     shared_vector<char> buffer; // optional, only for reference counting
 
     __forceinline Tensor() : data(nullptr) {}
 
-    __forceinline Tensor(const std::vector<int>& dims, const std::string& format)
+    __forceinline Tensor(const std::vector<int64_t>& dims, const std::string& format)
       : dims(dims),
         format(format)
     {

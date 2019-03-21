@@ -36,7 +36,7 @@ namespace oidn {
     bool hdr = false;
     bool srgb = false;
 
-    std::shared_ptr<Node> net;
+    std::shared_ptr<Executable> net;
     std::shared_ptr<TransferFunc> transferFunc;
 
     bool dirty = true;
@@ -63,7 +63,7 @@ namespace oidn {
 
   private:
     template<int K>
-    std::shared_ptr<Node> buildNet();
+    std::shared_ptr<Executable> buildNet();
 
     bool isCommitted() const { return bool(net); }
   };

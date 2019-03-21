@@ -96,7 +96,7 @@ namespace oidn {
   }
 
   template<int K>
-  std::shared_ptr<Node> AutoencoderFilter::buildNet()
+  std::shared_ptr<Executable> AutoencoderFilter::buildNet()
   {
     constexpr int spatialPad = 32; // the image must be padded spatially
 

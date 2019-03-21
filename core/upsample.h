@@ -34,14 +34,12 @@ namespace oidn {
       : src(src),
         dst(dst)
     {
-      memory::primitive_desc srcPrimDesc = src->get_primitive_desc();
-      memory::primitive_desc dstPrimDesc = dst->get_primitive_desc();
-      const mkldnn_memory_desc_t& srcDesc = srcPrimDesc.desc().data;
-      const mkldnn_memory_desc_t& dstDesc = dstPrimDesc.desc().data;
+      const mkldnn_memory_desc_t& srcDesc = src->get_desc().data;
+      const mkldnn_memory_desc_t& dstDesc = dst->get_desc().data;
       MAYBE_UNUSED(srcDesc);
       MAYBE_UNUSED(dstDesc);
-      assert(srcDesc.format == BlockedFormat<K>::nChwKc);
-      assert(dstDesc.format == BlockedFormat<K>::nChwKc);
+      assert(memory_desc_matches_tag(srcDesc, mkldnn_format_tag_t(BlockedFormat<K>::nChwKc)));
+      assert(memory_desc_matches_tag(dstDesc, mkldnn_format_tag_t(BlockedFormat<K>::nChwKc)));
       assert(srcDesc.ndims == 4);
       assert(dstDesc.ndims == 4);
       assert(srcDesc.data_type == memory::data_type::f32);
@@ -53,10 +51,9 @@ namespace oidn {
       assert(dstDesc.dims[3] == srcDesc.dims[3] * 2);
     }
 
-    void execute() override
+    void execute(stream& sm) override
     {
-      memory::primitive_desc srcPrimDesc = src->get_primitive_desc();
-      const mkldnn_memory_desc_t& srcDesc = srcPrimDesc.desc().data;
+      const mkldnn_memory_desc_t& srcDesc = src->get_desc().data;
 
       const float* srcPtr = (float*)src->get_data_handle();
       float* dstPtr = (float*)dst->get_data_handle();

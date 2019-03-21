@@ -48,9 +48,8 @@ namespace oidn {
         dst(dst),
         transferFunc(transferFunc)
     {
-      memory::primitive_desc dstPrimDesc = dst->get_primitive_desc();
-      const mkldnn_memory_desc_t& dstDesc = dstPrimDesc.desc().data;
-      assert(dstDesc.format == BlockedFormat<K>::nChwKc);
+      const mkldnn_memory_desc_t& dstDesc = dst->get_desc().data;
+      assert(memory_desc_matches_tag(dstDesc, mkldnn_format_tag_t(BlockedFormat<K>::nChwKc)));
       assert(dstDesc.ndims == 4);
       assert(dstDesc.data_type == memory::data_type::f32);
       assert(dstDesc.dims[0] == 1);
@@ -68,7 +67,7 @@ namespace oidn {
       memset(dstPtr, 0, C2*H2*W2*sizeof(float));
     }
 
-    void execute() override
+    void execute(stream& sm) override
     {
       const int H1 = color.height;
       const int W1 = color.width;
