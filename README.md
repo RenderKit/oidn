@@ -1,12 +1,12 @@
 # Intel® Open Image Denoise
 
-This is release v0.8.1 of Open Image Denoise. For changes and new
+This is release v0.8.2 of Open Image Denoise. For changes and new
 features see the [changelog](CHANGELOG.md). Visit
 http://www.openimagedenoise.org for more information.
 
 # Open Image Denoise Overview
 
-Intel® Open Image Denoise is a collection of high-performance,
+Intel® Open Image Denoise is an open source library of high-performance,
 high-quality denoising filters for images rendered with ray tracing.
 Open Image Denoise is part of the [Intel Rendering
 Framework](https://software.intel.com/en-us/rendering-framework) and is
@@ -192,6 +192,27 @@ entirely on the console. In the Visual Studio command prompt type:
 
 Use `-D` to set variables for CMake, e.g., the path to TBB with “`-D
 TBB_ROOT=\path\to\tbb`”.
+
+## CMake Configuration
+
+The default CMake configuration in the configuration dialog should be
+appropriate for most usages. The following list describes the options
+that can be configured in CMake:
+
+  - `CMAKE_BUILD_TYPE`: Can be used to switch between Debug mode
+    (Debug), Release mode (Release) (default), and Release mode with
+    enabled assertions and debug symbols (RelWithDebInfo).
+
+  - `OIDN_STATIC_LIB`: Builds Open Image Denoise as a static library
+    (OFF by default). CMake 3.13.0 or later is required to enable this
+    option. When using the statically compiled Open Image Denoise
+    library, you either have to use the generated CMake configuration
+    files (recommended), or you have to manually define
+    OIDN\_STATIC\_LIB before including the library headers in your
+    application.
+
+  - `TBB_ROOT`: The path to the TBB installation (autodetected by
+    default).
 
 # Documentation
 
