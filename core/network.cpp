@@ -20,6 +20,11 @@
 
 namespace oidn {
 
+  namespace
+  {
+    std::mutex executionMutex;
+  }
+
   template<int K>
   Network<K>::Network(const std::map<std::string, Tensor>& weightMap)
     : cpuEngine(engine::cpu, 0),
@@ -30,6 +35,9 @@ namespace oidn {
   template<int K>
   void Network<K>::execute()
   {
+    // FIXME: Concurrent execution with MKL-DNN is not supported yet, so we need this lock as a workaround
+    std::lock_guard<std::mutex> lock(executionMutex);
+
     for (size_t i = 0; i < nodes.size(); ++i)
       nodes[i]->execute();
   }
