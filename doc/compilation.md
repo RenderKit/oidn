@@ -126,3 +126,24 @@ console. In the Visual Studio command prompt type:
 
 Use `-D` to set variables for CMake, e.g., the path to TBB with "`-D
 TBB_ROOT=\path\to\tbb`".
+
+
+CMake Configuration
+-------------------
+
+The default CMake configuration in the configuration dialog should be appropriate
+for most usages. The following list describes the options that can be configured
+in CMake:
+
+- `CMAKE_BUILD_TYPE`: Can be used to switch between Debug mode
+  (Debug), Release mode (Release) (default), and Release mode with
+  enabled assertions and debug symbols (RelWithDebInfo).
+
+- `OIDN_STATIC_LIB`: Builds Open Image Denoise as a static library (OFF by
+  default). CMake 3.13.0 or later is required to enable this option. When using
+  the statically compiled Open Image Denoise library, you either have to use
+  the generated CMake configuration files (recommended), or you have to
+  manually define OIDN_STATIC_LIB before including the library headers in your
+  application.
+
+- `TBB_ROOT`: The path to the TBB installation (autodetected by default).

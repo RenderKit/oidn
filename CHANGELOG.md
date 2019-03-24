@@ -1,6 +1,8 @@
 Version History
 ---------------
 
+### Changes in v0.8.2:
+
 -   Fixed wrong HDR output when the input contains infinities/NaNs
 -   Added OIDN_STATIC_LIB CMake option for building as a static library
     (requires CMake 3.13.0 or later)
