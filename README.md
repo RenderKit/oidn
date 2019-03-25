@@ -208,7 +208,7 @@ that can be configured in CMake:
     option. When using the statically compiled Open Image Denoise
     library, you either have to use the generated CMake configuration
     files (recommended), or you have to manually define
-    OIDN\_STATIC\_LIB before including the library headers in your
+    `OIDN_STATIC_LIB` before including the library headers in your
     application.
 
   - `TBB_ROOT`: The path to the TBB installation (autodetected by

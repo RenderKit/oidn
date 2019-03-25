@@ -143,7 +143,7 @@ in CMake:
   default). CMake 3.13.0 or later is required to enable this option. When using
   the statically compiled Open Image Denoise library, you either have to use
   the generated CMake configuration files (recommended), or you have to
-  manually define OIDN_STATIC_LIB before including the library headers in your
+  manually define `OIDN_STATIC_LIB` before including the library headers in your
   application.
 
 - `TBB_ROOT`: The path to the TBB installation (autodetected by default).

@@ -4,6 +4,10 @@ Version History
 ### Changes in v0.8.2:
 
 -   Fixed wrong HDR output when the input contains infinities/NaNs
+-   Fixed wrong output when multiple filters were executed concurrently on
+    separate devices with AVX-512 support. Currently the filter executions are
+    serialized as a temporary workaround, and a full fix will be included in a
+    future release.
 -   Added OIDN_STATIC_LIB CMake option for building as a static library
     (requires CMake 3.13.0 or later)
 -   Fixed CMake error when adding the library with add_subdirectory() to a project
