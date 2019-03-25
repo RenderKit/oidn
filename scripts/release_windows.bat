@@ -24,8 +24,8 @@ set DEP_DIR=%ROOT_DIR%\deps
 cd %DEP_DIR%
 
 rem Set up TBB
-set TBB_VERSION=2019_U2
-set TBB_BUILD=tbb2019_20181010oss
+set TBB_VERSION=2019_U5
+set TBB_BUILD=tbb2019_20190320oss
 set TBB_DIR=%DEP_DIR%\%TBB_BUILD%
 if not exist %TBB_DIR% (
   echo Error: %TBB_DIR% is missing
