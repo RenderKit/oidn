@@ -25,8 +25,13 @@ namespace oidn {
   {
   public:
     virtual ~Node() = default;
+
     virtual void execute(stream& sm) = 0;
+
     virtual std::shared_ptr<memory> getDst() const { return nullptr; }
+
+    virtual size_t getScratchpadSize() const { return 0; }
+    virtual void setScratchpad(const std::shared_ptr<memory>& mem) {}
   };
 
   // Node wrapping an MKL-DNN primitive
@@ -35,12 +40,28 @@ namespace oidn {
   private:
     primitive prim;
     std::unordered_map<int, memory> args;
+    std::shared_ptr<memory> scratchpad;
 
   public:
     MklNode(const primitive& prim, const std::unordered_map<int, memory>& args)
       : prim(prim),
         args(args)
     {}
+
+    size_t getScratchpadSize() const override
+    {
+      const auto primDesc = prim.get_primitive_desc();
+      const mkldnn_memory_desc_t* scratchpadDesc = mkldnn_primitive_desc_query_md(primDesc, mkldnn_query_scratchpad_md, 0);
+      if (scratchpadDesc == nullptr)
+        return 0;
+      return mkldnn_memory_desc_get_size(scratchpadDesc);
+    }
+
+    void setScratchpad(const std::shared_ptr<memory>& mem) override
+    {
+      scratchpad = mem;
+      args.insert(std::make_pair(MKLDNN_ARG_SCRATCHPAD, *scratchpad));
+    }
 
     void execute(stream& sm) override
     {

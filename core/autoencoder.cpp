@@ -326,6 +326,7 @@ namespace oidn {
     else
       net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<SRGBTransferFunc>(transferFunc), output);
 
+    net->finalize();
     return net;
   }
 

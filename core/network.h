@@ -36,6 +36,7 @@ namespace oidn {
   {
   public:
     Network(const std::map<std::string, Tensor>& weight_map);
+
     void execute() override;
 
     std::shared_ptr<memory> allocTensor(const memory::dims& dims,
@@ -81,6 +82,8 @@ namespace oidn {
                                       const std::shared_ptr<memory>& userDst = nullptr);
 
     memory::dims getConcatDims(const memory::dims& src1Dims, const memory::dims& src2Dims);
+
+    void finalize();
 
   private:
     engine eng;

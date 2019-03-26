@@ -20,11 +20,6 @@
 
 namespace oidn {
 
-  namespace
-  {
-    std::mutex executionMutex;
-  }
-
   template<int K>
   Network<K>::Network(const std::map<std::string, Tensor>& weightMap)
     : eng(engine::cpu, 0),
@@ -36,9 +31,6 @@ namespace oidn {
   template<int K>
   void Network<K>::execute()
   {
-    // FIXME: Concurrent execution with MKL-DNN is not supported yet, so we need this lock as a workaround
-    std::lock_guard<std::mutex> lock(executionMutex);
-
     for (size_t i = 0; i < nodes.size(); ++i)
       nodes[i]->execute(sm);
   }
@@ -187,6 +179,7 @@ namespace oidn {
       );
       convAttr.set_post_ops(ops);
     }
+    convAttr.set_scratchpad_mode(scratchpad_mode_user);
 
     auto convPrimDesc = convolution_forward::primitive_desc(convDesc, convAttr, eng);
 
@@ -234,7 +227,11 @@ namespace oidn {
       src->get_desc(),
       dst->get_desc(),
       strides, kernel, padding, padding, padding_kind::zero);
-    auto poolPrimDesc = pooling_forward::primitive_desc(poolDesc, eng);
+
+    mkldnn::primitive_attr poolAttr;
+    poolAttr.set_scratchpad_mode(scratchpad_mode_user);
+
+    auto poolPrimDesc = pooling_forward::primitive_desc(poolDesc, poolAttr, eng);
 
     auto node = std::make_shared<PoolNode>(poolPrimDesc, src, dst);
     nodes.push_back(node);
@@ -278,6 +275,24 @@ namespace oidn {
     memory::dims dstDims = src1Dims;
     dstDims[1] += src2Dims[1]; // C
     return dstDims;
+  }
+
+  template <int K>
+  void Network<K>::finalize()
+  {
+    // Compute the size of the scratchpad
+    size_t scratchpadSize = 0;
+    for (const auto& node : nodes)
+      scratchpadSize = max(scratchpadSize, node->getScratchpadSize());
+
+    // Allocate the scratchpad
+    memory::dims scratchpadDims = { memory::dim(scratchpadSize) };
+    memory::desc scratchpadDesc(scratchpadDims, memory::data_type::u8, memory::format_tag::x);
+    auto scratchpad = std::make_shared<memory>(scratchpadDesc, eng);
+
+    // Set the scratchpad for the nodes
+    for (auto& node : nodes)
+      node->setScratchpad(scratchpad);
   }
 
   template class Network<8>;
