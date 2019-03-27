@@ -1,6 +1,11 @@
 Version History
 ---------------
 
+### Changes in v0.9.0:
+
+-   Reduced memory consumption by about 38%
+-   Enabled fully concurrent execution when using multiple devices
+
 ### Changes in v0.8.2:
 
 -   Fixed wrong HDR output when the input contains infinities/NaNs
