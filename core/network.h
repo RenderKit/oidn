@@ -45,7 +45,8 @@ namespace oidn {
 
     std::shared_ptr<memory> castTensor(const memory::dims& dims,
                                        const std::shared_ptr<memory>& src,
-                                       size_t srcOffset = 0);
+                                       size_t srcOffset = 0,
+                                       memory::format_tag format = memory::format_tag::any);
 
     std::shared_ptr<memory> castTensor(const memory::dims& dims,
                                        const std::shared_ptr<memory>& src,
@@ -71,6 +72,7 @@ namespace oidn {
     memory::dims getConvDims(const std::string& name, const memory::dims& srcDims);
     std::shared_ptr<Node> addConv(const std::string& name,
                                   const std::shared_ptr<memory>& src,
+                                  const std::shared_ptr<memory>& userDst = nullptr,
                                   bool relu = true);
 
     memory::dims getPoolDims(const memory::dims& srcDims);

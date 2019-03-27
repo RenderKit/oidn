@@ -59,15 +59,24 @@ namespace oidn {
   template<int K>
   std::shared_ptr<memory> Network<K>::castTensor(const memory::dims& dims,
                                                  const std::shared_ptr<memory>& src,
-                                                 size_t srcOffset)
+                                                 size_t srcOffset,
+                                                 memory::format_tag format)
   {
     const mkldnn_memory_desc_t& srcDesc = src->get_desc().data;
     MAYBE_UNUSED(srcDesc);
     assert(srcDesc.data_type == memory::data_type::f32);
-    assert(memory_desc_matches_tag(srcDesc, mkldnn_format_tag_t(BlockedFormat<K>::nChwKc)));
-    assert(dims[1] % K == 0); // C
+    assert(getTensorSize(src) >= srcOffset + getTensorSize(dims));
 
-    memory::desc desc(dims, memory::data_type::f32, BlockedFormat<K>::nChwKc);
+    if (format == memory::format_tag::any)
+    {
+      if (dims.size() == 4)
+        format = BlockedFormat<K>::nChwKc;
+      else if (dims.size() == 1)
+        format = memory::format_tag::x;
+      else
+        assert(0);
+    }
+    memory::desc desc(dims, memory::data_type::f32, format);
     float* srcPtr = (float*)src->get_data_handle() + srcOffset;
     return std::make_shared<memory>(desc, eng, srcPtr);
   }
@@ -77,9 +86,6 @@ namespace oidn {
                                                  const std::shared_ptr<memory>& src,
                                                  const memory::dims& srcOffset)
   {
-    assert(srcOffset[1] % K == 0);   // C
-    assert(srcOffset[2] == dims[2]); // H
-    assert(srcOffset[3] == dims[3]); // W
     return castTensor(dims, src, getTensorSize(srcOffset));
   }
 
@@ -112,6 +118,7 @@ namespace oidn {
   template<int K>
   std::shared_ptr<Node> Network<K>::addConv(const std::string& name,
                                             const std::shared_ptr<memory>& src,
+                                            const std::shared_ptr<memory>& userDst,
                                             bool relu)
   {
     const memory::dims strides = {1, 1};
@@ -150,8 +157,14 @@ namespace oidn {
     // Allocate memory for destination
     memory::dims dstDims = srcDims;
     dstDims[1] = weightsPadDims[0]; // dstDims[C] = weightsPadDims[OC]
-    auto dst = allocTensor(dstDims);
-    assert(getTensorDims(dst) == dstDims);
+
+    std::shared_ptr<memory> dst;
+    if (!userDst)
+      dst = allocTensor(dstDims);
+    else if (getTensorDims(userDst) == dstDims)
+      dst = userDst;
+    else
+      dst = castTensor(dstDims, userDst);
 
     // Create a convolution
     // Let the convolution primitive choose the weights format
@@ -217,10 +230,13 @@ namespace oidn {
     memory::dims srcDims = getTensorDims(src);
     memory::dims dstDims = getPoolDims(srcDims);
 
-    auto dst = userDst;
-    if (!dst)
+    std::shared_ptr<memory> dst;
+    if (!userDst)
       dst = allocTensor(dstDims);
-    assert(getTensorDims(dst) == dstDims);
+    else if (getTensorDims(userDst) == dstDims)
+      dst = userDst;
+    else
+      dst = castTensor(dstDims, userDst);
 
     auto poolDesc = pooling_forward::desc(
       prop_kind::forward_inference, pooling_max,
@@ -254,10 +270,13 @@ namespace oidn {
     memory::dims srcDims = getTensorDims(src);
     memory::dims dstDims = getUpsampleDims(srcDims);
 
-    auto dst = userDst;
-    if (!dst)
+    std::shared_ptr<memory> dst;
+    if (!userDst)
       dst = allocTensor(dstDims);
-    assert(getTensorDims(dst) == dstDims);
+    else if (getTensorDims(userDst) == dstDims)
+      dst = userDst;
+    else
+      dst = castTensor(dstDims, userDst);
 
     // Create upsampling node and add it to net
     auto node = std::make_shared<UpsampleNode<K>>(src, dst);

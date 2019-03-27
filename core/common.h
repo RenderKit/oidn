@@ -74,6 +74,24 @@ namespace oidn {
     return res;
   }
 
+  inline memory::dims getMaxTensorDims(const std::vector<memory::dims>& dims)
+  {
+    memory::dims result;
+    size_t maxSize = 0;
+
+    for (const auto& d : dims)
+    {
+      const size_t size = getTensorSize(d);
+      if (size > maxSize)
+      {
+        result = d;
+        maxSize = size;
+      }
+    }
+
+    return result;
+  }
+
   inline size_t getTensorSize(const std::shared_ptr<memory>& mem)
   {
     return getTensorSize(getTensorDims(mem));
