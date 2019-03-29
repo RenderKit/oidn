@@ -80,7 +80,7 @@ set(MKLDNN_USE_MKL "NONE" CACHE INTERNAL "")
 set(MKLDNN_ENABLE_CONCURRENT_EXEC OFF CACHE INTERNAL "")
 set(MKLDNN_USE_CLANG_SANITIZER "" CACHE INTERNAL "")
 set(MKLDNN_VERBOSE OFF CACHE BOOL "")
-set(WITH_EXAMPLE OFF CACHE INTERNAL "")
+set(WITH_EXAMPLE ON CACHE INTERNAL "")
 set(WITH_TEST OFF CACHE INTERNAL "")
 set(BENCHDNN_USE_RDPMC OFF CACHE INTERNAL "")
 
@@ -178,7 +178,9 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY SOVERSION "0")
 ## Open Image Denoise examples
 ## ----------------------------------------------------------------------------
 
-add_subdirectory(examples)
+if(WITH_EXAMPLE)
+  add_subdirectory(examples)
+endif()
 
 ## ----------------------------------------------------------------------------
 ## Open Image Denoise install and packaging
