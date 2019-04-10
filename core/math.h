@@ -23,7 +23,9 @@ namespace oidn {
   constexpr float minVectorLength    = 1e-10f;
   constexpr float minVectorLengthSqr = minVectorLength * minVectorLength;
 
+  using std::log;
   using std::log2;
+  using std::exp;
   using std::exp2;
   using std::pow;
   using std::isfinite;
