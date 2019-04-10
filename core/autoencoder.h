@@ -37,7 +37,7 @@ namespace oidn {
     bool srgb = false;
 
     std::shared_ptr<Executable> net;
-    std::shared_ptr<TransferFunc> transferFunc;
+    std::shared_ptr<TransferFunction> transferFunc;
 
     bool dirty = true;
 

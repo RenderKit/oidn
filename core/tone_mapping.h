@@ -26,29 +26,29 @@ namespace oidn {
   }
 
   // Color transfer function
-  class TransferFunc
+  class TransferFunction
   {
   public:
-    virtual ~TransferFunc() = default;
+    virtual ~TransferFunction() = default;
 
-    virtual float forward(float x) const = 0;
+    virtual float forward(float y) const = 0;
     virtual float inverse(float x) const = 0;
   };
 
-  class LinearTransferFunc : public TransferFunc
+  class LinearTransferFunction : public TransferFunction
   {
   public:
-    __forceinline float forward(float x) const override { return x; }
+    __forceinline float forward(float y) const override { return y; }
     __forceinline float inverse(float x) const override { return x; }
   };
 
-  // sRGB transfer function
-  class SRGBTransferFunc : public TransferFunc
+  // LDR transfer function: sRGB curve
+  class LDRTransferFunction : public TransferFunction
   {
   public:
-    __forceinline float forward(float x) const override
+    __forceinline float forward(float y) const override
     {
-      return pow(x, 1.f/2.2f);
+      return pow(y, 1.f/2.2f);
     }
 
     __forceinline float inverse(float x) const override
@@ -59,14 +59,14 @@ namespace oidn {
 
   // HDR transfer function: log + sRGB curve
   // Compresses [0..65535] to [0..1]
-  class HDRTransferFunc : public TransferFunc
+  class HDRTransferFunction : public TransferFunction
   {
   private:
     float exposure;
     float rcpExposure;
 
   public:
-    HDRTransferFunc(float exposure = 1.f)
+    HDRTransferFunction(float exposure = 1.f)
     {
       setExposure(exposure);
     }
@@ -77,10 +77,10 @@ namespace oidn {
       this->rcpExposure = 1.f / exposure;
     }
 
-    __forceinline float forward(float x) const override
+    __forceinline float forward(float y) const override
     {
-      x *= exposure;
-      return pow(log2(x+1.f) * (1.f/16.f), 1.f/2.2f);
+      y *= exposure;
+      return pow(log2(y+1.f) * (1.f/16.f), 1.f/2.2f);
     }
 
     __forceinline float inverse(float x) const override
