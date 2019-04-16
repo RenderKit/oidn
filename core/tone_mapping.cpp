@@ -18,7 +18,7 @@
 
 namespace oidn {
 
-  const float HDRTransferFunction::xScale = 1.f / HDRTransferFunction::pqx_forward(65504.f * HDRTransferFunction::yScale);
+  const float HDRTransferFunction::xScale = 1.f / HDRTransferFunction::pqxForward(65504.f * HDRTransferFunction::yScale);
 
   float autoexposure(const Image& color)
   {
