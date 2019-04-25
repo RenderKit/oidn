@@ -201,8 +201,10 @@ int main(int argc, char* argv[])
       float maxre = 0;
       for (size_t i = 0; i < output.getDataSize(); ++i)
       {
-        const float expect = std::max(ref[i], 0.f);
-        const float actual = std::max(output[i], 0.f);
+        float expect = std::max(ref[i], 0.f);
+        if (!hdr)
+          expect = std::min(expect, 1.f);
+        const float actual = output[i];
         float re;
         if (std::abs(expect) < 1e-5 && std::abs(actual) < 1e-5)
           re = 0;

@@ -232,9 +232,9 @@ namespace oidn {
     std::shared_ptr<Node> inputReorder;
     if (srgb)
     {
-      transferFunc = std::make_shared<LinearTransferFunction>();
+      transferFunc = std::make_shared<LDRLinearTransferFunction>();
       inputReorder = net->addInputReorder(color, albedo, normal,
-                                          std::static_pointer_cast<LinearTransferFunction>(transferFunc),
+                                          std::static_pointer_cast<LDRLinearTransferFunction>(transferFunc),
                                           spatialPad, inputReorderDst);
     }
     else if (hdr)
@@ -348,7 +348,7 @@ namespace oidn {
 
     // Output reorder
     if (srgb)
-      net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<LinearTransferFunction>(transferFunc), output);
+      net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<LDRLinearTransferFunction>(transferFunc), output);
     else if (hdr)
       net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<HDRTransferFunction>(transferFunc), output);
     else

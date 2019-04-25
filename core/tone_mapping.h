@@ -35,11 +35,19 @@ namespace oidn {
     virtual float inverse(float x) const = 0;
   };
 
-  class LinearTransferFunction : public TransferFunction
+  // LDR transfer function: linear
+  class LDRLinearTransferFunction : public TransferFunction
   {
   public:
-    __forceinline float forward(float y) const override { return y; }
-    __forceinline float inverse(float x) const override { return x; }
+    __forceinline float forward(float y) const override
+    {
+      return min(y, 1.f);
+    }
+
+    __forceinline float inverse(float x) const override
+    {
+      return min(x, 1.f);
+    }
   };
 
   // LDR transfer function: sRGB curve
@@ -48,12 +56,12 @@ namespace oidn {
   public:
     __forceinline float forward(float y) const override
     {
-      return pow(y, 1.f/2.2f);
+      return pow(min(y, 1.f), 1.f/2.2f);
     }
 
     __forceinline float inverse(float x) const override
     {
-      return pow(x, 2.2f);
+      return min(pow(x, 2.2f), 1.f);
     }
   };
 
