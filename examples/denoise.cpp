@@ -17,6 +17,7 @@
 #include <iostream>
 #include <cassert>
 #include <cmath>
+#include <signal.h>
 
 #ifdef VTUNE
 #include <ittnotify.h>
@@ -42,6 +43,21 @@ void printUsage()
 void errorCallback(void* userPtr, oidn::Error error, const char* message)
 {
   throw std::runtime_error(message);
+}
+
+volatile bool isCancelled = false;
+
+void signalHandler(int signal)
+{
+  isCancelled = true;
+}
+
+bool progressCallback(void* userPtr, double n)
+{
+  if (isCancelled)
+    return false;
+  std::cout << "\rDenoising " << int(n * 100.) << "%" << std::flush;
+  return true;
 }
 
 int main(int argc, char* argv[])
@@ -174,6 +190,9 @@ int main(int argc, char* argv[])
     if (srgb)
       filter.set("srgb", true);
 
+    filter.setFilterProgressMonitorFunction(progressCallback);
+    signal(SIGINT, signalHandler);
+
     filter.commit();
 
     const double initTime = timer.query();
@@ -186,13 +205,16 @@ int main(int argc, char* argv[])
          << ", msec=" << (1000. * initTime) << std::endl;
 
     // Denoise the image
-    std::cout << "Denoising" << std::flush;
+    //std::cout << "Denoising" << std::flush;
     timer.reset();
 
     filter.execute();
 
     const double denoiseTime = timer.query();
     std::cout << ": msec=" << (1000. * denoiseTime) << std::endl;
+
+    filter.setFilterProgressMonitorFunction(nullptr);
+    signal(SIGINT, SIG_DFL);
 
     if (ref)
     {
@@ -201,8 +223,10 @@ int main(int argc, char* argv[])
       float maxre = 0;
       for (size_t i = 0; i < output.getDataSize(); ++i)
       {
-        const float expect = std::max(ref[i], 0.f);
-        const float actual = std::max(output[i], 0.f);
+        float expect = std::max(ref[i], 0.f);
+        if (!hdr)
+          expect = std::min(expect, 1.f);
+        const float actual = output[i];
         float re;
         if (std::abs(expect) < 1e-5 && std::abs(actual) < 1e-5)
           re = 0;

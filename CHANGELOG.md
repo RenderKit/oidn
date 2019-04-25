@@ -4,7 +4,9 @@ Version History
 ### Changes in v0.9.0:
 
 -   Reduced memory consumption by about 38%
+-   Added support for progress monitor callback functions
 -   Enabled fully concurrent execution when using multiple devices
+-   Clamp LDR input and output colors to 1
 -   Fixed issue where some memory allocation errors were not reported
 
 ### Changes in v0.8.2:

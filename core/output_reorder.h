@@ -82,7 +82,7 @@ namespace oidn {
             float x = srcPtr_C[i];
 
             // The CNN output may contain negative values or even NaNs, so it must be sanitized
-            x = isfinite(x) ? max(x, 0.f) : 0.f;
+            x = maxSafe(x, 0.f);
 
             // Apply the inverse transfer function
             x = transferFunc->inverse(x);

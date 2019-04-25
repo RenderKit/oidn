@@ -1,6 +1,6 @@
 # Intel® Open Image Denoise
 
-This is release v0.8.2 of Open Image Denoise. For changes and new
+This is release v0.9.0 of Open Image Denoise. For changes and new
 features see the [changelog](CHANGELOG.md). Visit
 http://www.openimagedenoise.org for more information.
 
@@ -464,6 +464,7 @@ Denoise:
 | OIDN\_ERROR\_INVALID\_OPERATION    | the operation is not allowed               |
 | OIDN\_ERROR\_OUT\_OF\_MEMORY       | not enough memory to execute the operation |
 | OIDN\_ERROR\_UNSUPPORTED\_HARDWARE | the hardware (e.g., CPU) is not supported  |
+| OIDN\_ERROR\_CANCELLED             | the operation was cancelled by the user    |
 
 Possible error codes, i.e., valid constants of type `OIDNError`.
 
@@ -628,6 +629,32 @@ void oidnSetFilter1i(OIDNFilter filter, const char* name, int  value);
 bool oidnGetFilter1b(OIDNFilter filter, const char* name);
 int  oidnGetFilter1i(OIDNFilter filter, const char* name);
 ```
+
+Filters support a progress monitor callback mechanism that can be used
+to report progress of filter operations and to cancel them as well. The
+`oidnSetFilterProgressMonitorFunction` function registers a progress
+monitor callback function (`func` argument) with payload (`userPtr`
+argument) for the specified filter (`filter` argument):
+
+``` cpp
+typedef bool (*OIDNProgressMonitorFunction)(void* userPtr, double n);
+
+void oidnSetFilterProgressMonitorFunction(OIDNFilter filter,
+                                          OIDNProgressMonitorFunction func,
+                                          void* userPtr);
+```
+
+Only a single callback function can be registered per filter, and
+further invocations overwrite the previously set callback function.
+Passing `NULL` as function pointer disables the registered callback
+function. Once registered, Open Image Denoise will invoke the callback
+function multiple times during filter operations, by passing the payload
+as set at registration time (`userPtr` argument), and a `double` in the
+range \[0, 1\] which estimates the progress of the operation (`n`
+argument). When returning `true` from the callback function, Open Image
+Denoise will continue the filter operation normally. When returning
+`false`, the library will cancel the filter operation with the
+`OIDN_ERROR_CANCELLED` error code.
 
 After setting all necessary parameters for the filter, the changes must
 be commmitted by calling
