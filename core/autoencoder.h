@@ -39,8 +39,6 @@ namespace oidn {
     std::shared_ptr<Executable> net;
     std::shared_ptr<TransferFunction> transferFunc;
 
-    bool dirty = true;
-
   protected:
     struct
     {
@@ -58,6 +56,7 @@ namespace oidn {
     void setImage(const std::string& name, const Image& data) override;
     void set1i(const std::string& name, int value) override;
     int get1i(const std::string& name) override;
+
     void commit() override;
     void execute() override;
 

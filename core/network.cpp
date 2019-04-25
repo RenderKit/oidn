@@ -29,10 +29,18 @@ namespace oidn {
   }
 
   template<int K>
-  void Network<K>::execute()
+  void Network<K>::execute(ProgressMonitorFunction progressFunc, void* progressUserPtr)
   {
+    if (progressFunc && !progressFunc(progressUserPtr, 0))
+      throw Exception(Error::Cancelled, "execution was cancelled");
+
     for (size_t i = 0; i < nodes.size(); ++i)
+    {
       nodes[i]->execute(sm);
+
+      if (progressFunc && !progressFunc(progressUserPtr, double(i+1) / double(nodes.size())))
+        throw Exception(Error::Cancelled, "execution was cancelled");
+    }
   }
 
   template<int K>
@@ -294,6 +302,15 @@ namespace oidn {
     memory::dims dstDims = src1Dims;
     dstDims[1] += src2Dims[1]; // C
     return dstDims;
+  }
+
+  template<int K>
+  std::shared_ptr<Node> Network<K>::addAutoexposure(const Image& color,
+                                                    const std::shared_ptr<HDRTransferFunction>& transferFunc)
+  {
+    auto node = std::make_shared<AutoexposureNode>(color, transferFunc);
+    nodes.push_back(node);
+    return node;
   }
 
   template <int K>

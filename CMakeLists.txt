@@ -121,6 +121,7 @@ set(CORE_SOURCES
   core/buffer.h
   core/image.h
   core/filter.h
+  core/filter.cpp
   core/node.h
   core/input_reorder.h
   core/output_reorder.h

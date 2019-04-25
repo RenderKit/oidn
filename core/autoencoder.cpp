@@ -84,14 +84,7 @@ namespace oidn {
 
     device->executeTask([&]()
     {
-      if (hdr)
-      {
-        const float exposure = autoexposure(color);
-        //printf("exposure = %f\n", exposure);
-        std::static_pointer_cast<HDRTransferFunction>(transferFunc)->setExposure(exposure);
-      }
-
-      net->execute();
+      net->execute(progressFunc, progressUserPtr);
     });
   }
 
@@ -240,6 +233,10 @@ namespace oidn {
     else if (hdr)
     {
       transferFunc = std::make_shared<HDRTransferFunction>();
+
+      net->addAutoexposure(color,
+                           std::static_pointer_cast<HDRTransferFunction>(transferFunc));
+
       inputReorder = net->addInputReorder(color, albedo, normal,
                                           std::static_pointer_cast<HDRTransferFunction>(transferFunc),
                                           spatialPad, inputReorderDst);

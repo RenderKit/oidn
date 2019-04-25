@@ -17,6 +17,7 @@
 #pragma once
 
 #include "image.h"
+#include "node.h"
 
 namespace oidn {
 
@@ -97,6 +98,29 @@ namespace oidn {
     }
   };
 
-  float autoexposure(const Image& color);
+  // Autoexposure node
+  class AutoexposureNode : public Node
+  {
+  private:
+    Image color;
+    std::shared_ptr<HDRTransferFunction> transferFunc;
+
+  public:
+    AutoexposureNode(const Image& color,
+                     const std::shared_ptr<HDRTransferFunction>& transferFunc)
+      : color(color),
+        transferFunc(transferFunc)
+    {}
+
+    void execute(stream& sm) override
+    {
+      const float exposure = autoexposure(color);
+      //printf("exposure = %f\n", exposure);
+      transferFunc->setExposure(exposure);
+    }
+
+  private:
+    static float autoexposure(const Image& color);
+  };
 
 } // namespace oidn

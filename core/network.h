@@ -19,6 +19,7 @@
 #include "node.h"
 #include "input_reorder.h"
 #include "output_reorder.h"
+#include "tone_mapping.h"
 
 #pragma once
 
@@ -28,7 +29,7 @@ namespace oidn {
   {
   public:
     virtual ~Executable() {}
-    virtual void execute() = 0;
+    virtual void execute(ProgressMonitorFunction progressFunc, void* progressUserPtr) = 0;
   };
 
   template<int K>
@@ -37,7 +38,7 @@ namespace oidn {
   public:
     Network(const std::map<std::string, Tensor>& weight_map);
 
-    void execute() override;
+    void execute(ProgressMonitorFunction progressFunc, void* progressUserPtr) override;
 
     std::shared_ptr<memory> allocTensor(const memory::dims& dims,
                                         memory::format_tag format = memory::format_tag::any,
@@ -84,6 +85,9 @@ namespace oidn {
                                       const std::shared_ptr<memory>& userDst = nullptr);
 
     memory::dims getConcatDims(const memory::dims& src1Dims, const memory::dims& src2Dims);
+
+    std::shared_ptr<Node> addAutoexposure(const Image& color,
+                                          const std::shared_ptr<HDRTransferFunction>& transferFunc);
 
     void finalize();
 

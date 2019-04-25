@@ -354,6 +354,16 @@ namespace oidn {
     return 0;
   }
 
+  OIDN_API void oidnSetFilterProgressMonitorFunction(OIDNFilter hFilter, OIDNProgressMonitorFunction func, void* userPtr)
+  {
+    Filter* filter = (Filter*)hFilter;
+    OIDN_TRY
+      checkHandle(hFilter);
+      OIDN_LOCK(filter);
+      filter->setProgressMonitorFunction(func, userPtr);
+    OIDN_CATCH(filter)
+  }
+
   OIDN_API void oidnCommitFilter(OIDNFilter hFilter)
   {
     Filter* filter = (Filter*)hFilter;
