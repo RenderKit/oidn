@@ -631,8 +631,8 @@ int  oidnGetFilter1i(OIDNFilter filter, const char* name);
 ```
 
 Filters support a progress monitor callback mechanism that can be used
-to report progress of filter operations and to cancel them as well. The
-`oidnSetFilterProgressMonitorFunction` function registers a progress
+to report progress of filter operations and to cancel them as well.
+Calling `oidnSetFilterProgressMonitorFunction` registers a progress
 monitor callback function (`func` argument) with payload (`userPtr`
 argument) for the specified filter (`filter` argument):
 
