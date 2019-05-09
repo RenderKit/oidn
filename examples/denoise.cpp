@@ -190,7 +190,7 @@ int main(int argc, char* argv[])
     if (srgb)
       filter.set("srgb", true);
 
-    filter.setFilterProgressMonitorFunction(progressCallback);
+    filter.setProgressMonitorFunction(progressCallback);
     signal(SIGINT, signalHandler);
 
     filter.commit();
@@ -213,7 +213,7 @@ int main(int argc, char* argv[])
     const double denoiseTime = timer.query();
     std::cout << ": msec=" << (1000. * denoiseTime) << std::endl;
 
-    filter.setFilterProgressMonitorFunction(nullptr);
+    filter.setProgressMonitorFunction(nullptr);
     signal(SIGINT, SIG_DFL);
 
     if (ref)
