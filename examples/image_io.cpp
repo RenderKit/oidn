@@ -166,6 +166,22 @@ namespace oidn {
     }
     return buf;
   }
+
+  void saveImageOIIO(const std::string& filename, const ImageBuffer& image)
+  {
+    auto out = OIIO::ImageOutput::create(filename);
+    if (!out)
+      throw std::runtime_error("cannot write unsupported image file format: " + filename);
+
+    OIIO::ImageSpec spec(image.getWidth(), 
+                         image.getHeight(), 
+                         image.getChannels(), 
+                         OIIO::TypeDesc::FLOAT);
+
+    out->open(filename, spec);
+    out->write_image(OIIO::TypeDesc::FLOAT, image.getData());
+    out->close();
+  }
 #endif // HAVE_OPENIMAGEIO
 
   ImageBuffer loadImage(const std::string& filename)
@@ -194,8 +210,13 @@ namespace oidn {
       saveImagePFM(filename, image);
     else if (ext == "ppm")
       saveImagePPM(filename, image);
+#if HAVE_OPENIMAGEIO
+    else 
+      saveImageOIIO(filename, image);
+#else // HAVE_OPENIMAGEIO
     else
       throw std::runtime_error("cannot write unsupported image file format: " + filename);
+#endif // HAVE_OPENIMAGEIO
   }
 
 } // namespace oidn
