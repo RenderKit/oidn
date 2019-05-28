@@ -18,6 +18,10 @@
 #include <cmath>
 #include "image_io.h"
 
+#ifdef HAVE_OPENIMAGEIO
+# include <OpenImageIO/imageio.h>
+#endif
+
 namespace oidn {
 
   namespace
@@ -148,11 +152,39 @@ namespace oidn {
     }
   }
 
+#ifdef HAVE_OPENIMAGEIO
+  ImageBuffer loadImageOIIO(const std::string& filename)
+  {
+    ImageBuffer buf;
+    auto in = OIIO::ImageInput::open(filename);
+    if (in)
+    {
+      const OIIO::ImageSpec& spec = in->spec();
+      buf = ImageBuffer(spec.width, spec.height, spec.nchannels);
+      in->read_image(OIIO::TypeDesc::FLOAT, buf.getData());
+      in->close();
+    }
+    return buf;
+  }
+#endif // HAVE_OPENIMAGEIO
+
   ImageBuffer loadImage(const std::string& filename)
   {
-    if (getExtension(filename) != "pfm")
-      throw std::runtime_error("unsupported image file format");
-    return loadImagePFM(filename);
+    const std::string ext = getExtension(filename);
+    ImageBuffer buf;
+
+    if (ext == "pfm")
+      buf = loadImagePFM(filename);
+
+#if HAVE_OPENIMAGEIO
+    else
+      buf = loadImageOIIO(filename);
+#endif // HAVE_OPENIMAGEIO
+
+    if (!buf)
+      throw std::runtime_error("cannot load unsupported image file format: " + filename);
+
+    return buf;
   }
 
   void saveImage(const std::string& filename, const ImageBuffer& image)
@@ -163,7 +195,7 @@ namespace oidn {
     else if (ext == "ppm")
       saveImagePPM(filename, image);
     else
-      throw std::runtime_error("unsupported image file format");
+      throw std::runtime_error("cannot write unsupported image file format: " + filename);
   }
 
 } // namespace oidn
