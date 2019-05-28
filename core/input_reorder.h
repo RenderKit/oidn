@@ -72,24 +72,16 @@ namespace oidn {
       const int H1 = color.height;
       const int W1 = color.width;
 
-      // Do mirror padding to avoid filtering artifacts near the edges
-      const int H = min(H2, 2*H1-2);
-      const int W = min(W2, 2*W1-2);
-
-      parallel_nd(H, [&](int h)
+      parallel_nd(H1, [&](int h)
       {
-        for (int w = 0; w < W; ++w)
+        for (int w = 0; w < W1; ++w)
         {
-          // Compute mirror padded coords
-          const int h1 = h < H1 ? h : 2*H1-2-h;
-          const int w1 = w < W1 ? w : 2*W1-2-w;
-
           int c = 0;
-          storeColor(h, w, c, (float*)color.get(h1, w1));
+          storeColor(h, w, c, (float*)color.get(h, w));
           if (albedo)
-            storeAlbedo(h, w, c, (float*)albedo.get(h1, w1));
+            storeAlbedo(h, w, c, (float*)albedo.get(h, w));
           if (normal)
-            storeNormal(h, w, c, (float*)normal.get(h1, w1));
+            storeNormal(h, w, c, (float*)normal.get(h, w));
         }
       });
     }
