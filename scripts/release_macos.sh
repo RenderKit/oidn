@@ -16,6 +16,22 @@
 ## limitations under the License.                                           ##
 ## ======================================================================== ##
 
+# Set up the compiler
+COMPILER=icc
+if [ "$#" -ge 1 ]; then
+  COMPILER=$1
+fi
+if [[ $COMPILER == icc ]]; then
+  C_COMPILER=icc
+  CXX_COMPILER=icpc
+elif [[ $COMPILER == clang ]]; then
+  C_COMPILER=clang
+  CXX_COMPILER=clang++
+else
+  echo "Error: unknown compiler"
+  exit 1
+fi
+
 # Set up dependencies
 ROOT_DIR=$PWD
 DEP_DIR=$ROOT_DIR/deps
@@ -43,8 +59,8 @@ cd build_release
 
 # Set compiler and release settings
 cmake \
--D CMAKE_C_COMPILER:FILEPATH=icc \
--D CMAKE_CXX_COMPILER:FILEPATH=icpc \
+-D CMAKE_C_COMPILER:FILEPATH=$C_COMPILER \
+-D CMAKE_CXX_COMPILER:FILEPATH=$CXX_COMPILER \
 -D TBB_ROOT=$TBB_DIR .. \
 ..
 

@@ -18,6 +18,20 @@ rem ======================================================================== rem
 
 setlocal
 
+rem Set up the compiler
+set COMPILER=icc
+if not "%1" == "" (
+  set COMPILER=%1
+)
+if %COMPILER% == icc (
+  set TOOLSET="Intel C++ Compiler 18.0"
+) else if %COMPILER% == msvc (
+  set TOOLSET=""
+) else (
+  echo Error: unknown compiler
+  goto abort
+)
+
 rem Set up dependencies
 set ROOT_DIR=%cd%
 set DEP_DIR=%ROOT_DIR%\deps
@@ -41,7 +55,7 @@ cd build_release
 rem Set compiler and release settings
 cmake -L ^
 -G "Visual Studio 15 2017 Win64" ^
--T "Intel C++ Compiler 18.0" ^
+-T %TOOLSET% ^
 -D TBB_ROOT=%TBB_DIR% ^
 ..
 if %ERRORLEVEL% geq 1 goto abort

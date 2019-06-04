@@ -245,7 +245,7 @@ namespace oidn {
     T get(const char* name);
 
     // Sets the progress monitor callback function of the filter.
-    void setFilterProgressMonitorFunction(ProgressMonitorFunction func, void* userPtr = nullptr)
+    void setProgressMonitorFunction(ProgressMonitorFunction func, void* userPtr = nullptr)
     {
       oidnSetFilterProgressMonitorFunction(handle, (OIDNProgressMonitorFunction)func, userPtr);
     }
