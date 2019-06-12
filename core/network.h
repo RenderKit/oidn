@@ -120,7 +120,6 @@ namespace oidn {
     auto dst = userDst;
     if (!dst)
       dst = allocTensor(dstDims);
-    assert(getTensorDims(dst) == dstDims);
 
     // Push node
     auto node = std::make_shared<InputReorderNode<K, TransferFunction>>(color, albedo, normal, dst, transferFunc);

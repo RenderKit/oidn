@@ -64,8 +64,6 @@ namespace oidn {
       assert(dstDesc.data_type == memory::data_type::f32);
       assert(dstDesc.dims[0] == 1);
       //assert(dstDesc.dims[1] >= getPadded<K>(C1));
-      assert(dstDesc.dims[2] >= color.height);
-      assert(dstDesc.dims[3] >= color.width);
 
       dstPtr = (float*)dst->get_data_handle();
       C2 = dstDesc.dims[1];
@@ -75,12 +73,8 @@ namespace oidn {
 
     void setTile(int h1, int w1, int h2, int w2, int H, int W) override
     {
-      assert(h1 + H <= color.height);
-      assert(w1 + W <= color.width);
       assert(h2 == 0);
       assert(w2 == 0);
-      assert(H <= H2);
-      assert(W <= W2);
 
       h1Begin = h1;
       w1Begin = w1;
@@ -90,6 +84,11 @@ namespace oidn {
 
     void execute(stream& sm) override
     {
+      assert(h1Begin + H <= color.height);
+      assert(w1Begin + W <= color.width);
+      assert(H <= H2);
+      assert(W <= W2);
+
       parallel_nd(H2, [&](int h)
       {
         if (h < H)

@@ -65,9 +65,6 @@ namespace oidn {
       // We assume output data is <= K OC
       assert(srcDesc.dims[1] == K);
 
-      assert(output.height <= srcDesc.dims[2]);
-      assert(output.width  <= srcDesc.dims[3]);
-
       srcPtr = (float*)src->get_data_handle();
       H1 = srcDesc.dims[2];
       W1 = srcDesc.dims[3];
@@ -75,11 +72,6 @@ namespace oidn {
 
     void setTile(int h1, int w1, int h2, int w2, int H, int W) override
     {
-      assert(h1 + H <= H1);
-      assert(w1 + W <= W1);
-      assert(h2 + H <= output.height);
-      assert(w2 + W <= output.width);
-
       h1Begin = h1;
       w1Begin = w1;
       h2Begin = h2;
@@ -90,6 +82,11 @@ namespace oidn {
 
     void execute(stream& sm) override
     {
+      assert(h1Begin + H <= H1);
+      assert(w1Begin + W <= W1);
+      assert(h2Begin + H <= output.height);
+      assert(w2Begin + W <= output.width);
+
       const int C1 = K;
 
       parallel_nd(H, [&](int h)
