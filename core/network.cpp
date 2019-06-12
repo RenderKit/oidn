@@ -68,7 +68,7 @@ namespace oidn {
     memory::desc desc(dims, memory::data_type::f32, format);
     if (data == nullptr)
       return std::make_shared<memory>(desc, eng);
-    else;
+    else
       return std::make_shared<memory>(desc, eng, data);
   }
 
