@@ -152,8 +152,8 @@ namespace oidn {
     tileCountH = (H > tileH) ? divCeil(H - 2*overlap, tileH - 2*overlap) : 1;
     tileCountW = (W > tileW) ? divCeil(W - 2*overlap, tileW - 2*overlap) : 1;
 
-    printf("\ntile size: %d %d\n", tileW, tileH);
-    printf("\ntile count: %d %d\n", tileCountW, tileCountH);
+    //printf("\ntile size: %d %d\n", tileW, tileH);
+    //printf("\ntile count: %d %d\n", tileCountW, tileCountH);
   }
 
   template<int K>
