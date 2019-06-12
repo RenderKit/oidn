@@ -123,7 +123,7 @@ namespace oidn {
   {
     const int minTileSize = 3*overlap;
     //const int maxTilePixels = 512*512;
-    const int maxTilePixels = 2048*1024;
+    const int maxTilePixels = 2048*1152;
     //const int maxTilePixels = 1024*1024;
 
     tileCountH = 1;
@@ -152,8 +152,8 @@ namespace oidn {
     tileCountH = (H > tileH) ? divCeil(H - 2*overlap, tileH - 2*overlap) : 1;
     tileCountW = (W > tileW) ? divCeil(W - 2*overlap, tileW - 2*overlap) : 1;
 
-    //printf("\ntile size: %d %d\n", tileW, tileH);
-    //printf("\ntile count: %d %d\n", tileCountW, tileCountH);
+    printf("\ntile size: %d %d\n", tileW, tileH);
+    printf("\ntile count: %d %d\n", tileCountW, tileCountH);
   }
 
   template<int K>
