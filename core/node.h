@@ -32,6 +32,11 @@ namespace oidn {
 
     virtual size_t getScratchpadSize() const { return 0; }
     virtual void setScratchpad(const std::shared_ptr<memory>& mem) {}
+
+    virtual void setTile(int h1, int w1, int h2, int w2, int H, int W)
+    {
+      assert(0); // not supported
+    }
   };
 
   // Node wrapping an MKL-DNN primitive

@@ -26,15 +26,23 @@ namespace oidn {
   class InputReorderNode : public Node
   {
   private:
+    // Source
     Image color;
     Image albedo;
     Image normal;
 
+    // Destination
     std::shared_ptr<memory> dst;
     float* dstPtr;
     int C2;
     int H2;
     int W2;
+
+    // Tile
+    int h1Begin;
+    int w1Begin;
+    int H;
+    int W;
 
     std::shared_ptr<TransferFunction> transferFunc;
 
@@ -46,6 +54,8 @@ namespace oidn {
                      const std::shared_ptr<TransferFunction>& transferFunc)
       : color(color), albedo(albedo), normal(normal),
         dst(dst),
+        h1Begin(0), w1Begin(0),
+        H(color.height), W(color.width),
         transferFunc(transferFunc)
     {
       const mkldnn_memory_desc_t& dstDesc = dst->get_desc().data;
@@ -61,27 +71,62 @@ namespace oidn {
       C2 = dstDesc.dims[1];
       H2 = dstDesc.dims[2];
       W2 = dstDesc.dims[3];
+    }
 
-      // Zero the destination because it may be padded
-      // We assume that the destination will not be modified by other nodes!
-      memset(dstPtr, 0, C2*H2*W2*sizeof(float));
+    void setTile(int h1, int w1, int h2, int w2, int H, int W) override
+    {
+      assert(h1 + H <= color.height);
+      assert(w1 + W <= color.width);
+      assert(h2 == 0);
+      assert(w2 == 0);
+      assert(H <= H2);
+      assert(W <= W2);
+
+      h1Begin = h1;
+      w1Begin = w1;
+      this->H = H;
+      this->W = W;
     }
 
     void execute(stream& sm) override
     {
-      const int H1 = color.height;
-      const int W1 = color.width;
-
-      parallel_nd(H1, [&](int h)
+      parallel_nd(H2, [&](int h)
       {
-        for (int w = 0; w < W1; ++w)
+        if (h < H)
         {
-          int c = 0;
-          storeColor(h, w, c, (float*)color.get(h, w));
-          if (albedo)
-            storeAlbedo(h, w, c, (float*)albedo.get(h, w));
-          if (normal)
-            storeNormal(h, w, c, (float*)normal.get(h, w));
+          const int h1 = h + h1Begin;
+
+          for (int w = 0; w < W; ++w)
+          {
+            const int w1 = w + w1Begin;
+
+            int c = 0;
+            storeColor(h, w, c, (float*)color.get(h1, w1));
+            if (albedo)
+              storeAlbedo(h, w, c, (float*)albedo.get(h1, w1));
+            if (normal)
+              storeNormal(h, w, c, (float*)normal.get(h1, w1));
+            while (c < C2)
+              store(h, w, c, 0.f);
+          }
+
+          // Zero padding
+          for (int w = W; w < W2; ++w)
+          {
+            int c = 0;
+            while (c < C2)
+              store(h, w, c, 0.f);
+          }
+        }
+        else
+        {
+          // Zero padding
+          for (int w = 0; w < W2; ++w)
+          {
+            int c = 0;
+            while (c < C2)
+              store(h, w, c, 0.f);
+          }
         }
       });
     }

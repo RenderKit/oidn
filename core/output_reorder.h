@@ -26,12 +26,22 @@ namespace oidn {
   class OutputReorderNode : public Node
   {
   private:
+    // Source
     std::shared_ptr<memory> src;
     const float* srcPtr;
     int H1;
     int W1;
 
+    // Destination
     Image output;
+
+    // Tile
+    int h1Begin;
+    int w1Begin;
+    int h2Begin;
+    int w2Begin;
+    int H;
+    int W;
 
     std::shared_ptr<TransferFunction> transferFunc;
 
@@ -41,6 +51,9 @@ namespace oidn {
                       const std::shared_ptr<TransferFunction>& transferFunc)
       : src(src),
         output(output),
+        h1Begin(0), w1Begin(0),
+        h2Begin(0), w2Begin(0),
+        H(output.height), W(output.width),
         transferFunc(transferFunc)
     {
       const mkldnn_memory_desc_t& srcDesc = src->get_desc().data;
@@ -60,20 +73,38 @@ namespace oidn {
       W1 = srcDesc.dims[3];
     }
 
+    void setTile(int h1, int w1, int h2, int w2, int H, int W) override
+    {
+      assert(h1 + H <= H1);
+      assert(w1 + W <= W1);
+      assert(h2 + H <= output.height);
+      assert(w2 + W <= output.width);
+
+      h1Begin = h1;
+      w1Begin = w1;
+      h2Begin = h2;
+      w2Begin = w2;
+      this->H = H;
+      this->W = W;
+    }
+
     void execute(stream& sm) override
     {
       const int C1 = K;
-      const int H2 = output.height;
-      const int W2 = output.width;
 
-      parallel_nd(H2, [&](int h)
+      parallel_nd(H, [&](int h)
       {
-        for (int w = 0; w < W2; ++w)
+        const int h1 = h + h1Begin;
+        const int h2 = h + h2Begin;
+
+        for (int w = 0; w < W; ++w)
         {
-          float* dstPtr_C = (float*)output.get(h, w);
+          const int w1 = w + w1Begin;
+          const int w2 = w + w2Begin;
+          float* dstPtr_C = (float*)output.get(h2, w2);
 
           // Source is in nChwKc format. In this case C is 1 so this is really nhwc
-          const float* srcPtr_C = srcPtr + h*W1*C1 + w*C1;
+          const float* srcPtr_C = srcPtr + h1*W1*C1 + w1*C1;
 
           #pragma unroll
           for (int i = 0; i < 3; ++i)
