@@ -25,11 +25,19 @@
 
 namespace oidn {
 
+  // Progress state
+  struct Progress
+  {
+    ProgressMonitorFunction func;
+    void* userPtr;
+    int taskCount;
+  };
+
   class Executable
   {
   public:
     virtual ~Executable() {}
-    virtual void execute(ProgressMonitorFunction progressFunc, void* progressUserPtr) = 0;
+    virtual void execute(const Progress& progress, int taskIndex) = 0;
   };
 
   template<int K>
@@ -38,7 +46,7 @@ namespace oidn {
   public:
     Network(const std::map<std::string, Tensor>& weight_map);
 
-    void execute(ProgressMonitorFunction progressFunc, void* progressUserPtr) override;
+    void execute(const Progress& progress, int taskIndex) override;
 
     std::shared_ptr<memory> allocTensor(const memory::dims& dims,
                                         memory::format_tag format = memory::format_tag::any,

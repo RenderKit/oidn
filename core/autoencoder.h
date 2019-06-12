@@ -29,6 +29,9 @@ namespace oidn {
   class AutoencoderFilter : public Filter
   {
   private:
+    static constexpr int padding = 32;  // the image must be padded spatially
+    static constexpr int overlap = 128; // amount of overlap between tiles (rounded up to the padding size)
+
     Image color;
     Image albedo;
     Image normal;
@@ -36,7 +39,16 @@ namespace oidn {
     bool hdr = false;
     bool srgb = false;
 
+    int H = 0;          // image height
+    int W = 0;          // image width
+    int tileH = 0;      // tile height
+    int tileW = 0;      // tile width
+    int tileCountH = 1; // number of tiles in H dimension
+    int tileCountW = 1; // number of tiles in W dimension
+
     std::shared_ptr<Executable> net;
+    std::shared_ptr<Node> inputReorder;
+    std::shared_ptr<Node> outputReorder;
     std::shared_ptr<TransferFunction> transferFunc;
 
   protected:
@@ -61,6 +73,8 @@ namespace oidn {
     void execute() override;
 
   private:
+    void computeTileSize();
+
     template<int K>
     std::shared_ptr<Executable> buildNet();
 

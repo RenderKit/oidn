@@ -84,17 +84,83 @@ namespace oidn {
 
     device->executeTask([&]()
     {
-      net->execute(progressFunc, progressUserPtr);
+      Progress progress;
+      progress.func = progressFunc;
+      progress.userPtr = progressUserPtr;
+      progress.taskCount = tileCountH * tileCountW;
+
+      // Iterate over the tiles
+      int tileIndex = 0;
+      for (int i = 0; i < tileCountH; ++i)
+      {
+        const int h = i * (tileH - 2*overlap);
+        const int leftH  = i > 0            ? overlap : 0;
+        const int rightH = i < tileCountH-1 ? overlap : 0;
+        const int tileH1 = min(H - h, tileH);
+        const int tileH2 = tileH1 - leftH - rightH;
+
+        for (int j = 0; j < tileCountW; ++j)
+        {
+          const int w = j * (tileW - 2*overlap);
+          const int leftW  = j > 0            ? overlap : 0;
+          const int rightW = j < tileCountW-1 ? overlap : 0;
+          const int tileW1 = min(W - w, tileW);
+          const int tileW2 = tileW1 - leftW - rightW;
+
+          inputReorder->setTile(h, w, 0, 0, tileH1, tileW1);
+          outputReorder->setTile(leftH, leftW, h+leftH, w+leftW, tileH2, tileW2);
+
+          //printf("output: %d %d -> %d %d\n", w+leftW, h+leftH, w+leftW+tileW2, h+leftH+tileH2);
+
+          net->execute(progress, tileIndex);
+          tileIndex++;
+        }
+      }
     });
+  }
+
+  void AutoencoderFilter::computeTileSize()
+  {
+    const int minTileSize = 3*overlap;
+    //const int maxTilePixels = 512*512;
+    const int maxTilePixels = 2048*1024;
+    //const int maxTilePixels = 1024*1024;
+
+    tileCountH = 1;
+    tileCountW = 1;
+    tileH = getPadded<padding>(H);
+    tileW = getPadded<padding>(W);
+
+    // Divide the image into tiles until the tile size gets below the threshold
+    while (tileH * tileW > maxTilePixels)
+    {
+      if (tileH > minTileSize && tileH > tileW)
+      {
+        tileCountH++;
+        tileH = max(getPadded<padding>(divCeil(H - 2*overlap, tileCountH) + 2*overlap), minTileSize);
+      }
+      else if (tileW > minTileSize)
+      {
+        tileCountW++;
+        tileW = max(getPadded<padding>(divCeil(W - 2*overlap, tileCountW) + 2*overlap), minTileSize);
+      }
+      else
+        break;
+    }
+
+    // Compute the final number of tiles
+    tileCountH = (H > tileH) ? divCeil(H - 2*overlap, tileH - 2*overlap) : 1;
+    tileCountW = (W > tileW) ? divCeil(W - 2*overlap, tileW - 2*overlap) : 1;
+
+    //printf("\ntile size: %d %d\n", tileW, tileH);
+    //printf("\ntile count: %d %d\n", tileCountW, tileCountH);
   }
 
   template<int K>
   std::shared_ptr<Executable> AutoencoderFilter::buildNet()
   {
-    constexpr int spatialPad = 32; // the image must be padded spatially
-
-    const int width = color.width;
-    const int height = color.height;
+    H = color.height;
+    W = color.width;
 
     // Configure the network
     int inputC;
@@ -132,10 +198,13 @@ namespace oidn {
         || (output.format != Format::Float3))
       throw Exception(Error::InvalidOperation, "unsupported image format");
 
-    if ((albedo && (albedo.width != width || albedo.height != height))
-        || (normal && (normal.width != width || normal.height != height))
-        || (output.width != width || output.height != height))
+    if ((albedo && (albedo.width != W || albedo.height != H))
+        || (normal && (normal.width != W || normal.height != H))
+        || (output.width != W || output.height != H))
       throw Exception(Error::InvalidOperation, "image size mismatch");
+
+    // Compute the tile size
+    computeTileSize();
 
     // Parse the weights
     const auto weightMap = parseTensors(weightPtr);
@@ -144,8 +213,8 @@ namespace oidn {
     std::shared_ptr<Network<K>> net = std::make_shared<Network<K>>(weightMap);
 
     // Compute the tensor sizes
-    const auto inputDims        = memory::dims({1, inputC, height, width});
-    const auto inputReorderDims = net->getInputReorderDims(inputDims, spatialPad);  //-> concat0
+    const auto inputDims        = memory::dims({1, inputC, tileH, tileW});
+    const auto inputReorderDims = net->getInputReorderDims(inputDims, padding);  //-> concat0
 
     const auto conv1Dims     = net->getConvDims("conv1", inputReorderDims);         //-> temp0
     const auto conv1bDims    = net->getConvDims("conv1b", conv1Dims);               //-> temp1
@@ -180,7 +249,7 @@ namespace oidn {
     const auto conv10bDims   = net->getConvDims("conv10b", conv10Dims);             //-> temp1
     const auto conv11Dims    = net->getConvDims("conv11", conv10bDims);             //-> temp0
 
-    const auto outputDims = memory::dims({1, 3, height, width});
+    const auto outputDims = memory::dims({1, 3, tileH, tileW});
 
     // Allocate two temporary ping-pong buffers to decrease memory usage
     const auto temp0Dims = getMaxTensorDims({
@@ -222,13 +291,12 @@ namespace oidn {
 
     // Input reorder
     auto inputReorderDst = net->castTensor(inputReorderDims, concat0Dst, upsample0Dims);
-    std::shared_ptr<Node> inputReorder;
     if (srgb)
     {
       transferFunc = std::make_shared<LDRLinearTransferFunction>();
       inputReorder = net->addInputReorder(color, albedo, normal,
                                           std::static_pointer_cast<LDRLinearTransferFunction>(transferFunc),
-                                          spatialPad, inputReorderDst);
+                                          padding, inputReorderDst);
     }
     else if (hdr)
     {
@@ -239,14 +307,14 @@ namespace oidn {
 
       inputReorder = net->addInputReorder(color, albedo, normal,
                                           std::static_pointer_cast<HDRTransferFunction>(transferFunc),
-                                          spatialPad, inputReorderDst);
+                                          padding, inputReorderDst);
     }
     else
     {
       transferFunc = std::make_shared<LDRTransferFunction>();
       inputReorder = net->addInputReorder(color, albedo, normal,
                                           std::static_pointer_cast<LDRTransferFunction>(transferFunc),
-                                          spatialPad, inputReorderDst);
+                                          padding, inputReorderDst);
     }
 
     // conv1
@@ -345,11 +413,11 @@ namespace oidn {
 
     // Output reorder
     if (srgb)
-      net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<LDRLinearTransferFunction>(transferFunc), output);
+      outputReorder = net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<LDRLinearTransferFunction>(transferFunc), output);
     else if (hdr)
-      net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<HDRTransferFunction>(transferFunc), output);
+      outputReorder = net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<HDRTransferFunction>(transferFunc), output);
     else
-      net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<LDRTransferFunction>(transferFunc), output);
+      outputReorder = net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<LDRTransferFunction>(transferFunc), output);
 
     net->finalize();
     return net;

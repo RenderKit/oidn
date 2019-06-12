@@ -58,4 +58,11 @@ namespace oidn {
     return isfinite(value) ? clamp(value, minValue, maxValue) : minValue;
   }
 
+  __forceinline int divCeil(int a, int b)
+  {
+    assert(a >= 0);
+    assert(b > 0);
+    return (a + b - 1) / b;
+  }
+
 } // namespace oidn

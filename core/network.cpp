@@ -29,17 +29,25 @@ namespace oidn {
   }
 
   template<int K>
-  void Network<K>::execute(ProgressMonitorFunction progressFunc, void* progressUserPtr)
+  void Network<K>::execute(const Progress& progress, int taskIndex)
   {
-    if (progressFunc && !progressFunc(progressUserPtr, 0))
-      throw Exception(Error::Cancelled, "execution was cancelled");
+    if (progress.func)
+    {
+      const double value = double(taskIndex) / double(progress.taskCount);
+      if (!progress.func(progress.userPtr, value))
+        throw Exception(Error::Cancelled, "execution was cancelled");
+    }
 
     for (size_t i = 0; i < nodes.size(); ++i)
     {
       nodes[i]->execute(sm);
 
-      if (progressFunc && !progressFunc(progressUserPtr, double(i+1) / double(nodes.size())))
-        throw Exception(Error::Cancelled, "execution was cancelled");
+      if (progress.func)
+      {
+        const double value = (double(taskIndex) + double(i+1) / double(nodes.size())) / double(progress.taskCount);
+        if (!progress.func(progress.userPtr, value))
+          throw Exception(Error::Cancelled, "execution was cancelled");
+      }
     }
   }
 
