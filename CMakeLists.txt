@@ -126,7 +126,7 @@ set(CORE_SOURCES
   core/input_reorder.h
   core/output_reorder.h
   core/weights_reorder.h
-  core/tone_mapping.h
+  core/transfer_function.h
   core/upsample.h
   core/network.h
   core/autoencoder.h
@@ -135,7 +135,7 @@ set(CORE_SOURCES
 set(CORE_SOURCES_SSE41
   core/network.cpp
   core/autoencoder.cpp
-  core/tone_mapping.cpp
+  core/transfer_function.cpp
 )
 
 include(resource)

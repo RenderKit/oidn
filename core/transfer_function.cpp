@@ -14,11 +14,11 @@
 // limitations under the License.                                           //
 // ======================================================================== //
 
-#include "tone_mapping.h"
+#include "transfer_function.h"
 
 namespace oidn {
 
-  const float HDRTransferFunction::xScale = 1.f / HDRTransferFunction::pqxForward(65504.f * HDRTransferFunction::yScale);
+  const float HDRTransferFunction::xScale = 1.f / HDRTransferFunction::pqxForward(HDRTransferFunction::yMax * HDRTransferFunction::yScale);
 
   float AutoexposureNode::autoexposure(const Image& color)
   {

@@ -18,7 +18,7 @@
 
 #include "filter.h"
 #include "network.h"
-#include "tone_mapping.h"
+#include "transfer_function.h"
 
 namespace oidn {
 
