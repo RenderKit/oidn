@@ -57,7 +57,7 @@ namespace oidn {
   public:
     __forceinline float forward(float y) const override
     {
-      return pow(min(y, 1.f), 1.f/2.2f);
+      return min(pow(y, 1.f/2.2f), 1.f);
     }
 
     __forceinline float inverse(float x) const override
@@ -78,6 +78,7 @@ namespace oidn {
     static constexpr float c3 = 2392.f / 4096.f * 32.f;
     static constexpr float  a = 3711.f / 4096.f / 8.f;
 
+    static constexpr float yMax   = 65504.f;
     static constexpr float yScale = 100.f / 10000.f;
     static const float     xScale;
 

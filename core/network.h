@@ -19,7 +19,7 @@
 #include "node.h"
 #include "input_reorder.h"
 #include "output_reorder.h"
-#include "tone_mapping.h"
+#include "transfer_function.h"
 
 #pragma once
 
