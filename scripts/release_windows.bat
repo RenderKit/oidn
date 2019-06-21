@@ -29,21 +29,25 @@ if %COMPILER% == icc (
   set TOOLSET=""
 ) else (
   echo Error: unknown compiler
-  goto abort
+  exit /b 1
 )
 
 rem Set up dependencies
 set ROOT_DIR=%cd%
 set DEP_DIR=%ROOT_DIR%\deps
-cd %DEP_DIR%
 
-rem Set up TBB
-set TBB_VERSION=2019_U8
-set TBB_BUILD=tbb2019_20190605oss
-set TBB_DIR=%DEP_DIR%\%TBB_BUILD%
+rem Check if TBB is there.
+for /f "delims== tokens=1,2" %%G in (%ROOT_DIR%\scripts\tbb_version.sh) do set %%G=%%H
+
+if "%OIDN_TBB_DIR_WINDOWS%"=="" (
+  set TBB_DIR="%DEP_DIR%\tbb\%TBB_VERSION%_%TBB_BUILD%\win\%TBB_BUILD%"
+) else (
+  set TBB_DIR="%OIDN_TBB_DIR_WINDOWS%\%TBB_VERSION%_%TBB_BUILD%\win\%TBB_BUILD%"
+)
+
 if not exist %TBB_DIR% (
   echo Error: %TBB_DIR% is missing
-  goto abort
+  exit /b 1
 )
 
 rem Create a clean build directory
@@ -58,15 +62,11 @@ cmake -L ^
 -T %TOOLSET% ^
 -D TBB_ROOT=%TBB_DIR% ^
 ..
-if %ERRORLEVEL% geq 1 goto abort
+if %ERRORLEVEL% geq 1 exit /b %ERRORLEVEL%
 
 rem Create zip file
 cmake -D OIDN_ZIP_MODE=ON ..
 cmake --build . --config Release --target PACKAGE -- /m /nologo
-if %ERRORLEVEL% geq 1 goto abort
+if %ERRORLEVEL% geq 1 exit /b %ERRORLEVEL%
 
 cd ..
-
-:abort
-endlocal
-:end

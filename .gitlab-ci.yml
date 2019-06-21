@@ -1,0 +1,217 @@
+## ======================================================================== ##
+## Copyright 2009-2019 Intel Corporation                                    ##
+##                                                                          ##
+## Licensed under the Apache License, Version 2.0 (the "License");          ##
+## you may not use this file except in compliance with the License.         ##
+## You may obtain a copy of the License at                                  ##
+##                                                                          ##
+##     http://www.apache.org/licenses/LICENSE-2.0                           ##
+##                                                                          ##
+## Unless required by applicable law or agreed to in writing, software      ##
+## distributed under the License is distributed on an "AS IS" BASIS,        ##
+## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. ##
+## See the License for the specific language governing permissions and      ##
+## limitations under the License.                                           ##
+## ======================================================================== ##
+
+stages:
+  - build
+  - check_symbols
+  - sign
+  - package
+
+# ------------------------------------------------------------------------------
+# LINUX
+# ------------------------------------------------------------------------------
+ 
+.linux-base:
+  tags:        [ docker ]
+  artifacts:     
+    paths:     [ "$CI_PROJECT_DIR/build_release", "$CI_PROJECT_DIR/deps" ]
+    name:      "$CI_JOB_NAME"
+    when:      on_success
+    expire_in: 1d
+  variables: &linux-base
+    GIT_SUBMODULE_STRATEGY: recursive
+    OIDN_ROOT_DIR:          "$CI_PROJECT_DIR"
+
+.linux-build:
+  stage:      build
+  extends:    [ .linux-base ]
+  only:       [ pushes, schedules, web ]
+  script:     "scripts/linux_build.sh"
+
+.linux-check-symbols:
+  stage:      check_symbols
+  extends:    [ .linux-base ]
+  only:       [ schedules, web ]
+  script:     "scripts/linux_check_symbols.sh"
+
+.linux-package:
+  stage:      package
+  extends:    [ .linux-base ]
+  only:       [ schedules, web ]
+  script:     "scripts/linux_package.sh"
+
+# ---------------------------------------------------------------------------
+
+.linux-clang-build:
+  extends:    [ .linux-build ]
+  variables: 
+    OIDN_C:   "clang"
+    OIDN_CXX: "clang++"
+    <<:       *linux-base
+
+.linux-icc-build:
+  extends:    [ .linux-build ]
+  variables: 
+    OIDN_C:   "$PATH_ICC_19_LINUX/icc"
+    OIDN_CXX: "$PATH_ICC_19_LINUX/icpc"
+    <<:       *linux-base
+
+.linux-gcc-build:
+  extends:    [ .linux-build ]
+  variables: 
+    OIDN_C:   "gcc"
+    OIDN_CXX: "g++"
+    <<:       *linux-base
+
+# ---------------------------------------------------------------------------
+
+.centos6:
+  image:        openimagedenoise/build:centos6
+  
+centos6-icc-build:
+  extends:      [ .centos6, .linux-icc-build ]
+
+centos6-icc-check-symbols:
+  extends:      [ .centos6, .linux-check-symbols ]
+  dependencies: [ centos6-icc-build ]
+
+centos6-icc-package:
+  extends:      [ .centos6, .linux-package ]
+  dependencies: [ centos6-icc-check-symbols ]
+
+# ------------------------------------------------------------------------------
+# macOS
+# ------------------------------------------------------------------------------
+
+.macos-base:
+  tags:        [ osx ]
+  artifacts:     
+    paths:     [ "$CI_PROJECT_DIR/build_release", "$CI_PROJECT_DIR/deps" ]
+    name:      "$CI_JOB_NAME"
+    when:      on_success
+    expire_in: 1d
+  variables: &macos-base
+    GIT_SUBMODULE_STRATEGY: recursive
+    OIDN_ROOT_DIR:          "$CI_PROJECT_DIR"
+
+.macos-build:
+  stage:      build
+  extends:    [ .macos-base ]
+  only:       [ pushes, schedules, web ]
+  script:     "scripts/macos_build.sh"
+
+.macos-sign:
+  stage:      sign
+  extends:    [ .macos-base ]
+  only:       [ schedules, web ]
+  script:     "scripts/macos_sign.sh"
+
+.macos-package:
+  stage:      package
+  extends:    [ .macos-base ]
+  only:       [ schedules, web ]
+  script:     "scripts/macos_package.sh"
+
+# ---------------------------------------------------------------------------
+
+.macos-clang-build:
+  extends:    [ .macos-build ]
+  variables: 
+    OIDN_C:   "clang"
+    OIDN_CXX: "clang++"
+    <<:       *macos-base
+
+.macos-icc-build:
+  extends:    [ .macos-build ]
+  variables: 
+    OIDN_C:   "$PATH_ICC_19_APPLE/icc"
+    OIDN_CXX: "$PATH_ICC_19_APPLE/icpc"
+    <<:       *macos-base
+
+# ---------------------------------------------------------------------------
+
+macos-icc-build:
+  extends:      [ .macos-icc-build ]
+
+macos-icc-sign:
+  extends:      [ .macos-sign ]
+  dependencies: [ macos-icc-build ]
+
+macos-icc-package:
+  extends:      [ .macos-package ]
+  dependencies: [ macos-icc-sign ]
+
+# ------------------------------------------------------------------------------
+# Windows
+# ------------------------------------------------------------------------------
+
+.windows-base:
+  artifacts:     
+    paths:     [ "$CI_PROJECT_DIR/build_release/Release", "$CI_PROJECT_DIR/deps" ]
+    name:      "$CI_JOB_NAME"
+    when:      on_success
+    expire_in: 1d
+  variables: &windows-base
+    GIT_SUBMODULE_STRATEGY: recursive
+    OIDN_ROOT_DIR:          "$CI_PROJECT_DIR"
+    ErrorActionPreference:  stop
+
+.windows-build:
+  stage:      build
+  extends:    [ .windows-base ]
+  only:       [ pushes, schedules, web ]
+  script:     
+    - scripts\windows_build.ps1
+    - if(!$?) { Exit $LASTEXITCODE }
+
+.windows-sign:
+  stage:      sign
+  extends:    [ .windows-base ]
+  only:       [ schedules, web ]
+  script:     
+    - scripts\windows_sign.ps1
+    - if(!$?) { Exit $LASTEXITCODE }
+
+.windows-package:
+  stage:      package
+  extends:    [ .windows-base ]
+  only:       [ schedules, web ]
+  script:     
+    - scripts\windows_package.ps1
+    - if(!$?) { Exit $LASTEXITCODE }
+
+# ------------------------------------------------------------------------------
+
+.windows-vs15-icc19:
+  tags: [ win7, icc19, msvc15 ]
+  variables: &windows-vs15-icc18
+    OIDN_GENERATOR: "Visual Studio 15 2017 Win64"
+    OIDN_TOOLCHAIN: "Intel C++ Compiler 19.4"
+    <<:             *windows-base
+
+# ------------------------------------------------------------------------------
+
+# windows-vs15-icc19-build:
+#   extends:      [ .windows-build, .windows-vs15-icc19 ]
+# 
+# windows-vs15-icc19-sign:
+#   extends:      [ .windows-sign, .windows-vs15-icc19 ]
+#   dependencies: [ windows-vs15-icc19-build ]
+# 
+# windows-vs15-icc19-package:
+#   extends:      [ .windows-package, .windows-vs15-icc19 ]
+#   dependencies: [ windows-vs15-icc19-sign ]
+

@@ -16,8 +16,14 @@
 ## limitations under the License.                                           ##
 ## ======================================================================== ##
 
-set -e
-scripts/linux_build.sh         "$@"
-scripts/linux_check_symbols.sh "$@"
-scripts/linux_package.sh       "$@"
+source scripts/unix_common.sh "$@"
+
+cd $BUILD_DIR
+
+# Create tar.gz file
+cmake -D OIDN_ZIP_MODE=ON ..
+make -j $THREADS package
+
+cd $ROOT_DIR
+
 
