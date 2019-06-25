@@ -87,8 +87,8 @@ namespace oidn {
             // Apply the inverse transfer function
             x = transferFunc->inverse(x);
 
-            // Store the value
-            dstPtr_C[i] = x;
+            // Sanitize and store the final value
+            dstPtr_C[i] = maxSafe(x, 0.f);
           }
         }
       });
