@@ -176,6 +176,8 @@ namespace oidn {
 
     if (type == "RT")
       filter = makeRef<RTFilter>(Ref<Device>(this));
+    else if (type == "RTLightmap")
+      filter = makeRef<RTLightmapFilter>(Ref<Device>(this));
     else
       throw Exception(Error::InvalidArgument, "unknown filter type");
 

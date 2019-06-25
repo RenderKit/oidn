@@ -451,4 +451,16 @@ namespace oidn {
     weightData.hdr_alb_nrm = weights::rt_hdr_alb_nrm;
   }
 
+  // --------------------------------------------------------------------------
+  // RTLightmapFilter
+  // --------------------------------------------------------------------------
+
+  RTLightmapFilter::RTLightmapFilter(const Ref<Device>& device)
+    : AutoencoderFilter(device)
+  {
+    weightData.hdr = weights::rt_hdr;
+
+    hdr = true;
+  }
+
 } // namespace oidn

@@ -28,7 +28,7 @@ namespace oidn {
 
   class AutoencoderFilter : public Filter
   {
-  private:
+  protected:
     static constexpr int padding = 32;  // the image must be padded spatially
     static constexpr int overlap = 128; // amount of overlap between tiles (rounded up to the padding size)
 
@@ -51,7 +51,6 @@ namespace oidn {
     std::shared_ptr<Node> outputReorder;
     std::shared_ptr<TransferFunction> transferFunc;
 
-  protected:
     struct
     {
       void* ldr         = nullptr;
@@ -89,6 +88,16 @@ namespace oidn {
   {
   public:
     explicit RTFilter(const Ref<Device>& device);
+  };
+
+  // --------------------------------------------------------------------------
+  // RTLightmapFilter - Ray traced lightmap denoiser
+  // --------------------------------------------------------------------------
+
+  class RTLightmapFilter : public AutoencoderFilter
+  {
+  public:
+    explicit RTLightmapFilter(const Ref<Device>& device);
   };
 
 } // namespace oidn
