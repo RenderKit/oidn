@@ -84,11 +84,13 @@ namespace oidn {
 
     float exposure;
     float rcpExposure;
+    float bias;
 
   public:
-    HDRTransferFunction(float exposure = 1.f)
+    HDRTransferFunction(float exposure = 1.f, float bias = 0.f)
     {
       setExposure(exposure);
+      setBias(bias);
     }
 
     void setExposure(float exposure)
@@ -97,15 +99,21 @@ namespace oidn {
       this->rcpExposure = 1.f / exposure;
     }
 
+    void setBias(float bias)
+    {
+      this->bias = bias;
+    }
+
     __forceinline float forward(float y) const override
     {
-      y *= exposure;
+      y = y * exposure + bias;
       return pqxForward(y * yScale) * xScale;
     }
 
     __forceinline float inverse(float x) const override
     {
-      return pqxInverse(x * (1.f/xScale)) * (1.f/yScale) * rcpExposure;
+      const float y = pqxInverse(x * (1.f/xScale)) * (1.f/yScale);
+      return (y - bias) * rcpExposure;
     }
 
   private:

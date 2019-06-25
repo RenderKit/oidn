@@ -61,6 +61,8 @@ namespace oidn {
       void* hdr_alb_nrm = nullptr;
     } weightData;
 
+    float hdrBias = 0.f;
+
     explicit AutoencoderFilter(const Ref<Device>& device);
 
   public:
