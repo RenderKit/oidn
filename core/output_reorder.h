@@ -116,7 +116,7 @@ namespace oidn {
             x = transferFunc->inverse(x);
 
             // Sanitize and store the final value
-            dstPtr_C[i] = maxSafe(x, 0.f);
+            dstPtr_C[i] = max(x, 0.f);
           }
         }
       });
