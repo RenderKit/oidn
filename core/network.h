@@ -104,6 +104,8 @@ namespace oidn {
     stream sm;
     std::vector<std::shared_ptr<Node>> nodes;
     std::map<std::string, Tensor> weightMap;
+
+    size_t totalActivationBytes = 0;
   };
 
 

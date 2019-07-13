@@ -67,9 +67,15 @@ namespace oidn {
     }
     memory::desc desc(dims, memory::data_type::f32, format);
     if (data == nullptr)
+    {
+      if (format == BlockedFormat<K>::nChwKc)
+        totalActivationBytes += getTensorSize(dims) * sizeof(float);
       return std::make_shared<memory>(desc, eng);
+    }
     else
+    {
       return std::make_shared<memory>(desc, eng, data);
+    }
   }
 
   template<int K>
@@ -333,10 +339,15 @@ namespace oidn {
     memory::dims scratchpadDims = { memory::dim(scratchpadSize) };
     memory::desc scratchpadDesc(scratchpadDims, memory::data_type::u8, memory::format_tag::x);
     auto scratchpad = std::make_shared<memory>(scratchpadDesc, eng);
+    //std::cerr << "Scratchpad bytes: " << scratchpadSize << std::endl;
+    totalActivationBytes += scratchpadSize;
 
     // Set the scratchpad for the nodes
     for (auto& node : nodes)
       node->setScratchpad(scratchpad);
+
+    // Debug
+    //std::cerr << "Total activation tensor bytes: " << totalActivationBytes << std::endl;
   }
 
   template class Network<8>;
