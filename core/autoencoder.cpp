@@ -25,6 +25,10 @@ namespace oidn {
   AutoencoderFilter::AutoencoderFilter(const Ref<Device>& device)
     : Filter(device)
   {
+    // Set the default maximum memory usage
+    const int maxTilePixels = (1920+overlap)*(1088+overlap); // 2x2 tiles for 3840x2160
+    bytesPerPixel = mayiuse(avx512_common) ? 2185 : 889;
+    maxMemoryMB = divCeil(size_t(maxTilePixels) * bytesPerPixel, size_t(1024*1024));
   }
 
   void AutoencoderFilter::setImage(const std::string& name, const Image& data)
@@ -47,6 +51,8 @@ namespace oidn {
       hdr = value;
     else if (name == "srgb")
       srgb = value;
+    else if (name == "maxMemoryMB")
+      maxMemoryMB = value;
 
     dirty = true;
   }
@@ -57,6 +63,8 @@ namespace oidn {
       return hdr;
     else if (name == "srgb")
       return srgb;
+    else if (name == "maxMemoryMB")
+      return maxMemoryMB;
     else
       throw Exception(Error::InvalidArgument, "invalid parameter");
   }
@@ -122,9 +130,7 @@ namespace oidn {
   void AutoencoderFilter::computeTileSize()
   {
     const int minTileSize = 3*overlap;
-    //const int maxTilePixels = 512*512;
-    const int maxTilePixels = 2048*1216; // 2x2 tiles for 3840x2160
-    //const int maxTilePixels = 1024*1024;
+    const int maxTilePixels = int(size_t(maxMemoryMB)*1024*1024 / bytesPerPixel);
 
     tileCountH = 1;
     tileCountW = 1;
@@ -152,8 +158,8 @@ namespace oidn {
     tileCountH = (H > tileH) ? divCeil(H - 2*overlap, tileH - 2*overlap) : 1;
     tileCountW = (W > tileW) ? divCeil(W - 2*overlap, tileW - 2*overlap) : 1;
 
-    //printf("\ntile size: %d %d\n", tileW, tileH);
-    //printf("\ntile count: %d %d\n", tileCountW, tileCountH);
+    //std::cerr << "Tile size:  " << tileW << "x" << tileH << std::endl;
+    //std::cerr << "Tile count: " << tileCountW << "x" << tileCountH << std::endl;
   }
 
   template<int K>

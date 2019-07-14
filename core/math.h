@@ -58,7 +58,8 @@ namespace oidn {
     return isfinite(value) ? clamp(value, minValue, maxValue) : minValue;
   }
 
-  __forceinline int divCeil(int a, int b)
+  template<class Int>
+  __forceinline Int divCeil(Int a, Int b)
   {
     assert(a >= 0);
     assert(b > 0);

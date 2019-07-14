@@ -37,7 +37,7 @@ void printUsage()
   std::cout << "Usage: denoise [-ldr ldr_color.pfm] [-srgb] [-hdr hdr_color.pfm]" << std::endl
             << "               [-alb albedo.pfm] [-nrm normal.pfm]" << std::endl
             << "               [-o output.pfm] [-ref reference_output.pfm]" << std::endl
-            << "               [-bench ntimes] [-threads n] [-affinity 0|1]" << std::endl;
+            << "               [-bench ntimes] [-threads n] [-affinity 0|1] [-maxmem MB]" << std::endl;
 }
 
 void errorCallback(void* userPtr, oidn::Error error, const char* message)
@@ -69,6 +69,7 @@ int main(int argc, char* argv[])
   int numBenchmarkRuns = 0;
   int numThreads = -1;
   int setAffinity = -1;
+  int maxMemoryMB = -1;
 
   // Parse the arguments
   if (argc == 1)
@@ -109,6 +110,8 @@ int main(int argc, char* argv[])
         numThreads = args.getNextValueInt();
       else if (opt == "affinity")
         setAffinity = args.getNextValueInt();
+      else if (opt == "maxmem")
+        maxMemoryMB = args.getNextValueInt();
       else if (opt == "h" || opt == "help")
       {
         printUsage();
@@ -189,6 +192,9 @@ int main(int argc, char* argv[])
       filter.set("hdr", true);
     if (srgb)
       filter.set("srgb", true);
+
+    if (maxMemoryMB >= 0)
+      filter.set("maxMemoryMB", maxMemoryMB);
 
     filter.setProgressMonitorFunction(progressCallback);
     signal(SIGINT, signalHandler);

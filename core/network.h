@@ -105,7 +105,7 @@ namespace oidn {
     std::vector<std::shared_ptr<Node>> nodes;
     std::map<std::string, Tensor> weightMap;
 
-    size_t totalActivationBytes = 0;
+    size_t totalActivationSize = 0; // number of bytes of activation tensor data
   };
 
 

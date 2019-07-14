@@ -38,6 +38,8 @@ namespace oidn {
     Image output;
     bool hdr = false;
     bool srgb = false;
+    int maxMemoryMB;   // requested maximum memory usage
+    int bytesPerPixel; // approximate memory usage per pixel
 
     int H = 0;          // image height
     int W = 0;          // image width
