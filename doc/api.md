@@ -454,6 +454,12 @@ bool             srgb           false whether the color is encoded with the
                                       sRGB (2.2 gamma) curve (LDR only) or is
                                       linear; the output will be encoded with
                                       the same curve
+
+int              maxMemoryMB          approximate maximum amount of memory to
+                                      use in megabytes (actual memory usage may
+                                      be slightly higher); lower values cause
+                                      slower denoising
+
 ------- -------- ----------- -------- -----------------------------------------
 : Parameters supported by the `RT` filter.
 
@@ -461,9 +467,6 @@ All specified images must have the same dimensions.
 
 ![Example noisy color image rendered using unidirectional path tracing (512
 spp). *Scene by Evermotion.*][imgMazdaColor]
-
-![Example output image denoised using color and auxiliary (first-hit) feature
-images (albedo and normal)][imgMazdaDenoised]
 
 Using auxiliary feature images like albedo and normal helps preserving fine
 details and textures in the image thus can significantly improve denoising
@@ -486,6 +489,9 @@ reconstruction filter as the color image. Using a properly anti-aliased color
 image but aliased albedo or normal images will likely introduce artifacts
 around edges.
 
+![Example output image denoised using color and auxiliary (first-hit) feature
+images (albedo and normal)][imgMazdaDenoised]
+
 #### Albedo
 
 The albedo image is the feature image that usually provides the biggest quality
@@ -498,6 +504,14 @@ the best way to compute the albedo, but the denoising filter is flexibile to
 a certain extent and works well with differently computed albedos. Thus it is
 not necessary to compute the strict, exact albedo values but must be always
 between 0 and 1.
+
+![Example albedo image obtained using the first hit. Note that the albedos of
+all transparent surfaces are 1.][imgMazdaAlbedoFirstHit]
+
+![Example albedo image obtained using the first diffuse or glossy (non-delta)
+hit. Note that the albedos of perfect specular (delta) transparent surfaces
+are computed as the Fresnel blend of the reflected and transmitted
+albedos.][imgMazdaAlbedoNonDeltaHit]
 
 For metallic surfaces the albedo should be either the reflectivity at normal
 incidence (e.g. from the artist friendly metallic Fresnel model) or the
@@ -517,14 +531,6 @@ The albedo for layered surfaces can be computed as the weighted sum of the
 albedos of the individual layers. Non-absorbing clear coat layers can be simply
 ignored (or the albedo of the perfect specular reflection can be used as well)
 but absorption should be taken into account.
-
-![Example albedo image obtained using the first hit. Note that the albedos of
-all transparent surfaces are 1.][imgMazdaAlbedoFirstHit]
-
-![Example albedo image obtained using the first diffuse or glossy (non-delta)
-hit. Note that the albedos of perfect specular (delta) transparent surfaces
-are computed as the Fresnel blend of the reflected and transmitted
-albedos.][imgMazdaAlbedoNonDeltaHit]
 
 #### Normal
 

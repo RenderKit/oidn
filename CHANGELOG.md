@@ -4,7 +4,7 @@ Version History
 -   Improved denoising quality
 -   Added filter parameter for setting the maximum memory consumption
     regardless of the image resolution, potentially at the cost of lower
-    denoising performance
+    denoising speed
 -   Significantly reduced memory consumption for high resolutions by default
 
 ### Changes in v0.9.0:
