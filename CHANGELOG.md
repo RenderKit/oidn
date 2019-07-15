@@ -1,6 +1,8 @@
 Version History
 ---------------
 
+### Changes in v1.0.0:
+
 -   Improved denoising quality
 -   Added filter parameter for setting the maximum memory consumption
     regardless of the image resolution, potentially at the cost of lower
