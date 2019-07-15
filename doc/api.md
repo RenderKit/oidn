@@ -457,8 +457,8 @@ bool             srgb           false whether the color is encoded with the
 
 int              maxMemoryMB          approximate maximum amount of memory to
                                       use in megabytes (actual memory usage may
-                                      be slightly higher); lower values cause
-                                      slower denoising
+                                      be higher); lower values cause slower
+                                      denoising
 
 ------- -------- ----------- -------- -----------------------------------------
 : Parameters supported by the `RT` filter.
