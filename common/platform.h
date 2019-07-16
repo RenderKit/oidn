@@ -66,8 +66,13 @@
 // Error handling and debugging
 // ----------------------------------------------------------------------------
 
-#define OIDN_WARNING(message) { std::cerr << "Warning: " << message << std::endl << std::flush; }
-#define OIDN_FATAL(message)   throw std::runtime_error(message);
+#ifdef NDEBUG
+  #define OIDN_WARNING(message)
+#else
+  #define OIDN_WARNING(message) { std::cerr << "Warning: " << message << std::endl << std::flush; }
+#endif
+
+#define OIDN_FATAL(message) throw std::runtime_error(message);
 
 // ----------------------------------------------------------------------------
 // Common functions
