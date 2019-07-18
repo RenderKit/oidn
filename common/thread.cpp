@@ -34,7 +34,8 @@ namespace oidn {
   // ThreadAffinity - Windows
   // --------------------------------------------------------------------------
 
-  ThreadAffinity::ThreadAffinity(int numThreadsPerCore)
+  ThreadAffinity::ThreadAffinity(int numThreadsPerCore, int verbose)
+    : Verbose(verbose)
   {
     HMODULE hLib = GetModuleHandle(TEXT("kernel32"));
     pGetLogicalProcessorInformationEx = (GetLogicalProcessorInformationExFunc)GetProcAddress(hLib, "GetLogicalProcessorInformationEx");
@@ -138,7 +139,8 @@ namespace oidn {
   // ThreadAffinity - Linux
   // --------------------------------------------------------------------------
 
-  ThreadAffinity::ThreadAffinity(int numThreadsPerCore)
+  ThreadAffinity::ThreadAffinity(int numThreadsPerCore, int verbose)
+    : Verbose(verbose)
   {
     std::vector<int> threadIds;
 
@@ -223,7 +225,8 @@ namespace oidn {
   // ThreadAffinity - macOS
   // --------------------------------------------------------------------------
 
-  ThreadAffinity::ThreadAffinity(int numThreadsPerCore)
+  ThreadAffinity::ThreadAffinity(int numThreadsPerCore, int verbose)
+    : Verbose(verbose)
   {
     // Query the thread/CPU topology
     int numPhysicalCpus;

@@ -21,8 +21,9 @@
 namespace oidn {
 
   template<int K>
-  Network<K>::Network(const std::map<std::string, Tensor>& weightMap)
-    : eng(engine::cpu, 0),
+  Network<K>::Network(const Ref<Device>& device, const std::map<std::string, Tensor>& weightMap)
+    : device(device),
+      eng(engine::cpu, 0),
       sm(eng),
       weightMap(weightMap)
   {
@@ -352,10 +353,13 @@ namespace oidn {
     // Free the weights
     weightMap.clear();
 
-    // Debug
-    //std::cerr << "Scratchpad bytes: " << scratchpadSize << std::endl;
-    //std::cerr << "Activation bytes: " << activationAllocBytes << std::endl;
-    //std::cerr << "Total bytes: " << totalAllocBytes << std::endl;
+    // Print statistics
+    if (device->isVerbose(2))
+    {
+      std::cout << "Activation bytes: " << activationAllocBytes << std::endl;
+      std::cout << "Scratchpad bytes: " << scratchpadSize << std::endl;
+      std::cout << "Total bytes     : " << totalAllocBytes << std::endl;
+    }
   }
 
   template class Network<8>;

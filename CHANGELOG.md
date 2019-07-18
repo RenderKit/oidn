@@ -14,6 +14,8 @@ Version History
     for high resolutions (> 2K) by default: limited to about 6 GB
 -   Added `alignment` and `overlap` filter parameters that can be queried for
     manual tiled denoising
+-   Added `verbose` device parameter for setting the verbosity of the console
+    output, and disabled all console output by default
 
 ### Changes in v0.9.0:
 

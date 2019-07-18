@@ -114,20 +114,35 @@ to set and get parameter values on the device. Note that some parameters are
 constants, thus trying to set them is an error. See the tables below for the
 parameters supported by devices.
 
-Type      Name         Description
---------- ------------ --------------------------------------------------------
-const int version      combined version number (major.minor.patch) with two decimal digits per component
-const int versionMajor major version number
-const int versionMinor minor version number
-const int versionPatch patch version number
---------- ------------ --------------------------------------------------------
+--------- ------------ -------- -----------------------------------------------
+Type      Name          Default Description
+--------- ------------ -------- -----------------------------------------------
+const int version               combined version number (major.minor.patch)
+                                with two decimal digits per component
+
+const int versionMajor          major version number
+
+const int versionMinor          minor version number
+
+const int versionPatch          patch version number
+
+int       verbose             0 verbosity level of the console output between
+                                0--3; when set to 0, no output is printed, when
+                                set to a higher level more output is printed
+--------- ------------ -------- -----------------------------------------------
 : Parameters supported by all devices.
 
+------ ------------ -------- --------------------------------------------------
 Type   Name          Default Description
 ------ ------------ -------- --------------------------------------------------
-int    numThreads          0 maximum number of threads which Open Image Denoise should use; 0 will set it automatically to get the best performance
-bool   setAffinity      true bind software threads to hardware threads if set to true (improves performance); false disables binding
------- ------------ -----------------------------------------------------------
+int    numThreads          0 maximum number of threads which Open Image Denoise
+                             should use; 0 will set it automatically to get the
+                             best performance
+
+bool   setAffinity      true bind software threads to hardware threads if set
+                             to true (improves performance); false disables
+                             binding
+------ ------------ -------- --------------------------------------------------
 : Additional parameters supported only by CPU devices.
 
 Note that the CPU device heavily relies on setting the thread affinities to
@@ -482,6 +497,9 @@ All specified images must have the same dimensions.
 ![Example noisy color image rendered using unidirectional path tracing (512
 spp). *Scene by Evermotion.*][imgMazdaColor]
 
+![Example output image denoised using color and auxiliary (first-hit) feature
+images (albedo and normal)][imgMazdaDenoised]
+
 Using auxiliary feature images like albedo and normal helps preserving fine
 details and textures in the image thus can significantly improve denoising
 quality. These images should typically contain feature values for the first
@@ -502,9 +520,6 @@ noise in the output. Also, all feature images should use the same pixel
 reconstruction filter as the color image. Using a properly anti-aliased color
 image but aliased albedo or normal images will likely introduce artifacts
 around edges.
-
-![Example output image denoised using color and auxiliary (first-hit) feature
-images (albedo and normal)][imgMazdaDenoised]
 
 #### Albedo
 

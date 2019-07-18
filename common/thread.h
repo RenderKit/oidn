@@ -37,7 +37,7 @@ namespace oidn {
 
   // Wrapper which makes any variable thread-local
   template<typename T>
-  class ThreadLocal
+  class ThreadLocal : public Verbose
   {
   private:
   #if defined(_WIN32)
@@ -50,7 +50,8 @@ namespace oidn {
     std::mutex mutex;
 
   public:
-    ThreadLocal()
+    ThreadLocal(int verbose = 0)
+      : Verbose(verbose)
     {
     #if defined(_WIN32)
       key = TlsAlloc();
@@ -110,7 +111,7 @@ namespace oidn {
   // ThreadAffinity - Windows
   // --------------------------------------------------------------------------
 
-  class ThreadAffinity
+  class ThreadAffinity : public Verbose
   {
   private:
     typedef BOOL (WINAPI *GetLogicalProcessorInformationExFunc)(LOGICAL_PROCESSOR_RELATIONSHIP,
@@ -128,7 +129,7 @@ namespace oidn {
     std::vector<GROUP_AFFINITY> oldAffinities; // original thread affinities
 
   public:
-    ThreadAffinity(int numThreadsPerCore = INT_MAX);
+    ThreadAffinity(int numThreadsPerCore = INT_MAX, int verbose = 0);
 
     int getNumThreads() const
     {
@@ -148,14 +149,14 @@ namespace oidn {
   // ThreadAffinity - Linux
   // --------------------------------------------------------------------------
 
-  class ThreadAffinity
+  class ThreadAffinity : public Verbose
   {
   private:
     std::vector<cpu_set_t> affinities;    // thread affinities
     std::vector<cpu_set_t> oldAffinities; // original thread affinities
 
   public:
-    ThreadAffinity(int numThreadsPerCore = INT_MAX);
+    ThreadAffinity(int numThreadsPerCore = INT_MAX, int verbose = 0);
 
     int getNumThreads() const
     {
@@ -175,14 +176,14 @@ namespace oidn {
   // ThreadAffinity - macOS
   // --------------------------------------------------------------------------
 
-  class ThreadAffinity
+  class ThreadAffinity : public Verbose
   {
   private:
     std::vector<thread_affinity_policy> affinities;    // thread affinities
     std::vector<thread_affinity_policy> oldAffinities; // original thread affinities
 
   public:
-    ThreadAffinity(int numThreadsPerCore = INT_MAX);
+    ThreadAffinity(int numThreadsPerCore = INT_MAX, int verbose = 0);
 
     int getNumThreads() const
     {

@@ -44,7 +44,7 @@ namespace oidn {
   class Network : public Executable
   {
   public:
-    Network(const std::map<std::string, Tensor>& weight_map);
+    Network(const Ref<Device>& device, const std::map<std::string, Tensor>& weightMap);
 
     void execute(const Progress& progress, int taskIndex) override;
 
@@ -100,6 +100,7 @@ namespace oidn {
     void finalize();
 
   private:
+    Ref<Device> device;
     engine eng;
     stream sm;
     std::vector<std::shared_ptr<Node>> nodes;

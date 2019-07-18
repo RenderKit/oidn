@@ -37,7 +37,7 @@ void printUsage()
   std::cout << "Usage: denoise [-ldr ldr_color.pfm] [-srgb] [-hdr hdr_color.pfm]" << std::endl
             << "               [-alb albedo.pfm] [-nrm normal.pfm]" << std::endl
             << "               [-o output.pfm] [-ref reference_output.pfm]" << std::endl
-            << "               [-bench ntimes] [-threads n] [-affinity 0|1] [-maxmem MB]" << std::endl;
+            << "               [-bench ntimes] [-threads n] [-affinity 0|1] [-maxmem MB] [-verbose 0-3]" << std::endl;
 }
 
 void errorCallback(void* userPtr, oidn::Error error, const char* message)
@@ -70,6 +70,7 @@ int main(int argc, char* argv[])
   int numThreads = -1;
   int setAffinity = -1;
   int maxMemoryMB = -1;
+  int verbose = -1;
 
   // Parse the arguments
   if (argc == 1)
@@ -112,6 +113,8 @@ int main(int argc, char* argv[])
         setAffinity = args.getNextValueInt();
       else if (opt == "maxmem")
         maxMemoryMB = args.getNextValueInt();
+      else if (opt == "verbose")
+        verbose = args.getNextValueInt();
       else if (opt == "h" || opt == "help")
       {
         printUsage();
@@ -128,7 +131,7 @@ int main(int argc, char* argv[])
     ImageBuffer color, albedo, normal;
     ImageBuffer ref;
 
-    std::cout << "Loading input" << std::flush;
+    std::cout << "Loading input" << std::endl;
 
     color = loadImage(colorFilename);
     if (color.getChannels() != 3)
@@ -157,13 +160,13 @@ int main(int argc, char* argv[])
 
     const int width  = color.getWidth();
     const int height = color.getHeight();
-    std::cout << std::endl << "Resolution: " << width << "x" << height << std::endl;
+    std::cout << "Resolution: " << width << "x" << height << std::endl;
 
     // Initialize the output image
     ImageBuffer output(width, height, 3);
 
     // Initialize the denoising filter
-    std::cout << "Initializing" << std::flush;
+    std::cout << "Initializing" << std::endl;
     Timer timer;
 
     oidn::DeviceRef device = oidn::newDevice();
@@ -177,6 +180,8 @@ int main(int argc, char* argv[])
       device.set("numThreads", numThreads);
     if (setAffinity >= 0)
       device.set("setAffinity", bool(setAffinity));
+    if (verbose >= 0)
+      device.set("verbose", verbose);
     device.commit();
 
     oidn::FilterRef filter = device.newFilter("RT");
@@ -207,17 +212,17 @@ int main(int argc, char* argv[])
     const int versionMinor = device.get<int>("versionMinor");
     const int versionPatch = device.get<int>("versionPatch");
 
-    std::cout << ": version=" << versionMajor << "." << versionMinor << "." << versionPatch
+    std::cout << "  version=" << versionMajor << "." << versionMinor << "." << versionPatch
          << ", msec=" << (1000. * initTime) << std::endl;
 
     // Denoise the image
-    //std::cout << "Denoising" << std::flush;
+    //std::cout << "Denoising";
     timer.reset();
 
     filter.execute();
 
     const double denoiseTime = timer.query();
-    std::cout << ": msec=" << (1000. * denoiseTime) << std::endl;
+    std::cout << std::endl << "  msec=" << (1000. * denoiseTime) << std::endl;
 
     filter.setProgressMonitorFunction(nullptr);
     signal(SIGINT, SIG_DFL);
@@ -225,6 +230,7 @@ int main(int argc, char* argv[])
     if (ref)
     {
       // Verify the output values
+      std::cout << "Verifying output" << std::endl;
       int nerr = 0;
       float maxre = 0;
       for (size_t i = 0; i < output.getDataSize(); ++i)
@@ -247,22 +253,20 @@ int main(int argc, char* argv[])
           ++nerr;
         }
       }
-      std::cout << "Verified output: nfloats=" << output.getDataSize() << ", nerr=" << nerr << ", maxre=" << maxre << std::endl;
+      std::cout << "  nfloats=" << output.getDataSize() << ", nerr=" << nerr << ", maxre=" << maxre << std::endl;
 
       // Save debug images
-      std::cout << "Saving debug images" << std::flush;
+      std::cout << "Saving debug images" << std::endl;
       saveImage("denoise_in.ppm",  color);
       saveImage("denoise_out.ppm", output);
       saveImage("denoise_ref.ppm", ref);
-      std::cout << std::endl;
     }
 
     if (!outputFilename.empty())
     {
       // Save output image
-      std::cout << "Saving output" << std::flush;
+      std::cout << "Saving output" << std::endl;
       saveImage(outputFilename, output);
-      std::cout << std::endl;
     }
 
     if (numBenchmarkRuns > 0)
@@ -272,14 +276,14 @@ int main(int argc, char* argv[])
       __itt_resume();
     #endif
 
-      std::cout << "Benchmarking: " << "ntimes=" << numBenchmarkRuns << std::flush;
+      std::cout << "Benchmarking: " << "ntimes=" << numBenchmarkRuns << std::endl;
       timer.reset();
 
       for (int i = 0; i < numBenchmarkRuns; ++i)
         filter.execute();
 
       const double totalTime = timer.query();
-      std::cout << ", sec=" << totalTime << ", msec/image=" << (1000.*totalTime / numBenchmarkRuns) << std::endl;
+      std::cout << "  sec=" << totalTime << ", msec/image=" << (1000.*totalTime / numBenchmarkRuns) << std::endl;
 
     #ifdef VTUNE
       __itt_pause();
@@ -288,7 +292,7 @@ int main(int argc, char* argv[])
   }
   catch (std::exception& e)
   {
-    std::cout << std::endl << "Error: " << e.what() << std::endl;
+    std::cout << "Error: " << e.what() << std::endl;
     return 1;
   }
 

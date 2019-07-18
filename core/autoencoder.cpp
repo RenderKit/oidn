@@ -159,8 +159,11 @@ namespace oidn {
     tileCountH = (H > tileH) ? ceilDiv(H - 2*overlap, tileH - 2*overlap) : 1;
     tileCountW = (W > tileW) ? ceilDiv(W - 2*overlap, tileW - 2*overlap) : 1;
 
-    //std::cerr << "Tile size:  " << tileW << "x" << tileH << std::endl;
-    //std::cerr << "Tile count: " << tileCountW << "x" << tileCountH << std::endl;
+    if (device->isVerbose(2))
+    {
+      std::cout << "Tile size : " << tileW << "x" << tileH << std::endl;
+      std::cout << "Tile count: " << tileCountW << "x" << tileCountH << std::endl;
+    }
   }
 
   template<int K>
@@ -217,7 +220,7 @@ namespace oidn {
     const auto weightMap = parseTensors(weightPtr);
 
     // Create the network
-    std::shared_ptr<Network<K>> net = std::make_shared<Network<K>>(weightMap);
+    std::shared_ptr<Network<K>> net = std::make_shared<Network<K>>(device, weightMap);
 
     // Compute the tensor sizes
     const auto inputDims        = memory::dims({1, inputC, tileH, tileW});

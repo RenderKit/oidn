@@ -32,53 +32,57 @@
 #include <memory>
 #include <cmath>
 #include <string>
+#include <sstream>
 #include <iostream>
 #include <cassert>
 #include "include/OpenImageDenoise/oidn.hpp"
 
-// ----------------------------------------------------------------------------
-// Macros
-// ----------------------------------------------------------------------------
-
-#if defined(_WIN32)
-  // Windows
-  #if !defined(__noinline)
-    #define __noinline     __declspec(noinline)
-  #endif
-#else
-  // Unix
-  #if !defined(__forceinline)
-    #define __forceinline  inline __attribute__((always_inline))
-  #endif
-  #if !defined(__noinline)
-    #define __noinline     __attribute__((noinline))
-  #endif
-#endif
-
-#ifndef UNUSED
-  #define UNUSED(x) ((void)x)
-#endif
-#ifndef MAYBE_UNUSED
-  #define MAYBE_UNUSED(x) UNUSED(x)
-#endif
-
-// ----------------------------------------------------------------------------
-// Error handling and debugging
-// ----------------------------------------------------------------------------
-
-#ifdef NDEBUG
-  #define OIDN_WARNING(message)
-#else
-  #define OIDN_WARNING(message) { std::cerr << "Warning: " << message << std::endl << std::flush; }
-#endif
-
-#define OIDN_FATAL(message) throw std::runtime_error(message);
-
-// ----------------------------------------------------------------------------
-// Common functions
-// ----------------------------------------------------------------------------
-
 namespace oidn {
+
+  // ----------------------------------------------------------------------------
+  // Macros
+  // ----------------------------------------------------------------------------
+
+  #if defined(_WIN32)
+    // Windows
+    #if !defined(__noinline)
+      #define __noinline     __declspec(noinline)
+    #endif
+  #else
+    // Unix
+    #if !defined(__forceinline)
+      #define __forceinline  inline __attribute__((always_inline))
+    #endif
+    #if !defined(__noinline)
+      #define __noinline     __attribute__((noinline))
+    #endif
+  #endif
+
+  #ifndef UNUSED
+    #define UNUSED(x) ((void)x)
+  #endif
+  #ifndef MAYBE_UNUSED
+    #define MAYBE_UNUSED(x) UNUSED(x)
+  #endif
+
+  // ----------------------------------------------------------------------------
+  // Error handling and debugging
+  // ----------------------------------------------------------------------------
+
+  struct Verbose
+  {
+    int verbose;
+
+    Verbose(int v = 0) : verbose(v) {}
+    __forceinline bool isVerbose(int v = 1) const { return v <= verbose; }
+  };
+
+  #define OIDN_WARNING(message) { if (isVerbose()) std::cerr << "Warning: " << message << std::endl; }
+  #define OIDN_FATAL(message) throw std::runtime_error(message);
+
+  // ----------------------------------------------------------------------------
+  // Common functions
+  // ----------------------------------------------------------------------------
 
   using std::min;
   using std::max;
@@ -91,6 +95,14 @@ namespace oidn {
 
   void* alignedMalloc(size_t size, size_t alignment);
   void alignedFree(void* ptr);
+
+  template<typename T>
+  inline std::string toString(const T& a)
+  {
+    std::stringstream sm;
+    sm << a;
+    return sm.str();
+  }
 
 #if defined(__APPLE__)
   template<typename T>
@@ -106,6 +118,14 @@ namespace oidn {
     return true;
   }
 #endif
+
+  // ----------------------------------------------------------------------------
+  // System information
+  // ----------------------------------------------------------------------------
+
+  std::string getPlatformName();
+  std::string getCompilerName();
+  std::string getBuildName();
 
 } // namespace oidn
 
