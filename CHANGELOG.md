@@ -4,10 +4,16 @@ Version History
 ### Changes in v1.0.0:
 
 -   Improved denoising quality
--   Added filter parameter for setting the maximum memory consumption
-    regardless of the image resolution, potentially at the cost of lower
-    denoising speed
--   Significantly reduced memory consumption for high resolutions by default
+    -   More details preserved
+    -   Less artifacts (e.g. noisy spots, color bleeding with albedo/normal)
+-   Added `maxMemoryMB` filter parameter for limiting the maximum memory
+    consumption regardless of the image resolution, potentially at the cost
+    of lower denoising speed. This is internally implemented by denoising the
+    image in tiles
+-   Significantly reduced memory consumption (but slightly lower performance)
+    for high resolutions (> 2K) by default: limited to about 6 GB
+-   Added `alignment` and `overlap` filter parameters that can be queried for
+    manual tiled denoising
 
 ### Changes in v0.9.0:
 

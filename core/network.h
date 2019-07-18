@@ -63,14 +63,14 @@ namespace oidn {
 
     void zeroTensor(const std::shared_ptr<memory>& dst);
 
-    memory::dims getInputReorderDims(const memory::dims& srcDims, int spatialPad);
+    memory::dims getInputReorderDims(const memory::dims& srcDims, int alignment);
 
     template<class TransferFunction>
     std::shared_ptr<Node> addInputReorder(const Image& color,
                                           const Image& albedo,
                                           const Image& normal,
                                           const std::shared_ptr<TransferFunction>& transferFunc,
-                                          int spatialPad,
+                                          int alignment,
                                           const std::shared_ptr<memory>& userDst = nullptr);
 
     template<class TransferFunction>
@@ -105,7 +105,9 @@ namespace oidn {
     std::vector<std::shared_ptr<Node>> nodes;
     std::map<std::string, Tensor> weightMap;
 
-    size_t totalActivationSize = 0; // number of bytes of activation tensor data
+    // Memory allocation statistics
+    size_t activationAllocBytes = 0; // number of allocated activation bytes
+    size_t totalAllocBytes      = 0; // total number of allocated bytes
   };
 
 
@@ -115,7 +117,7 @@ namespace oidn {
                                                     const Image& albedo,
                                                     const Image& normal,
                                                     const std::shared_ptr<TransferFunction>& transferFunc,
-                                                    int spatialPad,
+                                                    int alignment,
                                                     const std::shared_ptr<memory>& userDst)
   {
     assert(color);
@@ -124,7 +126,7 @@ namespace oidn {
     if (normal) inputC += 3;
 
     memory::dims srcDims = {1, inputC, color.height, color.width};
-    memory::dims dstDims = getInputReorderDims(srcDims, spatialPad);
+    memory::dims dstDims = getInputReorderDims(srcDims, alignment);
 
     // Allocate padded memory
     auto dst = userDst;

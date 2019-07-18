@@ -428,39 +428,53 @@ to fail (the noise will not be filtered), thus it is not supported.
 The filter can be created by passing `"RT"` to the `oidnNewFilter` function
 as the filter type. The filter supports the following parameters:
 
-------- -------- ----------- -------- -----------------------------------------
-Type    Format   Name         Default Description
-------- -------- ----------- -------- -----------------------------------------
-Image   float3   color                input color image (LDR values in [0, 1]
-                                      or HDR values in [0, +∞))
+--------- -------- ----------- -------- ---------------------------------------
+Type      Format   Name         Default Description
+--------- -------- ----------- -------- ---------------------------------------
+Image     float3   color                input color image (LDR values in [0, 1]
+                                        or HDR values in [0, +∞))
 
-Image   float3   albedo               input feature image containing the albedo
-                                      (values in [0, 1]) of the first hit per
-                                      pixel; *optional*
+Image     float3   albedo               input feature image containing the
+                                        albedo (values in [0, 1]) of the first
+                                        hit per pixel; *optional*
 
-Image   float3   normal               input feature image containing the shading
-                                      normal (world-space or view-space,
-                                      arbitrary length, values in
-                                      (−∞, +∞)) of the first hit per
-                                      pixel; *optional*, requires setting the
-                                      albedo image too
+Image     float3   normal               input feature image containing the
+                                        shading normal (world-space or
+                                        view-space, arbitrary length, values in
+                                        (−∞, +∞)) of the first hit per
+                                        pixel; *optional*, requires setting the
+                                        albedo image too
 
-Image   float3   output               output image; can be one of the input
-                                      images
+Image     float3   output               output image; can be one of the input
+                                        images
 
-bool             hdr            false whether the color is HDR
+bool               hdr            false whether the color is HDR
 
-bool             srgb           false whether the color is encoded with the
-                                      sRGB (2.2 gamma) curve (LDR only) or is
-                                      linear; the output will be encoded with
-                                      the same curve
+bool               srgb           false whether the color is encoded with the
+                                        sRGB (or 2.2 gamma) curve (LDR only) or
+                                        is linear; the output will be encoded
+                                        with the same curve
 
-int              maxMemoryMB          approximate maximum amount of memory to
-                                      use in megabytes (actual memory usage may
-                                      be higher); lower values cause slower
-                                      denoising
+int                maxMemoryMB     6000 approximate maximum amount of memory to
+                                        use in megabytes (actual memory usage
+                                        may be higher); limiting memory usage
+                                        may cause slower denoising due to
+                                        internally splitting the image into
+                                        overlapping tiles, but cannot cause the
+                                        denoising to fail
 
-------- -------- ----------- -------- -----------------------------------------
+const int          alignment            when manually denoising the image in
+                                        tiles, the tile size and offsets should
+                                        be multiples of this amount of pixels
+                                        to avoid artifacts; note that manual
+                                        tiled denoising is supported *only* for
+                                        LDR images
+
+const int          overlap              when manually denoising the image in
+                                        tiles, the tiles should overlap by this
+                                        amount of pixels
+
+--------- -------- ----------- -------- ---------------------------------------
 : Parameters supported by the `RT` filter.
 
 All specified images must have the same dimensions.

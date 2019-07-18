@@ -29,8 +29,13 @@ namespace oidn {
   class AutoencoderFilter : public Filter
   {
   private:
-    static constexpr int padding = 32;  // the image must be padded spatially
-    static constexpr int overlap = 128; // amount of overlap between tiles (rounded up to the padding size)
+    static constexpr int alignment       = 32;  // required spatial alignment in pixels (padding may be necessary)
+    static constexpr int receptiveField  = 222; // receptive field in pixels
+    static constexpr int overlap         = roundUp(receptiveField / 2, alignment); // required spatial overlap between tiles in pixels
+
+    static constexpr int estimatedBytesBase       = 16*1024*1024; // estimated base memory usage
+    static constexpr int estimatedBytesPerPixel8  = 889;          // estimated memory usage per pixel for K=8
+    static constexpr int estimatedBytesPerPixel16 = 2185;         // estimated memory usage per pixel for K=16
 
     Image color;
     Image albedo;
@@ -38,8 +43,7 @@ namespace oidn {
     Image output;
     bool hdr = false;
     bool srgb = false;
-    int maxMemoryMB;   // requested maximum memory usage
-    int bytesPerPixel; // approximate memory usage per pixel
+    int maxMemoryMB = 6000; // approximate maximum memory usage in MBs
 
     int H = 0;          // image height
     int W = 0;          // image width
