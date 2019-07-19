@@ -734,7 +734,7 @@ Evermotion.*
 ![](https://openimagedenoise.github.io/images/mazda_512spp_oidn.jpg)
 Example output image denoised using color and auxiliary feature images
 (albedo and
-normal)
+normal).
 
 Using auxiliary feature images like albedo and normal helps preserving
 fine details and textures in the image thus can significantly improve

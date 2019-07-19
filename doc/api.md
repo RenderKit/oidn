@@ -498,7 +498,7 @@ All specified images must have the same dimensions.
 spp). *Scene by Evermotion.*][imgMazdaColor]
 
 ![Example output image denoised using color and auxiliary feature images
-(albedo and normal)][imgMazdaDenoised]
+(albedo and normal).][imgMazdaDenoised]
 
 Using auxiliary feature images like albedo and normal helps preserving fine
 details and textures in the image thus can significantly improve denoising
