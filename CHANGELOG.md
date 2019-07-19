@@ -16,6 +16,7 @@ Version History
     manual tiled denoising
 -   Added `verbose` device parameter for setting the verbosity of the console
     output, and disabled all console output by default
+-   Fixed crash for zero-sized images
 
 ### Changes in v0.9.0:
 

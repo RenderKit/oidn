@@ -90,6 +90,9 @@ namespace oidn {
     if (dirty)
       throw Exception(Error::InvalidOperation, "changes to the filter are not committed");
 
+    if (!net)
+      return;
+
     device->executeTask([&]()
     {
       Progress progress;
@@ -228,6 +231,10 @@ namespace oidn {
 
     // Compute the tile size
     computeTileSize();
+
+    // If the image size is zero, there is nothing else to do
+    if (H <= 0 || W <= 0)
+      return nullptr;
 
     // Parse the weights
     const auto weightMap = parseTensors(weightPtr);
