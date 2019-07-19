@@ -497,8 +497,8 @@ All specified images must have the same dimensions.
 ![Example noisy color image rendered using unidirectional path tracing (512
 spp). *Scene by Evermotion.*][imgMazdaColor]
 
-![Example output image denoised using color and auxiliary (first-hit) feature
-images (albedo and normal)][imgMazdaDenoised]
+![Example output image denoised using color and auxiliary feature images
+(albedo and normal)][imgMazdaDenoised]
 
 Using auxiliary feature images like albedo and normal helps preserving fine
 details and textures in the image thus can significantly improve denoising
