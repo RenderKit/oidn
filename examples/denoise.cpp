@@ -231,13 +231,14 @@ int main(int argc, char* argv[])
     {
       // Verify the output values
       std::cout << "Verifying output" << std::endl;
+
+      ImageBuffer diff(width, height, 3);
       int nerr = 0;
       float maxre = 0;
+
       for (size_t i = 0; i < output.getDataSize(); ++i)
       {
         float expect = std::max(ref[i], 0.f);
-        if (!hdr)
-          expect = std::min(expect, 1.f);
         const float actual = output[i];
         float re;
         if (std::abs(expect) < 1e-5 && std::abs(actual) < 1e-5)
@@ -252,6 +253,8 @@ int main(int argc, char* argv[])
           //std::cout << "i=" << i << " expect=" << expect << " actual=" << actual << std::endl;
           ++nerr;
         }
+
+        diff[i] = std::abs(ref[i] - output[i]);
       }
       std::cout << "  nfloats=" << output.getDataSize() << ", nerr=" << nerr << ", maxre=" << maxre << std::endl;
 
@@ -260,6 +263,7 @@ int main(int argc, char* argv[])
       saveImage("denoise_in.ppm",  color);
       saveImage("denoise_out.ppm", output);
       saveImage("denoise_ref.ppm", ref);
+      saveImage("denoise_diff.ppm", diff);
     }
 
     if (!outputFilename.empty())
