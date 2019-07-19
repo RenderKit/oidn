@@ -99,28 +99,41 @@ namespace oidn {
 
       // Iterate over the tiles
       int tileIndex = 0;
+
       for (int i = 0; i < tileCountH; ++i)
       {
-        const int h = i * (tileH - 2*overlap);
-        const int leftH  = i > 0            ? overlap : 0;
-        const int rightH = i < tileCountH-1 ? overlap : 0;
-        const int tileH1 = min(H - h, tileH);
-        const int tileH2 = tileH1 - leftH - rightH;
+        const int h = i * (tileH - 2*overlap); // input tile position (including overlap)
+        const int overlapBeginH = i > 0            ? overlap : 0; // overlap on the top
+        const int overlapEndH   = i < tileCountH-1 ? overlap : 0; // overlap on the bottom
+        const int tileH1 = min(H - h, tileH); // input tile size (including overlap)
+        const int tileH2 = tileH1 - overlapBeginH - overlapEndH; // output tile size
+        const int alignOffsetH = tileH - roundUp(tileH1, alignment); // align to the bottom in the tile buffer
 
         for (int j = 0; j < tileCountW; ++j)
         {
-          const int w = j * (tileW - 2*overlap);
-          const int leftW  = j > 0            ? overlap : 0;
-          const int rightW = j < tileCountW-1 ? overlap : 0;
-          const int tileW1 = min(W - w, tileW);
-          const int tileW2 = tileW1 - leftW - rightW;
+          const int w = j * (tileW - 2*overlap); // input tile position (including overlap)
+          const int overlapBeginW = j > 0            ? overlap : 0; // overlap on the left
+          const int overlapEndW   = j < tileCountW-1 ? overlap : 0; // overlap on the right
+          const int tileW1 = min(W - w, tileW); // input tile size (including overlap)
+          const int tileW2 = tileW1 - overlapBeginW - overlapEndW; // output tile size
+          const int alignOffsetW = tileW - roundUp(tileW1, alignment); // align to the right in the tile buffer
 
-          inputReorder->setTile(h, w, 0, 0, tileH1, tileW1);
-          outputReorder->setTile(leftH, leftW, h+leftH, w+leftW, tileH2, tileW2);
+          // Set the input tile
+          inputReorder->setTile(h, w,
+                                alignOffsetH, alignOffsetW,
+                                tileH1, tileW1);
 
-          //printf("output: %d %d -> %d %d\n", w+leftW, h+leftH, w+leftW+tileW2, h+leftH+tileH2);
+          // Set the output tile
+          outputReorder->setTile(alignOffsetH + overlapBeginH, alignOffsetW + overlapBeginW,
+                                 h + overlapBeginH, w + overlapBeginW,
+                                 tileH2, tileW2);
 
+          //printf("Tile: %d %d -> %d %d\n", w+overlapBeginW, h+overlapBeginH, w+overlapBeginW+tileW2, h+overlapBeginH+tileH2);
+
+          // Denoise the tile
           net->execute(progress, tileIndex);
+
+          // Next tile
           tileIndex++;
         }
       }
