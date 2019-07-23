@@ -323,27 +323,27 @@ namespace oidn {
     auto inputReorderDst = net->castTensor(inputReorderDims, concat0Dst, upsample0Dims);
     if (srgb)
     {
-      transferFunc = std::make_shared<LDRLinearTransferFunction>();
+      transferFunc = std::make_shared<LinearTransferFunction>();
       inputReorder = net->addInputReorder(color, albedo, normal,
-                                          std::static_pointer_cast<LDRLinearTransferFunction>(transferFunc),
+                                          std::static_pointer_cast<LinearTransferFunction>(transferFunc),
                                           alignment, inputReorderDst);
     }
     else if (hdr)
     {
-      transferFunc = std::make_shared<HDRTransferFunction>();
+      transferFunc = std::make_shared<PQXTransferFunction>();
 
       net->addAutoexposure(color,
-                           std::static_pointer_cast<HDRTransferFunction>(transferFunc));
+                           std::static_pointer_cast<PQXTransferFunction>(transferFunc));
 
       inputReorder = net->addInputReorder(color, albedo, normal,
-                                          std::static_pointer_cast<HDRTransferFunction>(transferFunc),
+                                          std::static_pointer_cast<PQXTransferFunction>(transferFunc),
                                           alignment, inputReorderDst);
     }
     else
     {
-      transferFunc = std::make_shared<LDRTransferFunction>();
+      transferFunc = std::make_shared<GammaTransferFunction>();
       inputReorder = net->addInputReorder(color, albedo, normal,
-                                          std::static_pointer_cast<LDRTransferFunction>(transferFunc),
+                                          std::static_pointer_cast<GammaTransferFunction>(transferFunc),
                                           alignment, inputReorderDst);
     }
 
@@ -443,11 +443,11 @@ namespace oidn {
 
     // Output reorder
     if (srgb)
-      outputReorder = net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<LDRLinearTransferFunction>(transferFunc), output);
+      outputReorder = net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<LinearTransferFunction>(transferFunc), output);
     else if (hdr)
-      outputReorder = net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<HDRTransferFunction>(transferFunc), output);
+      outputReorder = net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<PQXTransferFunction>(transferFunc), output);
     else
-      outputReorder = net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<LDRTransferFunction>(transferFunc), output);
+      outputReorder = net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<GammaTransferFunction>(transferFunc), output);
 
     net->finalize();
     return net;
