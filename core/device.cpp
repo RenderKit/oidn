@@ -186,6 +186,9 @@ namespace oidn {
   {
     checkCommitted();
 
+    if (isVerbose())
+      std::cout << "Filter: " << type << std::endl;
+
     Ref<Filter> filter;
 
     if (type == "RT")
