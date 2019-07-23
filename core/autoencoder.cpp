@@ -300,7 +300,7 @@ namespace oidn {
     }
     else if (hdr)
     {
-      transferFunc = std::make_shared<HDRTransferFunction>(1.f, hdrBias);
+      transferFunc = std::make_shared<HDRTransferFunction>();
 
       net->addAutoexposure(color,
                            std::static_pointer_cast<HDRTransferFunction>(transferFunc));
@@ -458,11 +458,9 @@ namespace oidn {
   RTLightmapFilter::RTLightmapFilter(const Ref<Device>& device)
     : AutoencoderFilter(device)
   {
-    hdr = true;
-
     weightData.hdr = weights::rt_hdr;
 
-    hdrBias = 0.05f; // fixes ringing artifacts near zero value pixels
+    hdr = true;
   }
 
 } // namespace oidn
