@@ -58,11 +58,20 @@ namespace oidn {
     return isfinite(value) ? clamp(value, minValue, maxValue) : minValue;
   }
 
-  __forceinline int divCeil(int a, int b)
+  // Returns ceil(a / b) for non-negative integers
+  template<class Int>
+  __forceinline constexpr Int ceilDiv(Int a, Int b)
   {
-    assert(a >= 0);
-    assert(b > 0);
+    //assert(a >= 0);
+    //assert(b > 0);
     return (a + b - 1) / b;
+  }
+
+  // Returns a rounded up to multiple of b
+  template<class Int>
+  __forceinline constexpr Int roundUp(Int a, Int b)
+  {
+    return ceilDiv(a, b) * b;
   }
 
 } // namespace oidn

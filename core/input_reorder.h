@@ -41,6 +41,8 @@ namespace oidn {
     // Tile
     int h1Begin;
     int w1Begin;
+    int h2Begin;
+    int w2Begin;
     int H;
     int W;
 
@@ -73,58 +75,69 @@ namespace oidn {
 
     void setTile(int h1, int w1, int h2, int w2, int H, int W) override
     {
-      assert(h2 == 0);
-      assert(w2 == 0);
-
       h1Begin = h1;
       w1Begin = w1;
+      h2Begin = h2;
+      w2Begin = w2;
       this->H = H;
       this->W = W;
     }
 
     void execute(stream& sm) override
     {
-      assert(h1Begin + H <= color.height);
-      assert(w1Begin + W <= color.width);
-      assert(H <= H2);
-      assert(W <= W2);
+      assert(H + h1Begin <= color.height);
+      assert(W + w1Begin <= color.width);
+      assert(H + h2Begin <= H2);
+      assert(W + w2Begin <= W2);
 
-      parallel_nd(H2, [&](int h)
+      parallel_nd(H2, [&](int h2)
       {
-        if (h < H)
+        const int h = h2 - h2Begin;
+
+        if (h >= 0 && h < H)
         {
           const int h1 = h + h1Begin;
 
+          // Zero pad
+          for (int w2 = 0; w2 < w2Begin; ++w2)
+          {
+            int c = 0;
+            while (c < C2)
+              store(h2, w2, c, 0.f);
+          }
+
+          // Reorder
           for (int w = 0; w < W; ++w)
           {
             const int w1 = w + w1Begin;
+            const int w2 = w + w2Begin;
 
             int c = 0;
-            storeColor(h, w, c, (float*)color.get(h1, w1));
+            storeColor(h2, w2, c, (float*)color.get(h1, w1));
             if (albedo)
-              storeAlbedo(h, w, c, (float*)albedo.get(h1, w1));
+              storeAlbedo(h2, w2, c, (float*)albedo.get(h1, w1));
             if (normal)
-              storeNormal(h, w, c, (float*)normal.get(h1, w1));
+              storeNormal(h2, w2, c, (float*)normal.get(h1, w1));
             while (c < C2)
-              store(h, w, c, 0.f);
+              store(h2, w2, c, 0.f);
           }
 
-          // Zero padding
-          for (int w = W; w < W2; ++w)
+          // Zero pad
+          for (int w2 = W + w2Begin; w2 < W2; ++w2)
           {
             int c = 0;
             while (c < C2)
-              store(h, w, c, 0.f);
+              store(h2, w2, c, 0.f);
           }
         }
         else
         {
-          // Zero padding
-          for (int w = 0; w < W2; ++w)
+          // Zero pad
+          for (int w2 = 0; w2 < W2; ++w2)
           {
             int c = 0;
             while (c < C2)
-              store(h, w, c, 0.f);
+              store(h2, w2, c, 0.f);
           }
         }
       });

@@ -23,7 +23,7 @@ namespace oidn {
   class Buffer;
   class Filter;
 
-  class Device : public RefCount
+  class Device : public RefCount, public Verbose
   {
   private:
     // Thread-safety
@@ -82,12 +82,14 @@ namespace oidn {
     Ref<Buffer> newBuffer(void* ptr, size_t byteSize);
     Ref<Filter> newFilter(const std::string& type);
 
-    Device* getDevice() { return this; }
-    std::mutex& getMutex() { return mutex; }
+    __forceinline Device* getDevice() { return this; }
+    __forceinline std::mutex& getMutex() { return mutex; }
 
   private:
     bool isCommitted() const { return bool(arena); }
     void checkCommitted();
+
+    void print();
   };
 
 } // namespace oidn

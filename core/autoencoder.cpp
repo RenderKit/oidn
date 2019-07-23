@@ -47,6 +47,8 @@ namespace oidn {
       hdr = value;
     else if (name == "srgb")
       srgb = value;
+    else if (name == "maxMemoryMB")
+      maxMemoryMB = value;
 
     dirty = true;
   }
@@ -57,6 +59,12 @@ namespace oidn {
       return hdr;
     else if (name == "srgb")
       return srgb;
+    else if (name == "maxMemoryMB")
+      return maxMemoryMB;
+    else if (name == "alignment")
+      return alignment;
+    else if (name == "overlap")
+      return overlap;
     else
       throw Exception(Error::InvalidArgument, "invalid parameter");
   }
@@ -82,6 +90,9 @@ namespace oidn {
     if (dirty)
       throw Exception(Error::InvalidOperation, "changes to the filter are not committed");
 
+    if (!net)
+      return;
+
     device->executeTask([&]()
     {
       Progress progress;
@@ -91,28 +102,41 @@ namespace oidn {
 
       // Iterate over the tiles
       int tileIndex = 0;
+
       for (int i = 0; i < tileCountH; ++i)
       {
-        const int h = i * (tileH - 2*overlap);
-        const int leftH  = i > 0            ? overlap : 0;
-        const int rightH = i < tileCountH-1 ? overlap : 0;
-        const int tileH1 = min(H - h, tileH);
-        const int tileH2 = tileH1 - leftH - rightH;
+        const int h = i * (tileH - 2*overlap); // input tile position (including overlap)
+        const int overlapBeginH = i > 0            ? overlap : 0; // overlap on the top
+        const int overlapEndH   = i < tileCountH-1 ? overlap : 0; // overlap on the bottom
+        const int tileH1 = min(H - h, tileH); // input tile size (including overlap)
+        const int tileH2 = tileH1 - overlapBeginH - overlapEndH; // output tile size
+        const int alignOffsetH = tileH - roundUp(tileH1, alignment); // align to the bottom in the tile buffer
 
         for (int j = 0; j < tileCountW; ++j)
         {
-          const int w = j * (tileW - 2*overlap);
-          const int leftW  = j > 0            ? overlap : 0;
-          const int rightW = j < tileCountW-1 ? overlap : 0;
-          const int tileW1 = min(W - w, tileW);
-          const int tileW2 = tileW1 - leftW - rightW;
+          const int w = j * (tileW - 2*overlap); // input tile position (including overlap)
+          const int overlapBeginW = j > 0            ? overlap : 0; // overlap on the left
+          const int overlapEndW   = j < tileCountW-1 ? overlap : 0; // overlap on the right
+          const int tileW1 = min(W - w, tileW); // input tile size (including overlap)
+          const int tileW2 = tileW1 - overlapBeginW - overlapEndW; // output tile size
+          const int alignOffsetW = tileW - roundUp(tileW1, alignment); // align to the right in the tile buffer
 
-          inputReorder->setTile(h, w, 0, 0, tileH1, tileW1);
-          outputReorder->setTile(leftH, leftW, h+leftH, w+leftW, tileH2, tileW2);
+          // Set the input tile
+          inputReorder->setTile(h, w,
+                                alignOffsetH, alignOffsetW,
+                                tileH1, tileW1);
 
-          //printf("output: %d %d -> %d %d\n", w+leftW, h+leftH, w+leftW+tileW2, h+leftH+tileH2);
+          // Set the output tile
+          outputReorder->setTile(alignOffsetH + overlapBeginH, alignOffsetW + overlapBeginW,
+                                 h + overlapBeginH, w + overlapBeginW,
+                                 tileH2, tileW2);
 
+          //printf("Tile: %d %d -> %d %d\n", w+overlapBeginW, h+overlapBeginH, w+overlapBeginW+tileW2, h+overlapBeginH+tileH2);
+
+          // Denoise the tile
           net->execute(progress, tileIndex);
+
+          // Next tile
           tileIndex++;
         }
       }
@@ -122,38 +146,40 @@ namespace oidn {
   void AutoencoderFilter::computeTileSize()
   {
     const int minTileSize = 3*overlap;
-    //const int maxTilePixels = 512*512;
-    const int maxTilePixels = 2048*1216; // 2x2 tiles for 3840x2160
-    //const int maxTilePixels = 1024*1024;
+    const int estimatedBytesPerPixel = mayiuse(avx512_common) ? estimatedBytesPerPixel16 : estimatedBytesPerPixel8;
+    const int64_t maxTilePixels = (int64_t(maxMemoryMB)*1024*1024 - estimatedBytesBase) / estimatedBytesPerPixel;
 
     tileCountH = 1;
     tileCountW = 1;
-    tileH = getPadded<padding>(H);
-    tileW = getPadded<padding>(W);
+    tileH = roundUp(H, alignment);
+    tileW = roundUp(W, alignment);
 
     // Divide the image into tiles until the tile size gets below the threshold
-    while (tileH * tileW > maxTilePixels)
+    while (int64_t(tileH) * tileW > maxTilePixels)
     {
       if (tileH > minTileSize && tileH > tileW)
       {
         tileCountH++;
-        tileH = max(getPadded<padding>(divCeil(H - 2*overlap, tileCountH) + 2*overlap), minTileSize);
+        tileH = max(roundUp(ceilDiv(H - 2*overlap, tileCountH), alignment) + 2*overlap, minTileSize);
       }
       else if (tileW > minTileSize)
       {
         tileCountW++;
-        tileW = max(getPadded<padding>(divCeil(W - 2*overlap, tileCountW) + 2*overlap), minTileSize);
+        tileW = max(roundUp(ceilDiv(W - 2*overlap, tileCountW), alignment) + 2*overlap, minTileSize);
       }
       else
         break;
     }
 
     // Compute the final number of tiles
-    tileCountH = (H > tileH) ? divCeil(H - 2*overlap, tileH - 2*overlap) : 1;
-    tileCountW = (W > tileW) ? divCeil(W - 2*overlap, tileW - 2*overlap) : 1;
+    tileCountH = (H > tileH) ? ceilDiv(H - 2*overlap, tileH - 2*overlap) : 1;
+    tileCountW = (W > tileW) ? ceilDiv(W - 2*overlap, tileW - 2*overlap) : 1;
 
-    //printf("\ntile size: %d %d\n", tileW, tileH);
-    //printf("\ntile count: %d %d\n", tileCountW, tileCountH);
+    if (device->isVerbose(2))
+    {
+      std::cout << "Tile size : " << tileW << "x" << tileH << std::endl;
+      std::cout << "Tile count: " << tileCountW << "x" << tileCountH << std::endl;
+    }
   }
 
   template<int K>
@@ -206,15 +232,19 @@ namespace oidn {
     // Compute the tile size
     computeTileSize();
 
+    // If the image size is zero, there is nothing else to do
+    if (H <= 0 || W <= 0)
+      return nullptr;
+
     // Parse the weights
     const auto weightMap = parseTensors(weightPtr);
 
     // Create the network
-    std::shared_ptr<Network<K>> net = std::make_shared<Network<K>>(weightMap);
+    std::shared_ptr<Network<K>> net = std::make_shared<Network<K>>(device, weightMap);
 
     // Compute the tensor sizes
     const auto inputDims        = memory::dims({1, inputC, tileH, tileW});
-    const auto inputReorderDims = net->getInputReorderDims(inputDims, padding);  //-> concat0
+    const auto inputReorderDims = net->getInputReorderDims(inputDims, alignment);   //-> concat0
 
     const auto conv1Dims     = net->getConvDims("conv1", inputReorderDims);         //-> temp0
     const auto conv1bDims    = net->getConvDims("conv1b", conv1Dims);               //-> temp1
@@ -293,28 +323,28 @@ namespace oidn {
     auto inputReorderDst = net->castTensor(inputReorderDims, concat0Dst, upsample0Dims);
     if (srgb)
     {
-      transferFunc = std::make_shared<LDRLinearTransferFunction>();
+      transferFunc = std::make_shared<LinearTransferFunction>();
       inputReorder = net->addInputReorder(color, albedo, normal,
-                                          std::static_pointer_cast<LDRLinearTransferFunction>(transferFunc),
-                                          padding, inputReorderDst);
+                                          std::static_pointer_cast<LinearTransferFunction>(transferFunc),
+                                          alignment, inputReorderDst);
     }
     else if (hdr)
     {
-      transferFunc = std::make_shared<HDRTransferFunction>();
+      transferFunc = std::make_shared<PQXTransferFunction>();
 
       net->addAutoexposure(color,
-                           std::static_pointer_cast<HDRTransferFunction>(transferFunc));
+                           std::static_pointer_cast<PQXTransferFunction>(transferFunc));
 
       inputReorder = net->addInputReorder(color, albedo, normal,
-                                          std::static_pointer_cast<HDRTransferFunction>(transferFunc),
-                                          padding, inputReorderDst);
+                                          std::static_pointer_cast<PQXTransferFunction>(transferFunc),
+                                          alignment, inputReorderDst);
     }
     else
     {
-      transferFunc = std::make_shared<LDRTransferFunction>();
+      transferFunc = std::make_shared<GammaTransferFunction>();
       inputReorder = net->addInputReorder(color, albedo, normal,
-                                          std::static_pointer_cast<LDRTransferFunction>(transferFunc),
-                                          padding, inputReorderDst);
+                                          std::static_pointer_cast<GammaTransferFunction>(transferFunc),
+                                          alignment, inputReorderDst);
     }
 
     // conv1
@@ -413,11 +443,11 @@ namespace oidn {
 
     // Output reorder
     if (srgb)
-      outputReorder = net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<LDRLinearTransferFunction>(transferFunc), output);
+      outputReorder = net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<LinearTransferFunction>(transferFunc), output);
     else if (hdr)
-      outputReorder = net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<HDRTransferFunction>(transferFunc), output);
+      outputReorder = net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<PQXTransferFunction>(transferFunc), output);
     else
-      outputReorder = net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<LDRTransferFunction>(transferFunc), output);
+      outputReorder = net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<GammaTransferFunction>(transferFunc), output);
 
     net->finalize();
     return net;

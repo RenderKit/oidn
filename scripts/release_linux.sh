@@ -75,8 +75,8 @@ mkdir -p $DEP_DIR
 cd $DEP_DIR
 
 # Set up TBB
-TBB_VERSION=2019_U5
-TBB_BUILD=tbb2019_20190320oss
+TBB_VERSION=2019_U8
+TBB_BUILD=tbb2019_20190605oss
 TBB_DIR=$DEP_DIR/$TBB_BUILD
 if [ ! -d $TBB_DIR ]; then
   TBB_URL=https://github.com/01org/tbb/releases/download/$TBB_VERSION/${TBB_BUILD}_lin.tgz

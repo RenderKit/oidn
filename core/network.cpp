@@ -21,8 +21,9 @@
 namespace oidn {
 
   template<int K>
-  Network<K>::Network(const std::map<std::string, Tensor>& weightMap)
-    : eng(engine::cpu, 0),
+  Network<K>::Network(const Ref<Device>& device, const std::map<std::string, Tensor>& weightMap)
+    : device(device),
+      eng(engine::cpu, 0),
       sm(eng),
       weightMap(weightMap)
   {
@@ -67,9 +68,18 @@ namespace oidn {
     }
     memory::desc desc(dims, memory::data_type::f32, format);
     if (data == nullptr)
+    {
+      const size_t bytes = getTensorSize(dims) * sizeof(float);
+      if (format == BlockedFormat<K>::nChwKc)
+        activationAllocBytes += bytes;
+      totalAllocBytes += bytes;
+
       return std::make_shared<memory>(desc, eng);
+    }
     else
+    {
       return std::make_shared<memory>(desc, eng, data);
+    }
   }
 
   template<int K>
@@ -113,12 +123,12 @@ namespace oidn {
   }
 
   template<int K>
-  memory::dims Network<K>::getInputReorderDims(const memory::dims& srcDims, int spatialPad)
+  memory::dims Network<K>::getInputReorderDims(const memory::dims& srcDims, int alignment)
   {
     memory::dims dstDims = srcDims;
     dstDims[1] = getPadded<K>(srcDims[1]); // round up C
-    dstDims[2] = (srcDims[2] + spatialPad - 1) / spatialPad * spatialPad; // round up H
-    dstDims[3] = (srcDims[3] + spatialPad - 1) / spatialPad * spatialPad; // round up W
+    dstDims[2] = roundUp(srcDims[2], memory::dim(alignment)); // round up H
+    dstDims[3] = roundUp(srcDims[3], memory::dim(alignment)); // round up W
     return dstDims;
   }
 
@@ -333,10 +343,23 @@ namespace oidn {
     memory::dims scratchpadDims = { memory::dim(scratchpadSize) };
     memory::desc scratchpadDesc(scratchpadDims, memory::data_type::u8, memory::format_tag::x);
     auto scratchpad = std::make_shared<memory>(scratchpadDesc, eng);
+    activationAllocBytes += scratchpadSize;
+    totalAllocBytes += scratchpadSize;
 
     // Set the scratchpad for the nodes
     for (auto& node : nodes)
       node->setScratchpad(scratchpad);
+
+    // Free the weights
+    weightMap.clear();
+
+    // Print statistics
+    if (device->isVerbose(2))
+    {
+      std::cout << "Activation bytes: " << activationAllocBytes << std::endl;
+      std::cout << "Scratchpad bytes: " << scratchpadSize << std::endl;
+      std::cout << "Total bytes     : " << totalAllocBytes << std::endl;
+    }
   }
 
   template class Network<8>;

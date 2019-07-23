@@ -114,20 +114,35 @@ to set and get parameter values on the device. Note that some parameters are
 constants, thus trying to set them is an error. See the tables below for the
 parameters supported by devices.
 
-Type      Name         Description
---------- ------------ --------------------------------------------------------
-const int version      combined version number (major.minor.patch) with two decimal digits per component
-const int versionMajor major version number
-const int versionMinor minor version number
-const int versionPatch patch version number
---------- ------------ --------------------------------------------------------
+--------- ------------ -------- -----------------------------------------------
+Type      Name          Default Description
+--------- ------------ -------- -----------------------------------------------
+const int version               combined version number (major.minor.patch)
+                                with two decimal digits per component
+
+const int versionMajor          major version number
+
+const int versionMinor          minor version number
+
+const int versionPatch          patch version number
+
+int       verbose             0 verbosity level of the console output between
+                                0--3; when set to 0, no output is printed, when
+                                set to a higher level more output is printed
+--------- ------------ -------- -----------------------------------------------
 : Parameters supported by all devices.
 
+------ ------------ -------- --------------------------------------------------
 Type   Name          Default Description
 ------ ------------ -------- --------------------------------------------------
-int    numThreads          0 maximum number of threads which Open Image Denoise should use; 0 will set it automatically to get the best performance
-bool   setAffinity      true bind software threads to hardware threads if set to true (improves performance); false disables binding
------- ------------ -----------------------------------------------------------
+int    numThreads          0 maximum number of threads which Open Image Denoise
+                             should use; 0 will set it automatically to get the
+                             best performance
+
+bool   setAffinity      true bind software threads to hardware threads if set
+                             to true (improves performance); false disables
+                             binding
+------ ------------ -------- --------------------------------------------------
 : Additional parameters supported only by CPU devices.
 
 Note that the CPU device heavily relies on setting the thread affinities to
@@ -428,33 +443,53 @@ to fail (the noise will not be filtered), thus it is not supported.
 The filter can be created by passing `"RT"` to the `oidnNewFilter` function
 as the filter type. The filter supports the following parameters:
 
-------- -------- ----------- -------- -----------------------------------------
-Type    Format   Name         Default Description
-------- -------- ----------- -------- -----------------------------------------
-Image   float3   color                input color image (LDR values in [0, 1]
-                                      or HDR values in [0, +∞))
+--------- -------- ----------- -------- ---------------------------------------
+Type      Format   Name         Default Description
+--------- -------- ----------- -------- ---------------------------------------
+Image     float3   color                input color image (LDR values in [0, 1]
+                                        or HDR values in [0, +∞))
 
-Image   float3   albedo               input feature image containing the albedo
-                                      (values in [0, 1]) of the first hit per
-                                      pixel; *optional*
+Image     float3   albedo               input feature image containing the
+                                        albedo (values in [0, 1]) of the first
+                                        hit per pixel; *optional*
 
-Image   float3   normal               input feature image containing the shading
-                                      normal (world-space or view-space,
-                                      arbitrary length, values in
-                                      (−∞, +∞)) of the first hit per
-                                      pixel; *optional*, requires setting the
-                                      albedo image too
+Image     float3   normal               input feature image containing the
+                                        shading normal (world-space or
+                                        view-space, arbitrary length, values in
+                                        (−∞, +∞)) of the first hit per
+                                        pixel; *optional*, requires setting the
+                                        albedo image too
 
-Image   float3   output               output image; can be one of the input
-                                      images
+Image     float3   output               output image; can be one of the input
+                                        images
 
-bool             hdr            false whether the color is HDR
+bool               hdr            false whether the color is HDR
 
-bool             srgb           false whether the color is encoded with the
-                                      sRGB (2.2 gamma) curve (LDR only) or is
-                                      linear; the output will be encoded with
-                                      the same curve
-------- -------- ----------- -------- -----------------------------------------
+bool               srgb           false whether the color is encoded with the
+                                        sRGB (or 2.2 gamma) curve (LDR only) or
+                                        is linear; the output will be encoded
+                                        with the same curve
+
+int                maxMemoryMB     6000 approximate maximum amount of memory to
+                                        use in megabytes (actual memory usage
+                                        may be higher); limiting memory usage
+                                        may cause slower denoising due to
+                                        internally splitting the image into
+                                        overlapping tiles, but cannot cause the
+                                        denoising to fail
+
+const int          alignment            when manually denoising the image in
+                                        tiles, the tile size and offsets should
+                                        be multiples of this amount of pixels
+                                        to avoid artifacts; note that manual
+                                        tiled denoising is supported *only* for
+                                        LDR images
+
+const int          overlap              when manually denoising the image in
+                                        tiles, the tiles should overlap by this
+                                        amount of pixels
+
+--------- -------- ----------- -------- ---------------------------------------
 : Parameters supported by the `RT` filter.
 
 All specified images must have the same dimensions.
@@ -462,8 +497,8 @@ All specified images must have the same dimensions.
 ![Example noisy color image rendered using unidirectional path tracing (512
 spp). *Scene by Evermotion.*][imgMazdaColor]
 
-![Example output image denoised using color and auxiliary (first-hit) feature
-images (albedo and normal)][imgMazdaDenoised]
+![Example output image denoised using color and auxiliary feature images
+(albedo and normal).][imgMazdaDenoised]
 
 Using auxiliary feature images like albedo and normal helps preserving fine
 details and textures in the image thus can significantly improve denoising
@@ -499,6 +534,14 @@ a certain extent and works well with differently computed albedos. Thus it is
 not necessary to compute the strict, exact albedo values but must be always
 between 0 and 1.
 
+![Example albedo image obtained using the first hit. Note that the albedos of
+all transparent surfaces are 1.][imgMazdaAlbedoFirstHit]
+
+![Example albedo image obtained using the first diffuse or glossy (non-delta)
+hit. Note that the albedos of perfect specular (delta) transparent surfaces
+are computed as the Fresnel blend of the reflected and transmitted
+albedos.][imgMazdaAlbedoNonDeltaHit]
+
 For metallic surfaces the albedo should be either the reflectivity at normal
 incidence (e.g. from the artist friendly metallic Fresnel model) or the
 average reflectivity; or if these are constant (not textured) or unknown, the
@@ -517,14 +560,6 @@ The albedo for layered surfaces can be computed as the weighted sum of the
 albedos of the individual layers. Non-absorbing clear coat layers can be simply
 ignored (or the albedo of the perfect specular reflection can be used as well)
 but absorption should be taken into account.
-
-![Example albedo image obtained using the first hit. Note that the albedos of
-all transparent surfaces are 1.][imgMazdaAlbedoFirstHit]
-
-![Example albedo image obtained using the first diffuse or glossy (non-delta)
-hit. Note that the albedos of perfect specular (delta) transparent surfaces
-are computed as the Fresnel blend of the reflected and transmitted
-albedos.][imgMazdaAlbedoNonDeltaHit]
 
 #### Normal
 

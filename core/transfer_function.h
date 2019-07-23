@@ -26,7 +26,7 @@ namespace oidn {
     return 0.212671f * r + 0.715160f * g + 0.072169f * b;
   }
 
-  // Color transfer function
+  // Color transfer function base class
   class TransferFunction
   {
   public:
@@ -36,52 +36,10 @@ namespace oidn {
     virtual float inverse(float x) const = 0;
   };
 
-  // LDR transfer function: linear
-  class LDRLinearTransferFunction : public TransferFunction
-  {
-  public:
-    __forceinline float forward(float y) const override
-    {
-      return min(y, 1.f);
-    }
-
-    __forceinline float inverse(float x) const override
-    {
-      return min(x, 1.f);
-    }
-  };
-
-  // LDR transfer function: sRGB curve
-  class LDRTransferFunction : public TransferFunction
-  {
-  public:
-    __forceinline float forward(float y) const override
-    {
-      return min(pow(y, 1.f/2.2f), 1.f);
-    }
-
-    __forceinline float inverse(float x) const override
-    {
-      return min(pow(x, 2.2f), 1.f);
-    }
-  };
-
-  // HDR transfer function: PQX curve
-  // Compresses [0..65504] to [0..1]
+  // HDR transfer function base class
   class HDRTransferFunction : public TransferFunction
   {
-  private:
-    static constexpr float m1 = 2610.f / 4096.f / 4.f;
-    static constexpr float m2 = 2523.f / 4096.f * 128.f;
-    static constexpr float c1 = 3424.f / 4096.f;
-    static constexpr float c2 = 2413.f / 4096.f * 32.f;
-    static constexpr float c3 = 2392.f / 4096.f * 32.f;
-    static constexpr float  a = 3711.f / 4096.f / 8.f;
-
-    static constexpr float yMax   = 65504.f;
-    static constexpr float yScale = 100.f / 10000.f;
-    static const float     xScale;
-
+  protected:
     float exposure;
     float rcpExposure;
 
@@ -95,6 +53,59 @@ namespace oidn {
     {
       this->exposure = exposure;
       this->rcpExposure = 1.f / exposure;
+    }
+  };
+
+  // Linear transfer function (LDR)
+  class LinearTransferFunction : public TransferFunction
+  {
+  public:
+    __forceinline float forward(float y) const override
+    {
+      return min(y, 1.f);
+    }
+
+    __forceinline float inverse(float x) const override
+    {
+      return min(x, 1.f);
+    }
+  };
+
+  // 2.2 gamma transfer function (LDR)
+  class GammaTransferFunction : public TransferFunction
+  {
+  public:
+    __forceinline float forward(float y) const override
+    {
+      return min(pow(y, 1.f/2.2f), 1.f);
+    }
+
+    __forceinline float inverse(float x) const override
+    {
+      return min(pow(x, 2.2f), 1.f);
+    }
+  };
+
+  // PQX transfer function (HDR)
+  // Compresses [0..65504] to [0..1]
+  class PQXTransferFunction : public HDRTransferFunction
+  {
+  private:
+    static constexpr float m1 = 2610.f / 4096.f / 4.f;
+    static constexpr float m2 = 2523.f / 4096.f * 128.f;
+    static constexpr float c1 = 3424.f / 4096.f;
+    static constexpr float c2 = 2413.f / 4096.f * 32.f;
+    static constexpr float c3 = 2392.f / 4096.f * 32.f;
+    static constexpr float  a = 3711.f / 4096.f / 8.f;
+
+    static constexpr float yMax   = 65504.f;
+    static constexpr float yScale = 100.f / 10000.f;
+    static const float     xScale;
+
+  public:
+    PQXTransferFunction(float exposure = 1.f)
+      : HDRTransferFunction(exposure)
+    {
     }
 
     __forceinline float forward(float y) const override
