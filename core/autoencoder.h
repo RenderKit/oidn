@@ -28,7 +28,7 @@ namespace oidn {
 
   class AutoencoderFilter : public Filter
   {
-  private:
+  protected:
     static constexpr int alignment       = 32;  // required spatial alignment in pixels (padding may be necessary)
     static constexpr int receptiveField  = 222; // receptive field in pixels
     static constexpr int overlap         = roundUp(receptiveField / 2, alignment); // required spatial overlap between tiles in pixels
@@ -55,9 +55,7 @@ namespace oidn {
     std::shared_ptr<Executable> net;
     std::shared_ptr<Node> inputReorder;
     std::shared_ptr<Node> outputReorder;
-    std::shared_ptr<TransferFunction> transferFunc;
 
-  protected:
     struct
     {
       void* ldr         = nullptr;
@@ -69,6 +67,7 @@ namespace oidn {
     } weightData;
 
     explicit AutoencoderFilter(const Ref<Device>& device);
+    virtual std::shared_ptr<TransferFunction> makeTransferFunc();
 
   public:
     void setImage(const std::string& name, const Image& data) override;

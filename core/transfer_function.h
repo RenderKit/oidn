@@ -40,6 +40,8 @@ namespace oidn {
   class HDRTransferFunction : public TransferFunction
   {
   protected:
+    static constexpr float yMax = 65504.f;
+
     float exposure;
     float rcpExposure;
 
@@ -98,7 +100,6 @@ namespace oidn {
     static constexpr float c3 = 2392.f / 4096.f * 32.f;
     static constexpr float  a = 3711.f / 4096.f / 8.f;
 
-    static constexpr float yMax   = 65504.f;
     static constexpr float yScale = 100.f / 10000.f;
     static const float     xScale;
 
@@ -110,8 +111,7 @@ namespace oidn {
 
     __forceinline float forward(float y) const override
     {
-      y *= exposure;
-      return pqxForward(y * yScale) * xScale;
+      return pqxForward(y * exposure * yScale) * xScale;
     }
 
     __forceinline float inverse(float x) const override

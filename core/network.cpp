@@ -133,6 +133,67 @@ namespace oidn {
   }
 
   template<int K>
+  std::shared_ptr<Node> Network<K>::addInputReorder(const Image& color,
+                                                    const Image& albedo,
+                                                    const Image& normal,
+                                                    const std::shared_ptr<TransferFunction>& transferFunc,
+                                                    int alignment,
+                                                    const std::shared_ptr<memory>& userDst)
+  {
+    assert(color);
+    int inputC = 3;
+    if (albedo) inputC += 3;
+    if (normal) inputC += 3;
+
+    memory::dims srcDims = {1, inputC, color.height, color.width};
+    memory::dims dstDims = getInputReorderDims(srcDims, alignment);
+
+    // Allocate padded memory
+    auto dst = userDst;
+    if (!dst)
+      dst = allocTensor(dstDims);
+
+    // Push node
+    std::shared_ptr<Node> node;
+
+    if (auto tf = std::dynamic_pointer_cast<LinearTransferFunction>(transferFunc))
+      node = std::make_shared<InputReorderNode<K, LinearTransferFunction>>(color, albedo, normal, dst, tf);
+    else if (auto tf = std::dynamic_pointer_cast<GammaTransferFunction>(transferFunc))
+      node = std::make_shared<InputReorderNode<K, GammaTransferFunction>>(color, albedo, normal, dst, tf);
+    else if (auto tf = std::dynamic_pointer_cast<PQXTransferFunction>(transferFunc))
+      node = std::make_shared<InputReorderNode<K, PQXTransferFunction>>(color, albedo, normal, dst, tf);
+    else
+      assert(0);
+
+    nodes.push_back(node);
+    return node;
+  }
+
+  template<int K>
+  std::shared_ptr<Node> Network<K>::addOutputReorder(const std::shared_ptr<memory>& src,
+                                                     const std::shared_ptr<TransferFunction>& transferFunc,
+                                                     const Image& output)
+  {
+    memory::dims srcDims = getTensorDims(src);
+    assert(srcDims[1] == K);
+
+    // Push node
+    std::shared_ptr<Node> node;
+
+    if (auto tf = std::dynamic_pointer_cast<LinearTransferFunction>(transferFunc))
+      node = std::make_shared<OutputReorderNode<K, LinearTransferFunction>>(src, output, tf);
+    else if (auto tf = std::dynamic_pointer_cast<GammaTransferFunction>(transferFunc))
+      node = std::make_shared<OutputReorderNode<K, GammaTransferFunction>>(src, output, tf);
+    else if (auto tf = std::dynamic_pointer_cast<PQXTransferFunction>(transferFunc))
+      node = std::make_shared<OutputReorderNode<K, PQXTransferFunction>>(src, output, tf);
+    else
+      assert(0);
+
+    nodes.push_back(node);
+    return node;
+  }
+
+  template<int K>
   memory::dims Network<K>::getConvDims(const std::string& name, const memory::dims& srcDims)
   {
     auto b = weightMap[name + "/b"];
