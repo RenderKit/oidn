@@ -19,7 +19,7 @@ cmake_minimum_required(VERSION 3.1)
 set(OIDN_VERSION_MAJOR 1)
 set(OIDN_VERSION_MINOR 1)
 set(OIDN_VERSION_PATCH 0)
-set(OIDN_VERSION_NOTE "")
+set(OIDN_VERSION_NOTE "-alpha.0")
 
 set(OIDN_VERSION ${OIDN_VERSION_MAJOR}.${OIDN_VERSION_MINOR}.${OIDN_VERSION_PATCH})
 math(EXPR OIDN_VERSION_NUMBER "10000*${OIDN_VERSION_MAJOR} + 100*${OIDN_VERSION_MINOR} + ${OIDN_VERSION_PATCH}")
@@ -146,6 +146,7 @@ generate_cpp_resources(WEIGHTS_SOURCES "oidn::weights"
   weights/rt_hdr.tza
   weights/rt_hdr_alb.tza
   weights/rt_hdr_alb_nrm.tza
+  weights/rtlightmap_hdr.tza
 )
 
 set_source_files_properties(${CORE_SOURCES_SSE41} PROPERTIES COMPILE_FLAGS "${ISA_FLAGS_SSE41}")

@@ -104,6 +104,7 @@ namespace oidn {
   {
   public:
     explicit RTLightmapFilter(const Ref<Device>& device);
+    std::shared_ptr<TransferFunction> makeTransferFunc() override;
   };
 
 } // namespace oidn
