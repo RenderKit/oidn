@@ -319,33 +319,16 @@ namespace oidn {
     auto concat3Dst = net->allocTensor(concat3Dims);
     auto concat4Dst = net->allocTensor(concat4Dims);
 
+    // Transfer function
+    std::shared_ptr<TransferFunction> transferFunc = makeTransferFunc();
+    if (auto tf = std::dynamic_pointer_cast<HDRTransferFunction>(transferFunc))
+      net->addAutoexposure(color, tf);
+
     // Input reorder
     auto inputReorderDst = net->castTensor(inputReorderDims, concat0Dst, upsample0Dims);
-    if (srgb)
-    {
-      transferFunc = std::make_shared<LinearTransferFunction>();
-      inputReorder = net->addInputReorder(color, albedo, normal,
-                                          std::static_pointer_cast<LinearTransferFunction>(transferFunc),
-                                          alignment, inputReorderDst);
-    }
-    else if (hdr)
-    {
-      transferFunc = std::make_shared<PQXTransferFunction>();
-
-      net->addAutoexposure(color,
-                           std::static_pointer_cast<PQXTransferFunction>(transferFunc));
-
-      inputReorder = net->addInputReorder(color, albedo, normal,
-                                          std::static_pointer_cast<PQXTransferFunction>(transferFunc),
-                                          alignment, inputReorderDst);
-    }
-    else
-    {
-      transferFunc = std::make_shared<GammaTransferFunction>();
-      inputReorder = net->addInputReorder(color, albedo, normal,
-                                          std::static_pointer_cast<GammaTransferFunction>(transferFunc),
-                                          alignment, inputReorderDst);
-    }
+    inputReorder = net->addInputReorder(color, albedo, normal,
+                                        transferFunc,
+                                        alignment, inputReorderDst);
 
     // conv1
     auto conv1 = net->addConv("conv1", inputReorder->getDst(), temp0);
@@ -442,15 +425,20 @@ namespace oidn {
     auto conv11 = net->addConv("conv11", conv10b->getDst(), temp0, false /* no relu */);
 
     // Output reorder
-    if (srgb)
-      outputReorder = net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<LinearTransferFunction>(transferFunc), output);
-    else if (hdr)
-      outputReorder = net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<PQXTransferFunction>(transferFunc), output);
-    else
-      outputReorder = net->addOutputReorder(conv11->getDst(), std::static_pointer_cast<GammaTransferFunction>(transferFunc), output);
+    outputReorder = net->addOutputReorder(conv11->getDst(), transferFunc, output);
 
     net->finalize();
     return net;
+  }
+
+  std::shared_ptr<TransferFunction> AutoencoderFilter::makeTransferFunc()
+  {
+    if (hdr)
+      return std::make_shared<PQXTransferFunction>();
+    else if (srgb)
+      return std::make_shared<LinearTransferFunction>();
+    else
+      return std::make_shared<GammaTransferFunction>();
   }
 
   // --------------------------------------------------------------------------

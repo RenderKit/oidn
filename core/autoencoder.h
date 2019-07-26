@@ -55,7 +55,6 @@ namespace oidn {
     std::shared_ptr<Executable> net;
     std::shared_ptr<Node> inputReorder;
     std::shared_ptr<Node> outputReorder;
-    std::shared_ptr<TransferFunction> transferFunc;
 
     struct
     {
@@ -68,6 +67,7 @@ namespace oidn {
     } weightData;
 
     explicit AutoencoderFilter(const Ref<Device>& device);
+    virtual std::shared_ptr<TransferFunction> makeTransferFunc();
 
   public:
     void setImage(const std::string& name, const Image& data) override;

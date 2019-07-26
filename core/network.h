@@ -65,7 +65,6 @@ namespace oidn {
 
     memory::dims getInputReorderDims(const memory::dims& srcDims, int alignment);
 
-    template<class TransferFunction>
     std::shared_ptr<Node> addInputReorder(const Image& color,
                                           const Image& albedo,
                                           const Image& normal,
@@ -73,7 +72,6 @@ namespace oidn {
                                           int alignment,
                                           const std::shared_ptr<memory>& userDst = nullptr);
 
-    template<class TransferFunction>
     std::shared_ptr<Node> addOutputReorder(const std::shared_ptr<memory>& src,
                                            const std::shared_ptr<TransferFunction>& transferFunc,
                                            const Image& output);
@@ -110,49 +108,5 @@ namespace oidn {
     size_t activationAllocBytes = 0; // number of allocated activation bytes
     size_t totalAllocBytes      = 0; // total number of allocated bytes
   };
-
-
-  template<int K>
-  template<class TransferFunction>
-  std::shared_ptr<Node> Network<K>::addInputReorder(const Image& color,
-                                                    const Image& albedo,
-                                                    const Image& normal,
-                                                    const std::shared_ptr<TransferFunction>& transferFunc,
-                                                    int alignment,
-                                                    const std::shared_ptr<memory>& userDst)
-  {
-    assert(color);
-    int inputC = 3;
-    if (albedo) inputC += 3;
-    if (normal) inputC += 3;
-
-    memory::dims srcDims = {1, inputC, color.height, color.width};
-    memory::dims dstDims = getInputReorderDims(srcDims, alignment);
-
-    // Allocate padded memory
-    auto dst = userDst;
-    if (!dst)
-      dst = allocTensor(dstDims);
-
-    // Push node
-    auto node = std::make_shared<InputReorderNode<K, TransferFunction>>(color, albedo, normal, dst, transferFunc);
-    nodes.push_back(node);
-    return node;
-  }
-
-  template<int K>
-  template<class TransferFunction>
-  std::shared_ptr<Node> Network<K>::addOutputReorder(const std::shared_ptr<memory>& src,
-                                                     const std::shared_ptr<TransferFunction>& transferFunc,
-                                                     const Image& output)
-  {
-    memory::dims srcDims = getTensorDims(src);
-    assert(srcDims[1] == K);
-
-    // Push node
-    auto node = std::make_shared<OutputReorderNode<K, TransferFunction>>(src, output, transferFunc);
-    nodes.push_back(node);
-    return node;
-  }
 
 } // namespace oidn

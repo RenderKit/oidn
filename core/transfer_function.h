@@ -40,6 +40,8 @@ namespace oidn {
   class HDRTransferFunction : public TransferFunction
   {
   protected:
+    static constexpr float yMax = 65504.f;
+
     float exposure;
     float rcpExposure;
 
@@ -98,7 +100,6 @@ namespace oidn {
     static constexpr float c3 = 2392.f / 4096.f * 32.f;
     static constexpr float  a = 3711.f / 4096.f / 8.f;
 
-    static constexpr float yMax   = 65504.f;
     static constexpr float yScale = 100.f / 10000.f;
     static const float     xScale;
 
@@ -110,8 +111,7 @@ namespace oidn {
 
     __forceinline float forward(float y) const override
     {
-      y *= exposure;
-      return pqxForward(y * yScale) * xScale;
+      return pqxForward(y * exposure * yScale) * xScale;
     }
 
     __forceinline float inverse(float x) const override
@@ -122,8 +122,8 @@ namespace oidn {
   private:
     static __forceinline float pqForward(float y)
     {
-      const float yPow = pow(y, m1);
-      return pow((c1 + c2 * yPow) * rcp(1.f + c3 * yPow), m2);
+      const float yp = pow(y, m1);
+      return pow((c1 + c2 * yp) * rcp(1.f + c3 * yp), m2);
     }
 
     static __forceinline float pqxForward(float y)
@@ -136,8 +136,8 @@ namespace oidn {
 
     static __forceinline float pqInverse(float x)
     {
-      const float xPow = pow(x, 1.f/m2);
-      return pow(max((xPow - c1) * rcp(c2 - c3 * xPow), 0.f), 1.f/m1);
+      const float xp = pow(x, 1.f/m2);
+      return pow(max((xp - c1) * rcp(c2 - c3 * xp), 0.f), 1.f/m1);
     }
 
     static __forceinline float pqxInverse(float x)
