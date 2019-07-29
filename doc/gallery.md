@@ -14,7 +14,7 @@ email](mailto:openimagedenoise@googlegroups.com).
 Crytek Sponza
 -------------
 
-Rendered at 16 spp in HDR:
+Rendered at 16 spp and denoised in HDR:
 
 <div class="img-compare" style="padding-bottom: 56.25%; /* 9/16 */" onmousemove="this.getElementsByTagName('div')[0].style.width=event.offsetX+'px'">
 <img src="images/sponza_16spp_oidn.jpg"><span>Denoised</span>
@@ -26,14 +26,14 @@ Rendered at 16 spp in HDR:
 Amazon Lumberyard Bistro
 ------------------------
 
-Rendered at 64 spp in HDR:
+Rendered at 64 spp and denoised in HDR:
 
 <div class="img-compare" style="padding-bottom: 56.25%; /* 9/16 */" onmousemove="this.getElementsByTagName('div')[0].style.width=event.offsetX+'px'">
 <img src="images/bistro_64spp_oidn.jpg"><span>Denoised</span>
 <div><img src="images/bistro_64spp_input.jpg"><span>Original</span></div>
 </div>
 
-Rendered at 16 spp in HDR:
+Rendered at 16 spp and denoised in HDR:
 
 <div class="img-compare" style="padding-bottom: 56.25%; /* 9/16 */" onmousemove="this.getElementsByTagName('div')[0].style.width=event.offsetX+'px'">
 <img src="images/bistro3_16spp_oidn.jpg"><span>Denoised</span>
@@ -52,7 +52,7 @@ Rendered at 16 spp in HDR:
 Mazda
 -----
 
-Rendered at 64 spp in LDR:
+Rendered at 64 spp and denoised in LDR:
 
 <div class="img-compare" style="padding-bottom: 56.25%; /* 9/16 */" onmousemove="this.getElementsByTagName('div')[0].style.width=event.offsetX+'px'">
 <img src="images/mazda_64spp_oidn.jpg"><span>Denoised</span>
@@ -64,14 +64,14 @@ Rendered at 64 spp in LDR:
 Villa
 -----
 
-Rendered at 32 spp in HDR:
+Rendered at 32 spp and denoised in HDR:
 
 <div class="img-compare" style="padding-bottom: 56.25%; /* 9/16 */" onmousemove="this.getElementsByTagName('div')[0].style.width=event.offsetX+'px'">
 <img src="images/villa_32spp_oidn.jpg"><span>Denoised</span>
 <div><img src="images/villa_32spp_input.jpg"><span>Original</span></div>
 </div>
 
-Rendered at 16 spp in HDR:
+Rendered at 16 spp and denoised in HDR:
 
 <div class="img-compare" style="padding-bottom: 56.25%; /* 9/16 */" onmousemove="this.getElementsByTagName('div')[0].style.width=event.offsetX+'px'">
 <img src="images/villa2_16spp_oidn.jpg"><span>Denoised</span>
@@ -83,7 +83,7 @@ Rendered at 16 spp in HDR:
 Art Deco
 --------
 
-Rendered at 2048 spp in HDR:
+Rendered at 2048 spp and denoised in HDR:
 
 <div class="img-compare" style="padding-bottom: 56.25%; /* 9/16 */" onmousemove="this.getElementsByTagName('div')[0].style.width=event.offsetX+'px'">
 <img src="images/artdeco_2048spp_oidn.jpg"><span>Denoised</span>
