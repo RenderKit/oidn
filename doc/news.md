@@ -1,6 +1,12 @@
 News, Updates, and Announcements
 ================================
 
+July 29, 2019: Version v1.0.0 now released on GitHub
+--------------------------------------------------
+
+New release version 1.0.0 is now available on the [Open Image Denoise
+GitHub page](https://github.com/OpenImageDenoise/oidn/releases/v1.0.0).
+
 May 9, 2019: Version v0.9.0 now released on GitHub
 --------------------------------------------------
 
