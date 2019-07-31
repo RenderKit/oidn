@@ -584,3 +584,31 @@ purposes).][imgMazdaNormalFirstHit]
 hit. Note that the normals of perfect specular (delta) transparent surfaces
 are computed as the Fresnel blend of the reflected and transmitted
 normals.][imgMazdaNormalNonDeltaHit]
+
+### RTLightmap
+
+The `RTLightmap` filter is a variant of the `RT` filter optimized for denoising
+HDR lightmaps.
+
+The filter can be created by passing `"RTLightmap"` to the `oidnNewFilter`
+function as the filter type. The filter supports the following parameters:
+
+--------- -------- ----------- -------- ---------------------------------------
+Type      Format   Name         Default Description
+--------- -------- ----------- -------- ---------------------------------------
+Image     float3   color                input color image (HDR values in
+                                        [0, +∞))
+
+Image     float3   output               output image; can be one of the input
+                                        images
+
+int                maxMemoryMB     6000 approximate maximum amount of memory to
+                                        use in megabytes (actual memory usage
+                                        may be higher); limiting memory usage
+                                        may cause slower denoising due to
+                                        internally splitting the image into
+                                        overlapping tiles, but cannot cause the
+                                        denoising to fail
+
+--------- -------- ----------- -------- ---------------------------------------
+: Parameters supported by the `RTLightmap` filter.

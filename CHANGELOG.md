@@ -1,6 +1,10 @@
 Version History
 ---------------
 
+### Changes in v1.1.0:
+
+-   Added `RTLightmap` filter optimized for lightmaps
+
 ### Changes in v1.0.0:
 
 -   Improved denoising quality
