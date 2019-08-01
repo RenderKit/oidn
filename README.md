@@ -1,6 +1,6 @@
 # Intel® Open Image Denoise
 
-This is release v1.0.0 of Open Image Denoise. For changes and new
+This is release v1.1.0 of Open Image Denoise. For changes and new
 features see the [changelog](CHANGELOG.md). Visit
 http://www.openimagedenoise.org for more information.
 
@@ -8,8 +8,8 @@ http://www.openimagedenoise.org for more information.
 
 Intel® Open Image Denoise is an open source library of high-performance,
 high-quality denoising filters for images rendered with ray tracing.
-Open Image Denoise is part of the [Intel Rendering
-Framework](https://software.intel.com/en-us/rendering-framework) and is
+Open Image Denoise is part of the [Intel® oneAPI Rendering
+Toolkit](https://software.intel.com/en-us/rendering-framework) and is
 released under the permissive [Apache 2.0
 license](http://www.apache.org/licenses/LICENSE-2.0).
 
@@ -710,17 +710,18 @@ The filter can be created by passing `"RT"` to the `oidnNewFilter`
 function as the filter type. The filter supports the following
 parameters:
 
-| Type      | Format | Name        | Default | Description                                                                                                                                                                                                                                         |
-| :-------- | :----- | :---------- | ------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Image     | float3 | color       |         | input color image (LDR values in \[0, 1\] or HDR values in \[0, +∞))                                                                                                                                                                                |
-| Image     | float3 | albedo      |         | input feature image containing the albedo (values in \[0, 1\]) of the first hit per pixel; *optional*                                                                                                                                               |
-| Image     | float3 | normal      |         | input feature image containing the shading normal (world-space or view-space, arbitrary length, values in (−∞, +∞)) of the first hit per pixel; *optional*, requires setting the albedo image too                                                   |
-| Image     | float3 | output      |         | output image; can be one of the input images                                                                                                                                                                                                        |
-| bool      |        | hdr         |   false | whether the color is HDR                                                                                                                                                                                                                            |
-| bool      |        | srgb        |   false | whether the color is encoded with the sRGB (or 2.2 gamma) curve (LDR only) or is linear; the output will be encoded with the same curve                                                                                                             |
-| int       |        | maxMemoryMB |    6000 | approximate maximum amount of memory to use in megabytes (actual memory usage may be higher); limiting memory usage may cause slower denoising due to internally splitting the image into overlapping tiles, but cannot cause the denoising to fail |
-| const int |        | alignment   |         | when manually denoising the image in tiles, the tile size and offsets should be multiples of this amount of pixels to avoid artifacts; note that manual tiled denoising is supported *only* for LDR images                                          |
-| const int |        | overlap     |         | when manually denoising the image in tiles, the tiles should overlap by this amount of pixels                                                                                                                                                       |
+| Type      | Format | Name        | Default | Description                                                                                                                                                                                                                                                 |
+| :-------- | :----- | :---------- | ------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Image     | float3 | color       |         | input color image (LDR values in \[0, 1\] or HDR values in \[0, +∞))                                                                                                                                                                                        |
+| Image     | float3 | albedo      |         | input feature image containing the albedo (values in \[0, 1\]) of the first hit per pixel; *optional*                                                                                                                                                       |
+| Image     | float3 | normal      |         | input feature image containing the shading normal (world-space or view-space, arbitrary length, values in (−∞, +∞)) of the first hit per pixel; *optional*, requires setting the albedo image too                                                           |
+| Image     | float3 | output      |         | output image; can be one of the input images                                                                                                                                                                                                                |
+| bool      |        | hdr         |   false | whether the color is HDR                                                                                                                                                                                                                                    |
+| float     |        | hdrScale    |     NaN | HDR color values are interpreted such that, multiplied by this scale, a value of 1 corresponds to a luminance level of 100 cd/m²; if set to NaN, the scale is computed automatically (*default*)                                                            |
+| bool      |        | srgb        |   false | whether the color is encoded with the sRGB (or 2.2 gamma) curve (LDR only) or is linear; the output will be encoded with the same curve                                                                                                                     |
+| int       |        | maxMemoryMB |    6000 | approximate maximum amount of scratch memory to use in megabytes (actual memory usage may be higher); limiting memory usage may cause slower denoising due to internally splitting the image into overlapping tiles, but cannot cause the denoising to fail |
+| const int |        | alignment   |         | when manually denoising the image in tiles, the tile size and offsets should be multiples of this amount of pixels to avoid artifacts; note that manual tiled denoising of HDR images is supported *only* when hdrScale is set by the user                  |
+| const int |        | overlap     |         | when manually denoising the image in tiles, the tiles should overlap by this amount of pixels                                                                                                                                                               |
 
 Parameters supported by the `RT` filter.
 

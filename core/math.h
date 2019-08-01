@@ -29,6 +29,7 @@ namespace oidn {
   using std::exp2;
   using std::pow;
   using std::isfinite;
+  using std::isnan;
 
   __forceinline float sqr(float x)
   {

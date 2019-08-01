@@ -1,6 +1,11 @@
 Version History
 ---------------
 
+### Changes in v1.1.0:
+
+-   Added `hdrScale` filter parameter for manually specifying the mapping
+    of HDR color values to luminance levels
+
 ### Changes in v1.0.0:
 
 -   Improved denoising quality

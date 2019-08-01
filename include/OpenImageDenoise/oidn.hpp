@@ -240,6 +240,12 @@ namespace oidn {
       oidnSetFilter1i(handle, name, value);
     }
 
+    // Sets a float parameter of the filter.
+    void set(const char* name, float value)
+    {
+      oidnSetFilter1f(handle, name, value);
+    }
+
     // Gets a parameter of the filter.
     template<typename T>
     T get(const char* name);
@@ -275,6 +281,13 @@ namespace oidn {
   inline int FilterRef::get(const char* name)
   {
     return oidnGetFilter1i(handle, name);
+  }
+
+  // Gets a float parameter of the filter.
+  template<>
+  inline float FilterRef::get(const char* name)
+  {
+    return oidnGetFilter1f(handle, name);
   }
 
   // --------------------------------------------------------------------------

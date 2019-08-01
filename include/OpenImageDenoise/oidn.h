@@ -184,14 +184,20 @@ OIDN_API void oidnSetSharedFilterImage(OIDNFilter filter, const char* name,
 // Sets a boolean parameter of the filter.
 OIDN_API void oidnSetFilter1b(OIDNFilter filter, const char* name, bool value);
 
-// Sets an integer parameter of the filter.
-OIDN_API void oidnSetFilter1i(OIDNFilter filter, const char* name, int value);
-
 // Gets a boolean parameter of the filter.
 OIDN_API bool oidnGetFilter1b(OIDNFilter filter, const char* name);
 
+// Sets an integer parameter of the filter.
+OIDN_API void oidnSetFilter1i(OIDNFilter filter, const char* name, int value);
+
 // Gets an integer parameter of the filter.
 OIDN_API int oidnGetFilter1i(OIDNFilter filter, const char* name);
+
+// Sets a float parameter of the filter.
+OIDN_API void oidnSetFilter1f(OIDNFilter filter, const char* name, float value);
+
+// Gets a float parameter of the filter.
+OIDN_API float oidnGetFilter1f(OIDNFilter filter, const char* name);
 
 // Sets the progress monitor callback function of the filter.
 OIDN_API void oidnSetFilterProgressMonitorFunction(OIDNFilter filter, OIDNProgressMonitorFunction func, void* userPtr);

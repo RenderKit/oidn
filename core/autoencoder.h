@@ -42,6 +42,7 @@ namespace oidn {
     Image normal;
     Image output;
     bool hdr = false;
+    float hdrScale = std::numeric_limits<float>::quiet_NaN();
     bool srgb = false;
     int maxMemoryMB = 6000; // approximate maximum memory usage in MBs
 
@@ -73,6 +74,8 @@ namespace oidn {
     void setImage(const std::string& name, const Image& data) override;
     void set1i(const std::string& name, int value) override;
     int get1i(const std::string& name) override;
+    void set1f(const std::string& name, float value) override;
+    float get1f(const std::string& name) override;
 
     void commit() override;
     void execute() override;

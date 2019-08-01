@@ -322,16 +322,6 @@ namespace oidn {
     OIDN_CATCH(filter)
   }
 
-  OIDN_API void oidnSetFilter1i(OIDNFilter hFilter, const char* name, int value)
-  {
-    Filter* filter = (Filter*)hFilter;
-    OIDN_TRY
-      checkHandle(hFilter);
-      OIDN_LOCK(filter);
-      filter->set1i(name, value);
-    OIDN_CATCH(filter)
-  }
-
   OIDN_API bool oidnGetFilter1b(OIDNFilter hFilter, const char* name)
   {
     Filter* filter = (Filter*)hFilter;
@@ -343,6 +333,16 @@ namespace oidn {
     return false;
   }
 
+  OIDN_API void oidnSetFilter1i(OIDNFilter hFilter, const char* name, int value)
+  {
+    Filter* filter = (Filter*)hFilter;
+    OIDN_TRY
+      checkHandle(hFilter);
+      OIDN_LOCK(filter);
+      filter->set1i(name, value);
+    OIDN_CATCH(filter)
+  }
+
   OIDN_API int oidnGetFilter1i(OIDNFilter hFilter, const char* name)
   {
     Filter* filter = (Filter*)hFilter;
@@ -350,6 +350,27 @@ namespace oidn {
       checkHandle(hFilter);
       OIDN_LOCK(filter);
       return filter->get1i(name);
+    OIDN_CATCH(filter)
+    return 0;
+  }
+
+  OIDN_API void oidnSetFilter1f(OIDNFilter hFilter, const char* name, float value)
+  {
+    Filter* filter = (Filter*)hFilter;
+    OIDN_TRY
+      checkHandle(hFilter);
+      OIDN_LOCK(filter);
+      filter->set1f(name, value);
+    OIDN_CATCH(filter)
+  }
+
+  OIDN_API float oidnGetFilter1f(OIDNFilter hFilter, const char* name)
+  {
+    Filter* filter = (Filter*)hFilter;
+    OIDN_TRY
+      checkHandle(hFilter);
+      OIDN_LOCK(filter);
+      return filter->get1f(name);
     OIDN_CATCH(filter)
     return 0;
   }
