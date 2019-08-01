@@ -626,10 +626,12 @@ Filters may have parameters other than buffers as well, which you can
 set and get using the following functions:
 
 ``` cpp
-void oidnSetFilter1b(OIDNFilter filter, const char* name, bool value);
-void oidnSetFilter1i(OIDNFilter filter, const char* name, int  value);
-bool oidnGetFilter1b(OIDNFilter filter, const char* name);
-int  oidnGetFilter1i(OIDNFilter filter, const char* name);
+void  oidnSetFilter1b(OIDNFilter filter, const char* name, bool  value);
+void  oidnSetFilter1i(OIDNFilter filter, const char* name, int   value);
+void  oidnSetFilter1f(OIDNFilter filter, const char* name, float value);
+bool  oidnGetFilter1b(OIDNFilter filter, const char* name);
+int   oidnGetFilter1i(OIDNFilter filter, const char* name);
+float oidnGetFilter1f(OIDNFilter filter, const char* name);
 ```
 
 Filters support a progress monitor callback mechanism that can be used
