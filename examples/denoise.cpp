@@ -253,7 +253,7 @@ int main(int argc, char* argv[])
         else
           re = std::abs(expect - actual);
         if (maxre < re) maxre = re;
-        if (re > 1e-2)
+        if (re > 2e-2)
         {
           //std::cout << "i=" << i << " expect=" << expect << " actual=" << actual << std::endl;
           ++nerr;
