@@ -468,8 +468,11 @@ bool               hdr            false whether the color is HDR
 float              hdrScale         NaN HDR color values are interpreted such
                                         that, multiplied by this scale, a value
                                         of 1 corresponds to a luminance level
-                                        of 100 cd/m²; if set to NaN, the scale
-                                        is computed automatically (*default*)
+                                        of 100 cd/m² (this affects the quality
+                                        of the output but the output color
+                                        values will *not* be scaled); if set to
+                                        NaN, the scale is computed
+                                        automatically (*default*)
 
 bool               srgb           false whether the color is encoded with the
                                         sRGB (or 2.2 gamma) curve (LDR only) or
