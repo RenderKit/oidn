@@ -598,7 +598,7 @@ normals.][imgMazdaNormalNonDeltaHit]
 ### RTLightmap
 
 The `RTLightmap` filter is a variant of the `RT` filter optimized for denoising
-HDR lightmaps.
+HDR lightmaps. It does not support LDR images.
 
 The filter can be created by passing `"RTLightmap"` to the `oidnNewFilter`
 function as the filter type. The filter supports the following parameters:
@@ -612,13 +612,23 @@ Image     float3   color                input color image (HDR values in
 Image     float3   output               output image; can be one of the input
                                         images
 
-int                maxMemoryMB     6000 approximate maximum amount of memory to
-                                        use in megabytes (actual memory usage
-                                        may be higher); limiting memory usage
-                                        may cause slower denoising due to
-                                        internally splitting the image into
-                                        overlapping tiles, but cannot cause the
-                                        denoising to fail
+float              hdrScale         NaN HDR color values are interpreted such
+                                        that, multiplied by this scale, a value
+                                        of 1 corresponds to a luminance level
+                                        of 100 cd/m²; if set to NaN, the scale
+                                        is computed automatically (*default*)
+
+int                maxMemoryMB     6000 approximate maximum amount of scratch
+                                        memory to use in megabytes (actual
+                                        memory usage may be higher)
+
+const int          alignment            when manually denoising the image in
+                                        tiles, the tile size and offsets should
+                                        be multiples of this amount of pixels
+
+const int          overlap              when manually denoising the image in
+                                        tiles, the tiles should overlap by this
+                                        amount of pixels
 
 --------- -------- ----------- -------- ---------------------------------------
 : Parameters supported by the `RTLightmap` filter.
