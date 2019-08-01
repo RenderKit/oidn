@@ -1,58 +1,58 @@
 # Intel® Open Image Denoise
 
-This is release v1.1.0 of Open Image Denoise. For changes and new
+This is release v1.1.0 of Intel Open Image Denoise. For changes and new
 features see the [changelog](CHANGELOG.md). Visit
 http://www.openimagedenoise.org for more information.
 
-# Open Image Denoise Overview
+# Intel Open Image Denoise Overview
 
-Intel® Open Image Denoise is an open source library of high-performance,
+Intel Open Image Denoise is an open source library of high-performance,
 high-quality denoising filters for images rendered with ray tracing.
-Open Image Denoise is part of the [Intel® oneAPI Rendering
+Intel Open Image Denoise is part of the [Intel® oneAPI Rendering
 Toolkit](https://software.intel.com/en-us/rendering-framework) and is
 released under the permissive [Apache 2.0
 license](http://www.apache.org/licenses/LICENSE-2.0).
 
-The purpose of Open Image Denoise is to provide an open, high-quality,
-efficient, and easy-to-use denoising library that allows one to
-significantly reduce rendering times in ray tracing based rendering
-applications. It filters out the Monte Carlo noise inherent to
+The purpose of Intel Open Image Denoise is to provide an open,
+high-quality, efficient, and easy-to-use denoising library that allows
+one to significantly reduce rendering times in ray tracing based
+rendering applications. It filters out the Monte Carlo noise inherent to
 stochastic ray tracing methods like path tracing, reducing the amount of
 necessary samples per pixel by even multiple orders of magnitude
 (depending on the desired closeness to the ground truth). A simple but
 flexible C/C++ API ensures that the library can be easily integrated
 into most existing or new rendering solutions.
 
-At the heart of the Open Image Denoise library is an efficient deep
-learning based denoising filter, which was trained to handle a wide
+At the heart of the Intel Open Image Denoise library is an efficient
+deep learning based denoising filter, which was trained to handle a wide
 range of samples per pixel (spp), from 1 spp to almost fully converged.
 Thus it is suitable for both preview and final-frame rendering. The
 filters can denoise images either using only the noisy color (*beauty*)
 buffer, or, to preserve as much detail as possible, can optionally
-utilize auxiliary feature buffers as well (e.g. albedo, normal). Such
+utilize auxiliary feature buffers as well (e.g. albedo, normal). Such
 buffers are supported by most renderers as arbitrary output variables
 (AOVs) or can be usually implemented with little effort.
 
-Open Image Denoise supports Intel® 64 architecture based CPUs and
+Intel Open Image Denoise supports Intel® 64 architecture based CPUs and
 compatible architectures, and runs on anything from laptops, to
 workstations, to compute nodes in HPC systems. It is efficient enough to
 be suitable not only for offline rendering, but, depending on the
 hardware used, also for interactive ray tracing.
 
-Open Image Denoise internally builds on top of [Intel® Math Kernel
+Intel Open Image Denoise internally builds on top of [Intel® Math Kernel
 Library for Deep Neural Networks
 (MKL-DNN)](https://github.com/intel/mkl-dnn), and automatically exploits
 modern instruction sets like Intel SSE4, AVX2, and AVX-512 to achieve
 high denoising performance. A CPU with support for at least SSE4.1 is
-required to run Open Image Denoise.
+required to run Intel Open Image Denoise.
 
 ## Support and Contact
 
-Open Image Denoise is under active development, and though we do our
-best to guarantee stable release versions a certain number of bugs,
+Intel Open Image Denoise is under active development, and though we do
+our best to guarantee stable release versions a certain number of bugs,
 as-yet-missing features, inconsistencies, or any other issues are still
 possible. Should you find any such issues please report them immediately
-via the [Open Image Denoise GitHub Issue
+via the [Intel Open Image Denoise GitHub Issue
 Tracker](https://github.com/OpenImageDenoise/oidn/issues) (or, if you
 should happen to have a fix for it, you can also send us a pull
 request); for missing features please contact us via email at
@@ -63,29 +63,30 @@ For recent news, updates, and announcements, please see our complete
 
 Join our [mailing
 list](https://groups.google.com/d/forum/openimagedenoise/) to receive
-release announcements and major news regarding Open Image Denoise.
+release announcements and major news regarding Intel Open Image Denoise.
 
-# Building Open Image Denoise from Source
+# Compiling Intel Open Image Denoise
 
-The latest Open Image Denoise sources are always available at the [Open
-Image Denoise GitHub
+The latest Intel Open Image Denoise sources are always available at the
+[Intel Open Image Denoise GitHub
 repository](http://github.com/OpenImageDenoise/oidn). The default
 `master` branch should always point to the latest tested bugfix release.
 
 ## Prerequisites
 
-Open Image Denoise currently supports 64-bit Linux, Windows, and macOS
-operating systems. In addition, before you can build Open Image Denoise
-you need the following prerequisites:
+Intel Open Image Denoise currently supports 64-bit Linux, Windows, and
+macOS operating systems. In addition, before you can build Intel Open
+Image Denoise you need the following prerequisites:
 
-  - You can clone the latest Open Image Denoise sources
+  - You can clone the latest Intel Open Image Denoise sources
         via:
     
         git clone --recursive https://github.com/OpenImageDenoise/oidn.git
 
-  - To build Open Image Denoise you need [CMake](http://www.cmake.org)
-    3.1 or later, a C++11 compiler (we recommend using Clang, but also
-    support GCC, Microsoft Visual Studio 2015 or later, and [Intel® C++
+  - To build Intel Open Image Denoise you need
+    [CMake](http://www.cmake.org) 3.1 or later, a C++11 compiler (we
+    recommend using Clang, but also support GCC, Microsoft Visual Studio
+    2015 or later, and [Intel® C++
     Compiler](https://software.intel.com/en-us/c-compilers) 17.0 or
     later), and Python 2.7 or later.
 
@@ -117,10 +118,10 @@ for [CMake](https://cmake.org/download/),
 [Python](https://www.python.org/downloads/), and
 [TBB](https://github.com/01org/tbb/releases).
 
-## Compiling Open Image Denoise on Linux/macOS
+## Compiling on Linux/macOS
 
-Assuming the above prerequisites are all fulfilled, building Open Image
-Denoise through CMake is easy:
+Assuming the above prerequisites are all fulfilled, building Intel Open
+Image Denoise through CMake is easy:
 
   - Create a build directory, and go into it
     
@@ -156,19 +157,19 @@ Denoise through CMake is easy:
   - You should now have `libOpenImageDenoise.so` as well as a set of
     example applications.
 
-## Compiling Open Image Denoise on Windows
+## Compiling on Windows
 
 On Windows using the CMake GUI (`cmake-gui.exe`) is the most convenient
-way to configure Open Image Denoise and to create the Visual Studio
-solution files:
+way to configure Intel Open Image Denoise and to create the Visual
+Studio solution files:
 
-  - Browse to the Open Image Denoise sources and specify a build
+  - Browse to the Intel Open Image Denoise sources and specify a build
     directory (if it does not exist yet CMake will create it).
 
   - Click “Configure” and select as generator the Visual Studio version
-    you have (Open Image Denoise needs Visual Studio 14 2015 or newer),
-    for Win64 (32-bit builds are not supported), e.g., “Visual Studio 15
-    2017 Win64”.
+    you have (Intel Open Image Denoise needs Visual Studio 14 2015 or
+    newer), for Win64 (32-bit builds are not supported), e.g., “Visual
+    Studio 15 2017 Win64”.
 
   - If the configuration fails because some dependencies could not be
     found then follow the instructions given in the error message, e.g.,
@@ -181,8 +182,8 @@ solution files:
   - Open the generated `OpenImageDenoise.sln` in Visual Studio, select
     the build configuration and compile the project.
 
-Alternatively, Open Image Denoise can also be built without any GUI,
-entirely on the console. In the Visual Studio command prompt type:
+Alternatively, Intel Open Image Denoise can also be built without any
+GUI, entirely on the console. In the Visual Studio command prompt type:
 
     cd path\to\oidn
     mkdir build
@@ -203,11 +204,11 @@ that can be configured in CMake:
     (Debug), Release mode (Release) (default), and Release mode with
     enabled assertions and debug symbols (RelWithDebInfo).
 
-  - `OIDN_STATIC_LIB`: Builds Open Image Denoise as a static library
-    (OFF by default). CMake 3.13.0 or later is required to enable this
-    option. When using the statically compiled Open Image Denoise
-    library, you either have to use the generated CMake configuration
-    files (recommended), or you have to manually define
+  - `OIDN_STATIC_LIB`: Builds Intel Open Image Denoise as a static
+    library (OFF by default). CMake 3.13.0 or later is required to
+    enable this option. When using the statically compiled Intel Open
+    Image Denoise library, you either have to use the generated CMake
+    configuration files (recommended), or you have to manually define
     `OIDN_STATIC_LIB` before including the library headers in your
     application.
 
@@ -217,15 +218,15 @@ that can be configured in CMake:
 # Documentation
 
 The following [API
-documentation](https://github.com/OpenImageDenoise/oidn/blob/master/readme.pdf "Open Image Denoise Documentation")
-of Open Image Denoise can also be found as a [pdf
-document](https://github.com/OpenImageDenoise/oidn/blob/master/readme.pdf "Open Image Denoise Documentation").
+documentation](https://github.com/OpenImageDenoise/oidn/blob/master/readme.pdf "Intel Open Image Denoise Documentation")
+of Intel Open Image Denoise can also be found as a [pdf
+document](https://github.com/OpenImageDenoise/oidn/blob/master/readme.pdf "Intel Open Image Denoise Documentation").
 
-# Open Image Denoise API
+# Intel Open Image Denoise API
 
-Open Image Denoise provides a C99 API (also compatible with C++) and a
-C++11 wrapper API as well. For simplicity, this document mostly refers
-to the C99 version of the API.
+Intel Open Image Denoise provides a C99 API (also compatible with C++)
+and a C++11 wrapper API as well. For simplicity, this document mostly
+refers to the C99 version of the API.
 
 The API is designed in an object-oriented manner, e.g. it contains
 device objects (`OIDNDevice` type), buffer objects (`OIDNBuffer` type),
@@ -253,7 +254,7 @@ simple example code snippets.
 ``` cpp
 #include <OpenImageDenoise/oidn.h>
 ...
-// Create an Open Image Denoise device
+// Create an Intel Open Image Denoise device
 OIDNDevice device = oidnNewDevice(OIDN_DEVICE_TYPE_DEFAULT);
 oidnCommitDevice(device);
 
@@ -288,7 +289,7 @@ oidnReleaseDevice(device);
 ``` cpp
 #include <OpenImageDenoise/oidn.hpp>
 ...
-// Create an Open Image Denoise device
+// Create an Intel Open Image Denoise device
 oidn::DeviceRef device = oidn::newDevice();
 device.commit();
 
@@ -312,10 +313,10 @@ if (device.getError(errorMessage) != oidn::Error::None)
 
 ## Device
 
-Open Image Denoise supports a device concept, which allows different
-components of the application to use the Open Image Denoise API without
-interfering with each other. An application first needs to create a
-device with
+Intel Open Image Denoise supports a device concept, which allows
+different components of the application to use the Open Image Denoise
+API without interfering with each other. An application first needs to
+create a device with
 
 ``` cpp
 OIDNDevice oidnNewDevice(OIDNDeviceType type);
@@ -357,10 +358,10 @@ devices.
 Parameters supported by all
 devices.
 
-| Type | Name        | Default | Description                                                                                                            |
-| :--- | :---------- | ------: | :--------------------------------------------------------------------------------------------------------------------- |
-| int  | numThreads  |       0 | maximum number of threads which Open Image Denoise should use; 0 will set it automatically to get the best performance |
-| bool | setAffinity |    true | bind software threads to hardware threads if set to true (improves performance); false disables binding                |
+| Type | Name        | Default | Description                                                                                                     |
+| :--- | :---------- | ------: | :-------------------------------------------------------------------------------------------------------------- |
+| int  | numThreads  |       0 | maximum number of threads which the library should use; 0 will set it automatically to get the best performance |
+| bool | setAffinity |    true | bind software threads to hardware threads if set to true (improves performance); false disables binding         |
 
 Additional parameters supported only by CPU devices.
 
@@ -369,7 +370,7 @@ to achieve optimal performance, so it is highly recommended to leave
 this option enabled. However, this may interfere with the application if
 that also sets the thread affinities, potentially causing performance
 degradation. In such cases, the recommended solution is to either
-disable setting the affinities in the application or in Open Image
+disable setting the affinities in the application or in Intel Open Image
 Denoise, or to always set/reset the affinities before/after each
 parallel region in the application (e.g., if using TBB, with
 `tbb::task_arena` and `tbb::task_scheduler_observer`).
@@ -390,10 +391,10 @@ devices by invoking
 void oidnReleaseDevice(OIDNDevice device);
 ```
 
-Note that Open Image Denoise uses reference counting for all object
-types, so this function decreases the reference count of the device, and
-if the count reaches 0 the device will automatically get deleted. It is
-also possible to increase the reference count by calling
+Note that Intel Open Image Denoise uses reference counting for all
+object types, so this function decreases the reference count of the
+device, and if the count reaches 0 the device will automatically get
+deleted. It is also possible to increase the reference count by calling
 
 ``` cpp
 void oidnRetainDevice(OIDNDevice device);
@@ -454,7 +455,7 @@ pass `NULL` as device to the `oidnGetDeviceError` function. For all
 other invocations of `oidnGetDeviceError`, a proper device handle must
 be specified.
 
-The following errors are currently used by Open Image
+The following errors are currently used by Intel Open Image
 Denoise:
 
 | Name                               | Description                                |
@@ -471,8 +472,8 @@ Possible error codes, i.e., valid constants of type `OIDNError`.
 
 ## Buffer
 
-Large data like images can be passed to Open Image Denoise either via
-pointers to memory allocated and managed by the user (this is the
+Large data like images can be passed to Intel Open Image Denoise either
+via pointers to memory allocated and managed by the user (this is the
 recommended, often easier and more efficient approach, if supported by
 the device) or by creating buffer objects (supported by all devices). To
 create a new data buffer with memory allocated and owned by the device,
@@ -563,10 +564,10 @@ Supported data formats, i.e., valid constants of type `OIDNFormat`.
 
 ## Filter
 
-Filters are the main objects in Open Image Denoise that are responsible
-for the actual denoising. The library ships with a collection of filters
-which are optimized for different types of images and use cases. To
-create a filter object, call
+Filters are the main objects in Intel Open Image Denoise that are
+responsible for the actual denoising. The library ships with a
+collection of filters which are optimized for different types of images
+and use cases. To create a filter object, call
 
 ``` cpp
 OIDNFilter oidnNewFilter(OIDNDevice device, const char* type);
@@ -648,14 +649,14 @@ void oidnSetFilterProgressMonitorFunction(OIDNFilter filter,
 Only a single callback function can be registered per filter, and
 further invocations overwrite the previously set callback function.
 Passing `NULL` as function pointer disables the registered callback
-function. Once registered, Open Image Denoise will invoke the callback
-function multiple times during filter operations, by passing the payload
-as set at registration time (`userPtr` argument), and a `double` in the
-range \[0, 1\] which estimates the progress of the operation (`n`
-argument). When returning `true` from the callback function, Open Image
-Denoise will continue the filter operation normally. When returning
-`false`, the library will cancel the filter operation with the
-`OIDN_ERROR_CANCELLED` error code.
+function. Once registered, Intel Open Image Denoise will invoke the
+callback function multiple times during filter operations, by passing
+the payload as set at registration time (`userPtr` argument), and a
+`double` in the range \[0, 1\] which estimates the progress of the
+operation (`n` argument). When returning `true` from the callback
+function, Intel Open Image Denoise will continue the filter operation
+normally. When returning `false`, the library will cancel the filter
+operation with the `OIDN_ERROR_CANCELLED` error code.
 
 After setting all necessary parameters for the filter, the changes must
 be commmitted by calling
@@ -677,7 +678,7 @@ which will read the input image data from the specified buffers and
 produce the denoised output image.
 
 In the following we describe the different filters that are currently
-implemented in Open Image Denoise.
+implemented in Intel Open Image Denoise.
 
 ### RT
 
@@ -835,9 +836,9 @@ normals.
 
 ## Denoise
 
-A minimal working example demonstrating how to use Open Image Denoise
-can be found at `examples/denoise.cpp`, which uses the C++11 convenience
-wrappers of the C99 API.
+A minimal working example demonstrating how to use Intel Open Image
+Denoise can be found at `examples/denoise.cpp`, which uses the C++11
+convenience wrappers of the C99 API.
 
 This example is a simple command-line application that denoises the
 provided image, which can optionally have auxiliary feature images as

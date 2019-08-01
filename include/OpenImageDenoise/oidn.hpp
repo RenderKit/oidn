@@ -294,7 +294,7 @@ namespace oidn {
   // Device
   // --------------------------------------------------------------------------
 
-  // Open Image Denoise device types
+  // Device types
   enum class DeviceType
   {
     Default = OIDN_DEVICE_TYPE_DEFAULT, // select device automatically
@@ -459,7 +459,7 @@ namespace oidn {
     return oidnGetDevice1i(handle, name);
   }
 
-  // Creates a new Open Image Denoise device.
+  // Creates a new device.
   inline DeviceRef newDevice(DeviceType type = DeviceType::Default)
   {
     return DeviceRef(oidnNewDevice((OIDNDeviceType)type));

@@ -38,7 +38,7 @@ extern "C" {
 // Device
 // ----------------------------------------------------------------------------
 
-// Open Image Denoise device types
+// Device types
 typedef enum
 {
   OIDN_DEVICE_TYPE_DEFAULT = 0, // select device automatically
@@ -64,7 +64,7 @@ typedef void (*OIDNErrorFunction)(void* userPtr, OIDNError code, const char* mes
 // Device handle
 typedef struct OIDNDeviceImpl* OIDNDevice;
 
-// Creates a new Open Image Denoise device.
+// Creates a new device.
 OIDN_API OIDNDevice oidnNewDevice(OIDNDeviceType type);
 
 // Retains the device (increments the reference count).

@@ -1,25 +1,25 @@
-Building Open Image Denoise from Source
-=======================================
+Compiling Intel Open Image Denoise
+==================================
 
-The latest Open Image Denoise sources are always available at the
-[Open Image Denoise GitHub repository](http://github.com/OpenImageDenoise/oidn).
+The latest Intel Open Image Denoise sources are always available at the
+[Intel Open Image Denoise GitHub repository](http://github.com/OpenImageDenoise/oidn).
 The default `master` branch should always point to the latest tested bugfix
 release.
 
 Prerequisites
 -------------
 
-Open Image Denoise currently supports 64-bit Linux, Windows, and macOS
-operating systems. In addition, before you can build Open Image Denoise
+Intel Open Image Denoise currently supports 64-bit Linux, Windows, and macOS
+operating systems. In addition, before you can build Intel Open Image Denoise
 you need the following prerequisites:
 
--   You can clone the latest Open Image Denoise sources via:
+-   You can clone the latest Intel Open Image Denoise sources via:
 
         git clone --recursive https://github.com/OpenImageDenoise/oidn.git
 
--   To build Open Image Denoise you need [CMake](http://www.cmake.org) 3.1 or
-    later, a C++11 compiler (we recommend using Clang, but also support GCC,
-    Microsoft Visual Studio 2015 or later, and
+-   To build Intel Open Image Denoise you need [CMake](http://www.cmake.org)
+    3.1 or later, a C++11 compiler (we recommend using Clang, but also support
+    GCC, Microsoft Visual Studio 2015 or later, and
     [Intel® C++ Compiler](https://software.intel.com/en-us/c-compilers) 17.0 or
     later), and Python 2.7 or later.
 -   Additionally you require a copy of [Intel® Threading Building
@@ -50,11 +50,11 @@ Under Windows please directly use the appropriate installers or packages for
 and [TBB](https://github.com/01org/tbb/releases).
 
 
-Compiling Open Image Denoise on Linux/macOS
--------------------------------------------
+Compiling on Linux/macOS
+------------------------
 
-Assuming the above prerequisites are all fulfilled, building Open Image Denoise
-through CMake is easy:
+Assuming the above prerequisites are all fulfilled, building Intel Open Image
+Denoise through CMake is easy:
 
 -   Create a build directory, and go into it
 
@@ -91,18 +91,19 @@ through CMake is easy:
     applications.
 
 
-Compiling Open Image Denoise on Windows
----------------------------------------
+Compiling on Windows
+--------------------
 
 On Windows using the CMake GUI (`cmake-gui.exe`) is the most convenient way to
-configure Open Image Denoise and to create the Visual Studio solution files:
+configure Intel Open Image Denoise and to create the Visual Studio solution
+files:
 
--   Browse to the Open Image Denoise sources and specify a build directory (if
-    it does not exist yet CMake will create it).
+-   Browse to the Intel Open Image Denoise sources and specify a build directory
+    (if it does not exist yet CMake will create it).
 
 -   Click "Configure" and select as generator the Visual Studio version you
-    have (Open Image Denoise needs Visual Studio 14 2015 or newer), for Win64
-    (32-bit builds are not supported), e.g., "Visual Studio 15 2017 Win64".
+    have (Intel Open Image Denoise needs Visual Studio 14 2015 or newer), for
+    Win64 (32-bit builds are not supported), e.g., "Visual Studio 15 2017 Win64".
 
 -   If the configuration fails because some dependencies could not be found
     then follow the instructions given in the error message, e.g., set the
@@ -115,8 +116,8 @@ configure Open Image Denoise and to create the Visual Studio solution files:
     build configuration and compile the project.
 
 
-Alternatively, Open Image Denoise can also be built without any GUI, entirely on the
-console. In the Visual Studio command prompt type:
+Alternatively, Intel Open Image Denoise can also be built without any GUI,
+entirely on the console. In the Visual Studio command prompt type:
 
     cd path\to\oidn
     mkdir build
@@ -139,10 +140,10 @@ in CMake:
   (Debug), Release mode (Release) (default), and Release mode with
   enabled assertions and debug symbols (RelWithDebInfo).
 
-- `OIDN_STATIC_LIB`: Builds Open Image Denoise as a static library (OFF by
+- `OIDN_STATIC_LIB`: Builds Intel Open Image Denoise as a static library (OFF by
   default). CMake 3.13.0 or later is required to enable this option. When using
-  the statically compiled Open Image Denoise library, you either have to use
-  the generated CMake configuration files (recommended), or you have to
+  the statically compiled Intel Open Image Denoise library, you either have to
+  use the generated CMake configuration files (recommended), or you have to
   manually define `OIDN_STATIC_LIB` before including the library headers in your
   application.
 
