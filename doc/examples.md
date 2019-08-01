@@ -4,8 +4,8 @@ Examples
 Denoise
 -------
 
-A minimal working example demonstrating how to use Open Image Denoise can be
-found at `examples/denoise.cpp`, which uses the C++11 convenience wrappers of
+A minimal working example demonstrating how to use Intel Open Image Denoise can
+be found at `examples/denoise.cpp`, which uses the C++11 convenience wrappers of
 the C99 API.
 
 This example is a simple command-line application that denoises the provided

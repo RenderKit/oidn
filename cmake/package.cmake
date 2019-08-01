@@ -58,7 +58,7 @@ endif()
 ## ----------------------------------------------------------------------------
 
 set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Open Image Denoise library")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Intel(R) Open Image Denoise library")
 set(CPACK_PACKAGE_VENDOR "Intel Corporation")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY ${CPACK_PACKAGE_NAME})
 set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})

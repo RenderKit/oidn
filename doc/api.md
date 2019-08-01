@@ -1,7 +1,7 @@
-Open Image Denoise API
-======================
+Intel Open Image Denoise API
+============================
 
-Open Image Denoise provides a C99 API (also compatible with C++) and a
+Intel Open Image Denoise provides a C99 API (also compatible with C++) and a
 C++11 wrapper API as well. For simplicity, this document mostly refers to the
 C99 version of the API.
 
@@ -29,7 +29,7 @@ simple example code snippets.
 
     #include <OpenImageDenoise/oidn.h>
     ...
-    // Create an Open Image Denoise device
+    // Create an Intel Open Image Denoise device
     OIDNDevice device = oidnNewDevice(OIDN_DEVICE_TYPE_DEFAULT);
     oidnCommitDevice(device);
 
@@ -62,7 +62,7 @@ simple example code snippets.
 
     #include <OpenImageDenoise/oidn.hpp>
     ...
-    // Create an Open Image Denoise device
+    // Create an Intel Open Image Denoise device
     oidn::DeviceRef device = oidn::newDevice();
     device.commit();
 
@@ -87,9 +87,9 @@ simple example code snippets.
 Device
 ------
 
-Open Image Denoise supports a device concept, which allows different components
-of the application to use the Open Image Denoise API without interfering with
-each other. An application first needs to create a device with
+Intel Open Image Denoise supports a device concept, which allows different
+components of the application to use the Open Image Denoise API without
+interfering with each other. An application first needs to create a device with
 
     OIDNDevice oidnNewDevice(OIDNDeviceType type);
 
@@ -135,9 +135,9 @@ int       verbose             0 verbosity level of the console output between
 ------ ------------ -------- --------------------------------------------------
 Type   Name          Default Description
 ------ ------------ -------- --------------------------------------------------
-int    numThreads          0 maximum number of threads which Open Image Denoise
-                             should use; 0 will set it automatically to get the
-                             best performance
+int    numThreads          0 maximum number of threads which the library should
+                             use; 0 will set it automatically to get the best
+                             performance
 
 bool   setAffinity      true bind software threads to hardware threads if set
                              to true (improves performance); false disables
@@ -150,7 +150,7 @@ achieve optimal performance, so it is highly recommended to leave this option
 enabled. However, this may interfere with the application if that also sets
 the thread affinities, potentially causing performance degradation. In such
 cases, the recommended solution is to either disable setting the affinities
-in the application or in Open Image Denoise, or to always set/reset
+in the application or in Intel Open Image Denoise, or to always set/reset
 the affinities before/after each parallel region in the application (e.g.,
 if using TBB, with `tbb::task_arena` and `tbb::task_scheduler_observer`).
 
@@ -164,8 +164,8 @@ Before the application exits, it should release all devices by invoking
 
     void oidnReleaseDevice(OIDNDevice device);
 
-Note that Open Image Denoise uses reference counting for all object types, so
-this function decreases the reference count of the device, and if the count
+Note that Intel Open Image Denoise uses reference counting for all object types,
+so this function decreases the reference count of the device, and if the count
 reaches 0 the device will automatically get deleted. It is also possible to
 increase the reference count by calling
 
@@ -214,7 +214,7 @@ To detect the error code of a such failed device construction, pass `NULL` as
 device to the `oidnGetDeviceError` function. For all other invocations of
 `oidnGetDeviceError`, a proper device handle must be specified.
 
-The following errors are currently used by Open Image Denoise:
+The following errors are currently used by Intel Open Image Denoise:
 
 ------------------------------- -----------------------------------------------
 Name                            Description
@@ -239,12 +239,12 @@ OIDN_ERROR_CANCELLED            the operation was cancelled by the user
 Buffer
 ------
 
-Large data like images can be passed to Open Image Denoise either via pointers
-to memory allocated and managed by the user (this is the recommended, often
-easier and more efficient approach, if supported by the device) or by creating
-buffer objects (supported by all devices). To create a new data buffer with
-memory allocated and owned by the device, holding `byteSize` number of bytes,
-use
+Large data like images can be passed to Intel Open Image Denoise either via
+pointers to memory allocated and managed by the user (this is the recommended,
+often easier and more efficient approach, if supported by the device) or by
+creating buffer objects (supported by all devices). To create a new data buffer
+with memory allocated and owned by the device, holding `byteSize` number of
+bytes, use
 
     OIDNBuffer oidnNewBuffer(OIDNDevice device, size_t byteSize);
 
@@ -319,9 +319,9 @@ OIDN_FORMAT_FLOAT[234] ... and [234]-element vector
 Filter
 ------
 
-Filters are the main objects in Open Image Denoise that are responsible for the
-actual denoising. The library ships with a collection of filters which are
-optimized for different types of images and use cases. To create a filter
+Filters are the main objects in Intel Open Image Denoise that are responsible
+for the actual denoising. The library ships with a collection of filters which
+are optimized for different types of images and use cases. To create a filter
 object, call
 
     OIDNFilter oidnNewFilter(OIDNDevice device, const char* type);
@@ -389,11 +389,11 @@ filter (`filter` argument):
 Only a single callback function can be registered per filter, and further
 invocations overwrite the previously set callback function. Passing `NULL` as
 function pointer disables the registered callback function. Once registered,
-Open Image Denoise will invoke the callback function multiple times during
+Intel Open Image Denoise will invoke the callback function multiple times during
 filter operations, by passing the payload as set at registration time
 (`userPtr` argument), and a `double` in the range [0, 1] which estimates the
 progress of the operation (`n` argument). When returning `true` from the
-callback function, Open Image Denoise will continue the filter operation
+callback function, Intel Open Image Denoise will continue the filter operation
 normally. When returning `false`, the library will cancel the filter operation
 with the `OIDN_ERROR_CANCELLED` error code.
 
@@ -413,7 +413,7 @@ which will read the input image data from the specified buffers and produce the
 denoised output image.
 
 In the following we describe the different filters that are currently
-implemented in Open Image Denoise.
+implemented in Intel Open Image Denoise.
 
 ### RT
 
@@ -465,25 +465,35 @@ Image     float3   output               output image; can be one of the input
 
 bool               hdr            false whether the color is HDR
 
+float              hdrScale         NaN HDR color values are interpreted such
+                                        that, multiplied by this scale, a value
+                                        of 1 corresponds to a luminance level
+                                        of 100 cd/m² (this affects the quality
+                                        of the output but the output color
+                                        values will *not* be scaled); if set to
+                                        NaN, the scale is computed
+                                        automatically (*default*)
+
 bool               srgb           false whether the color is encoded with the
                                         sRGB (or 2.2 gamma) curve (LDR only) or
                                         is linear; the output will be encoded
                                         with the same curve
 
-int                maxMemoryMB     6000 approximate maximum amount of memory to
-                                        use in megabytes (actual memory usage
-                                        may be higher); limiting memory usage
-                                        may cause slower denoising due to
-                                        internally splitting the image into
-                                        overlapping tiles, but cannot cause the
-                                        denoising to fail
+int                maxMemoryMB     6000 approximate maximum amount of scratch
+                                        memory to use in megabytes (actual
+                                        memory usage may be higher); limiting
+                                        memory usage may cause slower denoising
+                                        due to internally splitting the image
+                                        into overlapping tiles, but cannot cause
+                                        the denoising to fail
 
 const int          alignment            when manually denoising the image in
                                         tiles, the tile size and offsets should
                                         be multiples of this amount of pixels
                                         to avoid artifacts; note that manual
-                                        tiled denoising is supported *only* for
-                                        LDR images
+                                        tiled denoising of HDR images is
+                                        supported *only* when hdrScale is set
+                                        by the user
 
 const int          overlap              when manually denoising the image in
                                         tiles, the tiles should overlap by this

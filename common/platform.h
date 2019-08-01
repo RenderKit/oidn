@@ -27,6 +27,7 @@
 #include <xmmintrin.h>
 #include <cstdint>
 #include <climits>
+#include <limits>
 #include <atomic>
 #include <algorithm>
 #include <memory>

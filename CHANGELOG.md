@@ -4,6 +4,8 @@ Version History
 ### Changes in v1.1.0:
 
 -   Added `RTLightmap` filter optimized for lightmaps
+-   Added `hdrScale` filter parameter for manually specifying the mapping
+    of HDR color values to luminance levels
 
 ### Changes in v1.0.0:
 

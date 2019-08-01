@@ -54,7 +54,7 @@ namespace oidn {
     void setExposure(float exposure)
     {
       this->exposure = exposure;
-      this->rcpExposure = 1.f / exposure;
+      this->rcpExposure = (exposure != 0.f) ? (1.f / exposure) : 0.f;
     }
   };
 

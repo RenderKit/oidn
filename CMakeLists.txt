@@ -33,10 +33,10 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
 
 # Build as shared or static library
 if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.13.0")
-  option(OIDN_STATIC_LIB "Build Open Image Denoise as a static library.")
+  option(OIDN_STATIC_LIB "Build Intel(R) Open Image Denoise as a static library.")
   mark_as_advanced(CLEAR OIDN_STATIC_LIB)
 else()
-  set(OIDN_STATIC_LIB OFF CACHE BOOL "Build Open Image Denoise as a static library." FORCE)
+  set(OIDN_STATIC_LIB OFF CACHE BOOL "Build Intel(R) Open Image Denoise as a static library." FORCE)
   mark_as_advanced(OIDN_STATIC_LIB)
 endif()
 if(OIDN_STATIC_LIB)
@@ -98,7 +98,7 @@ append(CMAKE_C_FLAGS "${CMAKE_CCXX_NOWARN_FLAGS}")
 append(CMAKE_CXX_FLAGS "${CMAKE_CCXX_NOWARN_FLAGS}")
 
 ## ----------------------------------------------------------------------------
-## Open Image Denoise library
+## OIDN library
 ## ----------------------------------------------------------------------------
 
 # Generate version.h
@@ -177,13 +177,13 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY VERSION ${PROJECT_VERSION})
 set_property(TARGET ${PROJECT_NAME} PROPERTY SOVERSION "0")
 
 ## ----------------------------------------------------------------------------
-## Open Image Denoise examples
+## OIDN examples
 ## ----------------------------------------------------------------------------
 
 add_subdirectory(examples)
 
 ## ----------------------------------------------------------------------------
-## Open Image Denoise install and packaging
+## OIDN install and packaging
 ## ----------------------------------------------------------------------------
 
 include(install)

@@ -205,7 +205,7 @@ namespace oidn {
   {
     std::cout << std::endl;
 
-    std::cout << "Open Image Denoise " << OIDN_VERSION_STRING << std::endl;
+    std::cout << "Intel(R) Open Image Denoise " << OIDN_VERSION_STRING << std::endl;
     std::cout << "  Compiler: " << getCompilerName() << std::endl;
     std::cout << "  Build   : " << getBuildName() << std::endl;
     std::cout << "  Platform: " << getPlatformName() << std::endl;

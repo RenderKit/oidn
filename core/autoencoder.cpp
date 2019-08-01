@@ -69,6 +69,22 @@ namespace oidn {
       throw Exception(Error::InvalidArgument, "invalid parameter");
   }
 
+  void AutoencoderFilter::set1f(const std::string& name, float value)
+  {
+    if (name == "hdrScale")
+      hdrScale = value;
+
+    dirty = true;
+  }
+
+  float AutoencoderFilter::get1f(const std::string& name)
+  {
+    if (name == "hdrScale")
+      return hdrScale;
+    else
+      throw Exception(Error::InvalidArgument, "invalid parameter");
+  }
+
   void AutoencoderFilter::commit()
   {
     if (!dirty)
@@ -321,8 +337,15 @@ namespace oidn {
 
     // Transfer function
     std::shared_ptr<TransferFunction> transferFunc = makeTransferFunc();
+
+    // Autoexposure
     if (auto tf = std::dynamic_pointer_cast<HDRTransferFunction>(transferFunc))
-      net->addAutoexposure(color, tf);
+    {
+      if (isnan(hdrScale))
+        net->addAutoexposure(color, tf);
+      else
+        tf->setExposure(hdrScale);
+    }
 
     // Input reorder
     auto inputReorderDst = net->castTensor(inputReorderDims, concat0Dst, upsample0Dims);
