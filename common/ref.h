@@ -26,7 +26,7 @@ namespace oidn {
     std::atomic<size_t> count;
 
   public:
-    __forceinline RefCount(int count = 0) noexcept : count(count) {}
+    __forceinline RefCount(size_t count = 0) noexcept : count(count) {}
   
     __forceinline size_t incRef() noexcept
     {
