@@ -56,16 +56,16 @@ namespace oidn {
     size_t getScratchpadSize() const override
     {
       const auto primDesc = prim.get_primitive_desc();
-      const mkldnn_memory_desc_t* scratchpadDesc = mkldnn_primitive_desc_query_md(primDesc, mkldnn_query_scratchpad_md, 0);
+      const dnnl_memory_desc_t* scratchpadDesc = dnnl_primitive_desc_query_md(primDesc, dnnl_query_scratchpad_md, 0);
       if (scratchpadDesc == nullptr)
         return 0;
-      return mkldnn_memory_desc_get_size(scratchpadDesc);
+      return dnnl_memory_desc_get_size(scratchpadDesc);
     }
 
     void setScratchpad(const std::shared_ptr<memory>& mem) override
     {
       scratchpad = mem;
-      args.insert(std::make_pair(MKLDNN_ARG_SCRATCHPAD, *scratchpad));
+      args.insert(std::make_pair(DNNL_ARG_SCRATCHPAD, *scratchpad));
     }
 
     void execute(stream& sm) override
@@ -90,10 +90,10 @@ namespace oidn {
              const std::shared_ptr<memory>& bias,
              const std::shared_ptr<memory>& dst)
       : MklNode(convolution_forward(desc),
-                { { MKLDNN_ARG_SRC, *src },
-                  { MKLDNN_ARG_WEIGHTS, *weights },
-                  { MKLDNN_ARG_BIAS, *bias },
-                  { MKLDNN_ARG_DST, *dst } }),
+                { { DNNL_ARG_SRC, *src },
+                  { DNNL_ARG_WEIGHTS, *weights },
+                  { DNNL_ARG_BIAS, *bias },
+                  { DNNL_ARG_DST, *dst } }),
                 src(src), weights(weights), bias(bias), dst(dst)
     {}
 
@@ -112,8 +112,8 @@ namespace oidn {
              const std::shared_ptr<memory>& src,
              const std::shared_ptr<memory>& dst)
       : MklNode(pooling_forward(desc),
-                { { MKLDNN_ARG_SRC, *src },
-                  { MKLDNN_ARG_DST, *dst } }),
+                { { DNNL_ARG_SRC, *src },
+                  { DNNL_ARG_DST, *dst } }),
                 src(src), dst(dst)
     {}
 
@@ -131,8 +131,8 @@ namespace oidn {
     ReorderNode(const std::shared_ptr<memory>& src,
                 const std::shared_ptr<memory>& dst)
       : MklNode(reorder(reorder::primitive_desc(*src, *dst)),
-                { { MKLDNN_ARG_SRC, *src },
-                  { MKLDNN_ARG_DST, *dst } }),
+                { { DNNL_ARG_SRC, *src },
+                  { DNNL_ARG_DST, *dst } }),
                 src(src), dst(dst)
     {}
 

@@ -34,12 +34,12 @@ namespace oidn {
       : src(src),
         dst(dst)
     {
-      const mkldnn_memory_desc_t& srcDesc = src->get_desc().data;
-      const mkldnn_memory_desc_t& dstDesc = dst->get_desc().data;
+      const dnnl_memory_desc_t& srcDesc = src->get_desc().data;
+      const dnnl_memory_desc_t& dstDesc = dst->get_desc().data;
       MAYBE_UNUSED(srcDesc);
       MAYBE_UNUSED(dstDesc);
-      assert(memory_desc_matches_tag(srcDesc, mkldnn_format_tag_t(memory::format_tag::oihw)));
-      assert(memory_desc_matches_tag(dstDesc, mkldnn_format_tag_t(memory::format_tag::oihw)));
+      assert(memory_desc_matches_tag(srcDesc, dnnl_format_tag_t(memory::format_tag::oihw)));
+      assert(memory_desc_matches_tag(dstDesc, dnnl_format_tag_t(memory::format_tag::oihw)));
       assert(srcDesc.ndims == 4);
       assert(dstDesc.ndims == 4);
       assert(srcDesc.data_type == memory::data_type::f32);
@@ -52,8 +52,8 @@ namespace oidn {
 
     void execute(stream& sm) override
     {
-      const mkldnn_memory_desc_t& srcDesc = src->get_desc().data;
-      const mkldnn_memory_desc_t& dstDesc = dst->get_desc().data;
+      const dnnl_memory_desc_t& srcDesc = src->get_desc().data;
+      const dnnl_memory_desc_t& dstDesc = dst->get_desc().data;
 
       const float* srcPtr = (float*)src->get_data_handle();
       float* dstPtr = (float*)dst->get_data_handle();

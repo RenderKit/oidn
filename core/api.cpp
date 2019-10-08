@@ -34,8 +34,8 @@
     Device::setError(obj ? obj->getDevice() : nullptr, e.code(), e.what());                         \
   } catch (std::bad_alloc&) {                                                                       \
     Device::setError(obj ? obj->getDevice() : nullptr, Error::OutOfMemory, "out of memory");        \
-  } catch (mkldnn::error& e) {                                                                      \
-    if (e.status == mkldnn_out_of_memory)                                                           \
+  } catch (dnnl::error& e) {                                                                        \
+    if (e.status == dnnl_out_of_memory)                                                             \
       Device::setError(obj ? obj->getDevice() : nullptr, Error::OutOfMemory, "out of memory");      \
     else                                                                                            \
       Device::setError(obj ? obj->getDevice() : nullptr, Error::Unknown, e.message);                \

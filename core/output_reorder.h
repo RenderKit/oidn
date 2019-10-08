@@ -56,9 +56,9 @@ namespace oidn {
         H(output.height), W(output.width),
         transferFunc(transferFunc)
     {
-      const mkldnn_memory_desc_t& srcDesc = src->get_desc().data;
+      const dnnl_memory_desc_t& srcDesc = src->get_desc().data;
       MAYBE_UNUSED(srcDesc);
-      assert(memory_desc_matches_tag(srcDesc, mkldnn_format_tag_t(BlockedFormat<K>::nChwKc)));
+      assert(memory_desc_matches_tag(srcDesc, dnnl_format_tag_t(BlockedFormat<K>::nChwKc)));
       assert(srcDesc.ndims == 4);
       assert(srcDesc.data_type == memory::data_type::f32);
       assert(srcDesc.dims[0] == 1);

@@ -18,9 +18,9 @@
 
 #include "common/platform.h"
 
-#include "mkl-dnn/include/mkldnn.hpp"
-#include "mkl-dnn/include/mkldnn_debug.h"
-#include "mkl-dnn/src/common/mkldnn_thread.hpp"
+#include "mkl-dnn/include/dnnl.hpp"
+#include "mkl-dnn/include/dnnl_debug.h"
+#include "mkl-dnn/src/common/dnnl_thread.hpp"
 #include "mkl-dnn/src/common/type_helpers.hpp"
 #include "mkl-dnn/src/cpu/jit_generator.hpp"
 
@@ -32,10 +32,10 @@
 
 namespace oidn {
 
-  using namespace mkldnn;
-  using namespace mkldnn::impl::cpu;
-  using mkldnn::impl::parallel_nd;
-  using mkldnn::impl::memory_desc_matches_tag;
+  using namespace dnnl;
+  using namespace dnnl::impl::cpu;
+  using dnnl::impl::parallel_nd;
+  using dnnl::impl::memory_desc_matches_tag;
 
 
   inline size_t getFormatBytes(Format format)
@@ -55,13 +55,13 @@ namespace oidn {
 
   inline memory::dims getTensorDims(const std::shared_ptr<memory>& mem)
   {
-    const mkldnn_memory_desc_t& desc = mem->get_desc().data;
+    const dnnl_memory_desc_t& desc = mem->get_desc().data;
     return memory::dims(&desc.dims[0], &desc.dims[desc.ndims]);
   }
 
   inline memory::data_type getTensorType(const std::shared_ptr<memory>& mem)
   {
-    const mkldnn_memory_desc_t& desc = mem->get_desc().data;
+    const dnnl_memory_desc_t& desc = mem->get_desc().data;
     return memory::data_type(desc.data_type);
   }
 

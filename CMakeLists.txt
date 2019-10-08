@@ -29,7 +29,14 @@ project(OpenImageDenoise
   LANGUAGES CXX
 )
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/cmake")
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+list(APPEND CMAKE_MODULE_PATH
+  "${PROJECT_SOURCE_DIR}/cmake"
+  "${PROJECT_SOURCE_DIR}/mkl-dnn/cmake"
+)
 
 # Build as shared or static library
 if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.13.0")
@@ -70,28 +77,34 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 include(package)
 
 ## ----------------------------------------------------------------------------
-## MKL-DNN
+## DNNL (MKL-DNN)
 ## ----------------------------------------------------------------------------
 
-# Configure MKL-DNN
-set(MKLDNN_LIBRARY_TYPE "STATIC" CACHE INTERNAL "")
-set(MKLDNN_THREADING "TBB" CACHE INTERNAL "")
-set(MKLDNN_USE_MKL "NONE" CACHE INTERNAL "")
-set(MKLDNN_ENABLE_CONCURRENT_EXEC ON CACHE INTERNAL "")
-set(MKLDNN_USE_CLANG_SANITIZER "" CACHE INTERNAL "")
-set(MKLDNN_VERBOSE OFF CACHE BOOL "")
-set(MKLDNN_BUILD_EXAMPLES OFF CACHE INTERNAL "")
-set(MKLDNN_BUILD_TESTS OFF CACHE INTERNAL "")
+# Configure DNNL
+set(DNNL_LIBRARY_TYPE "STATIC" CACHE INTERNAL "")
+set(DNNL_ARCH_OPT_FLAGS "HostOpts" CACHE INTERNAL "") # SSE4.1
+set(DNNL_CPU_RUNTIME "TBB" CACHE INTERNAL "")
+set(DNNL_GPU_RUNTIME "NONE" CACHE INTERNAL "")
+set(OPENCLROOT "" CACHE INTERNAL "")
+set(DNNL_VERBOSE OFF CACHE BOOL "")
+set(DNNL_ENABLE_CONCURRENT_EXEC ON CACHE INTERNAL "")
+set(DNNL_ENABLE_PRIMITIVE_CACHE OFF CACHE INTERNAL "")
+set(DNNL_BUILD_EXAMPLES OFF CACHE INTERNAL "")
+set(DNNL_BUILD_TESTS OFF CACHE INTERNAL "")
+set(DNNL_BUILD_FOR_CI OFF CACHE INTERNAL "")
+set(DNNL_WERROR OFF CACHE INTERNAL "")
+set(DNNL_INSTALL_MODE "DEFAULT" CACHE INTERNAL "")
+set(DNNL_USE_CLANG_SANITIZER "" CACHE INTERNAL "")
+set(_DNNL_USE_MKL OFF CACHE INTERNAL "")
 set(BENCHDNN_USE_RDPMC OFF CACHE INTERNAL "")
 
-# Add modified version of MKL-DNN
+# Add modified version of DNNL
 add_subdirectory(mkl-dnn EXCLUDE_FROM_ALL)
 
-# Include some modules from MKL-DNN
-include(mkl-dnn/cmake/Threading.cmake)
-include(mkl-dnn/cmake/TBB.cmake)
-include(mkl-dnn/cmake/platform.cmake)
-include(mkl-dnn/cmake/SDL.cmake)
+# Include some modules from DNNL
+include(TBB)
+include(platform)
+include(SDL)
 
 # Propagate no warning flags
 append(CMAKE_C_FLAGS "${CMAKE_CCXX_NOWARN_FLAGS}")
@@ -148,7 +161,7 @@ generate_cpp_resources(WEIGHTS_SOURCES "oidn::weights"
   weights/rt_hdr_alb_nrm.tza
 )
 
-set_source_files_properties(${CORE_SOURCES_SSE41} PROPERTIES COMPILE_FLAGS "${ISA_FLAGS_SSE41}")
+set_source_files_properties(${CORE_SOURCES_SSE41} PROPERTIES COMPILE_FLAGS "${DNNL_ARCH_OPT_FLAGS}")
 
 add_library(${PROJECT_NAME} ${OIDN_LIB_TYPE} ${CORE_SOURCES} ${CORE_SOURCES_SSE41} ${WEIGHTS_SOURCES})
 
@@ -169,7 +182,7 @@ target_include_directories(${PROJECT_NAME}
 
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
-    common mkldnn
+    common dnnl
 )
 
 set_property(TARGET ${PROJECT_NAME} PROPERTY VERSION ${PROJECT_VERSION})

@@ -60,8 +60,8 @@ namespace oidn {
         H(color.height), W(color.width),
         transferFunc(transferFunc)
     {
-      const mkldnn_memory_desc_t& dstDesc = dst->get_desc().data;
-      assert(memory_desc_matches_tag(dstDesc, mkldnn_format_tag_t(BlockedFormat<K>::nChwKc)));
+      const dnnl_memory_desc_t& dstDesc = dst->get_desc().data;
+      assert(memory_desc_matches_tag(dstDesc, dnnl_format_tag_t(BlockedFormat<K>::nChwKc)));
       assert(dstDesc.ndims == 4);
       assert(dstDesc.data_type == memory::data_type::f32);
       assert(dstDesc.dims[0] == 1);

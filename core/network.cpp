@@ -23,7 +23,7 @@ namespace oidn {
   template<int K>
   Network<K>::Network(const Ref<Device>& device, const std::map<std::string, Tensor>& weightMap)
     : device(device),
-      eng(engine::cpu, 0),
+      eng(engine::kind::cpu, 0),
       sm(eng),
       weightMap(weightMap)
   {
@@ -88,7 +88,7 @@ namespace oidn {
                                                  size_t srcOffset,
                                                  memory::format_tag format)
   {
-    const mkldnn_memory_desc_t& srcDesc = src->get_desc().data;
+    const dnnl_memory_desc_t& srcDesc = src->get_desc().data;
     MAYBE_UNUSED(srcDesc);
     assert(srcDesc.data_type == memory::data_type::f32);
     assert(getTensorSize(src) >= srcOffset + getTensorSize(dims));
@@ -257,20 +257,20 @@ namespace oidn {
     // Let the convolution primitive choose the weights format
     auto weightsDesc = memory::desc({ weightsPadDims }, memory::data_type::f32, memory::format_tag::any);
 
-    auto convAlgo = (K == 16) ? convolution_winograd : convolution_direct;
+    auto convAlgo = (K == 16) ? algorithm::convolution_winograd : algorithm::convolution_direct;
     auto convDesc = convolution_forward::desc(
       prop_kind::forward_inference, convAlgo,
       src->get_desc(),
       weightsDesc,
       bias->get_desc(),
       dst->get_desc(),
-      strides, padding, padding, padding_kind::zero);
+      strides, padding, padding);
 
     // Incorporate relu
-    mkldnn::primitive_attr convAttr;
+    dnnl::primitive_attr convAttr;
     if (relu)
     {
-      mkldnn::post_ops ops;
+      dnnl::post_ops ops;
       ops.append_eltwise(
         1.f,   // scale factor, not used
         algorithm::eltwise_relu,
@@ -279,7 +279,7 @@ namespace oidn {
       );
       convAttr.set_post_ops(ops);
     }
-    convAttr.set_scratchpad_mode(scratchpad_mode_user);
+    convAttr.set_scratchpad_mode(scratchpad_mode::user);
 
     auto convPrimDesc = convolution_forward::primitive_desc(convDesc, convAttr, eng);
 
@@ -326,13 +326,13 @@ namespace oidn {
       dst = castTensor(dstDims, userDst);
 
     auto poolDesc = pooling_forward::desc(
-      prop_kind::forward_inference, pooling_max,
+      prop_kind::forward_inference, algorithm::pooling_max,
       src->get_desc(),
       dst->get_desc(),
-      strides, kernel, padding, padding, padding_kind::zero);
+      strides, kernel, padding, padding);
 
-    mkldnn::primitive_attr poolAttr;
-    poolAttr.set_scratchpad_mode(scratchpad_mode_user);
+    dnnl::primitive_attr poolAttr;
+    poolAttr.set_scratchpad_mode(scratchpad_mode::user);
 
     auto poolPrimDesc = pooling_forward::primitive_desc(poolDesc, poolAttr, eng);
 
