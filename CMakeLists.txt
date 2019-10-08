@@ -185,6 +185,7 @@ target_link_libraries(${PROJECT_NAME}
     common dnnl
 )
 
+message(STATUS "Setting target version ${PROJECT_VERSION}")
 set_property(TARGET ${PROJECT_NAME} PROPERTY VERSION ${PROJECT_VERSION})
 set_property(TARGET ${PROJECT_NAME} PROPERTY SOVERSION "0")
 

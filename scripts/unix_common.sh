@@ -16,8 +16,48 @@
 ## limitations under the License.                                           ##
 ## ======================================================================== ##
 
+# Fail scripts if individual commands fail.
 set -e
-scripts/linux_build.sh         "$@"
-scripts/linux_check_symbols.sh "$@"
-scripts/linux_package.sh       "$@"
+set -o pipefail
+
+# Set up the compiler
+if [ -z "${OIDN_C}" ] || [ -z "${OIDN_CXX}" ]; then
+  COMPILER=icc
+  if [ "$#" -ge 1 ]; then
+    COMPILER=$1
+  fi
+  if [[ $COMPILER == icc ]]; then
+    C_COMPILER=icc
+    CXX_COMPILER=icpc
+  elif [[ $COMPILER == clang ]]; then
+    C_COMPILER=clang
+    CXX_COMPILER=clang++
+  elif [[ $COMPILER == gcc ]]; then
+    C_COMPILER=gcc
+    CXX_COMPILER=g++
+  else
+    echo "Error: unknown compiler"
+    exit 1
+  fi
+else
+  C_COMPILER="${OIDN_C}"
+  CXX_COMPILER="${OIDN_CXX}"
+fi
+
+# Set up dependencies
+if [ -z "${OIDN_ROOT_DIR}" ]; then
+  ROOT_DIR=$PWD
+else
+  ROOT_DIR="${OIDN_ROOT_DIR}"
+fi
+
+BUILD_DIR=$ROOT_DIR/build_release
+DEP_DIR=$ROOT_DIR/deps
+
+source ${ROOT_DIR}/scripts/tbb_version.sh
+if [ -z "${OIDN_TBB_DIR_UNIX}" ]; then
+  TBB_DIR="$DEP_DIR/tbb/${TBB_VERSION}_${TBB_BUILD}"
+else
+  TBB_DIR="${OIDN_TBB_DIR_UNIX}/${TBB_VERSION}_${TBB_BUILD}"
+fi
 

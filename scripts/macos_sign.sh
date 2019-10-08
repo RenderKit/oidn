@@ -16,8 +16,17 @@
 ## limitations under the License.                                           ##
 ## ======================================================================== ##
 
-set -e
-scripts/linux_build.sh         "$@"
-scripts/linux_check_symbols.sh "$@"
-scripts/linux_package.sh       "$@"
+source scripts/unix_common.sh "$@"
+
+cd $BUILD_DIR
+
+if [ -z $OIDN_SIGN_FILE_BINARY_APPLE ]; then
+  echo "\$OIDN_SIGN_FILE_BINARY_APPLE is not set -- skipping sign stage."
+else
+  [ -x $OIDN_SIGN_FILE_BINARY_APPLE ] || exit
+  $OIDN_SIGN_FILE_BINARY_APPLE libOpenImageDenoise.*.*.*.dylib
+  $OIDN_SIGN_FILE_BINARY_APPLE denoise
+fi
+
+cd $ROOT_DIR
 
