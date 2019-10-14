@@ -88,6 +88,30 @@ namespace oidn {
     }
   };
 
+  // Logarithmic transfer function (HDR)
+  // Compresses [0..65504] to [0..1]
+  class LogTransferFunction : public HDRTransferFunction
+  {
+  private:
+    static const float xScale;
+
+  public:
+    LogTransferFunction(float exposure = 1.f)
+      : HDRTransferFunction(exposure)
+    {
+    }
+
+    __forceinline float forward(float y) const override
+    {
+      return log(y * exposure + 1.f) * xScale;
+    }
+
+    __forceinline float inverse(float x) const override
+    {
+      return (exp(x * (1.f/xScale)) - 1.f) * rcpExposure;
+    }
+  };
+
   // PQX transfer function (HDR)
   // Compresses [0..65504] to [0..1]
   class PQXTransferFunction : public HDRTransferFunction

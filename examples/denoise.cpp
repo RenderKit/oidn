@@ -34,7 +34,8 @@ using namespace oidn;
 void printUsage()
 {
   std::cout << "Intel(R) Open Image Denoise Example" << std::endl;
-  std::cout << "Usage: denoise [-ldr ldr_color.pfm] [-srgb] [-hdr hdr_color.pfm]" << std::endl
+  std::cout << "Usage: denoise [-f RT|RTLightmap]" << std::endl
+            << "               [-ldr ldr_color.pfm] [-srgb] [-hdr hdr_color.pfm]" << std::endl
             << "               [-alb albedo.pfm] [-nrm normal.pfm]" << std::endl
             << "               [-o output.pfm] [-ref reference_output.pfm]" << std::endl
             << "               [-bench ntimes] [-threads n] [-affinity 0|1] [-maxmem MB] [-verbose 0-3]" << std::endl;
@@ -62,6 +63,7 @@ bool progressCallback(void* userPtr, double n)
 
 int main(int argc, char* argv[])
 {
+  std::string filterType = "RT";
   std::string colorFilename, albedoFilename, normalFilename;
   std::string outputFilename, refFilename;
   bool hdr = false;
@@ -85,7 +87,9 @@ int main(int argc, char* argv[])
     while (args.hasNext())
     {
       std::string opt = args.getNextOpt();
-      if (opt == "ldr")
+      if (opt == "f" || opt == "filter")
+        filterType = args.getNextValue();
+      else if (opt == "ldr")
       {
         colorFilename = args.getNextValue();
         hdr = false;
@@ -184,7 +188,7 @@ int main(int argc, char* argv[])
       device.set("verbose", verbose);
     device.commit();
 
-    oidn::FilterRef filter = device.newFilter("RT");
+    oidn::FilterRef filter = device.newFilter(filterType.c_str());
 
     filter.setImage("color", color.getData(), oidn::Format::Float3, width, height);
     if (albedo)
@@ -213,7 +217,8 @@ int main(int argc, char* argv[])
     const int versionPatch = device.get<int>("versionPatch");
 
     std::cout << "  version=" << versionMajor << "." << versionMinor << "." << versionPatch
-         << ", msec=" << (1000. * initTime) << std::endl;
+              << ", filter=" << filterType
+              << ", msec=" << (1000. * initTime) << std::endl;
 
     // Denoise the image
     //std::cout << "Denoising";
@@ -248,7 +253,7 @@ int main(int argc, char* argv[])
         else
           re = std::abs(expect - actual);
         if (maxre < re) maxre = re;
-        if (re > 1e-3)
+        if (re > 2e-2)
         {
           //std::cout << "i=" << i << " expect=" << expect << " actual=" << actual << std::endl;
           ++nerr;

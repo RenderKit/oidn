@@ -492,4 +492,27 @@ namespace oidn {
     weightData.hdr_alb_nrm = weights::rt_hdr_alb_nrm;
   }
 
+  // --------------------------------------------------------------------------
+  // RTLightmapFilter
+  // --------------------------------------------------------------------------
+
+  namespace weights
+  {
+    // HDR
+    extern unsigned char rtlightmap_hdr[]; // color
+  }
+
+  RTLightmapFilter::RTLightmapFilter(const Ref<Device>& device)
+    : AutoencoderFilter(device)
+  {
+    weightData.hdr = weights::rtlightmap_hdr;
+
+    hdr = true;
+  }
+
+  std::shared_ptr<TransferFunction> RTLightmapFilter::makeTransferFunc()
+  {
+    return std::make_shared<LogTransferFunction>();
+  }
+
 } // namespace oidn

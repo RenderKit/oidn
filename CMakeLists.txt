@@ -159,6 +159,7 @@ generate_cpp_resources(WEIGHTS_SOURCES "oidn::weights"
   weights/rt_hdr.tza
   weights/rt_hdr_alb.tza
   weights/rt_hdr_alb_nrm.tza
+  weights/rtlightmap_hdr.tza
 )
 
 set_source_files_properties(${CORE_SOURCES_SSE41} PROPERTIES COMPILE_FLAGS "${DNNL_ARCH_OPT_FLAGS}")

@@ -99,4 +99,15 @@ namespace oidn {
     explicit RTFilter(const Ref<Device>& device);
   };
 
+  // --------------------------------------------------------------------------
+  // RTLightmapFilter - Ray traced lightmap denoiser
+  // --------------------------------------------------------------------------
+
+  class RTLightmapFilter : public AutoencoderFilter
+  {
+  public:
+    explicit RTLightmapFilter(const Ref<Device>& device);
+    std::shared_ptr<TransferFunction> makeTransferFunc() override;
+  };
+
 } // namespace oidn

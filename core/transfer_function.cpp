@@ -18,6 +18,7 @@
 
 namespace oidn {
 
+  const float LogTransferFunction::xScale = 1.f / log(LogTransferFunction::yMax + 1.f);
   const float PQXTransferFunction::xScale = 1.f / PQXTransferFunction::pqxForward(PQXTransferFunction::yMax * PQXTransferFunction::yScale);
 
   float AutoexposureNode::autoexposure(const Image& color)

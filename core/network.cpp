@@ -160,6 +160,8 @@ namespace oidn {
       node = std::make_shared<InputReorderNode<K, LinearTransferFunction>>(color, albedo, normal, dst, tf);
     else if (auto tf = std::dynamic_pointer_cast<GammaTransferFunction>(transferFunc))
       node = std::make_shared<InputReorderNode<K, GammaTransferFunction>>(color, albedo, normal, dst, tf);
+    else if (auto tf = std::dynamic_pointer_cast<LogTransferFunction>(transferFunc))
+      node = std::make_shared<InputReorderNode<K, LogTransferFunction>>(color, albedo, normal, dst, tf);
     else if (auto tf = std::dynamic_pointer_cast<PQXTransferFunction>(transferFunc))
       node = std::make_shared<InputReorderNode<K, PQXTransferFunction>>(color, albedo, normal, dst, tf);
     else
@@ -184,6 +186,8 @@ namespace oidn {
       node = std::make_shared<OutputReorderNode<K, LinearTransferFunction>>(src, output, tf);
     else if (auto tf = std::dynamic_pointer_cast<GammaTransferFunction>(transferFunc))
       node = std::make_shared<OutputReorderNode<K, GammaTransferFunction>>(src, output, tf);
+    else if (auto tf = std::dynamic_pointer_cast<LogTransferFunction>(transferFunc))
+      node = std::make_shared<OutputReorderNode<K, LogTransferFunction>>(src, output, tf);
     else if (auto tf = std::dynamic_pointer_cast<PQXTransferFunction>(transferFunc))
       node = std::make_shared<OutputReorderNode<K, PQXTransferFunction>>(src, output, tf);
     else
