@@ -1,6 +1,12 @@
 News, Updates, and Announcements
 ================================
 
+October 15, 2019: Version v1.1.0 now released on GitHub
+--------------------------------------------------
+
+New release version 1.1.0 is now available on the [Intel Open Image Denoise
+GitHub page](https://github.com/OpenImageDenoise/oidn/releases/v1.1.0).
+
 July 29, 2019: Version v1.0.0 now released on GitHub
 --------------------------------------------------
 
