@@ -1,6 +1,6 @@
 # Intel® Open Image Denoise
 
-This is release v1.1.0 of Intel Open Image Denoise. For changes and new
+This is release v1.2.0 of Intel Open Image Denoise. For changes and new
 features see the [changelog](CHANGELOG.md). Visit
 http://www.openimagedenoise.org for more information.
 
@@ -157,6 +157,21 @@ Image Denoise through CMake is easy:
   - You should now have `libOpenImageDenoise.so` as well as a set of
     example applications.
 
+## Entitlements on macOS
+
+macOS requires notarization of applications as a security mechanism, and
+[entitlements must be
+declared](https://developer.apple.com/documentation/bundleresources/entitlements)
+during the notarization process.  
+Intel Open Image Denoise uses just-in-time compilaton through the [Intel
+Deep Neural Network Library](https://intel.github.io/mkl-dnn/) and
+requires the following
+    entitlements:
+
+  - [`com.apple.security.cs.allow-jit`](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_cs_allow-jit)
+  - [`com.apple.security.cs.allow-unsigned-executable-memory`](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_cs_allow-unsigned-executable-memory)
+  - [`com.apple.security.cs.disable-executable-page-protection`](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_cs_disable-executable-page-protection)
+
 ## Compiling on Windows
 
 On Windows using the CMake GUI (`cmake-gui.exe`) is the most convenient
@@ -232,8 +247,8 @@ The API is designed in an object-oriented manner, e.g. it contains
 device objects (`OIDNDevice` type), buffer objects (`OIDNBuffer` type),
 and filter objects (`OIDNFilter` type). All objects are
 reference-counted, and handles can be released by calling the
-appropriate release function (e.g. `oidnReleaseDevice`) or retained by
-incrementing the reference count (e.g. `oidnRetainDevice`).
+appropriate release function (e.g. `oidnReleaseDevice`) or retained by
+incrementing the reference count (e.g. `oidnRetainDevice`).
 
 An important aspect of objects is that setting their parameters do not
 have an immediate effect (with a few exceptions). Instead, objects with
@@ -609,7 +624,7 @@ to shared user-managed data (`ptr` argument) with the
 `oidnSetSharedFilterImage` function.
 
 In both cases, you must also specify the name of the image parameter to
-set (`name` argument, e.g. `"color"`, `"output"`), the pixel format
+set (`name` argument, e.g. `"color"`, `"output"`), the pixel format
 (`format` argument), the width and height of the image in number of
 pixels (`width` and `height` arguments), the starting offset of the
 image data (`byteOffset` argument), the pixel stride (`bytePixelStride`
@@ -814,10 +829,10 @@ either in world-space or view-space. It is recommended to include normal
 maps to preserve as much detail as possible.
 
 Just like any other input image, the normal image should be anti-aliased
-(i.e. by accumulating the normalized normals per pixel). The final
+( i.e. by accumulating the normalized normals per pixel). The final
 accumulated normals do not have to be normalized but must be in a range
 symmetric about 0 (i.e. normals mapped to \[0, 1\] are *not* acceptable
-and must be remapped to e.g. \[−1, 1\]).
+and must be remapped to e.g. \[−1, 1\]).
 
 Similar to the albedo, the normal can be stored for either the first or
 a subsequent hit (if the first hit has a perfect specular/delta BSDF).

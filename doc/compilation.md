@@ -91,6 +91,19 @@ Denoise through CMake is easy:
     applications.
 
 
+Entitlements on macOS
+---------------------
+
+macOS requires notarization of applications as a security mechanism, and 
+[entitlements must be declared](https://developer.apple.com/documentation/bundleresources/entitlements)
+during the notarization process.  
+Intel Open Image Denoise uses just-in-time compilaton through the [Intel Deep Neural Network Library](https://intel.github.io/mkl-dnn/) and requires the following entitlements:
+
+-    [`com.apple.security.cs.allow-jit`](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_cs_allow-jit)
+-    [`com.apple.security.cs.allow-unsigned-executable-memory`](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_cs_allow-unsigned-executable-memory)
+-    [`com.apple.security.cs.disable-executable-page-protection`](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_cs_disable-executable-page-protection)
+
+
 Compiling on Windows
 --------------------
 
