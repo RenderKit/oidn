@@ -19,6 +19,7 @@ stages:
   - check_symbols
   - sign
   - package
+  - scan_source
 
 # ------------------------------------------------------------------------------
 # LINUX
@@ -234,4 +235,20 @@ macos-icc-package:
 # windows-vs15-icc19-package:
 #   extends:      [ .windows-package, .windows-vs15-icc19 ]
 #   dependencies: [ windows-vs15-icc19-sign ]
+
+# ------------------------------------------------------------------------------
+# Protex.
+# ------------------------------------------------------------------------------
+
+protex_scan:
+  stage:    scan_source
+  tags:     [ docker ]
+  only:     [ schedules, web ]
+  extends:  [ .centos6 ]
+  script:   "scripts/protex_scan.sh"
+  artifacts:
+    paths:     [ "$CI_PROJECT_DIR/ip_protex.log" ]
+    name:      "$CI_JOB_NAME"
+    when:      always
+    expire_in: 7d
 
