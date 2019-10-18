@@ -104,6 +104,11 @@ ubuntu18.04-gcc-build:
 ubuntu18.04-clang-build:
   extends:      [ .ubuntu18.04, .linux-clang-build ]
 
+ubuntu18.04-kw-gcc-build:
+  extends:      [ .ubuntu18.04, .linux-gcc-build ]
+  script:       "scripts/klocwork_build.sh"
+
+
 # ------------------------------------------------------------------------------
 # macOS
 # ------------------------------------------------------------------------------
