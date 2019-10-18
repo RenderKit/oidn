@@ -246,6 +246,8 @@ protex_scan:
   only:     [ schedules, web ]
   extends:  [ .centos6 ]
   script:   "scripts/protex_scan.sh"
+  # Will fail regularly, do not break nightlies because of that.
+  allow_failure: true
   artifacts:
     paths:     [ "$CI_PROJECT_DIR/ip_protex.log" ]
     name:      "$CI_JOB_NAME"
