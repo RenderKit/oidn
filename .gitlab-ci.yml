@@ -81,9 +81,6 @@ stages:
 
 .centos6:
   image:        openimagedenoise/build:centos6
- 
-centos6-clang-build:
-  extends:      [ .centos6, .linux-clang-build ]
   
 centos6-icc-build:
   extends:      [ .centos6, .linux-icc-build ]
@@ -98,6 +95,14 @@ centos6-icc-package:
  
 centos6-gcc-build:
   extends:      [ .centos6, .linux-gcc-build ]
+
+# ---------------------------------------------------------------------------
+
+.ubuntu18.04:
+  image:        openimagedenoise/build:ubuntu18.04
+
+ubuntu18.04-clang-build:
+  extends:      [ .ubuntu18.04, .linux-clang-build ]
 
 # ------------------------------------------------------------------------------
 # macOS
