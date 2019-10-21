@@ -241,7 +241,7 @@ int main(int argc, char* argv[])
       int nerr = 0;
       float maxre = 0;
 
-      for (size_t i = 0; i < output.getDataSize(); ++i)
+      for (int i = 0; i < output.getDataSize(); ++i)
       {
         float expect = std::max(ref[i], 0.f);
         const float actual = output[i];
