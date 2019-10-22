@@ -49,6 +49,8 @@ if(MSVC)
   elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
     append(OIDN_C_CXX_FLAGS "/MP")
     set(OIDN_ISA_FLAGS_SSE41 "-QxSSE4.1")
+    # Disable warning: option '/Qstd=c++11' is not valid for C compilations (CMake bug?)
+    append(OIDN_C_CXX_FLAGS "/Qwd10370")
     # Disable diagnostic: loop was not vectorized with "simd"
     append(OIDN_C_CXX_FLAGS "-Qdiag-disable:13379")
     append(OIDN_C_CXX_FLAGS "-Qdiag-disable:15552")
