@@ -19,6 +19,7 @@ stages:
   - check_symbols
   - sign
   - package
+  - scan_source
 
 # ------------------------------------------------------------------------------
 # LINUX
@@ -91,6 +92,17 @@ centos6-icc-check-symbols:
 centos6-icc-package:
   extends:      [ .centos6, .linux-package ]
   dependencies: [ centos6-icc-check-symbols ]
+ 
+centos6-gcc-build:
+  extends:      [ .centos6, .linux-gcc-build ]
+
+# ---------------------------------------------------------------------------
+
+.ubuntu18.04:
+  image:        openimagedenoise/build:ubuntu18.04
+
+ubuntu18.04-clang-build:
+  extends:      [ .ubuntu18.04, .linux-clang-build ]
 
 # ------------------------------------------------------------------------------
 # macOS
@@ -142,6 +154,9 @@ centos6-icc-package:
     <<:       *macos-base
 
 # ---------------------------------------------------------------------------
+
+macos-clang-build:
+  extends:      [ .macos-clang-build ]
 
 macos-icc-build:
   extends:      [ .macos-icc-build ]
@@ -195,12 +210,23 @@ macos-icc-package:
 
 # ------------------------------------------------------------------------------
 
-.windows-vs15-icc19:
-  tags: [ win7, icc19, msvc15 ]
-  variables: &windows-vs15-icc18
-    OIDN_GENERATOR: "Visual Studio 15 2017 Win64"
-    OIDN_TOOLCHAIN: "Intel C++ Compiler 19.4"
-    <<:             *windows-base
+# .windows-vs15-icc19:
+#   tags: [ win10, icc19, msvc15 ]
+#   variables:
+#     OIDN_GENERATOR: "Visual Studio 15 2017 Win64"
+#     OIDN_TOOLSET:   "Intel C++ Compiler 19.0"
+#     <<:             *windows-base
+# 
+# windows-vs15-icc19-build:
+#   extends:      [ .windows-build, .windows-vs15-icc19 ]
+# 
+# windows-vs15-icc19-sign:
+#   extends:      [ .windows-sign, .windows-vs15-icc19 ]
+#   dependencies: [ windows-vs15-icc19-build ]
+# 
+# windows-vs15-icc19-package:
+#   extends:      [ .windows-package, .windows-vs15-icc19 ]
+#   dependencies: [ windows-vs15-icc19-sign ]
 
 # ------------------------------------------------------------------------------
 
@@ -214,4 +240,22 @@ macos-icc-package:
 # windows-vs15-icc19-package:
 #   extends:      [ .windows-package, .windows-vs15-icc19 ]
 #   dependencies: [ windows-vs15-icc19-sign ]
+
+# ------------------------------------------------------------------------------
+# Protex.
+# ------------------------------------------------------------------------------
+
+protex_scan:
+  stage:    scan_source
+  tags:     [ docker ]
+  only:     [ schedules, web ]
+  extends:  [ .centos6 ]
+  script:   "scripts/protex_scan.sh"
+  # Will fail regularly, do not break nightlies because of that.
+  allow_failure: true
+  artifacts:
+    paths:     [ "$CI_PROJECT_DIR/ip_protex.log" ]
+    name:      "$CI_JOB_NAME"
+    when:      always
+    expire_in: 7d
 

@@ -12,7 +12,7 @@ if ((Test-Path Env:OIDN_GENERATOR) -and (Test-Path Env:OIDN_TOOLCHAIN)) {
 else {
   if ($COMPILER -eq "icc") {
     $GENERATOR = "Visual Studio 15 2017 Win64"
-    $TOOLCHAIN = "Intel C++ Compiler 19.4"
+    $TOOLCHAIN = "Intel C++ Compiler 19.0"
   } elseif ($COMPILER -eq "msvc") {
     $GENERATOR = "Visual Studio 15 2017 Win64"
     $TOOLCHAIN = ""
@@ -40,10 +40,11 @@ Write-Host "TBB version is $TBB_VERSION"
 Write-Host "TBB build is $TBB_BUILD"
 
 if (Test-Path Env:OIDN_TBB_DIR_WINDOWS) {
-  $TBB_DIR = "$Env:OIDN_TBB_DIR_WINDOWS\${TBB_VERSION}_$TBB_BUILD\win\$TBB_BUILD"
+  $TBB_DIR = "$Env:OIDN_TBB_DIR_WINDOWS\${TBB_VERSION}_${TBB_BUILD}\win\${TBB_BUILD}"
 } else {
-  $TBB_DIR = "$DEP_DIR\tbb\$TBB_VERSION_$TBB_BUILD\win\$TBB_BUILD"
+  $TBB_DIR = "${DEP_DIR}\tbb\${TBB_VERSION}_${TBB_BUILD}\win\${TBB_BUILD}"
 }
+Write-Host "Expecting to find TBB at $TBB_DIR"
 
 # Clean up the build directory.
 $BUILD_DIR = "build_release"
