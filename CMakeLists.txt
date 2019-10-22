@@ -37,6 +37,10 @@ project(OpenImageDenoise
   LANGUAGES C CXX
 )
 
+if (NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
+  message(FATAL_ERROR "Intel(R) Open Image Denoise supports 64-bit platforms only")
+endif()
+
 # CMake modules
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 

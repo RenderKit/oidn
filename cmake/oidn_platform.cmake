@@ -24,7 +24,6 @@ set(OIDN_CXX_FLAGS)
 add_definitions(-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS)
 
 if(MSVC)
-  set(USERCONFIG_PLATFORM "x64")
   append_if(OIDN_WARN_AS_ERRORS OIDN_C_CXX_FLAGS "/WX")
   # Enable intrinsic functions
   append(OIDN_C_CXX_FLAGS "/Oi")
