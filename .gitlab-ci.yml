@@ -92,14 +92,14 @@ centos6-icc-check-symbols:
 centos6-icc-package:
   extends:      [ .centos6, .linux-package ]
   dependencies: [ centos6-icc-check-symbols ]
- 
-centos6-gcc-build:
-  extends:      [ .centos6, .linux-gcc-build ]
 
 # ---------------------------------------------------------------------------
 
 .ubuntu18.04:
   image:        openimagedenoise/build:ubuntu18.04
+
+ubuntu18.04-gcc-build:
+  extends:      [ .ubuntu18.04, .linux-gcc-build ]
 
 ubuntu18.04-clang-build:
   extends:      [ .ubuntu18.04, .linux-clang-build ]
