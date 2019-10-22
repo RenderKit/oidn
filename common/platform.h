@@ -17,8 +17,12 @@
 #pragma once
 
 #if defined(_WIN32)
-  #define WIN32_LEAN_AND_MEAN
-  #define NOMINMAX
+  #if !defined(WIN32_LEAN_AND_MEAN)
+    #define WIN32_LEAN_AND_MEAN
+  #endif
+  #if !defined(NOMINMAX)
+    #define NOMINMAX
+  #endif
   #include <Windows.h>
 #elif defined(__APPLE__)
   #include <sys/sysctl.h>
