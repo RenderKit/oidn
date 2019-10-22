@@ -38,10 +38,4 @@ target_include_directories(common
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
 )
 
-target_link_libraries(common PUBLIC ${TBB_LIBRARIES})
-if(UNIX)
-  target_link_libraries(common PUBLIC pthread)
-  if(NOT(APPLE))
-    target_link_libraries(common PUBLIC rt)
-  endif()
-endif()
+target_link_libraries(common PUBLIC ${CMAKE_THREAD_LIBS_INIT} ${TBB_LIBRARIES})

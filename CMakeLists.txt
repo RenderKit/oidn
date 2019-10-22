@@ -26,26 +26,26 @@ math(EXPR OIDN_VERSION_NUMBER "10000*${OIDN_VERSION_MAJOR} + 100*${OIDN_VERSION_
 
 project(OpenImageDenoise
   VERSION ${OIDN_VERSION}
-  LANGUAGES CXX
+  LANGUAGES C CXX
 )
+
+set(CMAKE_C_STANDARD 99)
+set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS OFF)
 
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-list(APPEND CMAKE_MODULE_PATH
-  "${PROJECT_SOURCE_DIR}/cmake"
-  "${PROJECT_SOURCE_DIR}/mkl-dnn/cmake"
-)
+# CMake modules
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+
+# CMake macros
+include(oidn_macros)
 
 # Build as shared or static library
-if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.13.0")
-  option(OIDN_STATIC_LIB "Build Intel(R) Open Image Denoise as a static library.")
-  mark_as_advanced(CLEAR OIDN_STATIC_LIB)
-else()
-  set(OIDN_STATIC_LIB OFF CACHE BOOL "Build Intel(R) Open Image Denoise as a static library." FORCE)
-  mark_as_advanced(OIDN_STATIC_LIB)
-endif()
+option(OIDN_STATIC_LIB "Build Intel(R) Open Image Denoise as a static library.")
+mark_as_advanced(CLEAR OIDN_STATIC_LIB)
 if(OIDN_STATIC_LIB)
   set(OIDN_LIB_TYPE STATIC)
 else()
@@ -73,45 +73,136 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 
-# Configure packaging
-include(package)
+# Library dependencies
+find_package(Threads REQUIRED)
+find_package(TBB REQUIRED)
+
+# Packaging
+include(oidn_package)
+
+# Platform-specific settings
+include(oidn_platform)
 
 ## ----------------------------------------------------------------------------
-## DNNL (MKL-DNN)
+## DNNL
 ## ----------------------------------------------------------------------------
 
-# Configure DNNL
-set(DNNL_LIBRARY_TYPE "STATIC" CACHE INTERNAL "")
-set(DNNL_ARCH_OPT_FLAGS "HostOpts" CACHE INTERNAL "") # SSE4.1
-set(DNNL_CPU_RUNTIME "TBB" CACHE INTERNAL "")
-set(DNNL_GPU_RUNTIME "NONE" CACHE INTERNAL "")
-set(OPENCLROOT "" CACHE INTERNAL "")
-set(DNNL_VERBOSE OFF CACHE BOOL "")
-set(DNNL_ENABLE_CONCURRENT_EXEC ON CACHE INTERNAL "")
-set(DNNL_ENABLE_PRIMITIVE_CACHE OFF CACHE INTERNAL "")
-set(DNNL_BUILD_EXAMPLES OFF CACHE INTERNAL "")
-set(DNNL_BUILD_TESTS OFF CACHE INTERNAL "")
-set(DNNL_BUILD_FOR_CI OFF CACHE INTERNAL "")
-set(DNNL_WERROR OFF CACHE INTERNAL "")
-set(DNNL_INSTALL_MODE "DEFAULT" CACHE INTERNAL "")
-set(DNNL_USE_CLANG_SANITIZER "" CACHE INTERNAL "")
-set(_DNNL_USE_MKL OFF CACHE INTERNAL "")
-set(BENCHDNN_USE_RDPMC OFF CACHE INTERNAL "")
+set(DNNL_VERSION_MAJOR 1)
+set(DNNL_VERSION_MINOR 1)
+set(DNNL_VERSION_PATCH 0)
+set(DNNL_VERSION_HASH  "N/A")
 
-# Add modified version of DNNL
-add_subdirectory(mkl-dnn EXCLUDE_FROM_ALL)
+set(DNNL_CPU_RUNTIME "TBB")
+set(DNNL_CPU_THREADING_RUNTIME "TBB")
+set(DNNL_GPU_RUNTIME "NONE")
 
-# Include some modules from DNNL
-include(TBB)
-include(platform)
-include(SDL)
+configure_file(
+  "${PROJECT_SOURCE_DIR}/mkl-dnn/include/dnnl_config.h.in"
+  "${PROJECT_BINARY_DIR}/mkl-dnn/include/dnnl_config.h"
+)
+configure_file(
+  "${PROJECT_SOURCE_DIR}/mkl-dnn/include/dnnl_version.h.in"
+  "${PROJECT_BINARY_DIR}/mkl-dnn/include/dnnl_version.h"
+)
 
-# Propagate no warning flags
-append(CMAKE_C_FLAGS "${CMAKE_CCXX_NOWARN_FLAGS}")
-append(CMAKE_CXX_FLAGS "${CMAKE_CCXX_NOWARN_FLAGS}")
+file(GLOB_RECURSE DNNL_COMMON_SOURCES
+  mkl-dnn/src/common/*.h
+  mkl-dnn/src/common/*.hpp
+  mkl-dnn/src/common/*.c
+  mkl-dnn/src/common/*.cpp
+)
+
+add_library(dnnl_common STATIC ${DNNL_COMMON_SOURCES})
+
+target_include_directories(dnnl_common
+  PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/mkl-dnn/include>
+    $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/mkl-dnn/include>
+    ${PROJECT_SOURCE_DIR}/mkl-dnn/src
+    ${PROJECT_SOURCE_DIR}/mkl-dnn/src/common
+)
+
+target_compile_definitions(dnnl_common
+  PUBLIC
+    -DDISABLE_VERBOSE
+    -DDNNL_ENABLE_CONCURRENT_EXEC
+)
+
+target_compile_options(dnnl_common PRIVATE ${OIDN_ISA_FLAGS_SSE41})
+
+target_link_libraries(dnnl_common PUBLIC ${CMAKE_THREAD_LIBS_INIT} ${TBB_LIBRARIES})
 
 ## ----------------------------------------------------------------------------
-## OIDN library
+## DNNL: CPU
+## ----------------------------------------------------------------------------
+
+file(GLOB_RECURSE DNNL_CPU_SOURCES
+  mkl-dnn/src/cpu/bfloat16.cpp
+  mkl-dnn/src/cpu/cpu_*.hpp
+  mkl-dnn/src/cpu/cpu_*.cpp
+  mkl-dnn/src/cpu/jit_avx2_conv_kernel_f32.hpp
+  mkl-dnn/src/cpu/jit_avx2_conv_kernel_f32.cpp
+  mkl-dnn/src/cpu/jit_avx2_convolution.hpp
+  mkl-dnn/src/cpu/jit_avx2_convolution.cpp
+  mkl-dnn/src/cpu/jit_avx512_common_conv_kernel.hpp
+  mkl-dnn/src/cpu/jit_avx512_common_conv_kernel.cpp
+  mkl-dnn/src/cpu/jit_avx512_common_convolution.hpp
+  mkl-dnn/src/cpu/jit_avx512_common_convolution.cpp
+  mkl-dnn/src/cpu/jit_avx512_common_convolution_winograd.hpp
+  mkl-dnn/src/cpu/jit_avx512_common_convolution_winograd.cpp
+  mkl-dnn/src/cpu/jit_avx512_common_conv_winograd_kernel_f32.hpp
+  mkl-dnn/src/cpu/jit_avx512_common_conv_winograd_kernel_f32.cpp
+  mkl-dnn/src/cpu/jit_avx512_core_f32_wino_conv_*.hpp
+  mkl-dnn/src/cpu/jit_avx512_core_f32_wino_conv_*.cpp
+  mkl-dnn/src/cpu/jit_generator.hpp
+  mkl-dnn/src/cpu/jit_primitive_conf.hpp
+  mkl-dnn/src/cpu/jit_sse41_conv_kernel_f32.hpp
+  mkl-dnn/src/cpu/jit_sse41_conv_kernel_f32.cpp
+  mkl-dnn/src/cpu/jit_sse41_convolution.hpp
+  mkl-dnn/src/cpu/jit_sse41_convolution.cpp
+  mkl-dnn/src/cpu/jit_transpose_src_utils.hpp
+  mkl-dnn/src/cpu/jit_transpose_src_utils.cpp
+  mkl-dnn/src/cpu/jit_uni_eltwise.hpp
+  mkl-dnn/src/cpu/jit_uni_eltwise.cpp
+  mkl-dnn/src/cpu/jit_uni_pooling.hpp
+  mkl-dnn/src/cpu/jit_uni_pooling.cpp
+  mkl-dnn/src/cpu/jit_uni_pool_kernel.hpp
+  mkl-dnn/src/cpu/jit_uni_pool_kernel.cpp
+  mkl-dnn/src/cpu/jit_uni_reorder.hpp
+  mkl-dnn/src/cpu/jit_uni_reorder.cpp
+  mkl-dnn/src/cpu/jit_uni_reorder_utils.cpp
+  mkl-dnn/src/cpu/simple_q10n.hpp
+  mkl-dnn/src/cpu/simple_reorder.hpp
+  mkl-dnn/src/cpu/wino_reorder.hpp
+  mkl-dnn/src/cpu/jit_utils/*.h
+  mkl-dnn/src/cpu/jit_utils/*.hpp
+  mkl-dnn/src/cpu/jit_utils/*.c
+  mkl-dnn/src/cpu/jit_utils/*.cpp
+  mkl-dnn/src/cpu/xbyak/*.h
+)
+
+if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+  file(GLOB DNNL_CPU_SOURCES_BIGOBJ
+    mkl-dnn/src/cpu/cpu_engine.cpp
+    mkl-dnn/src/cpu/cpu_reorder.cpp
+  )
+  set_source_files_properties(${DNNL_CPU_SOURCES_BIGOBJ} PROPERTIES COMPILE_FLAGS "/bigobj")
+endif()
+
+add_library(dnnl_cpu STATIC ${DNNL_CPU_SOURCES})
+
+target_include_directories(dnnl_cpu
+  PUBLIC
+    ${PROJECT_SOURCE_DIR}/mkl-dnn/src/cpu
+    ${PROJECT_SOURCE_DIR}/mkl-dnn/src/cpu/xbyak
+)
+
+target_compile_options(dnnl_cpu PRIVATE ${OIDN_ISA_FLAGS_SSE41})
+
+target_link_libraries(dnnl_cpu PUBLIC dnnl_common)
+
+## ----------------------------------------------------------------------------
+## OIDN
 ## ----------------------------------------------------------------------------
 
 # Generate version.h
@@ -151,7 +242,6 @@ set(CORE_SOURCES_SSE41
   core/transfer_function.cpp
 )
 
-include(resource)
 generate_cpp_resources(WEIGHTS_SOURCES "oidn::weights"
   weights/rt_ldr.tza
   weights/rt_ldr_alb.tza
@@ -162,7 +252,7 @@ generate_cpp_resources(WEIGHTS_SOURCES "oidn::weights"
   weights/rtlightmap_hdr.tza
 )
 
-set_source_files_properties(${CORE_SOURCES_SSE41} PROPERTIES COMPILE_FLAGS "${DNNL_ARCH_OPT_FLAGS}")
+set_source_files_properties(${CORE_SOURCES_SSE41} PROPERTIES COMPILE_FLAGS "${OIDN_ISA_FLAGS_SSE41}")
 
 add_library(${PROJECT_NAME} ${OIDN_LIB_TYPE} ${CORE_SOURCES} ${CORE_SOURCES_SSE41} ${WEIGHTS_SOURCES})
 
@@ -174,16 +264,11 @@ target_include_directories(${PROJECT_NAME}
   PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-  PRIVATE
-    ${PROJECT_SOURCE_DIR}/mkl-dnn/include
-    ${PROJECT_SOURCE_DIR}/mkl-dnn/src
-    ${PROJECT_SOURCE_DIR}/mkl-dnn/src/common
-    ${PROJECT_SOURCE_DIR}/mkl-dnn/src/cpu/xbyak
 )
 
 target_link_libraries(${PROJECT_NAME}
   PRIVATE
-    common dnnl
+    common dnnl_common dnnl_cpu
 )
 
 message(STATUS "Setting target version ${PROJECT_VERSION}")
@@ -191,16 +276,16 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY VERSION ${PROJECT_VERSION})
 set_property(TARGET ${PROJECT_NAME} PROPERTY SOVERSION "0")
 
 ## ----------------------------------------------------------------------------
-## OIDN examples
+## OIDN: Examples
 ## ----------------------------------------------------------------------------
 
 add_subdirectory(examples)
 
 ## ----------------------------------------------------------------------------
-## OIDN install and packaging
+## OIDN: Install and packaging
 ## ----------------------------------------------------------------------------
 
-include(install)
+include(oidn_install)
 
 # Has to be last
 include(CPack)
