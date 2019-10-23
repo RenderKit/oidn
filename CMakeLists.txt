@@ -16,6 +16,11 @@
 
 cmake_minimum_required(VERSION 3.1)
 
+# Policy: find_package() uses <PackageName>_ROOT variables
+if(POLICY CMP0074)
+  cmake_policy(SET CMP0074 NEW)
+endif()
+
 set(OIDN_VERSION_MAJOR 1)
 set(OIDN_VERSION_MINOR 2)
 set(OIDN_VERSION_PATCH 0)
