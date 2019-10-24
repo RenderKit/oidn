@@ -64,6 +64,8 @@ if(MSVC)
     set(OIDN_ISA_FLAGS_SSE41 "-msse4.1")
     # Disable warning: cannot vectorize some loops with #pragma omp simd
     append(OIDN_C_CXX_FLAGS "-Wno-pass-failed")
+    # Disable warning: function is not needed and will not be emitted
+    append(OIDN_C_CXX_FLAGS "-Wno-unneeded-internal-declaration")
   endif()
 elseif(UNIX OR MINGW)
   append(OIDN_C_CXX_FLAGS "-Wall -Wno-unknown-pragmas")
@@ -74,6 +76,8 @@ elseif(UNIX OR MINGW)
     set(OIDN_ISA_FLAGS_SSE41 "-msse4.1")
     # Disable warning: cannot vectorize some loops with #pragma omp simd
     append(OIDN_C_CXX_FLAGS "-Wno-pass-failed")
+    # Disable warning: function is not needed and will not be emitted
+    append(OIDN_C_CXX_FLAGS "-Wno-unneeded-internal-declaration")
   elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(OIDN_ISA_FLAGS_SSE41 "-msse4.1")
     # Suppress warning on assumptions made regarding overflow (#146)
