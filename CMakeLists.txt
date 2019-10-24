@@ -125,8 +125,8 @@ add_library(dnnl_common STATIC ${DNNL_COMMON_SOURCES})
 
 target_include_directories(dnnl_common
   PUBLIC
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/mkl-dnn/include>
-    $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/mkl-dnn/include>
+    ${PROJECT_SOURCE_DIR}/mkl-dnn/include
+    ${PROJECT_BINARY_DIR}/mkl-dnn/include
     ${PROJECT_SOURCE_DIR}/mkl-dnn/src
     ${PROJECT_SOURCE_DIR}/mkl-dnn/src/common
 )
