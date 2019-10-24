@@ -122,7 +122,7 @@ namespace oidn {
     static constexpr float c1 = 3424.f / 4096.f;
     static constexpr float c2 = 2413.f / 4096.f * 32.f;
     static constexpr float c3 = 2392.f / 4096.f * 32.f;
-    static constexpr float  a = 3711.f / 4096.f / 8.f;
+    static constexpr float  k = 3711.f / 4096.f / 8.f;
 
     static constexpr float yScale = 100.f / 10000.f;
     static const float     xScale;
@@ -155,7 +155,7 @@ namespace oidn {
       if (y <= 1.f)
         return pqForward(y);
       else
-        return a * log(y) + 1.f;
+        return k * log(y) + 1.f;
     }
 
     static __forceinline float pqInverse(float x)
@@ -169,7 +169,7 @@ namespace oidn {
       if (x <= 1.f)
         return pqInverse(x);
       else
-        return exp((x - 1.f) * (1.f/a));
+        return exp((x - 1.f) * (1.f/k));
     }
   };
 
