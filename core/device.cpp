@@ -158,6 +158,9 @@ namespace oidn {
     if (affinity)
       observer = std::make_shared<PinningObserver>(affinity, *arena);
 
+    // Initialize DNNL verbosity (unfortunately this is not per-device but global)
+    dnnl_set_verbose(clamp(verbose - 2, 0, 2));
+
     dirty = false;
 
     if (isVerbose())

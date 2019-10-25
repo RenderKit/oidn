@@ -127,7 +127,7 @@ const int versionMinor          minor version number
 const int versionPatch          patch version number
 
 int       verbose             0 verbosity level of the console output between
-                                0--3; when set to 0, no output is printed, when
+                                0--4; when set to 0, no output is printed, when
                                 set to a higher level more output is printed
 --------- ------------ -------- -----------------------------------------------
 : Parameters supported by all devices.

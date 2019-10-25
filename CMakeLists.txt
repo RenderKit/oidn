@@ -133,7 +133,6 @@ target_include_directories(dnnl_common
 
 target_compile_definitions(dnnl_common
   PUBLIC
-    -DDISABLE_VERBOSE
     -DDNNL_ENABLE_CONCURRENT_EXEC
 )
 
