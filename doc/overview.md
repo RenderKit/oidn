@@ -34,7 +34,7 @@ for offline rendering, but, depending on the hardware used, also for interactive
 ray tracing.
 
 Intel Open Image Denoise internally builds on top of
-[Intel® Math Kernel Library for Deep Neural Networks (MKL-DNN)](https://github.com/intel/mkl-dnn),
+[Intel® Deep Neural Network Library (DNNL)](https://github.com/intel/mkl-dnn),
 and automatically exploits modern instruction sets like Intel SSE4, AVX2, and
 AVX-512 to achieve high denoising performance. A CPU with support for at least
 SSE4.1 is required to run Intel Open Image Denoise.
