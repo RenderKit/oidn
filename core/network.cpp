@@ -276,10 +276,10 @@ namespace oidn {
     {
       dnnl::post_ops ops;
       ops.append_eltwise(
-        1.f,   // scale factor, not used
+        1.f,   // scale
         algorithm::eltwise_relu,
-        0.f,   // max with
-        0.f    // unused
+        0.f,   // alpha
+        0.f    // beta
       );
       convAttr.set_post_ops(ops);
     }
