@@ -28,9 +28,9 @@ stages:
 .linux-base:
   tags:        [ docker ]
   artifacts:     
-    paths:     [ "$CI_PROJECT_DIR/build_release", "$CI_PROJECT_DIR/deps" ]
+    untracked: true
     name:      "$CI_JOB_NAME"
-    when:      on_success
+    when:      always
     expire_in: 1d
   variables: &linux-base
     GIT_SUBMODULE_STRATEGY: recursive
@@ -116,9 +116,9 @@ ubuntu18.04-kw-gcc-build:
 .macos-base:
   tags:        [ osx ]
   artifacts:     
-    paths:     [ "$CI_PROJECT_DIR/build_release", "$CI_PROJECT_DIR/deps" ]
+    untracked: true
     name:      "$CI_JOB_NAME"
-    when:      on_success
+    when:      always
     expire_in: 1d
   variables: &macos-base
     GIT_SUBMODULE_STRATEGY: recursive
@@ -180,9 +180,9 @@ macos-icc-package:
 
 .windows-base:
   artifacts:     
-    paths:     [ "$CI_PROJECT_DIR/build_release/Release", "$CI_PROJECT_DIR/deps" ]
+    untracked: true
     name:      "$CI_JOB_NAME"
-    when:      on_success
+    when:      always
     expire_in: 1d
   variables: &windows-base
     GIT_SUBMODULE_STRATEGY: recursive
