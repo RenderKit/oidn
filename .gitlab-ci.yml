@@ -87,11 +87,15 @@ centos6-icc-build:
 
 centos6-icc-check-symbols:
   extends:      [ .centos6, .linux-check-symbols ]
-  dependencies: [ centos6-icc-build ]
+  needs: 
+    - job:       centos6-icc-build
+      artifacts: true
 
 centos6-icc-package:
   extends:      [ .centos6, .linux-package ]
-  dependencies: [ centos6-icc-check-symbols ]
+  needs: 
+    - job:       centos6-icc-build
+      artifacts: true
 
 # ---------------------------------------------------------------------------
 
@@ -168,11 +172,15 @@ macos-icc-build:
 
 macos-icc-sign:
   extends:      [ .macos-sign ]
-  dependencies: [ macos-icc-build ]
+  needs: 
+    - job:       macos-icc-build
+      artifacts: true
 
 macos-icc-package:
   extends:      [ .macos-package ]
-  dependencies: [ macos-icc-sign ]
+  needs: 
+    - job:       macos-icc-sign
+      artifacts: true
 
 # ------------------------------------------------------------------------------
 # Windows
@@ -237,11 +245,15 @@ macos-icc-package:
 # 
 # windows-vs15-icc19-sign:
 #   extends:      [ .windows-sign, .windows-vs15-icc19 ]
-#   dependencies: [ windows-vs15-icc19-build ]
+#   needs: 
+#     - job:       windows-vs15-icc19-build
+#       artifacts: true
 # 
 # windows-vs15-icc19-package:
 #   extends:      [ .windows-package, .windows-vs15-icc19 ]
-#   dependencies: [ windows-vs15-icc19-sign ]
+#   needs: 
+#     - job:       windows-vs15-icc19-sign
+#       artifacts: true
 
 # ------------------------------------------------------------------------------
 
@@ -250,11 +262,15 @@ macos-icc-package:
 # 
 # windows-vs15-icc19-sign:
 #   extends:      [ .windows-sign, .windows-vs15-icc19 ]
-#   dependencies: [ windows-vs15-icc19-build ]
+#   needs: 
+#     - job:       windows-vs15-icc19-build
+#       artifacts: true
 # 
 # windows-vs15-icc19-package:
 #   extends:      [ .windows-package, .windows-vs15-icc19 ]
-#   dependencies: [ windows-vs15-icc19-sign ]
+#   needs: 
+#     - job:       windows-vs15-icc19-sign
+#       artifacts: true
 
 # ------------------------------------------------------------------------------
 # Protex.
