@@ -143,6 +143,7 @@ endif()
 
 include(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(TBB DEFAULT_MSG TBB_INCLUDE_DIR TBB_LIBRARY TBB_LIBRARY_MALLOC)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(TBB_DEBUG DEFAULT_MSG TBB_DEBUG_INCLUDE_DIR TBB_DEBUG_LIBRARY TBB_DEBUG_LIBRARY_MALLOC)
 
 if(TBB_FOUND)
   add_library(TBB::tbb SHARED IMPORTED)
@@ -151,8 +152,19 @@ if(TBB_FOUND)
     INTERFACE_COMPILE_DEFINITIONS "__TBB_NO_IMPLICIT_LINKAGE=1"
   )
 
+  add_library(TBB::tbb_debug SHARED IMPORTED)
+  set_target_properties(TBB::tbb_debug PROPERTIES
+    INTERFACE_INCLUDE_DIRECTORIES ${TBB_DEBUG_INCLUDE_DIR}
+    INTERFACE_COMPILE_DEFINITIONS "__TBB_NO_IMPLICIT_LINKAGE=1"
+  )
+
   add_library(TBB::tbbmalloc SHARED IMPORTED)
   set_target_properties(TBB::tbbmalloc PROPERTIES
+    INTERFACE_COMPILE_DEFINITIONS "__TBBMALLOC_NO_IMPLICIT_LINKAGE=1"
+  )
+
+  add_library(TBB::tbbmalloc_debug SHARED IMPORTED)
+  set_target_properties(TBB::tbbmalloc_debug PROPERTIES
     INTERFACE_COMPILE_DEFINITIONS "__TBBMALLOC_NO_IMPLICIT_LINKAGE=1"
   )
 
@@ -160,29 +172,47 @@ if(TBB_FOUND)
     set_target_properties(TBB::tbb PROPERTIES
       IMPORTED_IMPLIB ${TBB_LIBRARY}
     )
-
     set_target_properties(TBB::tbbmalloc PROPERTIES
       IMPORTED_IMPLIB ${TBB_LIBRARY_MALLOC}
+    )
+    set_target_properties(TBB::tbb_debug PROPERTIES
+      IMPORTED_IMPLIB ${TBB_DEBUG_LIBRARY}
+    )
+    set_target_properties(TBB::tbbmalloc_debug PROPERTIES
+      IMPORTED_IMPLIB ${TBB_DEBUG_LIBRARY_MALLOC}
     )
   else()
     set_target_properties(TBB::tbb PROPERTIES
       IMPORTED_LOCATION ${TBB_LIBRARY}
       IMPORTED_NO_SONAME TRUE
     )
-
     set_target_properties(TBB::tbbmalloc PROPERTIES
       IMPORTED_LOCATION ${TBB_LIBRARY_MALLOC}
+      IMPORTED_NO_SONAME TRUE
+    )
+    set_target_properties(TBB::tbb_debug PROPERTIES
+      IMPORTED_LOCATION ${TBB_DEBUG_LIBRARY}
+      IMPORTED_NO_SONAME TRUE
+    )
+    set_target_properties(TBB::tbbmalloc_debug PROPERTIES
+      IMPORTED_LOCATION ${TBB_DEBUG_LIBRARY_MALLOC}
       IMPORTED_NO_SONAME TRUE
     )
   endif()
 
 
-  set(TBB_LIBRARIES TBB::tbb TBB::tbbmalloc)
+  set(TBB_LIBRARIES       TBB::tbb       TBB::tbbmalloc)
+  set(TBB_DEBUG_LIBRARIES TBB::tbb_debug TBB::tbbmalloc_debug)
 
-  list(APPEND EXTRA_SHARED_LIBS ${TBB_LIBRARIES})
+  list(APPEND EXTRA_SHARED_LIBS 
+    optimized ${TBB_LIBRARIES} 
+    debug     ${TBB_DEBUG_LIBRARIES})
 endif()
 
 mark_as_advanced(TBB_INCLUDE_DIR)
 mark_as_advanced(TBB_LIBRARY)
 mark_as_advanced(TBB_LIBRARY_MALLOC)
+mark_as_advanced(TBB_DEBUG_INCLUDE_DIR)
+mark_as_advanced(TBB_DEBUG_LIBRARY)
+mark_as_advanced(TBB_DEBUG_LIBRARY_MALLOC)
 
