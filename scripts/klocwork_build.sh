@@ -88,9 +88,9 @@ cmake \
 
 # Build
 $KW_CLIENT_PATH/bin/kwinject -w -o buildspec.txt make -j $THREADS preinstall VERBOSE=1 
+$KW_SERVER_PATH/bin/kwbuildproject --force --url http://$KW_SERVER_IP:$KW_SERVER_PORT/oidn buildspec.txt --tables-directory mytables
+$KW_SERVER_PATH/bin/kwadmin --url http://$KW_SERVER_IP:$KW_SERVER_PORT load --force --name build-$CI_PIPELINE_ID oidn mytables | tee project_load.log
 
-retry_cmd 60 $KW_SERVER_PATH/bin/kwbuildproject --force --url http://$KW_SERVER_IP:$KW_SERVER_PORT/oidn buildspec.txt --tables-directory mytables
-retry_cmd 60 $KW_SERVER_PATH/bin/kwadmin --url http://$KW_SERVER_IP:$KW_SERVER_PORT load oidn mytables | tee project_load.log
 # store kw build number for check status later
 cat project_load.log | grep "Starting build" | cut -d":" -f2 > ./kw_build_number
 
