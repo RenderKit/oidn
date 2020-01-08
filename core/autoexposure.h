@@ -1,5 +1,5 @@
 // ======================================================================== //
-// Copyright 2009-2019 Intel Corporation                                    //
+// Copyright 2009-2020 Intel Corporation                                    //
 //                                                                          //
 // Licensed under the Apache License, Version 2.0 (the "License");          //
 // you may not use this file except in compliance with the License.         //
@@ -18,45 +18,33 @@
 
 #include "image.h"
 #include "node.h"
-#include "transfer_function_ispc.h"
+#include "transfer_function.h"
 
 namespace oidn {
 
-  class TransferFunction
+  // Autoexposure node
+  class AutoexposureNode : public Node
   {
   private:
-    ispc::TransferFunction data;
+    Image color;
+    std::shared_ptr<TransferFunction> transferFunc;
 
   public:
-    enum class Type
-    {
-      Linear,
-      Gamma,
-      Log,
-      PQX
-    };
+    AutoexposureNode(const Image& color,
+                     const std::shared_ptr<TransferFunction>& transferFunc)
+      : color(color),
+        transferFunc(transferFunc)
+    {}
 
-    TransferFunction(Type type)
+    void execute(stream& sm) override
     {
-      switch (type)
-      {
-      case Type::Linear: ispc::LinearTransferFunction_Constructor(&data); break;  
-      case Type::Gamma:  ispc::GammaTransferFunction_Constructor(&data);  break;
-      case Type::Log:    ispc::LogTransferFunction_Constructor(&data);    break;  
-      case Type::PQX:    ispc::PQXTransferFunction_Constructor(&data);    break;
-      default:           assert(0);
-      }
+      const float exposure = autoexposure(color);
+      //printf("exposure = %f\n", exposure);
+      transferFunc->setExposure(exposure);
     }
 
-    void setExposure(float exposure)
-    {
-      ispc::TransferFunction_setExposure(&data, exposure);
-    }
-
-    ispc::TransferFunction* getIspc()
-    {
-      return &data;
-    }
+  private:
+    static float autoexposure(const Image& color);
   };
 
 } // namespace oidn

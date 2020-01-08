@@ -247,12 +247,13 @@ set(CORE_SOURCES
   core/upsample.h
   core/network.h
   core/autoencoder.h
+  core/autoexposure.h
+  core/autoexposure.cpp
 )
 
 set(CORE_SOURCES_SSE41
   core/network.cpp
   core/autoencoder.cpp
-  core/transfer_function.cpp
 )
 
 set(CORE_SOURCES_ISPC

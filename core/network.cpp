@@ -16,6 +16,7 @@
 
 #include "upsample.h"
 #include "weights_reorder.h"
+#include "autoexposure.h"
 #include "network.h"
 
 namespace oidn {
