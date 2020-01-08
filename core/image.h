@@ -92,14 +92,14 @@ namespace oidn {
       this->format = format;
     }
 
-    __forceinline char* get(int y, int x)
+    __forceinline char* get(int h, int w)
     {
-      return ptr + ((size_t(y) * rowStride + size_t(x)) * bytePixelStride);
+      return ptr + ((size_t(h) * rowStride + size_t(w)) * bytePixelStride);
     }
 
-    __forceinline const char* get(int y, int x) const
+    __forceinline const char* get(int h, int w) const
     {
-      return ptr + ((size_t(y) * rowStride + size_t(x)) * bytePixelStride);
+      return ptr + ((size_t(h) * rowStride + size_t(w)) * bytePixelStride);
     }
 
     operator bool() const
@@ -107,5 +107,14 @@ namespace oidn {
       return ptr != nullptr;
     }
   };
+
+  inline ispc::Image toIspc(const Image& img)
+  {
+    ispc::Image res;
+    res.ptr = (uint8_t*)img.ptr;
+    res.rowStride = img.rowStride;
+    res.bytePixelStride = img.bytePixelStride;
+    return res;
+  }
 
 } // namespace oidn

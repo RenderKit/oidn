@@ -93,7 +93,7 @@ namespace oidn {
     memory::dims getConcatDims(const memory::dims& src1Dims, const memory::dims& src2Dims);
 
     std::shared_ptr<Node> addAutoexposure(const Image& color,
-                                          const std::shared_ptr<HDRTransferFunction>& transferFunc);
+                                          const std::shared_ptr<TransferFunction>& transferFunc);
 
     void finalize();
 

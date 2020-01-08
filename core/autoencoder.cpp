@@ -339,12 +339,12 @@ namespace oidn {
     std::shared_ptr<TransferFunction> transferFunc = makeTransferFunc();
 
     // Autoexposure
-    if (auto tf = std::dynamic_pointer_cast<HDRTransferFunction>(transferFunc))
+    if (hdr)
     {
       if (isnan(hdrScale))
-        net->addAutoexposure(color, tf);
+        net->addAutoexposure(color, transferFunc);
       else
-        tf->setExposure(hdrScale);
+        transferFunc->setExposure(hdrScale);
     }
 
     // Input reorder
@@ -457,11 +457,11 @@ namespace oidn {
   std::shared_ptr<TransferFunction> AutoencoderFilter::makeTransferFunc()
   {
     if (hdr)
-      return std::make_shared<PQXTransferFunction>();
+      return std::make_shared<TransferFunction>(TransferFunction::Type::PQX);
     else if (srgb)
-      return std::make_shared<LinearTransferFunction>();
+      return std::make_shared<TransferFunction>(TransferFunction::Type::Linear);
     else
-      return std::make_shared<GammaTransferFunction>();
+      return std::make_shared<TransferFunction>(TransferFunction::Type::Gamma);
   }
 
   // --------------------------------------------------------------------------
@@ -512,7 +512,7 @@ namespace oidn {
 
   std::shared_ptr<TransferFunction> RTLightmapFilter::makeTransferFunc()
   {
-    return std::make_shared<LogTransferFunction>();
+    return std::make_shared<TransferFunction>(TransferFunction::Type::Log);
   }
 
 } // namespace oidn

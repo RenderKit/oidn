@@ -1,0 +1,57 @@
+// ======================================================================== //
+// Copyright 2009-2020 Intel Corporation                                    //
+//                                                                          //
+// Licensed under the Apache License, Version 2.0 (the "License");          //
+// you may not use this file except in compliance with the License.         //
+// You may obtain a copy of the License at                                  //
+//                                                                          //
+//     http://www.apache.org/licenses/LICENSE-2.0                           //
+//                                                                          //
+// Unless required by applicable law or agreed to in writing, software      //
+// distributed under the License is distributed on an "AS IS" BASIS,        //
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. //
+// See the License for the specific language governing permissions and      //
+// limitations under the License.                                           //
+// ======================================================================== //
+
+#pragma once
+
+#include "vec.ih"
+
+struct Image
+{
+  uniform uint8* uniform ptr;
+  uniform size_t bytePixelStride; // pixel stride in number of *bytes*
+  uniform size_t rowStride;       // row stride in number of *pixel strides*
+};
+
+inline size_t getOffset(const uniform Image& img, uniform int h, int w)
+{
+  return (((size_t)h * img.rowStride + (size_t)w) * img.bytePixelStride);
+}
+
+inline float get1f(const uniform Image& img, size_t offset)
+{
+  return *((uniform float*)&img.ptr[offset]);
+}
+
+inline void set1f(const uniform Image& img, size_t offset, float value)
+{
+  *((uniform float*)&img.ptr[offset]) = value;
+}
+
+inline vec3f get3f(const uniform Image& img, uniform int h, int w)
+{
+  const size_t offset = getOffset(img, h, w);
+  return make_vec3f(get1f(img, offset),
+                    get1f(img, offset + 4),
+                    get1f(img, offset + 8));
+}
+
+inline void set3f(const uniform Image& img, uniform int h, int w, const vec3f& value)
+{
+  const size_t offset = getOffset(img, h, w);
+  set1f(img, offset,     value.x);
+  set1f(img, offset + 4, value.y);
+  set1f(img, offset + 8, value.z);
+}

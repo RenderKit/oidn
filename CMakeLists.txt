@@ -213,6 +213,11 @@ target_link_libraries(dnnl_cpu PUBLIC dnnl_common)
 ## OIDN
 ## ----------------------------------------------------------------------------
 
+# ISPC
+set(OIDN_ISPC_TARGET_LIST sse4-i32x8;avx2-i32x8;avx512skx-i32x16;avx512knl-i32x16)
+set(OIDN_ISPC_ADDRESSING 64)
+include(oidn_ispc)
+
 # Generate version.h
 configure_file(
   "${PROJECT_SOURCE_DIR}/include/OpenImageDenoise/version.h.in"
@@ -250,6 +255,17 @@ set(CORE_SOURCES_SSE41
   core/transfer_function.cpp
 )
 
+set(CORE_SOURCES_ISPC
+  core/image.ih
+  core/input_reorder.ispc
+  core/math.ih
+  core/memory.ih
+  core/transfer_function.ih
+  core/transfer_function.ispc
+  core/output_reorder.ispc
+  core/vec.ih
+)
+
 generate_cpp_resources(WEIGHTS_SOURCES "oidn::weights"
   weights/rt_ldr.tza
   weights/rt_ldr_alb.tza
@@ -263,6 +279,7 @@ generate_cpp_resources(WEIGHTS_SOURCES "oidn::weights"
 set_source_files_properties(${CORE_SOURCES_SSE41} PROPERTIES COMPILE_FLAGS "${OIDN_ISA_FLAGS_SSE41}")
 
 add_library(${PROJECT_NAME} ${OIDN_LIB_TYPE} ${CORE_SOURCES} ${CORE_SOURCES_SSE41} ${WEIGHTS_SOURCES})
+ispc_target_add_sources(${PROJECT_NAME} ${CORE_SOURCES_ISPC})
 
 if(OIDN_STATIC_LIB)
   target_compile_definitions(${PROJECT_NAME} INTERFACE -DOIDN_STATIC_LIB)

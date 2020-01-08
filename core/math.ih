@@ -1,0 +1,158 @@
+// ======================================================================== //
+// Copyright 2009-2020 Intel Corporation                                    //
+//                                                                          //
+// Licensed under the Apache License, Version 2.0 (the "License");          //
+// you may not use this file except in compliance with the License.         //
+// You may obtain a copy of the License at                                  //
+//                                                                          //
+//     http://www.apache.org/licenses/LICENSE-2.0                           //
+//                                                                          //
+// Unless required by applicable law or agreed to in writing, software      //
+// distributed under the License is distributed on an "AS IS" BASIS,        //
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. //
+// See the License for the specific language governing permissions and      //
+// limitations under the License.                                           //
+// ======================================================================== //
+
+#pragma once
+
+typedef unsigned int8  uint8;
+typedef unsigned int16 uint16;
+typedef unsigned int32 uint32;
+typedef unsigned int64 uint64;
+
+// ------------------------------------------------------------------
+// Constants
+// ------------------------------------------------------------------
+
+#define inf     floatbits(0x7F800000)
+#define pos_inf floatbits(0x7F800000)
+#define neg_inf floatbits(0xFF800000)
+#define nan     floatbits(0x7FBFFFFF)
+#define flt_min 0x1.0p-126f
+
+#define M_PI     3.14159265358979323846f
+#define pi       3.14159265358979323846f
+#define two_pi   6.283185307179586232f
+#define four_pi 12.566370614359172464f
+
+#define one_over_pi      0.31830988618379069122f
+#define one_over_two_pi  0.15915494309189534561f
+#define one_over_four_pi 0.079577471545947672804f
+#define one_over_two_pi_sqr 0.050660591821168885722f
+#define lntwo_over_two 0.346573590279972654709f
+
+inline bool isfinite(float x)
+{
+  return !isnan(x) && ((x == 0.f) || (x != 2.f*x));
+}
+
+inline uniform bool isfinite(uniform float x)
+{
+  return !isnan(x) && ((x == 0.f) || (x != 2.f*x));
+}
+
+inline float sqr(float x) { return x*x; }
+inline uniform float sqr(uniform float x) { return x*x; }
+
+inline uniform float rcp_safe(uniform float x) { return rcp((abs(x) < 1e-8f) ? 1e-8f : x); }
+inline varying float rcp_safe(varying float x) { return rcp((abs(x) < 1e-8f) ? 1e-8f : x); }
+
+inline uniform float sqrt_safe(uniform float x) { return sqrt(max(x, 0.f)); }
+inline varying float sqrt_safe(varying float x) { return sqrt(max(x, 0.f)); }
+
+inline uniform float clamp(uniform float x) { return clamp(x, 0.f, 1.f); }
+inline varying float clamp(varying float x) { return clamp(x, 0.f, 1.f); }
+
+inline uniform float frac(uniform float x) { return x - floor(x); }
+inline varying float frac(varying float x) { return x - floor(x); }
+
+inline uniform float deg2rad(uniform float x) { return x * 1.74532925199432957692e-2f; }
+inline varying float deg2rad(varying float x) { return x * 1.74532925199432957692e-2f; }
+
+inline uniform float rad2deg(uniform float x) { return x * 5.72957795130823208768e1f; }
+inline varying float rad2deg(varying float x) { return x * 5.72957795130823208768e1f; }
+
+inline float cos2sin(float x) { return sqrt(max(0.f, 1.f - sqr(x))); }
+inline float sin2cos(float x) { return cos2sin(x); }
+
+inline uniform float nextafter(uniform float a, uniform float b)
+{
+  // Match the behavior of the C99 math.h function.
+  if (a == b) return(b);
+
+  // We will compute the smallest representable floating increment or decrement around 'a'.
+  uniform float delta = (b > a) ? 1.f : -1.f;
+
+  // Iteratively compute the positive or negative increment.
+  while (a + 0.5f * delta != a) delta *= 0.5f;
+
+  // Return the smallest number greater than 'a' or the largest number smaller than 'a'.
+  return(a + delta);
+}
+
+#define __define_lerp(TYPE)                                             \
+  inline TYPE lerp(float factor, TYPE a, TYPE b)                        \
+  {                                                                     \
+    return (1-factor) * a + factor * b;                                 \
+  }                                                                     \
+  inline uniform TYPE lerp(uniform float factor, uniform TYPE a, uniform TYPE b) \
+  {                                                                     \
+    return (1-factor) * a + factor * b;                                 \
+  }
+
+__define_lerp(int8)
+__define_lerp(int32)
+__define_lerp(float)
+__define_lerp(uint8)
+__define_lerp(uint32)
+
+#undef __define_lerp
+
+// ------------------------------------------------------------------
+// min4/max4, for all types
+// ------------------------------------------------------------------
+
+#define __define_op4T(MM,TYPE)                                  \
+  inline uniform TYPE MM##4(uniform TYPE a, uniform TYPE b,     \
+                            uniform TYPE c, uniform TYPE d)     \
+  {                                                             \
+    return MM(a, MM(b, MM(c, d)));                              \
+  }                                                             \
+  inline varying TYPE MM##4(varying TYPE a, varying TYPE b,     \
+                            varying TYPE c, varying TYPE d)     \
+  {                                                             \
+    return MM(a, MM(b, MM(c, d)));                              \
+  }
+
+#define __define_op4(MM)                        \
+  __define_op4T(MM, int8)                       \
+  __define_op4T(MM, int32)                      \
+  __define_op4T(MM, uint8)                      \
+  __define_op4T(MM, uint32)                     \
+  __define_op4T(MM, float)                      \
+  __define_op4T(MM, double)
+
+__define_op4(min)
+__define_op4(max)
+
+#undef __define_op4T
+#undef __define_op4
+
+#define SIMILAR_EPSILON .00001f
+inline float similar(float a, float b)
+{
+  return abs(a - b) <= SIMILAR_EPSILON;
+}
+
+inline uniform float similar(uniform float a, uniform float b)
+{
+  return abs(a - b) <= SIMILAR_EPSILON;
+}
+#undef SIMILAR_EPSILON
+
+
+inline float to_float_unorm(unsigned int x)
+{
+  return (float)x * 2.3283064365386962890625e-10; // a / 2^32
+}

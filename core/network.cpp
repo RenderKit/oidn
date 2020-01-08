@@ -154,19 +154,7 @@ namespace oidn {
       dst = allocTensor(dstDims);
 
     // Push node
-    std::shared_ptr<Node> node;
-
-    if (auto tf = std::dynamic_pointer_cast<LinearTransferFunction>(transferFunc))
-      node = std::make_shared<InputReorderNode<K, LinearTransferFunction>>(color, albedo, normal, dst, tf);
-    else if (auto tf = std::dynamic_pointer_cast<GammaTransferFunction>(transferFunc))
-      node = std::make_shared<InputReorderNode<K, GammaTransferFunction>>(color, albedo, normal, dst, tf);
-    else if (auto tf = std::dynamic_pointer_cast<LogTransferFunction>(transferFunc))
-      node = std::make_shared<InputReorderNode<K, LogTransferFunction>>(color, albedo, normal, dst, tf);
-    else if (auto tf = std::dynamic_pointer_cast<PQXTransferFunction>(transferFunc))
-      node = std::make_shared<InputReorderNode<K, PQXTransferFunction>>(color, albedo, normal, dst, tf);
-    else
-      assert(0);
-
+    auto node = std::make_shared<InputReorderNode>(color, albedo, normal, dst, transferFunc);
     nodes.push_back(node);
     return node;
   }
@@ -180,19 +168,7 @@ namespace oidn {
     assert(srcDims[1] == K);
 
     // Push node
-    std::shared_ptr<Node> node;
-
-    if (auto tf = std::dynamic_pointer_cast<LinearTransferFunction>(transferFunc))
-      node = std::make_shared<OutputReorderNode<K, LinearTransferFunction>>(src, output, tf);
-    else if (auto tf = std::dynamic_pointer_cast<GammaTransferFunction>(transferFunc))
-      node = std::make_shared<OutputReorderNode<K, GammaTransferFunction>>(src, output, tf);
-    else if (auto tf = std::dynamic_pointer_cast<LogTransferFunction>(transferFunc))
-      node = std::make_shared<OutputReorderNode<K, LogTransferFunction>>(src, output, tf);
-    else if (auto tf = std::dynamic_pointer_cast<PQXTransferFunction>(transferFunc))
-      node = std::make_shared<OutputReorderNode<K, PQXTransferFunction>>(src, output, tf);
-    else
-      assert(0);
-
+    auto node = std::make_shared<OutputReorderNode>(src, output, transferFunc);
     nodes.push_back(node);
     return node;
   }
@@ -389,7 +365,7 @@ namespace oidn {
 
   template<int K>
   std::shared_ptr<Node> Network<K>::addAutoexposure(const Image& color,
-                                                    const std::shared_ptr<HDRTransferFunction>& transferFunc)
+                                                    const std::shared_ptr<TransferFunction>& transferFunc)
   {
     auto node = std::make_shared<AutoexposureNode>(color, transferFunc);
     nodes.push_back(node);

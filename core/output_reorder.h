@@ -18,107 +18,62 @@
 
 #include "node.h"
 #include "image.h"
+#include "transfer_function.h"
+#include "output_reorder_ispc.h"
 
 namespace oidn {
 
   // Output reorder node
-  template<int K, class TransferFunction>
   class OutputReorderNode : public Node
   {
   private:
-    // Source
+    ispc::OutputReorder data;
+
     std::shared_ptr<memory> src;
-    const float* srcPtr;
-    int H1;
-    int W1;
-
-    // Destination
-    Image output;
-
-    // Tile
-    int h1Begin;
-    int w1Begin;
-    int h2Begin;
-    int w2Begin;
-    int H;
-    int W;
-
+    Image dst;
     std::shared_ptr<TransferFunction> transferFunc;
 
   public:
     OutputReorderNode(const std::shared_ptr<memory>& src,
-                      const Image& output,
+                      const Image& dst,
                       const std::shared_ptr<TransferFunction>& transferFunc)
       : src(src),
-        output(output),
-        h1Begin(0), w1Begin(0),
-        h2Begin(0), w2Begin(0),
-        H(output.height), W(output.width),
+        dst(dst),
         transferFunc(transferFunc)
     {
-      const dnnl_memory_desc_t& srcDesc = src->get_desc().data;
-      MAYBE_UNUSED(srcDesc);
-      assert(memory_desc_matches_tag(srcDesc, dnnl_format_tag_t(BlockedFormat<K>::nChwKc)));
-      assert(srcDesc.ndims == 4);
-      assert(srcDesc.data_type == memory::data_type::f32);
-      assert(srcDesc.dims[0] == 1);
-      // We assume output data is <= K OC
-      assert(srcDesc.dims[1] == K);
+      data.src = toIspc(src);
+      data.dst = toIspc(dst);
 
-      srcPtr = (float*)src->get_data_handle();
-      H1 = srcDesc.dims[2];
-      W1 = srcDesc.dims[3];
+      data.hSrcBegin = 0;
+      data.wSrcBegin = 0;
+      data.hDstBegin = 0;
+      data.wDstBegin = 0;
+      data.H = dst.height;
+      data.W = dst.width;
+
+      data.transferFunc = transferFunc->getIspc();
     }
 
-    void setTile(int h1, int w1, int h2, int w2, int H, int W) override
+    void setTile(int hSrc, int wSrc, int hDst, int wDst, int H, int W) override
     {
-      h1Begin = h1;
-      w1Begin = w1;
-      h2Begin = h2;
-      w2Begin = w2;
-      this->H = H;
-      this->W = W;
+      data.hSrcBegin = hSrc;
+      data.wSrcBegin = wSrc;
+      data.hDstBegin = hDst;
+      data.wDstBegin = wDst;
+      data.H = H;
+      data.W = W;
     }
 
     void execute(stream& sm) override
     {
-      assert(h1Begin + H <= H1);
-      assert(w1Begin + W <= W1);
-      assert(h2Begin + H <= output.height);
-      assert(w2Begin + W <= output.width);
+      assert(data.hSrcBegin + data.H <= data.src.H);
+      assert(data.wSrcBegin + data.W <= data.src.W);
+      assert(data.hDstBegin + data.H <= data.dst.H);
+      assert(data.wDstBegin + data.W <= data.dst.W);
 
-      const int C1 = K;
-
-      parallel_nd(H, [&](int h)
+      parallel_nd(data.H, [&](int h)
       {
-        const int h1 = h + h1Begin;
-        const int h2 = h + h2Begin;
-
-        for (int w = 0; w < W; ++w)
-        {
-          const int w1 = w + w1Begin;
-          const int w2 = w + w2Begin;
-          float* dstPtr_C = (float*)output.get(h2, w2);
-
-          // Source is in nChwKc format. In this case C is 1 so this is really nhwc
-          const float* srcPtr_C = srcPtr + h1*W1*C1 + w1*C1;
-
-          #pragma unroll
-          for (int i = 0; i < 3; ++i)
-          {
-            // Load the value
-            float x = srcPtr_C[i];
-
-            // The CNN output may contain negative values or even NaNs, so it must be sanitized
-            x = maxSafe(x, 0.f);
-
-            // Apply the inverse transfer function
-            x = transferFunc->inverse(x);
-
-            // Sanitize and store the final value
-            dstPtr_C[i] = max(x, 0.f);
-          }
-        }
+        ispc::OutputReorder_kernel(&data, h);
       });
     }
   };
