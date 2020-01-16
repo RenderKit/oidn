@@ -253,8 +253,9 @@ protex_scan:
   stage:    scan_source
   tags:     [ docker ]
   only:     [ schedules, web ]
-  extends:  [ .centos6 ]
   script:   "scripts/protex_scan.sh"
+  image: amd64/openjdk:8
+  dependencies: []
   # Will fail regularly, do not break nightlies because of that.
   allow_failure: true
   artifacts:

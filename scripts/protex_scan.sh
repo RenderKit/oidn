@@ -36,6 +36,11 @@ if [ -z "${OIDN_PROTEX_BDS}" ]; then
   exit 1
 fi
 
+if [ -z "${OIDN_PROTEX_SERVER_URL}" ]; then
+  echo "Error: you must set OIDN_PROTEX_SERVER_URL"
+  exit 1
+fi
+
 if [ -z "${OIDN_ROOT_DIR}" ]; then
   ROOT_DIR=${PWD}
 else
@@ -46,12 +51,12 @@ export _JAVA_OPTIONS="-Duser.home=${OIDN_PROTEX_USER_HOME}"
 
 cd ${ROOT_DIR}
 
-${OIDN_PROTEX_BDS} new-project ${OIDN_PROTEX_PROJECT_NAME} |& tee ip_protex.log
+${OIDN_PROTEX_BDS} new-project --server ${OIDN_PROTEX_SERVER_URL} ${OIDN_PROTEX_PROJECT_NAME} |& tee ip_protex.log
 if grep -q "command failed" ip_protex.log; then
   exit 1
 fi
 
-${OIDN_PROTEX_BDS} analyze |& tee -a ip_protex.log
+${OIDN_PROTEX_BDS} analyze --server ${OIDN_PROTEX_SERVER_URL} |& tee -a ip_protex.log
 if grep -q "command failed" ip_protex.log; then
   exit 1
 fi
