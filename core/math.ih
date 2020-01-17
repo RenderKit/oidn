@@ -16,14 +16,18 @@
 
 #pragma once
 
+// -----------------------------------------------------------------------------
+// Types
+// -----------------------------------------------------------------------------
+
 typedef unsigned int8  uint8;
 typedef unsigned int16 uint16;
 typedef unsigned int32 uint32;
 typedef unsigned int64 uint64;
 
-// ------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Constants
-// ------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 #define inf     floatbits(0x7F800000)
 #define pos_inf floatbits(0x7F800000)
@@ -42,18 +46,12 @@ typedef unsigned int64 uint64;
 #define one_over_two_pi_sqr 0.050660591821168885722f
 #define lntwo_over_two 0.346573590279972654709f
 
-inline bool isfinite(float x)
-{
-  return !isnan(x) && ((x == 0.f) || (x != 2.f*x));
-}
+// -----------------------------------------------------------------------------
+// Functions
+// -----------------------------------------------------------------------------
 
-inline uniform bool isfinite(uniform float x)
-{
-  return !isnan(x) && ((x == 0.f) || (x != 2.f*x));
-}
-
-inline float sqr(float x) { return x*x; }
 inline uniform float sqr(uniform float x) { return x*x; }
+inline varying float sqr(varying float x) { return x*x; }
 
 inline uniform float rcp_safe(uniform float x) { return rcp((abs(x) < 1e-8f) ? 1e-8f : x); }
 inline varying float rcp_safe(varying float x) { return rcp((abs(x) < 1e-8f) ? 1e-8f : x); }
@@ -76,83 +74,44 @@ inline varying float rad2deg(varying float x) { return x * 5.7295779513082320876
 inline float cos2sin(float x) { return sqrt(max(0.f, 1.f - sqr(x))); }
 inline float sin2cos(float x) { return cos2sin(x); }
 
+inline uniform bool isfinite(uniform float x) {
+  return !isnan(x) && ((x == 0.f) || (x != 2.f*x));
+}
+inline varying bool isfinite(varying float x) {
+  return !isnan(x) && ((x == 0.f) || (x != 2.f*x));
+}
+
 inline uniform float nextafter(uniform float a, uniform float b)
 {
-  // Match the behavior of the C99 math.h function.
-  if (a == b) return(b);
+  // Match the behavior of the C99 math.h function
+  if (a == b) return b;
 
-  // We will compute the smallest representable floating increment or decrement around 'a'.
+  // We will compute the smallest representable floating increment or decrement around 'a'
   uniform float delta = (b > a) ? 1.f : -1.f;
 
-  // Iteratively compute the positive or negative increment.
+  // Iteratively compute the positive or negative increment
   while (a + 0.5f * delta != a) delta *= 0.5f;
 
-  // Return the smallest number greater than 'a' or the largest number smaller than 'a'.
-  return(a + delta);
+  // Return the smallest number greater than 'a' or the largest number smaller than 'a'
+  return a + delta;
 }
 
-#define __define_lerp(TYPE)                                             \
-  inline TYPE lerp(float factor, TYPE a, TYPE b)                        \
-  {                                                                     \
-    return (1-factor) * a + factor * b;                                 \
-  }                                                                     \
-  inline uniform TYPE lerp(uniform float factor, uniform TYPE a, uniform TYPE b) \
-  {                                                                     \
-    return (1-factor) * a + factor * b;                                 \
-  }
-
-__define_lerp(int8)
-__define_lerp(int32)
-__define_lerp(float)
-__define_lerp(uint8)
-__define_lerp(uint32)
-
-#undef __define_lerp
-
-// ------------------------------------------------------------------
-// min4/max4, for all types
-// ------------------------------------------------------------------
-
-#define __define_op4T(MM,TYPE)                                  \
-  inline uniform TYPE MM##4(uniform TYPE a, uniform TYPE b,     \
-                            uniform TYPE c, uniform TYPE d)     \
-  {                                                             \
-    return MM(a, MM(b, MM(c, d)));                              \
-  }                                                             \
-  inline varying TYPE MM##4(varying TYPE a, varying TYPE b,     \
-                            varying TYPE c, varying TYPE d)     \
-  {                                                             \
-    return MM(a, MM(b, MM(c, d)));                              \
-  }
-
-#define __define_op4(MM)                        \
-  __define_op4T(MM, int8)                       \
-  __define_op4T(MM, int32)                      \
-  __define_op4T(MM, uint8)                      \
-  __define_op4T(MM, uint32)                     \
-  __define_op4T(MM, float)                      \
-  __define_op4T(MM, double)
-
-__define_op4(min)
-__define_op4(max)
-
-#undef __define_op4T
-#undef __define_op4
-
-#define SIMILAR_EPSILON .00001f
-inline float similar(float a, float b)
-{
-  return abs(a - b) <= SIMILAR_EPSILON;
+inline uniform float lerp(uniform float f, uniform float a, uniform float b) {
+  return (1.f-f) * a + f * b;
+}
+inline varying float lerp(varying float f, varying float a, varying float b) {
+  return (1.f-f) * a + f * b;
 }
 
-inline uniform float similar(uniform float a, uniform float b)
-{
-  return abs(a - b) <= SIMILAR_EPSILON;
+inline uniform int to_int(uniform float x) { return (int)x; }
+inline varying int to_int(varying float x) { return (int)x; }
+
+inline uniform float to_float(uniform int x) { return (float)x; }
+inline varying float to_float(varying int x) { return (float)x; }
+
+inline uniform float to_float_unorm(uniform unsigned int x) {
+  return (float)x * 2.3283064365386962890625e-10; // x / 2^32
 }
-#undef SIMILAR_EPSILON
-
-
-inline float to_float_unorm(unsigned int x)
-{
-  return (float)x * 2.3283064365386962890625e-10; // a / 2^32
+inline float to_float_unorm(unsigned int x) {
+  return (float)x * 2.3283064365386962890625e-10; // x / 2^32
 }
