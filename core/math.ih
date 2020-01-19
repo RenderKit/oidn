@@ -75,10 +75,10 @@ inline float cos2sin(float x) { return sqrt(max(0.f, 1.f - sqr(x))); }
 inline float sin2cos(float x) { return cos2sin(x); }
 
 inline uniform bool isfinite(uniform float x) {
-  return !isnan(x) && ((x == 0.f) || (x != 2.f*x));
+  return (intbits(x) & 0x7F800000) != 0x7F800000;
 }
 inline varying bool isfinite(varying float x) {
-  return !isnan(x) && ((x == 0.f) || (x != 2.f*x));
+  return (intbits(x) & 0x7F800000) != 0x7F800000;
 }
 
 inline uniform float nextafter(uniform float a, uniform float b)
