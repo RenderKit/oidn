@@ -16,7 +16,7 @@
 
 #include "transfer_function.ih"
 
-static const uniform float Y_MAX = 65504.f; // maximum HDR value
+static const uniform float HDR_Y_MAX = 65504.f; // maximum HDR value
 
 static void TransferFunction_Constructor(uniform TransferFunction* uniform self)
 {
@@ -26,11 +26,10 @@ static void TransferFunction_Constructor(uniform TransferFunction* uniform self)
   self->xRcpScale = 1.f;
 }
 
-// Computes the normalization scale for HDR
-static void TransferFunction_initNormalization(uniform TransferFunction* uniform self)
+// Computes the normalization scale
+static void TransferFunction_initNormalization(uniform TransferFunction* uniform self, uniform float yMax)
 {
-  const vec3f xMax3 = self->forward(self, make_vec3f(Y_MAX));
-  const uniform float xMax = extract(xMax3.x, 0); // varying -> uniform
+  const uniform float xMax = extract(reduce_max(self->forward(self, make_vec3f(yMax))), 0);
 
   self->xScale = 1./xMax;
   self->xRcpScale = xMax;
@@ -42,9 +41,9 @@ export void TransferFunction_setExposure(uniform TransferFunction* uniform self,
   self->rcpExposure = (exposure != 0.f) ? (1.f / exposure) : 0.f;
 }
 
-// --------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Linear
-// --------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 static vec3f LinearTransferFunction_forward(const uniform TransferFunction* uniform self, vec3f y)
 {
@@ -63,9 +62,9 @@ export void LinearTransferFunction_Constructor(uniform TransferFunction* uniform
   self->inverse = LinearTransferFunction_inverse;
 }
 
-// --------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Gamma
-// --------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 static vec3f GammaTransferFunction_forward(const uniform TransferFunction* uniform self, vec3f y)
 {
@@ -84,9 +83,9 @@ export void GammaTransferFunction_Constructor(uniform TransferFunction* uniform 
   self->inverse = GammaTransferFunction_inverse;
 }
 
-// --------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // Log
-// --------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 static vec3f LogTransferFunction_forward(const uniform TransferFunction* uniform self, vec3f y)
 {
@@ -103,12 +102,12 @@ export void LogTransferFunction_Constructor(uniform TransferFunction* uniform se
   TransferFunction_Constructor(self);
   self->forward = LogTransferFunction_forward;
   self->inverse = LogTransferFunction_inverse;
-  TransferFunction_initNormalization(self);
+  TransferFunction_initNormalization(self, HDR_Y_MAX);
 }
 
-// --------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 // PQX
-// --------------------------------------------------------------------------
+// -----------------------------------------------------------------------------
 
 static const uniform float PQ_M1 = 2610.f / 4096.f / 4.f;
 static const uniform float PQ_M2 = 2523.f / 4096.f * 128.f;
@@ -148,7 +147,7 @@ inline float pqxInverse(float x)
 }
 
 static vec3f PQXTransferFunction_forward(const uniform TransferFunction* uniform self, vec3f y)
-{  
+{
   y = y * self->exposure * PQX_Y_SCALE;
   return make_vec3f(pqxForward(y.x), pqxForward(y.y), pqxForward(y.z)) * self->xScale;
 }
@@ -164,6 +163,6 @@ export void PQXTransferFunction_Constructor(uniform TransferFunction* uniform se
   TransferFunction_Constructor(self);
   self->forward = PQXTransferFunction_forward;
   self->inverse = PQXTransferFunction_inverse;
-  TransferFunction_initNormalization(self);
+  TransferFunction_initNormalization(self, HDR_Y_MAX);
 }
 
