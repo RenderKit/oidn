@@ -257,6 +257,7 @@ set(CORE_SOURCES_SSE41
 )
 
 set(CORE_SOURCES_ISPC
+  core/autoexposure.ispc
   core/image.ih
   core/input_reorder.ispc
   core/math.ih

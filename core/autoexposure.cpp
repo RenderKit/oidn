@@ -15,13 +15,9 @@
 // ======================================================================== //
 
 #include "autoexposure.h"
+#include "autoexposure_ispc.h"
 
 namespace oidn {
-
-  __forceinline float luminance(float r, float g, float b)
-  {
-    return 0.212671f * r + 0.715160f * g + 0.072169f * b;
-  }
 
   float AutoexposureNode::autoexposure(const Image& color)
   {
@@ -36,6 +32,8 @@ namespace oidn {
     const int W  = color.width;   // original width
     const int HK = (H + K/2) / K; // downsampled height
     const int WK = (W + K/2) / K; // downsampled width
+
+    ispc::Image colorIspc = toIspc(color);
 
     // Compute the average log luminance of the downsampled image
     using Sum = std::pair<float, int>;
@@ -57,23 +55,7 @@ namespace oidn {
               const int endH   = int(ptrdiff_t(i+1) * H / HK);
               const int endW   = int(ptrdiff_t(j+1) * W / WK);
 
-              float L = 0.f;
-
-              for (int h = beginH; h < endH; ++h)
-              {
-                for (int w = beginW; w < endW; ++w)
-                {
-                  const float* rgb = (const float*)color.get(h, w);
-
-                  const float r = maxSafe(rgb[0], 0.f);
-                  const float g = maxSafe(rgb[1], 0.f);
-                  const float b = maxSafe(rgb[2], 0.f);
-
-                  L += luminance(r, g, b);
-                }
-              }
-
-              L /= (endH - beginH) * (endW - beginW);
+              const float L = ispc::getAvgLuminance(colorIspc, beginH, endH, beginW, endW);
 
               // Accumulate the log luminance
               if (L > eps)
