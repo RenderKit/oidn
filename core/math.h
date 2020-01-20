@@ -20,9 +20,6 @@
 
 namespace oidn {
 
-  constexpr float minVectorLength    = 1e-10f;
-  constexpr float minVectorLengthSqr = minVectorLength * minVectorLength;
-
   using std::log;
   using std::log2;
   using std::exp;
@@ -52,11 +49,6 @@ namespace oidn {
   __forceinline float maxSafe(float value, float minValue)
   {
     return isfinite(value) ? max(value, minValue) : minValue;
-  }
-
-  __forceinline float clampSafe(float value, float minValue, float maxValue)
-  {
-    return isfinite(value) ? clamp(value, minValue, maxValue) : minValue;
   }
 
   // Returns ceil(a / b) for non-negative integers

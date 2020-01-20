@@ -20,10 +20,10 @@ static const uniform float HDR_Y_MAX = 65504.f; // maximum HDR value
 
 static void TransferFunction_Constructor(uniform TransferFunction* uniform self)
 {
-  self->exposure = 1.f;
-  self->rcpExposure = 1.f;
   self->xScale = 1.f;
   self->xRcpScale = 1.f;
+  self->exposure = 1.f;
+  self->rcpExposure = 1.f;
 }
 
 // Computes the normalization scale

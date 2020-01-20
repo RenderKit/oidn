@@ -22,7 +22,7 @@ struct TransferFunction
   vec3f (*uniform forward)(const uniform TransferFunction* uniform self, vec3f y);
   vec3f (*uniform inverse)(const uniform TransferFunction* uniform self, vec3f x);
 
-  // Normalization (HDR only)
+  // Normalization
   uniform float xScale;
   uniform float xRcpScale;
 
