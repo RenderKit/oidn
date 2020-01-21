@@ -15,13 +15,13 @@
 ## ======================================================================== ##
 
 # ISPC versions to look for, in decending order (newest first)
-set(ISPC_VERSION_WORKING "1.12.0" "1.10.0" "1.9.2" "1.9.1")
+set(ISPC_VERSION_WORKING "1.12.0")
 list(GET ISPC_VERSION_WORKING -1 ISPC_VERSION_REQUIRED)
 
 if (NOT ISPC_EXECUTABLE)
   # try sibling folder as hint for path of ISPC
   if (APPLE)
-    set(ISPC_DIR_SUFFIX "osx" "Darwin")
+    set(ISPC_DIR_SUFFIX "macOS" "osx" "Darwin")
   elseif(WIN32)
     set(ISPC_DIR_SUFFIX "windows" "win32")
     if (MSVC_VERSION LESS 1900)
@@ -32,8 +32,8 @@ if (NOT ISPC_EXECUTABLE)
   else()
     set(ISPC_DIR_SUFFIX "linux" "Linux")
   endif()
-  foreach(v "" "v")
-   foreach(ver ${ISPC_VERSION_WORKING})
+  foreach(ver ${ISPC_VERSION_WORKING})
+   foreach(v "" "v")
     foreach(suffix ${ISPC_DIR_SUFFIX})
      foreach(d "" "/bin")
       list(APPEND ISPC_DIR_HINT ${PROJECT_SOURCE_DIR}/../ispc-${v}${ver}-${suffix}${d})
