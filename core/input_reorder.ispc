@@ -71,8 +71,8 @@ inline void storeAlbedo(uniform InputReorder* uniform self, uniform int h, int w
 // Stores a srcNormal
 inline void storeNormal(uniform InputReorder* uniform self, uniform int h, int w, uniform int c, const vec3f& value)
 {
-  static const uniform float minVectorLength = 1e-10f;
-  static const uniform float minVectorLengthSqr = minVectorLength * minVectorLength;
+  static const uniform float minLength = 1e-10f;
+  static const uniform float minLengthSqr = minLength * minLength;
 
   // Compute the length of the normal
   const float lengthSqr = dot(value, value);
@@ -81,7 +81,7 @@ inline void storeNormal(uniform InputReorder* uniform self, uniform int h, int w
   if (isfinite(lengthSqr))
   {
     // Normalize the normal and transform it to [0..1]
-    const float rcpLength = (lengthSqr > minVectorLengthSqr) ? rsqrt(lengthSqr) : 1.f;
+    const float rcpLength = (lengthSqr > minLengthSqr) ? rsqrt(lengthSqr) : 1.f;
 
     const float scale  = rcpLength * 0.5f;
     const float offset = 0.5f;
