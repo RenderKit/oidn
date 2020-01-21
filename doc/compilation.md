@@ -9,21 +9,34 @@ release.
 Prerequisites
 -------------
 
+You can clone the latest Intel Open Image Denoise sources via:
+
+        git clone --recursive https://github.com/OpenImageDenoise/oidn.git
+
 Intel Open Image Denoise currently supports 64-bit Linux, Windows, and macOS
 operating systems. In addition, before you can build Intel Open Image Denoise
 you need the following prerequisites:
 
--   You can clone the latest Intel Open Image Denoise sources via:
+-   [CMake](http://www.cmake.org) 3.1 or later
 
-        git clone --recursive https://github.com/OpenImageDenoise/oidn.git
-
--   To build Intel Open Image Denoise you need [CMake](http://www.cmake.org)
-    3.1 or later, a C++11 compiler (we recommend using Clang, but also support
-    GCC, Microsoft Visual Studio 2015 or later, and
+-   A C++11 compiler (we recommend using Clang, but also support GCC, Microsoft
+    Visual Studio 2015 or later, and
     [Intel® C++ Compiler](https://software.intel.com/en-us/c-compilers) 17.0 or
-    later), and Python 2.7 or later.
--   Additionally you require a copy of [Intel® Threading Building
-    Blocks](https://www.threadingbuildingblocks.org/) (TBB) 2017 or later.
+    later)
+
+-   [Intel® SPMD Program Compiler (ISPC)](http://ispc.github.io), version 1.12.0
+    or later. Please obtain a release of ISPC from the [ISPC downloads
+    page](https://ispc.github.io/downloads.html). The build system looks for
+    ISPC in the `PATH` and in the directory right "next to" the checked-out
+    Intel Open Image Denoise sources.^[For example, if Intel Open Image Denoise
+    is in `~/Projects/oidn`, ISPC will also be searched in `~/Projects/ispc-v1.12.0-linux`]
+    Alternatively set the CMake variable `ISPC_EXECUTABLE` to the location of
+    the ISPC compiler.
+
+-   Python 2.7 or later
+
+-   [Intel® Threading Building Blocks](https://www.threadingbuildingblocks.org/)
+    (TBB) 2017 or later
 
 Depending on your Linux distribution you can install these dependencies
 using `yum` or `apt-get`. Some of these packages might already be installed or
