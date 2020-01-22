@@ -136,7 +136,12 @@ target_compile_definitions(dnnl_common
     -DDNNL_ENABLE_CONCURRENT_EXEC
 )
 
-target_compile_options(dnnl_common PRIVATE ${OIDN_ISA_FLAGS_SSE41})
+set(DNNL_COMPILE_OPTIONS ${OIDN_ISA_FLAGS_SSE41})
+if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+  # Correct 'jnl' macro/jit issue
+  list(APPEND DNNL_COMPILE_OPTIONS "/Qlong-double")
+endif()
+target_compile_options(dnnl_common PRIVATE ${DNNL_COMPILE_OPTIONS})
 
 target_link_libraries(dnnl_common PUBLIC ${CMAKE_THREAD_LIBS_INIT} ${TBB_LIBRARIES})
 
@@ -205,7 +210,7 @@ target_include_directories(dnnl_cpu
     ${PROJECT_SOURCE_DIR}/mkl-dnn/src/cpu/xbyak
 )
 
-target_compile_options(dnnl_cpu PRIVATE ${OIDN_ISA_FLAGS_SSE41})
+target_compile_options(dnnl_cpu PRIVATE ${DNNL_COMPILE_OPTIONS})
 
 target_link_libraries(dnnl_cpu PUBLIC dnnl_common)
 
