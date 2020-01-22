@@ -6,8 +6,8 @@ $ErrorActionPreference = 'Stop'
 
 . scripts/windows_common.ps1 $COMPILER
 
-#Set-Location "${ROOT_DIR}/${BUILD_DIR}"
-Set-Location "${ROOT_DIR}"
+Set-Location "${ROOT_DIR}/${BUILD_DIR}"
+Write-Host "Signing files in ${ROOT_DIR}/${BUILD_DIR} ..."
 
 if (Test-Path Env:OIDN_SIGN_FILE_BINARY_WINDOWS) {
   &"$ENV:OIDN_SIGN_FILE_BINARY_WINDOWS" "-vv" "Release\*.dll"
