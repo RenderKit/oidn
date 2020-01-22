@@ -100,8 +100,6 @@ if(WIN32)
   add_definitions(-D_WIN)
   add_definitions(-DNOMINMAX)
   if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-    # Correct 'jnl' macro/jit issue
-    append(OIDN_CXX_FLAGS "/Qlong-double")
     # Link Intel and MS libraries statically for release builds
     string(REPLACE "/MD" "/MT" CMAKE_C_FLAGS_RELEASE ${CMAKE_C_FLAGS_RELEASE})
     string(REPLACE "/MD" "/MT" CMAKE_C_FLAGS_RELWITHDEBINFO ${CMAKE_C_FLAGS_RELWITHDEBINFO})
