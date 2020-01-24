@@ -39,12 +39,11 @@ workstations, to compute nodes in HPC systems. It is efficient enough to
 be suitable not only for offline rendering, but, depending on the
 hardware used, also for interactive ray tracing.
 
-Intel Open Image Denoise internally builds on top of [Intel® Math Kernel
-Library for Deep Neural Networks
-(MKL-DNN)](https://github.com/intel/mkl-dnn), and automatically exploits
-modern instruction sets like Intel SSE4, AVX2, and AVX-512 to achieve
-high denoising performance. A CPU with support for at least SSE4.1 is
-required to run Intel Open Image Denoise.
+Intel Open Image Denoise internally builds on top of [Intel® Deep Neural
+Network Library (DNNL)](https://github.com/intel/mkl-dnn), and
+automatically exploits modern instruction sets like Intel SSE4, AVX2,
+and AVX-512 to achieve high denoising performance. A CPU with support
+for at least SSE4.1 is required to run Intel Open Image Denoise.
 
 ## Support and Contact
 
@@ -74,25 +73,36 @@ repository](http://github.com/OpenImageDenoise/oidn). The default
 
 ## Prerequisites
 
+You can clone the latest Intel Open Image Denoise sources via:
+
+``` 
+    git clone --recursive https://github.com/OpenImageDenoise/oidn.git
+```
+
 Intel Open Image Denoise currently supports 64-bit Linux, Windows, and
 macOS operating systems. In addition, before you can build Intel Open
 Image Denoise you need the following prerequisites:
 
-  - You can clone the latest Intel Open Image Denoise sources
-        via:
-    
-        git clone --recursive https://github.com/OpenImageDenoise/oidn.git
+  - [CMake](http://www.cmake.org) 3.1 or later
 
-  - To build Intel Open Image Denoise you need
-    [CMake](http://www.cmake.org) 3.1 or later, a C++11 compiler (we
-    recommend using Clang, but also support GCC, Microsoft Visual Studio
-    2015 or later, and [Intel® C++
+  - A C++11 compiler (we recommend using Clang, but also support GCC,
+    Microsoft Visual Studio 2015 or later, and [Intel® C++
     Compiler](https://software.intel.com/en-us/c-compilers) 17.0 or
-    later), and Python 2.7 or later.
+    later)
 
-  - Additionally you require a copy of [Intel® Threading Building
+  - [Intel® SPMD Program Compiler (ISPC)](http://ispc.github.io),
+    version 1.12.0 or later. Please obtain a release of ISPC from the
+    [ISPC downloads page](https://ispc.github.io/downloads.html). The
+    build system looks for ISPC in the `PATH` and in the directory right
+    “next to” the checked-out Intel Open Image Denoise sources.\[1\]
+    Alternatively set the CMake variable `ISPC_EXECUTABLE` to the
+    location of the ISPC compiler.
+
+  - Python 2.7 or later
+
+  - [Intel® Threading Building
     Blocks](https://www.threadingbuildingblocks.org/) (TBB) 2017 or
-    later.
+    later
 
 Depending on your Linux distribution you can install these dependencies
 using `yum` or `apt-get`. Some of these packages might already be
@@ -247,8 +257,8 @@ The API is designed in an object-oriented manner, e.g. it contains
 device objects (`OIDNDevice` type), buffer objects (`OIDNBuffer` type),
 and filter objects (`OIDNFilter` type). All objects are
 reference-counted, and handles can be released by calling the
-appropriate release function (e.g. `oidnReleaseDevice`) or retained by
-incrementing the reference count (e.g. `oidnRetainDevice`).
+appropriate release function (e.g. `oidnReleaseDevice`) or retained by
+incrementing the reference count (e.g. `oidnRetainDevice`).
 
 An important aspect of objects is that setting their parameters do not
 have an immediate effect (with a few exceptions). Instead, objects with
@@ -368,7 +378,7 @@ devices.
 | const int | versionMajor |         | major version number                                                                                                                      |
 | const int | versionMinor |         | minor version number                                                                                                                      |
 | const int | versionPatch |         | patch version number                                                                                                                      |
-| int       | verbose      |       0 | verbosity level of the console output between 0–3; when set to 0, no output is printed, when set to a higher level more output is printed |
+| int       | verbose      |       0 | verbosity level of the console output between 0–4; when set to 0, no output is printed, when set to a higher level more output is printed |
 
 Parameters supported by all
 devices.
@@ -624,7 +634,7 @@ to shared user-managed data (`ptr` argument) with the
 `oidnSetSharedFilterImage` function.
 
 In both cases, you must also specify the name of the image parameter to
-set (`name` argument, e.g. `"color"`, `"output"`), the pixel format
+set (`name` argument, e.g. `"color"`, `"output"`), the pixel format
 (`format` argument), the width and height of the image in number of
 pixels (`width` and `height` arguments), the starting offset of the
 image data (`byteOffset` argument), the pixel stride (`bytePixelStride`
@@ -829,10 +839,10 @@ either in world-space or view-space. It is recommended to include normal
 maps to preserve as much detail as possible.
 
 Just like any other input image, the normal image should be anti-aliased
-( i.e. by accumulating the normalized normals per pixel). The final
+(i.e. by accumulating the normalized normals per pixel). The final
 accumulated normals do not have to be normalized but must be in a range
 symmetric about 0 (i.e. normals mapped to \[0, 1\] are *not* acceptable
-and must be remapped to e.g. \[−1, 1\]).
+and must be remapped to e.g. \[−1, 1\]).
 
 Similar to the albedo, the normal can be stored for either the first or
 a subsequent hit (if the first hit has a perfect specular/delta BSDF).
@@ -886,3 +896,6 @@ format, and the color values must be encoded in little-endian format.
 
 Running `./denoise` without any arguments will bring up a list of
 command line options.
+
+1.  For example, if Intel Open Image Denoise is in `~/Projects/oidn`,
+    ISPC will also be searched in `~/Projects/ispc-v1.12.0-linux`
