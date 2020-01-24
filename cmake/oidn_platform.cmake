@@ -99,12 +99,29 @@ endif()
 if(WIN32)
   add_definitions(-D_WIN)
   add_definitions(-DNOMINMAX)
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-    # Link Intel and MS libraries statically for release builds
-    string(REPLACE "/MD" "/MT" CMAKE_C_FLAGS_RELEASE ${CMAKE_C_FLAGS_RELEASE})
-    string(REPLACE "/MD" "/MT" CMAKE_C_FLAGS_RELWITHDEBINFO ${CMAKE_C_FLAGS_RELWITHDEBINFO})
-    string(REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELEASE ${CMAKE_CXX_FLAGS_RELEASE})
-    string(REPLACE "/MD" "/MT" CMAKE_CXX_FLAGS_RELWITHDEBINFO ${CMAKE_CXX_FLAGS_RELWITHDEBINFO})
+  if(MSVC)
+    option(OIDN_STATIC_RUNTIME "Use the static version of the C/C++ runtime library." OFF)
+    mark_as_advanced(OIDN_STATIC_RUNTIME)
+    if(OIDN_STATIC_RUNTIME)
+      foreach(FLAGS
+        CMAKE_CXX_FLAGS_DEBUG
+        CMAKE_CXX_FLAGS_RELEASE
+        CMAKE_CXX_FLAGS_RELWITHDEBINFO
+        CMAKE_C_FLAGS_DEBUG
+        CMAKE_C_FLAGS_RELEASE
+        CMAKE_C_FLAGS_RELWITHDEBINFO
+      )
+        string(REPLACE "/MD" "/MT" ${FLAGS} ${${FLAGS}})
+      endforeach()
+    elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+      # Use default math lib instead of libmmd[d]
+      string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG " /nodefaultlib:libmmdd.lib")
+      string(APPEND CMAKE_EXE_LINKER_FLAGS_RELEASE " /nodefaultlib:libmmd.lib")
+      string(APPEND CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO " /nodefaultlib:libmmd.lib")
+      string(APPEND CMAKE_SHARED_LINKER_FLAGS_DEBUG " /nodefaultlib:libmmdd.lib")
+      string(APPEND CMAKE_SHARED_LINKER_FLAGS_RELEASE " /nodefaultlib:libmmd.lib")
+      string(APPEND CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO " /nodefaultlib:libmmd.lib")
+    endif()
   endif()
 endif()
 
