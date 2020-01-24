@@ -16,42 +16,46 @@
 ## limitations under the License.                                           ##
 ## ======================================================================== ##
 
-# Fail scripts if individual commands fail.
-set -e
-set -o pipefail
-set -x
+# Fail when individual commands fail (-e), also in intermediate steps in
+# pipelines (-o pipefail).
+set -euo pipefail
 
-if [ -z "${OIDN_PROTEX_USER_HOME}" ]; then
+# Debug only: print commands before executing them (-x).
+# set -x
+
+if [ -z "${OIDN_PROTEX_USER_HOME:-}" ]; then
   echo "Error: you must set OIDN_PROTEX_USER_HOME"
   exit 1
 fi
 
-if [ -z "${OIDN_PROTEX_PROJECT_NAME}" ]; then
+if [ -z "${OIDN_PROTEX_PROJECT_NAME:-}" ]; then
   echo "Error: you must set OIDN_PROTEX_PROJECT_NAME"
   exit 1
 fi
 
-if [ -z "${OIDN_PROTEX_BDS}" ]; then
+if [ -z "${OIDN_PROTEX_BDS:-}" ]; then
   echo "Error: you must set OIDN_PROTEX_BDS"
   exit 1
 fi
 
-if [ -z "${OIDN_ROOT_DIR}" ]; then
-  ROOT_DIR=${PWD}
-else
-  ROOT_DIR="${OIDN_ROOT_DIR}"
+if [ -z "${OIDN_PROTEX_SERVER_URL:-}" ]; then
+  echo "Error: you must set OIDN_PROTEX_SERVER_URL"
+  exit 1
 fi
+
+# Root dir defaults to $PWD
+ROOT_DIR=${OIDN_ROOT_DIR:-$PWD}
 
 export _JAVA_OPTIONS="-Duser.home=${OIDN_PROTEX_USER_HOME}"
 
 cd ${ROOT_DIR}
 
-${OIDN_PROTEX_BDS} new-project ${OIDN_PROTEX_PROJECT_NAME} |& tee ip_protex.log
+${OIDN_PROTEX_BDS} new-project --server ${OIDN_PROTEX_SERVER_URL} ${OIDN_PROTEX_PROJECT_NAME} |& tee ip_protex.log
 if grep -q "command failed" ip_protex.log; then
   exit 1
 fi
 
-${OIDN_PROTEX_BDS} analyze |& tee -a ip_protex.log
+${OIDN_PROTEX_BDS} analyze --server ${OIDN_PROTEX_SERVER_URL} |& tee -a ip_protex.log
 if grep -q "command failed" ip_protex.log; then
   exit 1
 fi

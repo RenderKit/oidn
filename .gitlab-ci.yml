@@ -1,5 +1,5 @@
 ## ======================================================================== ##
-## Copyright 2009-2019 Intel Corporation                                    ##
+## Copyright 2009-2020 Intel Corporation                                    ##
 ##                                                                          ##
 ## Licensed under the Apache License, Version 2.0 (the "License");          ##
 ## you may not use this file except in compliance with the License.         ##
@@ -222,55 +222,28 @@ macos-icc-package:
     - if(!$?) { Exit $LASTEXITCODE }
 
 # ------------------------------------------------------------------------------
-# Windows builds are disabled until VS 16 2019 version 16.4 is released. That
-# version fixes a problem where the ICC 19 build fails with 
-#
-# error : expected an attribute name  _NODISCARD _Check_return_
-#
-# See https://developercommunity.visualstudio.com/content/problem/715817/icl-problem-with-nodiscard-seen-in-visual-studio-1.html
-#
-# In VS16, we must remove Win64 from the generator and add
-# -A "x64" to set the output architecture.
-# ------------------------------------------------------------------------------
 
-# .windows-vs15-icc19:
-#   tags: [ win10, icc19, msvc15 ]
-#   variables:
-#     OIDN_GENERATOR: "Visual Studio 15 2017 Win64"
-#     OIDN_TOOLSET:   "Intel C++ Compiler 19.0"
-#     <<:             *windows-base
-# 
-# windows-vs15-icc19-build:
-#   extends:      [ .windows-build, .windows-vs15-icc19 ]
-# 
-# windows-vs15-icc19-sign:
-#   extends:      [ .windows-sign, .windows-vs15-icc19 ]
-#   needs: 
-#     - job:       windows-vs15-icc19-build
-#       artifacts: true
-# 
-# windows-vs15-icc19-package:
-#   extends:      [ .windows-package, .windows-vs15-icc19 ]
-#   needs: 
-#     - job:       windows-vs15-icc19-sign
-#       artifacts: true
+.windows-vs15-icc19:
+  tags: [ win10, msvc15, icc19 ]
+  variables:
+    OIDN_GENERATOR: "Visual Studio 15 2017 Win64"
+    OIDN_TOOLCHAIN: "Intel C++ Compiler 19.0"
+    <<:             *windows-base
 
-# ------------------------------------------------------------------------------
+windows-vs15-icc19-build:
+  extends:      [ .windows-build, .windows-vs15-icc19 ]
 
-# windows-vs15-icc19-build:
-#   extends:      [ .windows-build, .windows-vs15-icc19 ]
-# 
-# windows-vs15-icc19-sign:
-#   extends:      [ .windows-sign, .windows-vs15-icc19 ]
-#   needs: 
-#     - job:       windows-vs15-icc19-build
-#       artifacts: true
-# 
-# windows-vs15-icc19-package:
-#   extends:      [ .windows-package, .windows-vs15-icc19 ]
-#   needs: 
-#     - job:       windows-vs15-icc19-sign
-#       artifacts: true
+windows-vs15-icc19-sign:
+  extends:      [ .windows-sign, .windows-vs15-icc19 ]
+  needs: 
+    - job:       windows-vs15-icc19-build
+      artifacts: true
+
+windows-vs15-icc19-package:
+  extends:      [ .windows-package, .windows-vs15-icc19 ]
+  needs: 
+    - job:       windows-vs15-icc19-sign
+      artifacts: true
 
 # ------------------------------------------------------------------------------
 # Protex.
@@ -280,8 +253,9 @@ protex_scan:
   stage:    scan_source
   tags:     [ docker ]
   only:     [ schedules, web ]
-  extends:  [ .centos6 ]
   script:   "scripts/protex_scan.sh"
+  image: amd64/openjdk:8
+  dependencies: []
   # Will fail regularly, do not break nightlies because of that.
   allow_failure: true
   artifacts:
