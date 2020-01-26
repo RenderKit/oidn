@@ -151,8 +151,26 @@ target_link_libraries(dnnl_common PUBLIC ${CMAKE_THREAD_LIBS_INIT} ${TBB_LIBRARI
 
 file(GLOB_RECURSE DNNL_CPU_SOURCES
   mkl-dnn/src/cpu/bfloat16.cpp
-  mkl-dnn/src/cpu/cpu_*.hpp
-  mkl-dnn/src/cpu/cpu_*.cpp
+  mkl-dnn/src/cpu/cpu_barrier.hpp
+  mkl-dnn/src/cpu/cpu_barrier.cpp
+  mkl-dnn/src/cpu/cpu_concat.cpp
+  mkl-dnn/src/cpu/cpu_concat_pd.hpp
+  mkl-dnn/src/cpu/cpu_convolution_list.cpp
+  mkl-dnn/src/cpu/cpu_convolution_pd.hpp
+  mkl-dnn/src/cpu/cpu_engine.hpp
+  mkl-dnn/src/cpu/cpu_engine.cpp
+  mkl-dnn/src/cpu/cpu_isa_traits.hpp
+  mkl-dnn/src/cpu/cpu_isa_traits.cpp
+  mkl-dnn/src/cpu/cpu_memory_storage.hpp
+  mkl-dnn/src/cpu/cpu_pooling_list.cpp
+  mkl-dnn/src/cpu/cpu_pooling_pd.hpp
+  mkl-dnn/src/cpu/cpu_primitive.hpp
+  mkl-dnn/src/cpu/cpu_reducer.hpp
+  mkl-dnn/src/cpu/cpu_reducer.cpp
+  mkl-dnn/src/cpu/cpu_reorder.cpp
+  mkl-dnn/src/cpu/cpu_reorder_pd.hpp
+  mkl-dnn/src/cpu/cpu_stream.hpp
+  mkl-dnn/src/cpu/cpu_sum.cpp
   mkl-dnn/src/cpu/jit_avx2_conv_kernel_f32.hpp
   mkl-dnn/src/cpu/jit_avx2_conv_kernel_f32.cpp
   mkl-dnn/src/cpu/jit_avx2_convolution.hpp
@@ -177,6 +195,8 @@ file(GLOB_RECURSE DNNL_CPU_SOURCES
   mkl-dnn/src/cpu/jit_transpose_src_utils.cpp
   mkl-dnn/src/cpu/jit_uni_eltwise.hpp
   mkl-dnn/src/cpu/jit_uni_eltwise.cpp
+  mkl-dnn/src/cpu/jit_uni_eltwise_injector.hpp
+  mkl-dnn/src/cpu/jit_uni_eltwise_injector.cpp
   mkl-dnn/src/cpu/jit_uni_pooling.hpp
   mkl-dnn/src/cpu/jit_uni_pooling.cpp
   mkl-dnn/src/cpu/jit_uni_pool_kernel.hpp
