@@ -17,13 +17,22 @@ New-Item -Path $ROOT_DIR -Name "$BUILD_DIR" -ItemType directory
 Set-Location "${ROOT_DIR}/${BUILD_DIR}"
 
 cmake --version
-  
-# Set up build.
-cmake -L `
-      -G "${GENERATOR}" `
-      -T "${TOOLCHAIN}" `
-      -D TBB_ROOT=${TBB_DIR} `
-      ..
+
+
+if (Test-Path Env:OIDN_ISPC_EXECUTABLE_WINDOWS) {
+  cmake -L `
+        -G "${GENERATOR}" `
+        -T "${TOOLCHAIN}" `
+        -D TBB_ROOT="${TBB_DIR}" `
+        -D ISPC_EXECUTABLE="${Env:OIDN_ISPC_EXECUTABLE_WINDOWS}" `
+        ..
+} else {
+  cmake -L `
+        -G "${GENERATOR}" `
+        -T "${TOOLCHAIN}" `
+        -D TBB_ROOT=${TBB_DIR} `
+        ..
+}
 
 if (!$?) { Exit $LASTEXITCODE }
 
