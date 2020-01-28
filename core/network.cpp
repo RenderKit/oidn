@@ -15,7 +15,6 @@
 // ======================================================================== //
 
 #include "upsample.h"
-#include "weights_reorder.h"
 #include "autoexposure.h"
 #include "network.h"
 
@@ -127,7 +126,6 @@ namespace oidn {
   memory::dims Network<K>::getInputReorderDims(const memory::dims& srcDims, int alignment)
   {
     memory::dims dstDims = srcDims;
-    dstDims[1] = getPadded<K>(srcDims[1]); // round up C
     dstDims[2] = roundUp(srcDims[2], memory::dim(alignment)); // round up H
     dstDims[3] = roundUp(srcDims[3], memory::dim(alignment)); // round up W
     return dstDims;
@@ -166,7 +164,7 @@ namespace oidn {
                                                      const Image& output)
   {
     memory::dims srcDims = getTensorDims(src);
-    assert(srcDims[1] == K);
+    assert(srcDims[1] <= K);
 
     // Push node
     auto node = std::make_shared<OutputReorderNode>(src, output, transferFunc);
@@ -179,7 +177,7 @@ namespace oidn {
   {
     auto b = weightMap[name + "/b"];
     memory::dims dstDims = srcDims;
-    dstDims[1] = getPadded<K>(b.dims[0]); // dstDims[C] = getPadded(OC)
+    dstDims[1] = b.dims[0];
     return dstDims;
   }
 
@@ -198,33 +196,19 @@ namespace oidn {
     const auto& W = weightMap[name + "/W"];
     if (W.ndims() != 4 || W.format != "oihw")
       throw Exception(Error::InvalidOperation, "invalid convolution weights");
-    memory::dims weightsDims = W.dims;
-    auto userWeights = allocTensor(weightsDims, memory::format_tag::oihw, W.data);
-
-    // Pad the weights
-    memory::dims weightsPadDims = weightsDims;
-    weightsPadDims[1] = getPadded<K>(weightsDims[1]); // IC
-    weightsPadDims[0] = getPadded<K>(weightsDims[0]); // OC
-    assert(srcDims[1] == weightsPadDims[1]); // srcDims[C] == weightsPadDims[IC]
-    auto weightsPad = allocTensor(weightsPadDims, memory::format_tag::oihw);
-    WeightsReorderNode<K>(userWeights, weightsPad).execute(sm);
+    memory::dims weightDims = W.dims;
+    auto userWeight = allocTensor(weightDims, memory::format_tag::oihw, W.data);
 
     // Get the biases
     const auto& b = weightMap[name + "/b"];
     if (b.ndims() != 1)
       throw Exception(Error::InvalidOperation, "invalid convolution biases");
     memory::dims biasDims = b.dims;
-
-    // Copy/pad the biases
-    memory::dims biasPadDims = {getPadded<K>(biasDims[0])};
-    auto bias = allocTensor(biasPadDims);
-    if (biasDims[0] != biasPadDims[0])
-      memset(bias->get_data_handle(), 0, biasPadDims[0]*sizeof(float));
-    memcpy(bias->get_data_handle(), b.data, biasDims[0]*sizeof(float));
+    auto bias = allocTensor(biasDims, memory::format_tag::x, b.data);
 
     // Allocate memory for destination
     memory::dims dstDims = srcDims;
-    dstDims[1] = weightsPadDims[0]; // dstDims[C] = weightsPadDims[OC]
+    dstDims[1] = weightDims[0]; // dstDims[C] = weightDims[OC]
 
     std::shared_ptr<memory> dst;
     if (!userDst)
@@ -236,13 +220,13 @@ namespace oidn {
 
     // Create a convolution
     // Let the convolution primitive choose the weights format
-    auto weightsDesc = memory::desc({ weightsPadDims }, memory::data_type::f32, memory::format_tag::any);
+    auto weightDesc = memory::desc({ weightDims }, memory::data_type::f32, memory::format_tag::any);
 
     auto convAlgo = (K == 16) ? algorithm::convolution_winograd : algorithm::convolution_direct;
     auto convDesc = convolution_forward::desc(
       prop_kind::forward_inference, convAlgo,
       src->get_desc(),
-      weightsDesc,
+      weightDesc,
       bias->get_desc(),
       dst->get_desc(),
       strides, padding, padding);
@@ -265,15 +249,15 @@ namespace oidn {
     auto convPrimDesc = convolution_forward::primitive_desc(convDesc, convAttr, eng);
 
     // Reorder the weights to the final format, if necessary
-    auto weights = weightsPad;
-    if (convPrimDesc.weights_desc() != weightsPad->get_desc())
+    auto weight = userWeight;
+    if (convPrimDesc.weights_desc() != userWeight->get_desc())
     {
-      weights = std::make_shared<memory>(convPrimDesc.weights_desc(), eng);
-      ReorderNode(weightsPad, weights).execute(sm);
+      weight = std::make_shared<memory>(convPrimDesc.weights_desc(), eng);
+      ReorderNode(userWeight, weight).execute(sm);
     }
 
     // Create convolution node and add it to the net
-    auto node = std::make_shared<ConvNode>(convPrimDesc, src, weights, bias, dst);
+    auto node = std::make_shared<ConvNode>(convPrimDesc, src, weight, bias, dst);
     nodes.push_back(node);
     return node;
   }

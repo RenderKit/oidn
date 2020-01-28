@@ -272,7 +272,6 @@ set(CORE_SOURCES
   core/node.h
   core/input_reorder.h
   core/output_reorder.h
-  core/weights_reorder.h
   core/transfer_function.h
   core/upsample.h
   core/network.h

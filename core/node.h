@@ -79,22 +79,22 @@ namespace oidn {
   {
   private:
     std::shared_ptr<memory> src;
-    std::shared_ptr<memory> weights;
+    std::shared_ptr<memory> weight;
     std::shared_ptr<memory> bias;
     std::shared_ptr<memory> dst;
 
   public:
     ConvNode(const convolution_forward::primitive_desc& desc,
              const std::shared_ptr<memory>& src,
-             const std::shared_ptr<memory>& weights,
+             const std::shared_ptr<memory>& weight,
              const std::shared_ptr<memory>& bias,
              const std::shared_ptr<memory>& dst)
       : MklNode(convolution_forward(desc),
                 { { DNNL_ARG_SRC, *src },
-                  { DNNL_ARG_WEIGHTS, *weights },
+                  { DNNL_ARG_WEIGHTS, *weight },
                   { DNNL_ARG_BIAS, *bias },
                   { DNNL_ARG_DST, *dst } }),
-                src(src), weights(weights), bias(bias), dst(dst)
+                src(src), weight(weight), bias(bias), dst(dst)
     {}
 
     std::shared_ptr<memory> getDst() const override { return dst; }
