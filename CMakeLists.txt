@@ -276,14 +276,11 @@ set(CORE_SOURCES
   core/transfer_function.h
   core/upsample.h
   core/network.h
+  core/network.cpp
   core/autoencoder.h
+  core/autoencoder.cpp
   core/autoexposure.h
   core/autoexposure.cpp
-)
-
-set(CORE_SOURCES_SSE41
-  core/network.cpp
-  core/autoencoder.cpp
 )
 
 set(CORE_SOURCES_ISPC
@@ -309,9 +306,7 @@ generate_cpp_resources(WEIGHTS_SOURCES "oidn::weights"
   weights/rtlightmap_hdr.tza
 )
 
-set_source_files_properties(${CORE_SOURCES_SSE41} PROPERTIES COMPILE_FLAGS "${OIDN_ISA_FLAGS_SSE41}")
-
-add_library(${PROJECT_NAME} ${OIDN_LIB_TYPE} ${CORE_SOURCES} ${CORE_SOURCES_SSE41} ${WEIGHTS_SOURCES})
+add_library(${PROJECT_NAME} ${OIDN_LIB_TYPE} ${CORE_SOURCES} ${WEIGHTS_SOURCES})
 ispc_target_add_sources(${PROJECT_NAME} ${CORE_SOURCES_ISPC})
 
 if(OIDN_STATIC_LIB)
