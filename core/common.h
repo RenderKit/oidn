@@ -100,6 +100,22 @@ namespace oidn {
 
 
   template<int K>
+  inline int getPadded(int dim)
+  {
+    return (dim + (K-1)) & ~(K-1);
+  }
+
+  template<int K>
+  inline memory::dims getPadded_nchw(const memory::dims& dims)
+  {
+    assert(dims.size() == 4);
+    memory::dims padDims = dims;
+    padDims[1] = getPadded<K>(dims[1]); // pad C
+    return padDims;
+  }
+
+
+  template<int K>
   struct BlockedFormat;
 
   template<>
