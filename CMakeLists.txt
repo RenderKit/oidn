@@ -1,5 +1,5 @@
 ## ======================================================================== ##
-## Copyright 2009-2019 Intel Corporation                                    ##
+## Copyright 2009-2020 Intel Corporation                                    ##
 ##                                                                          ##
 ## Licensed under the Apache License, Version 2.0 (the "License");          ##
 ## you may not use this file except in compliance with the License.         ##
@@ -294,6 +294,7 @@ set(CORE_SOURCES_ISPC
   core/memory.ih
   core/transfer_function.ih
   core/transfer_function.ispc
+  core/upsample.ispc
   core/output_reorder.ispc
   core/vec.ih
 )

@@ -14,45 +14,31 @@
 // limitations under the License.                                           //
 // ======================================================================== //
 
-#pragma once
+#include "memory.ih"
 
-#include "node.h"
-#include "upsample_ispc.h"
+struct Upsample
+{
+  uniform Memory src;
+  uniform Memory dst;
+};
 
-namespace oidn {
+export void Upsample_kernel(uniform Upsample* uniform self, uniform int ck, uniform int h)
+{
+  const uniform size_t H = (size_t)self->src.H;
+  const uniform size_t W = (size_t)self->src.W;
 
-  // 2x2 nearest-neighbor upsampling node
-  template<int K>
-  class UpsampleNode : public Node
+  const uniform size_t offset = (ck*H + h) * (W*K);
+  uniform float* const uniform srcPtr_line = self->src.ptr + offset;
+  uniform float* const uniform dstPtr_line0 = self->dst.ptr + offset * 4;
+  uniform float* const uniform dstPtr_line1 = dstPtr_line0 + W*2*K; // next line
+
+  for (uniform size_t w = 0; w < W; ++w)
   {
-  private:
-    ispc::Upsample data;
+    const float value = *((varying float* uniform)&srcPtr_line[w*K]);
 
-    std::shared_ptr<memory> src;
-    std::shared_ptr<memory> dst;
-
-  public:
-    UpsampleNode(const std::shared_ptr<memory>& src,
-                 const std::shared_ptr<memory>& dst)
-      : src(src),
-        dst(dst)
-    {
-      data.src = toIspc(src);
-      data.dst = toIspc(dst);
-
-      assert(data.dst.H == data.src.H * 2);
-      assert(data.dst.W == data.src.W * 2);
-    }
-
-    void execute(stream& sm) override
-    {
-      parallel_nd(data.src.C / K, data.src.H, [&](int ck, int h)
-      {
-        ispc::Upsample_kernel(&data, ck, h);
-      });
-    }
-
-    std::shared_ptr<memory> getDst() const override { return dst; }
-  };
-
-} // namespace oidn
+    streaming_store(&dstPtr_line0[w*2*K  ], value);
+    streaming_store(&dstPtr_line0[w*2*K+K], value);
+    streaming_store(&dstPtr_line1[w*2*K  ], value);
+    streaming_store(&dstPtr_line1[w*2*K+K], value);
+  }
+}
