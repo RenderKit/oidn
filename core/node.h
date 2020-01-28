@@ -120,6 +120,26 @@ namespace oidn {
     std::shared_ptr<memory> getDst() const override { return dst; }
   };
 
+  // Resampling node
+  class ResampleNode : public MklNode
+  {
+  private:
+    std::shared_ptr<memory> src;
+    std::shared_ptr<memory> dst;
+
+  public:
+    ResampleNode(const resampling_forward::primitive_desc& desc,
+                 const std::shared_ptr<memory>& src,
+                 const std::shared_ptr<memory>& dst)
+      : MklNode(resampling_forward(desc),
+                { { DNNL_ARG_SRC, *src },
+                  { DNNL_ARG_DST, *dst } }),
+                src(src), dst(dst)
+    {}
+
+    std::shared_ptr<memory> getDst() const override { return dst; }
+  };
+
   // Reorder node
   class ReorderNode : public MklNode
   {

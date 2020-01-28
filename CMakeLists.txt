@@ -207,6 +207,11 @@ file(GLOB_RECURSE DNNL_CPU_SOURCES
   mkl-dnn/src/cpu/simple_q10n.hpp
   mkl-dnn/src/cpu/simple_reorder.hpp
   mkl-dnn/src/cpu/wino_reorder.hpp
+  mkl-dnn/src/cpu/resampling/cpu_resampling_list.cpp
+  mkl-dnn/src/cpu/resampling/cpu_resampling_pd.hpp
+  mkl-dnn/src/cpu/resampling/resampling_utils.hpp
+  mkl-dnn/src/cpu/resampling/simple_resampling.hpp
+  mkl-dnn/src/cpu/resampling/simple_resampling.cpp
   mkl-dnn/src/cpu/jit_utils/*.h
   mkl-dnn/src/cpu/jit_utils/*.hpp
   mkl-dnn/src/cpu/jit_utils/*.c
