@@ -127,9 +127,9 @@ namespace oidn {
   memory::dims Network<K>::getInputReorderDims(const memory::dims& srcDims, int alignment)
   {
     memory::dims dstDims = srcDims;
-    dstDims[1] = getPadded<K>(srcDims[1]); // round up C
-    dstDims[2] = roundUp(srcDims[2], memory::dim(alignment)); // round up H
-    dstDims[3] = roundUp(srcDims[3], memory::dim(alignment)); // round up W
+    dstDims[1] = round_up(srcDims[1], K); // round up C
+    dstDims[2] = round_up(srcDims[2], memory::dim(alignment)); // round up H
+    dstDims[3] = round_up(srcDims[3], memory::dim(alignment)); // round up W
     return dstDims;
   }
 
@@ -179,7 +179,7 @@ namespace oidn {
   {
     auto b = weightMap[name + "/b"];
     memory::dims dstDims = srcDims;
-    dstDims[1] = getPadded<K>(b.dims[0]); // dstDims[C] = getPadded(OC)
+    dstDims[1] = round_up(b.dims[0], K); // dstDims[C] = round_up(OC, K)
     return dstDims;
   }
 
@@ -203,8 +203,8 @@ namespace oidn {
 
     // Pad the weights
     memory::dims weightsPadDims = weightsDims;
-    weightsPadDims[1] = getPadded<K>(weightsDims[1]); // IC
-    weightsPadDims[0] = getPadded<K>(weightsDims[0]); // OC
+    weightsPadDims[1] = round_up(weightsDims[1], K); // IC
+    weightsPadDims[0] = round_up(weightsDims[0], K); // OC
     assert(srcDims[1] == weightsPadDims[1]); // srcDims[C] == weightsPadDims[IC]
     auto weightsPad = allocTensor(weightsPadDims, memory::format_tag::oihw);
     WeightsReorderNode<K>(userWeights, weightsPad).execute(sm);
@@ -216,7 +216,7 @@ namespace oidn {
     memory::dims biasDims = b.dims;
 
     // Copy/pad the biases
-    memory::dims biasPadDims = {getPadded<K>(biasDims[0])};
+    memory::dims biasPadDims = {round_up(biasDims[0], K)};
     auto bias = allocTensor(biasPadDims);
     if (biasDims[0] != biasPadDims[0])
       memset(bias->get_data_handle(), 0, biasPadDims[0]*sizeof(float));

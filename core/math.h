@@ -20,40 +20,12 @@
 
 namespace oidn {
 
-  using std::log;
-  using std::log2;
-  using std::exp;
-  using std::exp2;
-  using std::pow;
   using std::isfinite;
   using std::isnan;
 
-  __forceinline float sqr(float x)
-  {
-    return x * x;
-  }
-
-  __forceinline float rcp(float x)
-  {
-    __m128 r = _mm_rcp_ss(_mm_set_ss(x));
-    return _mm_cvtss_f32(_mm_sub_ss(_mm_add_ss(r, r), _mm_mul_ss(_mm_mul_ss(r, r), _mm_set_ss(x))));
-  }
-
-  __forceinline float rsqrt(float x)
-  {
-    __m128 r = _mm_rsqrt_ss(_mm_set_ss(x));
-    return _mm_cvtss_f32(_mm_add_ss(_mm_mul_ss(_mm_set_ss(1.5f), r),
-             _mm_mul_ss(_mm_mul_ss(_mm_mul_ss(_mm_set_ss(x), _mm_set_ss(-0.5f)), r), _mm_mul_ss(r, r))));
-  }
-
-  __forceinline float maxSafe(float value, float minValue)
-  {
-    return isfinite(value) ? max(value, minValue) : minValue;
-  }
-
   // Returns ceil(a / b) for non-negative integers
-  template<class Int>
-  __forceinline constexpr Int ceilDiv(Int a, Int b)
+  template<typename Int, typename IntB>
+  __forceinline constexpr Int ceil_div(Int a, IntB b)
   {
     //assert(a >= 0);
     //assert(b > 0);
@@ -61,10 +33,10 @@ namespace oidn {
   }
 
   // Returns a rounded up to multiple of b
-  template<class Int>
-  __forceinline constexpr Int roundUp(Int a, Int b)
+  template<typename Int, typename IntB>
+  __forceinline constexpr Int round_up(Int a, IntB b)
   {
-    return ceilDiv(a, b) * b;
+    return ceil_div(a, b) * b;
   }
 
 } // namespace oidn

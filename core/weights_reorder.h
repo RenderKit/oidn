@@ -44,8 +44,8 @@ namespace oidn {
       assert(dstDesc.ndims == 4);
       assert(srcDesc.data_type == memory::data_type::f32);
       assert(dstDesc.data_type == memory::data_type::f32);
-      assert(getPadded<K>(srcDesc.dims[0]) == dstDesc.dims[0]); // OC
-      assert(getPadded<K>(srcDesc.dims[1]) == dstDesc.dims[1]); // IC
+      assert(round_up(srcDesc.dims[0], K) == dstDesc.dims[0]); // OC
+      assert(round_up(srcDesc.dims[1], K) == dstDesc.dims[1]); // IC
       assert(srcDesc.dims[2] == dstDesc.dims[2]);
       assert(srcDesc.dims[3] == dstDesc.dims[3]);
     }

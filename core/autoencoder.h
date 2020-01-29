@@ -31,7 +31,7 @@ namespace oidn {
   protected:
     static constexpr int alignment       = 32;  // required spatial alignment in pixels (padding may be necessary)
     static constexpr int receptiveField  = 222; // receptive field in pixels
-    static constexpr int overlap         = roundUp(receptiveField / 2, alignment); // required spatial overlap between tiles in pixels
+    static constexpr int overlap         = round_up(receptiveField / 2, alignment); // required spatial overlap between tiles in pixels
 
     static constexpr int estimatedBytesBase       = 16*1024*1024; // estimated base memory usage
     static constexpr int estimatedBytesPerPixel8  = 889;          // estimated memory usage per pixel for K=8

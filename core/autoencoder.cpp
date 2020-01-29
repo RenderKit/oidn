@@ -126,7 +126,7 @@ namespace oidn {
         const int overlapEndH   = i < tileCountH-1 ? overlap : 0; // overlap on the bottom
         const int tileH1 = min(H - h, tileH); // input tile size (including overlap)
         const int tileH2 = tileH1 - overlapBeginH - overlapEndH; // output tile size
-        const int alignOffsetH = tileH - roundUp(tileH1, alignment); // align to the bottom in the tile buffer
+        const int alignOffsetH = tileH - round_up(tileH1, alignment); // align to the bottom in the tile buffer
 
         for (int j = 0; j < tileCountW; ++j)
         {
@@ -135,7 +135,7 @@ namespace oidn {
           const int overlapEndW   = j < tileCountW-1 ? overlap : 0; // overlap on the right
           const int tileW1 = min(W - w, tileW); // input tile size (including overlap)
           const int tileW2 = tileW1 - overlapBeginW - overlapEndW; // output tile size
-          const int alignOffsetW = tileW - roundUp(tileW1, alignment); // align to the right in the tile buffer
+          const int alignOffsetW = tileW - round_up(tileW1, alignment); // align to the right in the tile buffer
 
           // Set the input tile
           inputReorder->setTile(h, w,
@@ -167,8 +167,8 @@ namespace oidn {
 
     tileCountH = 1;
     tileCountW = 1;
-    tileH = roundUp(H, alignment);
-    tileW = roundUp(W, alignment);
+    tileH = round_up(H, alignment);
+    tileW = round_up(W, alignment);
 
     // Divide the image into tiles until the tile size gets below the threshold
     while (int64_t(tileH) * tileW > maxTilePixels)
@@ -176,20 +176,20 @@ namespace oidn {
       if (tileH > minTileSize && tileH > tileW)
       {
         tileCountH++;
-        tileH = max(roundUp(ceilDiv(H - 2*overlap, tileCountH), alignment) + 2*overlap, minTileSize);
+        tileH = max(round_up(ceil_div(H - 2*overlap, tileCountH), alignment) + 2*overlap, minTileSize);
       }
       else if (tileW > minTileSize)
       {
         tileCountW++;
-        tileW = max(roundUp(ceilDiv(W - 2*overlap, tileCountW), alignment) + 2*overlap, minTileSize);
+        tileW = max(round_up(ceil_div(W - 2*overlap, tileCountW), alignment) + 2*overlap, minTileSize);
       }
       else
         break;
     }
 
     // Compute the final number of tiles
-    tileCountH = (H > tileH) ? ceilDiv(H - 2*overlap, tileH - 2*overlap) : 1;
-    tileCountW = (W > tileW) ? ceilDiv(W - 2*overlap, tileW - 2*overlap) : 1;
+    tileCountH = (H > tileH) ? ceil_div(H - 2*overlap, tileH - 2*overlap) : 1;
+    tileCountW = (W > tileW) ? ceil_div(W - 2*overlap, tileW - 2*overlap) : 1;
 
     if (device->isVerbose(2))
     {
