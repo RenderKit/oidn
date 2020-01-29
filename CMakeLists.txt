@@ -92,9 +92,9 @@ include(oidn_package)
 # Platform-specific settings
 include(oidn_platform)
 
-## ----------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 ## DNNL
-## ----------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 
 set(DNNL_VERSION_MAJOR 1)
 set(DNNL_VERSION_MINOR 1)
@@ -145,9 +145,9 @@ target_compile_options(dnnl_common PRIVATE ${DNNL_COMPILE_OPTIONS})
 
 target_link_libraries(dnnl_common PUBLIC ${CMAKE_THREAD_LIBS_INIT} ${TBB_LIBRARIES})
 
-## ----------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 ## DNNL: CPU
-## ----------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 
 file(GLOB_RECURSE DNNL_CPU_SOURCES
   mkl-dnn/src/cpu/bfloat16.cpp
@@ -239,9 +239,9 @@ target_compile_options(dnnl_cpu PRIVATE ${DNNL_COMPILE_OPTIONS})
 
 target_link_libraries(dnnl_cpu PUBLIC dnnl_common)
 
-## ----------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 ## OIDN
-## ----------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 
 # ISPC
 set(OIDN_ISPC_TARGET_LIST sse4-i32x8;avx2-i32x8;avx512skx-i32x16;avx512knl-i32x16)
@@ -260,27 +260,28 @@ set(CORE_SOURCES
   include/OpenImageDenoise/oidn.h
   include/OpenImageDenoise/oidn.hpp
   include/OpenImageDenoise/version.h
-  core/api.cpp
-  core/common.h
-  core/math.h
-  core/device.h
-  core/device.cpp
-  core/buffer.h
-  core/image.h
-  core/filter.h
-  core/filter.cpp
-  core/node.h
-  core/input_reorder.h
-  core/output_reorder.h
-  core/weights_reorder.h
-  core/transfer_function.h
-  core/upsample.h
-  core/network.h
-  core/network.cpp
   core/autoencoder.h
   core/autoencoder.cpp
   core/autoexposure.h
   core/autoexposure.cpp
+  core/api.cpp
+  core/buffer.h
+  core/common.h
+  core/device.h
+  core/device.cpp
+  core/filter.h
+  core/filter.cpp
+  core/image.h
+  core/input_reorder.h
+  core/math.h
+  core/memory.h
+  core/network.h
+  core/network.cpp
+  core/node.h
+  core/output_reorder.h
+  core/transfer_function.h
+  core/upsample.h
+  core/weights_reorder.h
 )
 
 set(CORE_SOURCES_ISPC
@@ -328,15 +329,15 @@ message(STATUS "Setting target version ${PROJECT_VERSION}")
 set_property(TARGET ${PROJECT_NAME} PROPERTY VERSION ${PROJECT_VERSION})
 set_property(TARGET ${PROJECT_NAME} PROPERTY SOVERSION "0")
 
-## ----------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 ## OIDN: Examples
-## ----------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 
 add_subdirectory(examples)
 
-## ----------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 ## OIDN: Install and packaging
-## ----------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 
 include(oidn_install)
 

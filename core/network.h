@@ -1,5 +1,5 @@
 // ======================================================================== //
-// Copyright 2009-2019 Intel Corporation                                    //
+// Copyright 2009-2020 Intel Corporation                                    //
 //                                                                          //
 // Licensed under the Apache License, Version 2.0 (the "License");          //
 // you may not use this file except in compliance with the License.         //
@@ -48,20 +48,20 @@ namespace oidn {
 
     void execute(const Progress& progress, int taskIndex) override;
 
-    std::shared_ptr<memory> allocTensor(const memory::dims& dims,
+    std::shared_ptr<memory> allocMemory(const memory::dims& dims,
                                         memory::format_tag format = memory::format_tag::any,
                                         void* data = nullptr);
 
-    std::shared_ptr<memory> castTensor(const memory::dims& dims,
+    std::shared_ptr<memory> castMemory(const memory::dims& dims,
                                        const std::shared_ptr<memory>& src,
                                        size_t srcOffset = 0,
                                        memory::format_tag format = memory::format_tag::any);
 
-    std::shared_ptr<memory> castTensor(const memory::dims& dims,
+    std::shared_ptr<memory> castMemory(const memory::dims& dims,
                                        const std::shared_ptr<memory>& src,
                                        const memory::dims& srcOffset);
 
-    void zeroTensor(const std::shared_ptr<memory>& dst);
+    void zeroMemory(const std::shared_ptr<memory>& dst);
 
     memory::dims getInputReorderDims(const memory::dims& srcDims, int alignment);
 

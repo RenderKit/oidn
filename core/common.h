@@ -1,5 +1,5 @@
 // ======================================================================== //
-// Copyright 2009-2019 Intel Corporation                                    //
+// Copyright 2009-2020 Intel Corporation                                    //
 //                                                                          //
 // Licensed under the Apache License, Version 2.0 (the "License");          //
 // you may not use this file except in compliance with the License.         //
@@ -29,7 +29,7 @@
 #include "common/thread.h"
 #include "common/tasking.h"
 #include "math.h"
-#include "input_reorder_ispc.h"
+#include "input_reorder_ispc.h" // ispc::Memory, ispc::Image
 
 namespace oidn {
 
@@ -37,7 +37,6 @@ namespace oidn {
   using namespace dnnl::impl::cpu;
   using dnnl::impl::parallel_nd;
   using dnnl::impl::memory_desc_matches_tag;
-
 
   inline size_t getFormatBytes(Format format)
   {
@@ -51,86 +50,6 @@ namespace oidn {
     }
     assert(0);
     return 0;
-  }
-
-
-  inline memory::dims getTensorDims(const std::shared_ptr<memory>& mem)
-  {
-    const dnnl_memory_desc_t& desc = mem->get_desc().data;
-    return memory::dims(&desc.dims[0], &desc.dims[desc.ndims]);
-  }
-
-  inline memory::data_type getTensorType(const std::shared_ptr<memory>& mem)
-  {
-    const dnnl_memory_desc_t& desc = mem->get_desc().data;
-    return memory::data_type(desc.data_type);
-  }
-
-  // Returns the number of values in a tensor
-  inline size_t getTensorSize(const memory::dims& dims)
-  {
-    size_t res = 1;
-    for (int i = 0; i < (int)dims.size(); ++i)
-      res *= dims[i];
-    return res;
-  }
-
-  inline memory::dims getMaxTensorDims(const std::vector<memory::dims>& dims)
-  {
-    memory::dims result;
-    size_t maxSize = 0;
-
-    for (const auto& d : dims)
-    {
-      const size_t size = getTensorSize(d);
-      if (size > maxSize)
-      {
-        result = d;
-        maxSize = size;
-      }
-    }
-
-    return result;
-  }
-
-  inline size_t getTensorSize(const std::shared_ptr<memory>& mem)
-  {
-    return getTensorSize(getTensorDims(mem));
-  }
-
-
-  template<int K>
-  struct BlockedFormat;
-
-  template<>
-  struct BlockedFormat<8>
-  {
-    static constexpr memory::format_tag nChwKc   = memory::format_tag::nChw8c;
-    static constexpr memory::format_tag OIhwKiKo = memory::format_tag::OIhw8i8o;
-  };
-
-  template<>
-  struct BlockedFormat<16>
-  {
-    static constexpr memory::format_tag nChwKc   = memory::format_tag::nChw16c;
-    static constexpr memory::format_tag OIhwKiKo = memory::format_tag::OIhw16i16o;
-  };
-
-
-  inline ispc::Memory toIspc(const std::shared_ptr<memory>& mem)
-  {
-    const dnnl_memory_desc_t& desc = mem->get_desc().data;
-    assert(memory_desc_matches_tag(desc, dnnl_format_tag_t(BlockedFormat<K>::nChwKc)));
-    assert(desc.ndims == 4);
-    assert(desc.dims[0] == 1);
-    assert(desc.data_type == memory::data_type::f32);
-
-    ispc::Memory res;
-    res.ptr = (float*)mem->get_data_handle();
-    res.C = desc.dims[1];
-    res.H = desc.dims[2];
-    res.W = desc.dims[3];
-    return res;
   }
 
 } // namespace oidn

@@ -1,5 +1,5 @@
 // ======================================================================== //
-// Copyright 2009-2019 Intel Corporation                                    //
+// Copyright 2009-2020 Intel Corporation                                    //
 //                                                                          //
 // Licensed under the Apache License, Version 2.0 (the "License");          //
 // you may not use this file except in compliance with the License.         //
@@ -18,9 +18,9 @@
 
 namespace oidn {
 
-  // --------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
   // AutoencoderFilter
-  // --------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
 
   AutoencoderFilter::AutoencoderFilter(const Ref<Device>& device)
     : Filter(device)
@@ -258,7 +258,7 @@ namespace oidn {
     // Create the network
     std::shared_ptr<Network<K>> net = std::make_shared<Network<K>>(device, weightMap);
 
-    // Compute the tensor sizes
+    // Compute the buffer sizes
     const auto inputDims        = memory::dims({1, inputC, tileH, tileW});
     const auto inputReorderDims = net->getInputReorderDims(inputDims, alignment);   //-> concat0
 
@@ -298,7 +298,7 @@ namespace oidn {
     const auto outputDims = memory::dims({1, 3, tileH, tileW});
 
     // Allocate two temporary ping-pong buffers to decrease memory usage
-    const auto temp0Dims = getMaxTensorDims({
+    const auto temp0Dims = getMaxMemoryDims({
       conv1Dims,
       conv2Dims,
       conv3Dims,
@@ -312,7 +312,7 @@ namespace oidn {
       conv11Dims
     });
 
-    const auto temp1Dims = getMaxTensorDims({
+    const auto temp1Dims = getMaxMemoryDims({
       conv1bDims,
       pool5Dims,
       conv6bDims,
@@ -322,18 +322,18 @@ namespace oidn {
       conv10bDims,
     });
 
-    auto temp0 = net->allocTensor(temp0Dims);
-    auto temp1 = net->allocTensor(temp1Dims);
+    auto temp0 = net->allocMemory(temp0Dims);
+    auto temp1 = net->allocMemory(temp1Dims);
 
     // Allocate enough memory to hold the concat outputs. Then use the first
     // half to hold the previous conv output and the second half to hold the
     // pool/orig image output. This works because everything is C dimension
     // outermost, padded to K floats, and all the concats are on the C dimension.
-    auto concat0Dst = net->allocTensor(concat0Dims);
-    auto concat1Dst = net->allocTensor(concat1Dims);
-    auto concat2Dst = net->allocTensor(concat2Dims);
-    auto concat3Dst = net->allocTensor(concat3Dims);
-    auto concat4Dst = net->allocTensor(concat4Dims);
+    auto concat0Dst = net->allocMemory(concat0Dims);
+    auto concat1Dst = net->allocMemory(concat1Dims);
+    auto concat2Dst = net->allocMemory(concat2Dims);
+    auto concat3Dst = net->allocMemory(concat3Dims);
+    auto concat4Dst = net->allocMemory(concat4Dims);
 
     // Transfer function
     std::shared_ptr<TransferFunction> transferFunc = makeTransferFunc();
@@ -348,7 +348,7 @@ namespace oidn {
     }
 
     // Input reorder
-    auto inputReorderDst = net->castTensor(inputReorderDims, concat0Dst, upsample0Dims);
+    auto inputReorderDst = net->castMemory(inputReorderDims, concat0Dst, upsample0Dims);
     inputReorder = net->addInputReorder(color, albedo, normal,
                                         transferFunc,
                                         alignment, inputReorderDst);
@@ -361,7 +361,7 @@ namespace oidn {
 
     // pool1
     // Adjust pointer for pool1 to eliminate concat1
-    auto pool1Dst = net->castTensor(pool1Dims, concat1Dst, upsample1Dims);
+    auto pool1Dst = net->castMemory(pool1Dims, concat1Dst, upsample1Dims);
     auto pool1 = net->addPool(conv1b->getDst(), pool1Dst);
 
     // conv2
@@ -369,7 +369,7 @@ namespace oidn {
 
     // pool2
     // Adjust pointer for pool2 to eliminate concat2
-    auto pool2Dst = net->castTensor(pool2Dims, concat2Dst, upsample2Dims);
+    auto pool2Dst = net->castMemory(pool2Dims, concat2Dst, upsample2Dims);
     auto pool2 = net->addPool(conv2->getDst(), pool2Dst);
 
     // conv3
@@ -377,7 +377,7 @@ namespace oidn {
 
     // pool3
     // Adjust pointer for pool3 to eliminate concat3
-    auto pool3Dst = net->castTensor(pool3Dims, concat3Dst, upsample3Dims);
+    auto pool3Dst = net->castMemory(pool3Dims, concat3Dst, upsample3Dims);
     auto pool3 = net->addPool(conv3->getDst(), pool3Dst);
 
     // conv4
@@ -385,7 +385,7 @@ namespace oidn {
 
     // pool4
     // Adjust pointer for pool4 to eliminate concat4
-    auto pool4Dst = net->castTensor(pool4Dims, concat4Dst, upsample4Dims);
+    auto pool4Dst = net->castMemory(pool4Dims, concat4Dst, upsample4Dims);
     auto pool4 = net->addPool(conv4->getDst(), pool4Dst);
 
     // conv5
@@ -395,7 +395,7 @@ namespace oidn {
     auto pool5 = net->addPool(conv5->getDst(), temp1);
 
     // upsample4
-    auto upsample4Dst = net->castTensor(upsample4Dims, concat4Dst);
+    auto upsample4Dst = net->castMemory(upsample4Dims, concat4Dst);
     auto upsample4 = net->addUpsample(pool5->getDst(), upsample4Dst);
 
     // conv6
@@ -405,7 +405,7 @@ namespace oidn {
     auto conv6b = net->addConv("conv6b", conv6->getDst(), temp1);
 
     // upsample3
-    auto upsample3Dst = net->castTensor(upsample3Dims, concat3Dst);
+    auto upsample3Dst = net->castMemory(upsample3Dims, concat3Dst);
     auto upsample3 = net->addUpsample(conv6b->getDst(), upsample3Dst);
 
     // conv7
@@ -415,7 +415,7 @@ namespace oidn {
     auto conv7b = net->addConv("conv7b", conv7->getDst(), temp1);
 
     // upsample2
-    auto upsample2Dst = net->castTensor(upsample2Dims, concat2Dst);
+    auto upsample2Dst = net->castMemory(upsample2Dims, concat2Dst);
     auto upsample2 = net->addUpsample(conv7b->getDst(), upsample2Dst);
 
     // conv8
@@ -425,7 +425,7 @@ namespace oidn {
     auto conv8b = net->addConv("conv8b", conv8->getDst(), temp1);
 
     // upsample1
-    auto upsample1Dst = net->castTensor(upsample1Dims, concat1Dst);
+    auto upsample1Dst = net->castMemory(upsample1Dims, concat1Dst);
     auto upsample1 = net->addUpsample(conv8b->getDst(), upsample1Dst);
 
     // conv9
@@ -435,7 +435,7 @@ namespace oidn {
     auto conv9b = net->addConv("conv9b", conv9->getDst(), temp1);
 
     // upsample0
-    auto upsample0Dst = net->castTensor(upsample0Dims, concat0Dst);
+    auto upsample0Dst = net->castMemory(upsample0Dims, concat0Dst);
     auto upsample0 = net->addUpsample(conv9b->getDst(), upsample0Dst);
 
     // conv10
@@ -464,9 +464,9 @@ namespace oidn {
       return std::make_shared<TransferFunction>(TransferFunction::Type::Gamma);
   }
 
-  // --------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
   // RTFilter
-  // --------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
 
   namespace weights
   {
@@ -492,9 +492,9 @@ namespace oidn {
     weightData.hdr_alb_nrm = weights::rt_hdr_alb_nrm;
   }
 
-  // --------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
   // RTLightmapFilter
-  // --------------------------------------------------------------------------
+  // ---------------------------------------------------------------------------
 
   namespace weights
   {
