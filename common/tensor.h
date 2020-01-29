@@ -22,20 +22,20 @@
 
 namespace oidn {
 
-  template<typename T>
-  using shared_vector = std::shared_ptr<std::vector<T>>;
-
   // Generic tensor
-  struct Tensor
+  class Tensor
   {
+  public:
+    using Dims = std::vector<int64_t>;
+
     float* data;
-    std::vector<int64_t> dims;
+    Dims dims;
     std::string format;
-    shared_vector<char> buffer; // optional, only for reference counting
+    std::shared_ptr<std::vector<char>> buffer; // optional, only for reference counting
 
     __forceinline Tensor() : data(nullptr) {}
 
-    __forceinline Tensor(const std::vector<int64_t>& dims, const std::string& format)
+    __forceinline Tensor(const Dims& dims, const std::string& format)
       : dims(dims),
         format(format)
     {
@@ -58,6 +58,53 @@ namespace oidn {
 
     __forceinline float& operator [](size_t i) { return data[i]; }
     __forceinline const float& operator [](size_t i) const { return data[i]; }
+
+    __forceinline float& operator ()(size_t i0) { return data[getIndex(i0)]; }
+    __forceinline const float& operator ()(size_t i0) const { return data[getIndex(i0)]; }
+
+    __forceinline float& operator ()(size_t i0, size_t i1)
+    { return data[getIndex(i0, i1)]; }
+    __forceinline const float& operator ()(size_t i0, size_t i1) const
+    { return data[getIndex(i0, i1)]; }
+
+    __forceinline float& operator ()(size_t i0, size_t i1, size_t i2)
+    { return data[getIndex(i0, i1, i2)]; }
+    __forceinline const float& operator ()(size_t i0, size_t i1, size_t i2) const
+    { return data[getIndex(i0, i1, i2)]; }
+
+    __forceinline float& operator ()(size_t i0, size_t i1, size_t i2, size_t i3)
+    { return data[getIndex(i0, i1, i2, i3)]; }
+    __forceinline const float& operator ()(size_t i0, size_t i1, size_t i2, size_t i3) const
+    { return data[getIndex(i0, i1, i2, i3)]; }
+
+  private:
+    __forceinline size_t getIndex(size_t i0) const
+    {
+      assert(ndims() == 1);
+      assert(i0 < dims[0]);
+      return i0;
+    }
+
+    __forceinline size_t getIndex(size_t i0, size_t i1) const
+    {
+      assert(ndims() == 2);
+      assert(i0 < dims[0] && i1 < dims[1]);
+      return i0 * dims[1] + i1;
+    }
+
+    __forceinline size_t getIndex(size_t i0, size_t i1, size_t i2) const
+    {
+      assert(ndims() == 3);
+      assert(i0 < dims[0] && i1 < dims[1] && i2 < dims[2]);
+      return (i0 * dims[1] + i1) * dims[2] + i2;
+    }
+
+    __forceinline size_t getIndex(size_t i0, size_t i1, size_t i2, size_t i3) const
+    {
+      assert(ndims() == 4);
+      assert(i0 < dims[0] && i1 < dims[1] && i2 < dims[2] && i3 < dims[3]);
+      return ((i0 * dims[1] + i1) * dims[2] + i2) * dims[3] + i3;
+    }
   };
 
   // Parses tensors from a buffer
