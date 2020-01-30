@@ -15,7 +15,6 @@
 // ======================================================================== //
 
 #include "upsample.h"
-#include "weights_reorder.h"
 #include "autoexposure.h"
 #include "network.h"
 
@@ -194,37 +193,23 @@ namespace oidn {
 
     memory::dims srcDims = getMemoryDims(src);
 
-    // Get the weights
+    // Get and pad the weights
     const auto& W = weightMap[name + "/W"];
-    if (W.ndims() != 4 || W.format != "oihw")
+    if (W.ndims() != 4 || W.layout != "oihw")
       throw Exception(Error::InvalidOperation, "invalid convolution weights");
-    memory::dims weightsDims = W.dims;
-    auto userWeights = allocMemory(weightsDims, memory::format_tag::oihw, W.data);
+    auto weights = padWeights(W);
+    memory::dims weightsDims = getMemoryDims(weights);
 
-    // Pad the weights
-    memory::dims weightsPadDims = weightsDims;
-    weightsPadDims[1] = round_up(weightsDims[1], K); // IC
-    weightsPadDims[0] = round_up(weightsDims[0], K); // OC
-    assert(srcDims[1] == weightsPadDims[1]); // srcDims[C] == weightsPadDims[IC]
-    auto weightsPad = allocMemory(weightsPadDims, memory::format_tag::oihw);
-    WeightsReorderNode<K>(userWeights, weightsPad).execute(sm);
-
-    // Get the biases
+    // Get and pad the biases
     const auto& b = weightMap[name + "/b"];
     if (b.ndims() != 1)
       throw Exception(Error::InvalidOperation, "invalid convolution biases");
-    memory::dims biasDims = b.dims;
-
-    // Copy/pad the biases
-    memory::dims biasPadDims = {round_up(biasDims[0], K)};
-    auto bias = allocMemory(biasPadDims);
-    if (biasDims[0] != biasPadDims[0])
-      memset(bias->get_data_handle(), 0, biasPadDims[0]*sizeof(float));
-    memcpy(bias->get_data_handle(), b.data, biasDims[0]*sizeof(float));
+    auto bias = padBias(b);
+    memory::dims biasDims = getMemoryDims(bias);
 
     // Allocate memory for destination
     memory::dims dstDims = srcDims;
-    dstDims[1] = weightsPadDims[0]; // dstDims[C] = weightsPadDims[OC]
+    dstDims[1] = weightsDims[0]; // dstDims[C] = weightsDims[OC]
 
     std::shared_ptr<memory> dst;
     if (!userDst)
@@ -236,7 +221,7 @@ namespace oidn {
 
     // Create a convolution
     // Let the convolution primitive choose the weights format
-    auto weightsDesc = memory::desc({ weightsPadDims }, memory::data_type::f32, memory::format_tag::any);
+    auto weightsDesc = memory::desc({ weightsDims }, memory::data_type::f32, memory::format_tag::any);
 
     auto convAlgo = (K == 16) ? algorithm::convolution_winograd : algorithm::convolution_direct;
     auto convDesc = convolution_forward::desc(
@@ -265,11 +250,11 @@ namespace oidn {
     auto convPrimDesc = convolution_forward::primitive_desc(convDesc, convAttr, eng);
 
     // Reorder the weights to the final format, if necessary
-    auto weights = weightsPad;
-    if (convPrimDesc.weights_desc() != weightsPad->get_desc())
+    if (convPrimDesc.weights_desc() != weights->get_desc())
     {
+      auto oldWeights = weights;
       weights = std::make_shared<memory>(convPrimDesc.weights_desc(), eng);
-      ReorderNode(weightsPad, weights).execute(sm);
+      ReorderNode(oldWeights, weights).execute(sm);
     }
 
     // Create convolution node and add it to the net
@@ -413,6 +398,73 @@ namespace oidn {
       std::cout << "Scratchpad bytes: " << scratchpadSize << std::endl;
       std::cout << "Total bytes     : " << totalAllocBytes << std::endl;
     }
+  }
+
+  template <int K>
+  std::shared_ptr<memory> Network<K>::padWeights(const Tensor& src)
+  {
+    assert(src.layout == "oihw");
+
+    const int64_t O1 = src.dims[0];
+    const int64_t I1 = src.dims[1];
+    const int64_t O2 = round_up(O1, K);
+    const int64_t I2 = round_up(I1, K);
+    const int64_t H = src.dims[2];
+    const int64_t W = src.dims[3];
+
+    Tensor::Dims dstDims = {O2, I2, H, W};
+    if (dstDims == src.dims)
+      return allocMemory(src.dims, memory::format_tag::oihw, src.data);
+
+    std::shared_ptr<memory> dstMem = allocMemory(dstDims, memory::format_tag::oihw);
+    Tensor dst(dstDims, src.layout, (float*)dstMem->map_data());
+
+    for (int64_t o = 0; o < O2; ++o)
+    {
+      for (int64_t i = 0; i < I2; ++i)
+      {
+        for (int64_t h = 0; h < H; ++h)
+        {
+          for (int64_t w = 0; w < W; ++w)
+          {
+            float value;
+            if (o < O1 && i < I1)
+              value = src(o, i, h, w);
+            else
+              value = 0; // padding;
+
+            dst(o, i, h, w) = value;
+          }
+        }
+      }
+    }
+
+    dstMem->unmap_data(dst.data);
+    return dstMem;
+  }
+
+  template <int K>
+  std::shared_ptr<memory> Network<K>::padBias(const Tensor& src)
+  {
+    assert(src.ndims() == 1);
+
+    const int64_t X1 = src.dims[0];
+    const int64_t X2 = round_up(X1, K);
+
+    if (X2 == X1)
+      return allocMemory(src.dims, memory::format_tag::x, src.data);
+
+    std::shared_ptr<memory> dstMem = allocMemory({X2}, memory::format_tag::x);
+    Tensor dst({X2}, src.layout, (float*)dstMem->map_data());
+
+    for (int64_t x = 0; x < X1; ++x)
+      dst(x) = src(x);
+
+    for (int64_t x = X1; x < X2; ++x)
+      dst(x) = 0; // padding
+
+    dstMem->unmap_data(dst.data);
+    return dstMem;
   }
 
   template class Network<8>;

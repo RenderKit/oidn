@@ -107,6 +107,9 @@ namespace oidn {
     // Memory allocation statistics
     size_t activationAllocBytes = 0; // number of allocated activation bytes
     size_t totalAllocBytes      = 0; // total number of allocated bytes
+
+    std::shared_ptr<memory> padWeights(const Tensor& src);
+    std::shared_ptr<memory> padBias(const Tensor& src);
   };
 
 } // namespace oidn

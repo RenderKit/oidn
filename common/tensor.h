@@ -30,18 +30,24 @@ namespace oidn {
 
     float* data;
     Dims dims;
-    std::string format;
+    std::string layout;
     std::shared_ptr<std::vector<char>> buffer; // optional, only for reference counting
 
     __forceinline Tensor() : data(nullptr) {}
 
-    __forceinline Tensor(const Dims& dims, const std::string& format)
+    __forceinline Tensor(const Dims& dims, const std::string& layout)
       : dims(dims),
-        format(format)
+        layout(layout)
     {
       buffer = std::make_shared<std::vector<char>>(size() * sizeof(float));
       data = (float*)buffer->data();
     }
+
+    __forceinline Tensor(const Dims& dims, const std::string& layout, float* data)
+      : data(data),
+        dims(dims),
+        layout(layout)
+    {}
 
     __forceinline operator bool() const { return data != nullptr; }
 

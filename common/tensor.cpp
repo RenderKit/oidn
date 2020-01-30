@@ -60,8 +60,8 @@ namespace oidn {
         tensor.dims[i] = ((int*)input)[i];
       input += ndims * sizeof(int);
 
-      // Parse the format of the tensor
-      tensor.format = std::string(input, input + ndims);
+      // Parse the layout of the tensor
+      tensor.layout = std::string(input, input + ndims);
       input += ndims;
 
       // Parse the data type of the tensor

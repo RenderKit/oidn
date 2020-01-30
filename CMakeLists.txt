@@ -281,7 +281,6 @@ set(CORE_SOURCES
   core/output_reorder.h
   core/transfer_function.h
   core/upsample.h
-  core/weights_reorder.h
 )
 
 set(CORE_SOURCES_ISPC
