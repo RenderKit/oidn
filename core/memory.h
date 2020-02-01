@@ -20,23 +20,6 @@
 
 namespace oidn {
 
-  template<int K>
-  struct BlockedFormat;
-
-  template<>
-  struct BlockedFormat<8>
-  {
-    static constexpr memory::format_tag nChwKc   = memory::format_tag::nChw8c;
-    static constexpr memory::format_tag OIhwKiKo = memory::format_tag::OIhw8i8o;
-  };
-
-  template<>
-  struct BlockedFormat<16>
-  {
-    static constexpr memory::format_tag nChwKc   = memory::format_tag::nChw16c;
-    static constexpr memory::format_tag OIhwKiKo = memory::format_tag::OIhw16i16o;
-  };
-
   inline memory::dims getMemoryDims(const std::shared_ptr<memory>& mem)
   {
     const dnnl_memory_desc_t& desc = mem->get_desc().data;
@@ -84,7 +67,6 @@ namespace oidn {
   inline ispc::Memory toIspc(const std::shared_ptr<memory>& mem)
   {
     const dnnl_memory_desc_t& desc = mem->get_desc().data;
-    assert(memory_desc_matches_tag(desc, dnnl_format_tag_t(BlockedFormat<K>::nChwKc)));
     assert(desc.ndims == 4);
     assert(desc.dims[0] == 1);
     assert(desc.data_type == memory::data_type::f32);

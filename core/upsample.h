@@ -22,19 +22,21 @@
 namespace oidn {
 
   // 2x2 nearest-neighbor upsampling node
-  template<int K>
   class UpsampleNode : public Node
   {
   private:
     ispc::Upsample data;
 
+    int K;
     std::shared_ptr<memory> src;
     std::shared_ptr<memory> dst;
 
   public:
-    UpsampleNode(const std::shared_ptr<memory>& src,
+    UpsampleNode(int K,
+                 const std::shared_ptr<memory>& src,
                  const std::shared_ptr<memory>& dst)
-      : src(src),
+      : K(K),
+        src(src),
         dst(dst)
     {
       data.src = toIspc(src);

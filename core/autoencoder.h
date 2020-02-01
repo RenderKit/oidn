@@ -83,7 +83,6 @@ namespace oidn {
   private:
     void computeTileSize();
 
-    template<int K>
     std::shared_ptr<Executable> buildNet();
 
     bool isCommitted() const { return bool(net); }

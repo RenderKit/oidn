@@ -20,17 +20,25 @@
 
 namespace oidn {
 
-  template<int K>
-  Network<K>::Network(const Ref<Device>& device, const std::map<std::string, Tensor>& weightMap)
+  Network::Network(const Ref<Device>& device, const std::map<std::string, Tensor>& weightMap)
     : device(device),
       eng(engine::kind::cpu, 0),
       sm(eng),
       weightMap(weightMap)
   {
+    if (mayiuse(avx512_common))
+    {
+      K = 16;
+      nChwKc = memory::format_tag::nChw16c;
+    }
+    else
+    {
+      K = 8;
+      nChwKc = memory::format_tag::nChw8c;
+    }
   }
 
-  template<int K>
-  void Network<K>::execute(const Progress& progress, int taskIndex)
+  void Network::execute(const Progress& progress, int taskIndex)
   {
     if (progress.func)
     {
@@ -52,15 +60,14 @@ namespace oidn {
     }
   }
 
-  template<int K>
-  std::shared_ptr<memory> Network<K>::allocMemory(const memory::dims& dims,
-                                                  memory::format_tag format,
-                                                  void* data)
+  std::shared_ptr<memory> Network::allocMemory(const memory::dims& dims,
+                                               memory::format_tag format,
+                                               void* data)
   {
     if (format == memory::format_tag::any)
     {
       if (dims.size() == 4)
-        format = BlockedFormat<K>::nChwKc;
+        format = nChwKc;
       else if (dims.size() == 1)
         format = memory::format_tag::x;
       else
@@ -70,7 +77,7 @@ namespace oidn {
     if (data == nullptr)
     {
       const size_t bytes = getMemorySize(dims) * sizeof(float);
-      if (format == BlockedFormat<K>::nChwKc)
+      if (format == nChwKc)
         activationAllocBytes += bytes;
       totalAllocBytes += bytes;
 
@@ -82,11 +89,10 @@ namespace oidn {
     }
   }
 
-  template<int K>
-  std::shared_ptr<memory> Network<K>::castMemory(const memory::dims& dims,
-                                                 const std::shared_ptr<memory>& src,
-                                                 size_t srcOffset,
-                                                 memory::format_tag format)
+  std::shared_ptr<memory> Network::castMemory(const memory::dims& dims,
+                                              const std::shared_ptr<memory>& src,
+                                              size_t srcOffset,
+                                              memory::format_tag format)
   {
     const dnnl_memory_desc_t& srcDesc = src->get_desc().data;
     MAYBE_UNUSED(srcDesc);
@@ -96,7 +102,7 @@ namespace oidn {
     if (format == memory::format_tag::any)
     {
       if (dims.size() == 4)
-        format = BlockedFormat<K>::nChwKc;
+        format = nChwKc;
       else if (dims.size() == 1)
         format = memory::format_tag::x;
       else
@@ -107,23 +113,20 @@ namespace oidn {
     return std::make_shared<memory>(desc, eng, srcPtr);
   }
 
-  template<int K>
-  std::shared_ptr<memory> Network<K>::castMemory(const memory::dims& dims,
-                                                 const std::shared_ptr<memory>& src,
-                                                 const memory::dims& srcOffset)
+  std::shared_ptr<memory> Network::castMemory(const memory::dims& dims,
+                                              const std::shared_ptr<memory>& src,
+                                              const memory::dims& srcOffset)
   {
     return castMemory(dims, src, getMemorySize(srcOffset));
   }
 
-  template<int K>
-  void Network<K>::zeroMemory(const std::shared_ptr<memory>& dst)
+  void Network::zeroMemory(const std::shared_ptr<memory>& dst)
   {
     assert(getMemoryType(dst) == memory::data_type::f32);
     memset(dst->get_data_handle(), 0, getMemorySize(dst)*sizeof(float));
   }
 
-  template<int K>
-  memory::dims Network<K>::getInputReorderDims(const memory::dims& srcDims, int alignment)
+  memory::dims Network::getInputReorderDims(const memory::dims& srcDims, int alignment)
   {
     memory::dims dstDims = srcDims;
     dstDims[1] = round_up(srcDims[1], K); // round up C
@@ -132,13 +135,12 @@ namespace oidn {
     return dstDims;
   }
 
-  template<int K>
-  std::shared_ptr<Node> Network<K>::addInputReorder(const Image& color,
-                                                    const Image& albedo,
-                                                    const Image& normal,
-                                                    const std::shared_ptr<TransferFunction>& transferFunc,
-                                                    int alignment,
-                                                    const std::shared_ptr<memory>& userDst)
+  std::shared_ptr<Node> Network::addInputReorder(const Image& color,
+                                                 const Image& albedo,
+                                                 const Image& normal,
+                                                 const std::shared_ptr<TransferFunction>& transferFunc,
+                                                 int alignment,
+                                                 const std::shared_ptr<memory>& userDst)
   {
     assert(color);
     int inputC = 3;
@@ -159,10 +161,9 @@ namespace oidn {
     return node;
   }
 
-  template<int K>
-  std::shared_ptr<Node> Network<K>::addOutputReorder(const std::shared_ptr<memory>& src,
-                                                     const std::shared_ptr<TransferFunction>& transferFunc,
-                                                     const Image& output)
+  std::shared_ptr<Node> Network::addOutputReorder(const std::shared_ptr<memory>& src,
+                                                  const std::shared_ptr<TransferFunction>& transferFunc,
+                                                  const Image& output)
   {
     memory::dims srcDims = getMemoryDims(src);
     assert(srcDims[1] == K);
@@ -173,8 +174,7 @@ namespace oidn {
     return node;
   }
 
-  template<int K>
-  memory::dims Network<K>::getConvDims(const std::string& name, const memory::dims& srcDims)
+  memory::dims Network::getConvDims(const std::string& name, const memory::dims& srcDims)
   {
     auto b = weightMap[name + "/b"];
     memory::dims dstDims = srcDims;
@@ -182,11 +182,10 @@ namespace oidn {
     return dstDims;
   }
 
-  template<int K>
-  std::shared_ptr<Node> Network<K>::addConv(const std::string& name,
-                                            const std::shared_ptr<memory>& src,
-                                            const std::shared_ptr<memory>& userDst,
-                                            bool relu)
+  std::shared_ptr<Node> Network::addConv(const std::string& name,
+                                         const std::shared_ptr<memory>& src,
+                                         const std::shared_ptr<memory>& userDst,
+                                         bool relu)
   {
     const memory::dims strides = {1, 1};
     const memory::dims padding = {1, 1};
@@ -263,8 +262,7 @@ namespace oidn {
     return node;
   }
 
-  template<int K>
-  memory::dims Network<K>::getPoolDims(const memory::dims& srcDims)
+  memory::dims Network::getPoolDims(const memory::dims& srcDims)
   {
     memory::dims dstDims = srcDims;
     dstDims[2] /= 2; // H/2
@@ -272,9 +270,8 @@ namespace oidn {
     return dstDims;
   }
 
-  template<int K>
-  std::shared_ptr<Node> Network<K>::addPool(const std::shared_ptr<memory>& src,
-                                            const std::shared_ptr<memory>& userDst)
+  std::shared_ptr<Node> Network::addPool(const std::shared_ptr<memory>& src,
+                                         const std::shared_ptr<memory>& userDst)
   {
     const memory::dims kernel  = {2, 2};
     const memory::dims strides = {2, 2};
@@ -306,8 +303,7 @@ namespace oidn {
     return node;
   }
 
-  template<int K>
-  memory::dims Network<K>::getUpsampleDims(const memory::dims& srcDims)
+  memory::dims Network::getUpsampleDims(const memory::dims& srcDims)
   {
     memory::dims dstDims = srcDims;
     dstDims[2] *= 2; // H*2
@@ -315,9 +311,8 @@ namespace oidn {
     return dstDims;
   }
 
-  template<int K>
-  std::shared_ptr<Node> Network<K>::addUpsample(const std::shared_ptr<memory>& src,
-                                                const std::shared_ptr<memory>& userDst)
+  std::shared_ptr<Node> Network::addUpsample(const std::shared_ptr<memory>& src,
+                                             const std::shared_ptr<memory>& userDst)
   {
     memory::dims srcDims = getMemoryDims(src);
     memory::dims dstDims = getUpsampleDims(srcDims);
@@ -343,13 +338,12 @@ namespace oidn {
     auto resamplePrimDesc = resampling_forward::primitive_desc(resampleDesc, resampleAttr, eng);
     auto node = std::make_shared<ResampleNode>(resamplePrimDesc, src, dst);
     */
-    auto node = std::make_shared<UpsampleNode<K>>(src, dst);
+    auto node = std::make_shared<UpsampleNode>(K, src, dst);
     nodes.push_back(node);
     return node;
   }
 
-  template<int K>
-  memory::dims Network<K>::getConcatDims(const memory::dims& src1Dims, const memory::dims& src2Dims)
+  memory::dims Network::getConcatDims(const memory::dims& src1Dims, const memory::dims& src2Dims)
   {
     assert(src1Dims[0] == src2Dims[0]); // N
     assert(src1Dims[2] == src2Dims[2]); // H
@@ -360,17 +354,15 @@ namespace oidn {
     return dstDims;
   }
 
-  template<int K>
-  std::shared_ptr<Node> Network<K>::addAutoexposure(const Image& color,
-                                                    const std::shared_ptr<TransferFunction>& transferFunc)
+  std::shared_ptr<Node> Network::addAutoexposure(const Image& color,
+                                                 const std::shared_ptr<TransferFunction>& transferFunc)
   {
     auto node = std::make_shared<AutoexposureNode>(color, transferFunc);
     nodes.push_back(node);
     return node;
   }
 
-  template <int K>
-  void Network<K>::finalize()
+  void Network::finalize()
   {
     // Compute the size of the scratchpad
     size_t scratchpadSize = 0;
@@ -400,8 +392,7 @@ namespace oidn {
     }
   }
 
-  template <int K>
-  std::shared_ptr<memory> Network<K>::padWeights(const Tensor& src)
+  std::shared_ptr<memory> Network::padWeights(const Tensor& src)
   {
     assert(src.layout == "oihw");
 
@@ -443,8 +434,7 @@ namespace oidn {
     return dstMem;
   }
 
-  template <int K>
-  std::shared_ptr<memory> Network<K>::padBias(const Tensor& src)
+  std::shared_ptr<memory> Network::padBias(const Tensor& src)
   {
     assert(src.ndims() == 1);
 
@@ -466,8 +456,5 @@ namespace oidn {
     dstMem->unmap_data(dst.data);
     return dstMem;
   }
-
-  template class Network<8>;
-  template class Network<16>;
 
 } // namespace oidn

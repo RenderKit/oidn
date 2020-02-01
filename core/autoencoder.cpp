@@ -92,10 +92,7 @@ namespace oidn {
 
     device->executeTask([&]()
     {
-      if (mayiuse(avx512_common))
-        net = buildNet<16>();
-      else
-        net = buildNet<8>();
+      net = buildNet();
     });
 
     dirty = false;
@@ -198,7 +195,6 @@ namespace oidn {
     }
   }
 
-  template<int K>
   std::shared_ptr<Executable> AutoencoderFilter::buildNet()
   {
     H = color.height;
@@ -256,7 +252,7 @@ namespace oidn {
     const auto weightMap = parseTensors(weightPtr);
 
     // Create the network
-    std::shared_ptr<Network<K>> net = std::make_shared<Network<K>>(device, weightMap);
+    std::shared_ptr<Network> net = std::make_shared<Network>(device, weightMap);
 
     // Compute the buffer sizes
     const auto inputDims        = memory::dims({1, inputC, tileH, tileW});

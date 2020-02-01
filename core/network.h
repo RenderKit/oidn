@@ -40,7 +40,6 @@ namespace oidn {
     virtual void execute(const Progress& progress, int taskIndex) = 0;
   };
 
-  template<int K>
   class Network : public Executable
   {
   public:
@@ -101,6 +100,9 @@ namespace oidn {
     Ref<Device> device;
     engine eng;
     stream sm;
+    int K;                     // block size
+    memory::format_tag nChwKc; // native blocked format
+
     std::vector<std::shared_ptr<Node>> nodes;
     std::map<std::string, Tensor> weightMap;
 
