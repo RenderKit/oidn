@@ -68,8 +68,8 @@ namespace oidn {
     {
       assert(data.hSrcBegin + data.H <= data.src.H);
       assert(data.wSrcBegin + data.W <= data.src.W);
-      assert(data.hDstBegin + data.H <= data.dst.H);
-      assert(data.wDstBegin + data.W <= data.dst.W);
+      //assert(data.hDstBegin + data.H <= data.dst.H);
+      //assert(data.wDstBegin + data.W <= data.dst.W);
 
       parallel_nd(data.H, [&](int h)
       {
