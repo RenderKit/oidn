@@ -26,7 +26,7 @@ namespace oidn {
     // Parse the magic value
     const int magic = *(unsigned short*)input;
     if (magic != 0x41D7)
-      throw Exception(Error::InvalidOperation, "invalid tensor archive");
+      throw Exception(Error::InvalidOperation, "invalid tensor format");
     input += sizeof(unsigned short);
 
     // Parse the version
@@ -34,7 +34,7 @@ namespace oidn {
     const int minorVersion = *(unsigned char*)input++;
     UNUSED(minorVersion);
     if (majorVersion > 1)
-      throw Exception(Error::InvalidOperation, "unsupported tensor archive version");
+      throw Exception(Error::InvalidOperation, "unsupported tensor format version");
 
     // Parse the number of tensors
     const int numTensors = *(int*)input;
