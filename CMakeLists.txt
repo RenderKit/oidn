@@ -262,8 +262,6 @@ set(CORE_SOURCES
   include/OpenImageDenoise/version.h
   core/autoencoder.h
   core/autoencoder.cpp
-  core/autoexposure.h
-  core/autoexposure.cpp
   core/api.cpp
   core/buffer.h
   core/common.h
@@ -280,11 +278,11 @@ set(CORE_SOURCES
   core/node.h
   core/output_reorder.h
   core/transfer_function.h
+  core/transfer_function.cpp
   core/upsample.h
 )
 
 set(CORE_SOURCES_ISPC
-  core/autoexposure.ispc
   core/image.ih
   core/input_reorder.ispc
   core/math.ih

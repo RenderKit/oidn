@@ -14,8 +14,7 @@
 // limitations under the License.                                           //
 // ======================================================================== //
 
-#include "autoexposure.h"
-#include "autoexposure_ispc.h"
+#include "transfer_function.h"
 
 namespace oidn {
 

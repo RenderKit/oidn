@@ -15,7 +15,7 @@
 // ======================================================================== //
 
 #include "upsample.h"
-#include "autoexposure.h"
+#include "transfer_function.h"
 #include "network.h"
 
 namespace oidn {
