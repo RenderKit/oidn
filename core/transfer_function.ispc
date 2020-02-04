@@ -43,7 +43,7 @@ export void TransferFunction_setExposure(uniform TransferFunction* uniform self,
 }
 
 // -----------------------------------------------------------------------------
-// Linear
+// Linear transfer function
 // -----------------------------------------------------------------------------
 
 static vec3f LinearTransferFunction_forward(const uniform TransferFunction* uniform self, vec3f y)
@@ -64,7 +64,7 @@ export void LinearTransferFunction_Constructor(uniform TransferFunction* uniform
 }
 
 // -----------------------------------------------------------------------------
-// Gamma
+// Gamma transfer function
 // -----------------------------------------------------------------------------
 
 static vec3f GammaTransferFunction_forward(const uniform TransferFunction* uniform self, vec3f y)
@@ -85,7 +85,7 @@ export void GammaTransferFunction_Constructor(uniform TransferFunction* uniform 
 }
 
 // -----------------------------------------------------------------------------
-// Log
+// Log transfer function
 // -----------------------------------------------------------------------------
 
 static vec3f LogTransferFunction_forward(const uniform TransferFunction* uniform self, vec3f y)
@@ -107,7 +107,7 @@ export void LogTransferFunction_Constructor(uniform TransferFunction* uniform se
 }
 
 // -----------------------------------------------------------------------------
-// PQX
+// PQX transfer function
 // -----------------------------------------------------------------------------
 
 static const uniform float PQ_M1 = 2610.f / 4096.f / 4.f;
