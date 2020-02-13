@@ -15,7 +15,7 @@
 // ======================================================================== //
 
 #include "image.ih"
-#include "transfer.ih"
+#include "color.ih"
 
 static const uniform float HDR_Y_MAX = 65504.f; // maximum HDR value
 
@@ -170,11 +170,6 @@ export void PQXTransferFunction_Constructor(uniform TransferFunction* uniform se
 // -----------------------------------------------------------------------------
 // Autoexposure
 // -----------------------------------------------------------------------------
-
-inline float luminance(vec3f c)
-{
-  return 0.212671f * c.x + 0.715160f * c.y + 0.072169f * c.z;
-}
 
 // Returns the average luminance of the specified image tile
 export uniform float getAvgLuminance(const uniform Image& color,

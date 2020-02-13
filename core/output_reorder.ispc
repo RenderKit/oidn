@@ -16,7 +16,7 @@
 
 #include "memory.ih"
 #include "image.ih"
-#include "transfer.ih"
+#include "color.ih"
 
 struct OutputReorder
 {

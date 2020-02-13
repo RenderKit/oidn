@@ -264,6 +264,8 @@ set(CORE_SOURCES
   core/autoencoder.cpp
   core/api.cpp
   core/buffer.h
+  core/color.h
+  core/color.cpp
   core/common.h
   core/device.h
   core/device.cpp
@@ -277,18 +279,16 @@ set(CORE_SOURCES
   core/network.cpp
   core/node.h
   core/output_reorder.h
-  core/transfer.h
-  core/transfer.cpp
   core/upsample.h
 )
 
 set(CORE_SOURCES_ISPC
   core/image.ih
   core/input_reorder.ispc
+  core/color.ih
+  core/color.ispc
   core/math.ih
   core/memory.ih
-  core/transfer.ih
-  core/transfer.ispc
   core/upsample.ispc
   core/output_reorder.ispc
   core/vec.ih

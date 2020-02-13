@@ -18,7 +18,7 @@
 
 #include "node.h"
 #include "image.h"
-#include "transfer.h"
+#include "color.h"
 #include "output_reorder_ispc.h"
 
 namespace oidn {

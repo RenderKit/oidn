@@ -30,3 +30,9 @@ struct TransferFunction
   uniform float exposure;
   uniform float rcpExposure;
 };
+
+// Computes the luminance of an RGB color
+inline float luminance(vec3f c)
+{
+  return 0.212671f * c.x + 0.715160f * c.y + 0.072169f * c.z;
+}
