@@ -45,7 +45,7 @@ inline void storeZero(uniform InputReorder* uniform self, uniform int h, int w, 
   set1f(self->dst, h, w, c, 0.f);
 }
 
-// Stores a srcColor
+// Stores a color value
 inline void storeColor(uniform InputReorder* uniform self, uniform int h, int w, uniform int c, const vec3f& value)
 {
   // Sanitize the value
@@ -58,7 +58,7 @@ inline void storeColor(uniform InputReorder* uniform self, uniform int h, int w,
   set3f(self->dst, h, w, c, res);
 }
 
-// Stores an srcAlbedo
+// Stores an albedo value
 inline void storeAlbedo(uniform InputReorder* uniform self, uniform int h, int w, uniform int c, const vec3f& value)
 {
   // Sanitize the value
@@ -68,7 +68,7 @@ inline void storeAlbedo(uniform InputReorder* uniform self, uniform int h, int w
   set3f(self->dst, h, w, c, res);
 }
 
-// Stores a srcNormal
+// Stores a normal value
 inline void storeNormal(uniform InputReorder* uniform self, uniform int h, int w, uniform int c, const vec3f& value)
 {
   static const uniform float minLength = 1e-10f;
