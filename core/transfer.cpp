@@ -14,7 +14,7 @@
 // limitations under the License.                                           //
 // ======================================================================== //
 
-#include "transfer_function.h"
+#include "transfer.h"
 
 namespace oidn {
 

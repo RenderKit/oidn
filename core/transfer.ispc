@@ -15,7 +15,7 @@
 // ======================================================================== //
 
 #include "image.ih"
-#include "transfer_function.ih"
+#include "transfer.ih"
 
 static const uniform float HDR_Y_MAX = 65504.f; // maximum HDR value
 

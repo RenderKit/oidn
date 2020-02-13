@@ -19,7 +19,7 @@
 #include "node.h"
 #include "input_reorder.h"
 #include "output_reorder.h"
-#include "transfer_function.h"
+#include "transfer.h"
 
 #pragma once
 

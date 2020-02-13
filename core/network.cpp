@@ -15,7 +15,7 @@
 // ======================================================================== //
 
 #include "upsample.h"
-#include "transfer_function.h"
+#include "transfer.h"
 #include "network.h"
 
 namespace oidn {

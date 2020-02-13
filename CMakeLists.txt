@@ -277,8 +277,8 @@ set(CORE_SOURCES
   core/network.cpp
   core/node.h
   core/output_reorder.h
-  core/transfer_function.h
-  core/transfer_function.cpp
+  core/transfer.h
+  core/transfer.cpp
   core/upsample.h
 )
 
@@ -287,8 +287,8 @@ set(CORE_SOURCES_ISPC
   core/input_reorder.ispc
   core/math.ih
   core/memory.ih
-  core/transfer_function.ih
-  core/transfer_function.ispc
+  core/transfer.ih
+  core/transfer.ispc
   core/upsample.ispc
   core/output_reorder.ispc
   core/vec.ih

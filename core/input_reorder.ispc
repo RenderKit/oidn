@@ -16,7 +16,7 @@
 
 #include "memory.ih"
 #include "image.ih"
-#include "transfer_function.ih"
+#include "transfer.ih"
 
 struct InputReorder
 {

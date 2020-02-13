@@ -18,7 +18,7 @@
 
 #include "filter.h"
 #include "network.h"
-#include "transfer_function.h"
+#include "transfer.h"
 
 namespace oidn {
 
