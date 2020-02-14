@@ -176,7 +176,7 @@ namespace oidn {
 
   memory::dims Network::getConvDims(const std::string& name, const memory::dims& srcDims)
   {
-    auto b = weightMap[name + "/b"];
+    auto b = weightMap[name + ".bias"];
     memory::dims dstDims = srcDims;
     dstDims[1] = round_up(b.dims[0], K); // dstDims[C] = round_up(OC, K)
     return dstDims;
@@ -193,14 +193,14 @@ namespace oidn {
     memory::dims srcDims = getMemoryDims(src);
 
     // Get and pad the weights
-    const auto& W = weightMap[name + "/W"];
+    const auto& W = weightMap[name + ".weight"];
     if (W.ndims() != 4 || W.layout != "oihw")
       throw Exception(Error::InvalidOperation, "invalid convolution weights");
     auto weights = padWeights(W);
     memory::dims weightsDims = getMemoryDims(weights);
 
     // Get and pad the biases
-    const auto& b = weightMap[name + "/b"];
+    const auto& b = weightMap[name + ".bias"];
     if (b.ndims() != 1)
       throw Exception(Error::InvalidOperation, "invalid convolution biases");
     auto bias = padBias(b);

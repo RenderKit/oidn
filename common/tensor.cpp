@@ -33,45 +33,51 @@ namespace oidn {
     const int majorVersion = *(unsigned char*)input++;
     const int minorVersion = *(unsigned char*)input++;
     UNUSED(minorVersion);
-    if (majorVersion > 1)
+    if (majorVersion != 2)
       throw Exception(Error::InvalidOperation, "unsupported tensor format version");
 
+    // Parse the table offset and jump to the table
+    const uint64_t tableOffset = *(uint64_t*)input;
+    input = (char*)buffer + tableOffset;
+
     // Parse the number of tensors
-    const int numTensors = *(int*)input;
-    input += sizeof(int);
+    const size_t numTensors = *(uint32_t*)input;
+    input += sizeof(uint32_t);
 
     // Parse the tensors
     std::map<std::string, Tensor> tensorMap;
-    for (int i = 0; i < numTensors; ++i)
+    for (size_t i = 0; i < numTensors; ++i)
     {
       Tensor tensor;
 
       // Parse the name
-      const int nameLen = *(unsigned char*)input++;
+      const size_t nameLen = *(uint16_t*)input;
+      input += sizeof(uint16_t);
       std::string name(input, nameLen);
       input += nameLen;
 
       // Parse the number of dimensions
-      const int ndims = *(unsigned char*)input++;
+      const int ndims = *(uint8_t*)input++;
 
       // Parse the shape of the tensor
       tensor.dims.resize(ndims);
-      for (int i = 0; i < ndims; ++i)
-        tensor.dims[i] = ((int*)input)[i];
-      input += ndims * sizeof(int);
+      for (int j = 0; j < ndims; ++j)
+        tensor.dims[j] = ((uint32_t*)input)[j];
+      input += ndims * sizeof(uint32_t);
 
       // Parse the layout of the tensor
       tensor.layout = std::string(input, input + ndims);
       input += ndims;
 
       // Parse the data type of the tensor
-      const char type = *(unsigned char*)input++;
+      const char type = *(char*)input++;
       if (type != 'f') // only float32 is supported
         throw Exception(Error::InvalidOperation, "unsupported tensor data type");
 
-      // Skip the data
-      tensor.data = (float*)input;
-      input += tensor.size() * sizeof(float);
+      // Parse the offset to the tensor data
+      const uint64_t offset = *(uint64_t*)input;
+      input += sizeof(uint64_t);
+      tensor.data = (float*)((char*)buffer + offset);
 
       // Add the tensor to the map
       tensorMap.emplace(name, std::move(tensor));
