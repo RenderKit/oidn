@@ -453,7 +453,7 @@ namespace oidn {
   std::shared_ptr<TransferFunction> AutoencoderFilter::makeTransferFunc()
   {
     if (hdr)
-      return std::make_shared<TransferFunction>(TransferFunction::Type::PQX);
+      return std::make_shared<TransferFunction>(TransferFunction::Type::PU);
     else if (srgb)
       return std::make_shared<TransferFunction>(TransferFunction::Type::Linear);
     else

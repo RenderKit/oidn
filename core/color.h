@@ -33,7 +33,7 @@ namespace oidn {
       Linear,
       Gamma,
       Log,
-      PQX
+      PU,
     };
 
     TransferFunction(Type type)
@@ -43,7 +43,7 @@ namespace oidn {
       case Type::Linear: ispc::LinearTransferFunction_Constructor(&data); break;  
       case Type::Gamma:  ispc::GammaTransferFunction_Constructor(&data);  break;
       case Type::Log:    ispc::LogTransferFunction_Constructor(&data);    break;  
-      case Type::PQX:    ispc::PQXTransferFunction_Constructor(&data);    break;
+      case Type::PU:     ispc::PUTransferFunction_Constructor(&data);     break;
       default:           assert(0);
       }
     }

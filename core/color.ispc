@@ -19,6 +19,10 @@
 
 static const uniform float HDR_Y_MAX = 65504.f; // maximum HDR value
 
+// -----------------------------------------------------------------------------
+// Transfer function
+// -----------------------------------------------------------------------------
+
 static void TransferFunction_Constructor(uniform TransferFunction* uniform self)
 {
   self->xScale = 1.f;
@@ -43,7 +47,7 @@ export void TransferFunction_setExposure(uniform TransferFunction* uniform self,
 }
 
 // -----------------------------------------------------------------------------
-// Linear transfer function
+// Transfer function: Linear
 // -----------------------------------------------------------------------------
 
 static vec3f LinearTransferFunction_forward(const uniform TransferFunction* uniform self, vec3f y)
@@ -64,7 +68,7 @@ export void LinearTransferFunction_Constructor(uniform TransferFunction* uniform
 }
 
 // -----------------------------------------------------------------------------
-// Gamma transfer function
+// Transfer function: Gamma
 // -----------------------------------------------------------------------------
 
 static vec3f GammaTransferFunction_forward(const uniform TransferFunction* uniform self, vec3f y)
@@ -85,7 +89,7 @@ export void GammaTransferFunction_Constructor(uniform TransferFunction* uniform 
 }
 
 // -----------------------------------------------------------------------------
-// Log transfer function
+// Transfer function: Log
 // -----------------------------------------------------------------------------
 
 static vec3f LogTransferFunction_forward(const uniform TransferFunction* uniform self, vec3f y)
@@ -107,63 +111,58 @@ export void LogTransferFunction_Constructor(uniform TransferFunction* uniform se
 }
 
 // -----------------------------------------------------------------------------
-// PQX transfer function
+// Transfer function: PU2
 // -----------------------------------------------------------------------------
 
-static const uniform float PQ_M1 = 2610.f / 4096.f / 4.f;
-static const uniform float PQ_M2 = 2523.f / 4096.f * 128.f;
-static const uniform float PQ_C1 = 3424.f / 4096.f;
-static const uniform float PQ_C2 = 2413.f / 4096.f * 32.f;
-static const uniform float PQ_C3 = 2392.f / 4096.f * 32.f;
-static const uniform float PQX_K = 3711.f / 4096.f / 8.f;
+static const uniform float PU_A  =  1.41283765e+03f;
+static const uniform float PU_B  =  1.64593172e+00f;
+static const uniform float PU_C  =  4.31384981e-01f;
+static const uniform float PU_D  = -2.94139609e-03f;
+static const uniform float PU_E  =  1.92653254e-01f;
+static const uniform float PU_F  =  6.26026094e-03f;
+static const uniform float PU_G  =  9.98620152e-01f;
+static const uniform float PU_Y0 =  1.57945760e-06f;
+static const uniform float PU_Y1 =  3.22087631e-02f;
+static const uniform float PU_X0 =  2.23151711e-03f;
+static const uniform float PU_X1 =  3.70974749e-01f;
 
-static const uniform float PQX_Y_SCALE = 100.f / 10000.f;
-
-inline float pqForward(float y)
+inline float puForward(float y)
 {
-  const float yp = pow(y, PQ_M1);
-  return pow((PQ_C1 + PQ_C2 * yp) * rcp(1.f + PQ_C3 * yp), PQ_M2);
-}
-
-inline float pqxForward(float y)
-{
-  if (y <= 1.f)
-    return pqForward(y);
+  if (y <= PU_Y0)
+    return PU_A * y;
+  else if (y <= PU_Y1)
+    return PU_B * pow(y, PU_C) + PU_D;
   else
-    return PQX_K * log(y) + 1.f;
+    return PU_E * log(y + PU_F) + PU_G;
 }
 
-inline float pqInverse(float x)
+inline float puInverse(float x)
 {
-  const float xp = pow(x, 1.f/PQ_M2);
-  return pow(max((xp - PQ_C1) * rcp(PQ_C2 - PQ_C3 * xp), 0.f), 1.f/PQ_M1);
-}
-
-inline float pqxInverse(float x)
-{
-  if (x <= 1.f)
-    return pqInverse(x);
+  if (x <= PU_X0)
+    return x / PU_A;
+  else if (x <= PU_X1)
+    return pow((x - PU_D) / PU_B, 1.f/PU_C);
   else
-    return exp((x - 1.f) * (1.f/PQX_K));
+    return exp((x - PU_G) / PU_E) - PU_F;
 }
 
-static vec3f PQXTransferFunction_forward(const uniform TransferFunction* uniform self, vec3f y)
+static vec3f PUTransferFunction_forward(const uniform TransferFunction* uniform self, vec3f y)
 {
-  y = y * self->exposure * PQX_Y_SCALE;
-  return make_vec3f(pqxForward(y.x), pqxForward(y.y), pqxForward(y.z)) * self->xScale;
+  y = y * self->exposure;
+  return make_vec3f(puForward(y.x), puForward(y.y), puForward(y.z)) * self->xScale;
 }
 
-static vec3f PQXTransferFunction_inverse(const uniform TransferFunction* uniform self, vec3f x)
+static vec3f PUTransferFunction_inverse(const uniform TransferFunction* uniform self, vec3f x)
 {
   x = x * self->xRcpScale;
-  return make_vec3f(pqxInverse(x.x), pqxInverse(x.y), pqxInverse(x.z)) * (1./PQX_Y_SCALE) * self->rcpExposure;
+  return make_vec3f(puInverse(x.x), puInverse(x.y), puInverse(x.z)) * self->rcpExposure;
 }
 
-export void PQXTransferFunction_Constructor(uniform TransferFunction* uniform self)
+export void PUTransferFunction_Constructor(uniform TransferFunction* uniform self)
 {
   TransferFunction_Constructor(self);
-  self->forward = PQXTransferFunction_forward;
-  self->inverse = PQXTransferFunction_inverse;
+  self->forward = PUTransferFunction_forward;
+  self->inverse = PUTransferFunction_inverse;
   TransferFunction_initNormalization(self, HDR_Y_MAX);
 }
 
