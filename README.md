@@ -868,6 +868,8 @@ provided image, which can optionally have auxiliary feature images as
 well (e.g. albedo and normal). The images must be stored in the
 [Portable FloatMap](http://www.pauldebevec.com/Research/HDR/PFM/) (PFM)
 format, and the color values must be encoded in little-endian format.
+Optionally, [OpenEXR](http://www.openexr.com/) can be installed for
+additional image format support.
 
 Running `./denoise` without any arguments will bring up a list of
 command line options.

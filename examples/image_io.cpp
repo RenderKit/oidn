@@ -18,6 +18,13 @@
 #include <cmath>
 #include "image_io.h"
 
+#ifdef HAS_OPEN_EXR
+#include <OpenEXR/ImfFrameBuffer.h>
+#include <OpenEXR/ImfChannelList.h>
+#include <OpenEXR/ImfInputFile.h>
+#include <OpenEXR/ImfOutputFile.h>
+#endif
+
 namespace oidn {
 
   namespace
@@ -30,6 +37,46 @@ namespace oidn {
       else
         return filename.substr(pos + 1);
     }
+
+#ifdef HAS_OPEN_EXR
+    Imf::FrameBuffer frameBufferForEXR(const ImageBuffer& image)
+    {
+      Imf::FrameBuffer frameBuffer;
+      int bytePixelStride = image.getChannels()*sizeof(float);
+      int byteRowStride = image.getWidth()*bytePixelStride;
+      frameBuffer.insert("R", Imf::Slice(Imf::FLOAT, (char*)&image[0], bytePixelStride, byteRowStride));
+      frameBuffer.insert("G", Imf::Slice(Imf::FLOAT, (char*)&image[1], bytePixelStride, byteRowStride));
+      frameBuffer.insert("B", Imf::Slice(Imf::FLOAT, (char*)&image[2], bytePixelStride, byteRowStride));
+      return frameBuffer;
+    }
+
+    ImageBuffer loadImageEXR(const std::string& filename)
+    {
+      Imf::InputFile inputFile(filename.c_str());
+      if (!inputFile.header().channels().findChannel("R") ||
+          !inputFile.header().channels().findChannel("G") ||
+          !inputFile.header().channels().findChannel("B"))
+        throw std::invalid_argument("image must have 3 channels");
+      Imath::Box2i dataWindow = inputFile.header().dataWindow();
+      ImageBuffer image(dataWindow.max.x-dataWindow.min.x+1, dataWindow.max.y-dataWindow.min.y+1, 3);
+      inputFile.setFrameBuffer(frameBufferForEXR(image));
+      inputFile.readPixels(dataWindow.min.y, dataWindow.max.y);
+      return image;
+    }
+
+    void saveImageEXR(const ImageBuffer& image, const std::string& filename)
+    {
+      if (image.getChannels() != 3)
+        throw std::invalid_argument("image must have 3 channels");
+      Imf::Header header(image.getWidth(), image.getHeight(), 1, Imath::V2f(0, 0), image.getWidth(), Imf::INCREASING_Y, Imf::ZIP_COMPRESSION);
+      header.channels().insert("R", Imf::Channel(Imf::FLOAT));
+      header.channels().insert("G", Imf::Channel(Imf::FLOAT));
+      header.channels().insert("B", Imf::Channel(Imf::FLOAT));
+      Imf::OutputFile outputFile(filename.c_str(), header);
+      outputFile.setFrameBuffer(frameBufferForEXR(image));
+      outputFile.writePixels(image.getHeight());
+    }
+#endif
 
     ImageBuffer loadImagePFM(const std::string& filename)
     {
@@ -150,14 +197,26 @@ namespace oidn {
 
   ImageBuffer loadImage(const std::string& filename)
   {
-    if (getExtension(filename) != "pfm")
+    const std::string ext = getExtension(filename);
+#ifdef HAS_OPEN_EXR
+    if (ext == "exr")
+      return loadImageEXR(filename);
+    else
+#endif
+    if (ext == "pfm")
+      return loadImagePFM(filename);
+    else
       throw std::runtime_error("unsupported image file format");
-    return loadImagePFM(filename);
   }
 
   void saveImage(const std::string& filename, const ImageBuffer& image)
   {
     const std::string ext = getExtension(filename);
+#ifdef HAS_OPEN_EXR
+    if (ext == "exr")
+      saveImageEXR(image, filename);
+    else
+#endif
     if (ext == "pfm")
       saveImagePFM(filename, image);
     else if (ext == "ppm")

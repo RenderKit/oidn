@@ -35,9 +35,9 @@ void printUsage()
 {
   std::cout << "Intel(R) Open Image Denoise Example" << std::endl;
   std::cout << "Usage: denoise [-f RT|RTLightmap]" << std::endl
-            << "               [-ldr ldr_color.pfm] [-srgb] [-hdr hdr_color.pfm]" << std::endl
-            << "               [-alb albedo.pfm] [-nrm normal.pfm]" << std::endl
-            << "               [-o output.pfm] [-ref reference_output.pfm]" << std::endl
+            << "               [-ldr ldr_color] [-srgb] [-hdr hdr_color]" << std::endl
+            << "               [-alb albedo] [-nrm normal]" << std::endl
+            << "               [-o output] [-ref reference_output]" << std::endl
             << "               [-bench ntimes] [-threads n] [-affinity 0|1] [-maxmem MB] [-verbose 0-3]" << std::endl;
 }
 
