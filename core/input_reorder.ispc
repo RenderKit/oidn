@@ -47,34 +47,34 @@ inline void storeZero(uniform InputReorder* uniform self, uniform int h, int w, 
 }
 
 // Stores a color value
-inline void storeColor(uniform InputReorder* uniform self, uniform int h, int w, uniform int c, const vec3f& value)
+inline void storeColor(uniform InputReorder* uniform self, uniform int h, int w, uniform int c, vec3f value)
 {
   // Sanitize the value
-  vec3f res = inf_to_zero(value);
-  res = max(res, 0.f);
+  value = inf_to_zero(value);
+  value = max(value, 0.f);
   if (!self->hdr)
-    res = min(res, 1.f);
+    value = min(value, 1.f);
 
   // Apply the transfer function
-  res = self->transferFunc->forward(self->transferFunc, res);
+  value = self->transferFunc->forward(self->transferFunc, value);
 
   // Store the value
-  set3f(self->dst, h, w, c, res);
+  set3f(self->dst, h, w, c, value);
 }
 
 // Stores an albedo value
-inline void storeAlbedo(uniform InputReorder* uniform self, uniform int h, int w, uniform int c, const vec3f& value)
+inline void storeAlbedo(uniform InputReorder* uniform self, uniform int h, int w, uniform int c, vec3f value)
 {
   // Sanitize the value
-  vec3f res = inf_to_zero(value);
-  res = clamp(res, 0.f, 1.f);
+  value = inf_to_zero(value);
+  value = clamp(value, 0.f, 1.f);
 
   // Store the value
-  set3f(self->dst, h, w, c, res);
+  set3f(self->dst, h, w, c, value);
 }
 
 // Stores a normal value
-inline void storeNormal(uniform InputReorder* uniform self, uniform int h, int w, uniform int c, const vec3f& value)
+inline void storeNormal(uniform InputReorder* uniform self, uniform int h, int w, uniform int c, vec3f value)
 {
   static const uniform float minLength = 1e-10f;
   static const uniform float minLengthSqr = minLength * minLength;
@@ -82,7 +82,6 @@ inline void storeNormal(uniform InputReorder* uniform self, uniform int h, int w
   // Compute the length of the normal
   const float lengthSqr = dot(value, value);
 
-  vec3f res;
   if (isfinite(lengthSqr))
   {
     // Normalize the normal and transform it to [0..1]
@@ -91,15 +90,15 @@ inline void storeNormal(uniform InputReorder* uniform self, uniform int h, int w
     const float scale  = rcpLength * 0.5f;
     const float offset = 0.5f;
 
-    res = value * scale + offset;
+    value = value * scale + offset;
   }
   else
   {
-    res = make_vec3f(0.f);
+    value = make_vec3f(0.f);
   }
 
   // Store the normal
-  set3f(self->dst, h, w, c, res);
+  set3f(self->dst, h, w, c, value);
 }
 
 export void InputReorder_kernel(uniform InputReorder* uniform self, uniform int hDst)
