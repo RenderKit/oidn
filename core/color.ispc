@@ -21,10 +21,10 @@ static const uniform float HDR_Y_MAX = 65504.f; // maximum HDR value
 
 static void TransferFunction_Constructor(uniform TransferFunction* uniform self)
 {
-  self->xScale = 1.f;
+  self->xScale    = 1.f;
   self->xRcpScale = 1.f;
-  self->exposure = 1.f;
-  self->rcpExposure = 1.f;
+  self->yScale    = 1.f;
+  self->yRcpScale = 1.f;
 }
 
 // Computes the normalization scale
@@ -32,14 +32,14 @@ static void TransferFunction_initNormalization(uniform TransferFunction* uniform
 {
   const uniform float xMax = extract(reduce_max(self->forward(self, make_vec3f(yMax))), 0);
 
-  self->xScale = 1./xMax;
+  self->xScale    = 1./xMax;
   self->xRcpScale = xMax;
 }
 
 export void TransferFunction_setExposure(uniform TransferFunction* uniform self, uniform float exposure)
 {
-  self->exposure = exposure;
-  self->rcpExposure = (exposure != 0.f) ? (1.f / exposure) : 0.f;
+  self->yScale    = exposure;
+  self->yRcpScale = (exposure != 0.f) ? (1.f / exposure) : 0.f;
 }
 
 // -----------------------------------------------------------------------------
@@ -90,12 +90,12 @@ export void GammaTransferFunction_Constructor(uniform TransferFunction* uniform 
 
 static vec3f LogTransferFunction_forward(const uniform TransferFunction* uniform self, vec3f y)
 {
-  return log(y * self->exposure + 1.f) * self->xScale;
+  return log(y * self->yScale + 1.f) * self->xScale;
 }
 
 static vec3f LogTransferFunction_inverse(const uniform TransferFunction* uniform self, vec3f x)
 {
-  return (exp(x * self->xRcpScale) - 1.f) * self->rcpExposure;
+  return (exp(x * self->xRcpScale) - 1.f) * self->yRcpScale;
 }
 
 export void LogTransferFunction_Constructor(uniform TransferFunction* uniform self)
@@ -149,14 +149,14 @@ inline float pqxInverse(float x)
 
 static vec3f PQXTransferFunction_forward(const uniform TransferFunction* uniform self, vec3f y)
 {
-  y = y * self->exposure * PQX_Y_SCALE;
+  y = y * self->yScale * PQX_Y_SCALE;
   return make_vec3f(pqxForward(y.x), pqxForward(y.y), pqxForward(y.z)) * self->xScale;
 }
 
 static vec3f PQXTransferFunction_inverse(const uniform TransferFunction* uniform self, vec3f x)
 {
   x = x * self->xRcpScale;
-  return make_vec3f(pqxInverse(x.x), pqxInverse(x.y), pqxInverse(x.z)) * (1./PQX_Y_SCALE) * self->rcpExposure;
+  return make_vec3f(pqxInverse(x.x), pqxInverse(x.y), pqxInverse(x.z)) * (1./PQX_Y_SCALE) * self->yRcpScale;
 }
 
 export void PQXTransferFunction_Constructor(uniform TransferFunction* uniform self)
