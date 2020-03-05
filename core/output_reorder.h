@@ -36,7 +36,8 @@ namespace oidn {
   public:
     OutputReorderNode(const std::shared_ptr<memory>& src,
                       const Image& dst,
-                      const std::shared_ptr<TransferFunction>& transferFunc)
+                      const std::shared_ptr<TransferFunction>& transferFunc,
+                      bool hdr)
       : src(src),
         dst(dst),
         transferFunc(transferFunc)
@@ -52,6 +53,7 @@ namespace oidn {
       data.W = dst.width;
 
       data.transferFunc = transferFunc->getIspc();
+      data.hdr = hdr;
     }
 
     void setTile(int hSrc, int wSrc, int hDst, int wDst, int H, int W) override

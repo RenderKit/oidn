@@ -346,7 +346,7 @@ namespace oidn {
     // Input reorder
     auto inputReorderDst = net->castMemory(inputReorderDims, concat0Dst, upsample0Dims);
     inputReorder = net->addInputReorder(color, albedo, normal,
-                                        transferFunc,
+                                        transferFunc, hdr,
                                         alignment, inputReorderDst);
 
     // conv1
@@ -444,7 +444,7 @@ namespace oidn {
     auto conv11 = net->addConv("conv11", conv10b->getDst(), temp0, false /* no relu */);
 
     // Output reorder
-    outputReorder = net->addOutputReorder(conv11->getDst(), transferFunc, output);
+    outputReorder = net->addOutputReorder(conv11->getDst(), transferFunc, hdr, output);
 
     net->finalize();
     return net;

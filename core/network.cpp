@@ -139,6 +139,7 @@ namespace oidn {
                                                  const Image& albedo,
                                                  const Image& normal,
                                                  const std::shared_ptr<TransferFunction>& transferFunc,
+                                                 bool hdr,
                                                  int alignment,
                                                  const std::shared_ptr<memory>& userDst)
   {
@@ -156,20 +157,21 @@ namespace oidn {
       dst = allocMemory(dstDims);
 
     // Push node
-    auto node = std::make_shared<InputReorderNode>(color, albedo, normal, dst, transferFunc);
+    auto node = std::make_shared<InputReorderNode>(color, albedo, normal, dst, transferFunc, hdr);
     nodes.push_back(node);
     return node;
   }
 
   std::shared_ptr<Node> Network::addOutputReorder(const std::shared_ptr<memory>& src,
                                                   const std::shared_ptr<TransferFunction>& transferFunc,
+                                                  bool hdr,
                                                   const Image& output)
   {
     memory::dims srcDims = getMemoryDims(src);
     assert(srcDims[1] == K);
 
     // Push node
-    auto node = std::make_shared<OutputReorderNode>(src, output, transferFunc);
+    auto node = std::make_shared<OutputReorderNode>(src, output, transferFunc, hdr);
     nodes.push_back(node);
     return node;
   }

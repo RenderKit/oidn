@@ -68,11 +68,13 @@ namespace oidn {
                                           const Image& albedo,
                                           const Image& normal,
                                           const std::shared_ptr<TransferFunction>& transferFunc,
+                                          bool hdr,
                                           int alignment,
                                           const std::shared_ptr<memory>& userDst = nullptr);
 
     std::shared_ptr<Node> addOutputReorder(const std::shared_ptr<memory>& src,
                                            const std::shared_ptr<TransferFunction>& transferFunc,
+                                           bool hdr,
                                            const Image& output);
 
     memory::dims getConvDims(const std::string& name, const memory::dims& srcDims);

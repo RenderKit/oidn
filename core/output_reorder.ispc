@@ -36,6 +36,7 @@ struct OutputReorder
 
   // Transfer function
   uniform TransferFunction* uniform transferFunc;
+  uniform bool hdr;
 };
 
 export void OutputReorder_kernel(uniform OutputReorder* uniform self, uniform int h)
@@ -52,13 +53,17 @@ export void OutputReorder_kernel(uniform OutputReorder* uniform self, uniform in
     vec3f value = get3f(self->src, hSrc, wSrc, 0);
 
     // The CNN output may contain negative values or even NaNs, so it must be sanitized
-    value = select(isfinite(value), max(value, 0.f), make_vec3f(0.f));
+    value = max(inf_to_zero(value), 0.f);
 
     // Apply the inverse transfer function
     value = self->transferFunc->inverse(self->transferFunc, value);
 
-    // Sanitize and store the final value
+    // Sanitize the value
     value = max(value, 0.f);
+    if (!self->hdr)
+      value = min(value, 1.f);
+
+    // Store the final value
     set3f(self->dst, hDst, wDst, value);
   }
 }

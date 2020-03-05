@@ -36,3 +36,14 @@ inline float luminance(vec3f c)
 {
   return 0.212671f * c.x + 0.715160f * c.y + 0.072169f * c.z;
 }
+
+// Replaces infinity or NaN with zero
+inline float inf_to_zero(float x)
+{
+  return select(isfinite(x), x, 0.f);
+}
+
+inline vec3f inf_to_zero(vec3f x)
+{
+  return select(isfinite(x), x, make_vec3f(0.f));
+}

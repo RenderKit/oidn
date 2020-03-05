@@ -38,6 +38,7 @@ struct InputReorder
 
   // Transfer function
   uniform TransferFunction* uniform transferFunc;
+  uniform bool hdr;
 };
 
 inline void storeZero(uniform InputReorder* uniform self, uniform int h, int w, uniform int c)
@@ -49,7 +50,10 @@ inline void storeZero(uniform InputReorder* uniform self, uniform int h, int w, 
 inline void storeColor(uniform InputReorder* uniform self, uniform int h, int w, uniform int c, const vec3f& value)
 {
   // Sanitize the value
-  vec3f res = select(isfinite(value), max(value, 0.f), make_vec3f(0.f));
+  vec3f res = inf_to_zero(value);
+  res = max(res, 0.f);
+  if (!self->hdr)
+    res = min(res, 1.f);
 
   // Apply the transfer function
   res = self->transferFunc->forward(self->transferFunc, res);
@@ -62,7 +66,8 @@ inline void storeColor(uniform InputReorder* uniform self, uniform int h, int w,
 inline void storeAlbedo(uniform InputReorder* uniform self, uniform int h, int w, uniform int c, const vec3f& value)
 {
   // Sanitize the value
-  vec3f res = select(isfinite(value), clamp(value, 0.f, 1.f), make_vec3f(0.f));
+  vec3f res = inf_to_zero(value);
+  res = clamp(res, 0.f, 1.f);
 
   // Store the value
   set3f(self->dst, h, w, c, res);

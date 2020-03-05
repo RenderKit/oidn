@@ -40,7 +40,8 @@ namespace oidn {
                      const Image& srcAlbedo,
                      const Image& srcNormal,
                      const std::shared_ptr<memory>& dst,
-                     const std::shared_ptr<TransferFunction>& transferFunc)
+                     const std::shared_ptr<TransferFunction>& transferFunc,
+                     bool hdr)
       : srcColor(srcColor), srcAlbedo(srcAlbedo), srcNormal(srcNormal),
         dst(dst),
         transferFunc(transferFunc)
@@ -59,6 +60,7 @@ namespace oidn {
       data.W = srcColor.width;
 
       data.transferFunc = transferFunc->getIspc();
+      data.hdr = hdr;
     }
 
     void setTile(int hSrc, int wSrc, int hDst, int wDst, int H, int W) override

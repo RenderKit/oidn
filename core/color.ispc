@@ -48,12 +48,12 @@ export void TransferFunction_setExposure(uniform TransferFunction* uniform self,
 
 static vec3f LinearTransferFunction_forward(const uniform TransferFunction* uniform self, vec3f y)
 {
-  return min(y, 1.f);
+  return y;
 }
 
 static vec3f LinearTransferFunction_inverse(const uniform TransferFunction* uniform self, vec3f x)
 {
-  return min(x, 1.f);
+  return x;
 }
 
 export void LinearTransferFunction_Constructor(uniform TransferFunction* uniform self)
@@ -69,12 +69,12 @@ export void LinearTransferFunction_Constructor(uniform TransferFunction* uniform
 
 static vec3f GammaTransferFunction_forward(const uniform TransferFunction* uniform self, vec3f y)
 {
-  return min(pow(y, 1.f/2.2f), 1.f);
+  return pow(y, 1.f/2.2f);
 }
 
 static vec3f GammaTransferFunction_inverse(const uniform TransferFunction* uniform self, vec3f x)
 {
-  return min(pow(x, 2.2f), 1.f);
+  return pow(x, 2.2f);
 }
 
 export void GammaTransferFunction_Constructor(uniform TransferFunction* uniform self)
@@ -183,7 +183,7 @@ export uniform float getAvgLuminance(const uniform Image& color,
     foreach (w = beginW ... endW)
     {
       vec3f c = get3f(color, h, w);
-      c = select(isfinite(c), max(c, 0.f), make_vec3f(0.f)); // sanitize
+      c = max(inf_to_zero(c), 0.f); // sanitize
       L += luminance(c);
     }
   }
