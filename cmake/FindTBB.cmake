@@ -1,74 +1,76 @@
-#===============================================================================
-# Copyright 2009-2018 Intel Corporation
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-#===============================================================================
+## =============================================================================
+## Copyright 2009-2020 Intel Corporation
+##
+## Licensed under the Apache License, Version 2.0 (the "License");
+## you may not use this file except in compliance with the License.
+## You may obtain a copy of the License at
+##
+##     http://www.apache.org/licenses/LICENSE-2.0
+##
+## Unless required by applicable law or agreed to in writing, software
+## distributed under the License is distributed on an "AS IS" BASIS,
+## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+## See the License for the specific language governing permissions and
+## limitations under the License.
+## =============================================================================
 
-#===============================================================================
-# Configure the path to TBB. We support different paths for optimized
-# and debug builds.
-#===============================================================================
+set(TBB_VERSION_REQUIRED "2017.0")
 
-if (NOT TBB_ROOT)
+## -----------------------------------------------------------------------------
+## Configure the path to TBB. We support different paths for optimized
+## and debug builds.
+## -----------------------------------------------------------------------------
+
+if(NOT TBB_ROOT)
   set(TBB_ROOT $ENV{TBB_ROOT})
   if(NOT TBB_ROOT)
     set(TBB_ROOT $ENV{TBBROOT})
   endif()
 endif()
 
-if (NOT TBB_DEBUG_ROOT)
+if(NOT TBB_DEBUG_ROOT)
   set(TBB_DEBUG_ROOT $ENV{TBB_DEBUG_ROOT})
-  if (NOT TBB_DEBUG_ROOT)
+  if(NOT TBB_DEBUG_ROOT)
     set(TBB_DEBUG_ROOT ${TBB_ROOT}) # Fall back to release version.
   endif()
 endif()
 
-#===============================================================================
-# Configure library names. TBB comes as tbb_debug / tbbmalloc_debug in the
-# debug version.
-# Note that if you want to use the release version of TBB in a debug build,
-# you must set TBB_DEBUG_LIBRARY_NAME and TBBMALLOC_DEBUG_LIBRARY_NAME.
-#===============================================================================
+## -----------------------------------------------------------------------------
+## Configure library names. TBB comes as tbb_debug / tbbmalloc_debug in the
+## debug version.
+## Note that if you want to use the release version of TBB in a debug build,
+## you must set TBB_DEBUG_LIBRARY_NAME and TBBMALLOC_DEBUG_LIBRARY_NAME.
+## -----------------------------------------------------------------------------
 
-if (NOT TBB_LIBRARY_NAME)
+if(NOT TBB_LIBRARY_NAME)
   set(TBB_LIBRARY_NAME $ENV{TBB_LIBRARY_NAME})
-  if (NOT TBB_LIBRARY_NAME)
+  if(NOT TBB_LIBRARY_NAME)
     set(TBB_LIBRARY_NAME tbb)
   endif()
 endif()
 
-if (NOT TBBMALLOC_LIBRARY_NAME)
+if(NOT TBBMALLOC_LIBRARY_NAME)
   set(TBBMALLOC_LIBRARY_NAME $ENV{TBBMALLOC_LIBRARY_NAME})
-  if (NOT TBBMALLOC_LIBRARY_NAME)
+  if(NOT TBBMALLOC_LIBRARY_NAME)
     set(TBBMALLOC_LIBRARY_NAME tbbmalloc)
   endif()
 endif()
 
-if (NOT TBB_DEBUG_LIBRARY_NAME)
+if(NOT TBB_DEBUG_LIBRARY_NAME)
   set(TBB_DEBUG_LIBRARY_NAME $ENV{TBB_DEBUG_LIBRARY_NAME})
-  if (NOT TBB_DEBUG_LIBRARY_NAME)
+  if(NOT TBB_DEBUG_LIBRARY_NAME)
     set(TBB_DEBUG_LIBRARY_NAME tbb_debug)
   endif()
 endif()
 
-if (NOT TBBMALLOC_DEBUG_LIBRARY_NAME)
+if(NOT TBBMALLOC_DEBUG_LIBRARY_NAME)
   set(TBBMALLOC_DEBUG_LIBRARY_NAME $ENV{TBBMALLOC_DEBUG_LIBRARY_NAME})
-  if (NOT TBBMALLOC_DEBUG_LIBRARY_NAME)
+  if(NOT TBBMALLOC_DEBUG_LIBRARY_NAME)
     set(TBBMALLOC_DEBUG_LIBRARY_NAME tbbmalloc_debug)
   endif()
 endif()
 
-#===============================================================================
+## -----------------------------------------------------------------------------
 
 if(WIN32)
   # workaround for parentheses in variable name / CMP0053
@@ -278,9 +280,29 @@ else()
 
 endif()
 
+set(TBB_ERROR_MESSAGE "Threading Building Blocks (TBB) with minimum version ${TBB_VERSION_REQUIRED} not found.")
+
 include(FindPackageHandleStandardArgs)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(TBB DEFAULT_MSG TBB_INCLUDE_DIR TBB_LIBRARY TBB_LIBRARY_MALLOC)
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(TBB_DEBUG DEFAULT_MSG TBB_DEBUG_INCLUDE_DIR TBB_DEBUG_LIBRARY TBB_DEBUG_LIBRARY_MALLOC)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(TBB ${TBB_ERROR_MESSAGE} TBB_INCLUDE_DIR TBB_LIBRARY TBB_LIBRARY_MALLOC)
+FIND_PACKAGE_HANDLE_STANDARD_ARGS(TBB_DEBUG ${TBB_ERROR_MESSAGE} TBB_DEBUG_INCLUDE_DIR TBB_DEBUG_LIBRARY TBB_DEBUG_LIBRARY_MALLOC)
+
+# check version
+if(TBB_INCLUDE_DIR)
+  file(READ ${TBB_INCLUDE_DIR}/tbb/tbb_stddef.h TBB_STDDEF_H)
+
+  string(REGEX MATCH "#define TBB_VERSION_MAJOR ([0-9]+)" DUMMY "${TBB_STDDEF_H}")
+  set(TBB_VERSION_MAJOR ${CMAKE_MATCH_1})
+
+  string(REGEX MATCH "#define TBB_VERSION_MINOR ([0-9]+)" DUMMY "${TBB_STDDEF_H}")
+  set(TBB_VERSION "${TBB_VERSION_MAJOR}.${CMAKE_MATCH_1}")
+
+  if(TBB_VERSION VERSION_LESS TBB_VERSION_REQUIRED)
+    message(FATAL_ERROR ${TBB_ERROR_MESSAGE})
+  endif()
+
+  set(TBB_VERSION ${TBB_VERSION} CACHE STRING "TBB Version")
+  mark_as_advanced(TBB_VERSION)
+endif()
 
 if(TBB_FOUND)
   add_library(TBB::tbb SHARED IMPORTED)

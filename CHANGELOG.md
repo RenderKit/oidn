@@ -3,9 +3,13 @@ Version History
 
 ### Changes in v1.2.0:
 
+#### New Features:
 -   Slightly improved denoising speed
 -   Link C/C++ runtime library dynamically by default on Windows too
 -   Added OIDN_STATIC_RUNTIME CMake option (for Windows only)
+
+#### Fixed Issues:
+-   Check for minimum supported TBB version
 
 ### Changes in v1.1.0:
 
