@@ -97,8 +97,8 @@ include(oidn_platform)
 ## -----------------------------------------------------------------------------
 
 set(DNNL_VERSION_MAJOR 1)
-set(DNNL_VERSION_MINOR 1)
-set(DNNL_VERSION_PATCH 0)
+set(DNNL_VERSION_MINOR 2)
+set(DNNL_VERSION_PATCH 1)
 set(DNNL_VERSION_HASH  "N/A")
 
 set(DNNL_CPU_RUNTIME "TBB")
