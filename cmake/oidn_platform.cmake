@@ -1,18 +1,18 @@
-## ======================================================================== ##
-## Copyright 2009-2019 Intel Corporation                                    ##
-##                                                                          ##
-## Licensed under the Apache License, Version 2.0 (the "License");          ##
-## you may not use this file except in compliance with the License.         ##
-## You may obtain a copy of the License at                                  ##
-##                                                                          ##
-##     http://www.apache.org/licenses/LICENSE-2.0                           ##
-##                                                                          ##
-## Unless required by applicable law or agreed to in writing, software      ##
-## distributed under the License is distributed on an "AS IS" BASIS,        ##
-## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. ##
-## See the License for the specific language governing permissions and      ##
-## limitations under the License.                                           ##
-## ======================================================================== ##
+## =============================================================================
+## Copyright 2009-2020 Intel Corporation
+##
+## Licensed under the Apache License, Version 2.0 (the "License");
+## you may not use this file except in compliance with the License.
+## You may obtain a copy of the License at
+##
+##     http://www.apache.org/licenses/LICENSE-2.0
+##
+## Unless required by applicable law or agreed to in writing, software
+## distributed under the License is distributed on an "AS IS" BASIS,
+## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+## See the License for the specific language governing permissions and
+## limitations under the License.
+## =============================================================================
 
 set(OIDN_C_CXX_FLAGS)
 set(OIDN_C_CXX_FLAGS_RELEASE)
@@ -139,9 +139,9 @@ if(APPLE)
   append(OIDN_CXX_FLAGS "-stdlib=libc++")
 endif()
 
-## ----------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 ## OpenMP SIMD
-## ----------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 
 if(WIN32)
   if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
@@ -155,9 +155,9 @@ else()
   append(OIDN_C_CXX_FLAGS "-fopenmp-simd")
 endif()
 
-## ----------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 ## Secure Development Lifecycle (SDL)
-## ----------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 
 if(UNIX)
   append(OIDN_C_CXX_FLAGS "-fPIC -Wformat -Wformat-security")
@@ -193,9 +193,9 @@ elseif(MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   append(OIDN_C_CXX_FLAGS "/guard:cf")
 endif()
 
-## ----------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 ## Clang Sanitizer
-## ----------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(OIDN_SANITIZER "None" CACHE STRING "Enables a Clang sanitizer.")
@@ -227,9 +227,9 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   endif()
 endif()
 
-## ----------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 ## Set flags
-## ----------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 
 append(CMAKE_C_FLAGS   "${OIDN_C_CXX_FLAGS}")
 append(CMAKE_CXX_FLAGS "${OIDN_C_CXX_FLAGS} ${OIDN_CXX_FLAGS}")

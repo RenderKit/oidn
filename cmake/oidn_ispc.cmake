@@ -1,18 +1,18 @@
-## ======================================================================== ##
-## Copyright 2009-2020 Intel Corporation                                    ##
-##                                                                          ##
-## Licensed under the Apache License, Version 2.0 (the "License");          ##
-## you may not use this file except in compliance with the License.         ##
-## You may obtain a copy of the License at                                  ##
-##                                                                          ##
-##     http://www.apache.org/licenses/LICENSE-2.0                           ##
-##                                                                          ##
-## Unless required by applicable law or agreed to in writing, software      ##
-## distributed under the License is distributed on an "AS IS" BASIS,        ##
-## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. ##
-## See the License for the specific language governing permissions and      ##
-## limitations under the License.                                           ##
-## ======================================================================== ##
+## =============================================================================
+## Copyright 2009-2020 Intel Corporation
+##
+## Licensed under the Apache License, Version 2.0 (the "License");
+## you may not use this file except in compliance with the License.
+## You may obtain a copy of the License at
+##
+##     http://www.apache.org/licenses/LICENSE-2.0
+##
+## Unless required by applicable law or agreed to in writing, software
+## distributed under the License is distributed on an "AS IS" BASIS,
+## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+## See the License for the specific language governing permissions and
+## limitations under the License.
+## =============================================================================
 
 # ISPC versions to look for, in decending order (newest first)
 set(ISPC_VERSION_WORKING "1.12.0")
@@ -77,27 +77,27 @@ endif()
 
 get_filename_component(ISPC_DIR ${ISPC_EXECUTABLE} PATH)
 
-# ##################################################################
-# Macro to specify global-scope ISPC include directories
-# ##################################################################
+## -----------------------------------------------------------------------------
+## Macro to specify global-scope ISPC include directories
+## -----------------------------------------------------------------------------
 
 set(ISPC_INCLUDE_DIR "")
 macro (ispc_include_directories)
   set(ISPC_INCLUDE_DIR ${ISPC_INCLUDE_DIR} ${ARGN})
 endmacro ()
 
-# ##################################################################
-# Macro to specify global-scope ISPC definitions
-# ##################################################################
+## -----------------------------------------------------------------------------
+## Macro to specify global-scope ISPC definitions
+## -----------------------------------------------------------------------------
 
 set(ISPC_DEFINITIONS "")
 macro (ispc_add_definitions)
   set(ISPC_DEFINITIONS ${ISPC_DEFINITIONS} ${ARGN})
 endmacro ()
 
-# ##################################################################
-# Macro to compile ISPC source into an object file for linking
-# ##################################################################
+## -----------------------------------------------------------------------------
+## Macro to compile ISPC source into an object file for linking
+## -----------------------------------------------------------------------------
 
 macro (ispc_compile)
   set(ISPC_ADDITIONAL_ARGS "")
@@ -210,9 +210,9 @@ macro (ispc_compile)
   endforeach()
 endmacro()
 
-# ##################################################################
-# Macro to add both C/C++ and ISPC sources to a given target
-# ##################################################################
+## -----------------------------------------------------------------------------
+## Macro to add both C/C++ and ISPC sources to a given target
+## -----------------------------------------------------------------------------
 
 function(ispc_target_add_sources name)
   ## Split-out C/C++ from ISPC files ##

@@ -1,18 +1,18 @@
-// ======================================================================== //
-// Copyright 2009-2020 Intel Corporation                                    //
-//                                                                          //
-// Licensed under the Apache License, Version 2.0 (the "License");          //
-// you may not use this file except in compliance with the License.         //
-// You may obtain a copy of the License at                                  //
-//                                                                          //
-//     http://www.apache.org/licenses/LICENSE-2.0                           //
-//                                                                          //
-// Unless required by applicable law or agreed to in writing, software      //
-// distributed under the License is distributed on an "AS IS" BASIS,        //
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. //
-// See the License for the specific language governing permissions and      //
-// limitations under the License.                                           //
-// ======================================================================== //
+// =============================================================================
+// Copyright 2009-2020 Intel Corporation
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+// =============================================================================
 
 #include "image.ih"
 #include "color.ih"
@@ -43,7 +43,7 @@ export void TransferFunction_setExposure(uniform TransferFunction* uniform self,
 }
 
 // -----------------------------------------------------------------------------
-// Linear transfer function
+// Transfer function: Linear
 // -----------------------------------------------------------------------------
 
 static vec3f LinearTransferFunction_forward(const uniform TransferFunction* uniform self, vec3f y)
@@ -64,7 +64,7 @@ export void LinearTransferFunction_Constructor(uniform TransferFunction* uniform
 }
 
 // -----------------------------------------------------------------------------
-// Gamma transfer function
+// Transfer function: Gamma
 // -----------------------------------------------------------------------------
 
 static vec3f GammaTransferFunction_forward(const uniform TransferFunction* uniform self, vec3f y)
@@ -85,7 +85,7 @@ export void GammaTransferFunction_Constructor(uniform TransferFunction* uniform 
 }
 
 // -----------------------------------------------------------------------------
-// Log transfer function
+// Transfer function: Log
 // -----------------------------------------------------------------------------
 
 static vec3f LogTransferFunction_forward(const uniform TransferFunction* uniform self, vec3f y)
@@ -107,7 +107,7 @@ export void LogTransferFunction_Constructor(uniform TransferFunction* uniform se
 }
 
 // -----------------------------------------------------------------------------
-// PQX transfer function
+// Transfer function: PQX
 // -----------------------------------------------------------------------------
 
 static const uniform float PQ_M1 = 2610.f / 4096.f / 4.f;
