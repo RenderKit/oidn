@@ -56,8 +56,8 @@ DEP_DIR=$ROOT_DIR/deps
 
 source ${ROOT_DIR}/scripts/tbb_version.sh
 if [ -z "${OIDN_TBB_DIR_UNIX}" ]; then
-  TBB_DIR="$DEP_DIR/tbb/${TBB_VERSION}_${TBB_BUILD}"
+  TBB_DIR="$DEP_DIR/tbb/${TBB_VERSION}"
 else
-  TBB_DIR="${OIDN_TBB_DIR_UNIX}/${TBB_VERSION}_${TBB_BUILD}"
+  TBB_DIR="${OIDN_TBB_DIR_UNIX}/${TBB_VERSION}"
 fi
 

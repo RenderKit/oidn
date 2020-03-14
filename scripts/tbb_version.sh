@@ -18,5 +18,4 @@
 
 ## This file is shared from Linux, macOS, and Windows.
 
-TBB_VERSION=2019_U8
-TBB_BUILD=tbb2019_20190605oss
+TBB_VERSION=2020.1

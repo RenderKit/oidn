@@ -23,7 +23,7 @@ mkdir -p $DEP_DIR
 cd $DEP_DIR
 
 # Set up TBB
-OIDN_TBB_ROOT="${TBB_DIR}/linux/${TBB_BUILD}"
+OIDN_TBB_ROOT="${TBB_DIR}/linux/tbb"
 if [ ! -d "$OIDN_TBB_ROOT" ]; then
   echo "Cannot find tbb root at ${OIDN_TBB_ROOT}. Download tbb using scripts/download_tbb.sh."
   exit 1

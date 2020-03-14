@@ -49,9 +49,9 @@ function check_symbols
 
 cd $BUILD_DIR
 
-check_symbols libOpenImageDenoise.so GLIBC 2 4 0
-check_symbols libOpenImageDenoise.so GLIBCXX 3 4 11
-check_symbols libOpenImageDenoise.so CXXABI 1 3 0
+check_symbols libOpenImageDenoise.so GLIBC 2 17 0
+check_symbols libOpenImageDenoise.so GLIBCXX 3 4 19
+check_symbols libOpenImageDenoise.so CXXABI 1 3 7
 
 cd $ROOT_DIR
 

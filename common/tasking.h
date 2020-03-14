@@ -19,7 +19,6 @@
 #include "thread.h"
 
 #define TBB_PREVIEW_LOCAL_OBSERVER 1
-#include "tbb/task_scheduler_init.h"
 #include "tbb/task_scheduler_observer.h"
 #include "tbb/task_arena.h"
 #include "tbb/parallel_for.h"

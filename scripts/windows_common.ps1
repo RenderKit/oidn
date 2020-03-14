@@ -53,12 +53,11 @@ Get-Content "$ROOT_DIR\scripts\tbb_version.sh" | Where-Object {
   New-Variable -Name $var[0] -Value $var[1]
 }
 Write-Host "TBB version is $TBB_VERSION"
-Write-Host "TBB build is $TBB_BUILD"
 
 if (Test-Path Env:OIDN_TBB_DIR_WINDOWS) {
-  $TBB_DIR = "$Env:OIDN_TBB_DIR_WINDOWS\${TBB_VERSION}_${TBB_BUILD}\win\${TBB_BUILD}"
+  $TBB_DIR = "$Env:OIDN_TBB_DIR_WINDOWS\${TBB_VERSION}\win\tbb"
 } else {
-  $TBB_DIR = "${DEP_DIR}\tbb\${TBB_VERSION}_${TBB_BUILD}\win\${TBB_BUILD}"
+  $TBB_DIR = "${DEP_DIR}\tbb\${TBB_VERSION}\win\tbb"
 }
 Write-Host "Expecting to find TBB at $TBB_DIR"
 

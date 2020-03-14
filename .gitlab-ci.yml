@@ -79,22 +79,22 @@ stages:
 
 ## -----------------------------------------------------------------------------
 
-.centos6:
-  image:        openimagedenoise/build:centos6
+.centos7:
+  image:        openimagedenoise/build:centos7
   
-centos6-icc-build:
-  extends:      [ .centos6, .linux-icc-build ]
+centos7-icc-build:
+  extends:      [ .centos7, .linux-icc-build ]
 
-centos6-icc-check-symbols:
-  extends:      [ .centos6, .linux-check-symbols ]
+centos7-icc-check-symbols:
+  extends:      [ .centos7, .linux-check-symbols ]
   needs: 
-    - job:       centos6-icc-build
+    - job:       centos7-icc-build
       artifacts: true
 
-centos6-icc-package:
-  extends:      [ .centos6, .linux-package ]
+centos7-icc-package:
+  extends:      [ .centos7, .linux-package ]
   needs: 
-    - job:       centos6-icc-build
+    - job:       centos7-icc-build
       artifacts: true
 
 ## -----------------------------------------------------------------------------

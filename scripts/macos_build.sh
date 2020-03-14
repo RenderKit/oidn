@@ -23,7 +23,7 @@ mkdir -p $DEP_DIR
 cd $DEP_DIR
 
 # Set up TBB
-OIDN_TBB_ROOT="${TBB_DIR}/mac/${TBB_BUILD}"
+OIDN_TBB_ROOT="${TBB_DIR}/mac/tbb"
 RETRY_COUNTER=1
 while [ 1 ]; do
   if [ -d "$OIDN_TBB_ROOT" ]; then
