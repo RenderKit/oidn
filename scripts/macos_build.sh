@@ -31,7 +31,7 @@ while [ 1 ]; do
   fi
   sleep 1
   if [ $RETRY_COUNTER -ge 10 ]; then
-    echo "Cannot find tbb root at ${OIDN_TBB_ROOT}. Download tbb using scripts/download_tbb.sh."
+    echo "Cannot find TBB root at ${OIDN_TBB_ROOT}. Download TBB using scripts/download_tbb.sh."
     exit 1
   fi
   # Macos loses the NAS every now and then.

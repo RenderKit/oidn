@@ -25,7 +25,7 @@ cd $DEP_DIR
 # Set up TBB
 OIDN_TBB_ROOT="${TBB_DIR}/linux/tbb"
 if [ ! -d "$OIDN_TBB_ROOT" ]; then
-  echo "Cannot find tbb root at ${OIDN_TBB_ROOT}. Download tbb using scripts/download_tbb.sh."
+  echo "Cannot find TBB root at ${OIDN_TBB_ROOT}. Download TBB using scripts/download_tbb.sh."
   exit 1
 fi
 
