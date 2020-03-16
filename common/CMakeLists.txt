@@ -15,18 +15,18 @@
 ## =============================================================================
 
 add_library(common STATIC
+  barrier.h
+  exception.h
   platform.h
   platform.cpp
-  exception.h
   ref.h
-  barrier.h
-  timer.h
-  thread.h
-  thread.cpp
   tasking.h
   tasking.cpp
   tensor.h
   tensor.cpp
+  thread.h
+  thread.cpp
+  timer.h
 )
 
 if(OIDN_STATIC_LIB)

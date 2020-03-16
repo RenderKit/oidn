@@ -260,6 +260,7 @@ set(CORE_SOURCES
   include/OpenImageDenoise/oidn.h
   include/OpenImageDenoise/oidn.hpp
   include/OpenImageDenoise/version.h
+  common/oidn.rc
   core/autoencoder.h
   core/autoencoder.cpp
   core/api.cpp
