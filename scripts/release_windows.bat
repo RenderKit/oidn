@@ -40,9 +40,9 @@ rem Check if TBB is there.
 for /f "delims== tokens=1,2" %%G in (%ROOT_DIR%\scripts\tbb_version.sh) do set %%G=%%H
 
 if "%OIDN_TBB_DIR_WINDOWS%"=="" (
-  set TBB_DIR="%DEP_DIR%\tbb\%TBB_VERSION%_%TBB_BUILD%\win\%TBB_BUILD%"
+  set TBB_DIR="%DEP_DIR%\tbb\%TBB_VERSION%\win\tbb"
 ) else (
-  set TBB_DIR="%OIDN_TBB_DIR_WINDOWS%\%TBB_VERSION%_%TBB_BUILD%\win\%TBB_BUILD%"
+  set TBB_DIR="%OIDN_TBB_DIR_WINDOWS%\%TBB_VERSION%\win\tbb"
 )
 
 if not exist %TBB_DIR% (
