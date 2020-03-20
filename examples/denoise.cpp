@@ -33,8 +33,8 @@ using namespace oidn;
 
 void printUsage()
 {
-  std::cout << "Intel(R) Open Image Denoise Example" << std::endl;
-  std::cout << "Usage: denoise [-f RT|RTLightmap]" << std::endl
+  std::cout << "Intel(R) Open Image Denoise - Example" << std::endl;
+  std::cout << "usage: denoise [-f RT|RTLightmap]" << std::endl
             << "               [-ldr ldr_color.pfm] [-srgb] [-hdr hdr_color.pfm]" << std::endl
             << "               [-alb albedo.pfm] [-nrm normal.pfm]" << std::endl
             << "               [-o output.pfm] [-ref reference_output.pfm]" << std::endl
