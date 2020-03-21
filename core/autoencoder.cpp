@@ -258,9 +258,10 @@ namespace oidn {
     const auto inputDims        = memory::dims({1, inputC, tileH, tileW});
     const auto inputReorderDims = net->getInputReorderDims(inputDims, alignment);   //-> concat1
 
-    const auto encConv1aDims = net->getConvDims("enc_conv1a", inputReorderDims);    //-> temp0
-    const auto encConv1bDims = net->getConvDims("enc_conv1b", encConv1aDims);       //-> temp1
-    const auto pool1Dims     = net->getPoolDims(encConv1bDims);                     //-> concat2
+    const auto encConv0Dims  = net->getConvDims("enc_conv0", inputReorderDims);     //-> temp0
+
+    const auto encConv1Dims  = net->getConvDims("enc_conv1", encConv0Dims);         //-> temp1
+    const auto pool1Dims     = net->getPoolDims(encConv1Dims);                      //-> concat2
 
     const auto encConv2Dims  = net->getConvDims("enc_conv2", pool1Dims);            //-> temp0
     const auto pool2Dims     = net->getPoolDims(encConv2Dims);                      //-> concat3
@@ -298,13 +299,14 @@ namespace oidn {
     const auto concat1Dims   = net->getConcatDims(upsample1Dims, inputReorderDims);
     const auto decConv1aDims = net->getConvDims("dec_conv1a", concat1Dims);         //-> temp0
     const auto decConv1bDims = net->getConvDims("dec_conv1b", decConv1aDims);       //-> temp1
-    const auto decConv1cDims = net->getConvDims("dec_conv1c", decConv1bDims);       //-> temp0
+
+    const auto decConv0Dims  = net->getConvDims("dec_conv0", decConv1bDims);        //-> temp0
 
     const auto outputDims = memory::dims({1, 3, tileH, tileW});
 
     // Allocate two temporary ping-pong buffers to decrease memory usage
     const auto temp0Dims = getMaxMemoryDims({
-      encConv1aDims,
+      encConv0Dims,
       encConv2Dims,
       encConv3Dims,
       encConv4Dims,
@@ -314,11 +316,11 @@ namespace oidn {
       decConv3aDims,
       decConv2aDims,
       decConv1aDims,
-      decConv1cDims
+      decConv0Dims
     });
 
     const auto temp1Dims = getMaxMemoryDims({
-      encConv1bDims,
+      encConv1Dims,
       pool5Dims,
       decConv5bDims,
       decConv4bDims,
@@ -358,16 +360,16 @@ namespace oidn {
                                         transferFunc, hdr,
                                         alignment, inputReorderDst);
 
-    // enc_conv1a
-    auto encConv1a = net->addConv("enc_conv1a", inputReorder->getDst(), temp0);
+    // enc_conv0
+    auto encConv0 = net->addConv("enc_conv0", inputReorder->getDst(), temp0);
 
-    // enc_conv1b
-    auto encConv1b = net->addConv("enc_conv1b", encConv1a->getDst(), temp1);
+    // enc_conv1
+    auto encConv1 = net->addConv("enc_conv1", encConv0->getDst(), temp1);
 
     // pool1
     // Adjust pointer for pool1 to eliminate concat1
     auto pool1Dst = net->castMemory(pool1Dims, concat2Dst, upsample2Dims);
-    auto pool1 = net->addPool(encConv1b->getDst(), pool1Dst);
+    auto pool1 = net->addPool(encConv1->getDst(), pool1Dst);
 
     // enc_conv2
     auto encConv2 = net->addConv("enc_conv2", pool1->getDst(), temp0);
@@ -449,11 +451,11 @@ namespace oidn {
     // dec_conv1b
     auto decConv1b = net->addConv("dec_conv1b", decConv1a->getDst(), temp1);
 
-    // dec_conv1c
-    auto decConv1c = net->addConv("dec_conv1c", decConv1b->getDst(), temp0, false /* no relu */);
+    // dec_conv0
+    auto decConv0 = net->addConv("dec_conv0", decConv1b->getDst(), temp0, false /* no relu */);
 
     // Output reorder
-    outputReorder = net->addOutputReorder(decConv1c->getDst(), transferFunc, hdr, output);
+    outputReorder = net->addOutputReorder(decConv0->getDst(), transferFunc, hdr, output);
 
     net->finalize();
     return net;
