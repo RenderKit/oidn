@@ -468,7 +468,7 @@ namespace oidn {
     else if (srgb)
       return std::make_shared<TransferFunction>(TransferFunction::Type::Linear);
     else
-      return std::make_shared<TransferFunction>(TransferFunction::Type::Gamma);
+      return std::make_shared<TransferFunction>(TransferFunction::Type::SRGB);
   }
 
   // ---------------------------------------------------------------------------

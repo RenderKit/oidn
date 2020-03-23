@@ -68,52 +68,55 @@ export void LinearTransferFunction_Constructor(uniform TransferFunction* uniform
 }
 
 // -----------------------------------------------------------------------------
-// Transfer function: Gamma
+// Transfer function: sRGB
 // -----------------------------------------------------------------------------
 
-static vec3f GammaTransferFunction_forward(const uniform TransferFunction* uniform self, vec3f y)
+static const uniform float SRGB_A  =  12.92f;
+static const uniform float SRGB_B  =  1.055f;
+static const uniform float SRGB_C  =  1.f/2.4f;
+static const uniform float SRGB_D  = -0.055f;
+static const uniform float SRGB_Y0 =  0.0031308f;
+static const uniform float SRGB_X0 =  0.04045f;
+
+inline float srgbForward(float y)
 {
-  return pow(y, 1.f/2.2f);
+  if (y <= SRGB_Y0)
+    return SRGB_A * y;
+  else
+    return SRGB_B * pow(y, SRGB_C) + SRGB_D;
 }
 
-static vec3f GammaTransferFunction_inverse(const uniform TransferFunction* uniform self, vec3f x)
+inline float srgbInverse(float x)
 {
-  return pow(x, 2.2f);
+  if (x <= SRGB_X0)
+    return x / SRGB_A;
+  else
+    return pow((x - SRGB_D) / SRGB_B, 1.f/SRGB_C);
 }
 
-export void GammaTransferFunction_Constructor(uniform TransferFunction* uniform self)
+static vec3f SRGBTransferFunction_forward(const uniform TransferFunction* uniform self, vec3f y)
+{
+  return make_vec3f(srgbForward(y.x), srgbForward(y.y), srgbForward(y.z));
+}
+
+static vec3f SRGBTransferFunction_inverse(const uniform TransferFunction* uniform self, vec3f x)
+{
+  return make_vec3f(srgbInverse(x.x), srgbInverse(x.y), srgbInverse(x.z));
+}
+
+export void SRGBTransferFunction_Constructor(uniform TransferFunction* uniform self)
 {
   TransferFunction_Constructor(self);
-  self->forward = GammaTransferFunction_forward;
-  self->inverse = GammaTransferFunction_inverse;
+  self->forward = SRGBTransferFunction_forward;
+  self->inverse = SRGBTransferFunction_inverse;
 }
 
 // -----------------------------------------------------------------------------
-// Transfer function: Log
+// Transfer function: PU
 // -----------------------------------------------------------------------------
 
-static vec3f LogTransferFunction_forward(const uniform TransferFunction* uniform self, vec3f y)
-{
-  return log(y * self->yScale + 1.f) * self->xScale;
-}
-
-static vec3f LogTransferFunction_inverse(const uniform TransferFunction* uniform self, vec3f x)
-{
-  return (exp(x * self->xRcpScale) - 1.f) * self->yRcpScale;
-}
-
-export void LogTransferFunction_Constructor(uniform TransferFunction* uniform self)
-{
-  TransferFunction_Constructor(self);
-  self->forward = LogTransferFunction_forward;
-  self->inverse = LogTransferFunction_inverse;
-  TransferFunction_initNormalization(self, HDR_Y_MAX);
-}
-
-// -----------------------------------------------------------------------------
-// Transfer function: PU2
-// -----------------------------------------------------------------------------
-
+// Fit of PU2 curve normalized at 100 cd/m^2
+// [Aydin et al., 2008, "Extending Quality Metrics to Full Luminance Range Images"]
 static const uniform float PU_A  =  1.41283765e+03f;
 static const uniform float PU_B  =  1.64593172e+00f;
 static const uniform float PU_C  =  4.31384981e-01f;
@@ -163,6 +166,28 @@ export void PUTransferFunction_Constructor(uniform TransferFunction* uniform sel
   TransferFunction_Constructor(self);
   self->forward = PUTransferFunction_forward;
   self->inverse = PUTransferFunction_inverse;
+  TransferFunction_initNormalization(self, HDR_Y_MAX);
+}
+
+// -----------------------------------------------------------------------------
+// Transfer function: Log
+// -----------------------------------------------------------------------------
+
+static vec3f LogTransferFunction_forward(const uniform TransferFunction* uniform self, vec3f y)
+{
+  return log(y * self->yScale + 1.f) * self->xScale;
+}
+
+static vec3f LogTransferFunction_inverse(const uniform TransferFunction* uniform self, vec3f x)
+{
+  return (exp(x * self->xRcpScale) - 1.f) * self->yRcpScale;
+}
+
+export void LogTransferFunction_Constructor(uniform TransferFunction* uniform self)
+{
+  TransferFunction_Constructor(self);
+  self->forward = LogTransferFunction_forward;
+  self->inverse = LogTransferFunction_inverse;
   TransferFunction_initNormalization(self, HDR_Y_MAX);
 }
 

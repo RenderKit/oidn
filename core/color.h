@@ -31,19 +31,19 @@ namespace oidn {
     enum class Type
     {
       Linear,
-      Gamma,
-      Log,
+      SRGB,
       PU,
+      Log,
     };
 
     TransferFunction(Type type)
     {
       switch (type)
       {
-      case Type::Linear: ispc::LinearTransferFunction_Constructor(&data); break;  
-      case Type::Gamma:  ispc::GammaTransferFunction_Constructor(&data);  break;
-      case Type::Log:    ispc::LogTransferFunction_Constructor(&data);    break;  
+      case Type::Linear: ispc::LinearTransferFunction_Constructor(&data); break;
+      case Type::SRGB:   ispc::SRGBTransferFunction_Constructor(&data);   break;
       case Type::PU:     ispc::PUTransferFunction_Constructor(&data);     break;
+      case Type::Log:    ispc::LogTransferFunction_Constructor(&data);    break;
       default:           assert(0);
       }
     }
