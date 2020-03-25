@@ -1,0 +1,94 @@
+## Copyright 2018-2020 Intel Corporation
+## SPDX-License-Identifier: Apache-2.0
+
+import os
+import numpy as np
+import torch
+import OpenImageIO as oiio
+
+from util import *
+
+## -----------------------------------------------------------------------------
+## Image operations
+## -----------------------------------------------------------------------------
+
+# Converts a NumPy image to a tensor
+def to_tensor(image):
+  # Reorder from HWC to CHW
+  return torch.from_numpy(image.transpose((2, 0, 1)))
+
+# Converts a tensor to a NumPy image
+def to_numpy(image):
+  if len(image.shape) == 4:
+    # Remove N dimension
+    image = image.squeeze(0)
+  # Reorder from CHW to HWC
+  return image.cpu().numpy().transpose((1, 2, 0))
+
+# Computes gradient for image
+def gradient(input):
+  input0 = input[..., :-1, :-1]
+  didy   = input[..., 1:,  :-1] - input0
+  didx   = input[..., :-1, 1:]  - input0
+  return torch.cat((didy, didx), -3)
+
+## -----------------------------------------------------------------------------
+## Image I/O
+## -----------------------------------------------------------------------------
+
+# Loads an image and returns it as a float NumPy array
+def load_image(filename, num_channels=None):
+  input = oiio.ImageInput.open(filename)
+  if not input:
+    raise RuntimeError('could not open image: "' + filename + '"')
+  if num_channels:
+    image = input.read_image(subimage=0, miplevel=0, chbegin=0, chend=num_channels, format=oiio.FLOAT)
+  else:
+    image = input.read_image(format=oiio.FLOAT)
+  if image is None:
+    raise RuntimeError('could not read image')
+  image = np.nan_to_num(image)
+  input.close()
+  return image
+
+# Saves a float NumPy image
+def save_image(filename, image):
+  ext = get_path_ext(filename).lower()
+  if ext == 'pfm':
+    save_pfm(filename, image)
+  else:
+    output = oiio.ImageOutput.create(filename)
+    if not output:
+      raise RuntimeError('could not create image: "' + filename + '"')
+    format = oiio.FLOAT if ext == 'exr' else oiio.UINT8
+    spec = oiio.ImageSpec(image.shape[1], image.shape[0], image.shape[2], format)
+    if ext == 'exr':
+      spec.attribute('compression', 'piz')
+    elif ext == 'png':
+      spec.attribute('png:compressionLevel', 3)
+    if not output.open(filename, spec):
+      raise RuntimeError('could not open image: "' + filename + '"')
+    # FIXME: copy is needed for arrays owned by PyTorch for some reason
+    if not output.write_image(image.copy()):
+      raise RuntimeError('could not save image')
+    output.close()
+
+# Saves a float NumPy image in PFM format
+def save_pfm(filename, image):
+  with open(filename, 'w') as f:
+    num_channels = image.shape[-1]
+    if num_channels >= 3:
+      f.write('PF\n')
+      data = image[..., 0:3]
+    else:
+      f.write('Pf\n')
+      data = image[..., 0]
+    data = np.flip(data, 0).astype(np.float32)
+    
+    f.write('%d %d\n' % (image.shape[1], image.shape[0]))
+    f.write('-1.0\n')
+    data.tofile(f)
+
+# Returns whether a filename indicates a linear image
+def is_linear_image(filename):
+  return get_path_ext(filename).lower() in {'exr', 'pfm'}
