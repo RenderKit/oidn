@@ -44,10 +44,12 @@ namespace oidn {
 
     const float* getData() const { return data.data(); }
     float* getData() { return data.data(); }
-    int getDataSize() { return int(data.size()); }
+    int getDataSize() const { return int(data.size()); }
   };
 
   ImageBuffer loadImage(const std::string& filename);
+  ImageBuffer loadImage(const std::string& filename, bool srgb);
   void saveImage(const std::string& filename, const ImageBuffer& image);
+  void saveImage(const std::string& filename, const ImageBuffer& image, bool srgb);
 
 } // namespace oidn

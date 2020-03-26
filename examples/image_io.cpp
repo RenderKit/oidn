@@ -1,25 +1,51 @@
 // Copyright 2009-2020 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include <fstream>
 #include <cmath>
+#include <fstream>
 #include "image_io.h"
 
-#ifdef HAVE_OPENIMAGEIO
-# include <OpenImageIO/imageio.h>
+#if defined(OIDN_USE_OPENIMAGEIO)
+  #include <OpenImageIO/imageio.h>
 #endif
 
 namespace oidn {
 
   namespace
   {
+    inline float srgbForward(float y)
+    {
+      return (y <= 0.0031308f) ? (12.92f * y) : (1.055f * std::pow(y, 1.f/2.4f) - 0.055f);
+    }
+
+    inline float srgbInverse(float x)
+    {
+      return (x <= 0.04045f) ? (x / 12.92f) : std::pow((x + 0.055f) / 1.055f, 2.4f);
+    }
+
+    void srgbForward(ImageBuffer& image)
+    {
+      for (int i = 0; i < image.getDataSize(); ++i)
+        image[i] = srgbForward(image[i]);
+    }
+
+    void srgbInverse(ImageBuffer& image)
+    {
+      for (int i = 0; i < image.getDataSize(); ++i)
+        image[i] = srgbInverse(image[i]);
+    }
+
     std::string getExtension(const std::string& filename)
     {
       const size_t pos = filename.find_last_of('.');
       if (pos == std::string::npos)
         return ""; // no extension
       else
-        return filename.substr(pos + 1);
+      {
+        std::string ext = filename.substr(pos + 1);
+        for (auto& c : ext) c = tolower(c);
+        return ext;
+      }
     }
 
     ImageBuffer loadImagePFM(const std::string& filename)
@@ -27,7 +53,7 @@ namespace oidn {
       // Open the file
       std::ifstream file(filename, std::ios::binary);
       if (file.fail())
-        throw std::runtime_error("cannot open file '" + filename + "'");
+        throw std::runtime_error("cannot open image file: " + filename);
 
       // Read the header
       std::string id;
@@ -86,7 +112,7 @@ namespace oidn {
       // Open the file
       std::ofstream file(filename, std::ios::binary);
       if (file.fail())
-        throw std::runtime_error("cannot open file: '" + filename + "'");
+        throw std::runtime_error("cannot open image file: " + filename);
 
       // Write the header
       file << "PF" << std::endl;
@@ -118,7 +144,7 @@ namespace oidn {
       // Open the file
       std::ofstream file(filename, std::ios::binary);
       if (file.fail())
-        throw std::runtime_error("cannot open file: '" + filename + "'");
+        throw std::runtime_error("cannot open image file: " + filename);
 
       // Write the header
       file << "P6" << std::endl;
@@ -130,27 +156,31 @@ namespace oidn {
       {
         for (int c = 0; c < 3; ++c)
         {
-          float x = image[i*C+c];
-          x = pow(x, 1.f/2.2f);
-          int ch = std::min(std::max(int(x * 255.f), 0), 255);
+          const float x = image[i*C+c];
+          const int ch = std::min(std::max(int(x * 255.f), 0), 255);
           file.put(char(ch));
         }
       }
     }
   }
 
-#ifdef HAVE_OPENIMAGEIO
+#ifdef OIDN_USE_OPENIMAGEIO
   ImageBuffer loadImageOIIO(const std::string& filename)
   {
     ImageBuffer buf;
     auto in = OIIO::ImageInput::open(filename);
-    if (in)
-    {
-      const OIIO::ImageSpec& spec = in->spec();
-      buf = ImageBuffer(spec.width, spec.height, spec.nchannels);
-      in->read_image(OIIO::TypeDesc::FLOAT, buf.getData());
-      in->close();
-    }
+    if (!in)
+      throw std::runtime_error("cannot open image file: " + filename);
+
+    const OIIO::ImageSpec& spec = in->spec();
+    buf = ImageBuffer(spec.width, spec.height, spec.nchannels);
+    if (!in->read_image(OIIO::TypeDesc::FLOAT, buf.getData()))
+      throw std::runtime_error("failed to read image data");
+    in->close();
+
+#if OIIO_VERSION < 10903
+    ImageInput::destroy(in);
+#endif
     return buf;
   }
 
@@ -158,36 +188,40 @@ namespace oidn {
   {
     auto out = OIIO::ImageOutput::create(filename);
     if (!out)
-      throw std::runtime_error("cannot write unsupported image file format: " + filename);
+      throw std::runtime_error("cannot save unsupported image file format: " + filename);
 
-    OIIO::ImageSpec spec(image.getWidth(), 
-                         image.getHeight(), 
-                         image.getChannels(), 
+    OIIO::ImageSpec spec(image.getWidth(),
+                         image.getHeight(),
+                         image.getChannels(),
                          OIIO::TypeDesc::FLOAT);
 
-    out->open(filename, spec);
-    out->write_image(OIIO::TypeDesc::FLOAT, image.getData());
+    if (!out->open(filename, spec))
+      throw std::runtime_error("cannot create image file: " + filename);
+    if (!out->write_image(OIIO::TypeDesc::FLOAT, image.getData()))
+      throw std::runtime_error("failed to write image data");
     out->close();
+
+#if OIIO_VERSION < 10903
+    ImageOutput::destroy(out);
+#endif
   }
-#endif // HAVE_OPENIMAGEIO
+#endif
 
   ImageBuffer loadImage(const std::string& filename)
   {
     const std::string ext = getExtension(filename);
-    ImageBuffer buf;
+    ImageBuffer image;
 
     if (ext == "pfm")
-      buf = loadImagePFM(filename);
-
-#if HAVE_OPENIMAGEIO
+      image = loadImagePFM(filename);
     else
-      buf = loadImageOIIO(filename);
-#endif // HAVE_OPENIMAGEIO
-
-    if (!buf)
+#if OIDN_USE_OPENIMAGEIO
+      image = loadImageOIIO(filename);
+#else
       throw std::runtime_error("cannot load unsupported image file format: " + filename);
+#endif
 
-    return buf;
+    return image;
   }
 
   void saveImage(const std::string& filename, const ImageBuffer& image)
@@ -197,13 +231,40 @@ namespace oidn {
       saveImagePFM(filename, image);
     else if (ext == "ppm")
       saveImagePPM(filename, image);
-#if HAVE_OPENIMAGEIO
-    else 
-      saveImageOIIO(filename, image);
-#else // HAVE_OPENIMAGEIO
     else
+#if OIDN_USE_OPENIMAGEIO
+      saveImageOIIO(filename, image);
+#else
       throw std::runtime_error("cannot write unsupported image file format: " + filename);
-#endif // HAVE_OPENIMAGEIO
+#endif
+  }
+
+  bool isSrgbImage(const std::string& filename)
+  {
+    const std::string ext = getExtension(filename);
+    return ext != "pfm" && ext != "exr" && ext != "hdr";
+  }
+
+  ImageBuffer loadImage(const std::string& filename, bool srgb)
+  {
+    ImageBuffer image = loadImage(filename);
+    if (!srgb && isSrgbImage(filename))
+      srgbInverse(image);
+    return image;
+  }
+
+  void saveImage(const std::string& filename, const ImageBuffer& image, bool srgb)
+  {
+    if (!srgb && isSrgbImage(filename))
+    {
+      ImageBuffer newImage = image;
+      srgbForward(newImage);
+      saveImage(filename, newImage);
+    }
+    else
+    {
+      saveImage(filename, image);
+    }
   }
 
 } // namespace oidn

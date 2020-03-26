@@ -125,13 +125,13 @@ int main(int argc, char* argv[])
 
     std::cout << "Loading input" << std::endl;
 
-    color = loadImage(colorFilename);
+    color = loadImage(colorFilename, srgb);
     if (color.getChannels() != 3)
       throw std::runtime_error("invalid color image");
 
     if (!albedoFilename.empty())
     {
-      albedo = loadImage(albedoFilename);
+      albedo = loadImage(albedoFilename, false);
       if (albedo.getChannels() != 3 || albedo.getSize() != color.getSize())
         throw std::runtime_error("invalid albedo image");
     }
@@ -145,7 +145,7 @@ int main(int argc, char* argv[])
 
     if (!refFilename.empty())
     {
-      ref = loadImage(refFilename);
+      ref = loadImage(refFilename, srgb);
       if (ref.getChannels() != 3 || ref.getSize() != color.getSize())
         throw std::runtime_error("invalid reference output image");
     }
@@ -255,17 +255,17 @@ int main(int argc, char* argv[])
 
       // Save debug images
       std::cout << "Saving debug images" << std::endl;
-      saveImage("denoise_in.ppm",  color);
-      saveImage("denoise_out.ppm", output);
-      saveImage("denoise_ref.ppm", ref);
-      saveImage("denoise_diff.ppm", diff);
+      saveImage("denoise_in.ppm",   color,  srgb);
+      saveImage("denoise_out.ppm",  output, srgb);
+      saveImage("denoise_ref.ppm",  ref,    srgb);
+      saveImage("denoise_diff.ppm", diff,   srgb);
     }
 
     if (!outputFilename.empty())
     {
       // Save output image
       std::cout << "Saving output" << std::endl;
-      saveImage(outputFilename, output);
+      saveImage(outputFilename, output, srgb);
     }
 
     if (numBenchmarkRuns > 0)
