@@ -4,7 +4,7 @@
 include(CMakeDependentOption)
 
 find_package(OpenImageIO)
-CMAKE_DEPENDENT_OPTION(OIDN_EXAMPLES_OPENIMAGEIO "Enable OpenImageIO to support OpenEXR, PNG, and other image formats" OFF "OpenImageIO_FOUND" OFF)
+CMAKE_DEPENDENT_OPTION(OIDN_EXAMPLES_OPENIMAGEIO "Enables OpenImageIO support in the examples" OFF "OpenImageIO_FOUND" OFF)
 
 macro(add_example EXAMPLE_NAME)
   add_executable(${EXAMPLE_NAME} ${EXAMPLE_NAME}.cpp image_io.h image_io.cpp cli.h ../common/oidn.rc)
