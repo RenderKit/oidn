@@ -179,7 +179,7 @@ namespace oidn {
     in->close();
 
 #if OIIO_VERSION < 10903
-    ImageInput::destroy(in);
+    OIIO::ImageInput::destroy(in);
 #endif
     return buf;
   }
@@ -202,7 +202,7 @@ namespace oidn {
     out->close();
 
 #if OIIO_VERSION < 10903
-    ImageOutput::destroy(out);
+    OIIO::ImageOutput::destroy(out);
 #endif
   }
 #endif
