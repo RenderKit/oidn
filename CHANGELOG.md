@@ -9,7 +9,7 @@ Version History
 -   Slightly improved denoising speed
 -   Added neural network training code
 -   Link C/C++ runtime library dynamically by default on Windows too
--   Added OIDN_STATIC_RUNTIME CMake option (for Windows only)
+-   Added `OIDN_STATIC_RUNTIME` CMake option (for Windows only)
 -   Added support for OpenImageIO to the example (disabled by default)
 
 #### Fixed Issues:
@@ -53,7 +53,7 @@ Version History
     separate devices with AVX-512 support. Currently the filter executions are
     serialized as a temporary workaround, and a full fix will be included in a
     future release.
--   Added OIDN_STATIC_LIB CMake option for building as a static library
+-   Added `OIDN_STATIC_LIB` CMake option for building as a static library
     (requires CMake 3.13.0 or later)
 -   Fixed CMake error when adding the library with add_subdirectory() to a project
 
