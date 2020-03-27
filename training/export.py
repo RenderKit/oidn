@@ -24,8 +24,12 @@ epoch = checkpoint['epoch']
 model_state = checkpoint['model_state']
 
 # Save the weights to a TZA file
-output_filename = os.path.join(get_result_dir(cfg), cfg.result) + ('_%d.tza' % epoch)
+output_filename = os.path.join(get_result_dir(cfg), cfg.result)
+if cfg.checkpoint:
+  output_filename += '_%d' % epoch
+output_filename += '.tza'
 print('Saving weights:', output_filename)
+
 with tza.Writer(output_filename) as output_file:
   for name, value in model_state.items():
     tensor = value.cpu().numpy()
