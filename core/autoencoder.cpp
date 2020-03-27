@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "autoencoder.h"
+#include "common/tza.h"
 
 namespace oidn {
 

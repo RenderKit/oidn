@@ -10,10 +10,11 @@ add_library(common STATIC
   tasking.h
   tasking.cpp
   tensor.h
-  tensor.cpp
   thread.h
   thread.cpp
   timer.h
+  tza.h
+  tza.cpp
 )
 
 if(OIDN_STATIC_LIB)

@@ -5,7 +5,6 @@
 
 #include "platform.h"
 #include <vector>
-#include <map>
 
 namespace oidn {
 
@@ -99,8 +98,5 @@ namespace oidn {
       return ((i0 * dims[1] + i1) * dims[2] + i2) * dims[3] + i3;
     }
   };
-
-  // Parses tensors from a buffer
-  std::map<std::string, Tensor> parseTensors(void* buffer);
 
 } // namespace oidn
