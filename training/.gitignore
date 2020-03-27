@@ -1,0 +1,12 @@
+*.exr
+*.pfm
+*.png
+*.done
+*.pt
+*.pth
+*.tza
+*.json
+*.csv
+*.zip
+events.out.*
+latest
