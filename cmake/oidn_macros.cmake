@@ -51,7 +51,7 @@ function(generate_cpp_from_binary out_sources namespace)
       COMMAND ${PYTHON_EXECUTABLE}
       ARGS ${PROJECT_SOURCE_DIR}/scripts/binary_to_cpp.py ${in_path} -o ${out_cpp_path} -H ${out_hpp_path} -n ${namespace}
       DEPENDS ${in_path}
-      COMMENT "Generating CXX source files from binary ${in_path}"
+      COMMENT "Generating CXX source/header file from binary ${in_path}"
       VERBATIM)
   endforeach()
   set_source_files_properties(${${out_sources}} PROPERTIES GENERATED TRUE)
