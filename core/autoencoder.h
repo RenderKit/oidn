@@ -16,6 +16,7 @@ namespace oidn {
   class AutoencoderFilter : public Filter
   {
   protected:
+    // Network constants
     static constexpr int alignment       = 32;  // required spatial alignment in pixels (padding may be necessary)
     static constexpr int receptiveField  = 222; // receptive field in pixels
     static constexpr int overlap         = round_up(receptiveField / 2, alignment); // required spatial overlap between tiles in pixels
@@ -24,15 +25,19 @@ namespace oidn {
     static constexpr int estimatedBytesPerPixel8  = 889;          // estimated memory usage per pixel for K=8
     static constexpr int estimatedBytesPerPixel16 = 2185;         // estimated memory usage per pixel for K=16
 
+    // Images
     Image color;
     Image albedo;
     Image normal;
     Image output;
+
+    // Options
     bool hdr = false;
     float hdrScale = std::numeric_limits<float>::quiet_NaN();
     bool srgb = false;
     int maxMemoryMB = 6000; // approximate maximum memory usage in MBs
 
+    // Image dimensions
     int H = 0;          // image height
     int W = 0;          // image width
     int tileH = 0;      // tile height
@@ -40,25 +45,29 @@ namespace oidn {
     int tileCountH = 1; // number of tiles in H dimension
     int tileCountW = 1; // number of tiles in W dimension
 
+    // Network
     std::shared_ptr<Executable> net;
     std::shared_ptr<Node> inputReorder;
     std::shared_ptr<Node> outputReorder;
 
+    // Weights
     struct
     {
-      void* ldr         = nullptr;
-      void* ldr_alb     = nullptr;
-      void* ldr_alb_nrm = nullptr;
-      void* hdr         = nullptr;
-      void* hdr_alb     = nullptr;
-      void* hdr_alb_nrm = nullptr;
-    } weightData;
+      Data ldr;
+      Data ldr_alb;
+      Data ldr_alb_nrm;
+      Data hdr;
+      Data hdr_alb;
+      Data hdr_alb_nrm;
+    } defaultWeights;
+    Data userWeights;
 
     explicit AutoencoderFilter(const Ref<Device>& device);
     virtual std::shared_ptr<TransferFunction> makeTransferFunc();
 
   public:
     void setImage(const std::string& name, const Image& data) override;
+    void setData(const std::string& name, const Data& data) override;
     void set1i(const std::string& name, int value) override;
     int get1i(const std::string& name) override;
     void set1f(const std::string& name, float value) override;

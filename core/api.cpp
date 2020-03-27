@@ -299,6 +299,18 @@ namespace oidn {
     OIDN_CATCH(filter)
   }
 
+  OIDN_API void oidnSetSharedFilterData(OIDNFilter hFilter, const char* name,
+                                        void* ptr, size_t byteSize)
+  {
+    Filter* filter = (Filter*)hFilter;
+    OIDN_TRY
+      checkHandle(hFilter);
+      OIDN_LOCK(filter);
+      Data data(ptr, byteSize);
+      filter->setData(name, data);
+    OIDN_CATCH(filter)
+  }
+
   OIDN_API void oidnSetFilter1b(OIDNFilter hFilter, const char* name, bool value)
   {
     Filter* filter = (Filter*)hFilter;

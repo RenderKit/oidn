@@ -48,6 +48,12 @@ namespace oidn {
       return size;
     }
 
+    // Returns the size in bytes
+    __forceinline size_t byteSize() const
+    {
+      return size() * sizeof(float);
+    }
+
     __forceinline float& operator [](size_t i) { return data[i]; }
     __forceinline const float& operator [](size_t i) const { return data[i]; }
 

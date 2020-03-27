@@ -255,6 +255,7 @@ set(CORE_SOURCES
   core/color.h
   core/color.cpp
   core/common.h
+  core/data.h
   core/device.h
   core/device.cpp
   core/filter.h
@@ -282,7 +283,7 @@ set(CORE_SOURCES_ISPC
   core/vec.ih
 )
 
-generate_cpp_resources(WEIGHTS_SOURCES "oidn::weights"
+generate_cpp_from_binary(WEIGHTS_SOURCES "oidn::weights"
   weights/rt_ldr.tza
   weights/rt_ldr_alb.tza
   weights/rt_ldr_alb_nrm.tza

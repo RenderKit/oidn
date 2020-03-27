@@ -168,6 +168,10 @@ OIDN_API void oidnSetSharedFilterImage(OIDNFilter filter, const char* name,
                                        size_t byteOffset,
                                        size_t bytePixelStride, size_t byteRowStride);
 
+// Sets an opaque data parameter of the filter (owned by the user).
+OIDN_API void oidnSetSharedFilterData(OIDNFilter filter, const char* name,
+                                      void* ptr, size_t byteSize);
+
 // Sets a boolean parameter of the filter.
 OIDN_API void oidnSetFilter1b(OIDNFilter filter, const char* name, bool value);
 

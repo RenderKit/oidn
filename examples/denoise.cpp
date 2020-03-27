@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <iostream>
+#include <fstream>
 #include <cassert>
 #include <cmath>
 #include <signal.h>
@@ -25,6 +26,7 @@ void printUsage()
             << "               [-ldr ldr_color.pfm] [-srgb] [-hdr hdr_color.pfm]" << std::endl
             << "               [-alb albedo.pfm] [-nrm normal.pfm]" << std::endl
             << "               [-o output.pfm] [-ref reference_output.pfm]" << std::endl
+            << "               [-w weights.tza]" << std::endl
             << "               [-bench ntimes] [-threads n] [-affinity 0|1] [-maxmem MB] [-verbose 0-3]" << std::endl;
 }
 
@@ -50,11 +52,27 @@ bool progressCallback(void* userPtr, double n)
   return true;
 }
 
+std::vector<char> loadFile(const std::string& filename)
+{
+  std::ifstream file(filename, std::ios::binary);
+  if (file.fail())
+    throw std::runtime_error("cannot open file: " + filename);
+  file.seekg(0, file.end);
+  const size_t size = file.tellg();
+  file.seekg(0, file.beg);
+  std::vector<char> buffer(size);
+  file.read(buffer.data(), size);
+  if (file.fail())
+    throw std::runtime_error("error reading from file");
+  return buffer;
+}
+
 int main(int argc, char* argv[])
 {
   std::string filterType = "RT";
   std::string colorFilename, albedoFilename, normalFilename;
   std::string outputFilename, refFilename;
+  std::string weightsFilename;
   bool hdr = false;
   bool srgb = false;
   int numBenchmarkRuns = 0;
@@ -97,6 +115,8 @@ int main(int argc, char* argv[])
         outputFilename = args.getNextValue();
       else if (opt == "ref" || opt == "reference")
         refFilename = args.getNextValue();
+      else if (opt == "w" || opt == "weights")
+        weightsFilename = args.getNextValue();
       else if (opt == "bench" || opt == "benchmark")
         numBenchmarkRuns = std::max(args.getNextValueInt(), 0);
       else if (opt == "threads")
@@ -126,20 +146,20 @@ int main(int argc, char* argv[])
     std::cout << "Loading input" << std::endl;
 
     color = loadImage(colorFilename, srgb);
-    if (color.getChannels() != 3)
+    if (color.getChannels() < 3)
       throw std::runtime_error("invalid color image");
 
     if (!albedoFilename.empty())
     {
       albedo = loadImage(albedoFilename, false);
-      if (albedo.getChannels() != 3 || albedo.getSize() != color.getSize())
+      if (albedo.getChannels() < 3 || albedo.getSize() != color.getSize())
         throw std::runtime_error("invalid albedo image");
     }
 
     if (!normalFilename.empty())
     {
       normal = loadImage(normalFilename);
-      if (normal.getChannels() != 3 || normal.getSize() != color.getSize())
+      if (normal.getChannels() < 3 || normal.getSize() != color.getSize())
         throw std::runtime_error("invalid normal image");
     }
 
@@ -156,6 +176,14 @@ int main(int argc, char* argv[])
 
     // Initialize the output image
     ImageBuffer output(width, height, 3);
+
+    // Load the filter weights if specified
+    std::vector<char> weights;
+    if (!weightsFilename.empty())
+    {
+      std::cout << "Loading filter weights" << std::endl;
+      weights = loadFile(weightsFilename);
+    }
 
     // Initialize the denoising filter
     std::cout << "Initializing" << std::endl;
@@ -178,11 +206,21 @@ int main(int argc, char* argv[])
 
     oidn::FilterRef filter = device.newFilter(filterType.c_str());
 
-    filter.setImage("color", color.getData(), oidn::Format::Float3, width, height);
+    const size_t colorStride = color.getChannels() * sizeof(float);
+    filter.setImage("color", color.getData(), oidn::Format::Float3, width, height, 0, colorStride);
+
     if (albedo)
-      filter.setImage("albedo", albedo.getData(), oidn::Format::Float3, width, height);
+    {
+      const size_t albedoStride = albedo.getChannels() * sizeof(float);
+      filter.setImage("albedo", albedo.getData(), oidn::Format::Float3, width, height, 0, albedoStride);
+    }
+
     if (normal)
-      filter.setImage("normal", normal.getData(), oidn::Format::Float3, width, height);
+    {
+      const size_t normalStride = normal.getChannels() * sizeof(float);
+      filter.setImage("normal", normal.getData(), oidn::Format::Float3, width, height, 0, normalStride);
+    }
+
     filter.setImage("output", output.getData(), oidn::Format::Float3, width, height);
 
     if (hdr)
@@ -192,6 +230,9 @@ int main(int argc, char* argv[])
 
     if (maxMemoryMB >= 0)
       filter.set("maxMemoryMB", maxMemoryMB);
+
+    if (!weights.empty())
+      filter.setData("weights", weights.data(), weights.size());
 
     filter.setProgressMonitorFunction(progressCallback);
     signal(SIGINT, signalHandler);

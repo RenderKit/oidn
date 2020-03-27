@@ -30,7 +30,7 @@ namespace oidn {
   class Network : public Executable
   {
   public:
-    Network(const Ref<Device>& device, const std::map<std::string, Tensor>& weightMap);
+    Network(const Ref<Device>& device, const std::map<std::string, Tensor>& weightsMap);
 
     void execute(const Progress& progress, int taskIndex) override;
 
@@ -93,7 +93,7 @@ namespace oidn {
     memory::format_tag nChwKc; // native blocked format
 
     std::vector<std::shared_ptr<Node>> nodes;
-    std::map<std::string, Tensor> weightMap;
+    std::map<std::string, Tensor> weightsMap;
 
     // Memory allocation statistics
     size_t activationAllocBytes = 0; // number of allocated activation bytes

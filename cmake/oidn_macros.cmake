@@ -35,22 +35,23 @@ endmacro()
 
 # Generates C++ files from the specified binary resource files
 find_package(PythonInterp REQUIRED)
-function(generate_cpp_resources out_sources namespace)
+function(generate_cpp_from_binary out_sources namespace)
   set(${out_sources})
   foreach(in_file ${ARGN})
     get_filename_component(in_file_we ${in_file} NAME_WE)
     get_filename_component(in_dir ${in_file} PATH)
     get_filename_component(in_path ${in_file} ABSOLUTE)
     set(out_dir ${CMAKE_CURRENT_BINARY_DIR}/${in_dir})
-    set(out_path ${out_dir}/${in_file_we}.cpp)
-    list(APPEND ${out_sources} ${out_path})
+    set(out_cpp_path ${out_dir}/${in_file_we}.cpp)
+    set(out_hpp_path ${out_dir}/${in_file_we}.h)
+    list(APPEND ${out_sources} ${out_cpp_path} ${out_hpp_path})
     add_custom_command(
-      OUTPUT ${out_path}
+      OUTPUT ${out_cpp_path} ${out_hpp_path}
       COMMAND ${CMAKE_COMMAND} -E make_directory ${out_dir}
       COMMAND ${PYTHON_EXECUTABLE}
-      ARGS ${PROJECT_SOURCE_DIR}/scripts/resource_to_cpp.py ${in_path} -o ${out_path} -n ${namespace}
+      ARGS ${PROJECT_SOURCE_DIR}/scripts/binary_to_cpp.py ${in_path} -o ${out_cpp_path} -H ${out_hpp_path} -n ${namespace}
       DEPENDS ${in_path}
-      COMMENT "Generating CXX resource object ${out_path}"
+      COMMENT "Generating CXX source files from binary ${in_path}"
       VERBATIM)
   endforeach()
   set_source_files_properties(${${out_sources}} PROPERTIES GENERATED TRUE)

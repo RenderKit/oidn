@@ -9,6 +9,6 @@
 namespace oidn {
 
   // Parses tensors from a Tensor Archive (TZA)
-  std::map<std::string, Tensor> parseTensors(void* buffer);
+  std::map<std::string, Tensor> parseTZA(void* buffer, size_t size);
 
 } // namespace oidn

@@ -215,6 +215,14 @@ namespace oidn {
                                bytePixelStride, byteRowStride);
     }
 
+    // Sets an opaque data parameter of the filter (owned by the user).
+    void setData(const char* name,
+                 void* ptr, size_t byteSize)
+    {
+      oidnSetSharedFilterData(handle, name,
+                              ptr, byteSize);
+    }
+
     // Sets a boolean parameter of the filter.
     void set(const char* name, bool value)
     {

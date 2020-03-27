@@ -4,6 +4,15 @@
 #include "autoencoder.h"
 #include "common/tza.h"
 
+// Built-in weights
+#include "weights/rt_hdr.h"
+#include "weights/rt_hdr_alb.h"
+#include "weights/rt_hdr_alb_nrm.h"
+#include "weights/rt_ldr.h"
+#include "weights/rt_ldr_alb.h"
+#include "weights/rt_ldr_alb_nrm.h"
+#include "weights/rtlightmap_hdr.h"
+
 namespace oidn {
 
   // ---------------------------------------------------------------------------
@@ -25,6 +34,14 @@ namespace oidn {
       normal = data;
     else if (name == "output")
       output = data;
+
+    dirty = true;
+  }
+
+  void AutoencoderFilter::setData(const std::string& name, const Data& data)
+  {
+    if (name == "weights")
+      userWeights = data;
 
     dirty = true;
   }
@@ -188,33 +205,31 @@ namespace oidn {
     H = color.height;
     W = color.width;
 
-    // Configure the network
-    int inputC;
-    void* weightPtr;
-
     if (srgb && hdr)
       throw Exception(Error::InvalidOperation, "srgb and hdr modes cannot be enabled at the same time");
 
-    if (color && !albedo && !normal && weightData.hdr)
-    {
-      inputC = 3;
-      weightPtr = hdr ? weightData.hdr : weightData.ldr;
-    }
-    else if (color && albedo && !normal && weightData.hdr_alb)
-    {
-      inputC = 6;
-      weightPtr = hdr ? weightData.hdr_alb : weightData.ldr_alb;
-    }
-    else if (color && albedo && normal && weightData.hdr_alb_nrm)
-    {
-      inputC = 9;
-      weightPtr = hdr ? weightData.hdr_alb_nrm : weightData.ldr_alb_nrm;
-    }
-    else
-    {
-      throw Exception(Error::InvalidOperation, "unsupported combination of input features");
-    }
+    // Get the number of input channels
+    int inputC = 0;
+    if (color)  inputC += 3;
+    if (albedo) inputC += 3;
+    if (normal) inputC += 3;
 
+    // Select the weights to use
+    Data weights;
+
+    if (userWeights)
+      weights = userWeights;
+    else if (color && !albedo && !normal)
+      weights = hdr ? defaultWeights.hdr : defaultWeights.ldr;
+    else if (color && albedo && !normal)
+      weights = hdr ? defaultWeights.hdr_alb : defaultWeights.ldr_alb;
+    else if (color && albedo && normal)
+      weights = hdr ? defaultWeights.hdr_alb_nrm : defaultWeights.ldr_alb_nrm;
+
+    if (!weights)
+      throw Exception(Error::InvalidOperation, "unsupported combination of input features");
+
+    // Check the input/output buffers
     if (!output)
       throw Exception(Error::InvalidOperation, "output image not specified");
 
@@ -237,10 +252,10 @@ namespace oidn {
       return nullptr;
 
     // Parse the weights
-    const auto weightMap = parseTensors(weightPtr);
+    const auto weightsMap = parseTZA(weights.ptr, weights.size);
 
     // Create the network
-    std::shared_ptr<Network> net = std::make_shared<Network>(device, weightMap);
+    std::shared_ptr<Network> net = std::make_shared<Network>(device, weightsMap);
 
     // Compute the buffer sizes
     const auto inputDims        = memory::dims({1, inputC, tileH, tileW});
@@ -463,44 +478,25 @@ namespace oidn {
   // RTFilter
   // ---------------------------------------------------------------------------
 
-  namespace weights
-  {
-    // LDR
-    extern unsigned char rt_ldr[];         // color
-    extern unsigned char rt_ldr_alb[];     // color, albedo
-    extern unsigned char rt_ldr_alb_nrm[]; // color, albedo, normal
-
-    // HDR
-    extern unsigned char rt_hdr[];         // color
-    extern unsigned char rt_hdr_alb[];     // color, albedo
-    extern unsigned char rt_hdr_alb_nrm[]; // color, albedo, normal
-  }
-
   RTFilter::RTFilter(const Ref<Device>& device)
     : AutoencoderFilter(device)
   {
-    weightData.ldr         = weights::rt_ldr;
-    weightData.ldr_alb     = weights::rt_ldr_alb;
-    weightData.ldr_alb_nrm = weights::rt_ldr_alb_nrm;
-    weightData.hdr         = weights::rt_hdr;
-    weightData.hdr_alb     = weights::rt_hdr_alb;
-    weightData.hdr_alb_nrm = weights::rt_hdr_alb_nrm;
+    defaultWeights.ldr         = weights::rt_ldr;
+    defaultWeights.ldr_alb     = weights::rt_ldr_alb;
+    defaultWeights.ldr_alb_nrm = weights::rt_ldr_alb_nrm;
+    defaultWeights.hdr         = weights::rt_hdr;
+    defaultWeights.hdr_alb     = weights::rt_hdr_alb;
+    defaultWeights.hdr_alb_nrm = weights::rt_hdr_alb_nrm;
   }
 
   // ---------------------------------------------------------------------------
   // RTLightmapFilter
   // ---------------------------------------------------------------------------
 
-  namespace weights
-  {
-    // HDR
-    extern unsigned char rtlightmap_hdr[]; // color
-  }
-
   RTLightmapFilter::RTLightmapFilter(const Ref<Device>& device)
     : AutoencoderFilter(device)
   {
-    weightData.hdr = weights::rtlightmap_hdr;
+    defaultWeights.hdr = weights::rtlightmap_hdr;
 
     hdr = true;
   }
