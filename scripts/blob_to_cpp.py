@@ -62,7 +62,7 @@ def generate(in_path, cpp_path, hpp_path, namespace):
       write_namespace_end(hpp_file, scopes)
 
 if __name__ == '__main__':
-  parser = argparse.ArgumentParser(description='Generates C++ source/header file(s) from a binary file.')
+  parser = argparse.ArgumentParser(description='Generates C++ source/header files from a binary blob.')
   parser.add_argument('-n', '--namespace', help='C++ namespace to use')
   parser.add_argument('-o', '--output', required=True, help='output C++ source filename')
   parser.add_argument('-H', '--output-header', help='output C++ header filename')

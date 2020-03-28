@@ -481,12 +481,12 @@ namespace oidn {
   RTFilter::RTFilter(const Ref<Device>& device)
     : AutoencoderFilter(device)
   {
-    defaultWeights.ldr         = weights::rt_ldr;
-    defaultWeights.ldr_alb     = weights::rt_ldr_alb;
-    defaultWeights.ldr_alb_nrm = weights::rt_ldr_alb_nrm;
-    defaultWeights.hdr         = weights::rt_hdr;
-    defaultWeights.hdr_alb     = weights::rt_hdr_alb;
-    defaultWeights.hdr_alb_nrm = weights::rt_hdr_alb_nrm;
+    defaultWeights.ldr         = blobs::weights::rt_ldr;
+    defaultWeights.ldr_alb     = blobs::weights::rt_ldr_alb;
+    defaultWeights.ldr_alb_nrm = blobs::weights::rt_ldr_alb_nrm;
+    defaultWeights.hdr         = blobs::weights::rt_hdr;
+    defaultWeights.hdr_alb     = blobs::weights::rt_hdr_alb;
+    defaultWeights.hdr_alb_nrm = blobs::weights::rt_hdr_alb_nrm;
   }
 
   // ---------------------------------------------------------------------------
@@ -496,7 +496,7 @@ namespace oidn {
   RTLightmapFilter::RTLightmapFilter(const Ref<Device>& device)
     : AutoencoderFilter(device)
   {
-    defaultWeights.hdr = weights::rtlightmap_hdr;
+    defaultWeights.hdr = blobs::weights::rtlightmap_hdr;
 
     hdr = true;
   }
