@@ -134,8 +134,7 @@ def get_image_sample_groups(dir, features):
       if (suffix.isdecimal() or
           (suffix.endswith('spp') and suffix[:-3].isdecimal()) or
           suffix == 'ref' or suffix == 'reference' or
-          suffix == 'gt' or suffix == 'groundtruth' or
-          suffix == 'target'):
+          suffix == 'gt' or suffix == 'target'):
         group = prefix
     image_groups[group].add(image_name)
 
