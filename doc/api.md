@@ -334,9 +334,9 @@ retained and released with
     void oidnReleaseFilter(OIDNFilter filter);
 
 After creating a filter, it needs to be set up by specifying the input and
-output image buffers, and potentially setting other parameter values as well.
+output images, and potentially setting other parameter values as well.
 
-To bind image buffers to the filter, you can use one of the following functions:
+To bind images to the filter, you can use one of the following functions:
 
     void oidnSetFilterImage(OIDNFilter filter, const char* name,
                             OIDNBuffer buffer, OIDNFormat format,
@@ -365,6 +365,12 @@ be an integer multiple of the pixel stride.
 If the pixels and/or rows are stored contiguously (tightly packed without any
 gaps), you can set `bytePixelStride` and/or `byteRowStride` to 0 to let the
 library compute the actual strides automatically, as a convenience.
+
+Some special data used by filters are opaque/untyped (e.g. trained model weights
+blobs), which can be specified with the `oidnSetSharedFilterData` function:
+
+    void oidnSetSharedFilterData(OIDNFilter filter, const char* name,
+                                 void* ptr, size_t byteSize);
 
 Filters may have parameters other than buffers as well, which you can set and
 get using the following functions:
@@ -423,9 +429,10 @@ The `RT` (**r**ay **t**racing) filter is a generic ray tracing denoising filter
 which is suitable for denoising images rendered with Monte Carlo ray tracing
 methods like unidirectional and bidirectional path tracing. It supports depth
 of field and motion blur as well, but it is *not* temporally stable. The filter
-is based on a deep learning based denoising algorithm, and it aims to provide a
-good balance between denoising performance and quality for a wide range of
-samples per pixel.
+is based on a convolutional neural network (CNN), and it aims to provide a
+good balance between denoising performance and quality. The filter comes with a
+set of pre-trained CNN models that work well with a wide range of ray tracing
+based renderers and noise levels.
 
 It accepts either a low dynamic range (LDR) or high dynamic range (HDR) color
 image as input. Optionally, it also accepts auxiliary *feature* images, e.g.
@@ -464,6 +471,8 @@ Image     float3   normal               input feature image containing the
 
 Image     float3   output               output image; can be one of the input
                                         images
+
+Data               weights              trained model weights blob; *optional*
 
 bool               hdr            false whether the color is HDR
 
@@ -597,6 +606,12 @@ hit. Note that the normals of perfect specular (delta) transparent surfaces
 are computed as the Fresnel blend of the reflected and transmitted
 normals.][imgMazdaNormalNonDeltaHit]
 
+#### Weights
+
+Instead of using the built-in trained models for filtering, it is also possible
+to specify user-trained models at runtime. This can be achieved by passing the
+model *weights* blob produced by the training tool.
+
 ### RTLightmap
 
 The `RTLightmap` filter is a variant of the `RT` filter optimized for denoising
@@ -613,6 +628,8 @@ Image     float3   color                input color image (HDR values in
 
 Image     float3   output               output image; can be one of the input
                                         images
+
+Data               weights              trained model weights blob; *optional*
 
 float              hdrScale         NaN HDR color values are interpreted such
                                         that, multiplied by this scale, a value

@@ -23,15 +23,22 @@ necessary samples per pixel by even multiple orders of magnitude
 flexible C/C++ API ensures that the library can be easily integrated
 into most existing or new rendering solutions.
 
-At the heart of the Intel Open Image Denoise library is an efficient
-deep learning based denoising filter, which was trained to handle a wide
-range of samples per pixel (spp), from 1 spp to almost fully converged.
-Thus it is suitable for both preview and final-frame rendering. The
-filters can denoise images either using only the noisy color (*beauty*)
-buffer, or, to preserve as much detail as possible, can optionally
-utilize auxiliary feature buffers as well (e.g. albedo, normal). Such
-buffers are supported by most renderers as arbitrary output variables
-(AOVs) or can be usually implemented with little effort.
+At the heart of the Intel Open Image Denoise library is a collection of
+efficient deep learning based denoising filters, which were trained to
+handle a wide range of samples per pixel (spp), from 1 spp to almost
+fully converged. Thus it is suitable for both preview and final-frame
+rendering. The filters can denoise images either using only the noisy
+color (*beauty*) buffer, or, to preserve as much detail as possible, can
+optionally utilize auxiliary feature buffers as well (e.g. albedo,
+normal). Such buffers are supported by most renderers as arbitrary
+output variables (AOVs) or can be usually implemented with little
+effort.
+
+Although the library ships with a set of pre-trained filter models, it
+is not mandatory to use these. To optimize a filter for a specific
+renderer, sample count, content type, scene, etc., it is possible to
+train the model using the included training toolkit and user-provided
+image datasets.
 
 Intel Open Image Denoise supports Intel® 64 architecture based CPUs and
 compatible architectures, and runs on anything from laptops, to
@@ -176,8 +183,7 @@ declared](https://developer.apple.com/documentation/bundleresources/entitlements
 during the notarization process.  
 Intel Open Image Denoise uses just-in-time compilaton through the [Intel
 Deep Neural Network Library](https://intel.github.io/mkl-dnn/) and
-requires the following
-    entitlements:
+requires the following entitlements:
 
   - [`com.apple.security.cs.allow-jit`](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_cs_allow-jit)
   - [`com.apple.security.cs.allow-unsigned-executable-memory`](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_cs_allow-unsigned-executable-memory)
@@ -359,8 +365,7 @@ OIDNDevice oidnNewDevice(OIDNDeviceType type);
 ```
 
 where the `type` enumeration maps to a specific device implementation,
-which can be one of the
-following:
+which can be one of the following:
 
 | Name                        | Description                             |
 | :-------------------------- | :-------------------------------------- |
@@ -380,8 +385,7 @@ int  oidnGetDevice1i(OIDNDevice device, const char* name);
 
 to set and get parameter values on the device. Note that some parameters
 are constants, thus trying to set them is an error. See the tables below
-for the parameters supported by
-devices.
+for the parameters supported by devices.
 
 | Type      | Name         | Default | Description                                                                                                                               |
 | :-------- | :----------- | ------: | :---------------------------------------------------------------------------------------------------------------------------------------- |
@@ -391,8 +395,7 @@ devices.
 | const int | versionPatch |         | patch version number                                                                                                                      |
 | int       | verbose      |       0 | verbosity level of the console output between 0–4; when set to 0, no output is printed, when set to a higher level more output is printed |
 
-Parameters supported by all
-devices.
+Parameters supported by all devices.
 
 | Type | Name        | Default | Description                                                                                                     |
 | :--- | :---------- | ------: | :-------------------------------------------------------------------------------------------------------------- |
@@ -445,8 +448,7 @@ time.
 Each user thread has its own error code per device. If an error occurs
 when calling an API function, this error code is set to the occurred
 error if it stores no previous error. The currently stored error can be
-queried by the application
-via
+queried by the application via
 
 ``` cpp
 OIDNError oidnGetDeviceError(OIDNDevice device, const char** outMessage);
@@ -491,8 +493,7 @@ pass `NULL` as device to the `oidnGetDeviceError` function. For all
 other invocations of `oidnGetDeviceError`, a proper device handle must
 be specified.
 
-The following errors are currently used by Intel Open Image
-Denoise:
+The following errors are currently used by Intel Open Image Denoise:
 
 | Name                               | Description                                |
 | :--------------------------------- | :----------------------------------------- |
@@ -524,8 +525,7 @@ The specified number of bytes are allocated at buffer construction time
 and deallocated when the buffer is destroyed.
 
 It is also possible to create a “shared” data buffer with memory
-allocated and managed by the user
-with
+allocated and managed by the user with
 
 ``` cpp
 OIDNBuffer oidnNewSharedBuffer(OIDNDevice device, void* ptr, size_t byteSize);
@@ -546,8 +546,7 @@ void oidnReleaseBuffer(OIDNBuffer buffer);
 ```
 
 Accessing the data stored in a buffer object is possible by mapping it
-into the address space of the application
-using
+into the address space of the application using
 
 ``` cpp
 void* oidnMapBuffer(OIDNBuffer buffer, OIDNAccess access, size_t byteOffset, size_t byteSize)
@@ -587,8 +586,7 @@ is guaranteed to take effect only after unmapping the memory region.
 Buffers store opaque data and thus have no information about the type
 and format of the data. Other objects, e.g. filters, typically require
 specifying the format of the data stored in buffers or shared via
-pointers. This can be done using the `OIDNFormat` enumeration
-type:
+pointers. This can be done using the `OIDNFormat` enumeration type:
 
 | Name                       | Description                                   |
 | :------------------------- | :-------------------------------------------- |
@@ -619,10 +617,10 @@ void oidnReleaseFilter(OIDNFilter filter);
 ```
 
 After creating a filter, it needs to be set up by specifying the input
-and output image buffers, and potentially setting other parameter values
-as well.
+and output images, and potentially setting other parameter values as
+well.
 
-To bind image buffers to the filter, you can use one of the following
+To bind images to the filter, you can use one of the following
 functions:
 
 ``` cpp
@@ -657,6 +655,15 @@ If the pixels and/or rows are stored contiguously (tightly packed
 without any gaps), you can set `bytePixelStride` and/or `byteRowStride`
 to 0 to let the library compute the actual strides automatically, as a
 convenience.
+
+Some special data used by filters are opaque/untyped (e.g. trained model
+weights blobs), which can be specified with the
+`oidnSetSharedFilterData` function:
+
+``` cpp
+void oidnSetSharedFilterData(OIDNFilter filter, const char* name,
+                             void* ptr, size_t byteSize);
+```
 
 Filters may have parameters other than buffers as well, which you can
 set and get using the following functions:
@@ -724,9 +731,11 @@ The `RT` (**r**ay **t**racing) filter is a generic ray tracing denoising
 filter which is suitable for denoising images rendered with Monte Carlo
 ray tracing methods like unidirectional and bidirectional path tracing.
 It supports depth of field and motion blur as well, but it is *not*
-temporally stable. The filter is based on a deep learning based
-denoising algorithm, and it aims to provide a good balance between
-denoising performance and quality for a wide range of samples per pixel.
+temporally stable. The filter is based on a convolutional neural network
+(CNN), and it aims to provide a good balance between denoising
+performance and quality. The filter comes with a set of pre-trained CNN
+models that work well with a wide range of ray tracing based renderers
+and noise levels.
 
 It accepts either a low dynamic range (LDR) or high dynamic range (HDR)
 color image as input. Optionally, it also accepts auxiliary *feature*
@@ -755,6 +764,7 @@ parameters:
 | Image     | float3 | albedo      |         | input feature image containing the albedo (values in \[0, 1\]) of the first hit per pixel; *optional*                                                                                                                                                                                      |
 | Image     | float3 | normal      |         | input feature image containing the shading normal (world-space or view-space, arbitrary length, values in (−∞, +∞)) of the first hit per pixel; *optional*, requires setting the albedo image too                                                                                          |
 | Image     | float3 | output      |         | output image; can be one of the input images                                                                                                                                                                                                                                               |
+| Data      |        | weights     |         | trained model weights blob; *optional*                                                                                                                                                                                                                                                     |
 | bool      |        | hdr         |   false | whether the color is HDR                                                                                                                                                                                                                                                                   |
 | float     |        | hdrScale    |     NaN | HDR color values are interpreted such that, multiplied by this scale, a value of 1 corresponds to a luminance level of 100 cd/m² (this affects the quality of the output but the output color values will *not* be scaled); if set to NaN, the scale is computed automatically (*default*) |
 | bool      |        | srgb        |   false | whether the color is encoded with the sRGB (or 2.2 gamma) curve (LDR only) or is linear; the output will be encoded with the same curve                                                                                                                                                    |
@@ -870,6 +880,12 @@ transparent surfaces are computed as the Fresnel blend of the reflected
 and transmitted
 normals.
 
+#### Weights
+
+Instead of using the built-in trained models for filtering, it is also
+possible to specify user-trained models at runtime. This can be achieved
+by passing the model *weights* blob produced by the training tool.
+
 ### RTLightmap
 
 The `RTLightmap` filter is a variant of the `RT` filter optimized for
@@ -877,13 +893,13 @@ denoising HDR lightmaps. It does not support LDR images.
 
 The filter can be created by passing `"RTLightmap"` to the
 `oidnNewFilter` function as the filter type. The filter supports the
-following
-parameters:
+following parameters:
 
 | Type      | Format | Name        | Default | Description                                                                                                                                                                                      |
 | :-------- | :----- | :---------- | ------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Image     | float3 | color       |         | input color image (HDR values in \[0, +∞))                                                                                                                                                       |
 | Image     | float3 | output      |         | output image; can be one of the input images                                                                                                                                                     |
+| Data      |        | weights     |         | trained model weights blob; *optional*                                                                                                                                                           |
 | float     |        | hdrScale    |     NaN | HDR color values are interpreted such that, multiplied by this scale, a value of 1 corresponds to a luminance level of 100 cd/m²; if set to NaN, the scale is computed automatically (*default*) |
 | int       |        | maxMemoryMB |    6000 | approximate maximum amount of scratch memory to use in megabytes (actual memory usage may be higher)                                                                                             |
 | const int |        | alignment   |         | when manually denoising the image in tiles, the tile size and offsets should be multiples of this amount of pixels                                                                               |
@@ -901,9 +917,11 @@ convenience wrappers of the C99 API.
 
 This example is a simple command-line application that denoises the
 provided image, which can optionally have auxiliary feature images as
-well (e.g. albedo and normal). The images must be stored in the
-[Portable FloatMap](http://www.pauldebevec.com/Research/HDR/PFM/) (PFM)
-format, and the color values must be encoded in little-endian format.
+well (e.g. albedo and normal). By default the images must be stored in
+the [Portable FloatMap](http://www.pauldebevec.com/Research/HDR/PFM/)
+(PFM) format, and the color values must be encoded in little-endian
+format. To enable other image formats (e.g. OpenEXR, PNG) as well, the
+project has to be rebuilt with OpenImageIO support enabled.
 
 Running `./denoise` without any arguments will bring up a list of
 command line options.

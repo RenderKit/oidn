@@ -4,13 +4,14 @@ Version History
 ### Changes in v1.2.0:
 
 #### New Features:
+-   Added training code
+-   Added support for specifying user-trained models at runtime
 -   Slightly improved denoising quality (e.g. less ringing artifacts, less
     blurriness in some cases)
 -   Slightly improved denoising speed
--   Added neural network training code
 -   Link C/C++ runtime library dynamically by default on Windows too
 -   Added `OIDN_STATIC_RUNTIME` CMake option (for Windows only)
--   Added support for OpenImageIO to the example (disabled by default)
+-   Added support for OpenImageIO to the examples (disabled by default)
 
 #### Fixed Issues:
 -   Check for minimum supported TBB version

@@ -17,15 +17,20 @@ orders of magnitude (depending on the desired closeness to the ground truth).
 A simple but flexible C/C++ API ensures that the library can be easily
 integrated into most existing or new rendering solutions.
 
-At the heart of the Intel Open Image Denoise library is an efficient deep
-learning based denoising filter, which was trained to handle a wide range of
-samples per pixel (spp), from 1 spp to almost fully converged. Thus it is
-suitable for both preview and final-frame rendering. The filters can denoise
-images either using only the noisy color (*beauty*) buffer, or, to preserve as
-much detail as possible, can optionally utilize auxiliary feature buffers as
-well (e.g. albedo, normal). Such buffers are supported by most renderers as
-arbitrary output variables (AOVs) or can be usually implemented with little
-effort.
+At the heart of the Intel Open Image Denoise library is a collection of
+efficient deep learning based denoising filters, which were trained to handle
+a wide range of samples per pixel (spp), from 1 spp to almost fully converged.
+Thus it is suitable for both preview and final-frame rendering. The filters can
+denoise images either using only the noisy color (*beauty*) buffer, or, to
+preserve as much detail as possible, can optionally utilize auxiliary feature
+buffers as well (e.g. albedo, normal). Such buffers are supported by most
+renderers as arbitrary output variables (AOVs) or can be usually implemented
+with little effort.
+
+Although the library ships with a set of pre-trained filter models, it is not
+mandatory to use these. To optimize a filter for a specific renderer, sample
+count, content type, scene, etc., it is possible to train the model using the
+included training toolkit and user-provided image datasets.
 
 Intel Open Image Denoise supports Intel® 64 architecture based CPUs and
 compatible architectures, and runs on anything from laptops, to workstations,
