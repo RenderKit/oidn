@@ -17,6 +17,6 @@ if not os.path.isdir(result_dir):
   error('result does not exist')
 
 # Run TensorBoard
-log_dir = result_dir + '/log'
+log_dir = os.path.join(result_dir, 'log')
 os.system('tensorboard --logdir=' + log_dir)
 
