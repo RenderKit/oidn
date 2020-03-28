@@ -2,7 +2,7 @@ SHELL := /bin/bash
 
 webpages := $(addprefix www/, $(addsuffix .html, index news documentation gallery downloads related_projects legal))
 process_version := $(addprefix tmp/, $(addsuffix .md, downloads readme_head))
-tmptexfiles := $(addprefix tmp/, $(addsuffix .tex, overview changelog compilation api examples))
+tmptexfiles := $(addprefix tmp/, $(addsuffix .tex, overview changelog compilation api examples training))
 images_jpg := $(addprefix images/, $(addsuffix .jpg, moana_16spp_input moana_16spp_oidn bistro_64spp_input bistro_64spp_oidn bistro2_16spp_input bistro2_16spp_oidn bistro3_16spp_input bistro3_16spp_oidn sponza_16spp_input sponza_16spp_oidn mazda_64spp_input mazda_64spp_oidn mazda_512spp_color mazda_512spp_oidn mazda_512spp_albedo_firsthit mazda_512spp_albedo_nondeltahit mazda_512spp_normal_firsthit mazda_512spp_normal_nondeltahit villa_32spp_input villa_32spp_oidn villa2_16spp_input villa2_16spp_oidn artdeco_2048spp_input artdeco_2048spp_oidn))
 images_png := $(addprefix images/, $(addsuffix .png, blacktocat))
 images_fig :=
@@ -54,9 +54,9 @@ tmp/images_local_pdf.md: images.md
 changelog.md:
 	ln -s ../CHANGELOG.md $@
 
-## ----------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 ## Directories
-## ----------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 
 $(webpages) www/stylesheet.css: | wwwdir
 wwwdir:
@@ -70,9 +70,9 @@ $(process_version) tmp/version ../readme.pdf $(tmptexfiles) tmp/api.md tmp/api_h
 tmpdir:
 	@mkdir -p tmp
 
-## ----------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 ## Webpages
-## ----------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 
 markdown2web = $(PANDOC) --email-obfuscation=none -f markdown $(filter-out webtemplate.html,$+) --template webtemplate -V select_$(basename $(@F)) -o $@
 
@@ -93,11 +93,11 @@ www/gallery.html: gallery.md
 www/downloads.html: tmp/downloads.md compilation.md
 www/related_projects.html: related_projects.md
 www/legal.html: legal.md
-www/documentation.html: documentation.md tmp/api_html.md examples.md
+www/documentation.html: documentation.md tmp/api_html.md examples.md training.md
 
-## ----------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 ## Images
-## ----------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 
 www/images/%.png: %.fig
 	fig2dev -L png -S 4 $+ $@
@@ -124,9 +124,9 @@ images/%:
 	  fi \
 	fi
 
-## ----------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 ## Markdown
-## ----------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 
 # Pandoc doesn't convert the alt text of an image to a caption in markdown, so we need to do it manually
 convert_image_alt_to_caption = perl -0pe 's/!\[((?:\[.*?\]|.)+?)\]\((.*?)\)/![]\(\2)\n\1/sg'
@@ -134,12 +134,12 @@ convert_image_alt_to_caption = perl -0pe 's/!\[((?:\[.*?\]|.)+?)\]\((.*?)\)/![]\
 tmp/api.md: api.md tmp/links.md tmp/images_web.md
 	$(PANDOC) $+ --indented-code-classes=cpp -t markdown-fenced_code_attributes -o $@
 
-../README.md: tmp/readme_head.md overview.md compilation.md documentation.md tmp/api.md examples.md tmp/links.md tmp/images_web.md
+../README.md: tmp/readme_head.md overview.md compilation.md documentation.md tmp/api.md examples.md training.md tmp/links.md tmp/images_web.md
 	$(PANDOC) $+ -t gfm | $(convert_image_alt_to_caption) > $@
 
-## ----------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 ## PDF
-## ----------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 
 markdown2tex = $(PANDOC) --columns=72 --top-level-division=chapter --filter $+ -o $@
 
@@ -160,9 +160,9 @@ tmp/api.tex: filter-latex.py api.md tmp/links.md tmp/images_local_pdf.md
 	done
 	cp tmp/$(basename $<).pdf $@
 
-## ----------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 ## Clean
-## ----------------------------------------------------------------------------
+## -----------------------------------------------------------------------------
 
 clean:
 	rm -rf www tmp changelog.md __pycache__

@@ -4,7 +4,7 @@ Version History
 ### Changes in v1.2.0:
 
 #### New Features:
--   Added training code
+-   Added neural network training code
 -   Added support for specifying user-trained models at runtime
 -   Slightly improved denoising quality (e.g. less ringing artifacts, less
     blurriness in some cases)
