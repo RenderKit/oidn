@@ -90,7 +90,7 @@ train_data = TrainingDataset(cfg, cfg.train_data)
 if len(train_data) > 0:
   print('Training images:', train_data.num_images)
 else:
-  error('no training images')
+  error('no training images (forgot to run preprocess?)')
 pin_memory = (cfg.device != 'cpu')
 train_data_loader = DataLoader(
   train_data, cfg.batch_size, shuffle=True,

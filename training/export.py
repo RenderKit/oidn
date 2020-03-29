@@ -13,7 +13,7 @@ from result import *
 import tza
 
 # Parse the command line arguments
-cfg = parse_args(description='Exports the specified training result to the runtime weights format (TZA).')
+cfg = parse_args(description='Exports a training result to the runtime model weights format (TZA).')
 
 # Initialize the PyTorch device
 device = init_device(cfg)
