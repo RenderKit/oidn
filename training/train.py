@@ -77,6 +77,8 @@ else:
   last_step = -1
 
 start_epoch = last_epoch + 1
+if start_epoch > cfg.epochs:
+  exit() # nothing to do
 
 # Reset the random seed if continuing the result
 if start_epoch > 1:
