@@ -79,6 +79,11 @@ def preprocess_dataset(data_name):
   output_dir = get_preproc_data_dir(cfg, data_name)
   print('Preprocessing dataset:', input_dir)
 
+  # Check whether the dataset exists
+  if not os.path.isdir(input_dir):
+    print('Does not exist')
+    return
+
   # Create the output directory if it doesn't exist
   if os.path.isdir(output_dir):
     if cfg.clean:
