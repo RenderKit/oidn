@@ -80,8 +80,11 @@ def parse_args(cmd=None, description=None):
   if cmd in {'convert_exr'}:
     parser.add_argument('output', type=str, help='output image')
 
+  if cmd in {'split_exr'}:
+    parser.add_argument('--layer', type=str, default=None, help='name of the layer')
+
   if cmd in {'compare_exr', 'convert_exr'}:
-    parser.add_argument('--exposure', '-ev', type=float, default=1., help='exposure value for HDR image')
+    parser.add_argument('--exposure', '--ev', type=float, default=1., help='exposure value for HDR image')
 
   if cmd in {'preprocess', 'train', 'find_lr', 'infer', 'export'}:
     parser.add_argument('--device', '-d', type=str, choices=['cpu', 'cuda'], default=get_default_device(), help='device to use')
