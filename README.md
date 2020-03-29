@@ -760,10 +760,10 @@ parameters:
 
 | Type      | Format | Name        | Default | Description                                                                                                                                                                                                                                                                                |
 | :-------- | :----- | :---------- | ------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Image     | float3 | color       |         | input color image (LDR values in \[0, 1\] or HDR values in \[0, +∞))                                                                                                                                                                                                                       |
-| Image     | float3 | albedo      |         | input feature image containing the albedo (values in \[0, 1\]) of the first hit per pixel; *optional*                                                                                                                                                                                      |
-| Image     | float3 | normal      |         | input feature image containing the shading normal (world-space or view-space, arbitrary length, values in (−∞, +∞)) of the first hit per pixel; *optional*, requires setting the albedo image too                                                                                          |
-| Image     | float3 | output      |         | output image; can be one of the input images                                                                                                                                                                                                                                               |
+| Image     | float3 | color       |         | input color image (LDR values in \[0, 1\] or HDR values in \[0, +∞), 3 channels)                                                                                                                                                                                                           |
+| Image     | float3 | albedo      |         | input feature image containing the albedo (values in \[0, 1\], 3 channels) of the first hit per pixel; *optional*                                                                                                                                                                          |
+| Image     | float3 | normal      |         | input feature image containing the shading normal (world-space or view-space, arbitrary length, values in (−∞, +∞), 3 channels) of the first hit per pixel; *optional*, requires setting the albedo image too                                                                              |
+| Image     | float3 | output      |         | output color image (3 channels); can be one of the input images                                                                                                                                                                                                                            |
 | Data      |        | weights     |         | trained model weights blob; *optional*                                                                                                                                                                                                                                                     |
 | bool      |        | hdr         |   false | whether the color is HDR                                                                                                                                                                                                                                                                   |
 | float     |        | hdrScale    |     NaN | HDR color values are interpreted such that, multiplied by this scale, a value of 1 corresponds to a luminance level of 100 cd/m² (this affects the quality of the output but the output color values will *not* be scaled); if set to NaN, the scale is computed automatically (*default*) |
@@ -897,8 +897,8 @@ following parameters:
 
 | Type      | Format | Name        | Default | Description                                                                                                                                                                                      |
 | :-------- | :----- | :---------- | ------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Image     | float3 | color       |         | input color image (HDR values in \[0, +∞))                                                                                                                                                       |
-| Image     | float3 | output      |         | output image; can be one of the input images                                                                                                                                                     |
+| Image     | float3 | color       |         | input color image (HDR values in \[0, +∞), 3 channels)                                                                                                                                           |
+| Image     | float3 | output      |         | output color image (3 channels); can be one of the input images                                                                                                                                  |
 | Data      |        | weights     |         | trained model weights blob; *optional*                                                                                                                                                           |
 | float     |        | hdrScale    |     NaN | HDR color values are interpreted such that, multiplied by this scale, a value of 1 corresponds to a luminance level of 100 cd/m²; if set to NaN, the scale is computed automatically (*default*) |
 | int       |        | maxMemoryMB |    6000 | approximate maximum amount of scratch memory to use in megabytes (actual memory usage may be higher)                                                                                             |
@@ -951,7 +951,7 @@ prerequisites:
   - [TensorBoard](https://www.tensorflow.org/tensorboard) 2.1 or later
     (*optional*)
 
-The training toolkit has been tested only on Linux and other operating
+The training toolkit has been tested only on Linux, thus other operating
 systems are currently not supported.
 
 ## Datasets
@@ -972,12 +972,58 @@ files can be stored in an arbitrary directory structure inside the
 dataset directory. The only restriction is that all versions of an image
 (noisy images and the reference image) must be located in the same
 directory. Each feature of an image (e.g. color, albedo) must be stored
-in a separate image file, i.e. multi-channel EXR image file are not
-supported. The format of the image filenames has to be the following:
+in a separate image file, i.e. multi-channel EXR image files are not
+supported.
+
+The filename of an image must consist of a name (any valid filename
+character except `_` is allowed), the number of samples per pixel or
+whether it is the reference (e.g. `0128spp`, `ref`), the identifier (ID)
+of the feature (e.g. `hdr`, `alb`), and the file extension (`.exr`).
+This format as a regular expression is the following:
 
 ``` regexp
-[^_]+_([0-9]+(spp)?|ref|gt)\.(hdr|ldr|alb|nrm)\.exr
+[^_]+_([0-9]+(spp)?|ref|reference|gt|target)\.(hdr|ldr|alb|nrm)\.exr
 ```
+
+The number of samples per pixel should be padded with leading zeros to
+have a fixed number of digits. If the reference image is not explicitly
+named as such (e.g. `ref`, `reference`), the image with the most samples
+per pixel will be considered the reference.
+
+The following image features are supported:
+
+| Feature     | ID    | Channels |
+| :---------- | :---- | :------- |
+| color (HDR) | `hdr` | 3        |
+| color (LDR) | `ldr` | 3        |
+| albedo      | `alb` | 3        |
+| normal      | `nrm` | 3        |
+
+Supported image features, their IDs, and their number of channels.
+
+The following directory tree demonstates an example root dataset
+directory (`data`) containing one dataset (`rt_train`) with HDR color
+and albedo feature images:
+
+    data
+    `-- rt_train
+        |-- scene1
+        |   |-- view1_0001.alb.exr
+        |   |-- view1_0001.hdr.exr
+        |   |-- view1_0004.alb.exr
+        |   |-- view1_0004.hdr.exr
+        |   |-- view1_8192.alb.exr
+        |   |-- view1_8192.hdr.exr
+        |   |-- view2_0001.alb.exr
+        |   |-- view2_0001.hdr.exr
+        |   |-- view2_8192.alb.exr
+        |   `-- view2_8192.hdr.exr
+        |-- scene2_000008spp.alb.exr
+        |-- scene2_000008spp.hdr.exr
+        |-- scene2_000064spp.alb.exr
+        |-- scene2_000064spp.hdr.exr
+        |-- scene2_reference.alb.exr
+        `-- scene2_reference.hdr.exr
 
 1.  For example, if Intel Open Image Denoise is in `~/Projects/oidn`,
     ISPC will also be searched in `~/Projects/ispc-v1.12.0-linux`

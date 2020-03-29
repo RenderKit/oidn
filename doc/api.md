@@ -97,10 +97,10 @@ where the `type` enumeration maps to a specific device implementation, which
 can be one of the following:
 
 Name                     Description
------------------------- ------------------------------------------------------
+------------------------ -------------------------------------------------------
 OIDN_DEVICE_TYPE_DEFAULT select the approximately fastest device
 OIDN_DEVICE_TYPE_CPU     CPU device (requires SSE4.1 support)
------------------------- ------------------------------------------------------
+------------------------ -------------------------------------------------------
 : Supported device types, i.e., valid constants of type `OIDNDeviceType`.
 
 Once a device is created, you can call
@@ -114,9 +114,9 @@ to set and get parameter values on the device. Note that some parameters are
 constants, thus trying to set them is an error. See the tables below for the
 parameters supported by devices.
 
---------- ------------ -------- -----------------------------------------------
+--------- ------------ -------- ------------------------------------------------
 Type      Name          Default Description
---------- ------------ -------- -----------------------------------------------
+--------- ------------ -------- ------------------------------------------------
 const int version               combined version number (major.minor.patch)
                                 with two decimal digits per component
 
@@ -129,12 +129,12 @@ const int versionPatch          patch version number
 int       verbose             0 verbosity level of the console output between
                                 0--4; when set to 0, no output is printed, when
                                 set to a higher level more output is printed
---------- ------------ -------- -----------------------------------------------
+--------- ------------ -------- ------------------------------------------------
 : Parameters supported by all devices.
 
------- ------------ -------- --------------------------------------------------
+------ ------------ -------- ---------------------------------------------------
 Type   Name          Default Description
------- ------------ -------- --------------------------------------------------
+------ ------------ -------- ---------------------------------------------------
 int    numThreads          0 maximum number of threads which the library should
                              use; 0 will set it automatically to get the best
                              performance
@@ -142,7 +142,7 @@ int    numThreads          0 maximum number of threads which the library should
 bool   setAffinity      true bind software threads to hardware threads if set
                              to true (improves performance); false disables
                              binding
------- ------------ -------- --------------------------------------------------
+------ ------------ -------- ---------------------------------------------------
 : Additional parameters supported only by CPU devices.
 
 Note that the CPU device heavily relies on setting the thread affinities to
@@ -216,9 +216,9 @@ device to the `oidnGetDeviceError` function. For all other invocations of
 
 The following errors are currently used by Intel Open Image Denoise:
 
-------------------------------- -----------------------------------------------
+------------------------------- ------------------------------------------------
 Name                            Description
-------------------------------- -----------------------------------------------
+------------------------------- ------------------------------------------------
 OIDN_ERROR_NONE                 no error occurred
 
 OIDN_ERROR_UNKNOWN              an unknown error occurred
@@ -282,12 +282,12 @@ available amount of memory will be mapped. The `access` argument must be one of
 the access modes in the following table:
 
 Name                      Description
-------------------------- -----------------------------------------------------
+------------------------- ------------------------------------------------------
 OIDN_ACCESS_READ          read-only access
 OIDN_ACCESS_WRITE         write-only access
 OIDN_ACCESS_READ_WRITE    read and write access
 OIDN_ACCESS_WRITE_DISCARD write-only access but the previous contents will be discarded
-------------------------- -----------------------------------------------------
+------------------------- ------------------------------------------------------
 : Access modes for memory regions mapped with `oidnMapBuffer`, i.e., valid
   constants of type `OIDNAccess`.
 
@@ -308,11 +308,11 @@ the format of the data stored in buffers or shared via pointers. This can be
 done using the `OIDNFormat` enumeration type:
 
 Name                   Description
----------------------- --------------------------------------------------------
+---------------------- ---------------------------------------------------------
 OIDN_FORMAT_UNDEFINED  undefined format
 OIDN_FORMAT_FLOAT      32-bit single-precision floating point scalar
 OIDN_FORMAT_FLOAT[234] ... and [234]-element vector
----------------------- --------------------------------------------------------
+---------------------- ---------------------------------------------------------
 : Supported data formats, i.e., valid constants of type `OIDNFormat`.
 
 
@@ -452,25 +452,25 @@ to fail (the noise will not be filtered), thus it is not supported.
 The filter can be created by passing `"RT"` to the `oidnNewFilter` function
 as the filter type. The filter supports the following parameters:
 
---------- -------- ----------- -------- ---------------------------------------
+--------- -------- ----------- -------- ----------------------------------------
 Type      Format   Name         Default Description
---------- -------- ----------- -------- ---------------------------------------
+--------- -------- ----------- -------- ----------------------------------------
 Image     float3   color                input color image (LDR values in [0, 1]
-                                        or HDR values in [0, +∞))
+                                        or HDR values in [0, +∞), 3 channels)
 
 Image     float3   albedo               input feature image containing the
-                                        albedo (values in [0, 1]) of the first
-                                        hit per pixel; *optional*
+                                        albedo (values in [0, 1], 3 channels) of
+                                        the first hit per pixel; *optional*
 
 Image     float3   normal               input feature image containing the
                                         shading normal (world-space or
                                         view-space, arbitrary length, values in
-                                        (−∞, +∞)) of the first hit per
-                                        pixel; *optional*, requires setting the
-                                        albedo image too
+                                        (−∞, +∞), 3 channels) of the first hit
+                                        per pixel; *optional*, requires setting
+                                        the albedo image too
 
-Image     float3   output               output image; can be one of the input
-                                        images
+Image     float3   output               output color image (3 channels); can be
+                                        one of the input images
 
 Data               weights              trained model weights blob; *optional*
 
@@ -510,7 +510,7 @@ const int          overlap              when manually denoising the image in
                                         tiles, the tiles should overlap by this
                                         amount of pixels
 
---------- -------- ----------- -------- ---------------------------------------
+--------- -------- ----------- -------- ----------------------------------------
 : Parameters supported by the `RT` filter.
 
 All specified images must have the same dimensions.
@@ -620,14 +620,14 @@ HDR lightmaps. It does not support LDR images.
 The filter can be created by passing `"RTLightmap"` to the `oidnNewFilter`
 function as the filter type. The filter supports the following parameters:
 
---------- -------- ----------- -------- ---------------------------------------
+--------- -------- ----------- -------- ----------------------------------------
 Type      Format   Name         Default Description
---------- -------- ----------- -------- ---------------------------------------
+--------- -------- ----------- -------- ----------------------------------------
 Image     float3   color                input color image (HDR values in
-                                        [0, +∞))
+                                        [0, +∞), 3 channels)
 
-Image     float3   output               output image; can be one of the input
-                                        images
+Image     float3   output               output color image (3 channels); can be
+                                        one of the input images
 
 Data               weights              trained model weights blob; *optional*
 
@@ -649,5 +649,5 @@ const int          overlap              when manually denoising the image in
                                         tiles, the tiles should overlap by this
                                         amount of pixels
 
---------- -------- ----------- -------- ---------------------------------------
+--------- -------- ----------- -------- ----------------------------------------
 : Parameters supported by the `RTLightmap` filter.
