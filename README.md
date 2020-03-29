@@ -247,9 +247,10 @@ that can be configured in CMake:
   - `OIDN_STATIC_RUNTIME`: Use the static version of the C/C++ runtime
     library (available only on Windows, OFF by default).
 
-  - `OIDN_EXAMPLES_OPENIMAGEIO`: Enables OpenImageIO support in the
-    examples to be able to load/save OpenEXR, PNG, and other image file
-    formats (OFF by default).
+  - `OIDN_EXAMPLES_OPENIMAGEIO`: Enables
+    [OpenImageIO](http://openimageio.org/) support in the examples to be
+    able to load/save OpenEXR, PNG, and other image file formats (OFF by
+    default).
 
   - `TBB_ROOT`: The path to the TBB installation (autodetected by
     default).
@@ -929,11 +930,28 @@ command line options.
 # Training
 
 The Intel Open Image Denoise source distribution includes a Python-based
-neural network training toolkit (see the `training` directory), which
-can be used to train the denoising filter models using image datasets
-provided by the user. The toolkit consists of multiple command-line
-tools (e.g. dataset preprocessing, training, inference, image
-comparison) that together can be used to train and evaluate models.
+neural network training toolkit (located in the `training` directory),
+which can be used to train the denoising filter models using image
+datasets provided by the user. The toolkit consists of multiple
+command-line scripts (e.g. dataset preprocessing, training, inference,
+image comparison) that together can be used to train and evaluate
+models. These scripts are the following:
+
+  - `preprocess.py`: Preprocesses training and validation datasets.
+
+  - `train.py`: Trains a model using preprocessed datasets.
+
+  - `infer.py`: Performs inference on a set of images using the
+    specified training result.
+
+  - `export.py`: Exports a training result to the runtime model weights
+    format.
+
+  - `find_lr.py`: Tool for finding the optimal minimum and maximum
+    learning rates.
+
+  - `split_exr.py`: Splits a multi-channel EXR image into multiple
+    feature images.
 
 ## Prerequisites
 
@@ -941,13 +959,9 @@ Before you can run the training toolkit you need the following
 prerequisites:
 
   - Python 3.7 or later
-
   - [PyTorch](https://pytorch.org/) 1.4 or later
-
   - [NumPy](https://numpy.org/) 1.17 or later
-
   - [OpenImageIO](http://openimageio.org/) 2.1 or later
-
   - [TensorBoard](https://www.tensorflow.org/tensorboard) 2.1 or later
     (*optional*)
 
@@ -973,7 +987,8 @@ dataset directory. The only restriction is that all versions of an image
 (noisy images and the reference image) must be located in the same
 directory. Each feature of an image (e.g. color, albedo) must be stored
 in a separate image file, i.e. multi-channel EXR image files are not
-supported.
+supported. If you have multi-channel EXRs, you can split them into
+separate images per feature using the included `split_exr.py` tool.
 
 The filename of an image must consist of a name (any valid filename
 character except `_` is allowed), the number of samples per pixel or
@@ -1024,6 +1039,56 @@ and albedo feature images:
         |-- scene2_000064spp.hdr.exr
         |-- scene2_reference.alb.exr
         `-- scene2_reference.hdr.exr
+
+### Preprocessing (preprocess.py)
+
+Training and validation datasets can be used only after preprocessing
+them using the `preprocess.py` script. This will convert the specified
+training (`-t` or `--train_data` option) and validation datasets (`-v`
+or `--valid_data` option) located in the root dataset directory (`-D` or
+`--data_dir` option) to a format that can be loaded more efficiently
+during training. All preprocessed datasets will be stored in a root
+preprocessed dataset directory (`-P` or `--preproc_dir` option).
+
+The preprocessing script requires the set of image features to include
+in the preprocessed dataset, as command-line arguments. Only these
+specified features will be available for training. Preprocessing also
+depends on the filter that will be trained (e.g. determines which
+HDR/LDR transfer function has to be used), which should be also
+specified (`-f` or `--filter` option). The alternative is to manually
+specify the transfer function (`-x` or `--transfer` option) and other
+filter-specific parameters, which could be useful for training custom
+filters.
+
+For example, to preprocess the training and validation datasets
+(`rt_train` and `rt_valid`) with HDR color, albedo, and normal image
+features, for training the `RT` filter, the following command can be
+used:
+
+``` console
+./preprocess.py hdr alb nrm --filter RT --train_data rt_train --valid_data rt_valid
+```
+
+For more details about using the preprocessing script, including other
+options, please have a look at the help message:
+
+``` console
+./preprocess.py -h
+```
+
+## Training (train.py)
+
+After preprocessing the datasets, it is possible to start training a
+model using the `train.py` script. Similar to the preprocessing script,
+the input features must be specified (could be a subset of the
+preprocessed features), and the dataset names, directory paths, and the
+filter can be also passed.
+
+The script will produce a training *result*, the name of which can be
+either specified (`-r` or `--result` option) or automatically generated
+(by default). Each result is stored in its own subdirectory, and these
+are located in the same parent directory (`-R` or `--results_dir`
+option).
 
 1.  For example, if Intel Open Image Denoise is in `~/Projects/oidn`,
     ISPC will also be searched in `~/Projects/ispc-v1.12.0-linux`

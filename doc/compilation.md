@@ -177,8 +177,9 @@ in CMake:
 - `OIDN_STATIC_RUNTIME`: Use the static version of the C/C++ runtime library
   (available only on Windows, OFF by default).
 
-- `OIDN_EXAMPLES_OPENIMAGEIO`: Enables OpenImageIO support in the examples to be
-  able to load/save OpenEXR, PNG, and other image file formats (OFF by default).
+- `OIDN_EXAMPLES_OPENIMAGEIO`: Enables [OpenImageIO](http://openimageio.org/)
+  support in the examples to be able to load/save OpenEXR, PNG, and other image
+  file formats (OFF by default).
 
 - `TBB_ROOT`: The path to the TBB installation (autodetected by default).
 
