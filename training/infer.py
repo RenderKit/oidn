@@ -86,7 +86,7 @@ def save_images(path, image, image_srgb):
     save_image(path + suffix + '.png', image_srgb)
 
 # Initialize the dataset
-data_dir = os.path.join(cfg.data_dir, cfg.input_data)
+data_dir = get_data_dir(cfg, cfg.input_data)
 image_sample_groups = get_image_sample_groups(data_dir, cfg.features)
 
 # Initialize the model

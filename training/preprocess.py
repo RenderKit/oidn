@@ -75,7 +75,7 @@ def preprocess_sample_group(input_dir, output_tza, input_names, target_name):
 
 # Preprocesses a dataset
 def preprocess_dataset(data_name):
-  input_dir = os.path.join(cfg.data_dir, data_name)
+  input_dir = get_data_dir(cfg, data_name)
   output_dir = get_preproc_data_dir(cfg, data_name)
   print('Preprocessing dataset:', input_dir)
 

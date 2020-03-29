@@ -14,6 +14,10 @@ from image import *
 import model
 import tza
 
+# Returns a dataset directory path
+def get_data_dir(cfg, name):
+  return os.path.join(cfg.data_dir, name)
+
 # Returns the ordered list of channel names for the specified features
 def get_channels(features):
   if ('hdr' in features) or ('ldr' in features):
