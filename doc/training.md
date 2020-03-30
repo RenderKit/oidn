@@ -144,14 +144,14 @@ For example, to preprocess the training and validation datasets (`rt_train` and
 `rt_valid`) with HDR color, albedo, and normal image features, for training the
 `RT` filter, the following command can be used:
 
-```console
+```
 ./preprocess.py hdr alb nrm --filter RT --train_data rt_train --valid_data rt_valid
 ```
 
 For more details about using the preprocessing script, including other options,
 please have a look at the help message:
 
-```console
+```
 ./preprocess.py -h
 ```
 
