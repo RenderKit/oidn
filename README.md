@@ -81,7 +81,8 @@ repository](http://github.com/OpenImageDenoise/oidn). The default
 ## Prerequisites
 
 You can clone the latest Intel Open Image Denoise sources using Git with
-the Git Large File Storage (LFS) extension:
+the [Git Large File Storage (LFS)](https://git-lfs.github.com/)
+extension:
 
 ``` 
     git clone --recursive https://github.com/OpenImageDenoise/oidn.git
