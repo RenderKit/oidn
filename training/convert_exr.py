@@ -12,7 +12,7 @@ from image import *
 from color import *
 
 # Parse the command line arguments
-cfg = parse_args(description='Converts an EXR image to another format, performing tonemapping too if necessary.')
+cfg = parse_args(description='Converts an EXR image to another format (including tonemapping).')
 
 # Load the input image
 image = load_image(cfg.input, num_channels=3)

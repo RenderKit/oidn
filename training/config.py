@@ -14,9 +14,6 @@ def parse_args(cmd=None, description=None):
   def get_default_device():
     return 'cuda' if torch.cuda.is_available() else 'cpu'
 
-  def get_default_result():
-    return '%x' % int(time.time())
-
   if cmd is None:
     cmd, _ = os.path.splitext(os.path.basename(sys.argv[0]))
 
@@ -42,7 +39,7 @@ def parse_args(cmd=None, description=None):
 
   if cmd in {'train', 'find_lr', 'infer', 'export', 'visualize'}:
     parser.add_argument('--results_dir', '-R', type=str, default='results', help='directory of training results')
-    parser.add_argument('--result', '-r', type=str, default=get_default_result(), help='name of the result to save/load')
+    parser.add_argument('--result', '-r', type=str, required=(not cmd in {'train', 'find_lr'}), help='name of the result to save/load')
 
   if cmd in {'train', 'infer', 'export'}:
     parser.add_argument('--checkpoint', '-c', type=int, default=0, help='result checkpoint to restore')

@@ -21,6 +21,12 @@ from result import *
 
 # Parse the command line arguments
 cfg = parse_args(description='Tool for finding the optimal minimum and maximum learning rates.')
+
+# Generate a result name if not specified
+if not cfg.result:
+  cfg.result = '%x' % int(time.time())
+
+# Set the learning rate range
 cfg.lr     = 1e-8
 cfg.max_lr = 1.
 

@@ -25,6 +25,10 @@ from result import *
 # Parse the command line arguments
 cfg = parse_args(description='Trains a model using preprocessed datasets.')
 
+# Generate a result name if not specified
+if not cfg.result:
+  cfg.result = '%x' % int(time.time())
+
 # Initialize the random seed
 np.random.seed(cfg.seed)
 torch.manual_seed(cfg.seed)

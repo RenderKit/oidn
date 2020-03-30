@@ -10,7 +10,7 @@ from util import *
 from result import *
 
 # Parse the command line arguments
-cfg = parse_args(description='Invokes TensorBoard for visualizing statistics for a training result.')
+cfg = parse_args(description='Invokes TensorBoard for visualizing statistics of a training result.')
 
 result_dir = get_result_dir(cfg)
 if not os.path.isdir(result_dir):
