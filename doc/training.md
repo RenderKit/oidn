@@ -17,10 +17,10 @@ to train and evaluate models. These scripts are the following:
 
 -   `export.py`: Exports a training result to the runtime model weights format.
 
--   `visualize.py`: Invokes TensorBoard for visualizing statistics of a training result.
-
 -   `find_lr.py`: Tool for finding the optimal minimum and maximum learning
     rates.
+
+-   `visualize.py`: Invokes TensorBoard for visualizing statistics of a training result.
 
 -   `split_exr.py`: Splits a multi-channel EXR image into multiple feature
     images.
@@ -121,7 +121,8 @@ data
     `-- scene2_reference.hdr.exr
 ```
 
-### Preprocessing (preprocess.py)
+Preprocessing (preprocess.py)
+-----------------------------
 
 Training and validation datasets can be used only after preprocessing them
 using the `preprocess.py` script. This will convert the specified training
@@ -163,9 +164,86 @@ the `train.py` script. Similar to the preprocessing script, the input features
 must be specified (could be a subset of the preprocessed features), and the
 dataset names, directory paths, and the filter can be also passed.
 
-The script will produce a training *result*, the name of which can be either
+The tool will produce a training *result*, the name of which can be either
 specified (`-r` or `--result` option) or automatically generated (by default).
 Each result is stored in its own subdirectory, and these are located in the same
-parent directory (`-R` or `--results_dir` option).
+parent directory (`-R` or `--results_dir` option). If a training result already
+exists, the tool will continue training that result instead of starting from
+scratch.
 
+The default training hyperparameters should work reasonably well in general,
+but some adjustments might be necessary for certain datasets to attain optimal
+performance, most importantly: the number of epochs (`-e` or `--epochs` option),
+the mini-batch size (`--bs` or `--batch_size` option), and the learning rate.
+The training tool uses a cyclical learning rate (CLR) with the `triangular2`
+scaling policy and an optional linear ramp-down at the end. The learning rate
+schedule can be configured by setting the base learning rate (`--lr` or
+`--learning_rate` option), the maximum learning rate (`--max_lr` or
+`--max_learning_rate` option), and the total cycle size in number of epochs
+(`--lr_cycle_epochs` option).
 
+Example usage:
+
+```console
+./train.py hdr alb --filter RT --train_data rt_train --valid_data rt_valid --result rt_hdr_alb
+```
+
+For finding the optimal learning rate range we recommend using the included
+`find_lr.py` script, which trains one epoch using an increasing learning rate
+and logs the resulting losses in a comma-separated values (CSV) file. Plotting
+the loss curve can show when the model starts to learn (the base learning
+rate) and when it starts to diverge (the maximum learning rate).
+
+During training some statistics are logged (e.g. training and validation losses,
+learning rate) at a specified frequency (`--log_steps` option), which can be
+later visualized with TensorBoard by running the `visualize.py` script, e.g.:
+
+```console
+./visualize.py --result rt_hdr_alb
+```
+
+Inference (infer.py)
+--------------------
+
+A training result can be tested by performing inference on an image dataset
+(`-i` or `--input_data` option) using the `infer.py` script. The dataset
+does *not* have to be preprocessed. The tool saves the output images in a
+separate directory (`-O` or `--output_dir`) in the requested formats (`-F`
+or `--format` option). It also evaluates a set of image quality metrics (`-M`
+or `--metric` option), e.g. SSIM, MSE, for images that have reference images
+available.
+
+Example usage:
+
+```console
+./infer.py --result rt_hdr_alb --input_data rt_test --format exr png --metric ssim
+```
+
+Exporting Results (export.py)
+-----------------------------
+
+The training result produced by the `train.py` script cannot be immediately used
+by the main library. It has to be first exported to the runtime model weights
+format, a *Tensor Archive* (TZA) file. Running the `export.py` script for a
+training result will create a binary `.tza` file in the directory of the result,
+which can be either used at runtime through the API or it can be included in the
+library build by replacing one of the built-in weights files.
+
+Example usage:
+
+```console
+./export.py --result rt_hdr_alb
+```
+
+Image Comparison and Conversion
+-------------------------------
+
+In addition to the already mentioned `split_exr.py` script, the toolkit contains
+a few other image utilities as well.
+
+The `compare_exr.py` script compares two EXR images using the specified image
+quality metrics, similar to the `infer.py` tool.
+
+`convert_exr.py` converts an EXR image to another image format (or also EXR),
+optionally performing tonemapping too if conversion from HDR to LDR is
+needed.
