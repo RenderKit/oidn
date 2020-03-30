@@ -3,7 +3,7 @@
 
 import math
 
-# Cyclical learning rate (CLR) with optional ramp-down
+# Cyclical learning rate (CLR) with optional linear ramp-down
 def get_cyclic_lr_with_ramp_down_function(base_lr,
                                           max_lr,
                                           step_size,

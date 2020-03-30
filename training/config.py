@@ -51,7 +51,7 @@ def parse_args(cmd=None, description=None):
     parser.add_argument('--log_steps', type=int, default=100, help='save summaries every this many steps')
     parser.add_argument('--lr', '--learning_rate', type=float, default=2e-6, help='minimum learning rate')
     parser.add_argument('--max_lr', '--max_learning_rate', type=float, default=2e-4, help='maximum learning rate')
-    parser.add_argument('--lr_cycle_epochs', type=int, default=250, help='number of epochs per cycle (for cyclical learning rate)')
+    parser.add_argument('--lr_cycle_epochs', type=int, default=250, help='number of epochs per learning rate cycle (for CLR)')
 
   if cmd in {'train', 'find_lr'}:
     parser.add_argument('--batch_size', '--bs', type=int, default=8, help='size of the mini-batches')
