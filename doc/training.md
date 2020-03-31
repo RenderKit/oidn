@@ -211,7 +211,7 @@ does *not* have to be preprocessed. The tool saves the output images in a
 separate directory (`-O` or `--output_dir`) in the requested formats (`-F`
 or `--format` option). It also evaluates a set of image quality metrics (`-M`
 or `--metric` option), e.g. SSIM, MSE, for images that have reference images
-available.
+available. All metrics are computed in tonemapped non-linear sRGB space.
 
 Example usage:
 
