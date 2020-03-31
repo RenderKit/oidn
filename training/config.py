@@ -60,7 +60,7 @@ def parse_args(cmd=None, description=None):
     advanced.add_argument('--loss', '-l', type=str, choices=['l1', 'mape', 'smape', 'l2', 'ssim', 'msssim', 'l1_msssim', 'l1_grad'], default='l1_msssim', help='loss function')
     advanced.add_argument('--seed', '-s', type=int, default=42, help='seed for random number generation')
 
-  if cmd in {'infer', 'compare_exr'}:
+  if cmd in {'infer', 'compare_image'}:
     parser.add_argument('--metric', '-M', type=str, nargs='*', choices=['mse', 'ssim'], default=['ssim'], help='metrics to compute')
 
   if cmd in {'infer'}:
@@ -68,19 +68,19 @@ def parse_args(cmd=None, description=None):
     parser.add_argument('--output_dir', '-O', type=str, default='infer', help='directory of output images')
     parser.add_argument('--format', '-F', type=str, nargs='*', choices=['exr', 'pfm', 'png'], default=['exr'], help='output image formats')
 
-  if cmd in {'compare_exr'}:
+  if cmd in {'compare_image'}:
     parser.add_argument('input', type=str, nargs=2, help='input images')
 
-  if cmd in {'convert_exr', 'split_exr'}:
+  if cmd in {'convert_image', 'split_exr'}:
     parser.add_argument('input', type=str, help='input image')
 
-  if cmd in {'convert_exr'}:
+  if cmd in {'convert_image'}:
     parser.add_argument('output', type=str, help='output image')
 
   if cmd in {'split_exr'}:
     parser.add_argument('--layer', type=str, default=None, help='name of the layer')
 
-  if cmd in {'compare_exr', 'convert_exr'}:
+  if cmd in {'compare_image', 'convert_image'}:
     parser.add_argument('--exposure', '--ev', type=float, default=1., help='exposure value for HDR image')
 
   if cmd in {'preprocess', 'train', 'find_lr', 'infer', 'export'}:

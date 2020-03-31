@@ -957,11 +957,11 @@ models. These scripts are the following:
   - `split_exr.py`: Splits a multi-channel EXR image into multiple
     feature images.
 
-  - `compare_exr.py`: Compares two EXR images using the specified
+  - `compare_image.py`: Compares two feature images using the specified
     quality metrics.
 
-  - `convert_exr.py`: Converts an EXR image to another format (including
-    tonemapping).
+  - `convert_image.py`: Converts a feature image to a different image
+    format.
 
 ## Prerequisites
 
@@ -1102,7 +1102,7 @@ The tool will produce a training *result*, the name of which can be
 either specified (`-r` or `--result` option) or automatically generated
 (by default). Each result is stored in its own subdirectory, and these
 are located in the same parent directory (`-R` or `--results_dir`
-option). If a training result already exists, the tool will continue
+option). If a training result already exists, the tool will resume
 training that result instead of starting from scratch.
 
 The default training hyperparameters should work reasonably well in
@@ -1176,12 +1176,14 @@ Example usage:
 In addition to the already mentioned `split_exr.py` script, the toolkit
 contains a few other image utilities as well.
 
-The `compare_exr.py` script compares two EXR images using the specified
-image quality metrics, similar to the `infer.py` tool.
+The `compare_image.py` script compares two feature images (preferably
+having the dataset filename format to correctly detect the feature)
+using the specified image quality metrics, similar to the `infer.py`
+tool.
 
-`convert_exr.py` converts an EXR image to another image format (or also
-EXR), optionally performing tonemapping too if conversion from HDR to
-LDR is needed.
+`convert_image.py` converts a feature image to a different image format
+(and/or a different feature, e.g. HDR color to LDR), performing
+tonemapping and other transforms as well if needed.
 
 1.  For example, if Intel Open Image Denoise is in `~/Projects/oidn`,
     ISPC will also be searched in `~/Projects/ispc-v1.12.0-linux`

@@ -28,8 +28,8 @@ def get_channels(features):
     channels += ['nrm.x', 'nrm.y', 'nrm.z']
   return channels
 
-# Returns the number of input channels
-def get_num_input_channels(features):
+# Returns the number of channels for the specified features
+def get_num_channels(features):
   return len(get_channels(features))
 
 # Returns the indices of the specified channels in the dataset
@@ -50,6 +50,21 @@ def get_target_features(features):
 # Checks whether the image with specified features exists
 def image_exists(name, features):
   return all([os.path.isfile(name + '.' + f + '.exr') for f in features])
+
+# Returns the feature an image represents given its filename
+def get_image_feature(filename):
+  filename_split = filename.rsplit('.', 2)
+  if len(filename_split) < 2:
+    return None # no extension
+  else:
+    ext = filename_split[-1].lower()
+    if ext in {'exr', 'pfm', 'hdr'}:
+      if len(filename_split) == 3:
+        return filename_split[-2]
+      else:
+        return 'hdr' # assume HDR
+    else:
+      return None # not supported by format
 
 # Loads target image features in EXR format with given filename prefix
 def load_target_image(name, features):
@@ -95,13 +110,6 @@ def load_input_image(name, features):
     inputs.append(normal)
 
   return np.concatenate(inputs, axis=2)
-
-# Returns whether a filename indicates an HDR image
-def is_hdr_image(filename):
-  if is_linear_image(filename):
-    return filename.rsplit('.', 2)[-2] != 'ldr'
-  else:
-    return False
 
 # Tries to load metadata for an image with given filename/prefix, returns None if it fails
 def load_image_metadata(name):

@@ -88,7 +88,3 @@ def save_pfm(filename, image):
     f.write('%d %d\n' % (image.shape[1], image.shape[0]))
     f.write('-1.0\n')
     data.tofile(f)
-
-# Returns whether a filename indicates a linear image
-def is_linear_image(filename):
-  return get_path_ext(filename).lower() in {'exr', 'pfm'}
