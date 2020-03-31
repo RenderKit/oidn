@@ -15,6 +15,8 @@ cfg = parse_args(description='Splits a multi-channel EXR image into multiple fea
 
 # Load the input image
 name, ext = os.path.splitext(cfg.input)
+if ext.lower() != '.exr':
+  error('image must be EXR')
 image = oiio.ImageBuf(cfg.input)
 if image.has_error:
   error('could not load image')
