@@ -932,18 +932,16 @@ command line options.
 
 The Intel Open Image Denoise source distribution includes a Python-based
 neural network training toolkit (located in the `training` directory),
-which can be used to train the denoising filter models using image
-datasets provided by the user. The toolkit consists of multiple
-command-line scripts (e.g. dataset preprocessing, training, inference,
-image comparison) that together can be used to train and evaluate
-models. These scripts are the following:
+which can be used to train the denoising filter models with image
+datasets provided by the user. The toolkit consists of the following
+command-line scripts:
 
   - `preprocess.py`: Preprocesses training and validation datasets.
 
   - `train.py`: Trains a model using preprocessed datasets.
 
-  - `infer.py`: Performs inference on a set of images using the
-    specified training result.
+  - `infer.py`: Performs inference on a dataset using the specified
+    training result.
 
   - `export.py`: Exports a training result to the runtime model weights
     format.
@@ -995,20 +993,20 @@ stored in its own subdirectory (e.g. `train`, `valid`), which can have
 an arbitrary name.
 
 The images must be stored in [OpenEXR](https://www.openexr.com/) format
-(`.exr` files) and the filenames must have a specific format but the
+(`.exr` files), and the filenames must have a specific format but the
 files can be stored in an arbitrary directory structure inside the
 dataset directory. The only restriction is that all versions of an image
 (noisy images and the reference image) must be located in the same
-directory. Each feature of an image (e.g. color, albedo) must be stored
-in a separate image file, i.e. multi-channel EXR image files are not
-supported. If you have multi-channel EXRs, you can split them into
+subdirectory. Each feature of an image (e.g. color, albedo) must be
+stored in a separate image file, i.e. multi-channel EXR image files are
+not supported. If you have multi-channel EXRs, you can split them into
 separate images per feature using the included `split_exr.py` tool.
 
-The filename of an image must consist of a name (any valid filename
-character except `_` is allowed), the number of samples per pixel or
-whether it is the reference (e.g. `0128spp`, `ref`), the identifier (ID)
-of the feature (e.g. `hdr`, `alb`), and the file extension (`.exr`).
-This format as a regular expression is the following:
+An image filename must consist of a name (any valid filename character
+except `_` is allowed), the number of samples per pixel or whether it is
+the reference (e.g. `0128spp`, `ref`), the identifier (ID) of the
+feature (e.g. `hdr`, `alb`), and the file extension (`.exr`). This
+format as a regular expression is the following:
 
 ``` regexp
 [^_]+_([0-9]+(spp)?|ref|reference|gt|target)\.(hdr|ldr|alb|nrm)\.exr
@@ -1016,8 +1014,8 @@ This format as a regular expression is the following:
 
 The number of samples per pixel should be padded with leading zeros to
 have a fixed number of digits. If the reference image is not explicitly
-named as such (e.g. `ref`, `reference`), the image with the most samples
-per pixel will be considered the reference.
+named as such (i.e. has the number of samples instead), the image with
+the most samples per pixel will be considered the reference.
 
 The following image features are supported:
 
@@ -1065,7 +1063,7 @@ during training. All preprocessed datasets will be stored in a root
 preprocessed dataset directory (`-P` or `--preproc_dir` option).
 
 The preprocessing script requires the set of image features to include
-in the preprocessed dataset, as command-line arguments. Only these
+in the preprocessed dataset as command-line arguments. Only these
 specified features will be available for training. Preprocessing also
 depends on the filter that will be trained (e.g. determines which
 HDR/LDR transfer function has to be used), which should be also
@@ -1101,9 +1099,10 @@ filter can be also passed.
 The tool will produce a training *result*, the name of which can be
 either specified (`-r` or `--result` option) or automatically generated
 (by default). Each result is stored in its own subdirectory, and these
-are located in the same parent directory (`-R` or `--results_dir`
+are located in a common parent directory (`-R` or `--results_dir`
 option). If a training result already exists, the tool will resume
-training that result instead of starting from scratch.
+training that result from the latest checkpoint, or from an earlier
+checkpoint at the specified epoch (`-c` or `--checkpoint` option).
 
 The default training hyperparameters should work reasonably well in
 general, but some adjustments might be necessary for certain datasets to
@@ -1115,7 +1114,8 @@ optional linear ramp-down at the end. The learning rate schedule can be
 configured by setting the base learning rate (`--lr` or
 `--learning_rate` option), the maximum learning rate (`--max_lr` or
 `--max_learning_rate` option), and the total cycle size in number of
-epochs (`--lr_cycle_epochs` option).
+epochs (`--lr_cycle_epochs` option). If there is an incomplete cycle at
+the end, the learning rate will be linearly ramped down to almost zero.
 
 Example usage:
 
@@ -1130,10 +1130,13 @@ learning rate and logs the resulting losses in a comma-separated values
 learn (the base learning rate) and when it starts to diverge (the
 maximum learning rate).
 
-During training some statistics are logged (e.g. training and validation
-losses, learning rate) at a specified frequency (`--log_steps` option),
-which can be later visualized with TensorBoard by running the
-`visualize.py` script, e.g.:
+The model is evaluated with the validation dataset at regular intervals
+(`--valid_epochs` option), and checkpoints are also regularly created
+(`--save_epochs` option) to save training progress. Also, some
+statistics are logged (e.g. training and validation losses, learning
+rate) at a specified frequency (`--log_steps` option), which can be
+later visualized with TensorBoard by running the `visualize.py` script,
+e.g.:
 
 ``` console
 ./visualize.py --result rt_hdr_alb
@@ -1143,12 +1146,18 @@ which can be later visualized with TensorBoard by running the
 
 A training result can be tested by performing inference on an image
 dataset (`-i` or `--input_data` option) using the `infer.py` script. The
-dataset does *not* have to be preprocessed. The tool saves the output
-images in a separate directory (`-O` or `--output_dir`) in the requested
-formats (`-F` or `--format` option). It also evaluates a set of image
-quality metrics (`-M` or `--metric` option), e.g. SSIM, MSE, for images
-that have reference images available. All metrics are computed in
-tonemapped non-linear sRGB space.
+dataset does *not* have to be preprocessed. In addition to the result to
+use, it is possible to specify which checkpoint to load as well. By
+default the latest checkpoint is loaded.
+
+The tool saves the output images in a separate directory (`-O` or
+`--output_dir`) in the requested formats (`-F` or `--format` option). It
+also evaluates a set of image quality metrics (`-M` or `--metric`
+option), e.g. SSIM, MSE, for images that have reference images
+available. All metrics are computed in tonemapped non-linear sRGB space.
+Thus, HDR images are first tonemapped (with Naughty Dog’s Filmic
+Tonemapper from John Hable’s *Uncharted 2: HDR Lighting* presentation)
+and converted to sRGB before evaluating the metrics.
 
 Example usage:
 
@@ -1161,10 +1170,10 @@ Example usage:
 The training result produced by the `train.py` script cannot be
 immediately used by the main library. It has to be first exported to the
 runtime model weights format, a *Tensor Archive* (TZA) file. Running the
-`export.py` script for a training result will create a binary `.tza`
-file in the directory of the result, which can be either used at runtime
-through the API or it can be included in the library build by replacing
-one of the built-in weights files.
+`export.py` script for a training result (and optionally a checkpoint)
+will create a binary `.tza` file in the directory of the result, which
+can be either used at runtime through the API or it can be included in
+the library build by replacing one of the built-in weights files.
 
 Example usage:
 
