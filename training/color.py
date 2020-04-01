@@ -163,6 +163,7 @@ def autoexposure(image):
 ## -----------------------------------------------------------------------------
 
 # Filmic tonemapping operator
+# [Hable, 2010, "Uncharted 2: HDR Lighting"]
 def tonemap(x):
   A = 0.22
   B = 0.30

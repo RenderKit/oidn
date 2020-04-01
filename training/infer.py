@@ -21,7 +21,7 @@ def pad(x):
 
 def main():
   # Parse the command line arguments
-  cfg = parse_args(description='Performs inference on a set of images using the specified training result.')
+  cfg = parse_args(description='Performs inference on a dataset using the specified training result.')
 
   # Initialize the PyTorch device
   device = init_device(cfg)
