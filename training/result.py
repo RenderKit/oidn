@@ -15,7 +15,7 @@ def get_latest_checkpoint_epoch(cfg):
   checkpoint_dir = os.path.join(get_result_dir(cfg), 'checkpoints')
   latest_filename = os.path.join(checkpoint_dir, 'latest')
   if not os.path.isfile(latest_filename):
-    error('result does not exist')
+    error('no checkpoints found')
   with open(latest_filename, 'r') as f:
     return int(f.readline())
 
