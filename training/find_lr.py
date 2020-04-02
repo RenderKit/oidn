@@ -3,8 +3,6 @@
 ## Copyright 2018-2020 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
-from config import *
-
 import time
 import numpy as np
 import torch
@@ -12,12 +10,13 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 
-from util import *
+from config import *
+from dataset import *
 from model import *
 from loss import *
-from optim import *
-from dataset import *
+from learning_rate import *
 from result import *
+from util import *
 
 def main():
   # Parse the command line arguments

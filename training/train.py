@@ -15,12 +15,12 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 from config import *
-from util import *
+from dataset import *
 from model import *
 from loss import *
-from optim import *
-from dataset import *
+from learning_rate import *
 from result import *
+from util import *
 
 def main():
   # Parse the command line arguments
@@ -159,7 +159,7 @@ def main():
       if step == 0:
         summary_writer.add_graph(unwrap_module(model), input)
       if step % cfg.log_steps == 0 or i == 0 or i == train_steps_per_epoch-1:
-        summary_writer.add_scalar('lr', lr_scheduler.get_last_lr()[0], step)
+        summary_writer.add_scalar('learning_rate', lr_scheduler.get_last_lr()[0], step)
         summary_writer.add_scalar('loss', loss.item(), step)
 
       # Next step
