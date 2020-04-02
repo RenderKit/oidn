@@ -70,14 +70,13 @@ multi-channel EXR image files are not supported. If you have multi-channel EXRs,
 you can split them into separate images per feature using the included
 `split_exr.py` tool.
 
-An image filename must consist of a name (any valid filename character except
-`_` is allowed), the number of samples per pixel or whether it is the reference
-(e.g. `0128spp`, `ref`), the identifier (ID) of the feature (e.g. `hdr`, `alb`),
-and the file extension (`.exr`). This format as a regular expression is the
-following:
+An image filename must consist of a name, the number of samples per pixel or
+whether it is the reference (e.g. `0128spp`, `ref`), the identifier (ID) of the
+feature (e.g. `hdr`, `alb`), and the file extension (`.exr`). The exact format
+as a regular expression is the following:
 
 ```regexp
-[^_]+_([0-9]+(spp)?|ref|reference|gt|target)\.(hdr|ldr|alb|nrm)\.exr
+.+_([0-9]+(spp)?|ref|reference|gt|target)\.(hdr|ldr|alb|nrm)\.exr
 ```
 
 The number of samples per pixel should be padded with leading zeros to have a
