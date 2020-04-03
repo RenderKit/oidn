@@ -9,7 +9,7 @@ namespace oidn {
   // Checks for buffer overrun
   __forceinline void checkBounds(char* ptr, char* end, size_t size)
   {
-    if (end - ptr < size)
+    if (end - ptr < (ptrdiff_t)size)
       throw Exception(Error::InvalidOperation, "corrupted tensor format");
   }
 
