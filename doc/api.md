@@ -515,7 +515,7 @@ const int          overlap              when manually denoising the image in
 
 All specified images must have the same dimensions.
 
-![Example noisy color image rendered using unidirectional path tracing (512
+![Example noisy color image rendered using unidirectional path tracing (64
 spp). *Scene by Evermotion.*][imgMazdaColor]
 
 ![Example output image denoised using color and auxiliary feature images

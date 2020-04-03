@@ -778,12 +778,12 @@ Parameters supported by the `RT` filter.
 
 All specified images must have the same dimensions.
 
-![](https://openimagedenoise.github.io/images/mazda_512spp_color.jpg)
+![](https://openimagedenoise.github.io/images/mazda_64spp_input.jpg)
 Example noisy color image rendered using unidirectional path tracing
-(512 spp). *Scene by
+(64 spp). *Scene by
 Evermotion.*
 
-![](https://openimagedenoise.github.io/images/mazda_512spp_oidn.jpg)
+![](https://openimagedenoise.github.io/images/mazda_64spp_oidn.jpg)
 Example output image denoised using color and auxiliary feature images
 (albedo and
 normal).
@@ -823,12 +823,12 @@ flexibile to a certain extent and works well with differently computed
 albedos. Thus it is not necessary to compute the strict, exact albedo
 values but must be always between 0 and 1.
 
-![](https://openimagedenoise.github.io/images/mazda_512spp_albedo_firsthit.jpg)
+![](https://openimagedenoise.github.io/images/mazda_firsthit_512spp_albedo.jpg)
 Example albedo image obtained using the first hit. Note that the
 albedos of all transparent surfaces are
 1.
 
-![](https://openimagedenoise.github.io/images/mazda_512spp_albedo_nondeltahit.jpg)
+![](https://openimagedenoise.github.io/images/mazda_nondeltahit_512spp_albedo.jpg)
 Example albedo image obtained using the first diffuse or glossy
 (non-delta) hit. Note that the albedos of perfect specular (delta)
 transparent surfaces are computed as the Fresnel blend of the reflected
@@ -870,12 +870,12 @@ and must be remapped to e.g. \[−1, 1\]).
 Similar to the albedo, the normal can be stored for either the first or
 a subsequent hit (if the first hit has a perfect specular/delta BSDF).
 
-![](https://openimagedenoise.github.io/images/mazda_512spp_normal_firsthit.jpg)
+![](https://openimagedenoise.github.io/images/mazda_firsthit_512spp_normal.jpg)
 Example normal image obtained using the first hit (the values are
 actually in \[−1, 1\] but were mapped to \[0, 1\] for illustration
 purposes).
 
-![](https://openimagedenoise.github.io/images/mazda_512spp_normal_nondeltahit.jpg)
+![](https://openimagedenoise.github.io/images/mazda_nondeltahit_512spp_normal.jpg)
 Example normal image obtained using the first diffuse or glossy
 (non-delta) hit. Note that the normals of perfect specular (delta)
 transparent surfaces are computed as the Fresnel blend of the reflected
@@ -1002,14 +1002,14 @@ stored in a separate image file, i.e. multi-channel EXR image files are
 not supported. If you have multi-channel EXRs, you can split them into
 separate images per feature using the included `split_exr.py` tool.
 
-An image filename must consist of a name (any valid filename character
-except `_` is allowed), the number of samples per pixel or whether it is
-the reference (e.g. `0128spp`, `ref`), the identifier (ID) of the
-feature (e.g. `hdr`, `alb`), and the file extension (`.exr`). This
-format as a regular expression is the following:
+An image filename must consist of a name, the number of samples per
+pixel or whether it is the reference (e.g. `0128spp`, `ref`), the
+identifier (ID) of the feature (e.g. `hdr`, `alb`), and the file
+extension (`.exr`). The exact format as a regular expression is the
+following:
 
 ``` regexp
-[^_]+_([0-9]+(spp)?|ref|reference|gt|target)\.(hdr|ldr|alb|nrm)\.exr
+.+_([0-9]+(spp)?|ref|reference|gt|target)\.(hdr|ldr|alb|nrm)\.exr
 ```
 
 The number of samples per pixel should be padded with leading zeros to
