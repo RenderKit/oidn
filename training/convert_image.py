@@ -13,12 +13,13 @@ from color import *
 
 # Transforms a feature image to another feature type
 def transform_image(image, input_feature, output_feature, exposure=1.):
-  if input_feature == 'hdr' and output_feature in {'ldr', None}:
-    # Apply tonemapping
-    image = tonemap(image * exposure)
-  if not output_feature: # transform to sRGB
+  if input_feature == 'hdr':
+    image *= exposure
+    if output_feature in {'ldr', None}:
+      image = tonemap(image)
+  if not output_feature:
+    # Transform to sRGB
     if input_feature in {'hdr', 'ldr', 'alb'}:
-      # Convert to sRGB
       image = srgb_forward(image)
     elif input_feature == 'nrm':
       # Transform [-1, 1] -> [0, 1]
