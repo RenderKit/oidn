@@ -24,10 +24,10 @@ user. The toolkit consists of the following command-line scripts:
 -   `split_exr.py`: Splits a multi-channel EXR image into multiple feature
     images.
 
+-   `convert_image.py`: Converts a feature image to a different image format.
+
 -   `compare_image.py`: Compares two feature images using the specified quality
     metrics.
-
--   `convert_image.py`: Converts a feature image to a different image format.
 
 
 Prerequisites
@@ -247,16 +247,25 @@ Example usage:
 ./export.py --result rt_hdr_alb
 ```
 
-Image Comparison and Conversion
+Image Conversion and Comparison
 -------------------------------
 
 In addition to the already mentioned `split_exr.py` script, the toolkit contains
 a few other image utilities as well.
 
-The `compare_image.py` script compares two feature images (preferably having the
-dataset filename format to correctly detect the feature) using the specified
-image quality metrics, similar to the `infer.py` tool.
-
 `convert_image.py` converts a feature image to a different image format (and/or a
 different feature, e.g. HDR color to LDR), performing tonemapping and other
-transforms as well if needed.
+transforms as well if needed. For HDR images the exposure can be adjusted by
+passing a linear exposure scale (`-E` or `--exposure` option). Example usage:
+
+```console
+./convert_image.py view1_0004.hdr.exr view1_0004.png --exposure 2.5
+```
+
+The `compare_image.py` script compares two feature images (preferably having the
+dataset filename format to correctly detect the feature) using the specified
+image quality metrics, similar to the `infer.py` tool. Example usage:
+
+```console
+./compare_image.py view1_0004.hdr.exr view1_8192.hdr.exr --exposure 2.5 --metric mse ssim
+```
