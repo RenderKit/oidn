@@ -68,20 +68,20 @@ def parse_args(cmd=None, description=None):
     parser.add_argument('--output_dir', '-O', type=str, default='infer', help='directory of output images')
     parser.add_argument('--format', '-F', type=str, nargs='*', choices=['exr', 'pfm', 'png'], default=['exr'], help='output image formats')
 
-  if cmd in {'compare_image'}:
-    parser.add_argument('input', type=str, nargs=2, help='input images')
-
   if cmd in {'convert_image', 'split_exr'}:
     parser.add_argument('input', type=str, help='input image')
+
+  if cmd in {'compare_image'}:
+    parser.add_argument('input', type=str, nargs=2, help='input images')
 
   if cmd in {'convert_image'}:
     parser.add_argument('output', type=str, help='output image')
 
+  if cmd in {'convert_image', 'compare_image'}:
+    parser.add_argument('--exposure', '-E', type=float, default=1., help='linear exposure scale for HDR image')
+
   if cmd in {'split_exr'}:
     parser.add_argument('--layer', type=str, default=None, help='name of the layer')
-
-  if cmd in {'compare_image', 'convert_image'}:
-    parser.add_argument('--exposure', '--ev', type=float, default=1., help='exposure value for HDR image')
 
   if cmd in {'preprocess', 'train', 'find_lr', 'infer', 'export'}:
     parser.add_argument('--device', '-d', type=str, choices=['cpu', 'cuda'], default=get_default_device(), help='device to use')
