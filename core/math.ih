@@ -20,6 +20,8 @@ typedef unsigned int64 uint64;
 #define pos_inf floatbits(0x7F800000)
 #define neg_inf floatbits(0xFF800000)
 #define nan     floatbits(0x7FBFFFFF)
+#define pos_max floatbits(0x7F7FFFFF)
+#define neg_max floatbits(0xFF7FFFFF)
 #define flt_min 0x1.0p-126f
 
 #define M_PI     3.14159265358979323846f
@@ -99,6 +101,14 @@ inline varying float to_float(varying int x) { return (float)x; }
 inline uniform float to_float_unorm(uniform unsigned int x) {
   return (float)x * 2.3283064365386962890625e-10; // x / 2^32
 }
-inline float to_float_unorm(unsigned int x) {
+inline varying float to_float_unorm(varying unsigned int x) {
   return (float)x * 2.3283064365386962890625e-10; // x / 2^32
+}
+
+// Maps nan to zero, pos_inf to pos_max, neg_inf to neg_max
+inline uniform float nan_to_num(uniform float x) {
+  return select(isnan(x), 0.f, clamp(x, neg_max, pos_max));
+}
+inline varying float nan_to_num(varying float x) {
+  return select(isnan(x), 0.f, clamp(x, neg_max, pos_max));
 }

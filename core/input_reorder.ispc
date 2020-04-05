@@ -37,7 +37,7 @@ inline void storeZero(uniform InputReorder* uniform self, uniform int h, int w, 
 inline void storeColor(uniform InputReorder* uniform self, uniform int h, int w, uniform int c, vec3f value)
 {
   // Sanitize the value
-  value = inf_to_zero(value);
+  value = nan_to_num(value);
   value = max(value, 0.f);
   if (!self->hdr)
     value = min(value, 1.f);
@@ -53,7 +53,7 @@ inline void storeColor(uniform InputReorder* uniform self, uniform int h, int w,
 inline void storeAlbedo(uniform InputReorder* uniform self, uniform int h, int w, uniform int c, vec3f value)
 {
   // Sanitize the value
-  value = inf_to_zero(value);
+  value = nan_to_num(value);
   value = clamp(value, 0.f, 1.f);
 
   // Store the value
@@ -65,6 +65,9 @@ inline void storeNormal(uniform InputReorder* uniform self, uniform int h, int w
 {
   static const uniform float minLength = 1e-10f;
   static const uniform float minLengthSqr = minLength * minLength;
+
+  // Sanitize the value
+  value = nan_to_num(value);
 
   // Compute the length of the normal
   const float lengthSqr = dot(value, value);

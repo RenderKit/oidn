@@ -40,7 +40,7 @@ export void OutputReorder_kernel(uniform OutputReorder* uniform self, uniform in
     vec3f value = get3f(self->src, hSrc, wSrc, 0);
 
     // The CNN output may contain negative values or even NaNs, so it must be sanitized
-    value = max(inf_to_zero(value), 0.f);
+    value = max(nan_to_num(value), 0.f);
 
     // Apply the inverse transfer function
     value = self->transferFunc->inverse(self->transferFunc, value);

@@ -301,6 +301,7 @@ DEFINE_VEC_UNARY_FUNC(sqrt, f, f)
 DEFINE_VEC_UNARY_FUNC(sqrt_safe, f, f)
 DEFINE_VEC_UNARY_FUNC(log, f, f)
 DEFINE_VEC_UNARY_FUNC(exp, f, f)
+DEFINE_VEC_UNARY_FUNC(nan_to_num, f, f)
 
 DEFINE_VEC_UNARY_FUNC(isnan, b, f)
 DEFINE_VEC_UNARY_FUNC(isfinite, b, f)

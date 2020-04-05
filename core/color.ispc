@@ -194,7 +194,7 @@ export uniform float getAvgLuminance(const uniform Image& color,
     foreach (w = beginW ... endW)
     {
       vec3f c = get3f(color, h, w);
-      c = max(inf_to_zero(c), 0.f); // sanitize
+      c = max(nan_to_num(c), 0.f); // sanitize
       L += luminance(c);
     }
   }
