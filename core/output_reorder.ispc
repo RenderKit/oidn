@@ -36,21 +36,21 @@ export void OutputReorder_kernel(uniform OutputReorder* uniform self, uniform in
     const int wSrc = w + self->wSrcBegin;
     const int wDst = w + self->wDstBegin;
 
-    // Load the value
+    // Load
     vec3f value = get3f(self->src, hSrc, wSrc, 0);
 
     // The CNN output may contain negative values or even NaNs, so it must be sanitized
-    value = max(nan_to_num(value), 0.f);
+    value = clamp(nan_to_zero(value), 0.f, pos_max);
 
     // Apply the inverse transfer function
     value = self->transferFunc->inverse(self->transferFunc, value);
 
-    // Sanitize the value
+    // Sanitize
     value = max(value, 0.f);
     if (!self->hdr)
       value = min(value, 1.f);
 
-    // Store the final value
+    // Store
     set3f(self->dst, hDst, wDst, value);
   }
 }

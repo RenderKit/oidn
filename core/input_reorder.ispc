@@ -36,58 +36,39 @@ inline void storeZero(uniform InputReorder* uniform self, uniform int h, int w, 
 // Stores a color value
 inline void storeColor(uniform InputReorder* uniform self, uniform int h, int w, uniform int c, vec3f value)
 {
-  // Sanitize the value
-  value = nan_to_num(value);
-  value = max(value, 0.f);
-  if (!self->hdr)
-    value = min(value, 1.f);
+  // Sanitize
+  value = clamp(nan_to_zero(value), 0.f, self->hdr ? pos_max : 1.f);
 
   // Apply the transfer function
   value = self->transferFunc->forward(self->transferFunc, value);
 
-  // Store the value
+  // Store
   set3f(self->dst, h, w, c, value);
 }
 
 // Stores an albedo value
 inline void storeAlbedo(uniform InputReorder* uniform self, uniform int h, int w, uniform int c, vec3f value)
 {
-  // Sanitize the value
-  value = nan_to_num(value);
-  value = clamp(value, 0.f, 1.f);
+  // Sanitize
+  value = clamp(nan_to_zero(value), 0.f, 1.f);
 
-  // Store the value
+  // Store
   set3f(self->dst, h, w, c, value);
 }
 
 // Stores a normal value
 inline void storeNormal(uniform InputReorder* uniform self, uniform int h, int w, uniform int c, vec3f value)
 {
-  static const uniform float minLength = 1e-10f;
-  static const uniform float minLengthSqr = minLength * minLength;
+  // Sanitize
+  value = clamp(nan_to_zero(value), neg_max, pos_max);
 
-  // Sanitize the value
-  value = nan_to_num(value);
+  // Normalize
+  value = normalize_safe(value);
 
-  // Compute the length of the normal
-  const float lengthSqr = dot(value, value);
+  // Transform to [0..1]
+  value = value * 0.5f + 0.5f;
 
-  if (isfinite(lengthSqr))
-  {
-    // Normalize the normal and transform it to [0..1]
-    const float rcpLength = (lengthSqr > minLengthSqr) ? rsqrt(lengthSqr) : 1.f;
-
-    const float scale  = rcpLength * 0.5f;
-    const float offset = 0.5f;
-
-    value = value * scale + offset;
-  }
-  else
-  {
-    value = make_vec3f(0.f);
-  }
-
-  // Store the normal
+  // Store
   set3f(self->dst, h, w, c, value);
 }
 

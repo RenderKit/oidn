@@ -98,13 +98,13 @@ def load_input_image(name, features):
     normal = load_image(normal_filename, num_channels=3)
 
     # Normalize
-    MIN_LENGTH = 1e-10
-    MIN_LENGTH_SQR = MIN_LENGTH * MIN_LENGTH
     length_sqr = np.add.reduce(np.square(normal), axis=-1, keepdims=True)
-    length_sqr[length_sqr <= MIN_LENGTH_SQR] = 1.
-    normal /= np.sqrt(length_sqr)
+    with np.errstate(divide='ignore'):
+      rcp_length = np.reciprocal(np.sqrt(length_sqr))
+    rcp_length = np.nan_to_num(rcp_length, nan=0., posinf=0., neginf=0.)
+    normal *= rcp_length
 
-    # Scale to [0..1] range
+    # Transform to [0..1] range
     normal = normal * 0.5 + 0.5
 
     inputs.append(normal)

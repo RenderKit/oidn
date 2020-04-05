@@ -301,7 +301,7 @@ DEFINE_VEC_UNARY_FUNC(sqrt, f, f)
 DEFINE_VEC_UNARY_FUNC(sqrt_safe, f, f)
 DEFINE_VEC_UNARY_FUNC(log, f, f)
 DEFINE_VEC_UNARY_FUNC(exp, f, f)
-DEFINE_VEC_UNARY_FUNC(nan_to_num, f, f)
+DEFINE_VEC_UNARY_FUNC(nan_to_zero, f, f)
 
 DEFINE_VEC_UNARY_FUNC(isnan, b, f)
 DEFINE_VEC_UNARY_FUNC(isfinite, b, f)
@@ -428,114 +428,33 @@ DEFINE_VEC_CLAMP(unsigned int, ui)
 #undef DEFINE_VEC_CLAMP
 
 // -----------------------------------------------------------------------------
-// Geometric functions
+// Select functions
 // -----------------------------------------------------------------------------
 
-inline uniform float dot(uniform vec3f a, uniform vec3f b) {
-  return a.x*b.x + a.y*b.y + a.z*b.z;
-}
-inline varying float dot(varying vec3f a, varying vec3f b) {
-  return a.x*b.x + a.y*b.y + a.z*b.z;
-}
-
-inline uniform float length(uniform vec3f a) { return sqrt(dot(a,a)); }
-inline varying float length(varying vec3f a) { return sqrt(dot(a,a)); }
-
-inline uniform float distance(uniform vec3f a, uniform vec3f b) { return length(a - b); }
-inline varying float distance(varying vec3f a, varying vec3f b) { return length(a - b); }
-
-inline uniform vec3f normalize(uniform vec3f v) { return v * (1.f/sqrt(dot(v,v))); }
-inline varying vec3f normalize(varying vec3f v) { return v * (1.f/sqrt(dot(v,v))); }
-
-inline varying vec3f normalize(varying vec3f v, varying float &len) {
-  len = sqrt(dot(v,v));
-  return v * rcp(len);
-}
-
-inline varying vec3f normalize_safe(varying vec3f v) {
-  return v * (1.f/sqrt(max(flt_min, dot(v,v))));
-}
-
-// Differentiated normalization
-inline varying vec3f dnormalize(varying vec3f p, varying vec3f dp)
-{
-  const float pp  = dot(p,p);
-  const float pdp = dot(p,dp);
-  return (pp*dp-pdp*p)*rcp(pp)*rsqrt(pp);
-}
-
-#define DEFINE_VEC_CROSS(UV, UVA, UVB)              \
-  inline UV vec3f cross(UVA vec3f a, UVB vec3f b) { \
-    return make_vec3f(a.y*b.z - a.z*b.y,            \
-                      a.z*b.x - a.x*b.z,            \
-                      a.x*b.y - a.y*b.x);           \
+#define DEFINE_VEC_SELECT_UV(UV, UVA, UVB, T)                                                 \
+  inline UV vec2##T select(UV vec2b c, UVA vec2##T a, UVB vec2##T b) {                        \
+    return make_vec2##T(select(c.x, a.x, b.x), select(c.y, a.y, b.y));                        \
+  }                                                                                           \
+  inline UV vec3##T select(UV vec3b c, UVA vec3##T a, UVB vec3##T b) {                        \
+    return make_vec3##T(select(c.x, a.x, b.x), select(c.y, a.y, b.y), select(c.z, a.z, b.z)); \
+  }                                                                                           \
+  inline UV vec4##T select(UV vec4b c, UVA vec4##T a, UVB vec4##T b) {                        \
+    return make_vec4##T(select(c.x, a.x, b.x), select(c.y, a.y, b.y),                         \
+                        select(c.z, a.z, b.z), select(c.w, a.w, b.w));                        \
   }
 
-DEFINE_VEC_CROSS(uniform, uniform, uniform)
-DEFINE_VEC_CROSS(varying, varying, varying)
-DEFINE_VEC_CROSS(varying, varying, uniform)
-DEFINE_VEC_CROSS(varying, uniform, varying)
+#define DEFINE_VEC_SELECT(T)                         \
+  DEFINE_VEC_SELECT_UV(uniform, uniform, uniform, T) \
+  DEFINE_VEC_SELECT_UV(varying, uniform, uniform, T) \
+  DEFINE_VEC_SELECT_UV(varying, uniform, varying, T) \
+  DEFINE_VEC_SELECT_UV(varying, varying, uniform, T) \
+  DEFINE_VEC_SELECT_UV(varying, varying, varying, T)
 
-#undef DEFINE_VEC_CROSS
+DEFINE_VEC_SELECT(f)
+DEFINE_VEC_SELECT(i)
 
-inline uniform vec3f rotate(uniform vec3f v, uniform vec3f axis, uniform float theta) {
-  return v * cos(theta) + cross(axis, v) * sin(theta) + axis * dot(axis, v) * (1.f - cos(theta));
-}
-inline varying vec3f rotate(varying vec3f v, varying vec3f axis, varying float theta) {
-  return v * cos(theta) + cross(axis, v) * sin(theta) + axis * dot(axis, v) * (1.f - cos(theta));
-}
-
-// -----------------------------------------------------------------------------
-// Interpolation functions
-// -----------------------------------------------------------------------------
-
-#define DEFINE_VEC_LERP_UV(UV, TYPE, T)                                                                      \
-  /* vec2 */                                                                                                 \
-  inline UV vec2##T lerp(UV TYPE f, UV vec2##T a, UV vec2##T b) {                                            \
-    return make_vec2##T(lerp(f, a.x, b.x), lerp(f, a.y, b.y));                                               \
-  }                                                                                                          \
-  inline UV vec2##T lerp(UV vec2f f, UV vec2##T a, UV vec2##T b) {                                           \
-    return make_vec2##T(lerp(f.x, a.x, b.x), lerp(f.y, a.y, b.y));                                           \
-  }                                                                                                          \
-  /* vec3 */                                                                                                 \
-  inline UV vec3##T lerp(UV TYPE f, UV vec3##T a, UV vec3##T b) {                                            \
-    return make_vec3##T(lerp(f, a.x, b.x), lerp(f, a.y, b.y), lerp(f, a.z, b.z));                            \
-  }                                                                                                          \
-  inline UV vec3##T lerp(UV vec3f f, UV vec3##T a, UV vec3##T b) {                                           \
-    return make_vec3##T(lerp(f.x, a.x, b.x), lerp(f.y, a.y, b.y), lerp(f.z, a.z, b.z));                      \
-  }                                                                                                          \
-  /* vec4 */                                                                                                 \
-  inline UV vec4##T lerp(UV TYPE f, UV vec4##T a, UV vec4##T b) {                                            \
-    return make_vec4##T(lerp(f, a.x, b.x), lerp(f, a.y, b.y), lerp(f, a.z, b.z), lerp(f, a.w, b.w));         \
-  }                                                                                                          \
-  inline UV vec4##T lerp(UV vec4f f, UV vec4##T a, UV vec4##T b) {                                           \
-    return make_vec4##T(lerp(f.x, a.x, b.x), lerp(f.y, a.y, b.y), lerp(f.z, a.z, b.z), lerp(f.w, a.w, b.w)); \
-  }
-
-#define DEFINE_VEC_LERP(TYPE, T)       \
-  DEFINE_VEC_LERP_UV(uniform, TYPE, T) \
-  DEFINE_VEC_LERP_UV(varying, TYPE, T)
-
-DEFINE_VEC_LERP(float, f)
-
-#undef DEFINE_VEC_LERP_UV
-#undef DEFINE_VEC_LERP
-
-#define DEFINE_VEC_INTERPOLATE_UV(UV, TYPE, T)                          \
-  inline TYPE interpolate(vec3##T f, UV TYPE a, UV TYPE b, UV TYPE c) { \
-    return f.x*a + f.y*b + f.z*c;                                       \
-  }
-
-#define DEFINE_VEC_INTERPOLATE(TYPE, T)       \
-  DEFINE_VEC_INTERPOLATE_UV(uniform, TYPE, T) \
-  DEFINE_VEC_INTERPOLATE_UV(varying, TYPE, T)
-
-DEFINE_VEC_INTERPOLATE(vec2f, f)
-DEFINE_VEC_INTERPOLATE(vec3f, f)
-DEFINE_VEC_INTERPOLATE(vec4f, f)
-
-#undef DEFINE_VEC_INTERPOLATE_UV
-#undef DEFINE_VEC_INTERPOLATE
+#undef DEFINE_VEC_SELECT_UV
+#undef DEFINE_VEC_SELECT
 
 // -----------------------------------------------------------------------------
 // Reduction functions
@@ -618,33 +537,119 @@ DEFINE_VEC_REDUCE_BOOL(varying)
 #undef DEFINE_VEC_REDUCE_BOOL
 
 // -----------------------------------------------------------------------------
-// Select functions
+// Geometric functions
 // -----------------------------------------------------------------------------
 
-#define DEFINE_VEC_SELECT_UV(UV, UVA, UVB, T)                                                 \
-  inline UV vec2##T select(UV vec2b c, UVA vec2##T a, UVB vec2##T b) {                        \
-    return make_vec2##T(select(c.x, a.x, b.x), select(c.y, a.y, b.y));                        \
-  }                                                                                           \
-  inline UV vec3##T select(UV vec3b c, UVA vec3##T a, UVB vec3##T b) {                        \
-    return make_vec3##T(select(c.x, a.x, b.x), select(c.y, a.y, b.y), select(c.z, a.z, b.z)); \
-  }                                                                                           \
-  inline UV vec4##T select(UV vec4b c, UVA vec4##T a, UVB vec4##T b) {                        \
-    return make_vec4##T(select(c.x, a.x, b.x), select(c.y, a.y, b.y),                         \
-                        select(c.z, a.z, b.z), select(c.w, a.w, b.w));                        \
+inline uniform float dot(uniform vec3f a, uniform vec3f b) {
+  return a.x*b.x + a.y*b.y + a.z*b.z;
+}
+inline varying float dot(varying vec3f a, varying vec3f b) {
+  return a.x*b.x + a.y*b.y + a.z*b.z;
+}
+
+inline uniform float length(uniform vec3f a) { return sqrt(dot(a,a)); }
+inline varying float length(varying vec3f a) { return sqrt(dot(a,a)); }
+
+inline uniform float distance(uniform vec3f a, uniform vec3f b) { return length(a - b); }
+inline varying float distance(varying vec3f a, varying vec3f b) { return length(a - b); }
+
+inline uniform vec3f normalize(uniform vec3f v) { return v * (1.f/sqrt(dot(v,v))); }
+inline varying vec3f normalize(varying vec3f v) { return v * (1.f/sqrt(dot(v,v))); }
+
+inline varying vec3f normalize(varying vec3f v, varying float &len) {
+  len = sqrt(dot(v,v));
+  return v * rcp(len);
+}
+
+inline uniform vec3f normalize_safe(uniform vec3f v) {
+  const uniform float rcpLen = rsqrt(dot(v,v));
+  return isfinite(rcpLen) ? (v * rcpLen) : make_vec3f(0.f);
+}
+inline varying vec3f normalize_safe(varying vec3f v) {
+  const varying float rcpLen = rsqrt(dot(v,v));
+  return isfinite(rcpLen) ? (v * rcpLen) : make_vec3f(0.f);
+}
+
+// Differentiated normalization
+inline varying vec3f dnormalize(varying vec3f p, varying vec3f dp)
+{
+  const float pp  = dot(p,p);
+  const float pdp = dot(p,dp);
+  return (pp*dp-pdp*p)*rcp(pp)*rsqrt(pp);
+}
+
+#define DEFINE_VEC_CROSS(UV, UVA, UVB)              \
+  inline UV vec3f cross(UVA vec3f a, UVB vec3f b) { \
+    return make_vec3f(a.y*b.z - a.z*b.y,            \
+                      a.z*b.x - a.x*b.z,            \
+                      a.x*b.y - a.y*b.x);           \
   }
 
-#define DEFINE_VEC_SELECT(T)                         \
-  DEFINE_VEC_SELECT_UV(uniform, uniform, uniform, T) \
-  DEFINE_VEC_SELECT_UV(varying, uniform, uniform, T) \
-  DEFINE_VEC_SELECT_UV(varying, uniform, varying, T) \
-  DEFINE_VEC_SELECT_UV(varying, varying, uniform, T) \
-  DEFINE_VEC_SELECT_UV(varying, varying, varying, T)
+DEFINE_VEC_CROSS(uniform, uniform, uniform)
+DEFINE_VEC_CROSS(varying, varying, varying)
+DEFINE_VEC_CROSS(varying, varying, uniform)
+DEFINE_VEC_CROSS(varying, uniform, varying)
 
-DEFINE_VEC_SELECT(f)
-DEFINE_VEC_SELECT(i)
+#undef DEFINE_VEC_CROSS
 
-#undef DEFINE_VEC_SELECT_UV
-#undef DEFINE_VEC_SELECT
+inline uniform vec3f rotate(uniform vec3f v, uniform vec3f axis, uniform float theta) {
+  return v * cos(theta) + cross(axis, v) * sin(theta) + axis * dot(axis, v) * (1.f - cos(theta));
+}
+inline varying vec3f rotate(varying vec3f v, varying vec3f axis, varying float theta) {
+  return v * cos(theta) + cross(axis, v) * sin(theta) + axis * dot(axis, v) * (1.f - cos(theta));
+}
+
+// -----------------------------------------------------------------------------
+// Interpolation functions
+// -----------------------------------------------------------------------------
+
+#define DEFINE_VEC_LERP_UV(UV, TYPE, T)                                                                      \
+  /* vec2 */                                                                                                 \
+  inline UV vec2##T lerp(UV TYPE f, UV vec2##T a, UV vec2##T b) {                                            \
+    return make_vec2##T(lerp(f, a.x, b.x), lerp(f, a.y, b.y));                                               \
+  }                                                                                                          \
+  inline UV vec2##T lerp(UV vec2f f, UV vec2##T a, UV vec2##T b) {                                           \
+    return make_vec2##T(lerp(f.x, a.x, b.x), lerp(f.y, a.y, b.y));                                           \
+  }                                                                                                          \
+  /* vec3 */                                                                                                 \
+  inline UV vec3##T lerp(UV TYPE f, UV vec3##T a, UV vec3##T b) {                                            \
+    return make_vec3##T(lerp(f, a.x, b.x), lerp(f, a.y, b.y), lerp(f, a.z, b.z));                            \
+  }                                                                                                          \
+  inline UV vec3##T lerp(UV vec3f f, UV vec3##T a, UV vec3##T b) {                                           \
+    return make_vec3##T(lerp(f.x, a.x, b.x), lerp(f.y, a.y, b.y), lerp(f.z, a.z, b.z));                      \
+  }                                                                                                          \
+  /* vec4 */                                                                                                 \
+  inline UV vec4##T lerp(UV TYPE f, UV vec4##T a, UV vec4##T b) {                                            \
+    return make_vec4##T(lerp(f, a.x, b.x), lerp(f, a.y, b.y), lerp(f, a.z, b.z), lerp(f, a.w, b.w));         \
+  }                                                                                                          \
+  inline UV vec4##T lerp(UV vec4f f, UV vec4##T a, UV vec4##T b) {                                           \
+    return make_vec4##T(lerp(f.x, a.x, b.x), lerp(f.y, a.y, b.y), lerp(f.z, a.z, b.z), lerp(f.w, a.w, b.w)); \
+  }
+
+#define DEFINE_VEC_LERP(TYPE, T)       \
+  DEFINE_VEC_LERP_UV(uniform, TYPE, T) \
+  DEFINE_VEC_LERP_UV(varying, TYPE, T)
+
+DEFINE_VEC_LERP(float, f)
+
+#undef DEFINE_VEC_LERP_UV
+#undef DEFINE_VEC_LERP
+
+#define DEFINE_VEC_INTERPOLATE_UV(UV, TYPE, T)                          \
+  inline TYPE interpolate(vec3##T f, UV TYPE a, UV TYPE b, UV TYPE c) { \
+    return f.x*a + f.y*b + f.z*c;                                       \
+  }
+
+#define DEFINE_VEC_INTERPOLATE(TYPE, T)       \
+  DEFINE_VEC_INTERPOLATE_UV(uniform, TYPE, T) \
+  DEFINE_VEC_INTERPOLATE_UV(varying, TYPE, T)
+
+DEFINE_VEC_INTERPOLATE(vec2f, f)
+DEFINE_VEC_INTERPOLATE(vec3f, f)
+DEFINE_VEC_INTERPOLATE(vec4f, f)
+
+#undef DEFINE_VEC_INTERPOLATE_UV
+#undef DEFINE_VEC_INTERPOLATE
 
 // -----------------------------------------------------------------------------
 // Get/set functions
