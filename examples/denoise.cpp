@@ -139,6 +139,23 @@ int main(int argc, char* argv[])
     if (colorFilename.empty())
       throw std::runtime_error("no color image specified");
 
+    if (!refFilename.empty() && numBenchmarkRuns > 0)
+      throw std::runtime_error("reference and benchmark modes cannot be enabled at the same time");
+
+    // Set MXCSR flags
+    if (!refFilename.empty())
+    {
+      // In reference mode we have to disable the FTZ and DAZ flags to get accurate results
+      _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_OFF);
+      _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_OFF);
+    }
+    else
+    {
+      // Enable the FTZ and DAZ flags to maximize performance
+      _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
+      _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
+    }
+
     // Load the input image
     ImageBuffer color, albedo, normal;
     ImageBuffer ref;
@@ -263,18 +280,18 @@ int main(int argc, char* argv[])
     filter.setProgressMonitorFunction(nullptr);
     signal(SIGINT, SIG_DFL);
 
+    int nerr = 0;
     if (ref)
     {
       // Verify the output values
       std::cout << "Verifying output" << std::endl;
 
       ImageBuffer diff(width, height, 3);
-      int nerr = 0;
       float maxre = 0;
 
       for (int i = 0; i < output.getDataSize(); ++i)
       {
-        float expect = std::max(ref[i], 0.f);
+        const float expect = ref[i];
         const float actual = output[i];
         float re;
         if (std::abs(expect) < 1e-5 && std::abs(actual) < 1e-5)
@@ -284,7 +301,7 @@ int main(int argc, char* argv[])
         else
           re = std::abs(expect - actual);
         if (maxre < re) maxre = re;
-        if (re > 2e-2)
+        if (re > 1e-4)
         {
           //std::cout << "i=" << i << " expect=" << expect << " actual=" << actual << std::endl;
           ++nerr;
@@ -308,6 +325,9 @@ int main(int argc, char* argv[])
       std::cout << "Saving output" << std::endl;
       saveImage(outputFilename, output, srgb);
     }
+
+    if (nerr > 0)
+      throw std::runtime_error("output does not match the reference");
 
     if (numBenchmarkRuns > 0)
     {
