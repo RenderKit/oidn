@@ -16,6 +16,7 @@
 #endif
 
 #include <xmmintrin.h>
+#include <pmmintrin.h>
 #include <cstdint>
 #include <climits>
 #include <limits>
