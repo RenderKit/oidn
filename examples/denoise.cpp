@@ -37,7 +37,6 @@ void errorCallback(void* userPtr, oidn::Error error, const char* message)
 }
 
 volatile bool isCancelled = false;
-int verbose = -1;
 
 void signalHandler(int signal)
 {
@@ -48,8 +47,7 @@ bool progressCallback(void* userPtr, double n)
 {
   if (isCancelled)
     return false;
-  if (verbose <= 2)
-    std::cout << "\rDenoising " << int(n * 100.) << "%" << std::flush;
+  std::cout << "\rDenoising " << int(n * 100.) << "%" << std::flush;
   return true;
 }
 
@@ -80,6 +78,7 @@ int main(int argc, char* argv[])
   int numThreads = -1;
   int setAffinity = -1;
   int maxMemoryMB = -1;
+  int verbose = -1;
 
   // Parse the arguments
   if (argc == 1)
@@ -252,8 +251,12 @@ int main(int argc, char* argv[])
     if (!weights.empty())
       filter.setData("weights", weights.data(), weights.size());
 
-    filter.setProgressMonitorFunction(progressCallback);
-    signal(SIGINT, signalHandler);
+    const bool showProgress = !ref && numBenchmarkRuns == 0 && verbose <= 2;
+    if (showProgress)
+    {
+      filter.setProgressMonitorFunction(progressCallback);
+      signal(SIGINT, signalHandler);
+    }
 
     filter.commit();
 
@@ -268,18 +271,23 @@ int main(int argc, char* argv[])
               << ", msec=" << (1000. * initTime) << std::endl;
 
     // Denoise the image
-    if (verbose > 2)
+    if (!showProgress)
       std::cout << "Denoising" << std::endl;
     timer.reset();
 
     filter.execute();
 
     const double denoiseTime = timer.query();
+    if (showProgress)
+      std::cout << std::endl;
     if (verbose <= 2)
-      std::cout << std::endl << "  msec=" << (1000. * denoiseTime) << std::endl;
+      std::cout << "  msec=" << (1000. * denoiseTime) << std::endl;
 
-    filter.setProgressMonitorFunction(nullptr);
-    signal(SIGINT, SIG_DFL);
+    if (showProgress)
+    {
+      filter.setProgressMonitorFunction(nullptr);
+      signal(SIGINT, SIG_DFL);
+    }
 
     int nerr = 0;
     if (ref)
