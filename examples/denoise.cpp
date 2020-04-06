@@ -22,12 +22,13 @@ using namespace oidn;
 void printUsage()
 {
   std::cout << "Intel(R) Open Image Denoise - Example" << std::endl;
-  std::cout << "usage: denoise [-f RT|RTLightmap]" << std::endl
-            << "               [-ldr ldr_color.pfm] [-srgb] [-hdr hdr_color.pfm]" << std::endl
-            << "               [-alb albedo.pfm] [-nrm normal.pfm]" << std::endl
-            << "               [-o output.pfm] [-ref reference_output.pfm]" << std::endl
-            << "               [-w weights.tza]" << std::endl
-            << "               [-bench ntimes] [-threads n] [-affinity 0|1] [-maxmem MB] [-verbose 0-3]" << std::endl;
+  std::cout << "usage: denoise [-f/--filter RT|RTLightmap]" << std::endl
+            << "               [--ldr color.pfm] [--srgb] [--hdr color.pfm]" << std::endl
+            << "               [--alb albedo.pfm] [--nrm normal.pfm]" << std::endl
+            << "               [-o/--output output.pfm] [-r/--ref reference_output.pfm]" << std::endl
+            << "               [-w/--weights weights.tza]" << std::endl
+            << "               [--threads n] [--affinity 0|1] [--maxmem MB]" << std::endl
+            << "               [--bench ntimes] [-v/--verbose 0-3]" << std::endl;
 }
 
 void errorCallback(void* userPtr, oidn::Error error, const char* message)
@@ -113,7 +114,7 @@ int main(int argc, char* argv[])
         normalFilename = args.getNextValue();
       else if (opt == "o" || opt == "out" || opt == "output")
         outputFilename = args.getNextValue();
-      else if (opt == "ref" || opt == "reference")
+      else if (opt == "r" || opt == "ref" || opt == "reference")
         refFilename = args.getNextValue();
       else if (opt == "w" || opt == "weights")
         weightsFilename = args.getNextValue();
@@ -125,7 +126,7 @@ int main(int argc, char* argv[])
         setAffinity = args.getNextValueInt();
       else if (opt == "maxmem")
         maxMemoryMB = args.getNextValueInt();
-      else if (opt == "verbose")
+      else if (opt == "v" || opt == "verbose")
         verbose = args.getNextValueInt();
       else if (opt == "h" || opt == "help")
       {
