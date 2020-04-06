@@ -160,14 +160,15 @@ def main():
         output_name = input_name + '_' + cfg.result
         if cfg.checkpoint:
           output_name += '_%d' % epoch
-        save_images(os.path.join(output_dir, input_name),  input,  input_srgb)
+        if cfg.save_all:
+          save_images(os.path.join(output_dir, input_name),  input,  input_srgb)
         save_images(os.path.join(output_dir, output_name), output, output_srgb)
 
         # Print progress
         print(progress_str)
 
       # Save the target image if it exists
-      if target_name:
+      if cfg.save_all and target_name:
         save_images(os.path.join(output_dir, target_name), target, target_srgb)
 
 if __name__ == '__main__':
