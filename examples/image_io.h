@@ -47,8 +47,8 @@ namespace oidn {
     int getDataSize() const { return int(data.size()); }
   };
 
-  ImageBuffer loadImage(const std::string& filename);
-  ImageBuffer loadImage(const std::string& filename, bool srgb);
+  ImageBuffer loadImage(const std::string& filename, int channels = 0);
+  ImageBuffer loadImage(const std::string& filename, int channels, bool srgb);
   void saveImage(const std::string& filename, const ImageBuffer& image);
   void saveImage(const std::string& filename, const ImageBuffer& image, bool srgb);
 

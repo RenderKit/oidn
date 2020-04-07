@@ -162,28 +162,26 @@ int main(int argc, char* argv[])
 
     std::cout << "Loading input" << std::endl;
 
-    color = loadImage(colorFilename, srgb);
-    if (color.getChannels() < 3)
-      throw std::runtime_error("invalid color image");
+    color = loadImage(colorFilename, 3, srgb);
 
     if (!albedoFilename.empty())
     {
-      albedo = loadImage(albedoFilename, false);
-      if (albedo.getChannels() < 3 || albedo.getSize() != color.getSize())
+      albedo = loadImage(albedoFilename, 3, false);
+      if (albedo.getSize() != color.getSize())
         throw std::runtime_error("invalid albedo image");
     }
 
     if (!normalFilename.empty())
     {
-      normal = loadImage(normalFilename);
-      if (normal.getChannels() < 3 || normal.getSize() != color.getSize())
+      normal = loadImage(normalFilename, 3);
+      if (normal.getSize() != color.getSize())
         throw std::runtime_error("invalid normal image");
     }
 
     if (!refFilename.empty())
     {
-      ref = loadImage(refFilename, srgb);
-      if (ref.getChannels() != 3 || ref.getSize() != color.getSize())
+      ref = loadImage(refFilename, 3, srgb);
+      if (ref.getSize() != color.getSize())
         throw std::runtime_error("invalid reference output image");
     }
 
@@ -223,20 +221,11 @@ int main(int argc, char* argv[])
 
     oidn::FilterRef filter = device.newFilter(filterType.c_str());
 
-    const size_t colorStride = color.getChannels() * sizeof(float);
-    filter.setImage("color", color.getData(), oidn::Format::Float3, width, height, 0, colorStride);
-
+    filter.setImage("color", color.getData(), oidn::Format::Float3, width, height, 0, 0);
     if (albedo)
-    {
-      const size_t albedoStride = albedo.getChannels() * sizeof(float);
-      filter.setImage("albedo", albedo.getData(), oidn::Format::Float3, width, height, 0, albedoStride);
-    }
-
+      filter.setImage("albedo", albedo.getData(), oidn::Format::Float3, width, height, 0, 0);
     if (normal)
-    {
-      const size_t normalStride = normal.getChannels() * sizeof(float);
-      filter.setImage("normal", normal.getData(), oidn::Format::Float3, width, height, 0, normalStride);
-    }
+      filter.setImage("normal", normal.getData(), oidn::Format::Float3, width, height, 0, 0);
 
     filter.setImage("output", output.getData(), oidn::Format::Float3, width, height);
 
@@ -361,7 +350,7 @@ int main(int argc, char* argv[])
   }
   catch (std::exception& e)
   {
-    std::cout << "Error: " << e.what() << std::endl;
+    std::cerr << "Error: " << e.what() << std::endl;
     return 1;
   }
 

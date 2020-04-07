@@ -48,7 +48,7 @@ namespace oidn {
       }
     }
 
-    ImageBuffer loadImagePFM(const std::string& filename)
+    ImageBuffer loadImagePFM(const std::string& filename, int channels)
     {
       // Open the file
       std::ifstream file(filename, std::ios::binary);
@@ -66,6 +66,11 @@ namespace oidn {
       else
         throw std::runtime_error("invalid PFM image");
 
+      if (channels == 0)
+        channels = C;
+      else if (C < channels)
+        throw std::runtime_error("not enough image channnels");
+
       int H, W;
       file >> W >> H;
 
@@ -82,7 +87,7 @@ namespace oidn {
       scale = fabs(scale);
 
       // Read the pixels
-      ImageBuffer image(W, H, C);
+      ImageBuffer image(W, H, channels);
 
       for (int h = 0; h < H; ++h)
       {
@@ -92,7 +97,8 @@ namespace oidn {
           {
             float x;
             file.read((char*)&x, sizeof(float));
-            image[((H-1-h)*W + w) * C + c] = x * scale;
+            if (c < channels)
+              image[((H-1-h)*W + w) * channels + c] = x * scale;
           }
         }
       }
@@ -165,7 +171,7 @@ namespace oidn {
   }
 
 #ifdef OIDN_USE_OPENIMAGEIO
-  ImageBuffer loadImageOIIO(const std::string& filename)
+  ImageBuffer loadImageOIIO(const std::string& filename, int channels)
   {
     ImageBuffer buf;
     auto in = OIIO::ImageInput::open(filename);
@@ -173,8 +179,12 @@ namespace oidn {
       throw std::runtime_error("cannot open image file: " + filename);
 
     const OIIO::ImageSpec& spec = in->spec();
-    buf = ImageBuffer(spec.width, spec.height, spec.nchannels);
-    if (!in->read_image(OIIO::TypeDesc::FLOAT, buf.getData()))
+    if (channels == 0)
+      channels = spec.nchannels;
+    else if (spec.nchannels < channels)
+      throw std::runtime_error("not enough image channels");
+    buf = ImageBuffer(spec.width, spec.height, channels);
+    if (!in->read_image(0, 0, 0, channels, OIIO::TypeDesc::FLOAT, buf.getData()))
       throw std::runtime_error("failed to read image data");
     in->close();
 
@@ -207,16 +217,16 @@ namespace oidn {
   }
 #endif
 
-  ImageBuffer loadImage(const std::string& filename)
+  ImageBuffer loadImage(const std::string& filename, int channels)
   {
     const std::string ext = getExtension(filename);
     ImageBuffer image;
 
     if (ext == "pfm")
-      image = loadImagePFM(filename);
+      image = loadImagePFM(filename, channels);
     else
 #if OIDN_USE_OPENIMAGEIO
-      image = loadImageOIIO(filename);
+      image = loadImageOIIO(filename, channels);
 #else
       throw std::runtime_error("cannot load unsupported image file format: " + filename);
 #endif
@@ -245,9 +255,9 @@ namespace oidn {
     return ext != "pfm" && ext != "exr" && ext != "hdr";
   }
 
-  ImageBuffer loadImage(const std::string& filename, bool srgb)
+  ImageBuffer loadImage(const std::string& filename, int channels, bool srgb)
   {
-    ImageBuffer image = loadImage(filename);
+    ImageBuffer image = loadImage(filename, channels);
     if (!srgb && isSrgbImage(filename))
       srgbInverse(image);
     return image;
