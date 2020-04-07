@@ -14,7 +14,7 @@
 #include <OpenImageDenoise/oidn.hpp>
 
 #include "common/timer.h"
-#include "image_io.h"
+#include "image_util.h"
 #include "cli.h"
 
 using namespace oidn;
@@ -167,21 +167,21 @@ int main(int argc, char* argv[])
     if (!albedoFilename.empty())
     {
       albedo = loadImage(albedoFilename, 3, false);
-      if (albedo.getSize() != color.getSize())
+      if (albedo.getDims() != color.getDims())
         throw std::runtime_error("invalid albedo image");
     }
 
     if (!normalFilename.empty())
     {
       normal = loadImage(normalFilename, 3);
-      if (normal.getSize() != color.getSize())
+      if (normal.getDims() != color.getDims())
         throw std::runtime_error("invalid normal image");
     }
 
     if (!refFilename.empty())
     {
       ref = loadImage(refFilename, 3, srgb);
-      if (ref.getSize() != color.getSize())
+      if (ref.getDims() != color.getDims())
         throw std::runtime_error("invalid reference output image");
     }
 
@@ -285,29 +285,10 @@ int main(int argc, char* argv[])
       std::cout << "Verifying output" << std::endl;
 
       ImageBuffer diff(width, height, 3);
-      float maxre = 0;
+      float maxre;
+      std::tie(nerr, maxre) = compareImages(output, ref, diff, 1e-3);
 
-      for (int i = 0; i < output.getDataSize(); ++i)
-      {
-        const float expect = ref[i];
-        const float actual = output[i];
-        float re;
-        if (std::abs(expect) < 1e-5 && std::abs(actual) < 1e-5)
-          re = 0;
-        else if (expect != 0)
-          re = std::abs((expect - actual) / expect);
-        else
-          re = std::abs(expect - actual);
-        if (maxre < re) maxre = re;
-        if (re > 1e-3)
-        {
-          //std::cout << "i=" << i << " expect=" << expect << " actual=" << actual << std::endl;
-          ++nerr;
-        }
-
-        diff[i] = std::abs(ref[i] - output[i]);
-      }
-      std::cout << "  nfloats=" << output.getDataSize() << ", nerr=" << nerr << ", maxre=" << maxre << std::endl;
+      std::cout << "  nfloats=" << output.getSize() << ", nerr=" << nerr << ", maxre=" << maxre << std::endl;
 
       // Save debug images
       std::cout << "Saving debug images" << std::endl;

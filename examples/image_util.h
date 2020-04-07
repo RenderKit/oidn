@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <array>
+#include <tuple>
 
 namespace oidn {
 
@@ -25,7 +26,7 @@ namespace oidn {
 
     ImageBuffer(int width, int height, int channels)
       : data(width * height * channels),
-        width(width),
+      width(width),
         height(height),
         channels(channels) {}
 
@@ -39,17 +40,32 @@ namespace oidn {
 
     int getWidth() const { return width; }
     int getHeight() const { return height; }
-    std::array<int, 2> getSize() const { return {width, height}; }
+    std::array<int, 3> getDims() const { return {width, height, channels}; }
     int getChannels() const { return channels; }
 
     const float* getData() const { return data.data(); }
     float* getData() { return data.data(); }
-    int getDataSize() const { return int(data.size()); }
+    int getSize() const { return int(data.size()); }
   };
 
+  // Loads an image with an optionally specified number of channels (loads all
+  // channels by default)
   ImageBuffer loadImage(const std::string& filename, int channels = 0);
+
+  // Loads an image with/without sRGB to linear conversion
   ImageBuffer loadImage(const std::string& filename, int channels, bool srgb);
+
+  // Saves an image
   void saveImage(const std::string& filename, const ImageBuffer& image);
+
+  // Saves an image with/without linear to sRGB conversion
   void saveImage(const std::string& filename, const ImageBuffer& image, bool srgb);
+
+  // Compares two images: computes the difference image and returns the number
+  // of errors and the maximum relative error
+  std::tuple<int, float> compareImages(const ImageBuffer& image,
+                                       const ImageBuffer& ref,
+                                       ImageBuffer& diff,
+                                       float relErrorThreshold);
 
 } // namespace oidn

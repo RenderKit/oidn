@@ -3,7 +3,7 @@
 
 #include <cmath>
 #include <fstream>
-#include "image_io.h"
+#include "image_util.h"
 
 #if defined(OIDN_USE_OPENIMAGEIO)
   #include <OpenImageIO/imageio.h>
@@ -25,13 +25,13 @@ namespace oidn {
 
     void srgbForward(ImageBuffer& image)
     {
-      for (int i = 0; i < image.getDataSize(); ++i)
+      for (int i = 0; i < image.getSize(); ++i)
         image[i] = srgbForward(image[i]);
     }
 
     void srgbInverse(ImageBuffer& image)
     {
-      for (int i = 0; i < image.getDataSize(); ++i)
+      for (int i = 0; i < image.getSize(); ++i)
         image[i] = srgbInverse(image[i]);
     }
 
@@ -275,6 +275,41 @@ namespace oidn {
     {
       saveImage(filename, image);
     }
+  }
+
+  std::tuple<int, float> compareImages(const ImageBuffer& image,
+                                       const ImageBuffer& ref,
+                                       ImageBuffer& diff,
+                                       float relErrorThreshold)
+  {
+    assert(ref.getDims() == image.getDims());
+    assert(diff.getDims() == image.getDims());
+
+    int nerr = 0;
+    float maxre = 0;
+
+    for (int i = 0; i < image.getSize(); ++i)
+    {
+      const float actual = image[i];
+      const float expect = ref[i];
+      float re;
+      if (std::abs(expect) < 1e-5 && std::abs(actual) < 1e-5)
+        re = 0;
+      else if (expect != 0)
+        re = std::abs((expect - actual) / expect);
+      else
+        re = std::abs(expect - actual);
+      if (maxre < re) maxre = re;
+      if (re > relErrorThreshold)
+      {
+        //std::cerr << "i=" << i << " expect=" << expect << " actual=" << actual << std::endl;
+        ++nerr;
+      }
+
+      diff[i] = std::abs(ref[i] - image[i]);
+    }
+
+    return std::make_tuple(nerr, maxre);
   }
 
 } // namespace oidn
