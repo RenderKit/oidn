@@ -46,7 +46,6 @@ export void OutputReorder_kernel(uniform OutputReorder* uniform self, uniform in
     value = self->transferFunc->inverse(self->transferFunc, value);
 
     // Sanitize
-    value = max(value, 0.f);
     if (!self->hdr)
       value = min(value, 1.f);
 
