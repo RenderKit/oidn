@@ -73,7 +73,7 @@ def test(result, filter, features, dataset):
           if memory_use == 'himem':
             denoise_cmd += ' --maxmem 16384'
           elif memory_use == 'lomem':
-            denoise_cmd += ' --maxmem 256'
+            denoise_cmd += ' --maxmem 300'
 
           if arch != 'native':
             denoise_cmd = ('sde -%s -- ' % arch) + denoise_cmd
