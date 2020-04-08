@@ -9,4 +9,4 @@ endmacro()
 
 add_subdirectory(utils)
 add_subdirectory(denoise)
-add_subdirectory(test)
+add_subdirectory(tests)
