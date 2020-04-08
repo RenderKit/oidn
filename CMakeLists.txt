@@ -241,13 +241,15 @@ configure_file(
   "${PROJECT_SOURCE_DIR}/include/OpenImageDenoise/version.h"
 )
 
+set(OIDN_RESOURCE ${PROJECT_SOURCE_DIR}/common/oidn.rc)
+
 add_subdirectory(common EXCLUDE_FROM_ALL)
 
 set(CORE_SOURCES
   include/OpenImageDenoise/oidn.h
   include/OpenImageDenoise/oidn.hpp
   include/OpenImageDenoise/version.h
-  common/oidn.rc
+  ${OIDN_RESOURCE}
   core/autoencoder.h
   core/autoencoder.cpp
   core/api.cpp
@@ -316,10 +318,13 @@ set_property(TARGET ${PROJECT_NAME} PROPERTY VERSION ${PROJECT_VERSION})
 set_property(TARGET ${PROJECT_NAME} PROPERTY SOVERSION "0")
 
 ## -----------------------------------------------------------------------------
-## OIDN: Examples
+## OIDN: Apps
 ## -----------------------------------------------------------------------------
 
-add_subdirectory(examples)
+option(OIDN_APPS "Enable building example and test apps." ON)
+if(OIDN_APPS)
+  add_subdirectory(apps)
+endif()
 
 ## -----------------------------------------------------------------------------
 ## OIDN: Install and packaging

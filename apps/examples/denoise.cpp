@@ -14,8 +14,8 @@
 #include <OpenImageDenoise/oidn.hpp>
 
 #include "common/timer.h"
-#include "image_io.h"
-#include "cli.h"
+#include "apps/utils/image_io.h"
+#include "apps/utils/arg_parser.h"
 
 using namespace oidn;
 

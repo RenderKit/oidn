@@ -167,7 +167,7 @@ in CMake:
   (Debug), Release mode (Release) (default), and Release mode with
   enabled assertions and debug symbols (RelWithDebInfo).
 
-- `OIDN_STATIC_LIB`: Builds Intel Open Image Denoise as a static library (OFF by
+- `OIDN_STATIC_LIB`: Build Intel Open Image Denoise as a static library (OFF by
   default). CMake 3.13.0 or later is required to enable this option. When using
   the statically compiled Intel Open Image Denoise library, you either have to
   use the generated CMake configuration files (recommended), or you have to
@@ -177,9 +177,11 @@ in CMake:
 - `OIDN_STATIC_RUNTIME`: Use the static version of the C/C++ runtime library
   (available only on Windows, OFF by default).
 
-- `OIDN_EXAMPLES_OPENIMAGEIO`: Enables [OpenImageIO](http://openimageio.org/)
-  support in the examples to be able to load/save OpenEXR, PNG, and other image
-  file formats (OFF by default).
+- `OIDN_APPS`: Enable building example and test applications (ON by default).
+
+- `OIDN_APPS_OPENIMAGEIO`: Enable [OpenImageIO](http://openimageio.org/)
+  support in the example and test applications to be able to load/save
+  OpenEXR, PNG, and other image file formats (OFF by default).
 
 - `TBB_ROOT`: The path to the TBB installation (autodetected by default).
 
