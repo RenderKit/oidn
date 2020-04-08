@@ -221,11 +221,11 @@ int main(int argc, char* argv[])
 
     oidn::FilterRef filter = device.newFilter(filterType.c_str());
 
-    filter.setImage("color", color.getData(), oidn::Format::Float3, width, height, 0, 0);
+    filter.setImage("color", color.getData(), oidn::Format::Float3, width, height);
     if (albedo)
-      filter.setImage("albedo", albedo.getData(), oidn::Format::Float3, width, height, 0, 0);
+      filter.setImage("albedo", albedo.getData(), oidn::Format::Float3, width, height);
     if (normal)
-      filter.setImage("normal", normal.getData(), oidn::Format::Float3, width, height, 0, 0);
+      filter.setImage("normal", normal.getData(), oidn::Format::Float3, width, height);
 
     filter.setImage("output", output.getData(), oidn::Format::Float3, width, height);
 
