@@ -283,7 +283,6 @@ namespace oidn {
                                       float threshold)
   {
     assert(ref.getDims() == image.getDims());
-    assert(diff.getDims() == image.getDims());
 
     int numErrors = 0;
     float maxError = 0;
