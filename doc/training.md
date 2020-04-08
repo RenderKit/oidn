@@ -99,27 +99,25 @@ The following directory tree demonstrates an example root dataset directory
 (`data`) containing one dataset (`rt_train`) with HDR color and albedo
 feature images:
 
-```
-data
-`-- rt_train
-    |-- scene1
-    |   |-- view1_0001.alb.exr
-    |   |-- view1_0001.hdr.exr
-    |   |-- view1_0004.alb.exr
-    |   |-- view1_0004.hdr.exr
-    |   |-- view1_8192.alb.exr
-    |   |-- view1_8192.hdr.exr
-    |   |-- view2_0001.alb.exr
-    |   |-- view2_0001.hdr.exr
-    |   |-- view2_8192.alb.exr
-    |   `-- view2_8192.hdr.exr
-    |-- scene2_000008spp.alb.exr
-    |-- scene2_000008spp.hdr.exr
-    |-- scene2_000064spp.alb.exr
-    |-- scene2_000064spp.hdr.exr
-    |-- scene2_reference.alb.exr
-    `-- scene2_reference.hdr.exr
-```
+    data
+    `-- rt_train
+        |-- scene1
+        |   |-- view1_0001.alb.exr
+        |   |-- view1_0001.hdr.exr
+        |   |-- view1_0004.alb.exr
+        |   |-- view1_0004.hdr.exr
+        |   |-- view1_8192.alb.exr
+        |   |-- view1_8192.hdr.exr
+        |   |-- view2_0001.alb.exr
+        |   |-- view2_0001.hdr.exr
+        |   |-- view2_8192.alb.exr
+        |   `-- view2_8192.hdr.exr
+        |-- scene2_000008spp.alb.exr
+        |-- scene2_000008spp.hdr.exr
+        |-- scene2_000064spp.alb.exr
+        |-- scene2_000064spp.hdr.exr
+        |-- scene2_reference.alb.exr
+        `-- scene2_reference.hdr.exr
 
 Preprocessing (preprocess.py)
 -----------------------------
@@ -145,16 +143,12 @@ For example, to preprocess the training and validation datasets (`rt_train` and
 `rt_valid`) with HDR color, albedo, and normal image features, for training the
 `RT` filter, the following command can be used:
 
-```console
-./preprocess.py hdr alb nrm --filter RT --train_data rt_train --valid_data rt_valid
-```
+    ./preprocess.py hdr alb nrm --filter RT --train_data rt_train --valid_data rt_valid
 
 For more details about using the preprocessing script, including other options,
 please have a look at the help message:
 
-```console
-./preprocess.py -h
-```
+    ./preprocess.py -h
 
 Training (train.py)
 -------------------
@@ -186,9 +180,7 @@ learning rate will be linearly ramped down to almost zero.
 
 Example usage:
 
-```console
-./train.py hdr alb --filter RT --train_data rt_train --valid_data rt_valid --result rt_hdr_alb
-```
+    ./train.py hdr alb --filter RT --train_data rt_train --valid_data rt_valid --result rt_hdr_alb
 
 For finding the optimal learning rate range we recommend using the included
 `find_lr.py` script, which trains one epoch using an increasing learning rate
@@ -203,9 +195,7 @@ are logged (e.g. training and validation losses, learning rate) at a specified
 frequency (`--log_steps` option), which can be later visualized with TensorBoard
 by running the `visualize.py` script, e.g.:
 
-```console
-./visualize.py --result rt_hdr_alb
-```
+    ./visualize.py --result rt_hdr_alb
 
 Inference (infer.py)
 --------------------
@@ -226,9 +216,7 @@ Lighting* presentation) and converted to sRGB before evaluating the metrics.
 
 Example usage:
 
-```console
-./infer.py --result rt_hdr_alb --input_data rt_test --format exr png --metric ssim
-```
+    ./infer.py --result rt_hdr_alb --input_data rt_test --format exr png --metric ssim
 
 Exporting Results (export.py)
 -----------------------------
@@ -243,9 +231,7 @@ weights files.
 
 Example usage:
 
-```console
-./export.py --result rt_hdr_alb
-```
+    ./export.py --result rt_hdr_alb
 
 Image Conversion and Comparison
 -------------------------------
@@ -258,14 +244,10 @@ different feature, e.g. HDR color to LDR), performing tonemapping and other
 transforms as well if needed. For HDR images the exposure can be adjusted by
 passing a linear exposure scale (`-E` or `--exposure` option). Example usage:
 
-```console
-./convert_image.py view1_0004.hdr.exr view1_0004.png --exposure 2.5
-```
+    ./convert_image.py view1_0004.hdr.exr view1_0004.png --exposure 2.5
 
 The `compare_image.py` script compares two feature images (preferably having the
 dataset filename format to correctly detect the feature) using the specified
 image quality metrics, similar to the `infer.py` tool. Example usage:
 
-```console
-./compare_image.py view1_0004.hdr.exr view1_8192.hdr.exr --exposure 2.5 --metric mse ssim
-```
+    ./compare_image.py view1_0004.hdr.exr view1_8192.hdr.exr --exposure 2.5 --metric mse ssim
