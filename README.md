@@ -237,7 +237,7 @@ that can be configured in CMake:
     (Debug), Release mode (Release) (default), and Release mode with
     enabled assertions and debug symbols (RelWithDebInfo).
 
-  - `OIDN_STATIC_LIB`: Builds Intel Open Image Denoise as a static
+  - `OIDN_STATIC_LIB`: Build Intel Open Image Denoise as a static
     library (OFF by default). CMake 3.13.0 or later is required to
     enable this option. When using the statically compiled Intel Open
     Image Denoise library, you either have to use the generated CMake
@@ -248,10 +248,13 @@ that can be configured in CMake:
   - `OIDN_STATIC_RUNTIME`: Use the static version of the C/C++ runtime
     library (available only on Windows, OFF by default).
 
-  - `OIDN_EXAMPLES_OPENIMAGEIO`: Enables
-    [OpenImageIO](http://openimageio.org/) support in the examples to be
-    able to load/save OpenEXR, PNG, and other image file formats (OFF by
+  - `OIDN_APPS`: Enable building example and test applications (ON by
     default).
+
+  - `OIDN_APPS_OPENIMAGEIO`: Enable
+    [OpenImageIO](http://openimageio.org/) support in the example and
+    test applications to be able to load/save OpenEXR, PNG, and other
+    image file formats (OFF by default).
 
   - `TBB_ROOT`: The path to the TBB installation (autodetected by
     default).
@@ -914,7 +917,7 @@ Parameters supported by the `RTLightmap` filter.
 ## Denoise
 
 A minimal working example demonstrating how to use Intel Open Image
-Denoise can be found at `examples/denoise.cpp`, which uses the C++11
+Denoise can be found at `apps/denoise/denoise.cpp`, which uses the C++11
 convenience wrappers of the C99 API.
 
 This example is a simple command-line application that denoises the
@@ -925,8 +928,8 @@ the [Portable FloatMap](http://www.pauldebevec.com/Research/HDR/PFM/)
 format. To enable other image formats (e.g. OpenEXR, PNG) as well, the
 project has to be rebuilt with OpenImageIO support enabled.
 
-Running `./denoise` without any arguments will bring up a list of
-command line options.
+Running `denoise` without any arguments will bring up a list of command
+line options.
 
 # Training
 
@@ -955,11 +958,11 @@ command-line scripts:
   - `split_exr.py`: Splits a multi-channel EXR image into multiple
     feature images.
 
-  - `compare_image.py`: Compares two feature images using the specified
-    quality metrics.
-
   - `convert_image.py`: Converts a feature image to a different image
     format.
+
+  - `compare_image.py`: Compares two feature images using the specified
+    quality metrics.
 
 ## Prerequisites
 
@@ -1028,7 +1031,7 @@ The following image features are supported:
 
 Supported image features, their IDs, and their number of channels.
 
-The following directory tree demonstates an example root dataset
+The following directory tree demonstrates an example root dataset
 directory (`data`) containing one dataset (`rt_train`) with HDR color
 and albedo feature images:
 
@@ -1181,19 +1184,29 @@ Example usage:
 ./export.py --result rt_hdr_alb
 ```
 
-## Image Comparison and Conversion
+## Image Conversion and Comparison
 
 In addition to the already mentioned `split_exr.py` script, the toolkit
 contains a few other image utilities as well.
 
+`convert_image.py` converts a feature image to a different image format
+(and/or a different feature, e.g. HDR color to LDR), performing
+tonemapping and other transforms as well if needed. For HDR images the
+exposure can be adjusted by passing a linear exposure scale (`-E` or
+`--exposure` option). Example usage:
+
+``` console
+./convert_image.py view1_0004.hdr.exr view1_0004.png --exposure 2.5
+```
+
 The `compare_image.py` script compares two feature images (preferably
 having the dataset filename format to correctly detect the feature)
 using the specified image quality metrics, similar to the `infer.py`
-tool.
+tool. Example usage:
 
-`convert_image.py` converts a feature image to a different image format
-(and/or a different feature, e.g. HDR color to LDR), performing
-tonemapping and other transforms as well if needed.
+``` console
+./compare_image.py view1_0004.hdr.exr view1_8192.hdr.exr --exposure 2.5 --metric mse ssim
+```
 
 1.  For example, if Intel Open Image Denoise is in `~/Projects/oidn`,
     ISPC will also be searched in `~/Projects/ispc-v1.12.0-linux`

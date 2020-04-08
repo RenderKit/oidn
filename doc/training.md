@@ -95,7 +95,7 @@ normal                 `nrm`     3
 ---------------------- --------- -----------------------------------
 : Supported image features, their IDs, and their number of channels.
 
-The following directory tree demonstates an example root dataset directory
+The following directory tree demonstrates an example root dataset directory
 (`data`) containing one dataset (`rt_train`) with HDR color and albedo
 feature images:
 
