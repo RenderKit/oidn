@@ -61,11 +61,10 @@ namespace oidn {
   // Saves an image with/without linear to sRGB conversion
   void saveImage(const std::string& filename, const ImageBuffer& image, bool srgb);
 
-  // Compares two images: computes the difference image and returns the number
-  // of errors and the maximum relative error
+  // Compares an image to a reference image and returns the number of errors
+  // and the maximum error value
   std::tuple<int, float> compareImages(const ImageBuffer& image,
                                        const ImageBuffer& ref,
-                                       ImageBuffer& diff,
-                                       float relErrorThreshold);
+                                       float threshold);
 
 } // namespace oidn

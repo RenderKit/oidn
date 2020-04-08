@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <cmath>
+#include <cassert>
 #include <fstream>
 #include "image_util.h"
 
@@ -279,37 +280,32 @@ namespace oidn {
 
   std::tuple<int, float> compareImages(const ImageBuffer& image,
                                        const ImageBuffer& ref,
-                                       ImageBuffer& diff,
-                                       float relErrorThreshold)
+                                       float threshold)
   {
     assert(ref.getDims() == image.getDims());
     assert(diff.getDims() == image.getDims());
 
-    int nerr = 0;
-    float maxre = 0;
+    int numErrors = 0;
+    float maxError = 0;
 
     for (int i = 0; i < image.getSize(); ++i)
     {
       const float actual = image[i];
       const float expect = ref[i];
-      float re;
-      if (std::abs(expect) < 1e-5 && std::abs(actual) < 1e-5)
-        re = 0;
-      else if (expect != 0)
-        re = std::abs((expect - actual) / expect);
-      else
-        re = std::abs(expect - actual);
-      if (maxre < re) maxre = re;
-      if (re > relErrorThreshold)
-      {
-        //std::cerr << "i=" << i << " expect=" << expect << " actual=" << actual << std::endl;
-        ++nerr;
-      }
 
-      diff[i] = std::abs(ref[i] - image[i]);
+      float error = std::abs(expect - actual);
+      if (expect != 0)
+        error = std::min(error, error / expect);
+
+      maxError = std::max(maxError, error);
+      if (error > threshold)
+      {
+        //std::cerr << "i=" << i << " expect=" << expect << " actual=" << actual;
+        ++numErrors;
+      }
     }
 
-    return std::make_tuple(nerr, maxre);
+    return std::make_tuple(numErrors, maxError);
   }
 
 } // namespace oidn

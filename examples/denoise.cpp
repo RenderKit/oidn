@@ -278,26 +278,6 @@ int main(int argc, char* argv[])
       signal(SIGINT, SIG_DFL);
     }
 
-    int nerr = 0;
-    if (ref)
-    {
-      // Verify the output values
-      std::cout << "Verifying output" << std::endl;
-
-      ImageBuffer diff(width, height, 3);
-      float maxre;
-      std::tie(nerr, maxre) = compareImages(output, ref, diff, 1e-3);
-
-      std::cout << "  nfloats=" << output.getSize() << ", nerr=" << nerr << ", maxre=" << maxre << std::endl;
-
-      // Save debug images
-      std::cout << "Saving debug images" << std::endl;
-      saveImage("denoise_in.ppm",   color,  srgb);
-      saveImage("denoise_out.ppm",  output, srgb);
-      saveImage("denoise_ref.ppm",  ref,    srgb);
-      saveImage("denoise_diff.ppm", diff,   srgb);
-    }
-
     if (!outputFilename.empty())
     {
       // Save output image
@@ -305,8 +285,28 @@ int main(int argc, char* argv[])
       saveImage(outputFilename, output, srgb);
     }
 
-    if (nerr > 0)
-      throw std::runtime_error("output does not match the reference");
+    if (ref)
+    {
+      // Verify the output values
+      std::cout << "Verifying output" << std::endl;
+
+      int numErrors;
+      float maxError;
+      std::tie(numErrors, maxError) = compareImages(output, ref, 1e-4);
+
+      std::cout << "  values=" << output.getSize() << ", errors=" << numErrors << ", maxerror=" << maxError << std::endl;
+
+      if (numErrors > 0)
+      {
+        // Save debug images
+        std::cout << "Saving debug images" << std::endl;
+        saveImage("denoise_in.ppm",   color,  srgb);
+        saveImage("denoise_out.ppm",  output, srgb);
+        saveImage("denoise_ref.ppm",  ref,    srgb);
+
+        throw std::runtime_error("output does not match the reference");
+      }
+    }
 
     if (numBenchmarkRuns > 0)
     {
