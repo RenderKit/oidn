@@ -30,6 +30,7 @@ THREADS=`lscpu -b -p=Core,Socket | grep -v '^#' | sort -u | wc -l`
 cmake \
 -D CMAKE_C_COMPILER:FILEPATH=$C_COMPILER \
 -D CMAKE_CXX_COMPILER:FILEPATH=$CXX_COMPILER \
+-D CMAKE_BUILD_TYPE=$BUILD_TYPE \
 -D TBB_ROOT="${OIDN_TBB_ROOT}" .. \
 ..
 

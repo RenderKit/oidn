@@ -31,6 +31,15 @@ else
   CXX_COMPILER="${OIDN_CXX}"
 fi
 
+if [ -z "${OIDN_BUILD}" ]; then
+  BUILD_TYPE=Release
+  if [ "$#" -ge 2 ]; then
+    BUILD_TYPE=$2
+  fi
+else
+  BUILD_TYPE="${OIDN_BUILD}"
+fi
+
 # Set up dependencies
 if [ -z "${OIDN_ROOT_DIR}" ]; then
   ROOT_DIR=$PWD
@@ -38,7 +47,7 @@ else
   ROOT_DIR="${OIDN_ROOT_DIR}"
 fi
 
-BUILD_DIR=$ROOT_DIR/build_release
+BUILD_DIR=$ROOT_DIR/build_`echo "$BUILD_TYPE" | awk '{print tolower($0)}'`
 DEP_DIR=$ROOT_DIR/deps
 
 source ${ROOT_DIR}/scripts/tbb_version.sh
