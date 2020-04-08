@@ -95,7 +95,7 @@ centos7-icc-package:
   image:        openimagedenoise/build:ubuntu18.04
 
 ubuntu18.04-gcc-build:
-  extends:      [ .ubuntu18.04, .linux-gcc-build .linux-gcc-build-debug ]
+  extends:      [ .ubuntu18.04, .linux-gcc-build, .linux-gcc-build-debug ]
 
 ubuntu18.04-clang-build:
   extends:      [ .ubuntu18.04, .linux-clang-build ]
