@@ -57,47 +57,47 @@ namespace oidn {
     __forceinline float& operator [](size_t i) { return data[i]; }
     __forceinline const float& operator [](size_t i) const { return data[i]; }
 
-    __forceinline float& operator ()(size_t i0) { return data[getIndex(i0)]; }
-    __forceinline const float& operator ()(size_t i0) const { return data[getIndex(i0)]; }
+    __forceinline float& operator ()(int64_t i0) { return data[getIndex(i0)]; }
+    __forceinline const float& operator ()(int64_t i0) const { return data[getIndex(i0)]; }
 
-    __forceinline float& operator ()(size_t i0, size_t i1)
+    __forceinline float& operator ()(int64_t i0, int64_t i1)
     { return data[getIndex(i0, i1)]; }
-    __forceinline const float& operator ()(size_t i0, size_t i1) const
+    __forceinline const float& operator ()(int64_t i0, int64_t i1) const
     { return data[getIndex(i0, i1)]; }
 
-    __forceinline float& operator ()(size_t i0, size_t i1, size_t i2)
+    __forceinline float& operator ()(int64_t i0, int64_t i1, int64_t i2)
     { return data[getIndex(i0, i1, i2)]; }
-    __forceinline const float& operator ()(size_t i0, size_t i1, size_t i2) const
+    __forceinline const float& operator ()(int64_t i0, int64_t i1, int64_t i2) const
     { return data[getIndex(i0, i1, i2)]; }
 
-    __forceinline float& operator ()(size_t i0, size_t i1, size_t i2, size_t i3)
+    __forceinline float& operator ()(int64_t i0, int64_t i1, int64_t i2, int64_t i3)
     { return data[getIndex(i0, i1, i2, i3)]; }
-    __forceinline const float& operator ()(size_t i0, size_t i1, size_t i2, size_t i3) const
+    __forceinline const float& operator ()(int64_t i0, int64_t i1, int64_t i2, int64_t i3) const
     { return data[getIndex(i0, i1, i2, i3)]; }
 
   private:
-    __forceinline size_t getIndex(size_t i0) const
+    __forceinline int64_t getIndex(int64_t i0) const
     {
       assert(ndims() == 1);
       assert(i0 < dims[0]);
       return i0;
     }
 
-    __forceinline size_t getIndex(size_t i0, size_t i1) const
+    __forceinline int64_t getIndex(int64_t i0, int64_t i1) const
     {
       assert(ndims() == 2);
       assert(i0 < dims[0] && i1 < dims[1]);
       return i0 * dims[1] + i1;
     }
 
-    __forceinline size_t getIndex(size_t i0, size_t i1, size_t i2) const
+    __forceinline int64_t getIndex(int64_t i0, int64_t i1, int64_t i2) const
     {
       assert(ndims() == 3);
       assert(i0 < dims[0] && i1 < dims[1] && i2 < dims[2]);
       return (i0 * dims[1] + i1) * dims[2] + i2;
     }
 
-    __forceinline size_t getIndex(size_t i0, size_t i1, size_t i2, size_t i3) const
+    __forceinline int64_t getIndex(int64_t i0, int64_t i1, int64_t i2, int64_t i3) const
     {
       assert(ndims() == 4);
       assert(i0 < dims[0] && i1 < dims[1] && i2 < dims[2] && i3 < dims[3]);
