@@ -55,28 +55,35 @@ def test(result, filter, features, dataset):
     for arch in cfg.arch:
       # Iterate over the images
       for image_name in image_names:
-        print('Test:', result, arch, image_name)
-        denoise_cmd = os.path.join(cfg.build_dir, 'denoise')
+        # Iterate over memory usages (tiling)
+        for memory_use in ['himem', 'lomem']:
+          print('Test:', result, arch, image_name, memory_use)
+          denoise_cmd = os.path.join(cfg.build_dir, 'denoise')
 
-        ref_filename = os.path.join(cfg.baseline_dir, dataset, '%s_%s.%s.exr' % (image_name, result, main_feature))
-        if not os.path.isfile(ref_filename):
-          print('Error: missing baseline image (run with "generate" first)')
-          exit(1)
-        denoise_cmd += ' -f %s -v 2 --ref %s' % (filter, ref_filename)
+          ref_filename = os.path.join(cfg.baseline_dir, dataset, '%s_%s.%s.exr' % (image_name, result, main_feature))
+          if not os.path.isfile(ref_filename):
+            print('Error: missing baseline image (run with "generate" first)')
+            exit(1)
+          denoise_cmd += ' -f %s -v 2 --ref %s' % (filter, ref_filename)
 
-        for feature in features:
-          feature_filename = os.path.join(dataset_dir, image_name) + '.%s.exr' % feature
-          denoise_cmd += ' --%s %s' % (feature, feature_filename)
+          for feature in features:
+            feature_filename = os.path.join(dataset_dir, image_name) + '.%s.exr' % feature
+            denoise_cmd += ' --%s %s' % (feature, feature_filename)
 
-        if arch != 'native':
-          denoise_cmd = ('sde -%s -- ' % arch) + denoise_cmd
+          if memory_use == 'himem':
+            denoise_cmd += ' --maxmem 16384'
+          elif memory_use == 'lomem':
+            denoise_cmd += ' --maxmem 256'
 
-        os.system('echo >> %s' % cfg.log)
-        os.system('echo "%s" >> %s' % (denoise_cmd, cfg.log))
-        denoise_cmd += ' >> %s' % cfg.log
+          if arch != 'native':
+            denoise_cmd = ('sde -%s -- ' % arch) + denoise_cmd
 
-        if os.system(denoise_cmd) != 0:
-          exit(1)
+          os.system('echo >> %s' % cfg.log)
+          os.system('echo "%s" >> %s' % (denoise_cmd, cfg.log))
+          denoise_cmd += ' >> %s' % cfg.log
+
+          if os.system(denoise_cmd) != 0:
+            exit(1)
 
 # Filter: RT
 if not cfg.filter or 'RT' in cfg.filter:
