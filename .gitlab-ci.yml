@@ -162,16 +162,16 @@ macos-clang-build:
 macos-icc-build:
   extends:      [ .macos-icc-build ]
 
-macos-icc-sign:
-  extends:      [ .macos-sign ]
+macos-icc-package:
+  extends:      [ .macos-package ]
   needs: 
     - job:       macos-icc-build
       artifacts: true
 
-macos-icc-package:
-  extends:      [ .macos-package ]
+macos-icc-sign:
+  extends:      [ .macos-sign ]
   needs: 
-    - job:       macos-icc-sign
+    - job:       macos-icc-package
       artifacts: true
 
 ## -----------------------------------------------------------------------------
