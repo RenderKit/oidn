@@ -157,11 +157,11 @@ def main():
           progress_str += ' (' + metric_str + ')'
 
         # Save the input and output images
-        output_name = input_name + '_' + cfg.result
+        output_name = input_name + '.' + cfg.result
         if cfg.checkpoint:
           output_name += '_%d' % epoch
         if cfg.save_all:
-          save_images(os.path.join(output_dir, input_name),  input,  input_srgb)
+          save_images(os.path.join(output_dir, input_name), input, input_srgb)
         save_images(os.path.join(output_dir, output_name), output, output_srgb)
 
         # Print progress
