@@ -37,6 +37,7 @@ if (Test-Path Env:OIDN_SIGN_FILE_BINARY_WINDOWS) {
       }
     }
     compress-archive -force -path "unzipped/oidn-*" -destinationpath "$zip"
+    Remove-Item -Recurse -Force "${ROOT_DIR}/${BUILD_DIR}/unzipped"
   }
 } else {
   Write-Host "OIDN_SIGN_FILE_BINARY_WINDOWS is not set -- skipping sign stage."
