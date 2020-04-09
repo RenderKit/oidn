@@ -13,6 +13,7 @@ else
   [ -x $OIDN_SIGN_FILE_BINARY_APPLE ] || exit
   $OIDN_SIGN_FILE_BINARY_APPLE libOpenImageDenoise.*.*.*.dylib
   $OIDN_SIGN_FILE_BINARY_APPLE denoise
+  $OIDN_SIGN_FILE_BINARY_APPLE tests
 fi
 
 cd $ROOT_DIR
