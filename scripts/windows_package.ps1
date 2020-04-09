@@ -11,6 +11,10 @@ $ErrorActionPreference = 'Stop'
 
 Set-Location "${ROOT_DIR}/${BUILD_DIR}"
 
+cmake -L `
+      -D OIDN_ZIP_MODE=ON `
+      ..
+
 # Build.
 cmake --build . `
       --config Release `
