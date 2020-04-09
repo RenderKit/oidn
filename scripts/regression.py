@@ -60,7 +60,7 @@ def test(result, filter, features, dataset):
           print('Test:', result, arch, image_name, memory_use)
           denoise_cmd = os.path.join(cfg.build_dir, 'denoise')
 
-          ref_filename = os.path.join(cfg.baseline_dir, dataset, '%s_%s.%s.exr' % (image_name, result, main_feature))
+          ref_filename = os.path.join(cfg.baseline_dir, dataset, '%s.%s.%s.exr' % (image_name, result, main_feature))
           if not os.path.isfile(ref_filename):
             print('Error: missing baseline image (run with "generate" first)')
             exit(1)
