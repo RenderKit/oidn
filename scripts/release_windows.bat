@@ -48,11 +48,11 @@ cmake -L ^
 -G "Visual Studio 15 2017 Win64" ^
 -T %TOOLSET% ^
 -D TBB_ROOT=%TBB_DIR% ^
--D OIDN_ZIP_MODE=ON ^
 ..
 if %ERRORLEVEL% geq 1 exit /b %ERRORLEVEL%
 
 rem Create zip file
+cmake -D OIDN_ZIP_MODE=ON ..
 cmake --build . --config Release --target PACKAGE -- /m /nologo
 if %ERRORLEVEL% geq 1 exit /b %ERRORLEVEL%
 
