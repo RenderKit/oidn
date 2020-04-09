@@ -4,8 +4,8 @@
 stages:
   - build
   - check_symbols
-  - sign
   - package
+  - sign
   - scan_source
 
 ## -----------------------------------------------------------------------------
@@ -197,20 +197,20 @@ macos-icc-sign:
     - scripts\windows_build.ps1
     - if(!$?) { Exit $LASTEXITCODE }
 
-.windows-sign:
-  stage:      sign
-  extends:    [ .windows-base ]
-  only:       [ schedules, web ]
-  script:     
-    - scripts\windows_sign.ps1
-    - if(!$?) { Exit $LASTEXITCODE }
-
 .windows-package:
   stage:      package
   extends:    [ .windows-base ]
   only:       [ schedules, web ]
   script:     
     - scripts\windows_package.ps1
+    - if(!$?) { Exit $LASTEXITCODE }
+
+.windows-sign:
+  stage:      sign
+  extends:    [ .windows-base ]
+  only:       [ schedules, web ]
+  script:     
+    - scripts\windows_sign.ps1
     - if(!$?) { Exit $LASTEXITCODE }
 
 ## -----------------------------------------------------------------------------
@@ -225,18 +225,18 @@ macos-icc-sign:
 windows-vs15-icc19-build:
   extends:      [ .windows-build, .windows-vs15-icc19 ]
 
-windows-vs15-icc19-sign:
-  extends:      [ .windows-sign, .windows-vs15-icc19 ]
+windows-vs15-icc19-package:
+  extends:      [ .windows-package, .windows-vs15-icc19 ]
   needs: 
     - job:       windows-vs15-icc19-build
       artifacts: true
 
-windows-vs15-icc19-package:
-  extends:      [ .windows-package, .windows-vs15-icc19 ]
+windows-vs15-icc19-sign:
+  extends:      [ .windows-sign, .windows-vs15-icc19 ]
   needs: 
-    - job:       windows-vs15-icc19-sign
+    - job:       windows-vs15-icc19-package
       artifacts: true
-
+      
 ## -----------------------------------------------------------------------------
 ## Protex
 ## -----------------------------------------------------------------------------
