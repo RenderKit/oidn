@@ -4,8 +4,8 @@
 stages:
   - build
   - check_symbols
-  - sign
   - package
+  - sign
   - scan_source
 
 ## -----------------------------------------------------------------------------
@@ -162,16 +162,16 @@ macos-clang-build:
 macos-icc-build:
   extends:      [ .macos-icc-build ]
 
-macos-icc-sign:
-  extends:      [ .macos-sign ]
+macos-icc-package:
+  extends:      [ .macos-package ]
   needs: 
     - job:       macos-icc-build
       artifacts: true
 
-macos-icc-package:
-  extends:      [ .macos-package ]
+macos-icc-sign:
+  extends:      [ .macos-sign ]
   needs: 
-    - job:       macos-icc-sign
+    - job:       macos-icc-package
       artifacts: true
 
 ## -----------------------------------------------------------------------------
@@ -225,16 +225,16 @@ macos-icc-package:
 windows-vs15-icc19-build:
   extends:      [ .windows-build, .windows-vs15-icc19 ]
 
-windows-vs15-icc19-sign:
-  extends:      [ .windows-sign, .windows-vs15-icc19 ]
+windows-vs15-icc19-package:
+  extends:      [ .windows-package, .windows-vs15-icc19 ]
   needs: 
     - job:       windows-vs15-icc19-build
       artifacts: true
 
-windows-vs15-icc19-package:
-  extends:      [ .windows-package, .windows-vs15-icc19 ]
+windows-vs15-icc19-sign:
+  extends:      [ .windows-sign, .windows-vs15-icc19 ]
   needs: 
-    - job:       windows-vs15-icc19-sign
+    - job:       windows-vs15-icc19-package
       artifacts: true
 
 ## -----------------------------------------------------------------------------
