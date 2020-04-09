@@ -8,7 +8,6 @@ Version History
 -   Slightly improved denoising quality (e.g. less ringing artifacts, less
     blurriness in some cases)
 -   Improved denoising speed by about 7-38% (mostly depending on the compiler)
--   Link C/C++ runtime library dynamically on Windows too by default
 -   Added `OIDN_STATIC_RUNTIME` CMake option (for Windows only)
 -   Added support for OpenImageIO to the example apps (disabled by default)
 -   Added check for minimum supported TBB version
