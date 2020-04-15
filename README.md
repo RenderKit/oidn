@@ -9,7 +9,7 @@ http://www.openimagedenoise.org for more information.
 Intel Open Image Denoise is an open source library of high-performance,
 high-quality denoising filters for images rendered with ray tracing.
 Intel Open Image Denoise is part of the [Intel® oneAPI Rendering
-Toolkit](https://software.intel.com/en-us/rendering-framework) and is
+Toolkit](https://software.intel.com/en-us/oneapi/render-kit) and is
 released under the permissive [Apache 2.0
 license](http://www.apache.org/licenses/LICENSE-2.0).
 
@@ -760,15 +760,17 @@ denoising to fail (the noise will not be filtered), thus it is not
 supported.
 
 The filter can be created by passing `"RT"` to the `oidnNewFilter`
-function as the filter type. The filter supports the following
-parameters:
+function as the filter type. The filter supports the parameters listed
+in the table below. All specified images must have the same dimensions,
+and the output image must be different from the input images
+(i.e. in-place denoising is *not* supported).
 
 | Type      | Format | Name        | Default | Description                                                                                                                                                                                                                                                                                |
 | :-------- | :----- | :---------- | ------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Image     | float3 | color       |         | input color image (LDR values in \[0, 1\] or HDR values in \[0, +∞), 3 channels)                                                                                                                                                                                                           |
 | Image     | float3 | albedo      |         | input feature image containing the albedo (values in \[0, 1\], 3 channels) of the first hit per pixel; *optional*                                                                                                                                                                          |
 | Image     | float3 | normal      |         | input feature image containing the shading normal (world-space or view-space, arbitrary length, values in (−∞, +∞), 3 channels) of the first hit per pixel; *optional*, requires setting the albedo image too                                                                              |
-| Image     | float3 | output      |         | output color image (3 channels); can be one of the input images                                                                                                                                                                                                                            |
+| Image     | float3 | output      |         | output color image (3 channels); must be different from the input images                                                                                                                                                                                                                   |
 | Data      |        | weights     |         | trained model weights blob; *optional*                                                                                                                                                                                                                                                     |
 | bool      |        | hdr         |   false | whether the color is HDR                                                                                                                                                                                                                                                                   |
 | float     |        | hdrScale    |     NaN | HDR color values are interpreted such that, multiplied by this scale, a value of 1 corresponds to a luminance level of 100 cd/m² (this affects the quality of the output but the output color values will *not* be scaled); if set to NaN, the scale is computed automatically (*default*) |
@@ -778,8 +780,6 @@ parameters:
 | const int |        | overlap     |         | when manually denoising the image in tiles, the tiles should overlap by this amount of pixels                                                                                                                                                                                              |
 
 Parameters supported by the `RT` filter.
-
-All specified images must have the same dimensions.
 
 ![](https://openimagedenoise.github.io/images/mazda_64spp_input.jpg)
 Example noisy color image rendered using unidirectional path tracing
@@ -903,7 +903,7 @@ following parameters:
 | Type      | Format | Name        | Default | Description                                                                                                                                                                                      |
 | :-------- | :----- | :---------- | ------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Image     | float3 | color       |         | input color image (HDR values in \[0, +∞), 3 channels)                                                                                                                                           |
-| Image     | float3 | output      |         | output color image (3 channels); can be one of the input images                                                                                                                                  |
+| Image     | float3 | output      |         | output color image (3 channels); must be different from the input images                                                                                                                         |
 | Data      |        | weights     |         | trained model weights blob; *optional*                                                                                                                                                           |
 | float     |        | hdrScale    |     NaN | HDR color values are interpreted such that, multiplied by this scale, a value of 1 corresponds to a luminance level of 100 cd/m²; if set to NaN, the scale is computed automatically (*default*) |
 | int       |        | maxMemoryMB |    6000 | approximate maximum amount of scratch memory to use in megabytes (actual memory usage may be higher)                                                                                             |

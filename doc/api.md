@@ -450,7 +450,10 @@ introduces correlation between neighboring pixels, which causes the denoising
 to fail (the noise will not be filtered), thus it is not supported.
 
 The filter can be created by passing `"RT"` to the `oidnNewFilter` function
-as the filter type. The filter supports the following parameters:
+as the filter type. The filter supports the parameters listed in the table
+below. All specified images must have the same dimensions, and the output image
+must be different from the input images (i.e. in-place denoising is *not*
+supported).
 
 --------- -------- ----------- -------- ----------------------------------------
 Type      Format   Name         Default Description
@@ -469,8 +472,8 @@ Image     float3   normal               input feature image containing the
                                         per pixel; *optional*, requires setting
                                         the albedo image too
 
-Image     float3   output               output color image (3 channels); can be
-                                        one of the input images
+Image     float3   output               output color image (3 channels); must be
+                                        different from the input images
 
 Data               weights              trained model weights blob; *optional*
 
@@ -512,8 +515,6 @@ const int          overlap              when manually denoising the image in
 
 --------- -------- ----------- -------- ----------------------------------------
 : Parameters supported by the `RT` filter.
-
-All specified images must have the same dimensions.
 
 ![Example noisy color image rendered using unidirectional path tracing (64
 spp). *Scene by Evermotion.*][imgMazdaColor]
@@ -626,8 +627,8 @@ Type      Format   Name         Default Description
 Image     float3   color                input color image (HDR values in
                                         [0, +∞), 3 channels)
 
-Image     float3   output               output color image (3 channels); can be
-                                        one of the input images
+Image     float3   output               output color image (3 channels); must be
+                                        different from the input images
 
 Data               weights              trained model weights blob; *optional*
 
