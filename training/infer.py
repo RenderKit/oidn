@@ -79,12 +79,11 @@ def main():
     image      = to_numpy(image)
     image_srgb = to_numpy(image_srgb)
     suffix = '.hdr' if is_hdr else '.ldr'
-    if 'exr' in cfg.format:
-      save_image(path + suffix + '.exr', image)
-    if 'pfm' in cfg.format:
-      save_image(path + suffix + '.pfm', image)
-    if 'png' in cfg.format:
-      save_image(path + suffix + '.png', image_srgb)
+    for format in cfg.format:
+      if format in {'exr', 'pfm', 'hdr'}:
+        save_image(path + suffix + '.' + format, image)
+      else:
+        save_image(path + suffix + '.' + format, image_srgb)
 
   # Initialize the dataset
   data_dir = get_data_dir(cfg, cfg.input_data)

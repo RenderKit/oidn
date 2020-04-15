@@ -66,7 +66,7 @@ def parse_args(cmd=None, description=None):
   if cmd in {'infer'}:
     parser.add_argument('--input_data', '-i', type=str, default='test', help='name of the input dataset')
     parser.add_argument('--output_dir', '-O', type=str, default='infer', help='directory of output images')
-    parser.add_argument('--format', '-F', type=str, nargs='*', choices=['exr', 'pfm', 'png'], default=['exr'], help='output image formats')
+    parser.add_argument('--format', '-F', type=str, nargs='*', default=['exr'], help='output image formats')
     parser.add_argument('--save_all', '-a', action='store_true', help='save input and target images too')
 
   if cmd in {'convert_image', 'split_exr'}:
