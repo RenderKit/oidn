@@ -120,7 +120,6 @@ set(CORE_SOURCES
   core/filter.cpp
   core/image.h
   core/input_reorder.h
-  core/math.h
   core/memory.h
   core/network.h
   core/network.cpp

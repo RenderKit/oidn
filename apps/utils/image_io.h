@@ -26,7 +26,7 @@ namespace oidn {
 
     ImageBuffer(int width, int height, int channels)
       : data(width * height * channels),
-      width(width),
+        width(width),
         height(height),
         channels(channels) {}
 

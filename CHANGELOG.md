@@ -1,6 +1,8 @@
 Version History
 ---------------
 
+-   Added benchmark app
+
 ### Changes in v1.2.0:
 
 -   Added neural network training code

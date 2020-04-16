@@ -15,7 +15,7 @@
 #include "common/exception.h"
 #include "common/thread.h"
 #include "common/tasking.h"
-#include "math.h"
+#include "common/math.h"
 #include "input_reorder_ispc.h" // ispc::Memory, ispc::Image
 
 namespace oidn {

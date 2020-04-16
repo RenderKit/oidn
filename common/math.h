@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "common/platform.h"
+#include "platform.h"
 
 namespace oidn {
 
@@ -25,5 +25,7 @@ namespace oidn {
   {
     return ceil_div(a, b) * b;
   }
+
+  __forceinline float toFloatUnorm(uint32_t x) { return float(x) * 0x1.0p-32f; }
 
 } // namespace oidn

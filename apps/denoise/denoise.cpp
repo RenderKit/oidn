@@ -28,7 +28,8 @@ void printUsage()
             << "               [-o/--output output.pfm] [-r/--ref reference_output.pfm]" << std::endl
             << "               [-w/--weights weights.tza]" << std::endl
             << "               [--threads n] [--affinity 0|1] [--maxmem MB]" << std::endl
-            << "               [--bench ntimes] [-v/--verbose 0-3]" << std::endl;
+            << "               [--bench ntimes] [-v/--verbose 0-3]" << std::endl
+            << "               [-h/--help]" << std::endl;
 }
 
 void errorCallback(void* userPtr, oidn::Error error, const char* message)

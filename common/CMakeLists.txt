@@ -4,6 +4,7 @@
 add_library(common STATIC
   barrier.h
   exception.h
+  math.h
   platform.h
   platform.cpp
   ref.h
