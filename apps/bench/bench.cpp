@@ -5,6 +5,8 @@
 #include <cassert>
 #include <cmath>
 #include <regex>
+#include <chrono>
+#include <thread>
 
 #ifdef VTUNE
 #include <ittnotify.h>
@@ -156,6 +158,10 @@ void runBenchmark(oidn::DeviceRef& device, const Benchmark& bench)
   const double totalTime = timer.query();
   const double avgTime = totalTime / numBenchmarkRuns;
   std::cout << " " << avgTime * 1000. << " msec/image" << std::endl;
+
+  // Cooldown
+  const int sleepTime = int(std::ceil(totalTime / 2.));
+  std::this_thread::sleep_for(std::chrono::seconds(sleepTime));
 }
 
 // Adds all benchmarks to the list
@@ -257,7 +263,7 @@ int main(int argc, char* argv[])
 
     // Run the benchmarks
     if (numRuns < 0)
-       numRuns = device.get<int>("numThreads") * 2;
+       numRuns = device.get<int>("numThreads");
     const auto runExpr = std::regex(run);
     for (const auto& bench : benchmarks)
     {
