@@ -244,6 +244,9 @@ namespace oidn {
         || (output.width != W || output.height != H))
       throw Exception(Error::InvalidOperation, "image size mismatch");
 
+    if (output.ptr == color.ptr || output.ptr == albedo.ptr || output.ptr == normal.ptr)
+      throw Exception(Error::InvalidOperation, "output image is one of the input images");
+
     // Compute the tile size
     computeTileSize();
 
