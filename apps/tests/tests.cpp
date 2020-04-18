@@ -8,6 +8,7 @@
 #include "apps/utils/image_io.h"
 
 #define CATCH_CONFIG_MAIN
+#define CATCH_CONFIG_FAST_COMPILE
 #include "catch.hpp"
 
 using namespace oidn;
