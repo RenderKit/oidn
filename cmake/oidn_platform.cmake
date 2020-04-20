@@ -101,13 +101,17 @@ if(WIN32)
         string(REPLACE "/MD" "/MT" ${FLAGS} ${${FLAGS}})
       endforeach()
     elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-      # Use default math lib instead of libmmd[d]
+      # Use the default math library instead of libmmd[d]
       string(APPEND CMAKE_EXE_LINKER_FLAGS_DEBUG " /nodefaultlib:libmmdd.lib")
       string(APPEND CMAKE_EXE_LINKER_FLAGS_RELEASE " /nodefaultlib:libmmd.lib")
       string(APPEND CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO " /nodefaultlib:libmmd.lib")
       string(APPEND CMAKE_SHARED_LINKER_FLAGS_DEBUG " /nodefaultlib:libmmdd.lib")
       string(APPEND CMAKE_SHARED_LINKER_FLAGS_RELEASE " /nodefaultlib:libmmd.lib")
       string(APPEND CMAKE_SHARED_LINKER_FLAGS_RELWITHDEBINFO " /nodefaultlib:libmmd.lib")
+
+      # Link the static version of SVML
+      string(APPEND CMAKE_EXE_LINKER_FLAGS " /defaultlib:svml_dispmt.lib")
+      string(APPEND CMAKE_SHARED_LINKER_FLAGS " /defaultlib:svml_dispmt.lib")
     endif()
   endif()
 endif()
