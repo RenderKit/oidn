@@ -70,7 +70,8 @@ Thumbs.db
 *.exe
 
 # Build directories
-build*
+build
+build_*
 
 # Dependencies
 deps
