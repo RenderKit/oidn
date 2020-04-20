@@ -1,6 +1,7 @@
 Version History
 ---------------
 
+-   Link C/C++ runtime library dynamically on Windows too by default
 -   Added benchmark app
 
 ### Changes in v1.2.0:

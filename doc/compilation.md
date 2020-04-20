@@ -175,7 +175,7 @@ in CMake:
   application.
 
 - `OIDN_STATIC_RUNTIME`: Use the static version of the C/C++ runtime library
-  (available only on Windows, ON by default).
+  (available only on Windows, OFF by default).
 
 - `OIDN_APPS`: Enable building example and test applications (ON by default).
 

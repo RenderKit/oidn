@@ -87,7 +87,7 @@ if(WIN32)
   add_definitions(-D_WIN)
   add_definitions(-DNOMINMAX)
   if(MSVC)
-    option(OIDN_STATIC_RUNTIME "Use the static version of the C/C++ runtime library." ON)
+    option(OIDN_STATIC_RUNTIME "Use the static version of the C/C++ runtime library." OFF)
     mark_as_advanced(OIDN_STATIC_RUNTIME)
     if(OIDN_STATIC_RUNTIME)
       foreach(FLAGS
