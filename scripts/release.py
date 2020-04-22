@@ -8,12 +8,14 @@ import os
 import platform
 from glob import glob
 import shutil
-import tarfile
-import zipfile
+from tarfile import TarFile
+from zipfile import ZipFile
 import re
 import argparse
 
-TBB_VERSION = '2020.1'
+MSVC_GENERATOR = 'Visual Studio 15 2017 Win64'
+ICC_TOOLCHAIN  = 'Intel C++ Compiler 18.0'
+TBB_VERSION    = '2020.1'
 
 def run(command):
   if os.system(command) != 0:
@@ -22,9 +24,9 @@ def run(command):
 def extract_package(filename, output_dir):
   print('Extracting package:', filename)
   if re.search(r'\.tar(\..*)?$', filename):
-    package = tarfile.open(filename)
+    package = TarFile(filename)
   elif filename.endswith('.zip'):
-    package = zipfile.open(filename)
+    package = ZipFile(filename)
   else:
     raise Exception('unsupported package format')
   package.extractall(output_dir)
@@ -51,10 +53,14 @@ def main():
   system = platform.system() # Linux, Darwin, Windows
 
   # Parse the arguments
+  compilers = {'Windows' : ['msvc', 'icc'],
+               'Linux'   : ['gcc', 'clang', 'icc'],
+               'Darwin'  : ['clang', 'icc']}
+
   parser = argparse.ArgumentParser()
   parser.usage = '\rIntel(R) Open Image Denoise - Release\n' + parser.format_usage()
   parser.add_argument('stage', type=str, nargs='*', choices=['build', 'package'], default='build')
-  parser.add_argument('--compiler', type=str, choices=['gcc', 'clang', 'icc'], default='icc')
+  parser.add_argument('--compiler', type=str, choices=compilers[system], default='icc')
   parser.add_argument('--config', type=str, choices=['Debug', 'Release', 'RelWithDebInfo'], default='Release')
   cfg = parser.parse_args()
 
@@ -76,34 +82,48 @@ def main():
     if os.path.isdir(build_dir):
       shutil.rmtree(build_dir)
     os.mkdir(build_dir)
-
-    # Configure
     os.chdir(build_dir)
-    cc = cfg.compiler
-    cxx = {'gcc' : 'g++', 'clang' : 'clang++', 'icc' : 'icpc'}[cc]
-    run('cmake -L ' +
-        '-D CMAKE_C_COMPILER:FILEPATH=%s ' % cc +
-        '-D CMAKE_CXX_COMPILER:FILEPATH=%s ' % cxx +
-        '-D CMAKE_BUILD_TYPE=%s ' % cfg.config +
-        '-D TBB_ROOT="%s" ' % tbb_root +
-        '..')
 
-    # Build
-    run('cmake --build . --target preinstall -j -v')
+    if system == 'Windows':
+      # Configure
+      toolchain = ICC_TOOLCHAIN if cfg.compiler == 'icc' else ''
+      run('cmake -L ' +
+          '-G "%s" ' % MSVC_GENERATOR +
+          '-T "%s" ' % toolchain +
+          '-D TBB_ROOT="%s" ' % tbb_root +
+          '..')
+
+      # Build
+      run('cmake --build . --config %s --target ALL_BUILD' % cfg.config)
+    else:
+      # Configure
+      cc = cfg.compiler
+      cxx = {'gcc' : 'g++', 'clang' : 'clang++', 'icc' : 'icpc'}[cc]
+      run('cmake -L ' +
+          '-D CMAKE_C_COMPILER:FILEPATH=%s ' % cc +
+          '-D CMAKE_CXX_COMPILER:FILEPATH=%s ' % cxx +
+          '-D CMAKE_BUILD_TYPE=%s ' % cfg.config +
+          '-D TBB_ROOT="%s" ' % tbb_root +
+          '..')
+
+      # Build
+      run('cmake --build . --target preinstall -j -v')
     
   # Package
   if 'package' in cfg.stage:
-    # Configure
     os.chdir(build_dir)
-    run('cmake -L ' +
-        '-D OIDN_ZIP_MODE=ON ' +
-        '..')
+
+    # Configure
+    run('cmake -L -D OIDN_ZIP_MODE=ON ..')
 
     # Build
-    run('cmake --build . --target package -j -v')
+    if system == 'Windows':
+      run('cmake --build . --config %s --target PACKAGE' % cfg.config)
+    else:
+      run('cmake --build . --target package -j -v')
 
     # Extract the package
-    package_filename = glob(os.path.join(build_dir, 'oidn-*.x86_64.*'))[0]
+    package_filename = glob(os.path.join(build_dir, 'oidn-*'))[0]
     extract_package(package_filename, build_dir)
     package_dir = re.sub(r'\.(tar(\..*)?|zip)$', '', package_filename)
 
