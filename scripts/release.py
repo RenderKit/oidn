@@ -4,14 +4,21 @@
 ## SPDX-License-Identifier: Apache-2.0
 
 from __future__ import print_function
+import sys
 import os
 import platform
 from glob import glob
 import shutil
+from io import BytesIO
 from tarfile import TarFile
 from zipfile import ZipFile
 import re
 import argparse
+
+if sys.version_info[0] >= 3:
+  from urllib.request import urlopen
+else:
+  from urllib2 import urlopen
 
 MSVC_GENERATOR = 'Visual Studio 15 2017 Win64'
 ICC_TOOLCHAIN  = 'Intel C++ Compiler 18.0'
@@ -22,11 +29,17 @@ def run(command):
     raise Exception('non-zero return value')
 
 def extract_package(filename, output_dir):
+  if re.search(r'^https?://', filename):
+    print('Downloading file:', filename)
+    file = BytesIO(urlopen(filename).read())
+  else:
+    file = filename
+
   print('Extracting package:', filename)
-  if re.search(r'\.tar(\..*)?$', filename):
-    package = TarFile(filename)
+  if re.search(r'(\.tar(\..+)?|tgz)$', filename):
+    package = TarFile(file)
   elif filename.endswith('.zip'):
-    package = ZipFile(filename)
+    package = ZipFile(file)
   else:
     raise Exception('unsupported package format')
   package.extractall(output_dir)
@@ -72,11 +85,15 @@ def main():
   # Build
   if 'build' in cfg.stage:
     # Set up TBB
-    tbb_dir = os.path.join(deps_dir, 'tbb', TBB_VERSION)
-    tbb_platform = {'Linux' : 'linux', 'Darwin' : 'mac', 'Windows' : 'win'}[system]
-    tbb_root = os.path.join(tbb_dir, tbb_platform, 'tbb')
+    tbb_platform = {'Linux' : 'lin', 'Darwin' : 'mac', 'Windows' : 'win'}[system]
+    tbb_dir = os.path.join(deps_dir, 'tbb', TBB_VERSION, tbb_platform)
+    tbb_root = os.path.join(tbb_dir, 'tbb')
     if not os.path.isdir(tbb_root):
-      raise Exception('cannot find TBB root at %s. Download TBB using scripts/download_tbb.sh.' % tbb_root)
+      # Download and extract TBB
+      tbb_url = 'https://github.com/intel/tbb/releases/download/v%s/tbb-%s-%s' % (TBB_VERSION, TBB_VERSION, tbb_platform)
+      tbb_url += '.zip' if system == 'Windows' else '.tgz'
+      os.makedirs(tbb_dir)
+      extract_package(tbb_url, tbb_dir)
 
     # Create a clean build directory
     if os.path.isdir(build_dir):
