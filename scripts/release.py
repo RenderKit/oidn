@@ -27,18 +27,16 @@ def run(command):
   if os.system(command) != 0:
     raise Exception('non-zero return value')
 
-def extract_package(filename, output_dir):
-  if re.search(r'^https?://', filename):
-    print('Downloading file:', filename)
-    file = urlretrieve(filename)[0]
-  else:
-    file = filename
+def download_file(url, output_filename):
+  print('Downloading file:', url)
+  urlretrieve(url, filename=output_filename)
 
+def extract_package(filename, output_dir):
   print('Extracting package:', filename)
   if re.search(r'(\.tar(\..+)?|tgz)$', filename):
-    package = tarfile.open(file)
+    package = tarfile.open(filename)
   elif filename.endswith('.zip'):
-    package = ZipFile(file)
+    package = ZipFile(filename)
   else:
     raise Exception('unsupported package format')
   package.extractall(output_dir)
@@ -79,6 +77,8 @@ def main():
   # Set the directories
   root_dir = os.getcwd()
   deps_dir = os.path.join(root_dir, 'deps')
+  if not os.path.isdir(deps_dir):
+    os.makedirs(deps_dir)
   build_dir = os.path.join(root_dir, 'build_' + cfg.config.lower())
 
   # Build
@@ -90,8 +90,10 @@ def main():
       # Download and extract TBB
       tbb_url = 'https://github.com/oneapi-src/oneTBB/releases/download/v%s/tbb-%s-%s' % (TBB_VERSION, TBB_VERSION, tbb_platform)
       tbb_url += '.zip' if system == 'Windows' else '.tgz'
+      tbb_filename = os.path.join(deps_dir, os.path.basename(tbb_url))
+      download_file(tbb_url, tbb_filename)
       os.makedirs(tbb_dir)
-      extract_package(tbb_url, tbb_dir)
+      extract_package(tbb_filename, tbb_dir)
     tbb_root = os.path.join(tbb_dir, 'tbb')
 
     # Create a clean build directory
