@@ -19,7 +19,7 @@ if sys.version_info[0] >= 3:
 else:
   from urllib import urlretrieve
 
-VS_VERSION         = '15 2017'
+MSVC_VERSION       = '15 2017'
 ICC_VERSION        = '18.0'
 ISPC_VERSION       = '1.12.0'
 ISPC_VERSION_LINUX = '1.12.0b'
@@ -37,6 +37,7 @@ def download_file(url, output_dir):
 
 def extract_package(filename, output_dir):
   print('Extracting package:', filename)
+  #shutil.unpack_archive(filename, output_dir)
   if re.search(r'(\.tar(\..+)?|tgz)$', filename):
     package = tarfile.open(filename)
   elif filename.endswith('.zip'):
@@ -45,6 +46,16 @@ def extract_package(filename, output_dir):
     raise Exception('unsupported package format')
   package.extractall(output_dir)
   package.close()
+
+def create_package(filename, input_dir):
+  print('Creating package:', filename)
+  if filename.endswith('.tar.gz'):
+    with tarfile.open(filename, "w:gz") as package:
+      package.add(input_dir, arcname=os.path.basename(input_dir))
+  elif filename.endswith('.zip'):
+    shutil.make_archive(filename[:-4], 'zip', os.path.dirname(input_dir), os.path.basename(input_dir))
+  else:
+    raise Exception('unsupported package format')
 
 def check_symbols(filename, label, max_version):
   with os.popen("nm \"%s\" | tr ' ' '\n' | grep @@%s_" % (filename, label)) as out:
@@ -122,10 +133,12 @@ def main():
     os.chdir(build_dir)
 
     if OS == 'windows':
-      # Configure
+      # Set up the compiler
       toolchain = 'Intel C++ Compiler %s' % ICC_VERSION if cfg.compiler == 'icc' else ''
+
+      # Configure
       run('cmake -L ' +
-          '-G "Visual Studio %s Win64" ' % VS_VERSION +
+          '-G "Visual Studio %s Win64" ' % MSVC_VERSION +
           '-T "%s" ' % toolchain +
           '-D ISPC_EXECUTABLE="%s.exe" ' % ispc_executable +
           '-D TBB_ROOT="%s" ' % tbb_root +
@@ -134,12 +147,19 @@ def main():
       # Build
       run('cmake --build . --config %s --target ALL_BUILD' % cfg.config)
     else:
-      # Configure
+      # Set up the compiler
       cc = cfg.compiler
       cxx = {'gcc' : 'g++', 'clang' : 'clang++', 'icc' : 'icpc'}[cc]
+      if cfg.compiler == 'icc':
+        icc_dir = os.environ.get('OIDN_ICC_DIR_' + OS.upper())
+        if icc_dir:
+          cc  = os.path.join(icc_dir, cc)
+          cxx = os.path.join(icc_dir, cxx)
+
+      # Configure
       run('cmake -L ' +
-          '-D CMAKE_C_COMPILER:FILEPATH=%s ' % cc +
-          '-D CMAKE_CXX_COMPILER:FILEPATH=%s ' % cxx +
+          '-D CMAKE_C_COMPILER:FILEPATH="%s" ' % cc +
+          '-D CMAKE_CXX_COMPILER:FILEPATH="%s" ' % cxx +
           '-D CMAKE_BUILD_TYPE=%s ' % cfg.config +
           '-D ISPC_EXECUTABLE="%s" ' % ispc_executable +
           '-D TBB_ROOT="%s" ' % tbb_root +
@@ -167,11 +187,8 @@ def main():
     package_dir = re.sub(r'\.(tar(\..*)?|zip)$', '', package_filename)
 
     # Get the list of binaries
-    if OS == 'windows':
-      binaries  = glob(os.path.join(package_dir, 'bin', '*.exe'))
-      binaries += glob(os.path.join(package_dir, 'bin', '*.dll'))
-    else:
-      binaries  = glob(os.path.join(package_dir, 'bin', '*'))
+    binaries = glob(os.path.join(package_dir, 'bin', '*'))
+    if OS != 'windows':
       binaries += glob(os.path.join(package_dir, 'lib', '*.so*'))
     binaries = list(filter(lambda f: os.path.isfile(f) and not os.path.islink(f), binaries))
 
@@ -179,6 +196,16 @@ def main():
     if OS == 'linux':
       for f in binaries:
         check_symbols_linux(f)
+
+    # Sign the binaries
+    sign_file = os.environ.get('OIDN_SIGN_FILE_' + OS.upper())
+    if sign_file:
+      for f in binaries:
+        run('%s -q -vv %s' % (sign_file, f))
+
+      # Repack
+      os.remove(package_filename)
+      create_package(package_filename, package_dir)
 
     # Delete the extracted package
     shutil.rmtree(package_dir)
