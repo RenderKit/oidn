@@ -9,16 +9,15 @@ import os
 import platform
 from glob import glob
 import shutil
-from io import BytesIO
-from tarfile import TarFile
+import tarfile
 from zipfile import ZipFile
 import re
 import argparse
 
 if sys.version_info[0] >= 3:
-  from urllib.request import urlopen
+  from urllib.request import urlretrieve
 else:
-  from urllib2 import urlopen
+  from urllib import urlretrieve
 
 MSVC_GENERATOR = 'Visual Studio 15 2017 Win64'
 ICC_TOOLCHAIN  = 'Intel C++ Compiler 18.0'
@@ -31,13 +30,13 @@ def run(command):
 def extract_package(filename, output_dir):
   if re.search(r'^https?://', filename):
     print('Downloading file:', filename)
-    file = BytesIO(urlopen(filename).read())
+    file = urlretrieve(filename)[0]
   else:
     file = filename
 
   print('Extracting package:', filename)
   if re.search(r'(\.tar(\..+)?|tgz)$', filename):
-    package = TarFile(file)
+    package = tarfile.open(file)
   elif filename.endswith('.zip'):
     package = ZipFile(file)
   else:
@@ -87,13 +86,13 @@ def main():
     # Set up TBB
     tbb_platform = {'Linux' : 'lin', 'Darwin' : 'mac', 'Windows' : 'win'}[system]
     tbb_dir = os.path.join(deps_dir, 'tbb', TBB_VERSION, tbb_platform)
-    tbb_root = os.path.join(tbb_dir, 'tbb')
-    if not os.path.isdir(tbb_root):
+    if not os.path.isdir(tbb_dir):
       # Download and extract TBB
-      tbb_url = 'https://github.com/intel/tbb/releases/download/v%s/tbb-%s-%s' % (TBB_VERSION, TBB_VERSION, tbb_platform)
+      tbb_url = 'https://github.com/oneapi-src/oneTBB/releases/download/v%s/tbb-%s-%s' % (TBB_VERSION, TBB_VERSION, tbb_platform)
       tbb_url += '.zip' if system == 'Windows' else '.tgz'
       os.makedirs(tbb_dir)
       extract_package(tbb_url, tbb_dir)
+    tbb_root = os.path.join(tbb_dir, 'tbb')
 
     # Create a clean build directory
     if os.path.isdir(build_dir):
