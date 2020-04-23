@@ -19,17 +19,21 @@ if sys.version_info[0] >= 3:
 else:
   from urllib import urlretrieve
 
-MSVC_GENERATOR = 'Visual Studio 15 2017 Win64'
-ICC_TOOLCHAIN  = 'Intel C++ Compiler 18.0'
-TBB_VERSION    = '2020.1'
+VS_VERSION         = '15 2017'
+ICC_VERSION        = '18.0'
+ISPC_VERSION       = '1.12.0'
+ISPC_VERSION_LINUX = '1.12.0b'
+TBB_VERSION        = '2020.1'
 
 def run(command):
   if os.system(command) != 0:
     raise Exception('non-zero return value')
 
-def download_file(url, output_filename):
+def download_file(url, output_dir):
   print('Downloading file:', url)
-  urlretrieve(url, filename=output_filename)
+  filename = os.path.join(output_dir, os.path.basename(url))
+  urlretrieve(url, filename=filename)
+  return filename
 
 def extract_package(filename, output_dir):
   print('Extracting package:', filename)
@@ -60,17 +64,17 @@ def check_symbols_linux(filename):
 
 def main():
   # Detect the OS
-  system = platform.system() # Linux, Darwin, Windows
+  OS = {'Windows' : 'windows', 'Linux' : 'linux', 'Darwin' : 'macos'}[platform.system()]
 
   # Parse the arguments
-  compilers = {'Windows' : ['msvc', 'icc'],
-               'Linux'   : ['gcc', 'clang', 'icc'],
-               'Darwin'  : ['clang', 'icc']}
+  compilers = {'windows' : ['msvc', 'icc'],
+               'linux'   : ['gcc', 'clang', 'icc'],
+               'macos'   : ['clang', 'icc']}
 
   parser = argparse.ArgumentParser()
   parser.usage = '\rIntel(R) Open Image Denoise - Release\n' + parser.format_usage()
   parser.add_argument('stage', type=str, nargs='*', choices=['build', 'package'], default='build')
-  parser.add_argument('--compiler', type=str, choices=compilers[system], default='icc')
+  parser.add_argument('--compiler', type=str, choices=compilers[OS], default='icc')
   parser.add_argument('--config', type=str, choices=['Debug', 'Release', 'RelWithDebInfo'], default='Release')
   cfg = parser.parse_args()
 
@@ -83,17 +87,32 @@ def main():
 
   # Build
   if 'build' in cfg.stage:
+    # Set up ISPC
+    ispc_release = 'ispc-v%s-' % ISPC_VERSION
+    ispc_release += {'windows' : 'windows', 'linux' : 'linux', 'macos' : 'macOS'}[OS]
+    ispc_dir = os.path.join(deps_dir, ispc_release)
+    if not os.path.isdir(ispc_dir):
+      # Download and extract ISPC
+      ispc_url = 'https://github.com/ispc/ispc/releases/download/v%s/' % ISPC_VERSION
+      ispc_url += 'ispc-v%s-linux' % ISPC_VERSION_LINUX if OS == 'linux' else ispc_release
+      ispc_url += '.zip' if OS == 'windows' else '.tar.gz'
+      ispc_filename = download_file(ispc_url, deps_dir)
+      extract_package(ispc_filename, deps_dir)
+      os.remove(ispc_filename)
+    ispc_executable = os.path.join(ispc_dir, 'bin', 'ispc')
+
     # Set up TBB
-    tbb_platform = {'Linux' : 'lin', 'Darwin' : 'mac', 'Windows' : 'win'}[system]
-    tbb_dir = os.path.join(deps_dir, 'tbb', TBB_VERSION, tbb_platform)
+    tbb_release = 'tbb-%s-' % TBB_VERSION
+    tbb_release += {'windows' : 'win', 'linux' : 'lin', 'macos' : 'mac'}[OS]
+    tbb_dir = os.path.join(deps_dir, tbb_release)
     if not os.path.isdir(tbb_dir):
       # Download and extract TBB
-      tbb_url = 'https://github.com/oneapi-src/oneTBB/releases/download/v%s/tbb-%s-%s' % (TBB_VERSION, TBB_VERSION, tbb_platform)
-      tbb_url += '.zip' if system == 'Windows' else '.tgz'
-      tbb_filename = os.path.join(deps_dir, os.path.basename(tbb_url))
-      download_file(tbb_url, tbb_filename)
+      tbb_url = 'https://github.com/oneapi-src/oneTBB/releases/download/v%s/%s' % (TBB_VERSION, tbb_release)
+      tbb_url += '.zip' if OS == 'windows' else '.tgz'
+      tbb_filename = download_file(tbb_url, deps_dir)
       os.makedirs(tbb_dir)
       extract_package(tbb_filename, tbb_dir)
+      os.remove(tbb_filename)
     tbb_root = os.path.join(tbb_dir, 'tbb')
 
     # Create a clean build directory
@@ -102,12 +121,13 @@ def main():
     os.mkdir(build_dir)
     os.chdir(build_dir)
 
-    if system == 'Windows':
+    if OS == 'windows':
       # Configure
-      toolchain = ICC_TOOLCHAIN if cfg.compiler == 'icc' else ''
+      toolchain = 'Intel C++ Compiler %s' % ICC_VERSION if cfg.compiler == 'icc' else ''
       run('cmake -L ' +
-          '-G "%s" ' % MSVC_GENERATOR +
+          '-G "Visual Studio %s Win64" ' % VS_VERSION +
           '-T "%s" ' % toolchain +
+          '-D ISPC_EXECUTABLE="%s.exe" ' % ispc_executable +
           '-D TBB_ROOT="%s" ' % tbb_root +
           '..')
 
@@ -121,6 +141,7 @@ def main():
           '-D CMAKE_C_COMPILER:FILEPATH=%s ' % cc +
           '-D CMAKE_CXX_COMPILER:FILEPATH=%s ' % cxx +
           '-D CMAKE_BUILD_TYPE=%s ' % cfg.config +
+          '-D ISPC_EXECUTABLE="%s" ' % ispc_executable +
           '-D TBB_ROOT="%s" ' % tbb_root +
           '..')
 
@@ -135,7 +156,7 @@ def main():
     run('cmake -L -D OIDN_ZIP_MODE=ON ..')
 
     # Build
-    if system == 'Windows':
+    if OS == 'windows':
       run('cmake --build . --config %s --target PACKAGE' % cfg.config)
     else:
       run('cmake --build . --target package -j -v')
@@ -146,7 +167,7 @@ def main():
     package_dir = re.sub(r'\.(tar(\..*)?|zip)$', '', package_filename)
 
     # Get the list of binaries
-    if system == 'Windows':
+    if OS == 'windows':
       binaries  = glob(os.path.join(package_dir, 'bin', '*.exe'))
       binaries += glob(os.path.join(package_dir, 'bin', '*.dll'))
     else:
@@ -155,7 +176,7 @@ def main():
     binaries = list(filter(lambda f: os.path.isfile(f) and not os.path.islink(f), binaries))
 
     # Check the symbols in the binaries
-    if system == 'Linux':
+    if OS == 'linux':
       for f in binaries:
         check_symbols_linux(f)
 
