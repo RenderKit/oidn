@@ -188,8 +188,10 @@ def main():
 
     # Get the list of binaries
     binaries = glob(os.path.join(package_dir, 'bin', '*'))
-    if OS != 'windows':
+    if OS == 'linux':
       binaries += glob(os.path.join(package_dir, 'lib', '*.so*'))
+    elif OS == 'macos':
+      binaries += glob(os.path.join(package_dir, 'lib', '*.dylib'))
     binaries = list(filter(lambda f: os.path.isfile(f) and not os.path.islink(f), binaries))
 
     # Check the symbols in the binaries
