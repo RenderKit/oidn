@@ -109,7 +109,7 @@ package-macos:
   extends: [ .package-macos ]
   needs: 
     - job: build-macos-icc
-  artifacts: true
+      artifacts: true
 
 ## -----------------------------------------------------------------------------
 ## Windows
@@ -148,7 +148,7 @@ package-windows:
   extends: [ .package-windows ]
   needs: 
     - job: build-windows-icc
-  artifacts: true
+      artifacts: true
       
 ## -----------------------------------------------------------------------------
 ## Protex
