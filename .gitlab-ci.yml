@@ -136,13 +136,13 @@ package-macos:
   stage:   package
   extends: [ .base-windows ]
   only:    [ schedules, web ]
-  script:  scripts\release.py package
+  script:  python scripts/release.py package
 
 ## -----------------------------------------------------------------------------
 
 build-windows-icc:
   extends: [ .build-windows ]
-  script:  scripts/release.py build --compiler icc
+  script:  python scripts/release.py build --compiler icc
 
 package-windows:
   extends: [ .package-windows ]
