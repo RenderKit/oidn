@@ -31,7 +31,24 @@ def download_file(url, output_dir):
 
 def extract_package(filename, output_dir):
   print('Extracting package:', filename)
-  shutil.unpack_archive(filename, output_dir)
+  # Detect the package format and open the package
+  if re.search(r'(\.tar(\..+)?|tgz)$', filename):
+    package = tarfile.open(filename)
+    members = package.getnames()
+  elif filename.endswith('.zip'):
+    package = ZipFile(filename)
+    members = package.namelist()
+  else:
+    raise Exception('unsupported package format')
+  # Avoid nesting two top-level directories with the same name
+  if os.path.commonpath(members) == os.path.basename(output_dir):
+    output_dir = os.path.dirname(output_dir)
+  # Create the output directory if it doesn't exist
+  if not os.path.isdir(output_dir):
+    os.makedirs(output_dir)
+  # Extract the package
+  package.extractall(output_dir)
+  package.close()
 
 def create_package(filename, input_dir):
   print('Creating package:', filename)
@@ -95,7 +112,7 @@ def main():
       ispc_url = f'https://github.com/ispc/ispc/releases/download/v{ISPC_VERSION}/{ispc_release}'
       ispc_url += '.zip' if OS == 'windows' else '.tar.gz'
       ispc_filename = download_file(ispc_url, deps_dir)
-      extract_package(ispc_filename, deps_dir)
+      extract_package(ispc_filename, ispc_dir)
       os.remove(ispc_filename)
     ispc_executable = os.path.join(ispc_dir, 'bin', 'ispc')
 
@@ -108,7 +125,6 @@ def main():
       tbb_url = f'https://github.com/oneapi-src/oneTBB/releases/download/v{TBB_VERSION}/{tbb_release}'
       tbb_url += '.zip' if OS == 'windows' else '.tgz'
       tbb_filename = download_file(tbb_url, deps_dir)
-      os.makedirs(tbb_dir)
       extract_package(tbb_filename, tbb_dir)
       os.remove(tbb_filename)
     tbb_root = os.path.join(tbb_dir, 'tbb')
