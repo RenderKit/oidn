@@ -19,11 +19,10 @@ if sys.version_info[0] >= 3:
 else:
   from urllib import urlretrieve
 
-MSVC_VERSION       = '15 2017'
-ICC_VERSION        = '18.0'
-ISPC_VERSION       = '1.12.0'
-ISPC_VERSION_LINUX = '1.12.0b'
-TBB_VERSION        = '2020.1'
+MSVC_VERSION = '15 2017'
+ICC_VERSION  = '18.0'
+ISPC_VERSION = '1.13.0'
+TBB_VERSION  = '2020.2'
 
 def run(command):
   if os.system(command) != 0:
@@ -104,8 +103,7 @@ def main():
     ispc_dir = os.path.join(deps_dir, ispc_release)
     if not os.path.isdir(ispc_dir):
       # Download and extract ISPC
-      ispc_url = 'https://github.com/ispc/ispc/releases/download/v%s/' % ISPC_VERSION
-      ispc_url += 'ispc-v%s-linux' % ISPC_VERSION_LINUX if OS == 'linux' else ispc_release
+      ispc_url = 'https://github.com/ispc/ispc/releases/download/v%s/%s' % (ISPC_VERSION, ispc_release)
       ispc_url += '.zip' if OS == 'windows' else '.tar.gz'
       ispc_filename = download_file(ispc_url, deps_dir)
       extract_package(ispc_filename, deps_dir)
