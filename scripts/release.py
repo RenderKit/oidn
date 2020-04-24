@@ -153,7 +153,7 @@ def main():
           '..')
 
       # Build
-      run('cmake --build . --target preinstall -j -v')
+      run('cmake --build . --target preinstall -- -j VERBOSE=1')
     
   # Package
   if 'package' in cfg.stage:
@@ -166,7 +166,7 @@ def main():
     if OS == 'windows':
       run(f'cmake --build . --config {cfg.config} --target PACKAGE')
     else:
-      run('cmake --build . --target package -j -v')
+      run('cmake --build . --target package -- -j VERBOSE=1')
 
     # Extract the package
     package_filename = glob(os.path.join(build_dir, 'oidn-*'))[0]
@@ -201,4 +201,3 @@ def main():
 
 if __name__ == '__main__':
   main()
-  
