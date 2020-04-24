@@ -11,7 +11,7 @@ stages:
 ## -----------------------------------------------------------------------------
  
 .base-linux:
-  tags:        [ docker ]
+  tags: [ docker ]
   artifacts:
     untracked: true
     name:      "$CI_JOB_NAME"
@@ -22,47 +22,47 @@ stages:
     OIDN_ROOT_DIR:          "$CI_PROJECT_DIR"
 
 .build-linux:
-  stage:      build
-  extends:    [ .base-linux ]
-  only:       [ pushes, schedules, web ]
+  stage:   build
+  extends: [ .base-linux ]
+  only:    [ pushes, schedules, web ]
 
 .package-linux:
-  stage:      package
-  extends:    [ .base-linux ]
-  only:       [ schedules, web ]
-  script:     scripts/release.py package
+  stage:   package
+  extends: [ .base-linux ]
+  only:    [ schedules, web ]
+  script:  scripts/release.py package
 
 ## -----------------------------------------------------------------------------
 
 .centos7:
-  image:        openimagedenoise/build:centos7
+  image: openimagedenoise/build:centos7
   
 build-centos7-icc:
-  extends:      [ .centos7, .build-linux ]
-  script:       scripts/release.py build --compiler icc
+  extends: [ .centos7, .build-linux ]
+  script:  scripts/release.py build --compiler icc
 
 package-linux:
-  extends:      [ .centos7, .package-linux ]
+  extends: [ .centos7, .package-linux ]
   needs: 
-    - job:       build-centos7-icc
-      artifacts: true
+    - job: build-centos7-icc
+  artifacts: true
 
 ## -----------------------------------------------------------------------------
 
 .ubuntu18.04:
-  image:        openimagedenoise/build:ubuntu18.04
+  image: openimagedenoise/build:ubuntu18.04
 
 build-ubuntu18.04-gcc:
-  extends:      [ .ubuntu18.04, .build-linux ]
-  script:       scripts/release.py build --compiler gcc
+  extends: [ .ubuntu18.04, .build-linux ]
+  script:  scripts/release.py build --compiler gcc
 
 build-ubuntu18.04-gcc-debug:
-  extends:      [ .ubuntu18.04, .build-linux ]
-  script:       scripts/release.py build --compiler gcc --config Debug
+  extends: [ .ubuntu18.04, .build-linux ]
+  script:  scripts/release.py build --compiler gcc --config Debug
 
 build-ubuntu18.04-clang:
-  extends:      [ .ubuntu18.04, .build-linux ]
-  script:       scripts/release.py build --compiler clang
+  extends: [ .ubuntu18.04, .build-linux ]
+  script:  scripts/release.py build --compiler clang
 
 #ubuntu18.04-kw-gcc-build:
 #  extends:      [ .ubuntu18.04, .build-linux ]
@@ -74,7 +74,7 @@ build-ubuntu18.04-clang:
 ## -----------------------------------------------------------------------------
 
 .base-macos:
-  tags:        [ osx ]
+  tags: [ osx ]
   artifacts:     
     untracked: true
     name:      "$CI_JOB_NAME"
@@ -85,37 +85,38 @@ build-ubuntu18.04-clang:
     OIDN_ROOT_DIR:          "$CI_PROJECT_DIR"
 
 .build-macos:
-  stage:      build
-  extends:    [ .base-macos ]
-  only:       [ pushes, schedules, web ]
+  stage:   build
+  extends: [ .base-macos ]
+  only:    [ pushes, schedules, web ]
 
 .package-macos:
-  stage:      package
-  extends:    [ .base-macos ]
-  only:       [ schedules, web ]
-  script:     scripts/release.py package
+  stage:   package
+  extends: [ .base-macos ]
+  only:    [ schedules, web ]
+  script:  scripts/release.py package
 
 ## -----------------------------------------------------------------------------
 
 build-macos-clang:
-  extends:      [ .build-macos ]
-  script:       scripts/release.py build --compiler clang
+  extends: [ .build-macos ]
+  script:  scripts/release.py build --compiler clang
 
 build-macos-icc:
-  extends:      [ .build-macos ]
-  script:       scripts/release.py build --compiler icc
+  extends: [ .build-macos ]
+  script:  scripts/release.py build --compiler icc
 
 package-macos:
-  extends:      [ .package-macos ]
+  extends: [ .package-macos ]
   needs: 
-    - job:       build-macos-icc
-      artifacts: true
+    - job: build-macos-icc
+  artifacts: true
 
 ## -----------------------------------------------------------------------------
 ## Windows
 ## -----------------------------------------------------------------------------
 
 .base-windows:
+  tags: [ win10, msvc15, icc19 ]
   artifacts:
     untracked: true
     name:      "$CI_JOB_NAME"
@@ -127,38 +128,38 @@ package-macos:
     ErrorActionPreference:  stop
 
 .build-windows:
-  stage:      build
-  extends:    [ .base-windows ]
-  only:       [ pushes, schedules, web ]
+  stage:   build
+  extends: [ .base-windows ]
+  only:    [ pushes, schedules, web ]
 
 .package-windows:
-  stage:      package
-  extends:    [ .base-windows ]
-  only:       [ schedules, web ]
-  script:     scripts\release.py package
+  stage:   package
+  extends: [ .base-windows ]
+  only:    [ schedules, web ]
+  script:  scripts\release.py package
 
 ## -----------------------------------------------------------------------------
 
 build-windows-icc:
-  extends:      [ .build-windows ]
-  script:       scripts/release.py build --compiler icc
+  extends: [ .build-windows ]
+  script:  scripts/release.py build --compiler icc
 
 package-windows:
-  extends:      [ .package-windows ]
+  extends: [ .package-windows ]
   needs: 
-    - job:       build-windows-icc
-      artifacts: true
+    - job: build-windows-icc
+  artifacts: true
       
 ## -----------------------------------------------------------------------------
 ## Protex
 ## -----------------------------------------------------------------------------
 
 protex_scan:
-  stage:    scan_source
-  tags:     [ docker ]
-  only:     [ schedules, web ]
-  script:   "scripts/protex_scan.sh"
-  image:    amd64/openjdk:8
+  stage:  scan_source
+  tags:   [ docker ]
+  only:   [ schedules, web ]
+  script: "scripts/protex_scan.sh"
+  image:  amd64/openjdk:8
   dependencies: []
   # Will fail regularly, do not break nightlies because of that.
   allow_failure: true
