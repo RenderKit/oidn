@@ -3,85 +3,48 @@
 
 stages:
   - build
-  - check_symbols
   - package
-  - sign
   - scan_source
 
 ## -----------------------------------------------------------------------------
 ## Linux
 ## -----------------------------------------------------------------------------
  
-.linux-base:
+.base-linux:
   tags:        [ docker ]
-  artifacts:     
+  artifacts:
     untracked: true
     name:      "$CI_JOB_NAME"
     when:      always
     expire_in: 1d
-  variables: &linux-base
+  variables:
     GIT_SUBMODULE_STRATEGY: recursive
     OIDN_ROOT_DIR:          "$CI_PROJECT_DIR"
 
-.linux-build:
+.build-linux:
   stage:      build
-  extends:    [ .linux-base ]
+  extends:    [ .base-linux ]
   only:       [ pushes, schedules, web ]
-  script:     "scripts/linux_build.sh"
 
-.linux-check-symbols:
-  stage:      check_symbols
-  extends:    [ .linux-base ]
-  only:       [ schedules, web ]
-  script:     "scripts/linux_check_symbols.sh"
-
-.linux-package:
+.package-linux:
   stage:      package
-  extends:    [ .linux-base ]
+  extends:    [ .base-linux ]
   only:       [ schedules, web ]
-  script:     "scripts/linux_package.sh"
-
-## -----------------------------------------------------------------------------
-
-.linux-clang-build:
-  extends:    [ .linux-build ]
-  variables: 
-    OIDN_C:   "clang"
-    OIDN_CXX: "clang++"
-    <<:       *linux-base
-
-.linux-icc-build:
-  extends:    [ .linux-build ]
-  variables: 
-    OIDN_C:   "$PATH_ICC_19_LINUX/icc"
-    OIDN_CXX: "$PATH_ICC_19_LINUX/icpc"
-    <<:       *linux-base
-
-.linux-gcc-build:
-  extends:    [ .linux-build ]
-  variables: 
-    OIDN_C:   "gcc"
-    OIDN_CXX: "g++"
-    <<:       *linux-base
+  script:     scripts/release.py package
 
 ## -----------------------------------------------------------------------------
 
 .centos7:
   image:        openimagedenoise/build:centos7
   
-centos7-icc-build:
-  extends:      [ .centos7, .linux-icc-build ]
+build-centos7-icc:
+  extends:      [ .centos7, .build-linux ]
+  script:       scripts/release.py build --compiler icc
 
-centos7-icc-check-symbols:
-  extends:      [ .centos7, .linux-check-symbols ]
+package-linux:
+  extends:      [ .centos7, .package-linux ]
   needs: 
-    - job:       centos7-icc-build
-      artifacts: true
-
-centos7-icc-package:
-  extends:      [ .centos7, .linux-package ]
-  needs: 
-    - job:       centos7-icc-build
+    - job:       build-centos7-icc
       artifacts: true
 
 ## -----------------------------------------------------------------------------
@@ -89,152 +52,101 @@ centos7-icc-package:
 .ubuntu18.04:
   image:        openimagedenoise/build:ubuntu18.04
 
-ubuntu18.04-gcc-build:
-  extends:      [ .ubuntu18.04, .linux-gcc-build ]
+build-ubuntu18.04-gcc:
+  extends:      [ .ubuntu18.04, .build-linux ]
+  script:       scripts/release.py build --compiler gcc
 
-ubuntu18.04-gcc-build-debug:
-  extends:      [ ubuntu18.04-gcc-build ]
-  variables: 
-    OIDN_BUILD: "Debug"
+build-ubuntu18.04-gcc-debug:
+  extends:      [ .ubuntu18.04, .build-linux ]
+  script:       scripts/release.py build --compiler gcc --config Debug
 
-ubuntu18.04-clang-build:
-  extends:      [ .ubuntu18.04, .linux-clang-build ]
+build-ubuntu18.04-clang:
+  extends:      [ .ubuntu18.04, .build-linux ]
+  script:       scripts/release.py build --compiler clang
 
-ubuntu18.04-kw-gcc-build:
-  extends:      [ .ubuntu18.04, .linux-gcc-build ]
-  script:       "scripts/klocwork_build.sh"
+#ubuntu18.04-kw-gcc-build:
+#  extends:      [ .ubuntu18.04, .build-linux ]
+#  script:       "scripts/klocwork_build.sh"
 
 
 ## -----------------------------------------------------------------------------
 ## macOS
 ## -----------------------------------------------------------------------------
 
-.macos-base:
+.base-macos:
   tags:        [ osx ]
   artifacts:     
     untracked: true
     name:      "$CI_JOB_NAME"
     when:      always
     expire_in: 1d
-  variables: &macos-base
+  variables:
     GIT_SUBMODULE_STRATEGY: recursive
     OIDN_ROOT_DIR:          "$CI_PROJECT_DIR"
 
-.macos-build:
+.build-macos:
   stage:      build
-  extends:    [ .macos-base ]
+  extends:    [ .base-macos ]
   only:       [ pushes, schedules, web ]
-  script:     "scripts/macos_build.sh"
 
-.macos-sign:
-  stage:      sign
-  extends:    [ .macos-base ]
-  only:       [ schedules, web ]
-  script:     "scripts/macos_sign.sh"
-
-.macos-package:
+.package-macos:
   stage:      package
-  extends:    [ .macos-base ]
+  extends:    [ .base-macos ]
   only:       [ schedules, web ]
-  script:     "scripts/macos_package.sh"
+  script:     scripts/release.py package
 
 ## -----------------------------------------------------------------------------
 
-.macos-clang-build:
-  extends:    [ .macos-build ]
-  variables: 
-    OIDN_C:   "clang"
-    OIDN_CXX: "clang++"
-    <<:       *macos-base
+build-macos-clang:
+  extends:      [ .build-macos ]
+  script:       scripts/release.py build --compiler clang
 
-.macos-icc-build:
-  extends:    [ .macos-build ]
-  variables: 
-    OIDN_C:   "$PATH_ICC_19_APPLE/icc"
-    OIDN_CXX: "$PATH_ICC_19_APPLE/icpc"
-    <<:       *macos-base
+build-macos-icc:
+  extends:      [ .build-macos ]
+  script:       scripts/release.py build --compiler icc
 
-## -----------------------------------------------------------------------------
-
-macos-clang-build:
-  extends:      [ .macos-clang-build ]
-
-macos-icc-build:
-  extends:      [ .macos-icc-build ]
-
-macos-icc-package:
-  extends:      [ .macos-package ]
+package-macos:
+  extends:      [ .package-macos ]
   needs: 
-    - job:       macos-icc-build
-      artifacts: true
-
-macos-icc-sign:
-  extends:      [ .macos-sign ]
-  needs: 
-    - job:       macos-icc-package
+    - job:       build-macos-icc
       artifacts: true
 
 ## -----------------------------------------------------------------------------
 ## Windows
 ## -----------------------------------------------------------------------------
 
-.windows-base:
-  artifacts:     
+.base-windows:
+  artifacts:
     untracked: true
     name:      "$CI_JOB_NAME"
     when:      always
     expire_in: 1d
-  variables: &windows-base
+  variables:
     GIT_SUBMODULE_STRATEGY: recursive
     OIDN_ROOT_DIR:          "$CI_PROJECT_DIR"
     ErrorActionPreference:  stop
 
-.windows-build:
+.build-windows:
   stage:      build
-  extends:    [ .windows-base ]
+  extends:    [ .base-windows ]
   only:       [ pushes, schedules, web ]
-  script:     
-    - scripts\windows_build.ps1
-    - if(!$?) { Exit $LASTEXITCODE }
 
-.windows-package:
+.package-windows:
   stage:      package
-  extends:    [ .windows-base ]
+  extends:    [ .base-windows ]
   only:       [ schedules, web ]
-  script:     
-    - scripts\windows_package.ps1
-    - if(!$?) { Exit $LASTEXITCODE }
-
-.windows-sign:
-  stage:      sign
-  extends:    [ .windows-base ]
-  only:       [ schedules, web ]
-  script:     
-    - scripts\windows_sign.ps1
-    - if(!$?) { Exit $LASTEXITCODE }
+  script:     scripts\release.py package
 
 ## -----------------------------------------------------------------------------
 
-.windows-vs15-icc19:
-  tags: [ win10, msvc15, icc19 ]
-  variables:
-    OIDN_GENERATOR: "Visual Studio 15 2017 Win64"
-    OIDN_TOOLCHAIN: "Intel C++ Compiler 19.0"
-    <<:             *windows-base
+build-windows-icc:
+  extends:      [ .build-windows ]
+  script:       scripts/release.py build --compiler icc
 
-windows-vs15-icc19-build:
-  extends:      [ .windows-build, .windows-vs15-icc19 ]
-
-windows-vs15-icc19-package:
-  extends:      [ .windows-package, .windows-vs15-icc19 ]
+package-windows:
+  extends:      [ .package-windows ]
   needs: 
-    - job:       windows-vs15-icc19-build
-      artifacts: true
-
-windows-vs15-icc19-sign:
-  extends:      [ .windows-sign, .windows-vs15-icc19 ]
-  needs: 
-    - job:       windows-vs15-icc19-package
+    - job:       build-windows-icc
       artifacts: true
       
 ## -----------------------------------------------------------------------------
@@ -246,7 +158,7 @@ protex_scan:
   tags:     [ docker ]
   only:     [ schedules, web ]
   script:   "scripts/protex_scan.sh"
-  image: amd64/openjdk:8
+  image:    amd64/openjdk:8
   dependencies: []
   # Will fail regularly, do not break nightlies because of that.
   allow_failure: true

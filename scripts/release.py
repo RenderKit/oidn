@@ -15,7 +15,7 @@ from urllib.request import urlretrieve
 import argparse
 
 MSVC_VERSION = '15 2017'
-ICC_VERSION  = '18.0'
+ICC_VERSION  = '19.0'
 ISPC_VERSION = '1.13.0'
 TBB_VERSION  = '2020.2'
 
@@ -76,7 +76,9 @@ def main():
   cfg = parser.parse_args()
 
   # Set the directories
-  root_dir = os.getcwd()
+  root_dir = os.environ.get('OIDN_ROOT_DIR')
+  if not root_dir:
+    root_dir = os.getcwd()
   deps_dir = os.path.join(root_dir, 'deps')
   if not os.path.isdir(deps_dir):
     os.makedirs(deps_dir)
