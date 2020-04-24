@@ -20,6 +20,7 @@ stages:
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
     OIDN_ROOT_DIR:          "$CI_PROJECT_DIR"
+    PYTHONUNBUFFERED:       1
 
 .build-linux:
   stage:   build
@@ -83,6 +84,7 @@ build-ubuntu18.04-clang:
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
     OIDN_ROOT_DIR:          "$CI_PROJECT_DIR"
+    PYTHONUNBUFFERED:       1
 
 .build-macos:
   stage:   build
@@ -125,6 +127,7 @@ package-macos:
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
     OIDN_ROOT_DIR:          "$CI_PROJECT_DIR"
+    PYTHONUNBUFFERED:       1
     ErrorActionPreference:  stop
 
 .build-windows:
