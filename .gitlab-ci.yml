@@ -143,6 +143,14 @@ package-macos:
 
 ## -----------------------------------------------------------------------------
 
+build-windows-msvc:
+  extends: [ .build-windows ]
+  script:  python scripts/release.py build --compiler msvc
+
+build-windows-msvc-debug:
+  extends: [ .build-windows ]
+  script:  python scripts/release.py build --compiler msvc --config Debug
+
 build-windows-icc:
   extends: [ .build-windows ]
   script:  python scripts/release.py build --compiler icc
