@@ -1,9 +1,9 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 ## Copyright 2009-2020 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
-from __future__ import print_function
+import re
 import sys
 import os
 import platform
@@ -11,13 +11,8 @@ from glob import glob
 import shutil
 import tarfile
 from zipfile import ZipFile
-import re
+from urllib.request import urlretrieve
 import argparse
-
-if sys.version_info[0] >= 3:
-  from urllib.request import urlretrieve
-else:
-  from urllib import urlretrieve
 
 MSVC_VERSION = '15 2017'
 ICC_VERSION  = '18.0'
@@ -36,15 +31,7 @@ def download_file(url, output_dir):
 
 def extract_package(filename, output_dir):
   print('Extracting package:', filename)
-  #shutil.unpack_archive(filename, output_dir)
-  if re.search(r'(\.tar(\..+)?|tgz)$', filename):
-    package = tarfile.open(filename)
-  elif filename.endswith('.zip'):
-    package = ZipFile(filename)
-  else:
-    raise Exception('unsupported package format')
-  package.extractall(output_dir)
-  package.close()
+  shutil.unpack_archive(filename, output_dir)
 
 def create_package(filename, input_dir):
   print('Creating package:', filename)
@@ -98,12 +85,12 @@ def main():
   # Build
   if 'build' in cfg.stage:
     # Set up ISPC
-    ispc_release = 'ispc-v%s-' % ISPC_VERSION
+    ispc_release = f'ispc-v{ISPC_VERSION}-'
     ispc_release += {'windows' : 'windows', 'linux' : 'linux', 'macos' : 'macOS'}[OS]
     ispc_dir = os.path.join(deps_dir, ispc_release)
     if not os.path.isdir(ispc_dir):
       # Download and extract ISPC
-      ispc_url = 'https://github.com/ispc/ispc/releases/download/v%s/%s' % (ISPC_VERSION, ispc_release)
+      ispc_url = f'https://github.com/ispc/ispc/releases/download/v{ISPC_VERSION}/{ispc_release}'
       ispc_url += '.zip' if OS == 'windows' else '.tar.gz'
       ispc_filename = download_file(ispc_url, deps_dir)
       extract_package(ispc_filename, deps_dir)
@@ -111,12 +98,12 @@ def main():
     ispc_executable = os.path.join(ispc_dir, 'bin', 'ispc')
 
     # Set up TBB
-    tbb_release = 'tbb-%s-' % TBB_VERSION
+    tbb_release = f'tbb-{TBB_VERSION}-'
     tbb_release += {'windows' : 'win', 'linux' : 'lin', 'macos' : 'mac'}[OS]
     tbb_dir = os.path.join(deps_dir, tbb_release)
     if not os.path.isdir(tbb_dir):
       # Download and extract TBB
-      tbb_url = 'https://github.com/oneapi-src/oneTBB/releases/download/v%s/%s' % (TBB_VERSION, tbb_release)
+      tbb_url = f'https://github.com/oneapi-src/oneTBB/releases/download/v{TBB_VERSION}/{tbb_release}'
       tbb_url += '.zip' if OS == 'windows' else '.tgz'
       tbb_filename = download_file(tbb_url, deps_dir)
       os.makedirs(tbb_dir)
@@ -132,18 +119,18 @@ def main():
 
     if OS == 'windows':
       # Set up the compiler
-      toolchain = 'Intel C++ Compiler %s' % ICC_VERSION if cfg.compiler == 'icc' else ''
+      toolchain = f'Intel C++ Compiler {ICC_VERSION}' if cfg.compiler == 'icc' else ''
 
       # Configure
       run('cmake -L ' +
-          '-G "Visual Studio %s Win64" ' % MSVC_VERSION +
-          '-T "%s" ' % toolchain +
-          '-D ISPC_EXECUTABLE="%s.exe" ' % ispc_executable +
-          '-D TBB_ROOT="%s" ' % tbb_root +
+          f'-G "Visual Studio {MSVC_VERSION} Win64" ' +
+          f'-T "{toolchain}" ' +
+          f'-D ISPC_EXECUTABLE="{ispc_executable}.exe" ' +
+          f'-D TBB_ROOT="{tbb_root}" ' +
           '..')
 
       # Build
-      run('cmake --build . --config %s --target ALL_BUILD' % cfg.config)
+      run(f'cmake --build . --config {cfg.config} --target ALL_BUILD')
     else:
       # Set up the compiler
       cc = cfg.compiler
@@ -156,11 +143,11 @@ def main():
 
       # Configure
       run('cmake -L ' +
-          '-D CMAKE_C_COMPILER:FILEPATH="%s" ' % cc +
-          '-D CMAKE_CXX_COMPILER:FILEPATH="%s" ' % cxx +
-          '-D CMAKE_BUILD_TYPE=%s ' % cfg.config +
-          '-D ISPC_EXECUTABLE="%s" ' % ispc_executable +
-          '-D TBB_ROOT="%s" ' % tbb_root +
+          f'-D CMAKE_C_COMPILER:FILEPATH="{cc}" ' +
+          f'-D CMAKE_CXX_COMPILER:FILEPATH="{cxx}" ' +
+          f'-D CMAKE_BUILD_TYPE={cfg.config} ' +
+          f'-D ISPC_EXECUTABLE="{ispc_executable}" ' +
+          f'-D TBB_ROOT="{tbb_root}" ' +
           '..')
 
       # Build
@@ -175,7 +162,7 @@ def main():
 
     # Build
     if OS == 'windows':
-      run('cmake --build . --config %s --target PACKAGE' % cfg.config)
+      run(f'cmake --build . --config {cfg.config} --target PACKAGE')
     else:
       run('cmake --build . --target package -j -v')
 
@@ -194,14 +181,14 @@ def main():
 
     # Check the symbols in the binaries
     if OS == 'linux':
-      for f in binaries:
-        check_symbols_linux(f)
+      for filename in binaries:
+        check_symbols_linux(filename)
 
     # Sign the binaries
     sign_file = os.environ.get('OIDN_SIGN_FILE_' + OS.upper())
     if sign_file:
-      for f in binaries:
-        run('%s -q -vv %s' % (sign_file, f))
+      for filename in binaries:
+        run(f'{sign_file} -q -vv {filename}')
 
       # Repack
       os.remove(package_filename)
