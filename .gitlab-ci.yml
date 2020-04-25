@@ -25,7 +25,8 @@ stages:
     expire_in: 1d
 
 .package:
-  stage: package
+  stage:  package
+  script: scripts/release.py package
   only:
     - schedules
     - web
@@ -70,7 +71,6 @@ package-linux:
   extends:
     - .package-linux
     - .centos7
-  script: scripts/release.py package --compiler icc
   needs: 
     - job: build-centos7-icc
       artifacts: true
@@ -134,7 +134,6 @@ build-macos-clang:
 
 package-macos:
   extends: .package-macos
-  script:  scripts/release.py package --compiler icc
   needs: 
     - job: build-macos-icc
       artifacts: true
@@ -178,7 +177,6 @@ build-windows-msvc-debug:
 
 package-windows:
   extends: .package-windows
-  script:  python scripts/release.py package --compiler icc
   needs:
     - job: build-windows-icc
       artifacts: true
