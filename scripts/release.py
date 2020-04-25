@@ -14,8 +14,6 @@ from zipfile import ZipFile
 from urllib.request import urlretrieve
 import argparse
 
-MSVC_VERSION = '15 2017'
-ICC_VERSION  = '19.0'
 ISPC_VERSION = '1.13.0'
 TBB_VERSION  = '2020.2'
 
@@ -81,14 +79,14 @@ def main():
   OS = {'Windows' : 'windows', 'Linux' : 'linux', 'Darwin' : 'macos'}[platform.system()]
 
   # Parse the arguments
-  compilers = {'windows' : ['msvc', 'icc'],
+  compilers = {'windows' : ['msvc15', 'msvc15-icc18', 'msvc15-icc19', 'msvc15-icc20', 'msvc16', 'msvc16-icc19', 'msvc16-icc20'],
                'linux'   : ['gcc', 'clang', 'icc'],
                'macos'   : ['clang', 'icc']}
 
   parser = argparse.ArgumentParser()
   parser.usage = '\rIntel(R) Open Image Denoise - Release\n' + parser.format_usage()
-  parser.add_argument('stage', type=str, nargs='*', choices=['build', 'package'], default='build')
-  parser.add_argument('--compiler', type=str, choices=compilers[OS], default='icc')
+  parser.add_argument('stage', type=str, nargs='*', choices=['build', 'package'])
+  parser.add_argument('--compiler', type=str, choices=compilers[OS], default=compilers[OS][0])
   parser.add_argument('--config', type=str, choices=['Debug', 'Release', 'RelWithDebInfo'], default='Release')
   cfg = parser.parse_args()
 
@@ -137,11 +135,17 @@ def main():
 
     if OS == 'windows':
       # Set up the compiler
-      toolchain = f'Intel C++ Compiler {ICC_VERSION}' if cfg.compiler == 'icc' else ''
+      toolchain = ''
+      for compiler in cfg.compiler.split('-'):
+        if compiler.startswith('msvc'):
+          msvc_version = {'msvc15' : '15 2017', 'msvc16' : '16 2019'}[compiler]
+        elif compiler.startswith('icc'):
+          icc_version = compiler[3:]
+          toolchain = f'Intel C++ Compiler {icc_version}.0'
 
       # Configure
       run('cmake -L ' +
-          f'-G "Visual Studio {MSVC_VERSION} Win64" ' +
+          f'-G "Visual Studio {msvc_version} Win64" ' +
           f'-T "{toolchain}" ' +
           f'-D ISPC_EXECUTABLE="{ispc_executable}.exe" ' +
           f'-D TBB_ROOT="{tbb_root}" ' +

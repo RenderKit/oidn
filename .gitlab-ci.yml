@@ -165,15 +165,15 @@ package-macos:
 
 build-windows-icc:
   extends: .build-windows
-  script:  python scripts/release.py build --compiler icc
+  script:  python scripts/release.py build --compiler msvc15-icc19
 
 build-windows-msvc:
   extends: .build-windows
-  script:  python scripts/release.py build --compiler msvc
+  script:  python scripts/release.py build --compiler msvc15
 
 build-windows-msvc-debug:
   extends: .build-windows
-  script:  python scripts/release.py build --compiler msvc --config Debug
+  script:  python scripts/release.py build --compiler msvc15 --config Debug
 
 package-windows:
   extends: .package-windows
@@ -186,7 +186,7 @@ package-windows:
 ## -----------------------------------------------------------------------------
 
 protex_scan:
-  stage:  scan_source
+  stage: scan_source
   tags:
     - docker
   only:
