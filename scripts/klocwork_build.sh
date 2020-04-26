@@ -59,41 +59,11 @@ set -e
 
 echo "$KW_SERVER_IP;$KW_SERVER_PORT;$KW_USER;$KW_LTOKEN" > $KLOCWORK_LTOKEN
 
-source scripts/unix_common.sh "$@"
-
-cd $ROOT_DIR
-mkdir -p $DEP_DIR
-cd $DEP_DIR
-
-# Set up TBB
-OIDN_TBB_ROOT="${TBB_DIR}/linux/tbb"
-if [ ! -d "$OIDN_TBB_ROOT" ]; then
-  echo "Cannot find TBB root at ${OIDN_TBB_ROOT}. Download TBB using scripts/download_tbb.sh."
-  exit 1
-fi
-
-# Create a clean build directory
-cd $ROOT_DIR
-rm -rf $BUILD_DIR
-mkdir $BUILD_DIR
-cd $BUILD_DIR
-
-# Get the number of build threads
-THREADS=`lscpu -b -p=Core,Socket | grep -v '^#' | sort -u | wc -l`
-
-
-# Set compiler and release settings
-cmake \
--D CMAKE_C_COMPILER:FILEPATH=$C_COMPILER \
--D CMAKE_CXX_COMPILER:FILEPATH=$CXX_COMPILER \
--D TBB_ROOT="${OIDN_TBB_ROOT}" .. \
-..
-
 # Build
-$KW_CLIENT_PATH/bin/kwinject -w -o buildspec.txt make -j $THREADS preinstall VERBOSE=1 
+scripts/release.py build --wrapper "$KW_CLIENT_PATH/bin/kwinject -w -o buildspec.txt"
 $KW_SERVER_PATH/bin/kwbuildproject --force --url http://$KW_SERVER_IP:$KW_SERVER_PORT/oidn buildspec.txt --tables-directory mytables
 $KW_SERVER_PATH/bin/kwadmin --url http://$KW_SERVER_IP:$KW_SERVER_PORT load --force --name build-$CI_PIPELINE_ID oidn mytables | tee project_load.log
 
-# store kw build number for check status later
+# Store kw build number for check status later
 cat project_load.log | grep "Starting build" | cut -d":" -f2 > ./kw_build_number
 

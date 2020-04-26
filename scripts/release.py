@@ -88,6 +88,7 @@ def main():
   parser.add_argument('stage', type=str, nargs='*', choices=['build', 'package'])
   parser.add_argument('--compiler', type=str, choices=compilers[OS], default=compilers[OS][0])
   parser.add_argument('--config', type=str, choices=['Debug', 'Release', 'RelWithDebInfo'], default='Release')
+  parser.add_argument('--wrapper', type=str, help='wrap build command')
   parser.add_argument('-D', dest='cmake_vars', type=str, action='append', help='create or update a CMake cache entry')
   cfg = parser.parse_args()
 
@@ -158,8 +159,8 @@ def main():
           cmake_vars +
           '..')
 
-      # Build
-      run(f'cmake --build . --config {cfg.config} --target ALL_BUILD')
+      # Set up build
+      build_cmd = f'cmake --build . --config {cfg.config} --target ALL_BUILD'
     else:
       # Set up the compiler
       cc = cfg.compiler
@@ -179,8 +180,13 @@ def main():
           cmake_vars +
           '..')
 
-      # Build
-      run('cmake --build . --target preinstall -- -j VERBOSE=1')
+      # Set up build
+      build_cmd = 'cmake --build . --target preinstall -- -j VERBOSE=1'
+    
+    # Build
+    if cfg.wrapper:
+      build_cmd = cfg.wrapper + ' ' + build_cmd
+    run(build_cmd)
     
   # Package
   if 'package' in cfg.stage:

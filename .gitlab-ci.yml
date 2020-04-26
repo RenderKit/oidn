@@ -98,9 +98,11 @@ build-ubuntu18.04-clang:
     - .ubuntu18.04
   script: scripts/release.py build --compiler clang
 
-#ubuntu18.04-kw-gcc-build:
-#  extends:      [ .ubuntu18.04, .build-linux ]
-#  script:       "scripts/klocwork_build.sh"
+build-ubuntu18.04-kw-gcc:
+  extends:
+    - .build-linux
+    - .ubuntu18.04
+  script: scripts/klocwork_build.sh
 
 
 ## -----------------------------------------------------------------------------
