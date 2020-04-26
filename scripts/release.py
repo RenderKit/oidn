@@ -135,34 +135,22 @@ def main():
     os.mkdir(build_dir)
     os.chdir(build_dir)
 
-    # Set up common CMake variables
-    cmake_vars = f'-D TBB_ROOT="{tbb_root}" '
-    if cfg.cmake_vars:
-      for var in cfg.cmake_vars:
-        cmake_vars += f'-D {var} '
+    # Set up CMake options
+    config_cmd = 'cmake -L'
+    build_cmd  = 'cmake --build .'
 
     if OS == 'windows':
-      # Set up the compiler
-      toolchain = ''
       for compiler in cfg.compiler.split('-'):
         if compiler.startswith('msvc'):
-          msvc_version = {'msvc15' : '15 2017', 'msvc16' : '16 2019'}[compiler]
+          config_cmd += {'msvc15' : ' -G "Visual Studio 15 2017 Win64"',
+                         'msvc16' : ' -G "Visual Studio 16 2019" -A x64'}[compiler]
         elif compiler.startswith('icc'):
           icc_version = compiler[3:]
-          toolchain = f'Intel C++ Compiler {icc_version}.0'
+          config_cmd += f' -T "Intel C++ Compiler {icc_version}.0"'
+      ispc_executable += '.exe'
 
-      # Configure
-      run('cmake -L ' +
-          f'-G "Visual Studio {msvc_version} Win64" ' +
-          f'-T "{toolchain}" ' +
-          f'-D ISPC_EXECUTABLE="{ispc_executable}.exe" ' +
-          cmake_vars +
-          '..')
-
-      # Set up build
-      build_cmd = f'cmake --build . --config {cfg.config} --target ALL_BUILD'
+      build_cmd += f' --config {cfg.config} --target ALL_BUILD'
     else:
-      # Set up the compiler
       cc = cfg.compiler
       cxx = {'gcc' : 'g++', 'clang' : 'clang++', 'icc' : 'icpc'}[cc]
       if cfg.compiler == 'icc':
@@ -170,19 +158,22 @@ def main():
         if icc_dir:
           cc  = os.path.join(icc_dir, cc)
           cxx = os.path.join(icc_dir, cxx)
+      config_cmd += f' -D CMAKE_C_COMPILER:FILEPATH="{cc}"'
+      config_cmd += f' -D CMAKE_CXX_COMPILER:FILEPATH="{cxx}"'
+      config_cmd += f' -D CMAKE_BUILD_TYPE={cfg.config}'
 
-      # Configure
-      run('cmake -L ' +
-          f'-D CMAKE_C_COMPILER:FILEPATH="{cc}" ' +
-          f'-D CMAKE_CXX_COMPILER:FILEPATH="{cxx}" ' +
-          f'-D CMAKE_BUILD_TYPE={cfg.config} ' +
-          f'-D ISPC_EXECUTABLE="{ispc_executable}" ' +
-          cmake_vars +
-          '..')
-
-      # Set up build
-      build_cmd = 'cmake --build . --target preinstall -- -j VERBOSE=1'
+      build_cmd += ' --target preinstall -- -j VERBOSE=1'
     
+    config_cmd += f' -D ISPC_EXECUTABLE="{ispc_executable}"'
+    config_cmd += f' -D TBB_ROOT="{tbb_root}"'
+    if cfg.cmake_vars:
+      for var in cfg.cmake_vars:
+        config_cmd += f' -D {var}'
+    config_cmd += ' ..'
+
+    # Configure
+    run(config_cmd)
+
     # Build
     if cfg.wrapper:
       build_cmd = cfg.wrapper + ' ' + build_cmd
