@@ -88,6 +88,7 @@ def main():
   parser.add_argument('stage', type=str, nargs='*', choices=['build', 'package'])
   parser.add_argument('--compiler', type=str, choices=compilers[OS], default=compilers[OS][0])
   parser.add_argument('--config', type=str, choices=['Debug', 'Release', 'RelWithDebInfo'], default='Release')
+  parser.add_argument('-D', dest='cmake_vars', type=str, action='append', help='create or update a CMake cache entry')
   cfg = parser.parse_args()
 
   # Set the directories
@@ -133,6 +134,12 @@ def main():
     os.mkdir(build_dir)
     os.chdir(build_dir)
 
+    # Set up common CMake variables
+    cmake_vars = f'-D TBB_ROOT="{tbb_root}" '
+    if cfg.cmake_vars:
+      for var in cfg.cmake_vars:
+        cmake_vars += f'-D {var} '
+
     if OS == 'windows':
       # Set up the compiler
       toolchain = ''
@@ -148,7 +155,7 @@ def main():
           f'-G "Visual Studio {msvc_version} Win64" ' +
           f'-T "{toolchain}" ' +
           f'-D ISPC_EXECUTABLE="{ispc_executable}.exe" ' +
-          f'-D TBB_ROOT="{tbb_root}" ' +
+          cmake_vars +
           '..')
 
       # Build
@@ -169,7 +176,7 @@ def main():
           f'-D CMAKE_CXX_COMPILER:FILEPATH="{cxx}" ' +
           f'-D CMAKE_BUILD_TYPE={cfg.config} ' +
           f'-D ISPC_EXECUTABLE="{ispc_executable}" ' +
-          f'-D TBB_ROOT="{tbb_root}" ' +
+          cmake_vars +
           '..')
 
       # Build
