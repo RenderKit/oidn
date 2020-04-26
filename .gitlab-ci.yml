@@ -148,8 +148,6 @@ package-macos:
   extends: .base
   tags:
     - win10
-    - msvc15
-    - icc19
   variables:
     ErrorActionPreference: stop
 
@@ -167,18 +165,34 @@ package-macos:
 
 build-windows-icc:
   extends: .build-windows
+  tags:
+    - msvc15
+    - icc19
   script:  python scripts/release.py build --compiler msvc15-icc19
 
-build-windows-msvc:
+build-windows-msvc15:
   extends: .build-windows
+  tags:
+    - msvc15
   script:  python scripts/release.py build --compiler msvc15
 
-build-windows-msvc-debug:
+build-windows-msvc15-debug:
   extends: .build-windows
+  tags:
+    - msvc15
   script:  python scripts/release.py build --compiler msvc15 --config Debug
+
+build-windows-msvc16:
+  extends: .build-windows
+  tags:
+    - msvc16
+  script:  python scripts/release.py build --compiler msvc16
 
 package-windows:
   extends: .package-windows
+  tags:
+    - msvc15
+    - icc19
   needs:
     - job: build-windows-icc
       artifacts: true
