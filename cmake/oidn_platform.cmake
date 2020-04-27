@@ -136,7 +136,7 @@ endif()
 
 if(WIN32)
   if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    add_definitions(/Qpar)
+    add_compile_options(/Qpar)
   elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
     append(OIDN_C_CXX_FLAGS "/Qopenmp-simd")
   endif()
