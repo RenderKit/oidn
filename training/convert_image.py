@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 ## Copyright 2018-2020 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
