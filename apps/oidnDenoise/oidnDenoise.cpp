@@ -22,14 +22,14 @@ using namespace oidn;
 void printUsage()
 {
   std::cout << "Intel(R) Open Image Denoise - Example" << std::endl;
-  std::cout << "usage: denoise [-f/--filter RT|RTLightmap]" << std::endl
-            << "               [--ldr color.pfm] [--srgb] [--hdr color.pfm]" << std::endl
-            << "               [--alb albedo.pfm] [--nrm normal.pfm]" << std::endl
-            << "               [-o/--output output.pfm] [-r/--ref reference_output.pfm]" << std::endl
-            << "               [-w/--weights weights.tza]" << std::endl
-            << "               [--threads n] [--affinity 0|1] [--maxmem MB]" << std::endl
-            << "               [--bench ntimes] [-v/--verbose 0-3]" << std::endl
-            << "               [-h/--help]" << std::endl;
+  std::cout << "usage: oidnDenoise [-f/--filter RT|RTLightmap]" << std::endl
+            << "                   [--ldr color.pfm] [--srgb] [--hdr color.pfm]" << std::endl
+            << "                   [--alb albedo.pfm] [--nrm normal.pfm]" << std::endl
+            << "                   [-o/--output output.pfm] [-r/--ref reference_output.pfm]" << std::endl
+            << "                   [-w/--weights weights.tza]" << std::endl
+            << "                   [--threads n] [--affinity 0|1] [--maxmem MB]" << std::endl
+            << "                   [--bench ntimes] [-v/--verbose 0-3]" << std::endl
+            << "                   [-h/--help]" << std::endl;
 }
 
 void errorCallback(void* userPtr, oidn::Error error, const char* message)

@@ -2,7 +2,8 @@ Version History
 ---------------
 
 -   Link C/C++ runtime library dynamically on Windows too by default
--   Added benchmark app
+-   Renamed example apps (`oidnDenoise`, `oidnTest`)
+-   Added benchmark app (`oidnBench`)
 
 ### Changes in v1.2.0:
 

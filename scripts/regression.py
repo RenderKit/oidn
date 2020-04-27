@@ -58,7 +58,7 @@ def test(result, filter, features, dataset):
         # Iterate over memory usages (tiling)
         for memory_use in ['himem', 'lomem']:
           print('Test:', result, arch, image_name, memory_use)
-          denoise_cmd = os.path.join(cfg.build_dir, 'denoise')
+          denoise_cmd = os.path.join(cfg.build_dir, 'oidnDenoise')
 
           ref_filename = os.path.join(cfg.baseline_dir, dataset, '%s.%s.%s.exr' % (image_name, result, main_feature))
           if not os.path.isfile(ref_filename):

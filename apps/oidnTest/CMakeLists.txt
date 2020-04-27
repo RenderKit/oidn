@@ -1,4 +1,4 @@
 ## Copyright 2009-2020 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
-oidn_add_app(bench bench.cpp)
+oidn_add_app(oidnTest oidnTest.cpp catch.hpp)
