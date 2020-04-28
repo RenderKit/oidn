@@ -292,6 +292,11 @@ class TrainingDataset(PreprocessedDataset):
     input_image  = np.pad(input_image,  pad_size, mode='constant')
     target_image = np.pad(target_image, pad_size, mode='constant')
 
+    # Randomly zero the color channels
+    if np.random.rand() < 0.05:
+      input_image[:, :, 0:3] = 0
+      target_image[:] = 0
+
     # DEBUG: Save the tile
     #save_image('tile_%d.png' % i, target_image)
 
