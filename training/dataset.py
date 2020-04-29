@@ -293,7 +293,8 @@ class TrainingDataset(PreprocessedDataset):
     target_image = np.pad(target_image, pad_size, mode='constant')
 
     # Randomly zero the color channels
-    if np.random.rand() < 0.05:
+    # This prevents "ghosting" artifacts when the color buffer is entirely black
+    if np.random.rand() < 0.01:
       input_image[:, :, 0:3] = 0
       target_image[:] = 0
 
