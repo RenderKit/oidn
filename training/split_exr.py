@@ -24,6 +24,7 @@ def main():
 
   # Get the channels and group them by layer
   channels = image.spec().channelnames
+  print('Channels:', channels)
   layer_channels = defaultdict(set)
   for channel in channels:
     if len(channel.split('.')) >= 3:
