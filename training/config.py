@@ -23,10 +23,10 @@ def parse_args(cmd=None, description=None):
 
   if cmd in {'preprocess', 'train', 'find_lr'}:
     parser.add_argument('features', type=str, nargs='*', choices=['hdr', 'ldr', 'albedo', 'alb', 'normal', 'nrm', []], help='set of input features')
-    parser.add_argument('--filter', '-f', choices=['RT', 'RTLightmap'], default=None, help='filter to train (sets some default arguments)')
+    parser.add_argument('--filter', '-f', type=str, choices=['RT', 'RTLightmap'], default=None, help='filter to train (sets some default arguments)')
     parser.add_argument('--preproc_dir', '-P', type=str, default='preproc', help='directory of preprocessed datasets')
     parser.add_argument('--train_data', '-t', type=str, default='train', help='name of the training dataset')
-    advanced.add_argument('--transfer', '-x', choices=['srgb', 'pu', 'log'], default=None, help='transfer function')
+    advanced.add_argument('--transfer', '-x', type=str, choices=['srgb', 'pu', 'log'], default=None, help='transfer function')
 
   if cmd in {'preprocess', 'train'}:
     parser.add_argument('--valid_data', '-v', type=str, default='valid', help='name of the validation dataset')
