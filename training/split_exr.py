@@ -41,16 +41,19 @@ def main():
   FEATURES = {
     'hdr' : [
               ('R', 'G', 'B'),
-              ('Noisy Image.R', 'Noisy Image.G', 'Noisy Image.B')
+              ('Noisy Image.R', 'Noisy Image.G', 'Noisy Image.B'),
+              ('Beauty.R', 'Beauty.G', 'Beauty.B')
             ],
     'alb' : [
               ('albedo.R', 'albedo.G', 'albedo.B'),
-              ('Denoising Albedo.R', 'Denoising Albedo.G', 'Denoising Albedo.B')
+              ('Denoising Albedo.R', 'Denoising Albedo.G', 'Denoising Albedo.B'),
+              ('VisibleDiffuse.R', 'VisibleDiffuse.G', 'VisibleDiffuse.B'),
             ],
     'nrm' : [
               ('normal.R', 'normal.G', 'normal.B'),
               ('N.R', 'N.G', 'N.B'),
-              ('Denoising Normal.X', 'Denoising Normal.Y', 'Denoising Normal.Z')
+              ('Denoising Normal.X', 'Denoising Normal.Y', 'Denoising Normal.Z'),
+              ('Normals.R', 'Normals.G', 'Normals.B'),
             ]
   }
 
