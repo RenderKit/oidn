@@ -294,7 +294,7 @@ class TrainingDataset(PreprocessedDataset):
 
     # Randomly zero the color channels
     # This prevents "ghosting" artifacts when the color buffer is entirely black
-    if np.random.rand() < 0.01:
+    if np.random.rand() < 0.02:
       input_image[:, :, 0:3] = 0
       target_image[:] = 0
 
