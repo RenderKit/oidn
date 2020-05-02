@@ -212,7 +212,7 @@ class PreprocessedDataset(Dataset):
     if self.num_images == 0:
       return
 
-    # Map the images into memory
+    # Map the images into memory (read-only)
     tza_filename = os.path.join(data_dir, 'images.tza')
     self.images = tza.Reader(tza_filename)
 
@@ -242,6 +242,7 @@ class TrainingDataset(PreprocessedDataset):
     # Generate a random crop
     sy = sx = self.tile_size
     if np.random.rand() < 0.1:
+      # Randomly zero pad later to avoid artifacts for images that require padding
       sy -= np.random.randint(0, model.ALIGNMENT)
       sx -= np.random.randint(0, model.ALIGNMENT)
     oy = np.random.randint(0, height - sy + 1)
@@ -270,7 +271,7 @@ class TrainingDataset(PreprocessedDataset):
     input_image  = input_image [oy:oy+sy, ox:ox+sx, channel_order]
     target_image = target_image[oy:oy+sy, ox:ox+sx, color_order]
 
-    # Randomly transform the tile to improve training quality
+    # Randomly transform the tiles to improve training quality
     if np.random.rand() < 0.5:
       # Flip vertically
       input_image  = np.flip(input_image,  0)
@@ -287,7 +288,7 @@ class TrainingDataset(PreprocessedDataset):
       target_image = np.swapaxes(target_image, 0, 1)
       sy, sx = sx, sy
 
-    # Pad the tile
+    # Zero pad the tiles (always makes a copy)
     pad_size = ((0, self.tile_size - sy), (0, self.tile_size - sx), (0, 0))
     input_image  = np.pad(input_image,  pad_size, mode='constant')
     target_image = np.pad(target_image, pad_size, mode='constant')
@@ -301,6 +302,7 @@ class TrainingDataset(PreprocessedDataset):
     # DEBUG: Save the tile
     #save_image('tile_%d.png' % i, target_image)
 
+    # Convert the tiles to tensors
     return to_tensor(input_image), to_tensor(target_image)
 
 ## -----------------------------------------------------------------------------
@@ -357,4 +359,6 @@ class ValidationDataset(PreprocessedDataset):
     input_image  = input_image [oy:oy+sy, ox:ox+sx, self.channel_order]
     target_image = target_image[oy:oy+sy, ox:ox+sx, :]
 
-    return to_tensor(input_image), to_tensor(target_image)
+    # Convert the tiles to tensors
+    # Copying is required because PyTorch does not support non-writeable tensors
+    return to_tensor(input_image.copy()), to_tensor(target_image.copy())

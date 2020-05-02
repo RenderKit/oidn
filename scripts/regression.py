@@ -15,7 +15,7 @@ from common import *
 parser = argparse.ArgumentParser(description='Compares images produced by the library with generated baseline images.')
 parser.usage = '\rIntel(R) Open Image Denoise - Regression Test\n' + parser.format_usage()
 parser.add_argument('command', type=str, nargs='*', choices=['generate', 'test'], help='tasks to perform')
-parser.add_argument('--filter', '-f', nargs='*', choices=['RT', 'RTLightmap'], default=None, help='filters to test')
+parser.add_argument('--filter', '-f', type=str, nargs='*', choices=['RT', 'RTLightmap'], default=None, help='filters to test')
 parser.add_argument('--build_dir', '-B', type=str, default=os.path.join(root_dir, 'build'), help='build directory')
 parser.add_argument('--data_dir', '-D', type=str, default=os.path.join(root_dir, 'training', 'data'), help='directory of datasets (e.g. training, validation, test)')
 parser.add_argument('--results_dir', '-R', type=str, default=os.path.join(root_dir, 'training', 'results'), help='directory of training results')
