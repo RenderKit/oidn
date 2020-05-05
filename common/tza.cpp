@@ -18,7 +18,8 @@ namespace oidn {
   __forceinline T read(char*& ptr, char* end)
   {
     checkBounds(ptr, end, sizeof(T));
-    const T value = *(T*)ptr;
+    T value;
+    memcpy(&value, ptr, sizeof(T));
     ptr += sizeof(T);
     return value;
   }

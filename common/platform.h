@@ -18,7 +18,9 @@
 #include <xmmintrin.h>
 #include <pmmintrin.h>
 #include <cstdint>
+#include <cstddef>
 #include <climits>
+#include <cstring>
 #include <limits>
 #include <atomic>
 #include <algorithm>
