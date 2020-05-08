@@ -201,7 +201,6 @@ class PreprocessedDataset(Dataset):
     self.features = cfg.features
     self.data_channels = get_channels(data_cfg.features)
     self.channels = get_channels(cfg.features)
-    self.num_channels = len(self.channels)
     self.channel_order = get_channel_indices(self.channels, self.data_channels)
 
     # Get the image samples
@@ -293,9 +292,9 @@ class TrainingDataset(PreprocessedDataset):
     input_image  = np.pad(input_image,  pad_size, mode='constant')
     target_image = np.pad(target_image, pad_size, mode='constant')
 
-    # Randomly zero the color channels
+    # Randomly zero the color channels if there are auxiliary features
     # This prevents "ghosting" artifacts when the color buffer is entirely black
-    if np.random.rand() < 0.02:
+    if len(self.channels) > 3 and np.random.rand() < 0.02:
       input_image[:, :, 0:3] = 0
       target_image[:] = 0
 
