@@ -35,12 +35,12 @@ def concat(a, b):
   return torch.cat((a, b), 1)
 
 ## -----------------------------------------------------------------------------
-## Autoencoder network
+## U-Net model
 ## -----------------------------------------------------------------------------
 
-class Autoencoder(nn.Module):
+class UNet(nn.Module):
   def __init__(self, in_channels=3, out_channels=3):
-    super(Autoencoder, self).__init__()
+    super(UNet, self).__init__()
 
     # Number of channels per layer
     ic   = in_channels

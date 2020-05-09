@@ -38,7 +38,7 @@ def main():
   device = init_device(cfg)
 
   # Initialize the model
-  model = Autoencoder(get_num_channels(cfg.features))
+  model = UNet(get_num_channels(cfg.features))
   if cfg.device == 'cuda' and torch.cuda.device_count() > 1:
     model = nn.DataParallel(model)
   model.to(device)

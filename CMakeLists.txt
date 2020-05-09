@@ -106,8 +106,6 @@ set(CORE_SOURCES
   include/OpenImageDenoise/oidn.hpp
   include/OpenImageDenoise/version.h
   ${OIDN_RESOURCE}
-  core/autoencoder.h
-  core/autoencoder.cpp
   core/api.cpp
   core/buffer.h
   core/color.h
@@ -125,6 +123,8 @@ set(CORE_SOURCES
   core/network.cpp
   core/node.h
   core/output_reorder.h
+  core/unet.h
+  core/unet.cpp
   core/upsample.h
 )
 

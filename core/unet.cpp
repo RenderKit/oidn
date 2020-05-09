@@ -1,7 +1,7 @@
 // Copyright 2009-2020 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "autoencoder.h"
+#include "unet.h"
 #include "common/tza.h"
 
 // Built-in weights
@@ -16,15 +16,15 @@
 namespace oidn {
 
   // ---------------------------------------------------------------------------
-  // AutoencoderFilter
+  // UNetFilter
   // ---------------------------------------------------------------------------
 
-  AutoencoderFilter::AutoencoderFilter(const Ref<Device>& device)
+  UNetFilter::UNetFilter(const Ref<Device>& device)
     : Filter(device)
   {
   }
 
-  void AutoencoderFilter::setImage(const std::string& name, const Image& data)
+  void UNetFilter::setImage(const std::string& name, const Image& data)
   {
     if (name == "color")
       color = data;
@@ -38,7 +38,7 @@ namespace oidn {
     dirty = true;
   }
 
-  void AutoencoderFilter::setData(const std::string& name, const Data& data)
+  void UNetFilter::setData(const std::string& name, const Data& data)
   {
     if (name == "weights")
       userWeights = data;
@@ -46,7 +46,7 @@ namespace oidn {
     dirty = true;
   }
 
-  void AutoencoderFilter::set1i(const std::string& name, int value)
+  void UNetFilter::set1i(const std::string& name, int value)
   {
     if (name == "hdr")
       hdr = value;
@@ -58,7 +58,7 @@ namespace oidn {
     dirty = true;
   }
 
-  int AutoencoderFilter::get1i(const std::string& name)
+  int UNetFilter::get1i(const std::string& name)
   {
     if (name == "hdr")
       return hdr;
@@ -74,7 +74,7 @@ namespace oidn {
       throw Exception(Error::InvalidArgument, "invalid parameter");
   }
 
-  void AutoencoderFilter::set1f(const std::string& name, float value)
+  void UNetFilter::set1f(const std::string& name, float value)
   {
     if (name == "hdrScale")
       hdrScale = value;
@@ -82,7 +82,7 @@ namespace oidn {
     dirty = true;
   }
 
-  float AutoencoderFilter::get1f(const std::string& name)
+  float UNetFilter::get1f(const std::string& name)
   {
     if (name == "hdrScale")
       return hdrScale;
@@ -90,7 +90,7 @@ namespace oidn {
       throw Exception(Error::InvalidArgument, "invalid parameter");
   }
 
-  void AutoencoderFilter::commit()
+  void UNetFilter::commit()
   {
     if (!dirty)
       return;
@@ -103,7 +103,7 @@ namespace oidn {
     dirty = false;
   }
 
-  void AutoencoderFilter::execute()
+  void UNetFilter::execute()
   {
     if (dirty)
       throw Exception(Error::InvalidOperation, "changes to the filter are not committed");
@@ -161,7 +161,7 @@ namespace oidn {
     });
   }
 
-  void AutoencoderFilter::computeTileSize()
+  void UNetFilter::computeTileSize()
   {
     const int minTileSize = 3*overlap;
     const int estimatedBytesPerPixel = mayiuse(avx512_common) ? estimatedBytesPerPixel16 : estimatedBytesPerPixel8;
@@ -200,7 +200,7 @@ namespace oidn {
     }
   }
 
-  std::shared_ptr<Executable> AutoencoderFilter::buildNet()
+  std::shared_ptr<Executable> UNetFilter::buildNet()
   {
     H = color.height;
     W = color.width;
@@ -467,7 +467,7 @@ namespace oidn {
     return net;
   }
 
-  std::shared_ptr<TransferFunction> AutoencoderFilter::makeTransferFunc()
+  std::shared_ptr<TransferFunction> UNetFilter::makeTransferFunc()
   {
     if (hdr)
       return std::make_shared<TransferFunction>(TransferFunction::Type::PU);
@@ -482,7 +482,7 @@ namespace oidn {
   // ---------------------------------------------------------------------------
 
   RTFilter::RTFilter(const Ref<Device>& device)
-    : AutoencoderFilter(device)
+    : UNetFilter(device)
   {
     defaultWeights.ldr         = blobs::weights::rt_ldr;
     defaultWeights.ldr_alb     = blobs::weights::rt_ldr_alb;
@@ -497,7 +497,7 @@ namespace oidn {
   // ---------------------------------------------------------------------------
 
   RTLightmapFilter::RTLightmapFilter(const Ref<Device>& device)
-    : AutoencoderFilter(device)
+    : UNetFilter(device)
   {
     defaultWeights.hdr = blobs::weights::rtlightmap_hdr;
 

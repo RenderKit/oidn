@@ -90,7 +90,7 @@ def main():
   image_sample_groups = get_image_sample_groups(data_dir, cfg.features)
 
   # Initialize the model
-  model = Autoencoder(get_num_channels(cfg.features))
+  model = UNet(get_num_channels(cfg.features))
   model.to(device)
 
   # Load the checkpoint

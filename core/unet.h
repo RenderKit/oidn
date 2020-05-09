@@ -10,10 +10,10 @@
 namespace oidn {
 
   // ---------------------------------------------------------------------------
-  // AutoencoderFilter: Direct-predicting autoencoder
+  // UNetFilter: U-Net based denoising filter
   // ---------------------------------------------------------------------------
 
-  class AutoencoderFilter : public Filter
+  class UNetFilter : public Filter
   {
   protected:
     // Network constants
@@ -62,7 +62,7 @@ namespace oidn {
     } defaultWeights;
     Data userWeights;
 
-    explicit AutoencoderFilter(const Ref<Device>& device);
+    explicit UNetFilter(const Ref<Device>& device);
     virtual std::shared_ptr<TransferFunction> makeTransferFunc();
 
   public:
@@ -88,7 +88,7 @@ namespace oidn {
   // RTFilter: Generic ray tracing denoiser
   // ---------------------------------------------------------------------------
 
-  class RTFilter : public AutoencoderFilter
+  class RTFilter : public UNetFilter
   {
   public:
     explicit RTFilter(const Ref<Device>& device);
@@ -98,7 +98,7 @@ namespace oidn {
   // RTLightmapFilter: Ray traced lightmap denoiser
   // ---------------------------------------------------------------------------
 
-  class RTLightmapFilter : public AutoencoderFilter
+  class RTLightmapFilter : public UNetFilter
   {
   public:
     explicit RTLightmapFilter(const Ref<Device>& device);
