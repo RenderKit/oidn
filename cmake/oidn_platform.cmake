@@ -47,6 +47,10 @@ if(MSVC)
     append(OIDN_C_CXX_FLAGS "-Qdiag-disable:15009")
     # Disable diagnostic: disabling user-directed function packaging (COMDATs)
     append(OIDN_C_CXX_FLAGS "-Qdiag-disable:11031")
+    # disable: decorated name length exceeded, name was truncated
+    append(OIDN_C_CXX_FLAGS "-Qdiag-disable:2586")
+    # disable: disabling optimization; runtime debug checks enabled
+    append(OIDN_C_CXX_FLAGS_DEBUG "-Qdiag-disable:10182")
   elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     set(OIDN_ISA_FLAGS_SSE41 "-msse4.1")
     # Disable warning: cannot vectorize some loops with #pragma omp simd

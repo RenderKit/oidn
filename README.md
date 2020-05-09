@@ -46,11 +46,11 @@ workstations, to compute nodes in HPC systems. It is efficient enough to
 be suitable not only for offline rendering, but, depending on the
 hardware used, also for interactive ray tracing.
 
-Intel Open Image Denoise internally builds on top of [Intel® Deep Neural
-Network Library (DNNL)](https://github.com/intel/mkl-dnn), and
-automatically exploits modern instruction sets like Intel SSE4, AVX2,
-and AVX-512 to achieve high denoising performance. A CPU with support
-for at least SSE4.1 is required to run Intel Open Image Denoise.
+Intel Open Image Denoise internally builds on top of [Intel oneAPI Deep
+Neural Network Library (oneDNN)](https://github.com/oneapi-src/oneDNN),
+and automatically exploits modern instruction sets like Intel SSE4,
+AVX2, and AVX-512 to achieve high denoising performance. A CPU with
+support for at least SSE4.1 is required to run Intel Open Image Denoise.
 
 ## Support and Contact
 
@@ -246,7 +246,7 @@ that can be configured in CMake:
     application.
 
   - `OIDN_STATIC_RUNTIME`: Use the static version of the C/C++ runtime
-    library (available only on Windows, ON by default).
+    library (available only on Windows, OFF by default).
 
   - `OIDN_APPS`: Enable building example and test applications (ON by
     default).
@@ -917,8 +917,8 @@ Parameters supported by the `RTLightmap` filter.
 ## Denoise
 
 A minimal working example demonstrating how to use Intel Open Image
-Denoise can be found at `apps/denoise/denoise.cpp`, which uses the C++11
-convenience wrappers of the C99 API.
+Denoise can be found at `apps/oidnDenoise/oidnDenoise.cpp`, which uses
+the C++11 convenience wrappers of the C99 API.
 
 This example is a simple command-line application that denoises the
 provided image, which can optionally have auxiliary feature images as
@@ -928,8 +928,8 @@ the [Portable FloatMap](http://www.pauldebevec.com/Research/HDR/PFM/)
 format. To enable other image formats (e.g. OpenEXR, PNG) as well, the
 project has to be rebuilt with OpenImageIO support enabled.
 
-Running `denoise` without any arguments will bring up a list of command
-line options.
+Running `oidnDenoise` without any arguments will bring up a list of
+command line options.
 
 # Training
 
