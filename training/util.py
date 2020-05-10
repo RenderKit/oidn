@@ -77,6 +77,8 @@ def save_zip(filename, input_filenames):
 
 # Initializes and returns the PyTorch device
 def init_device(cfg):
+  print('PyTorch:', torch.__version__)
+
   # Query CPU information
   #num_sockets = int(os.popen("lscpu -b -p=Socket | grep -v '^#' | sort -u | wc -l").read())
   num_cores    = int(os.popen("lscpu -b -p=Core,Socket | grep -v '^#' | sort -u | wc -l").read())
@@ -94,7 +96,10 @@ def init_device(cfg):
       torch.backends.cudnn.deterministic = True
     else:
       torch.backends.cudnn.benchmark = True # higher performance
-
+    device_name = torch.cuda.get_device_name()
+  else:
+    device_name = 'CPU'
+  print('Device:', device_name)
   return device
 
 # Remove wrappers like DataParallel from a module
