@@ -59,14 +59,16 @@ install(
 
 # Install TBB
 if(OIDN_ZIP_MODE)
-  if(WIN32)
-    install(PROGRAMS ${TBB_BIN_DIR}/tbb.dll ${TBB_BIN_DIR}/tbbmalloc.dll DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT lib)
-    install(PROGRAMS ${TBB_LIBRARY} ${TBB_LIBRARY_MALLOC} DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib)
-  elseif(APPLE)
-    install(PROGRAMS ${TBB_LIBRARY} ${TBB_LIBRARY_MALLOC} DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib)
-  else()
-    install(PROGRAMS ${TBB_LIBRARY}.2 ${TBB_LIBRARY_MALLOC}.2 DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib)
-  endif()
+  foreach(C IN ITEMS "tbb" "tbbmalloc")
+    get_target_property(LIB_PATH TBB::${C} IMPORTED_LOCATION_RELEASE)
+    if(WIN32)
+      install(FILES ${LIB_PATH} DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT lib)
+      get_target_property(IMPLIB_PATH TBB::${C} IMPORTED_IMPLIB_RELEASE)
+      install(FILES ${IMPLIB_PATH} DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib)
+    else()
+      install(FILES ${LIB_PATH} DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib)
+    endif()
+  endforeach()
 endif()
 
 ## -----------------------------------------------------------------------------

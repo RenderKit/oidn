@@ -50,9 +50,14 @@ if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
   # Correct 'jnl' macro/jit issue
   list(APPEND DNNL_COMPILE_OPTIONS "/Qlong-double")
 endif()
-target_compile_options(dnnl_common PRIVATE ${DNNL_COMPILE_OPTIONS})
+target_compile_options(dnnl_common
+  PRIVATE
+    ${DNNL_COMPILE_OPTIONS})
 
-target_link_libraries(dnnl_common PUBLIC ${CMAKE_THREAD_LIBS_INIT} ${TBB_LIBRARIES})
+target_link_libraries(dnnl_common
+  PUBLIC
+    ${CMAKE_THREAD_LIBS_INIT}
+    TBB)
 
 ## -----------------------------------------------------------------------------
 ## CPU

@@ -27,4 +27,4 @@ target_include_directories(common
     ${PROJECT_SOURCE_DIR}
 )
 
-target_link_libraries(common PUBLIC ${CMAKE_THREAD_LIBS_INIT} ${TBB_LIBRARIES})
+target_link_libraries(common PUBLIC ${CMAKE_THREAD_LIBS_INIT} TBB)
