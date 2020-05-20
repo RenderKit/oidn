@@ -8,7 +8,7 @@ def run(command):
   status = os.system(command)
   if status != 0:
     print('Error: non-zero return value')
-    exit(status)
+    exit(1)
 
 # Detect the OS
 OS = {'Windows' : 'windows', 'Linux' : 'linux', 'Darwin' : 'macos'}[platform.system()]
