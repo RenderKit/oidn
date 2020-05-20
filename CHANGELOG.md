@@ -1,10 +1,13 @@
 Version History
 ---------------
 
+### Changes in v1.2.1:
+
+-   Fixed error when building as a static library (`OIDN_STATIC_LIB` option)
+-   Fixed compile error for ISPC 1.13+
 -   Link C/C++ runtime library dynamically on Windows too by default
 -   Renamed example apps (`oidnDenoise`, `oidnTest`)
 -   Added benchmark app (`oidnBench`)
--   Fixed compile error for ISPC 1.13+
 -   Fixed training warning with PyTorch 1.5+
 
 ### Changes in v1.2.0:

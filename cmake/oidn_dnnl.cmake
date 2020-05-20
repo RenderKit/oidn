@@ -19,46 +19,11 @@ configure_file(
   "${PROJECT_BINARY_DIR}/mkl-dnn/include/dnnl_version.h"
 )
 
-## -----------------------------------------------------------------------------
-## Common
-## -----------------------------------------------------------------------------
-
-file(GLOB_RECURSE DNNL_COMMON_SOURCES
+file(GLOB_RECURSE DNNL_SOURCES
   mkl-dnn/src/common/*.h
   mkl-dnn/src/common/*.hpp
   mkl-dnn/src/common/*.c
   mkl-dnn/src/common/*.cpp
-)
-
-add_library(dnnl_common STATIC ${DNNL_COMMON_SOURCES})
-
-target_include_directories(dnnl_common
-  PUBLIC
-    ${PROJECT_SOURCE_DIR}/mkl-dnn/include
-    ${PROJECT_BINARY_DIR}/mkl-dnn/include
-    ${PROJECT_SOURCE_DIR}/mkl-dnn/src
-    ${PROJECT_SOURCE_DIR}/mkl-dnn/src/common
-)
-
-target_compile_definitions(dnnl_common
-  PUBLIC
-    -DDNNL_ENABLE_CONCURRENT_EXEC
-)
-
-set(DNNL_COMPILE_OPTIONS ${OIDN_ISA_FLAGS_SSE41})
-if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-  # Correct 'jnl' macro/jit issue
-  list(APPEND DNNL_COMPILE_OPTIONS "/Qlong-double")
-endif()
-target_compile_options(dnnl_common PRIVATE ${DNNL_COMPILE_OPTIONS})
-
-target_link_libraries(dnnl_common PUBLIC ${CMAKE_THREAD_LIBS_INIT} ${TBB_LIBRARIES})
-
-## -----------------------------------------------------------------------------
-## CPU
-## -----------------------------------------------------------------------------
-
-file(GLOB_RECURSE DNNL_CPU_SOURCES
   mkl-dnn/src/cpu/bfloat16.cpp
   mkl-dnn/src/cpu/cpu_barrier.hpp
   mkl-dnn/src/cpu/cpu_barrier.cpp
@@ -129,23 +94,35 @@ file(GLOB_RECURSE DNNL_CPU_SOURCES
 )
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-  file(GLOB DNNL_CPU_SOURCES_BIGOBJ
+  file(GLOB DNNL_SOURCES_BIGOBJ
     mkl-dnn/src/cpu/cpu_engine.cpp
     mkl-dnn/src/cpu/cpu_reorder.cpp
   )
-  set_source_files_properties(${DNNL_CPU_SOURCES_BIGOBJ} PROPERTIES COMPILE_FLAGS "/bigobj")
+  set_source_files_properties(${DNNL_SOURCES_BIGOBJ} PROPERTIES COMPILE_FLAGS "/bigobj")
 endif()
 
-add_library(dnnl_cpu STATIC ${DNNL_CPU_SOURCES})
+add_library(dnnl STATIC ${DNNL_SOURCES})
 
-target_include_directories(dnnl_cpu
+target_include_directories(dnnl
   PUBLIC
-    ${PROJECT_SOURCE_DIR}/mkl-dnn/src/cpu
-    ${PROJECT_SOURCE_DIR}/mkl-dnn/src/cpu/xbyak
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/mkl-dnn/include>
+    $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/mkl-dnn/include>
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/mkl-dnn/src>
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/mkl-dnn/src/common>
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/mkl-dnn/src/cpu>
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/mkl-dnn/src/cpu/xbyak>
 )
 
-target_compile_options(dnnl_cpu PRIVATE ${DNNL_COMPILE_OPTIONS})
+target_compile_definitions(dnnl
+  PUBLIC
+    -DDNNL_ENABLE_CONCURRENT_EXEC
+)
 
-target_link_libraries(dnnl_cpu PUBLIC dnnl_common)
+set(DNNL_COMPILE_OPTIONS ${OIDN_ISA_FLAGS_SSE41})
+if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+  # Correct 'jnl' macro/jit issue
+  list(APPEND DNNL_COMPILE_OPTIONS "/Qlong-double")
+endif()
+target_compile_options(dnnl PRIVATE ${DNNL_COMPILE_OPTIONS})
 
-set(DNNL_LIBRARIES dnnl_common dnnl_cpu)
+target_link_libraries(dnnl PUBLIC ${CMAKE_THREAD_LIBS_INIT} ${TBB_LIBRARIES})

@@ -18,7 +18,7 @@ install(TARGETS ${PROJECT_NAME}
 )
 
 if(OIDN_STATIC_LIB)
-  install(TARGETS common mkldnn
+  install(TARGETS common dnnl
     EXPORT
       ${PROJECT_NAME}_Export
     ARCHIVE

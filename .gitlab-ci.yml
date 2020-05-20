@@ -92,6 +92,12 @@ build-ubuntu18.04-gcc-debug:
     - .ubuntu18.04
   script: scripts/release.py build --compiler gcc --config Debug
 
+build-ubuntu18.04-gcc-static:
+  extends:
+    - .build-linux
+    - .ubuntu18.04
+  script: scripts/release.py build --compiler gcc -D OIDN_STATIC_LIB=ON
+
 build-ubuntu18.04-clang:
   extends:
     - .build-linux
@@ -133,6 +139,10 @@ build-macos-icc:
 build-macos-clang:
   extends: .build-macos
   script:  scripts/release.py build --compiler clang
+
+build-macos-clang-static:
+  extends: .build-macos
+  script:  scripts/release.py build --compiler clang -D OIDN_STATIC_LIB=ON
 
 package-macos:
   extends: .package-macos
@@ -181,6 +191,12 @@ build-windows-msvc15-debug:
   tags:
     - msvc15
   script:  python scripts/release.py build --compiler msvc15 --config Debug
+
+build-windows-msvc15-static:
+  extends: .build-windows
+  tags:
+    - msvc15
+  script:  python scripts/release.py build --compiler msvc15 -D OIDN_STATIC_LIB=ON
 
 build-windows-msvc16:
   extends: .build-windows
