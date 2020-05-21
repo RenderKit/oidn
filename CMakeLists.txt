@@ -99,7 +99,7 @@ configure_file(
 
 set(OIDN_RESOURCE ${PROJECT_SOURCE_DIR}/common/oidn.rc)
 
-add_subdirectory(common EXCLUDE_FROM_ALL)
+add_subdirectory(common)
 
 set(CORE_SOURCES
   include/OpenImageDenoise/oidn.h

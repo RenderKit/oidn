@@ -28,3 +28,12 @@ target_include_directories(common
 )
 
 target_link_libraries(common PUBLIC ${CMAKE_THREAD_LIBS_INIT} ${TBB_LIBRARIES})
+
+if(OIDN_STATIC_LIB)
+  install(TARGETS common
+    EXPORT
+      ${PROJECT_NAME}_Export
+    ARCHIVE
+      DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT devel
+  )
+endif()

@@ -126,3 +126,16 @@ endif()
 target_compile_options(dnnl PRIVATE ${DNNL_COMPILE_OPTIONS})
 
 target_link_libraries(dnnl PUBLIC ${CMAKE_THREAD_LIBS_INIT} ${TBB_LIBRARIES})
+if(UNIX AND NOT APPLE)
+  # Not every compiler adds -ldl automatically
+  target_link_libraries(dnnl PUBLIC ${CMAKE_DL_LIBS})
+endif()
+
+if(OIDN_STATIC_LIB)
+  install(TARGETS dnnl
+    EXPORT
+      ${PROJECT_NAME}_Export
+    ARCHIVE
+      DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT devel
+  )
+endif()
