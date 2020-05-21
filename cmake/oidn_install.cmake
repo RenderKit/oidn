@@ -45,10 +45,18 @@ install(
 )
 
 ## -----------------------------------------------------------------------------
-## Install dependencies
+## Install dependencies: TBB
 ## -----------------------------------------------------------------------------
 
-# Install TBB
+if(OIDN_STATIC_LIB)
+  install(TARGETS TBB EXPORT TBB_Export)
+  install(EXPORT TBB_Export
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+    FILE TBBConfig.cmake
+    COMPONENT devel
+  )
+endif()
+
 if(OIDN_ZIP_MODE)
   foreach(C IN ITEMS "tbb" "tbbmalloc")
     get_target_property(LIB_PATH TBB::${C} IMPORTED_LOCATION_RELEASE)
