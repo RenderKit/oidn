@@ -110,6 +110,20 @@ build-ubuntu18.04-kw-gcc:
     - .ubuntu18.04
   script: scripts/klocwork_build.sh
 
+## -----------------------------------------------------------------------------
+
+.ubuntu20.04:
+  image: openimagedenoise/build:ubuntu20.04
+
+build-ubuntu20.04-gcc:
+  extends:
+    - .build-linux
+    - .ubuntu20.04
+  script:
+    - mkdir build
+    - cd build
+    - cmake .. -D OIDN_APPS_OPENIMAGEIO=ON
+    - make -j VERBOSE=1
 
 ## -----------------------------------------------------------------------------
 ## macOS
