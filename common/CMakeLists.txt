@@ -27,7 +27,11 @@ target_include_directories(common
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
 )
 
-target_link_libraries(common PUBLIC ${CMAKE_THREAD_LIBS_INIT} ${TBB_LIBRARIES})
+target_link_libraries(common
+  PUBLIC
+    ${CMAKE_THREAD_LIBS_INIT}
+    TBB
+)
 
 if(OIDN_STATIC_LIB)
   install(TARGETS common

@@ -125,7 +125,11 @@ if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
 endif()
 target_compile_options(dnnl PRIVATE ${DNNL_COMPILE_OPTIONS})
 
-target_link_libraries(dnnl PUBLIC ${CMAKE_THREAD_LIBS_INIT} ${TBB_LIBRARIES})
+target_link_libraries(dnnl
+  PUBLIC
+    ${CMAKE_THREAD_LIBS_INIT}
+    TBB
+)
 if(UNIX AND NOT APPLE)
   # Not every compiler adds -ldl automatically
   target_link_libraries(dnnl PUBLIC ${CMAKE_DL_LIBS})
