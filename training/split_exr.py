@@ -54,6 +54,7 @@ def main():
               ('N.R', 'N.G', 'N.B'),
               ('Denoising Normal.X', 'Denoising Normal.Y', 'Denoising Normal.Z'),
               ('Normals.R', 'Normals.G', 'Normals.B'),
+              ('OptixNormals.R', 'OptixNormals.G', 'OptixNormals.B'),
             ]
   }
 
