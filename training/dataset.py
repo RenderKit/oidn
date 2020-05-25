@@ -11,6 +11,7 @@ from torch.utils.data import Dataset
 from config import *
 from util import *
 from image import *
+from color import *
 import model
 import tza
 
@@ -55,7 +56,7 @@ def image_exists(name, features):
 def get_image_feature(filename):
   filename_split = filename.rsplit('.', 2)
   if len(filename_split) < 2:
-    return None # no extension
+    return 'srgb' # no extension, assume sRGB
   else:
     ext = filename_split[-1].lower()
     if ext in {'exr', 'pfm', 'hdr'}:
@@ -64,7 +65,7 @@ def get_image_feature(filename):
       else:
         return 'hdr' # assume HDR
     else:
-      return None # not supported by format
+      return 'srgb' # assume sRGB
 
 # Loads target image features in EXR format with given filename prefix
 def load_target_image(name, features):
@@ -167,6 +168,18 @@ def get_image_sample_groups(dir, features):
       image_sample_groups.append((group, input_names, target_name))
 
   return image_sample_groups
+
+# Transforms a feature image to another feature type
+def transform_feature(image, input_feature, output_feature, exposure=1.):
+  if input_feature == 'hdr' and output_feature in {'ldr', 'srgb'}:
+    image = tonemap(image * exposure)
+  if output_feature == 'srgb':
+    if input_feature in {'hdr', 'ldr', 'alb'}:
+      image = srgb_forward(image)
+    elif input_feature == 'nrm':
+      # Transform [-1, 1] -> [0, 1]
+      image = image * 0.5 + 0.5
+  return image
 
 ## -----------------------------------------------------------------------------
 ## Preprocessed dataset
@@ -302,7 +315,7 @@ class TrainingDataset(PreprocessedDataset):
     #save_image('tile_%d.png' % i, target_image)
 
     # Convert the tiles to tensors
-    return to_tensor(input_image), to_tensor(target_image)
+    return image_to_tensor(input_image), image_to_tensor(target_image)
 
 ## -----------------------------------------------------------------------------
 ## Validation dataset
@@ -360,4 +373,4 @@ class ValidationDataset(PreprocessedDataset):
 
     # Convert the tiles to tensors
     # Copying is required because PyTorch does not support non-writeable tensors
-    return to_tensor(input_image.copy()), to_tensor(target_image.copy())
+    return image_to_tensor(input_image.copy()), image_to_tensor(target_image.copy())

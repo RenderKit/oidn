@@ -13,20 +13,24 @@ from util import *
 ## -----------------------------------------------------------------------------
 
 # Converts a NumPy image to a tensor
-def to_tensor(image):
+def image_to_tensor(image, batch=False):
   # Reorder from HWC to CHW
-  return torch.from_numpy(image.transpose((2, 0, 1)))
+  tensor = torch.from_numpy(image.transpose((2, 0, 1)))
+  if batch:
+    return tensor.unsqueeze(0) # reshape to NCHW
+  else:
+    return tensor
 
 # Converts a tensor to a NumPy image
-def to_numpy(image):
+def tensor_to_image(image):
   if len(image.shape) == 4:
     # Remove N dimension
     image = image.squeeze(0)
   # Reorder from CHW to HWC
   return image.cpu().numpy().transpose((1, 2, 0))
 
-# Computes gradient for image
-def gradient(input):
+# Computes gradient for a tensor
+def tensor_gradient(input):
   input0 = input[..., :-1, :-1]
   didy   = input[..., 1:,  :-1] - input0
   didx   = input[..., :-1, 1:]  - input0

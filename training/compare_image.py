@@ -11,7 +11,6 @@ from dataset import *
 from image import *
 from color import *
 from ssim import ssim
-from convert_image import transform_image
 
 def main():
   # Parse the command line arguments
@@ -34,12 +33,12 @@ def main():
       tonemap_exposure = metadata['exposure']
 
   # Convert the images to tensors
-  image1 = to_tensor(image1).unsqueeze(0)
-  image2 = to_tensor(image2).unsqueeze(0)
+  image1 = image_to_tensor(image1, batch=True)
+  image2 = image_to_tensor(image2, batch=True)
 
   # Transform the images to sRGB
-  image1 = transform_image(image1, feature1, None, tonemap_exposure)
-  image2 = transform_image(image2, feature2, None, tonemap_exposure)
+  image1 = transform_feature(image1, feature1, 'srgb', tonemap_exposure)
+  image2 = transform_feature(image2, feature2, 'srgb', tonemap_exposure)
 
   # Compute the metrics
   metric_str = ''

@@ -50,7 +50,7 @@ class MSSSIMLoss(nn.Module):
 # Gradient loss
 class GradientLoss(nn.Module):
   def forward(self, input, target):
-    return torch.abs(gradient(input) - gradient(target)).mean()
+    return torch.abs(tensor_gradient(input) - tensor_gradient(target)).mean()
 
 # Mix loss
 class MixLoss(nn.Module):

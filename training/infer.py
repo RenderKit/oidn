@@ -36,7 +36,7 @@ def main():
   result_cfg = load_config(result_dir)
   cfg.features = result_cfg.features
   cfg.transfer = result_cfg.transfer
-  is_hdr = 'hdr' in cfg.features
+  target_feature = 'hdr' if 'hdr' in cfg.features else 'ldr'
 
   # Inference function
   def infer(model, transfer, input, exposure):
@@ -44,7 +44,7 @@ def main():
 
     # Apply the transfer function
     color = x[:, 0:3, ...]
-    if is_hdr:
+    if 'hdr' in cfg.features:
       color *= exposure
     color = transfer.forward(color)
     x[:, 0:3, ...] = color
@@ -64,26 +64,22 @@ def main():
 
     # Apply the inverse transfer function
     x = transfer.inverse(x)
-    if is_hdr:
+    if 'hdr' in cfg.features:
       x /= exposure
     else:
       x = torch.clamp(x, max=1.)
     return x
 
-  # Converts image to sRGB (tonemapping if HDR + gamma correction)
-  def to_srgb(image, exposure):
-    return srgb_forward(tonemap(image * exposure) if is_hdr else image)
-
   # Saves an image in different formats
   def save_images(path, image, image_srgb):
-    image      = to_numpy(image)
-    image_srgb = to_numpy(image_srgb)
-    suffix = '.hdr' if is_hdr else '.ldr'
+    image      = tensor_to_image(image)
+    image_srgb = tensor_to_image(image_srgb)
+    filename_prefix = path + '.' + target_feature + '.'
     for format in cfg.format:
       if format in {'exr', 'pfm', 'hdr'}:
-        save_image(path + suffix + '.' + format, image)
+        save_image(filename_prefix + format, image)
       else:
-        save_image(path + suffix + '.' + format, image_srgb)
+        save_image(filename_prefix + format, image_srgb)
 
   # Initialize the dataset
   data_dir = get_data_dir(cfg, cfg.input_data)
@@ -121,8 +117,8 @@ def main():
       # Load the target image if it exists
       if target_name:
         target = load_target_image(os.path.join(data_dir, target_name), cfg.features)
-        target = to_tensor(target).unsqueeze(0).to(device)
-        target_srgb = to_srgb(target, tonemap_exposure)
+        target = image_to_tensor(target, batch=True).to(device)
+        target_srgb = transform_feature(target, target_feature, 'srgb', tonemap_exposure)
 
       # Iterate over the input images
       for input_name in input_names:
@@ -132,15 +128,15 @@ def main():
         input = load_input_image(os.path.join(data_dir, input_name), cfg.features)
 
         # Compute the autoexposure value
-        exposure = autoexposure(input) if is_hdr else 1.
+        exposure = autoexposure(input) if 'hdr' in cfg.features else 1.
 
         # Infer
-        input = to_tensor(input).unsqueeze(0).to(device)
+        input = image_to_tensor(input, batch=True).to(device)
         output = infer(model, transfer, input, exposure)
 
         input = input[:, 0:3, ...] # keep only the color
-        input_srgb  = to_srgb(input,  tonemap_exposure)
-        output_srgb = to_srgb(output, tonemap_exposure)
+        input_srgb  = transform_feature(input,  target_feature, 'srgb', tonemap_exposure)
+        output_srgb = transform_feature(output, target_feature, 'srgb', tonemap_exposure)
 
         # Compute metrics
         if target_name and cfg.metric:
