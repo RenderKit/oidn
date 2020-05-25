@@ -10,7 +10,6 @@ from util import *
 from dataset import *
 from image import *
 from color import *
-from ssim import ssim
 
 def main():
   # Parse the command line arguments
@@ -43,10 +42,7 @@ def main():
   # Compute the metrics
   metric_str = ''
   for metric in cfg.metric:
-    if metric == 'mse':
-      value = ((image1 - image2) ** 2).mean()
-    elif metric == 'ssim':
-      value = ssim(image1, image2, data_range=1.)
+    value = compare_images(image1, image2, metric)
     if metric_str:
       metric_str += ', '
     metric_str += '%s = %.4f' % (metric, value)

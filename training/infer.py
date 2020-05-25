@@ -14,7 +14,6 @@ from dataset import *
 from model import *
 from color import *
 from result import *
-from ssim import ssim
 
 def pad(x):
   return round_up(x, ALIGNMENT)
@@ -98,6 +97,8 @@ def main():
 
   # Iterate over the images
   output_dir = os.path.join(cfg.output_dir, cfg.input_data)
+  metric_sum = {metric : 0. for metric in cfg.metric}
+  metric_count = 0
   model.eval()
 
   with torch.no_grad():
@@ -142,14 +143,13 @@ def main():
         if target_name and cfg.metric:
           metric_str = ''
           for metric in cfg.metric:
-            if metric == 'mse':
-              value = ((output_srgb - target_srgb) ** 2).mean()
-            elif metric == 'ssim':
-              value = ssim(output_srgb, target_srgb, data_range=1.)
+            value = compare_images(output_srgb, target_srgb, metric)
+            metric_sum[metric] += value
             if metric_str:
               metric_str += ', '
             metric_str += '%s = %.4f' % (metric, value)
-          progress_str += ' (' + metric_str + ')'
+          progress_str += ': ' + metric_str
+          metric_count += 1
 
         # Save the input and output images
         output_name = input_name + '.' + cfg.result
@@ -165,6 +165,16 @@ def main():
       # Save the target image if it exists
       if cfg.save_all and target_name:
         save_images(os.path.join(output_dir, target_name), target, target_srgb)
+
+  # Print average metrics
+  if metric_count > 0:
+    metric_str = ''
+    for metric in cfg.metric:
+      value = metric_sum[metric] / metric_count
+      if metric_str:
+        metric_str += ', '
+      metric_str += '%s_avg = %.4f' % (metric, value)
+    print(metric_str)
 
 if __name__ == '__main__':
   main()

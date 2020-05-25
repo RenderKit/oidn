@@ -6,6 +6,7 @@ import numpy as np
 import torch
 import OpenImageIO as oiio
 
+from ssim import ssim
 from util import *
 
 ## -----------------------------------------------------------------------------
@@ -35,6 +36,18 @@ def tensor_gradient(input):
   didy   = input[..., 1:,  :-1] - input0
   didx   = input[..., :-1, 1:]  - input0
   return torch.cat((didy, didx), -3)
+
+# Compares two image tensors using the specified error metric
+def compare_images(a, b, metric='psnr'):
+  if metric == 'mse':
+    return ((a - b) ** 2).mean()
+  elif metric == 'psnr':
+    mse = ((a - b) ** 2).mean()
+    return 10 * np.log10(1. / mse.item())
+  elif metric == 'ssim':
+    return ssim(a, b, data_range=1.)
+  else:
+    raise ValueError('invalid error metric')
 
 ## -----------------------------------------------------------------------------
 ## Image I/O
