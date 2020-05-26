@@ -16,6 +16,8 @@ def main():
 
   # Load the input image
   name, ext = os.path.splitext(cfg.input)
+  if ext == '.cxr': # Corona EXR
+    ext = '.exr'
   if ext.lower() != '.exr':
     error('image must be EXR')
   image = oiio.ImageBuf(cfg.input)
@@ -54,6 +56,7 @@ def main():
               ('N.R', 'N.G', 'N.B'),
               ('Denoising Normal.X', 'Denoising Normal.Y', 'Denoising Normal.Z'),
               ('Normals.R', 'Normals.G', 'Normals.B'),
+              ('VisibleNormals.R', 'VisibleNormals.G', 'VisibleNormals.B'),
               ('OptixNormals.R', 'OptixNormals.G', 'OptixNormals.B'),
             ]
   }
