@@ -96,6 +96,7 @@ def main():
   transfer = get_transfer_function(cfg.transfer)
 
   # Iterate over the images
+  print()
   output_dir = os.path.join(cfg.output_dir, cfg.input_data)
   metric_sum = {metric : 0. for metric in cfg.metric}
   metric_count = 0
@@ -123,7 +124,7 @@ def main():
 
       # Iterate over the input images
       for input_name in input_names:
-        progress_str = input_name
+        print(input_name, '...', end='', flush=True)
 
         # Load the input image
         input = load_input_image(os.path.join(data_dir, input_name), cfg.features)
@@ -140,41 +141,43 @@ def main():
         output_srgb = transform_feature(output, target_feature, 'srgb', tonemap_exposure)
 
         # Compute metrics
+        metric_str = ''
         if target_name and cfg.metric:
-          metric_str = ''
           for metric in cfg.metric:
             value = compare_images(output_srgb, target_srgb, metric)
             metric_sum[metric] += value
             if metric_str:
               metric_str += ', '
-            metric_str += '%s = %.4f' % (metric, value)
-          progress_str += ': ' + metric_str
+            metric_str += f'{metric} = {value:.4f}'
           metric_count += 1
 
         # Save the input and output images
         output_name = input_name + '.' + cfg.result
         if cfg.checkpoint:
-          output_name += '_%d' % epoch
+          output_name += f'_{epoch}'
         if cfg.save_all:
           save_images(os.path.join(output_dir, input_name), input, input_srgb)
         save_images(os.path.join(output_dir, output_name), output, output_srgb)
 
-        # Print progress
-        print(progress_str)
+        # Print metrics
+        if metric_str:
+          metric_str = ' ' + metric_str
+        print(metric_str)
 
       # Save the target image if it exists
       if cfg.save_all and target_name:
         save_images(os.path.join(output_dir, target_name), target, target_srgb)
 
-  # Print average metrics
+  # Print summary
   if metric_count > 0:
     metric_str = ''
     for metric in cfg.metric:
       value = metric_sum[metric] / metric_count
       if metric_str:
         metric_str += ', '
-      metric_str += '%s_avg = %.4f' % (metric, value)
-    print(metric_str)
+      metric_str += f'{metric}_avg = {value:.4f}'
+    print()
+    print(f'{cfg.result}: {metric_str} ({metric_count} images)')
 
 if __name__ == '__main__':
   main()

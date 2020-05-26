@@ -29,7 +29,8 @@ def main():
   if cfg.checkpoint:
     output_filename += '_%d' % epoch
   output_filename += '.tza'
-  print('Saving weights:', output_filename)
+  print('Output:', output_filename)
+  print()
 
   with tza.Writer(output_filename) as output_file:
     for name, value in model_state.items():

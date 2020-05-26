@@ -68,6 +68,7 @@ def main():
   lr_scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=gamma)
 
   # Training loop
+  print()
   start_time = time.time()
   avg_loss = 0.
   best_loss = float('inf')

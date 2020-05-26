@@ -132,6 +132,7 @@ def main():
   summary_writer = SummaryWriter(log_dir)
 
   # Training and evaluation loops
+  print()
   progress_format = '%-5s %' + str(len(str(cfg.epochs))) + 'd/%d: ' % cfg.epochs
   total_start_time = time.time()
 
