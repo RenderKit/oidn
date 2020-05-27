@@ -148,7 +148,7 @@ def main():
             metric_sum[metric] += value
             if metric_str:
               metric_str += ', '
-            metric_str += f'{metric} = {value:.4f}'
+            metric_str += f'{metric}={value:.4f}'
           metric_count += 1
 
         # Save the input and output images
@@ -175,7 +175,7 @@ def main():
       value = metric_sum[metric] / metric_count
       if metric_str:
         metric_str += ', '
-      metric_str += f'{metric}_avg = {value:.4f}'
+      metric_str += f'{metric}_avg={value:.4f}'
     print()
     print(f'{cfg.result}: {metric_str} ({metric_count} images)')
 

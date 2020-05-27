@@ -87,8 +87,9 @@ def main():
 
   # Reset the random seed if resuming result
   if start_epoch > 1:
-    np.random.seed(cfg.seed + start_epoch - 1)
-    torch.manual_seed(cfg.seed + start_epoch - 1)
+    seed = cfg.seed + start_epoch - 1
+    np.random.seed(seed)
+    torch.manual_seed(seed)
 
   # Initialize the training dataset
   train_data = TrainingDataset(cfg, cfg.train_data)
@@ -177,7 +178,7 @@ def main():
     lr = lr_scheduler.get_last_lr()[0]
     images_per_sec = len(train_data) / duration
     eta = ((cfg.epochs - epoch) * total_duration / (epoch + 1 - start_epoch))
-    progress.finish('loss = %.6f, lr = %.6f  (%.1f images/s, %s, eta %s)'
+    progress.finish('loss=%.6f, lr=%.6f  (%.1f images/s, %s, eta %s)'
                     % (train_loss, lr, images_per_sec, format_time(duration), format_time(eta, precision=2)))
 
     if ((cfg.valid_epochs > 0 and epoch % cfg.valid_epochs == 0) or epoch == cfg.epochs) \
@@ -209,7 +210,7 @@ def main():
       duration = time.time() - start_time
       valid_loss = valid_loss.item() / valid_steps_per_epoch
       images_per_sec = len(valid_data) / duration
-      progress.finish('valid_loss = %.6f  (%.1f images/s, %.1fs)'
+      progress.finish('valid_loss=%.6f  (%.1f images/s, %.1fs)'
                       % (valid_loss, images_per_sec, duration))
 
       # Write summary
