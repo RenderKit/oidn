@@ -253,7 +253,7 @@ class TrainingDataset(PreprocessedDataset):
     
     # Generate a random crop
     sy = sx = self.tile_size
-    if np.random.rand() < 0.05:
+    if np.random.rand() < 0.1:
       # Randomly zero pad later to avoid artifacts for images that require padding
       sy -= np.random.randint(0, model.ALIGNMENT)
       sx -= np.random.randint(0, model.ALIGNMENT)
@@ -307,7 +307,7 @@ class TrainingDataset(PreprocessedDataset):
 
     # Randomly zero the color channels if there are auxiliary features
     # This prevents "ghosting" artifacts when the color buffer is entirely black
-    if len(self.channels) > 3 and np.random.rand() < 0.005:
+    if len(self.channels) > 3 and np.random.rand() < 0.01:
       input_image[:, :, 0:3] = 0
       target_image[:] = 0
 
