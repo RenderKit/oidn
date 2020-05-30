@@ -1,6 +1,6 @@
 # Intel® Open Image Denoise
 
-This is release v1.2.0 of Intel Open Image Denoise. For changes and new
+This is release v1.2.1 of Intel Open Image Denoise. For changes and new
 features see the [changelog](CHANGELOG.md). Visit
 http://www.openimagedenoise.org for more information.
 
@@ -64,12 +64,23 @@ should happen to have a fix for it, you can also send us a pull
 request); for missing features please contact us via email at
 <openimagedenoise@googlegroups.com>.
 
-For recent news, updates, and announcements, please see our complete
-[news/updates](https://openimagedenoise.github.io/news.html) page.
-
 Join our [mailing
 list](https://groups.google.com/d/forum/openimagedenoise/) to receive
 release announcements and major news regarding Intel Open Image Denoise.
+
+## Citation
+
+If you use Intel Open Image Denoise in a research publication, please
+cite the project using the following BibTeX entry:
+
+``` bibtex
+@Misc{OpenImageDenoise,
+  author = {Attila T. {\'A}fra},
+  title  = {{Intel\textsuperscript{\textregistered} Open Image Denoise}},
+  year   = {2020},
+  note   = {\url{http://www.openimagedenoise.org/}}
+}
+```
 
 # Compiling Intel Open Image Denoise
 
