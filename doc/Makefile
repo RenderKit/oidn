@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-webpages := $(addprefix www/, $(addsuffix .html, index news documentation gallery downloads related_projects legal))
+webpages := $(addprefix www/, $(addsuffix .html, index documentation gallery downloads related_projects legal))
 process_version := $(addprefix tmp/, $(addsuffix .md, downloads readme_head))
 tmptexfiles := $(addprefix tmp/, $(addsuffix .tex, overview changelog compilation api examples training))
 images_jpg := $(addprefix images/, $(addsuffix .jpg, moana_16spp_input moana_16spp_oidn bistro_64spp_input bistro_64spp_oidn bistro2_16spp_input bistro2_16spp_oidn bistro3_16spp_input bistro3_16spp_oidn sponza_16spp_input sponza_16spp_oidn mazda_64spp_input mazda_64spp_oidn mazda_firsthit_512spp_albedo mazda_nondeltahit_512spp_albedo mazda_firsthit_512spp_normal mazda_nondeltahit_512spp_normal villa_32spp_input villa_32spp_oidn villa2_16spp_input villa2_16spp_oidn artdeco_2048spp_input artdeco_2048spp_oidn))
@@ -88,7 +88,6 @@ tmp/api_html.md: api.md tmp/links.md tmp/images_local_png.md
 	$(PANDOC) $+ --indented-code-classes=cpp -t markdown-fenced_code_attributes -o $@
 
 www/index.html: teaser.html overview.md changelog.md
-www/news.html: news.md
 www/gallery.html: gallery.md
 www/downloads.html: tmp/downloads.md compilation.md
 www/related_projects.html: related_projects.md

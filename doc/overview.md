@@ -57,9 +57,6 @@ find any such issues please report them immediately via the
 request); for missing features please contact us via email at
 <openimagedenoise@googlegroups.com>.
 
-For recent news, updates, and announcements, please see our complete
-[news/updates] page.
-
 Join our [mailing list](https://groups.google.com/d/forum/openimagedenoise/) to
 receive release announcements and major news regarding Intel Open Image Denoise.
 
