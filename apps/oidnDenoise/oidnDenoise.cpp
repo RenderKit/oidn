@@ -27,7 +27,7 @@ void printUsage()
             << "                   [--alb albedo.pfm] [--nrm normal.pfm]" << std::endl
             << "                   [-o/--output output.pfm] [-r/--ref reference_output.pfm]" << std::endl
             << "                   [-w/--weights weights.tza]" << std::endl
-            << "                   [--threads n] [--affinity 0|1] [--maxmem MB]" << std::endl
+            << "                   [--threads n] [--affinity 0|1] [--maxmem MB] [--inplace]" << std::endl
             << "                   [--bench ntimes] [-v/--verbose 0-3]" << std::endl
             << "                   [-h/--help]" << std::endl;
 }
@@ -79,6 +79,7 @@ int main(int argc, char* argv[])
   int numThreads = -1;
   int setAffinity = -1;
   int maxMemoryMB = -1;
+  bool inplace = false;
   int verbose = -1;
 
   // Parse the arguments
@@ -126,6 +127,8 @@ int main(int argc, char* argv[])
         setAffinity = args.getNextValueInt();
       else if (opt == "maxmem")
         maxMemoryMB = args.getNextValueInt();
+      else if (opt == "inplace")
+        inplace = true;
       else if (opt == "v" || opt == "verbose")
         verbose = args.getNextValueInt();
       else if (opt == "h" || opt == "help")
@@ -158,8 +161,8 @@ int main(int argc, char* argv[])
     }
 
     // Load the input image
-    ImageBuffer color, albedo, normal;
-    ImageBuffer ref;
+    std::shared_ptr<ImageBuffer> color, albedo, normal;
+    std::shared_ptr<ImageBuffer> ref;
 
     std::cout << "Loading input" << std::endl;
 
@@ -168,30 +171,34 @@ int main(int argc, char* argv[])
     if (!albedoFilename.empty())
     {
       albedo = loadImage(albedoFilename, 3, false);
-      if (albedo.getDims() != color.getDims())
+      if (albedo->getDims() != color->getDims())
         throw std::runtime_error("invalid albedo image");
     }
 
     if (!normalFilename.empty())
     {
       normal = loadImage(normalFilename, 3);
-      if (normal.getDims() != color.getDims())
+      if (normal->getDims() != color->getDims())
         throw std::runtime_error("invalid normal image");
     }
 
     if (!refFilename.empty())
     {
       ref = loadImage(refFilename, 3, srgb);
-      if (ref.getDims() != color.getDims())
+      if (ref->getDims() != color->getDims())
         throw std::runtime_error("invalid reference output image");
     }
 
-    const int width  = color.getWidth();
-    const int height = color.getHeight();
+    const int width  = color->getWidth();
+    const int height = color->getHeight();
     std::cout << "Resolution: " << width << "x" << height << std::endl;
 
     // Initialize the output image
-    ImageBuffer output(width, height, 3);
+    std::shared_ptr<ImageBuffer> output;
+    if (inplace)
+      output = color;
+    else
+      output = std::make_shared<ImageBuffer>(width, height, 3);
 
     // Load the filter weights if specified
     std::vector<char> weights;
@@ -222,13 +229,13 @@ int main(int argc, char* argv[])
 
     oidn::FilterRef filter = device.newFilter(filterType.c_str());
 
-    filter.setImage("color", color.getData(), oidn::Format::Float3, width, height);
+    filter.setImage("color", color->getData(), oidn::Format::Float3, width, height);
     if (albedo)
-      filter.setImage("albedo", albedo.getData(), oidn::Format::Float3, width, height);
+      filter.setImage("albedo", albedo->getData(), oidn::Format::Float3, width, height);
     if (normal)
-      filter.setImage("normal", normal.getData(), oidn::Format::Float3, width, height);
+      filter.setImage("normal", normal->getData(), oidn::Format::Float3, width, height);
 
-    filter.setImage("output", output.getData(), oidn::Format::Float3, width, height);
+    filter.setImage("output", output->getData(), oidn::Format::Float3, width, height);
 
     if (hdr)
       filter.set("hdr", true);
@@ -283,7 +290,7 @@ int main(int argc, char* argv[])
     {
       // Save output image
       std::cout << "Saving output" << std::endl;
-      saveImage(outputFilename, output, srgb);
+      saveImage(outputFilename, *output, srgb);
     }
 
     if (ref)
@@ -293,17 +300,17 @@ int main(int argc, char* argv[])
 
       int numErrors;
       float maxError;
-      std::tie(numErrors, maxError) = compareImage(output, ref, 1e-4);
+      std::tie(numErrors, maxError) = compareImage(*output, *ref, 1e-4);
 
-      std::cout << "  values=" << output.getSize() << ", errors=" << numErrors << ", maxerror=" << maxError << std::endl;
+      std::cout << "  values=" << output->getSize() << ", errors=" << numErrors << ", maxerror=" << maxError << std::endl;
 
       if (numErrors > 0)
       {
         // Save debug images
         std::cout << "Saving debug images" << std::endl;
-        saveImage("denoise_in.ppm",   color,  srgb);
-        saveImage("denoise_out.ppm",  output, srgb);
-        saveImage("denoise_ref.ppm",  ref,    srgb);
+        saveImage("denoise_in.ppm",   *color,  srgb);
+        saveImage("denoise_out.ppm",  *output, srgb);
+        saveImage("denoise_ref.ppm",  *ref,    srgb);
 
         throw std::runtime_error("output does not match the reference");
       }

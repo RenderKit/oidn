@@ -49,7 +49,7 @@ namespace oidn {
       }
     }
 
-    ImageBuffer loadImagePFM(const std::string& filename, int channels)
+    std::shared_ptr<ImageBuffer> loadImagePFM(const std::string& filename, int channels)
     {
       // Open the file
       std::ifstream file(filename, std::ios::binary);
@@ -88,7 +88,7 @@ namespace oidn {
       scale = fabs(scale);
 
       // Read the pixels
-      ImageBuffer image(W, H, channels);
+      auto image = std::make_shared<ImageBuffer>(W, H, channels);
 
       for (int h = 0; h < H; ++h)
       {
@@ -99,7 +99,7 @@ namespace oidn {
             float x;
             file.read((char*)&x, sizeof(float));
             if (c < channels)
-              image[((H-1-h)*W + w) * channels + c] = x * scale;
+              (*image)[((H-1-h)*W + w) * channels + c] = x * scale;
           }
         }
       }
@@ -172,9 +172,8 @@ namespace oidn {
   }
 
 #ifdef OIDN_USE_OPENIMAGEIO
-  ImageBuffer loadImageOIIO(const std::string& filename, int channels)
+  std::shared_ptr<ImageBuffer> loadImageOIIO(const std::string& filename, int channels)
   {
-    ImageBuffer buf;
     auto in = OIIO::ImageInput::open(filename);
     if (!in)
       throw std::runtime_error("cannot open image file: " + filename);
@@ -184,15 +183,15 @@ namespace oidn {
       channels = spec.nchannels;
     else if (spec.nchannels < channels)
       throw std::runtime_error("not enough image channels");
-    buf = ImageBuffer(spec.width, spec.height, channels);
-    if (!in->read_image(0, 0, 0, channels, OIIO::TypeDesc::FLOAT, buf.getData()))
+    auto image = std::make_shared<ImageBuffer>(spec.width, spec.height, channels);
+    if (!in->read_image(0, 0, 0, channels, OIIO::TypeDesc::FLOAT, image->getData()))
       throw std::runtime_error("failed to read image data");
     in->close();
 
 #if OIIO_VERSION < 10903
     OIIO::ImageInput::destroy(in);
 #endif
-    return buf;
+    return image;
   }
 
   void saveImageOIIO(const std::string& filename, const ImageBuffer& image)
@@ -218,10 +217,10 @@ namespace oidn {
   }
 #endif
 
-  ImageBuffer loadImage(const std::string& filename, int channels)
+  std::shared_ptr<ImageBuffer> loadImage(const std::string& filename, int channels)
   {
     const std::string ext = getExtension(filename);
-    ImageBuffer image;
+    std::shared_ptr<ImageBuffer> image;
 
     if (ext == "pfm")
       image = loadImagePFM(filename, channels);
@@ -256,11 +255,11 @@ namespace oidn {
     return ext != "pfm" && ext != "exr" && ext != "hdr";
   }
 
-  ImageBuffer loadImage(const std::string& filename, int channels, bool srgb)
+  std::shared_ptr<ImageBuffer> loadImage(const std::string& filename, int channels, bool srgb)
   {
-    ImageBuffer image = loadImage(filename, channels);
+    auto image = loadImage(filename, channels);
     if (!srgb && isSrgbImage(filename))
-      srgbInverse(image);
+      srgbInverse(*image);
     return image;
   }
 

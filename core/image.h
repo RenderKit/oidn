@@ -38,7 +38,13 @@ namespace oidn {
         throw Exception(Error::InvalidArgument, "buffer region out of range");
     }
 
-    void init(char* ptr, Format format, int width, int height, size_t inBytePixelStride, size_t inByteRowStride)
+    Image(const Ref<Device>& device, Format format, int width, int height)
+      : buffer(makeRef<Buffer>(device, size_t(width) * size_t(height) * getFormatBytes(format)))
+    {
+      init(buffer->data(), format, width, height);
+    }
+
+    void init(char* ptr, Format format, int width, int height, size_t inBytePixelStride = 0, size_t inByteRowStride = 0)
     {
       assert(width >= 0);
       assert(height >= 0);

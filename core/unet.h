@@ -30,6 +30,7 @@ namespace oidn {
     Image albedo;
     Image normal;
     Image output;
+    Image outputTemp;
 
     // Options
     bool hdr = false;

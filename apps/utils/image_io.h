@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <memory>
 #include <string>
 #include <vector>
 #include <array>
@@ -50,10 +51,10 @@ namespace oidn {
 
   // Loads an image with an optionally specified number of channels (loads all
   // channels by default)
-  ImageBuffer loadImage(const std::string& filename, int channels = 0);
+  std::shared_ptr<ImageBuffer> loadImage(const std::string& filename, int channels = 0);
 
   // Loads an image with/without sRGB to linear conversion
-  ImageBuffer loadImage(const std::string& filename, int channels, bool srgb);
+  std::shared_ptr<ImageBuffer> loadImage(const std::string& filename, int channels, bool srgb);
 
   // Saves an image
   void saveImage(const std::string& filename, const ImageBuffer& image);

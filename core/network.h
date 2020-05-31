@@ -6,25 +6,20 @@
 #include "node.h"
 #include "input_reorder.h"
 #include "output_reorder.h"
+#include "output_copy.h"
 #include "color.h"
+#include "progress.h"
 
 #pragma once
 
 namespace oidn {
 
-  // Progress state
-  struct Progress
-  {
-    ProgressMonitorFunction func;
-    void* userPtr;
-    int taskCount;
-  };
-
   class Executable
   {
   public:
     virtual ~Executable() {}
-    virtual void execute(const Progress& progress, int taskIndex) = 0;
+    virtual void execute(Progress& progress) = 0;
+    virtual double getWorkAmount() const = 0; // for progress reporting
   };
 
   class Network : public Executable
@@ -32,7 +27,8 @@ namespace oidn {
   public:
     Network(const Ref<Device>& device, const std::map<std::string, Tensor>& weightsMap);
 
-    void execute(const Progress& progress, int taskIndex) override;
+    void execute(Progress& progress) override;
+    double getWorkAmount() const override;
 
     std::shared_ptr<memory> allocMemory(const memory::dims& dims,
                                         memory::format_tag format = memory::format_tag::any,

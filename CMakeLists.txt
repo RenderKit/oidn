@@ -122,7 +122,9 @@ set(CORE_SOURCES
   core/network.h
   core/network.cpp
   core/node.h
+  core/output_copy.h
   core/output_reorder.h
+  core/progress.h
   core/unet.h
   core/unet.cpp
   core/upsample.h
@@ -136,6 +138,7 @@ set(CORE_SOURCES_ISPC
   core/math.ih
   core/memory.ih
   core/upsample.ispc
+  core/output_copy.ispc
   core/output_reorder.ispc
   core/vec.ih
 )

@@ -25,26 +25,18 @@ namespace oidn {
     }
   }
 
-  void Network::execute(const Progress& progress, int taskIndex)
+  void Network::execute(Progress& progress)
   {
-    if (progress.func)
-    {
-      const double value = double(taskIndex) / double(progress.taskCount);
-      if (!progress.func(progress.userPtr, value))
-        throw Exception(Error::Cancelled, "execution was cancelled");
-    }
-
     for (size_t i = 0; i < nodes.size(); ++i)
     {
       nodes[i]->execute(sm);
-
-      if (progress.func)
-      {
-        const double value = (double(taskIndex) + double(i+1) / double(nodes.size())) / double(progress.taskCount);
-        if (!progress.func(progress.userPtr, value))
-          throw Exception(Error::Cancelled, "execution was cancelled");
-      }
+      progress.update(1);
     }
+  }
+
+  double Network::getWorkAmount() const
+  {
+    return double(nodes.size());
   }
 
   std::shared_ptr<memory> Network::allocMemory(const memory::dims& dims,

@@ -113,10 +113,11 @@ namespace oidn {
 
     device->executeTask([&]()
     {
-      Progress progress;
-      progress.func = progressFunc;
-      progress.userPtr = progressUserPtr;
-      progress.taskCount = tileCountH * tileCountW;
+      // Initialize the progress state
+      double workAmount = tileCountH * tileCountW * net->getWorkAmount();
+      if (outputTemp)
+        workAmount += 1;
+      Progress progress(progressFunc, progressUserPtr, workAmount);
 
       // Iterate over the tiles
       int tileIndex = 0;
@@ -152,12 +153,16 @@ namespace oidn {
           //printf("Tile: %d %d -> %d %d\n", w+overlapBeginW, h+overlapBeginH, w+overlapBeginW+tileW2, h+overlapBeginH+tileH2);
 
           // Denoise the tile
-          net->execute(progress, tileIndex);
+          net->execute(progress);
 
           // Next tile
           tileIndex++;
         }
       }
+
+      // Copy the output image to the final buffer if necessary
+      if (outputTemp)
+        outputCopy(outputTemp, output);
     });
   }
 
@@ -244,8 +249,8 @@ namespace oidn {
         || (output.width != W || output.height != H))
       throw Exception(Error::InvalidOperation, "image size mismatch");
 
-    if (output.ptr == color.ptr || output.ptr == albedo.ptr || output.ptr == normal.ptr)
-      throw Exception(Error::InvalidOperation, "output image is one of the input images");
+    //if (output.ptr == color.ptr || output.ptr == albedo.ptr || output.ptr == normal.ptr)
+    //  throw Exception(Error::InvalidOperation, "output image is one of the input images");
 
     // Compute the tile size
     computeTileSize();
@@ -253,6 +258,10 @@ namespace oidn {
     // If the image size is zero, there is nothing else to do
     if (H <= 0 || W <= 0)
       return nullptr;
+
+    // If there are multiple tiles, allocate temporary output buffer
+    if (tileCountH * tileCountW > 1)
+      outputTemp = Image(device, output.format, W, H);
 
     // Parse the weights
     const auto weightsMap = parseTZA(weights.ptr, weights.size);
@@ -461,7 +470,7 @@ namespace oidn {
     auto decConv0 = net->addConv("dec_conv0", decConv1b->getDst(), temp0, false /* no relu */);
 
     // Output reorder
-    outputReorder = net->addOutputReorder(decConv0->getDst(), transferFunc, hdr, output);
+    outputReorder = net->addOutputReorder(decConv0->getDst(), transferFunc, hdr, outputTemp ? outputTemp : output);
 
     net->finalize();
     return net;
