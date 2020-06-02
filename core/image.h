@@ -31,6 +31,7 @@ namespace oidn {
     }
 
     Image(const Ref<Buffer>& buffer, Format format, int width, int height, size_t byteOffset, size_t inBytePixelStride, size_t inByteRowStride)
+      : buffer(buffer)
     {
       init(buffer->data() + byteOffset, format, width, height, inBytePixelStride, inByteRowStride);
 
