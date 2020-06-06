@@ -9,6 +9,7 @@ Version History
 -   Link C/C++ runtime library dynamically on Windows too by default
 -   Renamed example apps (`oidnDenoise`, `oidnTest`)
 -   Added benchmark app (`oidnBench`)
+-   Fixed random data augmentation seeding in training
 -   Fixed training warning with PyTorch 1.5+
 
 ### Changes in v1.2.0:

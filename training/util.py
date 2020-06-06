@@ -109,6 +109,21 @@ def unwrap_module(module):
   else:
     return module
   
+# Generates a random float in [0, 1)
+def rand():
+  return torch.rand(1).item()
+
+# Generates a random integer in [low, high) or [0, low)
+def randint(low, high=None):
+  if high is None:
+    return torch.randint(low, (1,)).item()
+  else:
+    return torch.randint(low, high, (1,)).item()
+
+# Generates a random permutation of integers in [0, n)
+def randperm(n):
+  return torch.randperm(n).tolist()
+
 ## -----------------------------------------------------------------------------
 ## Progress
 ## -----------------------------------------------------------------------------

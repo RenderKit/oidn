@@ -253,27 +253,25 @@ class TrainingDataset(PreprocessedDataset):
     
     # Generate a random crop
     sy = sx = self.tile_size
-    if np.random.rand() < 0.1:
+    if rand() < 0.1:
       # Randomly zero pad later to avoid artifacts for images that require padding
-      sy -= np.random.randint(0, model.ALIGNMENT)
-      sx -= np.random.randint(0, model.ALIGNMENT)
-    oy = np.random.randint(0, height - sy + 1)
-    ox = np.random.randint(0, width  - sx + 1)
+      sy -= randint(model.ALIGNMENT)
+      sx -= randint(model.ALIGNMENT)
+    oy = randint(height - sy + 1)
+    ox = randint(width  - sx + 1)
 
     # Randomly permute some channels to improve training quality
     channels = self.channels[:] # copy
 
     # Randomly permute the color channels
-    color_order = np.arange(3)
-    np.random.shuffle(color_order)
+    color_order = randperm(3)
     shuffle_channels(channels, 'r', color_order)
     if 'alb' in self.features:
       shuffle_channels(channels, 'alb.r', color_order)
 
     # Randomly permute the normal channels
     if 'nrm' in self.features:
-      normal_order = np.arange(3)
-      np.random.shuffle(normal_order)
+      normal_order = randperm(3)
       shuffle_channels(channels, 'nrm.x', normal_order)
 
     # Compute the indices of the required input channels
@@ -284,17 +282,17 @@ class TrainingDataset(PreprocessedDataset):
     target_image = target_image[oy:oy+sy, ox:ox+sx, color_order]
 
     # Randomly transform the tiles to improve training quality
-    if np.random.rand() < 0.5:
+    if rand() < 0.5:
       # Flip vertically
       input_image  = np.flip(input_image,  0)
       target_image = np.flip(target_image, 0)
 
-    if np.random.rand() < 0.5:
+    if rand() < 0.5:
       # Flip horizontally
       input_image  = np.flip(input_image,  1)
       target_image = np.flip(target_image, 1)
 
-    if np.random.rand() < 0.5:
+    if rand() < 0.5:
       # Transpose
       input_image  = np.swapaxes(input_image,  0, 1)
       target_image = np.swapaxes(target_image, 0, 1)
@@ -307,7 +305,7 @@ class TrainingDataset(PreprocessedDataset):
 
     # Randomly zero the color channels if there are auxiliary features
     # This prevents "ghosting" artifacts when the color buffer is entirely black
-    if len(self.channels) > 3 and np.random.rand() < 0.01:
+    if len(self.channels) > 3 and rand() < 0.01:
       input_image[:, :, 0:3] = 0
       target_image[:] = 0
 

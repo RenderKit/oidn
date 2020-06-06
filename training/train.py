@@ -31,7 +31,6 @@ def main():
     cfg.result = '%x' % int(time.time())
 
   # Initialize the random seed
-  np.random.seed(cfg.seed)
   torch.manual_seed(cfg.seed)
 
   # Initialize the PyTorch device
@@ -88,7 +87,6 @@ def main():
   # Reset the random seed if resuming result
   if start_epoch > 1:
     seed = cfg.seed + start_epoch - 1
-    np.random.seed(seed)
     torch.manual_seed(seed)
 
   # Initialize the training dataset
