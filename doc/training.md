@@ -35,6 +35,8 @@ Prerequisites
 
 Before you can run the training toolkit you need the following prerequisites:
 
+-   Linux (other operating systems are currently not supported)
+
 -   Python 3.7 or later
 
 -   [PyTorch](https://pytorch.org/) 1.4 or later
@@ -44,9 +46,6 @@ Before you can run the training toolkit you need the following prerequisites:
 -   [OpenImageIO](http://openimageio.org/) 2.1 or later
 
 -   [TensorBoard](https://www.tensorflow.org/tensorboard) 2.1 or later (*optional*)
-
-The training toolkit has been tested only on Linux, thus other operating systems
-are currently not supported.
 
 Datasets
 --------
