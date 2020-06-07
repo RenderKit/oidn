@@ -14,6 +14,10 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
+import torch.multiprocessing as mp
+import torch.distributed as dist
+from torch.utils.data.distributed import DistributedSampler
+
 from config import *
 from dataset import *
 from model import *
@@ -30,17 +34,44 @@ def main():
   if not cfg.result:
     cfg.result = '%x' % int(time.time())
 
+  # Print PyTorch version
+  print('PyTorch:', torch.__version__)
+
+  # Run the worker(s)
+  if cfg.num_devices == 1:
+    main_worker(0, cfg)
+  elif cfg.num_devices > 1:
+    # Spawn a worker process for each device
+    mp.spawn(main_worker, args=(cfg,), nprocs=cfg.num_devices)
+  else:
+    error('invalid number of devices')
+
+def main_worker(rank, cfg):
+  distributed = cfg.num_devices > 1
+  if distributed:
+    # PreprocessedDataset requires the 'fork' multiprocessing start method
+    # We must set it explicitly as spawned processes have the 'spawn' method set by default
+    mp.set_start_method('fork', force=True)
+
+    # Initialize the process group
+    os.environ['MASTER_ADDR'] = 'localhost'
+    os.environ['MASTER_PORT'] = '12355'
+
+    dist.init_process_group(backend='nccl',
+                            rank=rank, world_size=cfg.num_devices,
+                            init_method='env://')
+
   # Initialize the random seed
-  torch.manual_seed(cfg.seed)
+  #torch.manual_seed(cfg.seed)
 
   # Initialize the PyTorch device
-  device = init_device(cfg)
+  device = init_device(cfg, rank)
 
   # Initialize the model
   model = UNet(get_num_channels(cfg.features))
-  if cfg.device == 'cuda' and torch.cuda.device_count() > 1:
-    model = nn.DataParallel(model)
   model.to(device)
+  if distributed:
+    model = nn.parallel.DistributedDataParallel(model, device_ids=[rank])
 
   # Initialize the loss function
   criterion = get_loss_function(cfg.loss)
@@ -51,8 +82,13 @@ def main():
 
   # Start or resume training
   result_dir = get_result_dir(cfg)
-  if os.path.isdir(result_dir):
-    print('Resuming result:', cfg.result)
+  resume = os.path.isdir(result_dir)
+  if distributed:
+    dist.barrier()
+    
+  if resume:
+    if rank == 0:
+      print('Resuming result:', cfg.result)
 
     # Load and verify the config
     result_cfg = load_config(result_dir)
@@ -65,49 +101,73 @@ def main():
     step = checkpoint['step']
     last_step = step - 1 # will be incremented by the LR scheduler init
   else:
-    print('Result:', cfg.result)
-    os.makedirs(result_dir)
+    if rank == 0:
+      print('Result:', cfg.result)
+      os.makedirs(result_dir)
 
-    # Save the config
-    save_config(result_dir, cfg)
+      # Save the config
+      save_config(result_dir, cfg)
 
-    # Save the source code
-    src_filenames = glob(os.path.join(os.path.dirname(sys.argv[0]), '*.py'))
-    src_zip_filename = os.path.join(result_dir, 'src.zip')
-    save_zip(src_zip_filename, src_filenames)
+      # Save the source code
+      src_filenames = glob(os.path.join(os.path.dirname(sys.argv[0]), '*.py'))
+      src_zip_filename = os.path.join(result_dir, 'src.zip')
+      save_zip(src_zip_filename, src_filenames)
 
     last_epoch = 0
     step = 0
     last_step = -1
+
+  if distributed:
+    dist.barrier()
 
   start_epoch = last_epoch + 1
   if start_epoch > cfg.epochs:
     exit() # nothing to do
 
   # Reset the random seed if resuming result
-  if start_epoch > 1:
-    seed = cfg.seed + start_epoch - 1
-    torch.manual_seed(seed)
+  #if start_epoch > 1:
+  #  seed = cfg.seed + start_epoch - 1
+  #  torch.manual_seed(seed)
 
   # Initialize the training dataset
   train_data = TrainingDataset(cfg, cfg.train_data)
   if len(train_data) > 0:
-    print('Training images:', train_data.num_images)
+    if rank == 0:
+      print('Training images:', train_data.num_images)
   else:
     error('no training images (forgot to run preprocess?)')
   pin_memory = (cfg.device != 'cpu')
-  train_data_loader = DataLoader(
-    train_data, cfg.batch_size, shuffle=True,
-    num_workers=cfg.loaders, pin_memory=pin_memory)
+  if distributed:
+    train_sampler = DistributedSampler(train_data,
+                                       num_replicas=cfg.num_devices, 
+                                       rank=rank,
+                                       shuffle=True)
+  else:
+    train_sampler = None
+  train_data_loader = DataLoader(train_data, cfg.batch_size,
+                                 sampler=train_sampler,
+                                 shuffle=(train_sampler is None),
+                                 num_workers=cfg.loaders,
+                                 pin_memory=pin_memory)
   train_steps_per_epoch = len(train_data_loader)
 
   # Initialize the validation dataset
   valid_data = ValidationDataset(cfg, cfg.valid_data)
   if len(valid_data) > 0:
-    print('Validation images:', valid_data.num_images)
-    valid_data_loader = DataLoader(
-      valid_data, cfg.batch_size, shuffle=False,
-      num_workers=cfg.loaders, pin_memory=pin_memory)
+    if rank == 0:
+      print('Validation images:', valid_data.num_images)
+    if distributed:
+      valid_sampler = DistributedSampler(valid_data,
+                                         num_replicas=cfg.num_devices, 
+                                         rank=rank,
+                                         shuffle=False)
+    else:
+      valid_sampler = None
+    valid_data_loader = DataLoader(valid_data, cfg.batch_size,
+                                   sampler=valid_sampler,
+                                   shuffle=False,
+                                   num_workers=cfg.loaders,
+                                   pin_memory=pin_memory)
     valid_steps_per_epoch = len(valid_data_loader)
 
   # Initialize the learning rate scheduler
@@ -131,19 +191,24 @@ def main():
   summary_writer = SummaryWriter(log_dir)
 
   # Training and evaluation loops
-  print()
-  progress_format = '%-5s %' + str(len(str(cfg.epochs))) + 'd/%d: ' % cfg.epochs
-  total_start_time = time.time()
+  if rank == 0:
+    print()
+    progress_format = '%-5s %' + str(len(str(cfg.epochs))) + 'd/%d: ' % cfg.epochs
+    total_start_time = time.time()
 
   for epoch in range(start_epoch, cfg.epochs+1):
-    start_time = time.time()
-    train_loss = 0.
-    progress = ProgressBar(train_steps_per_epoch, progress_format % ('Train', epoch))
+    if rank == 0:
+      start_time = time.time()
+      progress = ProgressBar(train_steps_per_epoch, progress_format % ('Train', epoch))
 
     # Switch to training mode
     model.train()
+    train_loss = 0.
 
     # Iterate over the batches
+    if distributed:
+      train_sampler.set_epoch(epoch)
+
     for i, batch in enumerate(train_data_loader, 0):
       # Get the batch
       input, target = batch
@@ -156,7 +221,7 @@ def main():
       loss.backward()
 
       # Write summary
-      if step == 0:
+      if rank == 0 and step == 0:
         summary_writer.add_graph(unwrap_module(model), input)
       if step % cfg.log_steps == 0 or i == 0 or i == train_steps_per_epoch-1:
         summary_writer.add_scalar('learning_rate', lr_scheduler.get_last_lr()[0], step)
@@ -167,27 +232,34 @@ def main():
       lr_scheduler.step()
       step += 1
       train_loss += loss
-      progress.next()
+      if rank == 0:
+        progress.next()
+
+    # Compute the average training loss
+    if distributed:
+      dist.all_reduce(train_loss, op=dist.ReduceOp.SUM)
+    train_loss = train_loss.item() / (train_steps_per_epoch * cfg.num_devices)
 
     # Print stats
-    duration = time.time() - start_time
-    total_duration = time.time() - total_start_time
-    train_loss = train_loss.item() / train_steps_per_epoch
-    lr = lr_scheduler.get_last_lr()[0]
-    images_per_sec = len(train_data) / duration
-    eta = ((cfg.epochs - epoch) * total_duration / (epoch + 1 - start_epoch))
-    progress.finish('loss=%.6f, lr=%.6f  (%.1f images/s, %s, eta %s)'
-                    % (train_loss, lr, images_per_sec, format_time(duration), format_time(eta, precision=2)))
+    if rank == 0:
+      duration = time.time() - start_time
+      total_duration = time.time() - total_start_time
+      lr = lr_scheduler.get_last_lr()[0]
+      images_per_sec = len(train_data) / duration
+      eta = ((cfg.epochs - epoch) * total_duration / (epoch + 1 - start_epoch))
+      progress.finish('loss=%.6f, lr=%.6f  (%.1f images/s, %s, eta %s)'
+                      % (train_loss, lr, images_per_sec, format_time(duration), format_time(eta, precision=2)))
 
     if ((cfg.valid_epochs > 0 and epoch % cfg.valid_epochs == 0) or epoch == cfg.epochs) \
       and len(valid_data) > 0:
       # Validation
-      start_time = time.time()
-      valid_loss = 0.
-      progress = ProgressBar(valid_steps_per_epoch, progress_format % ('Valid', epoch))
+      if rank == 0:
+        start_time = time.time()
+        progress = ProgressBar(valid_steps_per_epoch, progress_format % ('Valid', epoch))
 
       # Switch to evaluation mode
       model.eval()
+      valid_loss = 0.
 
       # Iterate over the batches
       with torch.no_grad():
@@ -202,19 +274,25 @@ def main():
 
           # Next step
           valid_loss += loss
-          progress.next()
+          if rank == 0:
+            progress.next()
+
+      # Compute the average validation loss
+      if distributed:
+        dist.all_reduce(valid_loss, op=dist.ReduceOp.SUM)
+      valid_loss = valid_loss.item() / (valid_steps_per_epoch * cfg.num_devices)
 
       # Print stats
-      duration = time.time() - start_time
-      valid_loss = valid_loss.item() / valid_steps_per_epoch
-      images_per_sec = len(valid_data) / duration
-      progress.finish('valid_loss=%.6f  (%.1f images/s, %.1fs)'
-                      % (valid_loss, images_per_sec, duration))
+      if rank == 0:
+        duration = time.time() - start_time
+        images_per_sec = len(valid_data) / duration
+        progress.finish('valid_loss=%.6f  (%.1f images/s, %.1fs)'
+                        % (valid_loss, images_per_sec, duration))
 
       # Write summary
       summary_writer.add_scalar('valid_loss', valid_loss, step)
 
-    if (cfg.save_epochs > 0 and epoch % cfg.save_epochs == 0) or epoch == cfg.epochs:
+    if (rank == 0) and ((cfg.save_epochs > 0 and epoch % cfg.save_epochs == 0) or epoch == cfg.epochs):
       # Save a checkpoint
       save_checkpoint(cfg, epoch, step, model, optimizer)
 

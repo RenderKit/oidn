@@ -88,6 +88,9 @@ def parse_args(cmd=None, description=None):
     parser.add_argument('--device', '-d', type=str, choices=['cpu', 'cuda'], default=get_default_device(), help='device to use')
     advanced.add_argument('--deterministic', '--det', action='store_true', help='makes computations deterministic (slower performance)')
 
+  if cmd in {'train'}:
+    parser.add_argument('--num_devices', '-n', type=int, default=1, help='number of devices to use')
+
   cfg = parser.parse_args()
 
   if cmd in {'preprocess', 'train', 'find_lr'}:
