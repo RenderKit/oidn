@@ -49,7 +49,7 @@ def main():
 def main_worker(rank, cfg):
   distributed = cfg.num_devices > 1
   if distributed:
-    # PreprocessedDataset requires the 'fork' multiprocessing start method
+    # Set 'fork' multiprocessing start method for improved DataLoader performance
     # We must set it explicitly as spawned processes have the 'spawn' method set by default
     mp.set_start_method('fork', force=True)
 
