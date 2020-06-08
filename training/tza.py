@@ -108,28 +108,44 @@ class Writer(object):
 class Reader(object):
   # Opens a file
   def __init__(self, filename):
-    self.tensors = {}
-    self.layouts = {}
+    self.filename = filename
     self._file = open(filename, 'rb')
+
+    # Read the header and the table of contents
     self._read_header()
     self._read_table()
-    self._map_tensors()
-    del self._table
 
-  def __enter__(self):
-    return self
+    # Close the file for now
+    # We want to keep the object serializable (for multiprocessing)
+    self._file.close()
+    del self._file
 
-  def __exit__(self, type, value, tb):
-    self.close()
+    # We will lazily map the file into memory
+    self._buffer = None
 
-  def __iter__(self):
-    return iter(self.tensors)
-
+  # Returns the number of stored tensors
   def __len__(self):
-    return len(self.tensors)
+    return len(self._table)
 
-  def __getitem__(self, key):
-    return self.tensors[key]
+  # Returns a (tensor, layout) tuple given the name of a tensor
+  def __getitem__(self, name):
+    # Lazily map the entire file into memory
+    if self._buffer is None:
+      self._buffer = np.memmap(self.filename,
+                               dtype=np.uint8,
+                               mode='r')
+
+    # Look up the requested tensor in the table
+    shape, layout, dtype, offset = self._table[name]
+
+    # Get the tensor from the memory mapped buffer
+    tensor = np.ndarray(shape,
+                        dtype=dtype,
+                        buffer=self._buffer,
+                        offset=offset)
+
+    # Return the tensor and its layout
+    return tensor, layout
 
   # Decodes data type
   def _decode_dtype(self, dtype):
@@ -174,7 +190,7 @@ class Reader(object):
 
   # Reads the table from the file
   def _read_table(self):
-    self._table = []
+    self._table = {}
     self._file.seek(self._table_offset)
     num_tensors = self._read_uint32()
 
@@ -183,31 +199,7 @@ class Reader(object):
       ndims = self._read_uint8()
       shape = tuple(self._read_uint32() for _ in range(ndims))
       layout = self._read_raw_str(ndims)
-      dtype = self._read_raw_str(1)
+      dtype = self._decode_dtype(self._read_raw_str(1))
       offset = self._read_uint64()
 
-      self._table.append((name, shape, layout, dtype, offset))
-
-  # Maps the tensors into memory
-  def _map_tensors(self):
-    # Get the size of the file
-    self._file.seek(0, 2) # seek to the end
-    buffer_size = self._file.tell()
-
-    # Map the entire file into memory
-    buffer = np.memmap(self._file,
-                       dtype=np.uint8,
-                       mode='r',
-                       shape=(buffer_size))
-
-    # Add the tensors
-    for name, shape, layout, dtype, offset in self._table:
-      self.tensors[name] = np.ndarray(shape,
-                                      dtype=self._decode_dtype(dtype),
-                                      buffer=buffer,
-                                      offset=offset)
-      self.layouts[name] = layout
- 
-  # Closes the file
-  def close(self):
-    self._file.close()
+      self._table[name] = (shape, layout, dtype, offset)

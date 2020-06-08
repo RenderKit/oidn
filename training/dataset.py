@@ -224,7 +224,7 @@ class PreprocessedDataset(Dataset):
     if self.num_images == 0:
       return
 
-    # Map the images into memory (read-only)
+    # Create the memory mapping based image reader
     tza_filename = os.path.join(data_dir, 'images.tza')
     self.images = tza.Reader(tza_filename)
 
@@ -242,8 +242,8 @@ class TrainingDataset(PreprocessedDataset):
   def __getitem__(self, index):
     # Get the input and target images
     input_name, target_name = self.samples[index]
-    input_image  = self.images[input_name]
-    target_image = self.images[target_name]
+    input_image,  _ = self.images[input_name]
+    target_image, _ = self.images[target_name]
 
     # Get the size of the image
     height = input_image.shape[0]
@@ -328,8 +328,8 @@ class ValidationDataset(PreprocessedDataset):
 
     for sample_index in range(self.num_images):
       # Get the input image
-      input_name, _ = self.samples[sample_index]
-      input_image = self.images[input_name]
+      input_name,  _ = self.samples[sample_index]
+      input_image, _ = self.images[input_name]
 
       # Get the size of the image
       height = input_image.shape[0]
@@ -362,8 +362,8 @@ class ValidationDataset(PreprocessedDataset):
 
     # Get the input and target images
     input_name, target_name = self.samples[sample_index]
-    input_image  = self.images[input_name]
-    target_image = self.images[target_name]
+    input_image,  _ = self.images[input_name]
+    target_image, _ = self.images[target_name]
 
     # Crop the input and target images
     input_image  = input_image [oy:oy+sy, ox:ox+sx, self.channel_order]
