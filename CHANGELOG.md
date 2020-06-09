@@ -6,6 +6,7 @@ Version History
 -   Fixed error when building as a static library (`OIDN_STATIC_LIB` option)
 -   Fixed compile error for ISPC 1.13+
 -   Fixed minor TBB detection issues
+-   Fixed crash on pre-SSE4 CPUs when using some recent compilers (e.g. GCC 10)
 -   Link C/C++ runtime library dynamically on Windows too by default
 -   Renamed example apps (`oidnDenoise`, `oidnTest`)
 -   Added benchmark app (`oidnBench`)

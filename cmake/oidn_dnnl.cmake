@@ -118,7 +118,7 @@ target_compile_definitions(dnnl
     -DDNNL_ENABLE_CONCURRENT_EXEC
 )
 
-set(DNNL_COMPILE_OPTIONS ${OIDN_ISA_FLAGS_SSE41})
+set(DNNL_COMPILE_OPTIONS "")
 if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
   # Correct 'jnl' macro/jit issue
   list(APPEND DNNL_COMPILE_OPTIONS "/Qlong-double")

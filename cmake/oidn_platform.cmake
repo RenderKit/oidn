@@ -34,7 +34,6 @@ if(MSVC)
     append(OIDN_C_CXX_FLAGS "/wd4244")
   elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
     append(OIDN_C_CXX_FLAGS "/MP")
-    set(OIDN_ISA_FLAGS_SSE41 "-QxSSE4.1")
     # Disable warning: option '/Qstd=c++11' is not valid for C compilations (CMake bug?)
     append(OIDN_C_CXX_FLAGS "/Qwd10370")
     # Disable diagnostic: loop was not vectorized with "simd"
@@ -52,7 +51,6 @@ if(MSVC)
     # disable: disabling optimization; runtime debug checks enabled
     append(OIDN_C_CXX_FLAGS_DEBUG "-Qdiag-disable:10182")
   elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    set(OIDN_ISA_FLAGS_SSE41 "-msse4.1")
     # Disable warning: cannot vectorize some loops with #pragma omp simd
     append(OIDN_C_CXX_FLAGS "-Wno-pass-failed")
     # Disable warning: function is not needed and will not be emitted
@@ -64,17 +62,14 @@ elseif(UNIX OR MINGW)
   append(OIDN_C_CXX_FLAGS "-fvisibility=internal")
   append(OIDN_CXX_FLAGS "-fvisibility-inlines-hidden")
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    set(OIDN_ISA_FLAGS_SSE41 "-msse4.1")
     # Disable warning: cannot vectorize some loops with #pragma omp simd
     append(OIDN_C_CXX_FLAGS "-Wno-pass-failed")
     # Disable warning: function is not needed and will not be emitted
     append(OIDN_C_CXX_FLAGS "-Wno-unneeded-internal-declaration")
   elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    set(OIDN_ISA_FLAGS_SSE41 "-msse4.1")
     # Suppress warning on assumptions made regarding overflow (#146)
     append(OIDN_C_CXX_FLAGS "-Wno-strict-overflow")
   elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-    set(OIDN_ISA_FLAGS_SSE41 "-xSSE4.1")
     # Disable optimizations in debug mode
     append(OIDN_C_CXX_FLAGS_DEBUG "-O0")
     # Workaround for ICC that produces error caused by pragma omp simd collapse(..)
