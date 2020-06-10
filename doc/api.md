@@ -492,7 +492,7 @@ bool               srgb           false whether the color is encoded with the
                                         is linear; the output will be encoded
                                         with the same curve
 
-int                maxMemoryMB     6144 approximate maximum amount of scratch
+int                maxMemoryMB     6000 approximate maximum amount of scratch
                                         memory to use in megabytes (actual
                                         memory usage may be higher); limiting
                                         memory usage may cause slower denoising
@@ -637,7 +637,7 @@ float              hdrScale         NaN HDR color values are interpreted such
                                         of 100 cd/m²; if set to NaN, the scale
                                         is computed automatically (*default*)
 
-int                maxMemoryMB     6144 approximate maximum amount of scratch
+int                maxMemoryMB     6000 approximate maximum amount of scratch
                                         memory to use in megabytes (actual
                                         memory usage may be higher)
 
