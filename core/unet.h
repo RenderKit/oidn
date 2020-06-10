@@ -30,21 +30,22 @@ namespace oidn {
     Image albedo;
     Image normal;
     Image output;
-    Image outputTemp;
+    Image outputTemp; // required for in-place tiled filtering
 
     // Options
     bool hdr = false;
     float hdrScale = std::numeric_limits<float>::quiet_NaN();
     bool srgb = false;
-    int maxMemoryMB = 6000; // approximate maximum memory usage in MBs
+    int maxMemoryMB = 6144; // approximate maximum memory usage in MBs
 
     // Image dimensions
-    int H = 0;          // image height
-    int W = 0;          // image width
-    int tileH = 0;      // tile height
-    int tileW = 0;      // tile width
-    int tileCountH = 1; // number of tiles in H dimension
-    int tileCountW = 1; // number of tiles in W dimension
+    int H = 0;            // image height
+    int W = 0;            // image width
+    int tileH = 0;        // tile height
+    int tileW = 0;        // tile width
+    int tileCountH = 1;   // number of tiles in H dimension
+    int tileCountW = 1;   // number of tiles in W dimension
+    bool inplace = false; // indicates whether input and output buffers overlap
 
     // Network
     std::shared_ptr<Executable> net;

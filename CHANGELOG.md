@@ -3,6 +3,8 @@ Version History
 
 ### Changes in v1.2.1:
 
+-   Fixed tiling artifacts when in-place denoising (using one of the input
+    images as the output) high-resolution (> 1080p) images
 -   Fixed error when building as a static library (`OIDN_STATIC_LIB` option)
 -   Fixed compile error for ISPC 1.13+
 -   Fixed minor TBB detection issues
