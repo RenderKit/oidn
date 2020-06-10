@@ -21,9 +21,10 @@ namespace oidn {
     static constexpr int receptiveField  = 222; // receptive field in pixels
     static constexpr int overlap         = round_up(receptiveField / 2, alignment); // required spatial overlap between tiles in pixels
 
-    static constexpr int estimatedBytesBase       = 16*1024*1024; // estimated base memory usage
-    static constexpr int estimatedBytesPerPixel8  = 889;          // estimated memory usage per pixel for K=8
-    static constexpr int estimatedBytesPerPixel16 = 2185;         // estimated memory usage per pixel for K=16
+    // Estimated memory usage
+    static constexpr int estimatedBytesBase       = 16*1024*1024; // rough estimate
+    static constexpr int estimatedBytesPerPixel8  = 889;          // K=8, accurate
+    static constexpr int estimatedBytesPerPixel16 = 1328;         // K=16, rough due to Winograd scratchpad
 
     // Images
     Image color;
