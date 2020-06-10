@@ -49,14 +49,6 @@ file(GLOB_RECURSE DNNL_SOURCES
   mkl-dnn/src/cpu/jit_avx2_conv_kernel_f32.cpp
   mkl-dnn/src/cpu/jit_avx2_convolution.hpp
   mkl-dnn/src/cpu/jit_avx2_convolution.cpp
-  mkl-dnn/src/cpu/jit_avx512_common_conv_kernel.hpp
-  mkl-dnn/src/cpu/jit_avx512_common_conv_kernel.cpp
-  mkl-dnn/src/cpu/jit_avx512_common_convolution.hpp
-  mkl-dnn/src/cpu/jit_avx512_common_convolution.cpp
-  mkl-dnn/src/cpu/jit_avx512_common_convolution_winograd.hpp
-  mkl-dnn/src/cpu/jit_avx512_common_convolution_winograd.cpp
-  mkl-dnn/src/cpu/jit_avx512_common_conv_winograd_kernel_f32.hpp
-  mkl-dnn/src/cpu/jit_avx512_common_conv_winograd_kernel_f32.cpp
   mkl-dnn/src/cpu/jit_avx512_core_f32_wino_conv_*.hpp
   mkl-dnn/src/cpu/jit_avx512_core_f32_wino_conv_*.cpp
   mkl-dnn/src/cpu/jit_generator.hpp

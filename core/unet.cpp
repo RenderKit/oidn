@@ -171,7 +171,7 @@ namespace oidn {
     const int minTileSize = 3*overlap;
   
     // Estimate the required amount of memory
-    int estimatedBytesPerPixel = mayiuse(avx512_common) ? estimatedBytesPerPixel16 : estimatedBytesPerPixel8;
+    int estimatedBytesPerPixel = mayiuse(avx512_core) ? estimatedBytesPerPixel16 : estimatedBytesPerPixel8;
     if (inplace)
       estimatedBytesPerPixel += getFormatSize(output.format); // outputTemp
 

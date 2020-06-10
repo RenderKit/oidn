@@ -203,10 +203,9 @@ namespace oidn {
     std::cout << "  Targets :";
     if (mayiuse(sse41))       std::cout << " SSE4.1";
     if (mayiuse(avx2))        std::cout << " AVX2";
-    if (mayiuse(avx512_mic))  std::cout << " AVX512KNL";
     if (mayiuse(avx512_core)) std::cout << " AVX512SKX";
     std::cout << " (supported)" << std::endl;
-    std::cout << "            SSE4.1 AVX2 AVX512KNL AVX512SKX (compile time enabled)" << std::endl;
+    std::cout << "            SSE4.1 AVX2 AVX512SKX (compile time enabled)" << std::endl;
 
     std::cout << "  Tasking :";
     std::cout << " TBB" << TBB_VERSION_MAJOR << "." << TBB_VERSION_MINOR;

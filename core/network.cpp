@@ -13,7 +13,7 @@ namespace oidn {
       sm(eng),
       weightsMap(weightsMap)
   {
-    if (mayiuse(avx512_common))
+    if (mayiuse(avx512_core))
     {
       K = 16;
       nChwKc = memory::format_tag::nChw16c;

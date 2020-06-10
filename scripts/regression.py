@@ -31,7 +31,7 @@ sde = os.path.join(sde_dir, 'sde') if sde_dir else 'sde'
 if not cfg.arch:
   cfg.arch = ['native']
   if shutil.which(sde):
-    cfg.arch += ['pnr', 'hsw', 'skx'] # Penryn, Haswell, Skylake-X
+    cfg.arch += ['pnr', 'hsw', 'skx', 'knl'] # Penryn, Haswell, Skylake-X, Knights Landing
 
 # Runs tests for the specified model
 def test(filter, features, dataset):
