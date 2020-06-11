@@ -26,7 +26,7 @@ stages:
 
 .package:
   stage:  package
-  script: scripts/release.py package
+  script: scripts/build.py package
   only:
     - schedules
     - web
@@ -65,7 +65,7 @@ build-centos7-icc:
   extends:
     - .build-linux
     - .centos7
-  script: scripts/release.py build --compiler icc
+  script: scripts/build.py --compiler icc
 
 package-linux:
   extends:
@@ -84,25 +84,25 @@ build-ubuntu18.04-gcc:
   extends:
     - .build-linux
     - .ubuntu18.04
-  script: scripts/release.py build --compiler gcc
+  script: scripts/build.py --compiler gcc
 
 build-ubuntu18.04-gcc-debug:
   extends:
     - .build-linux
     - .ubuntu18.04
-  script: scripts/release.py build --compiler gcc --config Debug
+  script: scripts/build.py --compiler gcc --config Debug
 
 build-ubuntu18.04-gcc-static:
   extends:
     - .build-linux
     - .ubuntu18.04
-  script: scripts/release.py build --compiler gcc -D OIDN_STATIC_LIB=ON
+  script: scripts/build.py --compiler gcc -D OIDN_STATIC_LIB=ON
 
 build-ubuntu18.04-clang:
   extends:
     - .build-linux
     - .ubuntu18.04
-  script: scripts/release.py build --compiler clang
+  script: scripts/build.py --compiler clang
 
 build-ubuntu18.04-kw-gcc:
   extends:
@@ -148,15 +148,15 @@ build-ubuntu20.04-gcc:
 
 build-macos-icc:
   extends: .build-macos
-  script:  scripts/release.py build --compiler icc
+  script:  scripts/build.py --compiler icc
 
 build-macos-clang:
   extends: .build-macos
-  script:  scripts/release.py build --compiler clang
+  script:  scripts/build.py --compiler clang
 
 build-macos-clang-static:
   extends: .build-macos
-  script:  scripts/release.py build --compiler clang -D OIDN_STATIC_LIB=ON
+  script:  scripts/build.py --compiler clang -D OIDN_STATIC_LIB=ON
 
 package-macos:
   extends: .package-macos
@@ -192,31 +192,31 @@ build-windows-icc:
   tags:
     - msvc15
     - icc19
-  script:  python scripts/release.py build --compiler msvc15-icc19
+  script:  python scripts/build.py --compiler msvc15-icc19
 
 build-windows-msvc15:
   extends: .build-windows
   tags:
     - msvc15
-  script:  python scripts/release.py build --compiler msvc15
+  script:  python scripts/build.py --compiler msvc15
 
 build-windows-msvc15-debug:
   extends: .build-windows
   tags:
     - msvc15
-  script:  python scripts/release.py build --compiler msvc15 --config Debug
+  script:  python scripts/build.py --compiler msvc15 --config Debug
 
 build-windows-msvc15-static:
   extends: .build-windows
   tags:
     - msvc15
-  script:  python scripts/release.py build --compiler msvc15 -D OIDN_STATIC_LIB=ON
+  script:  python scripts/build.py --compiler msvc15 -D OIDN_STATIC_LIB=ON
 
 build-windows-msvc16:
   extends: .build-windows
   tags:
     - msvc16
-  script:  python scripts/release.py build --compiler msvc16
+  script:  python scripts/build.py --compiler msvc16
 
 package-windows:
   extends: .package-windows

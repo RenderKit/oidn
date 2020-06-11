@@ -77,19 +77,23 @@ compilers = {'windows' : ['msvc15', 'msvc15-icc18', 'msvc15-icc19', 'msvc15-icc2
              'macos'   : ['clang', 'icc']}
 
 parser = argparse.ArgumentParser()
-parser.usage = '\rIntel(R) Open Image Denoise - Release\n' + parser.format_usage()
-parser.add_argument('stage', type=str, nargs='*', choices=['build', 'package'])
+parser.usage = '\rIntel(R) Open Image Denoise - Build\n' + parser.format_usage()
+parser.add_argument('stage', type=str, nargs='*', choices=['build', 'install', 'package'], default='build')
+parser.add_argument('--build_dir', '-B', type=str, help='build directory')
 parser.add_argument('--compiler', type=str, choices=compilers[OS], default=compilers[OS][0])
 parser.add_argument('--config', type=str, choices=['Debug', 'Release', 'RelWithDebInfo'], default='Release')
 parser.add_argument('--wrapper', type=str, help='wrap build command')
 parser.add_argument('-D', dest='cmake_vars', type=str, action='append', help='create or update a CMake cache entry')
 cfg = parser.parse_args()
 
-# Get the directorie
+# Get the directories
 deps_dir = os.path.join(root_dir, 'deps')
 if not os.path.isdir(deps_dir):
   os.makedirs(deps_dir)
-build_dir = os.path.join(root_dir, 'build_' + cfg.config.lower())
+if cfg.build_dir:
+  build_dir = os.path.join(root_dir, cfg.build_dir)
+else:
+  build_dir = os.path.join(root_dir, 'build_' + cfg.config.lower())
 
 # Build
 if 'build' in cfg.stage:
@@ -133,7 +137,7 @@ if 'build' in cfg.stage:
     for compiler in cfg.compiler.split('-'):
       if compiler.startswith('msvc'):
         config_cmd += {'msvc15' : ' -G "Visual Studio 15 2017 Win64"',
-                        'msvc16' : ' -G "Visual Studio 16 2019" -A x64'}[compiler]
+                       'msvc16' : ' -G "Visual Studio 16 2019" -A x64'}[compiler]
       elif compiler.startswith('icc'):
         icc_version = compiler[3:]
         config_cmd += f' -T "Intel C++ Compiler {icc_version}.0"'
@@ -168,7 +172,21 @@ if 'build' in cfg.stage:
   if cfg.wrapper:
     build_cmd = cfg.wrapper + ' ' + build_cmd
   run(build_cmd)
-  
+
+# Install
+if 'install' in cfg.stage:
+  os.chdir(build_dir)
+
+  # Configure
+  install_dir = os.path.join(build_dir, 'install')
+  run(f'cmake -L -D OIDN_ZIP_MODE=ON -D CMAKE_INSTALL_PREFIX={install_dir} ..')
+
+  # Build
+  if OS == 'windows':
+    run(f'cmake --build . --config {cfg.config} --target INSTALL')
+  else:
+    run('cmake --build . --target install -- -j VERBOSE=1')
+
 # Package
 if 'package' in cfg.stage:
   os.chdir(build_dir)
