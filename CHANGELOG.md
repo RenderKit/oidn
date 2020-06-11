@@ -5,6 +5,8 @@ Version History
 
 -   Fixed tiling artifacts when in-place denoising (using one of the input
     images as the output) high-resolution (> 1080p) images
+-   Fixed ghosting/color bleeding artifacts in black regions when using
+    albedo/normal buffers
 -   Fixed error when building as a static library (`OIDN_STATIC_LIB` option)
 -   Fixed compile error for ISPC 1.13 and later
 -   Fixed minor TBB detection issues
