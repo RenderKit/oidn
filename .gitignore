@@ -71,7 +71,8 @@ Thumbs.db
 
 # Build directories
 build
-build_*
+build_release
+build_debug
 
 # Dependencies
 deps

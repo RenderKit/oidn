@@ -27,10 +27,13 @@ def main():
   print('Epoch:', epoch)
 
   # Save the weights to a TZA file
-  output_filename = os.path.join(get_result_dir(cfg), cfg.result)
-  if cfg.checkpoint:
-    output_filename += '_%d' % epoch
-  output_filename += '.tza'
+  if cfg.output:
+    output_filename = cfg.output
+  else:
+    output_filename = os.path.join(get_result_dir(cfg), cfg.result)
+    if cfg.checkpoint:
+      output_filename += '_%d' % epoch
+    output_filename += '.tza'
   print('Output:', output_filename)
   print()
 
