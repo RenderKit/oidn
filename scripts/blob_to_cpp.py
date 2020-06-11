@@ -8,6 +8,10 @@ import sys
 import argparse
 from array import array
 
+def is_git_lfs_pointer(data):
+  HEADER = array('B', b'version https://git-lfs.github.com/spec/')
+  return data[:len(HEADER)] == HEADER
+
 def write_prologue(out_file, in_name):
   out_file.write('// Generated from: %s\n\n' % in_name)
 
@@ -35,6 +39,11 @@ def generate(in_path, cpp_path, hpp_path, namespace):
   with open(in_path, 'rb') as in_file:
     in_data = array('B', in_file.read())
   in_size = len(in_data)
+
+  # Check whether the file is a Git LFS pointer
+  if is_git_lfs_pointer(in_data):
+    print('Error: The file "' + in_path + '" is a Git LFS pointer. Please install Git LFS and clone the repository again.')
+    exit(1)
 
   # Write the source file
   with open(cpp_path, 'w') as cpp_file:
