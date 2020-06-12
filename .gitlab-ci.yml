@@ -3,6 +3,7 @@
 
 stages:
   - build
+  - test
   - package
   - scan_source
 
@@ -24,8 +25,22 @@ stages:
     when:      always
     expire_in: 1d
 
+.test:
+  stage: test
+  script:
+      - scripts/build.py install
+      - scripts/test.py
+  only:
+    - pushes
+    - schedules
+    - web
+  artifacts:
+    paths:
+      - test.log
+    name: "$CI_JOB_NAME"
+
 .package:
-  stage:  package
+  stage: package
   script: scripts/build.py package
   only:
     - schedules
@@ -51,6 +66,11 @@ stages:
     - .build
     - .base-linux
 
+.test-linux:
+  extends:
+    - .test
+    - .base-linux
+
 .package-linux:
   extends:
     - .package
@@ -66,6 +86,14 @@ build-centos7-icc:
     - .build-linux
     - .centos7
   script: scripts/build.py --compiler icc
+
+test-centos7-icc:
+  extends:
+    - .test-linux
+    - .centos7
+  needs:
+    - job: build-centos7-icc
+      artifacts: true
 
 package-linux:
   extends:
@@ -110,6 +138,14 @@ build-ubuntu18.04-kw-gcc:
     - .ubuntu18.04
   script: scripts/klocwork_build.sh
 
+test-ubuntu18.04-gcc-debug:
+  extends:
+    - .test-linux
+    - .ubuntu18.04
+  needs:
+    - job: build-ubuntu18.04-gcc-debug
+      artifacts: true
+
 ## -----------------------------------------------------------------------------
 
 .ubuntu20.04:
@@ -125,6 +161,14 @@ build-ubuntu20.04-gcc:
     - cmake .. -D OIDN_APPS_OPENIMAGEIO=ON
     - make -j VERBOSE=1
 
+test-ubuntu20.04-gcc:
+  extends:
+    - .test-linux
+    - .ubuntu20.04
+  needs:
+    - job: build-ubuntu20.04-gcc
+      artifacts: true
+
 ## -----------------------------------------------------------------------------
 ## macOS
 ## -----------------------------------------------------------------------------
@@ -137,6 +181,11 @@ build-ubuntu20.04-gcc:
 .build-macos:
   extends:
     - .build
+    - .base-macos
+
+.test-macos:
+  extends:
+    - .test
     - .base-macos
 
 .package-macos:
@@ -158,6 +207,18 @@ build-macos-clang-static:
   extends: .build-macos
   script:  scripts/build.py --compiler clang -D OIDN_STATIC_LIB=ON
 
+test-macos-icc:
+  extends: .test-macos
+  needs:
+    - job: build-macos-icc
+      artifacts: true
+
+test-macos-clang:
+  extends: .test-macos
+  needs:
+    - job: build-macos-clang
+      artifacts: true
+
 package-macos:
   extends: .package-macos
   needs: 
@@ -178,6 +239,11 @@ package-macos:
 .build-windows:
   extends:
     - .build
+    - .base-windows
+
+.test-windows:
+  extends:
+    - .test
     - .base-windows
 
 .package-windows:
@@ -217,6 +283,23 @@ build-windows-msvc16:
   tags:
     - msvc16
   script:  python scripts/build.py --compiler msvc16
+
+test-windows-icc:
+  extends: .test-windows
+  tags:
+    - msvc15
+    - icc19
+  needs:
+    - job: build-windows-icc
+      artifacts: true
+
+test-windows-msvc16:
+  extends: .test-windows
+  tags:
+    - msvc16
+  needs:
+    - job: build-windows-msvc16
+      artifacts: true
 
 package-windows:
   extends: .package-windows
