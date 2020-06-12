@@ -32,9 +32,6 @@ if cfg.data_dir is None:
 if cfg.baseline_dir is None:
   cfg.baseline_dir = os.path.join(training_dir, 'infer')
 
-print(cfg.data_dir)
-print(cfg.baseline_dir)
-
 if cfg.command == 'run':
   # Detect the binary directory
   if cfg.build_dir is None:
@@ -49,7 +46,6 @@ if cfg.command == 'run':
   # Detect whether Intel(R) Software Development Emulator (SDE) is installed
   # See: https://software.intel.com/en-us/articles/intel-software-development-emulator
   sde_dir = os.environ.get('OIDN_SDE_DIR_' + OS.upper())
-  print(sde_dir)
   sde = 'sde' if sde_dir is None else os.path.join(sde_dir, 'sde')
   if cfg.arch is None:
     cfg.arch = ['native']
