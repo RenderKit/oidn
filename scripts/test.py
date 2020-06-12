@@ -50,7 +50,7 @@ if cfg.command == 'run':
   sde = 'sde' if OS == 'windows' else 'sde64'
   sde_dir = os.environ.get('OIDN_SDE_DIR_' + OS.upper())
   if sde_dir is not None:
-    sde = os.path.join(sde_dir, 'sde')
+    sde = os.path.join(sde_dir, sde)
   if cfg.arch is None:
     cfg.arch = ['native']
     if shutil.which(sde):
