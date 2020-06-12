@@ -18,7 +18,7 @@ parser.add_argument('command', type=str, nargs='?', choices=['generate', 'run'],
 parser.add_argument('--filter', '-f', type=str, nargs='*', choices=['RT', 'RTLightmap'], default=None, help='filters to test')
 parser.add_argument('--build_dir', '-B', type=str, help='build directory')
 parser.add_argument('--data_dir', '-D', type=str, help='directory of datasets (e.g. training, validation, test)')
-parser.add_argument('--results_dir', '-R', type=str, default=os.path.join(root_dir, 'training', 'results'), help='directory of training results')
+parser.add_argument('--results_dir', '-R', type=str, help='directory of training results')
 parser.add_argument('--baseline_dir', '-G', type=str, help='directory of generated baseline images')
 parser.add_argument('--arch', '-a', type=str, nargs='*', choices=['native', 'pnr', 'hsw', 'skx', 'knl'], help='CPU architectures to test')
 parser.add_argument('--log', '-l', type=str, default=os.path.join(root_dir, 'test.log'), help='output log file')
@@ -29,6 +29,8 @@ if training_dir is None:
   training_dir = os.path.join(root_dir, 'training')
 if cfg.data_dir is None:
   cfg.data_dir = os.path.join(training_dir, 'data')
+if cfg.results_dir is None:
+  cfg.results_dir = os.path.join(training_dir, 'results')
 if cfg.baseline_dir is None:
   cfg.baseline_dir = os.path.join(training_dir, 'infer')
 
@@ -45,8 +47,10 @@ if cfg.command == 'run':
 
   # Detect whether Intel(R) Software Development Emulator (SDE) is installed
   # See: https://software.intel.com/en-us/articles/intel-software-development-emulator
+  sde = 'sde' if OS == 'windows' else 'sde64'
   sde_dir = os.environ.get('OIDN_SDE_DIR_' + OS.upper())
-  sde = 'sde' if sde_dir is None else os.path.join(sde_dir, 'sde')
+  if sde_dir is not None:
+    sde = os.path.join(sde_dir, 'sde')
   if cfg.arch is None:
     cfg.arch = ['native']
     if shutil.which(sde):
