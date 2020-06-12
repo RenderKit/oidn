@@ -46,7 +46,7 @@ if cfg.command == 'run':
   # Detect whether Intel(R) Software Development Emulator (SDE) is installed
   # See: https://software.intel.com/en-us/articles/intel-software-development-emulator
   sde_dir = os.environ.get('OIDN_SDE_DIR_' + OS.upper())
-  sde = os.path.join(sde_dir, 'sde') if sde_dir else 'sde'
+  sde = 'sde' if sde_dir is None else os.path.join(sde_dir, 'sde')
   if cfg.arch is None:
     cfg.arch = ['native']
     if shutil.which(sde):
