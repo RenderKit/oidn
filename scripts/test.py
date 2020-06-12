@@ -17,17 +17,20 @@ parser.usage = '\rIntel(R) Open Image Denoise - Test\n' + parser.format_usage()
 parser.add_argument('command', type=str, nargs='?', choices=['generate', 'run'], default='run')
 parser.add_argument('--filter', '-f', type=str, nargs='*', choices=['RT', 'RTLightmap'], default=None, help='filters to test')
 parser.add_argument('--build_dir', '-B', type=str, help='build directory')
-parser.add_argument('--data_dir', '-D', type=str, default=os.path.join(root_dir, 'training', 'data'), help='directory of datasets (e.g. training, validation, test)')
+parser.add_argument('--data_dir', '-D', type=str, help='directory of datasets (e.g. training, validation, test)')
 parser.add_argument('--results_dir', '-R', type=str, default=os.path.join(root_dir, 'training', 'results'), help='directory of training results')
 parser.add_argument('--baseline_dir', '-G', type=str, help='directory of generated baseline images')
 parser.add_argument('--arch', '-a', type=str, nargs='*', choices=['native', 'pnr', 'hsw', 'skx', 'knl'], help='CPU architectures to test')
 parser.add_argument('--log', '-l', type=str, default=os.path.join(root_dir, 'test.log'), help='output log file')
 cfg = parser.parse_args()
 
+training_dir = os.environ.get('OIDN_TRAINING_DIR_' + OS.upper())
+if training_dir is None:
+  training_dir = os.path.join(root_dir, 'training')
+if cfg.data_dir is None:
+  cfg.data_dir = os.path.join(training_dir, 'data')
 if cfg.baseline_dir is None:
-  cfg.baseline_dir = os.environ.get('OIDN_BASELINE_DIR_' + OS.upper())
-  if cfg.baseline_dir is None:
-    cfg.baseline_dir = os.path.join(root_dir, 'training', 'infer')
+  cfg.baseline_dir = os.path.join(training_dir, 'infer')
 
 if cfg.command == 'run':
   # Detect the binary directory
