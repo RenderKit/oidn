@@ -86,10 +86,10 @@ parser.add_argument('--wrapper', type=str, help='wrap build command')
 parser.add_argument('-D', dest='cmake_vars', type=str, action='append', help='create or update a CMake cache entry')
 cfg = parser.parse_args()
 
-if cfg.build_dir:
-  build_dir = os.path.abspath(cfg.build_dir)
-else:
+if cfg.build_dir is None:
   build_dir = os.path.join(root_dir, 'build')
+else:
+  build_dir = os.path.abspath(cfg.build_dir)
 
 # Build
 if cfg.target == 'all' or not os.path.isdir(build_dir):

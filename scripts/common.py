@@ -4,6 +4,7 @@
 import os
 import platform
 
+# Runs a command and checks the return value for success
 def run(command):
   status = os.system(command)
   if status != 0:
