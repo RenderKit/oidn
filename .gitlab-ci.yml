@@ -35,6 +35,7 @@ stages:
     - schedules
     - web
   artifacts:
+    when: always
     paths:
       - test.log
     name: "$CI_JOB_NAME"
