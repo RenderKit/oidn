@@ -32,8 +32,8 @@ stages:
     - web
   artifacts:
     paths:
-      - build_release/*.tar.gz
-      - build_release/*.zip
+      - build/*.tar.gz
+      - build/*.zip
     name:      "$CI_JOB_NAME"
     expire_in: 1d
 

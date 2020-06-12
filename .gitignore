@@ -28,6 +28,8 @@ Thumbs.db
 *.res
 /.qmake.cache
 /.qmake.stash
+.bash_history
+.python_history
 
 # Qt Creator generated files
 *.txt.user*
@@ -70,12 +72,10 @@ Thumbs.db
 *.exe
 
 # Build directories
-build
-build_release
-build_debug
+/build*
 
 # Dependencies
-deps
+/deps
 
 # Generated files
 include/OpenImageDenoise/version.h

@@ -78,7 +78,7 @@ compilers = {'windows' : ['msvc15', 'msvc15-icc18', 'msvc15-icc19', 'msvc15-icc2
 
 parser = argparse.ArgumentParser()
 parser.usage = '\rIntel(R) Open Image Denoise - Build\n' + parser.format_usage()
-parser.add_argument('stage', type=str, nargs='*', choices=['build', 'install', 'package'], default='build')
+parser.add_argument('target', type=str, nargs='?', choices=['all', 'install', 'package'], default='all')
 parser.add_argument('--build_dir', '-B', type=str, help='build directory')
 parser.add_argument('--compiler', type=str, choices=compilers[OS], default=compilers[OS][0])
 parser.add_argument('--config', type=str, choices=['Debug', 'Release', 'RelWithDebInfo'], default='Release')
@@ -86,17 +86,18 @@ parser.add_argument('--wrapper', type=str, help='wrap build command')
 parser.add_argument('-D', dest='cmake_vars', type=str, action='append', help='create or update a CMake cache entry')
 cfg = parser.parse_args()
 
-# Get the directories
-deps_dir = os.path.join(root_dir, 'deps')
-if not os.path.isdir(deps_dir):
-  os.makedirs(deps_dir)
 if cfg.build_dir:
-  build_dir = os.path.join(root_dir, cfg.build_dir)
+  build_dir = os.path.abspath(cfg.build_dir)
 else:
-  build_dir = os.path.join(root_dir, 'build_' + cfg.config.lower())
+  build_dir = os.path.join(root_dir, 'build')
 
 # Build
-if 'build' in cfg.stage:
+if cfg.target == 'all' or not os.path.isdir(build_dir):
+  # Set up the dependencies
+  deps_dir = os.path.join(root_dir, 'deps')
+  if not os.path.isdir(deps_dir):
+    os.makedirs(deps_dir)
+
   # Set up ISPC
   ispc_release = f'ispc-v{ISPC_VERSION}-'
   ispc_release += {'windows' : 'windows', 'linux' : 'linux', 'macos' : 'macOS'}[OS]
@@ -174,7 +175,7 @@ if 'build' in cfg.stage:
   run(build_cmd)
 
 # Install
-if 'install' in cfg.stage:
+if cfg.target == 'install':
   os.chdir(build_dir)
 
   # Configure
@@ -188,7 +189,7 @@ if 'install' in cfg.stage:
     run('cmake --build . --target install -- -j VERBOSE=1')
 
 # Package
-if 'package' in cfg.stage:
+if cfg.target == 'package':
   os.chdir(build_dir)
 
   # Configure
