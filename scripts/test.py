@@ -14,7 +14,7 @@ from common import *
 # Parse the command-line arguments
 parser = argparse.ArgumentParser(description='Runs all tests, including comparing images produced by the library with generated baseline images.')
 parser.usage = '\rIntel(R) Open Image Denoise - Test\n' + parser.format_usage()
-parser.add_argument('command', type=str, nargs='*', choices=['generate', 'run'], default='run')
+parser.add_argument('command', type=str, nargs='?', choices=['generate', 'run'], default='run')
 parser.add_argument('--filter', '-f', type=str, nargs='*', choices=['RT', 'RTLightmap'], default=None, help='filters to test')
 parser.add_argument('--build_dir', '-B', type=str, help='build directory')
 parser.add_argument('--data_dir', '-D', type=str, default=os.path.join(root_dir, 'training', 'data'), help='directory of datasets (e.g. training, validation, test)')
@@ -25,7 +25,7 @@ parser.add_argument('--log', '-l', type=str, default=os.path.join(root_dir, 'tes
 cfg = parser.parse_args()
 
 # Setup
-if 'run' in cfg.command:
+if cfg.command == 'run':
   # Detect the binary directory
   if cfg.build_dir is None:
     build_dir = os.path.join(root_dir, 'build')
@@ -47,7 +47,7 @@ if 'run' in cfg.command:
 
 # Runs main tests
 def test():
-  if 'run' in cfg.command:
+  if cfg.command == 'run':
     # Iterate over architectures
     for arch in cfg.arch:
       # Run test
@@ -71,7 +71,7 @@ def test_regression(filter, features, dataset):
 
   dataset_dir = os.path.join(cfg.data_dir, dataset)
 
-  if 'generate' in cfg.command:
+  if cfg.command == 'generate':
     # Generate baseline images
     gen_name = f'{filter}.{features_str}'
     print('Generate:', gen_name, '...')
@@ -91,8 +91,8 @@ def test_regression(filter, features, dataset):
     run(f'echo "{infer_cmd}" >> {cfg.log}')
     infer_cmd += f' >> {cfg.log}'
     run(infer_cmd)
-
-  if 'run' in cfg.command:
+    
+  elif cfg.command == 'run':
     main_feature = features[0]
 
     # Gather the list of images
@@ -165,5 +165,5 @@ if not cfg.filter or 'RTLightmap' in cfg.filter:
   test_regression('RTLightmap', ['hdr'], dataset)
 
 # Done
-if 'run' in cfg.command:
+if cfg.command == 'run':
   print('Success: all tests passed')
