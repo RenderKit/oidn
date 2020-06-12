@@ -19,20 +19,24 @@ parser.add_argument('--filter', '-f', type=str, nargs='*', choices=['RT', 'RTLig
 parser.add_argument('--build_dir', '-B', type=str, help='build directory')
 parser.add_argument('--data_dir', '-D', type=str, default=os.path.join(root_dir, 'training', 'data'), help='directory of datasets (e.g. training, validation, test)')
 parser.add_argument('--results_dir', '-R', type=str, default=os.path.join(root_dir, 'training', 'results'), help='directory of training results')
-parser.add_argument('--baseline_dir', '-G', type=str, default=os.path.join(root_dir, 'training', 'infer'), help='directory of generated baseline images')
+parser.add_argument('--baseline_dir', '-G', type=str, help='directory of generated baseline images')
 parser.add_argument('--arch', '-a', type=str, nargs='*', choices=['native', 'pnr', 'hsw', 'skx', 'knl'], help='CPU architectures to test')
 parser.add_argument('--log', '-l', type=str, default=os.path.join(root_dir, 'test.log'), help='output log file')
 cfg = parser.parse_args()
 
-# Setup
+if cfg.baseline_dir is None:
+  cfg.baseline_dir = os.environ.get('OIDN_BASELINE_DIR_' + OS.upper())
+  if cfg.baseline_dir is None:
+    cfg.baseline_dir = os.path.join(root_dir, 'training', 'infer')
+
 if cfg.command == 'run':
   # Detect the binary directory
   if cfg.build_dir is None:
-    build_dir = os.path.join(root_dir, 'build')
+    cfg.build_dir = os.path.join(root_dir, 'build')
   else:
-    build_dir = os.path.abspath(cfg.build_dir)
+    cfg.build_dir = os.path.abspath(cfg.build_dir)
 
-  bin_dir = os.path.join(build_dir, 'install', 'bin')
+  bin_dir = os.path.join(cfg.build_dir, 'install', 'bin')
   if not os.path.isdir(bin_dir):
     bin_dir = os.path.join(root_dir, 'build')
 
@@ -40,7 +44,7 @@ if cfg.command == 'run':
   # See: https://software.intel.com/en-us/articles/intel-software-development-emulator
   sde_dir = os.environ.get('OIDN_SDE_DIR_' + OS.upper())
   sde = os.path.join(sde_dir, 'sde') if sde_dir else 'sde'
-  if not cfg.arch:
+  if cfg.arch is None:
     cfg.arch = ['native']
     if shutil.which(sde):
       cfg.arch += ['pnr', 'hsw', 'skx', 'knl'] # Penryn, Haswell, Skylake-X, Knights Landing
@@ -91,7 +95,7 @@ def test_regression(filter, features, dataset):
     run(f'echo "{infer_cmd}" >> {cfg.log}')
     infer_cmd += f' >> {cfg.log}'
     run(infer_cmd)
-    
+
   elif cfg.command == 'run':
     main_feature = features[0]
 

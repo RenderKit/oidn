@@ -16,5 +16,5 @@ OS = {'Windows' : 'windows', 'Linux' : 'linux', 'Darwin' : 'macos'}[platform.sys
 
 # Get the root directory
 root_dir = os.environ.get('OIDN_ROOT_DIR')
-if not root_dir:
+if root_dir is None:
   root_dir = os.getcwd()
