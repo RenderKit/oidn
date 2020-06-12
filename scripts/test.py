@@ -47,7 +47,7 @@ if cfg.command == 'run':
 
   # Detect whether Intel(R) Software Development Emulator (SDE) is installed
   # See: https://software.intel.com/en-us/articles/intel-software-development-emulator
-  sde = 'sde' if OS == 'windows' else 'sde64'
+  sde = 'sde.exe' if OS == 'windows' else 'sde64'
   sde_dir = os.environ.get('OIDN_SDE_DIR_' + OS.upper())
   if sde_dir is not None:
     sde = os.path.join(sde_dir, sde)
