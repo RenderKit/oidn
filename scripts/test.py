@@ -32,8 +32,8 @@ if cfg.data_dir is None:
 if cfg.baseline_dir is None:
   cfg.baseline_dir = os.path.join(training_dir, 'infer')
 
-print(data_dir)
-print(baseline_dir)
+print(cfg.data_dir)
+print(cfg.baseline_dir)
 
 if cfg.command == 'run':
   # Detect the binary directory
