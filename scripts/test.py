@@ -84,17 +84,11 @@ def test():
       run_test(os.path.join(bin_dir, 'oidnTest'), arch)
 
 # Runs regression tests for the specified filter
-def test_regression(filter, features, dataset):
-  # Get the result name
-  result = filter.lower()
-  for f in features:
-    result += '_' + f
-  features_str = result.split('_', 1)[1]
-
+def test_regression(filter, feature_sets, dataset):
   dataset_dir = os.path.join(cfg.data_dir, dataset)
 
+  # Convert the input images to PFM
   if cfg.command == 'baseline':
-    # Convert the input images to PFM
     image_filenames = sorted(glob(os.path.join(dataset_dir, '**', '*.exr'), recursive=True))
     for input_filename in image_filenames:
       input_name = os.path.relpath(input_filename, dataset_dir).rsplit('.', 1)[0]
@@ -105,74 +99,87 @@ def test_regression(filter, features, dataset):
       convert_cmd += f' "{input_filename}" "{output_filename}"'
       run_test(convert_cmd)
 
-    # Generate the baseline images
-    print_test(f'{filter}.{features_str}', 'Infer')
-    infer_cmd = os.path.join(root_dir, 'training', 'infer.py')
-    infer_cmd += f' -D "{cfg.data_dir}" -R "{cfg.results_dir}" -O "{cfg.baseline_dir}" -i {dataset} -r {result} -F pfm -d cpu'
-    run_test(infer_cmd)
+  # Iterate over the feature sets
+  for features in feature_sets:
+    # Get the result name
+    result = filter.lower()
+    for f in features:
+      result += '_' + f
+    features_str = result.split('_', 1)[1]
 
-  elif cfg.command == 'run':
-    main_feature = features[0]
+    if cfg.command == 'baseline':
+      # Generate the baseline images
+      print_test(f'{filter}.{features_str}', 'Infer')
+      infer_cmd = os.path.join(root_dir, 'training', 'infer.py')
+      infer_cmd += f' -D "{cfg.data_dir}" -R "{cfg.results_dir}" -O "{cfg.baseline_dir}" -i {dataset} -r {result} -F pfm -d cpu'
+      run_test(infer_cmd)
 
-    # Gather the list of images
-    image_filenames = sorted(glob(os.path.join(dataset_dir, '**', f'*.{main_feature}.pfm'), recursive=True))
-    if not image_filenames:
-      print('Error: baseline input images missing (run with "baseline" first)')
-      exit(1)
-    image_names = [os.path.relpath(filename, dataset_dir).rsplit('.', 3)[0] for filename in image_filenames]
+    elif cfg.command == 'run':
+      main_feature = features[0]
 
-    # Iterate over architectures
-    for arch in cfg.arch:
-      # Iterate over images
-      for image_name in image_names:
-        # Iterate over in-place mode
-        for inplace in [False, True]:
-          # Iterate over maximum memory usages (tiling)
-          for maxmem in [None, 512]:
-            # Run test
-            test_name = f'{filter}.{features_str}.{arch}.{image_name}'
-            if inplace:
-              test_name += '.inplace'
-            if maxmem:
-              test_name += f'.{maxmem}mb'
-            print_test(test_name)
+      # Gather the list of images
+      image_filenames = sorted(glob(os.path.join(dataset_dir, '**', f'*.{main_feature}.pfm'), recursive=True))
+      if not image_filenames:
+        print('Error: baseline input images missing (run with "baseline" first)')
+        exit(1)
+      image_names = [os.path.relpath(filename, dataset_dir).rsplit('.', 3)[0] for filename in image_filenames]
 
-            denoise_cmd = os.path.join(bin_dir, 'oidnDenoise')
+      # Iterate over architectures
+      for arch in cfg.arch:
+        # Iterate over images
+        for image_name in image_names:
+          # Iterate over in-place mode
+          for inplace in [False, True]:
+            # Iterate over maximum memory usages (tiling)
+            for maxmem in [None, 512]:
+              # Run test
+              test_name = f'{filter}.{features_str}.{arch}.{image_name}'
+              if inplace:
+                test_name += '.inplace'
+              if maxmem:
+                test_name += f'.{maxmem}mb'
+              print_test(test_name)
 
-            ref_filename = os.path.join(cfg.baseline_dir, dataset, f'{image_name}.{result}.{main_feature}.pfm')
-            if not os.path.isfile(ref_filename):
-              print('Error: baseline output image missing (run with "baseline" first)')
-              exit(1)
-            denoise_cmd += f' -f {filter} -v 2 --ref "{ref_filename}"'
+              denoise_cmd = os.path.join(bin_dir, 'oidnDenoise')
 
-            for feature in features:
-              feature_filename = os.path.join(dataset_dir, image_name) + f'.{feature}.pfm'
-              denoise_cmd += f' --{feature} "{feature_filename}"'
+              ref_filename = os.path.join(cfg.baseline_dir, dataset, f'{image_name}.{result}.{main_feature}.pfm')
+              if not os.path.isfile(ref_filename):
+                print('Error: baseline output image missing (run with "baseline" first)')
+                exit(1)
+              denoise_cmd += f' -f {filter} -v 2 --ref "{ref_filename}"'
 
-            if inplace:
-              denoise_cmd += ' --inplace'
-            if maxmem:
-              denoise_cmd += f' --maxmem {maxmem}'
+              for feature in features:
+                feature_filename = os.path.join(dataset_dir, image_name) + f'.{feature}.pfm'
+                denoise_cmd += f' --{feature} "{feature_filename}"'
 
-            run_test(denoise_cmd, arch)
+              if inplace:
+                denoise_cmd += ' --inplace'
+              if maxmem:
+                denoise_cmd += f' --maxmem {maxmem}'
+
+              run_test(denoise_cmd, arch)
 
 # Main tests
 test()
 
 # Regression tests: RT
 if not cfg.filter or 'RT' in cfg.filter:
-  dataset = 'rt_regress'
-  test_regression('RT', ['hdr', 'alb', 'nrm'], dataset)
-  test_regression('RT', ['hdr', 'alb'],        dataset)
-  test_regression('RT', ['hdr'],               dataset)
-  test_regression('RT', ['ldr', 'alb', 'nrm'], dataset)
-  test_regression('RT', ['ldr', 'alb'],        dataset)
-  test_regression('RT', ['ldr'],               dataset)
+  test_regression(
+    'RT',
+    [
+      ['hdr', 'alb', 'nrm'],
+      ['hdr', 'alb'],
+      ['hdr'],
+      ['ldr', 'alb', 'nrm'],
+      ['ldr', 'alb'],
+      ['ldr']
+    ],
+    'rt_regress'
+  )
 
 # Regression tests: RTLightmap
 if not cfg.filter or 'RTLightmap' in cfg.filter:
-  dataset = 'rtlightmap_regress'
-  test_regression('RTLightmap', ['hdr'], dataset)
+  test_regression('RTLightmap', [['hdr']], 'rtlightmap_regress')
 
 # Done
 if cfg.command == 'run':
