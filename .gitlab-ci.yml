@@ -23,7 +23,7 @@ stages:
     untracked: true
     name:      "$CI_JOB_NAME"
     when:      always
-    expire_in: 1d
+    expire_in: 2 day
 
 .test:
   stage: test
@@ -36,10 +36,10 @@ stages:
     paths:
       - test.log
     name: "$CI_JOB_NAME"
+    expire_in: 2 day
 
 .package:
   stage: deploy
-  script: scripts/build.py package
   only:
     - schedules
     - web
@@ -48,7 +48,7 @@ stages:
       - build/*.tar.gz
       - build/*.zip
     name:      "$CI_JOB_NAME"
-    expire_in: 1d
+    expire_in: 3 day
 
 ## -----------------------------------------------------------------------------
 ## Linux
@@ -68,9 +68,6 @@ stages:
   extends:
     - .test
     - .base-linux
-  script:
-    - scripts/build.py install
-    - scripts/test.py $OIDN_TEST_ARGS
 
 .package-linux:
   extends:
@@ -86,7 +83,7 @@ build-centos7-icc:
   extends:
     - .build-linux
     - .centos7
-  script: scripts/build.py --compiler icc
+  script: scripts/build.py install --compiler icc
 
 test-centos7-icc-avx512:
   extends:
@@ -97,6 +94,7 @@ test-centos7-icc-avx512:
       artifacts: true
   tags:
     - avx512vl
+  script: scripts/test.py
 
 test-centos7-icc-knl:
   extends:
@@ -107,6 +105,7 @@ test-centos7-icc-knl:
       artifacts: true
   tags:
     - knl
+  script: scripts/test.py
 
 test-centos7-icc-avx2:
   extends:
@@ -117,6 +116,7 @@ test-centos7-icc-avx2:
       artifacts: true
   tags:
     - avx2
+  script: scripts/test.py
 
 test-centos7-icc-sse4:
   extends:
@@ -125,16 +125,13 @@ test-centos7-icc-sse4:
   needs:
     - job: build-centos7-icc
       artifacts: true
-  variables:
-    OIDN_TEST_ARGS: "--arch pnr"
+  script: scripts/test.py --arch pnr
 
 package-linux:
   extends:
     - .package-linux
     - .centos7
-  needs: 
-    - job: build-centos7-icc
-      artifacts: true
+  script: scripts/build.py package
 
 ## -----------------------------------------------------------------------------
 
@@ -145,13 +142,31 @@ build-ubuntu18.04-gcc:
   extends:
     - .build-linux
     - .ubuntu18.04
-  script: scripts/build.py --compiler gcc
+  script: scripts/build.py install --compiler gcc
+
+test-ubuntu18.04-gcc:
+  extends:
+    - .test-linux
+    - .ubuntu18.04
+  needs:
+    - job: build-ubuntu18.04-gcc
+      artifacts: true
+  script: scripts/test.py
 
 build-ubuntu18.04-gcc-debug:
   extends:
     - .build-linux
     - .ubuntu18.04
-  script: scripts/build.py --compiler gcc --config Debug
+  script: scripts/build.py install --compiler gcc --config Debug
+
+test-ubuntu18.04-gcc-debug:
+  extends:
+    - .test-linux
+    - .ubuntu18.04
+  needs:
+    - job: build-ubuntu18.04-gcc-debug
+      artifacts: true
+  script: scripts/test.py
 
 build-ubuntu18.04-gcc-static:
   extends:
@@ -171,14 +186,6 @@ build-ubuntu18.04-kw-gcc:
     - .ubuntu18.04
   script: scripts/klocwork_build.sh
 
-test-ubuntu18.04-gcc-debug:
-  extends:
-    - .test-linux
-    - .ubuntu18.04
-  needs:
-    - job: build-ubuntu18.04-gcc-debug
-      artifacts: true
-
 ## -----------------------------------------------------------------------------
 
 .ubuntu20.04:
@@ -193,14 +200,6 @@ build-ubuntu20.04-gcc:
     - cd build
     - cmake .. -D OIDN_APPS_OPENIMAGEIO=ON
     - make -j VERBOSE=1
-
-test-ubuntu20.04-gcc:
-  extends:
-    - .test-linux
-    - .ubuntu20.04
-  needs:
-    - job: build-ubuntu20.04-gcc
-      artifacts: true
 
 ## -----------------------------------------------------------------------------
 ## macOS
@@ -220,9 +219,6 @@ test-ubuntu20.04-gcc:
   extends:
     - .test
     - .base-macos
-  script:
-    - scripts/build.py install
-    - scripts/test.py $OIDN_TEST_ARGS
 
 .package-macos:
   extends:
@@ -233,33 +229,33 @@ test-ubuntu20.04-gcc:
 
 build-macos-icc:
   extends: .build-macos
-  script:  scripts/build.py --compiler icc
-
-build-macos-clang:
-  extends: .build-macos
-  script:  scripts/build.py --compiler clang
-
-build-macos-clang-static:
-  extends: .build-macos
-  script:  scripts/build.py --compiler clang -D OIDN_STATIC_LIB=ON
+  script: scripts/build.py install --compiler icc
 
 test-macos-icc:
   extends: .test-macos
   needs:
     - job: build-macos-icc
       artifacts: true
+  script: scripts/test.py
+
+build-macos-clang:
+  extends: .build-macos
+  script: scripts/build.py install --compiler clang
 
 test-macos-clang:
   extends: .test-macos
   needs:
     - job: build-macos-clang
       artifacts: true
+  script: scripts/test.py
+
+build-macos-clang-static:
+  extends: .build-macos
+  script: scripts/build.py --compiler clang -D OIDN_STATIC_LIB=ON
 
 package-macos:
   extends: .package-macos
-  needs: 
-    - job: build-macos-icc
-      artifacts: true
+  script: scripts/build.py package
 
 ## -----------------------------------------------------------------------------
 ## Windows
@@ -281,9 +277,6 @@ package-macos:
   extends:
     - .test
     - .base-windows
-  script:
-    - python scripts/build.py install
-    - python scripts/test.py $OIDN_TEST_ARGS
 
 .package-windows:
   extends:
@@ -297,31 +290,7 @@ build-windows-icc:
   tags:
     - msvc15
     - icc19
-  script:  python scripts/build.py --compiler msvc15-icc19
-
-build-windows-msvc15:
-  extends: .build-windows
-  tags:
-    - msvc15
-  script:  python scripts/build.py --compiler msvc15
-
-build-windows-msvc15-debug:
-  extends: .build-windows
-  tags:
-    - msvc15
-  script:  python scripts/build.py --compiler msvc15 --config Debug
-
-build-windows-msvc15-static:
-  extends: .build-windows
-  tags:
-    - msvc15
-  script:  python scripts/build.py --compiler msvc15 -D OIDN_STATIC_LIB=ON
-
-build-windows-msvc16:
-  extends: .build-windows
-  tags:
-    - msvc16
-  script:  python scripts/build.py --compiler msvc16
+  script: python scripts/build.py install --compiler msvc15-icc19
 
 test-windows-icc-avx512:
   extends: .test-windows
@@ -332,6 +301,7 @@ test-windows-icc-avx512:
   needs:
     - job: build-windows-icc
       artifacts: true
+  script: python scripts/test.py
 
 test-windows-icc-avx2:
   extends: .test-windows
@@ -342,6 +312,31 @@ test-windows-icc-avx2:
   needs:
     - job: build-windows-icc
       artifacts: true
+  script: python scripts/test.py
+
+build-windows-msvc15:
+  extends: .build-windows
+  tags:
+    - msvc15
+  script: python scripts/build.py --compiler msvc15
+
+build-windows-msvc15-debug:
+  extends: .build-windows
+  tags:
+    - msvc15
+  script: python scripts/build.py --compiler msvc15 --config Debug
+
+build-windows-msvc15-static:
+  extends: .build-windows
+  tags:
+    - msvc15
+  script: python scripts/build.py --compiler msvc15 -D OIDN_STATIC_LIB=ON
+
+build-windows-msvc16:
+  extends: .build-windows
+  tags:
+    - msvc16
+  script: python scripts/build.py install --compiler msvc16
 
 test-windows-msvc16:
   extends: .test-windows
@@ -350,15 +345,14 @@ test-windows-msvc16:
   needs:
     - job: build-windows-msvc16
       artifacts: true
+  script: python scripts/test.py
 
 package-windows:
   extends: .package-windows
   tags:
     - msvc15
     - icc19
-  needs:
-    - job: build-windows-icc
-      artifacts: true
+  script: python scripts/build.py package
       
 ## -----------------------------------------------------------------------------
 ## Protex
