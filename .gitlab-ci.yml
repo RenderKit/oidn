@@ -27,9 +27,6 @@ stages:
 
 .test:
   stage: test
-  script:
-      - scripts/build.py install
-      - scripts/test.py $OIDN_TEST_ARGS
   only:
     - pushes
     - schedules
@@ -71,6 +68,9 @@ stages:
   extends:
     - .test
     - .base-linux
+  script:
+    - scripts/build.py install
+    - scripts/test.py $OIDN_TEST_ARGS
 
 .package-linux:
   extends:
@@ -204,6 +204,9 @@ test-ubuntu20.04-gcc:
   extends:
     - .test
     - .base-macos
+  script:
+    - scripts/build.py install
+    - scripts/test.py $OIDN_TEST_ARGS
 
 .package-macos:
   extends:
@@ -262,6 +265,9 @@ package-macos:
   extends:
     - .test
     - .base-windows
+  script:
+    - python scripts/build.py install
+    - python scripts/test.py $OIDN_TEST_ARGS
 
 .package-windows:
   extends:
