@@ -97,8 +97,16 @@ test-centos7-icc-avx512:
       artifacts: true
   tags:
     - avx512vl
-  variables:
-    OIDN_TEST_ARGS: "--arch native knl"
+
+test-centos7-icc-knl:
+  extends:
+    - .test-linux
+    - .centos7
+  needs:
+    - job: build-centos7-icc
+      artifacts: true
+  tags:
+    - knl
 
 test-centos7-icc-avx2:
   extends:
@@ -109,8 +117,16 @@ test-centos7-icc-avx2:
       artifacts: true
   tags:
     - avx2
+
+test-centos7-icc-sse4:
+  extends:
+    - .test-linux
+    - .centos7
+  needs:
+    - job: build-centos7-icc
+      artifacts: true
   variables:
-    OIDN_TEST_ARGS: "--arch native pnr"
+    OIDN_TEST_ARGS: "--arch pnr"
 
 package-linux:
   extends:
