@@ -4,8 +4,8 @@
 stages:
   - build
   - test
-  - package
-  - scan_source
+  - deploy
+  - scan
 
 .base:
   variables:
@@ -29,7 +29,7 @@ stages:
   stage: test
   script:
       - scripts/build.py install
-      - scripts/test.py
+      - scripts/test.py $OIDN_TEST_ARGS
   only:
     - pushes
     - schedules
@@ -41,7 +41,7 @@ stages:
     name: "$CI_JOB_NAME"
 
 .package:
-  stage: package
+  stage: deploy
   script: scripts/build.py package
   only:
     - schedules
@@ -88,13 +88,29 @@ build-centos7-icc:
     - .centos7
   script: scripts/build.py --compiler icc
 
-test-centos7-icc:
+test-centos7-icc-avx512:
   extends:
     - .test-linux
     - .centos7
   needs:
     - job: build-centos7-icc
       artifacts: true
+  tags:
+    - avx512vl
+  variables:
+    OIDN_TEST_ARGS: "--arch native knl"
+
+test-centos7-icc-avx2:
+  extends:
+    - .test-linux
+    - .centos7
+  needs:
+    - job: build-centos7-icc
+      artifacts: true
+  tags:
+    - avx2
+  variables:
+    OIDN_TEST_ARGS: "--arch native pnr"
 
 package-linux:
   extends:
@@ -285,11 +301,22 @@ build-windows-msvc16:
     - msvc16
   script:  python scripts/build.py --compiler msvc16
 
-test-windows-icc:
+test-windows-icc-avx512:
   extends: .test-windows
   tags:
     - msvc15
     - icc19
+    - avx512vl
+  needs:
+    - job: build-windows-icc
+      artifacts: true
+
+test-windows-icc-avx2:
+  extends: .test-windows
+  tags:
+    - msvc15
+    - icc19
+    - avx2
   needs:
     - job: build-windows-icc
       artifacts: true
@@ -316,7 +343,7 @@ package-windows:
 ## -----------------------------------------------------------------------------
 
 protex_scan:
-  stage: scan_source
+  stage: scan
   tags:
     - docker
   only:
