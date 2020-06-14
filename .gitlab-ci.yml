@@ -132,7 +132,7 @@ package-linux:
   extends:
     - .package-linux
     - .centos7
-  script: scripts/build.py package
+  script: scripts/build.py package --compiler icc
 
 ## -----------------------------------------------------------------------------
 
@@ -256,7 +256,7 @@ build-macos-clang-static:
 
 package-macos:
   extends: .package-macos
-  script: scripts/build.py package
+  script: scripts/build.py package --compiler icc
 
 ## -----------------------------------------------------------------------------
 ## Windows
@@ -353,7 +353,7 @@ package-windows:
   tags:
     - msvc15
     - icc19
-  script: python scripts/build.py package
+  script: python scripts/build.py package --compiler msvc15-icc19
       
 ## -----------------------------------------------------------------------------
 ## Protex
