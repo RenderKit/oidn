@@ -23,7 +23,7 @@ stages:
     name: "$CI_JOB_NAME"
     untracked: true
     when: always
-    expire_in: 2 days
+    expire_in: 3 days
 
 .test:
   stage: test
@@ -36,7 +36,7 @@ stages:
     paths:
       - test.log
     when: always
-    expire_in: 2 days
+    expire_in: 3 days
 
 .package:
   stage: deploy
@@ -49,12 +49,12 @@ stages:
     paths:
       - build/*.tar.gz
       - build/*.zip
-    expire_in: 3 days
+    expire_in: 1 week
 
 ## -----------------------------------------------------------------------------
 ## Linux
 ## -----------------------------------------------------------------------------
- 
+
 .base-linux:
   extends: .base
   tags:
@@ -90,8 +90,9 @@ test-centos7-icc-avx512:
   extends:
     - .test-linux
     - .centos7
-  dependencies:
-    - build-centos7-icc
+  needs:
+    - job: build-centos7-icc
+      artifacts: true
   tags:
     - avx512vl
   script: scripts/test.py
@@ -100,8 +101,9 @@ test-centos7-icc-knl:
   extends:
     - .test-linux
     - .centos7
-  dependencies:
-    - build-centos7-icc
+  needs:
+    - job: build-centos7-icc
+      artifacts: true
   tags:
     - knl
   script: scripts/test.py
@@ -110,8 +112,9 @@ test-centos7-icc-avx2:
   extends:
     - .test-linux
     - .centos7
-  dependencies:
-    - build-centos7-icc
+  needs:
+    - job: build-centos7-icc
+      artifacts: true
   tags:
     - avx2
   script: scripts/test.py
@@ -120,8 +123,9 @@ test-centos7-icc-sse4:
   extends:
     - .test-linux
     - .centos7
-  dependencies:
-    - build-centos7-icc
+  needs:
+    - job: build-centos7-icc
+      artifacts: true
   script: scripts/test.py --arch pnr
 
 package-linux:
@@ -145,8 +149,9 @@ test-ubuntu18.04-gcc:
   extends:
     - .test-linux
     - .ubuntu18.04
-  dependencies:
-    - build-ubuntu18.04-gcc
+  needs:
+    - job: build-ubuntu18.04-gcc
+      artifacts: true
   script: scripts/test.py
 
 build-ubuntu18.04-gcc-debug:
@@ -159,8 +164,9 @@ test-ubuntu18.04-gcc-debug:
   extends:
     - .test-linux
     - .ubuntu18.04
-  dependencies:
-    - build-ubuntu18.04-gcc-debug
+  needs:
+    - job: build-ubuntu18.04-gcc-debug
+      artifacts: true
   script: scripts/test.py
 
 build-ubuntu18.04-gcc-static:
@@ -228,8 +234,9 @@ build-macos-icc:
 
 test-macos-icc:
   extends: .test-macos
-  dependencies:
-    - build-macos-icc
+  needs:
+    - job: build-macos-icc
+      artifacts: true
   script: scripts/test.py
 
 build-macos-clang:
@@ -238,8 +245,9 @@ build-macos-clang:
 
 test-macos-clang:
   extends: .test-macos
-  dependencies:
-    - build-macos-clang
+  needs:
+    - job: build-macos-clang
+      artifacts: true
   script: scripts/test.py
 
 build-macos-clang-static:
@@ -291,8 +299,9 @@ test-windows-icc-avx512:
     - msvc15
     - icc19
     - avx512vl
-  dependencies:
-    - build-windows-icc
+  needs:
+    - job: build-windows-icc
+      artifacts: true
   script: python scripts/test.py
 
 test-windows-icc-avx2:
@@ -301,8 +310,9 @@ test-windows-icc-avx2:
     - msvc15
     - icc19
     - avx2
-  dependencies:
-    - build-windows-icc
+  needs:
+    - job: build-windows-icc
+      artifacts: true
   script: python scripts/test.py
 
 build-windows-msvc15:
@@ -333,8 +343,9 @@ test-windows-msvc16:
   extends: .test-windows
   tags:
     - msvc16
-  dependencies:
-    - build-windows-msvc16
+  needs:
+    - job: build-windows-msvc16
+      artifacts: true
   script: python scripts/test.py
 
 package-windows:
@@ -348,7 +359,7 @@ package-windows:
 ## Protex
 ## -----------------------------------------------------------------------------
 
-protex_scan:
+scan-protex:
   stage: scan
   tags:
     - docker
@@ -365,4 +376,4 @@ protex_scan:
     paths:
       - ip_protex.log
     when: always
-    expire_in: 7 days
+    expire_in: 1 week
