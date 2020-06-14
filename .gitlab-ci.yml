@@ -123,6 +123,8 @@ test-centos7-icc-sse4:
   extends:
     - .test-linux
     - .centos7
+  tags:
+    - avx512vl
   needs:
     - job: build-centos7-icc
       artifacts: true
@@ -171,6 +173,8 @@ test-ubuntu18.04-gcc-sse4:
   extends:
     - .test-linux
     - .ubuntu18.04
+  tags:
+    - avx512vl
   needs:
     - job: build-ubuntu18.04-gcc
       artifacts: true
@@ -208,6 +212,8 @@ test-ubuntu18.04-gcc-debug-sse4:
   extends:
     - .test-linux
     - .ubuntu18.04
+  tags:
+    - avx512vl
   needs:
     - job: build-ubuntu18.04-gcc-debug
       artifacts: true
