@@ -20,10 +20,10 @@ stages:
     - schedules
     - web
   artifacts:
+    name: "$CI_JOB_NAME"
     untracked: true
-    name:      "$CI_JOB_NAME"
-    when:      always
-    expire_in: 2 day
+    when: always
+    expire_in: 2 days
 
 .test:
   stage: test
@@ -32,23 +32,24 @@ stages:
     - schedules
     - web
   artifacts:
-    when: always
+    name: "$CI_JOB_NAME"
     paths:
       - test.log
-    name: "$CI_JOB_NAME"
-    expire_in: 2 day
+    when: always
+    expire_in: 2 days
 
 .package:
   stage: deploy
   only:
     - schedules
     - web
+  dependencies: []
   artifacts:
+    name: "$CI_JOB_NAME"
     paths:
       - build/*.tar.gz
       - build/*.zip
-    name:      "$CI_JOB_NAME"
-    expire_in: 3 day
+    expire_in: 3 days
 
 ## -----------------------------------------------------------------------------
 ## Linux
@@ -89,9 +90,8 @@ test-centos7-icc-avx512:
   extends:
     - .test-linux
     - .centos7
-  needs:
-    - job: build-centos7-icc
-      artifacts: true
+  dependencies:
+    - build-centos7-icc
   tags:
     - avx512vl
   script: scripts/test.py
@@ -100,9 +100,8 @@ test-centos7-icc-knl:
   extends:
     - .test-linux
     - .centos7
-  needs:
-    - job: build-centos7-icc
-      artifacts: true
+  dependencies:
+    - build-centos7-icc
   tags:
     - knl
   script: scripts/test.py
@@ -111,9 +110,8 @@ test-centos7-icc-avx2:
   extends:
     - .test-linux
     - .centos7
-  needs:
-    - job: build-centos7-icc
-      artifacts: true
+  dependencies:
+    - build-centos7-icc
   tags:
     - avx2
   script: scripts/test.py
@@ -122,9 +120,8 @@ test-centos7-icc-sse4:
   extends:
     - .test-linux
     - .centos7
-  needs:
-    - job: build-centos7-icc
-      artifacts: true
+  dependencies:
+    - build-centos7-icc
   script: scripts/test.py --arch pnr
 
 package-linux:
@@ -148,9 +145,8 @@ test-ubuntu18.04-gcc:
   extends:
     - .test-linux
     - .ubuntu18.04
-  needs:
-    - job: build-ubuntu18.04-gcc
-      artifacts: true
+  dependencies:
+    - build-ubuntu18.04-gcc
   script: scripts/test.py
 
 build-ubuntu18.04-gcc-debug:
@@ -163,9 +159,8 @@ test-ubuntu18.04-gcc-debug:
   extends:
     - .test-linux
     - .ubuntu18.04
-  needs:
-    - job: build-ubuntu18.04-gcc-debug
-      artifacts: true
+  dependencies:
+    - build-ubuntu18.04-gcc-debug
   script: scripts/test.py
 
 build-ubuntu18.04-gcc-static:
@@ -233,9 +228,8 @@ build-macos-icc:
 
 test-macos-icc:
   extends: .test-macos
-  needs:
-    - job: build-macos-icc
-      artifacts: true
+  dependencies:
+    - build-macos-icc
   script: scripts/test.py
 
 build-macos-clang:
@@ -244,9 +238,8 @@ build-macos-clang:
 
 test-macos-clang:
   extends: .test-macos
-  needs:
-    - job: build-macos-clang
-      artifacts: true
+  dependencies:
+    - build-macos-clang
   script: scripts/test.py
 
 build-macos-clang-static:
@@ -298,9 +291,8 @@ test-windows-icc-avx512:
     - msvc15
     - icc19
     - avx512vl
-  needs:
-    - job: build-windows-icc
-      artifacts: true
+  dependencies:
+    - build-windows-icc
   script: python scripts/test.py
 
 test-windows-icc-avx2:
@@ -309,9 +301,8 @@ test-windows-icc-avx2:
     - msvc15
     - icc19
     - avx2
-  needs:
-    - job: build-windows-icc
-      artifacts: true
+  dependencies:
+    - build-windows-icc
   script: python scripts/test.py
 
 build-windows-msvc15:
@@ -342,9 +333,8 @@ test-windows-msvc16:
   extends: .test-windows
   tags:
     - msvc16
-  needs:
-    - job: build-windows-msvc16
-      artifacts: true
+  dependencies:
+    - build-windows-msvc16
   script: python scripts/test.py
 
 package-windows:
@@ -366,12 +356,13 @@ protex_scan:
     - schedules
     - web
   script: scripts/protex_scan.sh
-  image:  amd64/openjdk:8
+  image: amd64/openjdk:8
   dependencies: []
   # Will fail regularly, do not break nightlies because of that.
   allow_failure: true
   artifacts:
-    paths:     [ "$CI_PROJECT_DIR/ip_protex.log" ]
-    name:      "$CI_JOB_NAME"
-    when:      always
-    expire_in: 7d
+    name: "$CI_JOB_NAME"
+    paths:
+      - ip_protex.log
+    when: always
+    expire_in: 7 days
