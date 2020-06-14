@@ -90,33 +90,33 @@ test-centos7-icc-avx512:
   extends:
     - .test-linux
     - .centos7
+  tags:
+    - avx512vl
   needs:
     - job: build-centos7-icc
       artifacts: true
-  tags:
-    - avx512vl
   script: scripts/test.py
 
 test-centos7-icc-knl:
   extends:
     - .test-linux
     - .centos7
+  tags:
+    - knl
   needs:
     - job: build-centos7-icc
       artifacts: true
-  tags:
-    - knl
   script: scripts/test.py
 
 test-centos7-icc-avx2:
   extends:
     - .test-linux
     - .centos7
+  tags:
+    - avx2
   needs:
     - job: build-centos7-icc
       artifacts: true
-  tags:
-    - avx2
   script: scripts/test.py
 
 test-centos7-icc-sse4:
@@ -145,14 +145,36 @@ build-ubuntu18.04-gcc:
     - .ubuntu18.04
   script: scripts/build.py install --compiler gcc
 
-test-ubuntu18.04-gcc:
+test-ubuntu18.04-gcc-avx512:
+  extends:
+    - .test-linux
+    - .ubuntu18.04
+  tags:
+    - avx512vl
+  needs:
+    - job: build-ubuntu18.04-gcc
+      artifacts: true
+  script: scripts/test.py
+
+test-ubuntu18.04-gcc-avx2:
+  extends:
+    - .test-linux
+    - .ubuntu18.04
+  tags:
+    - avx2
+  needs:
+    - job: build-ubuntu18.04-gcc
+      artifacts: true
+  script: scripts/test.py
+
+test-ubuntu18.04-gcc-sse4:
   extends:
     - .test-linux
     - .ubuntu18.04
   needs:
     - job: build-ubuntu18.04-gcc
       artifacts: true
-  script: scripts/test.py
+  script: scripts/test.py --arch pnr
 
 build-ubuntu18.04-gcc-debug:
   extends:
@@ -160,14 +182,36 @@ build-ubuntu18.04-gcc-debug:
     - .ubuntu18.04
   script: scripts/build.py install --compiler gcc --config Debug
 
-test-ubuntu18.04-gcc-debug:
+test-ubuntu18.04-gcc-debug-avx512:
+  extends:
+    - .test-linux
+    - .ubuntu18.04
+  tags:
+    - avx512vl
+  needs:
+    - job: build-ubuntu18.04-gcc-debug
+      artifacts: true
+  script: scripts/test.py
+
+test-ubuntu18.04-gcc-debug-avx2:
+  extends:
+    - .test-linux
+    - .ubuntu18.04
+  tags:
+    - avx2
+  needs:
+    - job: build-ubuntu18.04-gcc-debug
+      artifacts: true
+  script: scripts/test.py
+
+test-ubuntu18.04-gcc-debug-sse4:
   extends:
     - .test-linux
     - .ubuntu18.04
   needs:
     - job: build-ubuntu18.04-gcc-debug
       artifacts: true
-  script: scripts/test.py
+  script: scripts/test.py --arch pnr
 
 build-ubuntu18.04-gcc-static:
   extends:
@@ -201,6 +245,19 @@ build-ubuntu20.04-gcc:
     - cd build
     - cmake .. -D OIDN_APPS_OPENIMAGEIO=ON
     - make -j VERBOSE=1
+
+## -----------------------------------------------------------------------------
+
+.arch:
+  image: openimagedenoise/build:arch
+
+build-arch-gcc:
+  extends:
+    - .build-linux
+    - .arch
+  script:
+    - cmake -B build -G Ninja
+    - ninja -C build -v
 
 ## -----------------------------------------------------------------------------
 ## macOS
@@ -339,10 +396,21 @@ build-windows-msvc16:
     - msvc16
   script: python scripts/build.py install --compiler msvc16
 
-test-windows-msvc16:
+test-windows-msvc16-avx512:
   extends: .test-windows
   tags:
     - msvc16
+    - avx512vl
+  needs:
+    - job: build-windows-msvc16
+      artifacts: true
+  script: python scripts/test.py
+
+test-windows-msvc16-avx2:
+  extends: .test-windows
+  tags:
+    - msvc16
+    - avx2
   needs:
     - job: build-windows-msvc16
       artifacts: true
