@@ -28,10 +28,10 @@ int maxMemoryMB = -1;
 void printUsage()
 {
   std::cout << "Intel(R) Open Image Denoise - Benchmark" << std::endl;
-  std::cout << "usage: oidnBench [-r/--run regex] [-n times]" << std::endl
-            << "                 [--threads n] [--affinity 0|1] [--maxmem MB]" << std::endl
-            << "                 [-v/--verbose 0-3]" << std::endl
-            << "                 [-l/--list] [-h/--help]" << std::endl;
+  std::cout << "usage: oidnBenchmark [-r/--run regex] [-n times]" << std::endl
+            << "                     [--threads n] [--affinity 0|1] [--maxmem MB]" << std::endl
+            << "                     [-v/--verbose 0-3]" << std::endl
+            << "                     [-l/--list] [-h/--help]" << std::endl;
 }
 
 void errorCallback(void* userPtr, oidn::Error error, const char* message)

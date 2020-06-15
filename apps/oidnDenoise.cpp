@@ -21,7 +21,7 @@ using namespace oidn;
 
 void printUsage()
 {
-  std::cout << "Intel(R) Open Image Denoise - Example" << std::endl;
+  std::cout << "Intel(R) Open Image Denoise" << std::endl;
   std::cout << "usage: oidnDenoise [-f/--filter RT|RTLightmap]" << std::endl
             << "                   [--ldr color.pfm] [--srgb] [--hdr color.pfm]" << std::endl
             << "                   [--alb albedo.pfm] [--nrm normal.pfm]" << std::endl

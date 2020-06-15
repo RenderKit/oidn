@@ -13,7 +13,7 @@ Version History
 -   Fixed crash on pre-SSE4 CPUs when using some recent compilers (e.g. GCC 10)
 -   Link C/C++ runtime library dynamically on Windows too by default
 -   Renamed example apps (`oidnDenoise`, `oidnTest`)
--   Added benchmark app (`oidnBench`)
+-   Added benchmark app (`oidnBenchmark`)
 -   Fixed random data augmentation seeding in training
 -   Fixed training warning with PyTorch 1.5 and later
 
