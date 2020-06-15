@@ -38,7 +38,7 @@ install(
     ${PROJECT_SOURCE_DIR}/CHANGELOG.md
     ${PROJECT_SOURCE_DIR}/LICENSE.txt
     ${PROJECT_SOURCE_DIR}/third-party-programs.txt
-    ${PROJECT_SOURCE_DIR}/third-party-programs-DNNL.txt
+    ${PROJECT_SOURCE_DIR}/third-party-programs-oneDNN.txt
     ${PROJECT_SOURCE_DIR}/third-party-programs-TBB.txt
   DESTINATION ${CMAKE_INSTALL_DOCDIR}
   COMPONENT lib
