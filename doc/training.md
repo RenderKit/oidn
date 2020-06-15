@@ -207,8 +207,8 @@ checkpoint is loaded.
 
 The tool saves the output images in a separate directory (`-O` or
 `--output_dir`) in the requested formats (`-F` or `--format` option). It also
-evaluates a set of image quality metrics (`-M` or `--metric` option), e.g. SSIM,
-MSE, for images that have reference images available. All metrics are computed
+evaluates a set of image quality metrics (`-M` or `--metric` option), e.g. PSNR,
+SSIM, for images that have reference images available. All metrics are computed
 in tonemapped non-linear sRGB space. Thus, HDR images are first tonemapped
 (with Naughty Dog's Filmic Tonemapper from John Hable's *Uncharted 2: HDR
 Lighting* presentation) and converted to sRGB before evaluating the metrics.
