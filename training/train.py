@@ -185,7 +185,8 @@ def main_worker(rank, cfg):
 
   # Initialize the summary writer
   log_dir = os.path.join(result_dir, 'log')
-  summary_writer = SummaryWriter(log_dir)
+  if rank == 0:
+    summary_writer = SummaryWriter(log_dir)
 
   # Training and evaluation loops
   if rank == 0:
@@ -218,11 +219,12 @@ def main_worker(rank, cfg):
       loss.backward()
 
       # Write summary
-      if rank == 0 and step == 0:
-        summary_writer.add_graph(unwrap_module(model), input)
-      if step % cfg.log_steps == 0 or i == 0 or i == train_steps_per_epoch-1:
-        summary_writer.add_scalar('learning_rate', lr_scheduler.get_last_lr()[0], step)
-        summary_writer.add_scalar('loss', loss.item(), step)
+      if rank == 0:
+        if step == 0:
+          summary_writer.add_graph(unwrap_module(model), input)
+        if step % cfg.log_steps == 0 or i == 0 or i == train_steps_per_epoch-1:
+          summary_writer.add_scalar('learning_rate', lr_scheduler.get_last_lr()[0], step)
+          summary_writer.add_scalar('loss', loss.item(), step)
 
       # Next step
       optimizer.step()
@@ -287,7 +289,8 @@ def main_worker(rank, cfg):
                         % (valid_loss, images_per_sec, duration))
 
       # Write summary
-      summary_writer.add_scalar('valid_loss', valid_loss, step)
+      if rank == 0:
+        summary_writer.add_scalar('valid_loss', valid_loss, step)
 
     if (rank == 0) and ((cfg.save_epochs > 0 and epoch % cfg.save_epochs == 0) or epoch == cfg.epochs):
       # Save a checkpoint
