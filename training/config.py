@@ -114,6 +114,9 @@ def parse_args(cmd=None, description=None):
       else:
         cfg.transfer = 'srgb'
 
+  # Print PyTorch version
+  print('PyTorch:', torch.__version__)
+
   return cfg
 
 # Loads the config from a directory
