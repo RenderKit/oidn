@@ -11,18 +11,12 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-# Print PyTorch version
-print('PyTorch:', torch.__version__)
-
-# Integer round down
 def round_down(a, b):
   return a // b * b
 
-# Integer round up
 def round_up(a, b):
   return (a + b - 1) // b * b
 
-# Integer round to nearest
 def round_nearest(a, b):
   return (a + b//2) // b * b
 

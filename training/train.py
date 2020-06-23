@@ -34,6 +34,9 @@ def main():
   if not cfg.result:
     cfg.result = '%x' % int(time.time())
 
+  # Print PyTorch version
+  print('PyTorch:', torch.__version__)
+
   # Run the worker(s)
   if cfg.num_devices == 1:
     main_worker(0, cfg)
