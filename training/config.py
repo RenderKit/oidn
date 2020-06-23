@@ -55,7 +55,7 @@ def parse_args(cmd=None, description=None):
 
   if cmd in {'train', 'find_lr'}:
     parser.add_argument('--batch_size', '--bs', type=int, default=8, help='size of the mini-batches')
-    parser.add_argument('--loaders', type=int, default=4, help='number of data loader threads')
+    parser.add_argument('--loaders', type=int, default=4, help='number of data loader threads per device')
     advanced.add_argument('--tile_size', '--ts', type=int, default=256, help='size of the cropped image tiles')
     advanced.add_argument('--loss', '-l', type=str, choices=['l1', 'mape', 'smape', 'l2', 'ssim', 'msssim', 'l1_msssim', 'l1_grad'], default='l1_msssim', help='loss function')
     advanced.add_argument('--seed', '-s', type=int, default=42, help='seed for random number generation')
@@ -105,7 +105,7 @@ def parse_args(cmd=None, description=None):
 
     # Check features
     if ('ldr' in cfg.features) == ('hdr' in cfg.features):
-      error('either hdr or ldr must be specified as input feature')
+      parser.error('either hdr or ldr must be specified as input feature')
 
     # Set the transfer function if not specified
     if not cfg.transfer:
@@ -113,6 +113,10 @@ def parse_args(cmd=None, description=None):
         cfg.transfer = 'log' if cfg.filter == 'RTLightmap' else 'pu'
       else:
         cfg.transfer = 'srgb'
+
+  if cmd in {'train'}:
+    if cfg.batch_size % cfg.num_devices != 0:
+      parser.error('batch_size is not divisible by num_devices')
 
   # Print PyTorch version
   print('PyTorch:', torch.__version__)

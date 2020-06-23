@@ -45,6 +45,7 @@ def main():
 
 def main_worker(rank, cfg):
   distributed = cfg.num_devices > 1
+
   if distributed:
     # Set 'fork' multiprocessing start method for improved DataLoader performance
     # We must set it explicitly as spawned processes have the 'spawn' method set by default
@@ -133,7 +134,10 @@ def main_worker(rank, cfg):
       print('Training images:', train_data.num_images)
   else:
     error('no training images (forgot to run preprocess?)')
+
+  local_batch_size = cfg.batch_size // cfg.num_devices
   pin_memory = (cfg.device != 'cpu')
+
   if distributed:
     train_sampler = DistributedSampler(train_data,
                                        num_replicas=cfg.num_devices, 
@@ -141,11 +145,13 @@ def main_worker(rank, cfg):
                                        shuffle=True)
   else:
     train_sampler = None
-  train_data_loader = DataLoader(train_data, cfg.batch_size,
+
+  train_data_loader = DataLoader(train_data, local_batch_size,
                                  sampler=train_sampler,
                                  shuffle=(train_sampler is None),
                                  num_workers=cfg.loaders,
                                  pin_memory=pin_memory)
+
   train_steps_per_epoch = len(train_data_loader)
 
   # Initialize the validation dataset
@@ -153,6 +159,7 @@ def main_worker(rank, cfg):
   if len(valid_data) > 0:
     if rank == 0:
       print('Validation images:', valid_data.num_images)
+
     if distributed:
       valid_sampler = DistributedSampler(valid_data,
                                          num_replicas=cfg.num_devices, 
@@ -160,11 +167,13 @@ def main_worker(rank, cfg):
                                          shuffle=False)
     else:
       valid_sampler = None
-    valid_data_loader = DataLoader(valid_data, cfg.batch_size,
+
+    valid_data_loader = DataLoader(valid_data, local_batch_size,
                                    sampler=valid_sampler,
                                    shuffle=False,
                                    num_workers=cfg.loaders,
                                    pin_memory=pin_memory)
+
     valid_steps_per_epoch = len(valid_data_loader)
 
   # Initialize the learning rate scheduler
@@ -176,10 +185,12 @@ def main_worker(rank, cfg):
     mode='triangular2',
     total_iterations=cfg.epochs * train_steps_per_epoch
   )
+
   lr_scheduler = optim.lr_scheduler.LambdaLR(
     optimizer,
     lr_lambda=[lr_lambda],
     last_epoch=last_step)
+    
   if lr_scheduler.last_epoch != step:
     error('failed to restore LR scheduler step')
 
