@@ -10,9 +10,13 @@ Prerequisites
 -------------
 
 You can clone the latest Intel Open Image Denoise sources using Git with the
-[Git Large File Storage (LFS)](https://git-lfs.github.com/) extension:
+[Git Large File Storage (LFS)](https://git-lfs.github.com/) extension installed:
 
         git clone --recursive https://github.com/OpenImageDenoise/oidn.git
+
+Please note that installing the Git LFS extension is *required* to correctly
+clone the repository. Cloning without Git LFS will seemingly succeed but
+actually some of the files will be invalid and thus compilation will fail.
 
 Intel Open Image Denoise currently supports 64-bit Linux, Windows, and macOS
 operating systems. In addition, before you can build Intel Open Image Denoise

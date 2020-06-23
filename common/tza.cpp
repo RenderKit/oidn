@@ -10,7 +10,7 @@ namespace oidn {
   __forceinline void checkBounds(char* ptr, char* end, size_t size)
   {
     if (end - ptr < (ptrdiff_t)size)
-      throw Exception(Error::InvalidOperation, "corrupted tensor format");
+      throw Exception(Error::InvalidOperation, "invalid or corrupted weights blob");
   }
 
   // Reads a value from a buffer (with bounds checking) and advances the pointer
@@ -32,14 +32,14 @@ namespace oidn {
     // Parse the magic value
     const int magic = read<uint16_t>(input, bufferEnd);
     if (magic != 0x41D7)
-      throw Exception(Error::InvalidOperation, "invalid tensor format");
+      throw Exception(Error::InvalidOperation, "invalid or corrupted weights blob");
 
     // Parse the version
     const int majorVersion = read<uint8_t>(input, bufferEnd);
     const int minorVersion = read<uint8_t>(input, bufferEnd);
     UNUSED(minorVersion);
     if (majorVersion != 2)
-      throw Exception(Error::InvalidOperation, "unsupported tensor format version");
+      throw Exception(Error::InvalidOperation, "unsupported weights blob version");
 
     // Parse the table offset and jump to the table
     const uint64_t tableOffset = read<uint64_t>(input, bufferEnd);
@@ -76,7 +76,7 @@ namespace oidn {
       // Parse the data type of the tensor
       const char type = read<char>(input, bufferEnd);
       if (type != 'f') // only float32 is supported
-        throw Exception(Error::InvalidOperation, "unsupported tensor data type");
+        throw Exception(Error::InvalidOperation, "unsupported weights data type");
 
       // Parse the offset to the tensor data
       const uint64_t tensorOffset = read<uint64_t>(input, bufferEnd);

@@ -21,16 +21,17 @@ namespace oidn {
     static constexpr int receptiveField  = 222; // receptive field in pixels
     static constexpr int overlap         = round_up(receptiveField / 2, alignment); // required spatial overlap between tiles in pixels
 
-    static constexpr int estimatedBytesBase       = 16*1024*1024; // estimated base memory usage
-    static constexpr int estimatedBytesPerPixel8  = 889;          // estimated memory usage per pixel for K=8
-    static constexpr int estimatedBytesPerPixel16 = 2185;         // estimated memory usage per pixel for K=16
+    // Estimated memory usage
+    static constexpr int estimatedBytesBase       = 16*1024*1024; // rough estimate
+    static constexpr int estimatedBytesPerPixel8  = 889;          // K=8, accurate
+    static constexpr int estimatedBytesPerPixel16 = 1328;         // K=16, rough due to Winograd scratchpad
 
     // Images
     Image color;
     Image albedo;
     Image normal;
     Image output;
-    Image outputTemp;
+    Image outputTemp; // required for in-place tiled filtering
 
     // Options
     bool hdr = false;
@@ -39,12 +40,13 @@ namespace oidn {
     int maxMemoryMB = 6000; // approximate maximum memory usage in MBs
 
     // Image dimensions
-    int H = 0;          // image height
-    int W = 0;          // image width
-    int tileH = 0;      // tile height
-    int tileW = 0;      // tile width
-    int tileCountH = 1; // number of tiles in H dimension
-    int tileCountW = 1; // number of tiles in W dimension
+    int H = 0;            // image height
+    int W = 0;            // image width
+    int tileH = 0;        // tile height
+    int tileW = 0;        // tile width
+    int tileCountH = 1;   // number of tiles in H dimension
+    int tileCountW = 1;   // number of tiles in W dimension
+    bool inplace = false; // indicates whether input and output buffers overlap
 
     // Network
     std::shared_ptr<Executable> net;

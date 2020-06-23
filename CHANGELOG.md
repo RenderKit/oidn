@@ -3,14 +3,19 @@ Version History
 
 ### Changes in v1.2.1:
 
+-   Fixed tiling artifacts when in-place denoising (using one of the input
+    images as the output) high-resolution (> 1080p) images
+-   Fixed ghosting/color bleeding artifacts in black regions when using
+    albedo/normal buffers
 -   Fixed error when building as a static library (`OIDN_STATIC_LIB` option)
--   Fixed compile error for ISPC 1.13+
+-   Fixed compile error for ISPC 1.13 and later
 -   Fixed minor TBB detection issues
+-   Fixed crash on pre-SSE4 CPUs when using some recent compilers (e.g. GCC 10)
 -   Link C/C++ runtime library dynamically on Windows too by default
 -   Renamed example apps (`oidnDenoise`, `oidnTest`)
--   Added benchmark app (`oidnBench`)
+-   Added benchmark app (`oidnBenchmark`)
 -   Fixed random data augmentation seeding in training
--   Fixed training warning with PyTorch 1.5+
+-   Fixed training warning with PyTorch 1.5 and later
 
 ### Changes in v1.2.0:
 

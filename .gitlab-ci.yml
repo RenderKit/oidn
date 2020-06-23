@@ -3,8 +3,9 @@
 
 stages:
   - build
-  - package
-  - scan_source
+  - test
+  - deploy
+  - scan
 
 .base:
   variables:
@@ -19,28 +20,41 @@ stages:
     - schedules
     - web
   artifacts:
+    name: "$CI_JOB_NAME"
     untracked: true
-    name:      "$CI_JOB_NAME"
-    when:      always
-    expire_in: 1d
+    when: always
+    expire_in: 3 days
 
-.package:
-  stage:  package
-  script: scripts/release.py package
+.test:
+  stage: test
   only:
+    - pushes
     - schedules
     - web
   artifacts:
+    name: "$CI_JOB_NAME"
     paths:
-      - build_release/*.tar.gz
-      - build_release/*.zip
-    name:      "$CI_JOB_NAME"
-    expire_in: 1d
+      - test.log
+    when: always
+    expire_in: 3 days
+
+.package:
+  stage: deploy
+  only:
+    - schedules
+    - web
+  dependencies: []
+  artifacts:
+    name: "$CI_JOB_NAME"
+    paths:
+      - build/*.tar.gz
+      - build/*.zip
+    expire_in: 1 week
 
 ## -----------------------------------------------------------------------------
 ## Linux
 ## -----------------------------------------------------------------------------
- 
+
 .base-linux:
   extends: .base
   tags:
@@ -49,6 +63,11 @@ stages:
 .build-linux:
   extends:
     - .build
+    - .base-linux
+
+.test-linux:
+  extends:
+    - .test
     - .base-linux
 
 .package-linux:
@@ -65,15 +84,57 @@ build-centos7-icc:
   extends:
     - .build-linux
     - .centos7
-  script: scripts/release.py build --compiler icc
+  script: scripts/build.py install --compiler icc
+
+test-centos7-icc-avx512:
+  extends:
+    - .test-linux
+    - .centos7
+  tags:
+    - avx512vl
+  needs:
+    - job: build-centos7-icc
+      artifacts: true
+  script: scripts/test.py
+
+test-centos7-icc-knl:
+  extends:
+    - .test-linux
+    - .centos7
+  tags:
+    - knl
+  needs:
+    - job: build-centos7-icc
+      artifacts: true
+  script: scripts/test.py
+
+test-centos7-icc-avx2:
+  extends:
+    - .test-linux
+    - .centos7
+  tags:
+    - avx2
+  needs:
+    - job: build-centos7-icc
+      artifacts: true
+  script: scripts/test.py
+
+test-centos7-icc-sse4:
+  extends:
+    - .test-linux
+    - .centos7
+  tags:
+    - avx512vl
+  needs:
+    - job: build-centos7-icc
+      artifacts: true
+  script: scripts/test.py --arch pnr
 
 package-linux:
   extends:
     - .package-linux
     - .centos7
-  needs: 
-    - job: build-centos7-icc
-      artifacts: true
+  script: scripts/build.py package --compiler icc
 
 ## -----------------------------------------------------------------------------
 
@@ -84,25 +145,91 @@ build-ubuntu18.04-gcc:
   extends:
     - .build-linux
     - .ubuntu18.04
-  script: scripts/release.py build --compiler gcc
+  script: scripts/build.py install --compiler gcc
+
+test-ubuntu18.04-gcc-avx512:
+  extends:
+    - .test-linux
+    - .ubuntu18.04
+  tags:
+    - avx512vl
+  needs:
+    - job: build-ubuntu18.04-gcc
+      artifacts: true
+  script: scripts/test.py
+
+test-ubuntu18.04-gcc-avx2:
+  extends:
+    - .test-linux
+    - .ubuntu18.04
+  tags:
+    - avx2
+  needs:
+    - job: build-ubuntu18.04-gcc
+      artifacts: true
+  script: scripts/test.py
+
+test-ubuntu18.04-gcc-sse4:
+  extends:
+    - .test-linux
+    - .ubuntu18.04
+  tags:
+    - avx512vl
+  needs:
+    - job: build-ubuntu18.04-gcc
+      artifacts: true
+  script: scripts/test.py --arch pnr
 
 build-ubuntu18.04-gcc-debug:
   extends:
     - .build-linux
     - .ubuntu18.04
-  script: scripts/release.py build --compiler gcc --config Debug
+  script: scripts/build.py install --compiler gcc --config Debug
+
+test-ubuntu18.04-gcc-debug-avx512:
+  extends:
+    - .test-linux
+    - .ubuntu18.04
+  tags:
+    - avx512vl
+  needs:
+    - job: build-ubuntu18.04-gcc-debug
+      artifacts: true
+  script: scripts/test.py
+
+test-ubuntu18.04-gcc-debug-avx2:
+  extends:
+    - .test-linux
+    - .ubuntu18.04
+  tags:
+    - avx2
+  needs:
+    - job: build-ubuntu18.04-gcc-debug
+      artifacts: true
+  script: scripts/test.py
+
+test-ubuntu18.04-gcc-debug-sse4:
+  extends:
+    - .test-linux
+    - .ubuntu18.04
+  tags:
+    - avx512vl
+  needs:
+    - job: build-ubuntu18.04-gcc-debug
+      artifacts: true
+  script: scripts/test.py --arch pnr
 
 build-ubuntu18.04-gcc-static:
   extends:
     - .build-linux
     - .ubuntu18.04
-  script: scripts/release.py build --compiler gcc -D OIDN_STATIC_LIB=ON
+  script: scripts/build.py --compiler gcc -D OIDN_STATIC_LIB=ON
 
 build-ubuntu18.04-clang:
   extends:
     - .build-linux
     - .ubuntu18.04
-  script: scripts/release.py build --compiler clang
+  script: scripts/build.py --compiler clang
 
 build-ubuntu18.04-kw-gcc:
   extends:
@@ -126,6 +253,19 @@ build-ubuntu20.04-gcc:
     - make -j VERBOSE=1
 
 ## -----------------------------------------------------------------------------
+
+.arch:
+  image: openimagedenoise/build:arch
+
+build-arch-gcc:
+  extends:
+    - .build-linux
+    - .arch
+  script:
+    - cmake -B build -G Ninja
+    - ninja -C build -v
+
+## -----------------------------------------------------------------------------
 ## macOS
 ## -----------------------------------------------------------------------------
 
@@ -139,6 +279,11 @@ build-ubuntu20.04-gcc:
     - .build
     - .base-macos
 
+.test-macos:
+  extends:
+    - .test
+    - .base-macos
+
 .package-macos:
   extends:
     - .package
@@ -148,21 +293,33 @@ build-ubuntu20.04-gcc:
 
 build-macos-icc:
   extends: .build-macos
-  script:  scripts/release.py build --compiler icc
+  script: scripts/build.py install --compiler icc
+
+test-macos-icc:
+  extends: .test-macos
+  needs:
+    - job: build-macos-icc
+      artifacts: true
+  script: scripts/test.py
 
 build-macos-clang:
   extends: .build-macos
-  script:  scripts/release.py build --compiler clang
+  script: scripts/build.py install --compiler clang
+
+test-macos-clang:
+  extends: .test-macos
+  needs:
+    - job: build-macos-clang
+      artifacts: true
+  script: scripts/test.py
 
 build-macos-clang-static:
   extends: .build-macos
-  script:  scripts/release.py build --compiler clang -D OIDN_STATIC_LIB=ON
+  script: scripts/build.py --compiler clang -D OIDN_STATIC_LIB=ON
 
 package-macos:
   extends: .package-macos
-  needs: 
-    - job: build-macos-icc
-      artifacts: true
+  script: scripts/build.py package --compiler icc
 
 ## -----------------------------------------------------------------------------
 ## Windows
@@ -180,6 +337,11 @@ package-macos:
     - .build
     - .base-windows
 
+.test-windows:
+  extends:
+    - .test
+    - .base-windows
+
 .package-windows:
   extends:
     - .package
@@ -192,59 +354,100 @@ build-windows-icc:
   tags:
     - msvc15
     - icc19
-  script:  python scripts/release.py build --compiler msvc15-icc19
+  script: python scripts/build.py install --compiler msvc15-icc19
+
+test-windows-icc-avx512:
+  extends: .test-windows
+  tags:
+    - msvc15
+    - icc19
+    - avx512vl
+  needs:
+    - job: build-windows-icc
+      artifacts: true
+  script: python scripts/test.py
+
+test-windows-icc-avx2:
+  extends: .test-windows
+  tags:
+    - msvc15
+    - icc19
+    - avx2
+  needs:
+    - job: build-windows-icc
+      artifacts: true
+  script: python scripts/test.py
 
 build-windows-msvc15:
   extends: .build-windows
   tags:
     - msvc15
-  script:  python scripts/release.py build --compiler msvc15
+  script: python scripts/build.py --compiler msvc15
 
 build-windows-msvc15-debug:
   extends: .build-windows
   tags:
     - msvc15
-  script:  python scripts/release.py build --compiler msvc15 --config Debug
+  script: python scripts/build.py --compiler msvc15 --config Debug
 
 build-windows-msvc15-static:
   extends: .build-windows
   tags:
     - msvc15
-  script:  python scripts/release.py build --compiler msvc15 -D OIDN_STATIC_LIB=ON
+  script: python scripts/build.py --compiler msvc15 -D OIDN_STATIC_LIB=ON
 
 build-windows-msvc16:
   extends: .build-windows
   tags:
     - msvc16
-  script:  python scripts/release.py build --compiler msvc16
+  script: python scripts/build.py install --compiler msvc16
+
+test-windows-msvc16-avx512:
+  extends: .test-windows
+  tags:
+    - msvc16
+    - avx512vl
+  needs:
+    - job: build-windows-msvc16
+      artifacts: true
+  script: python scripts/test.py
+
+test-windows-msvc16-avx2:
+  extends: .test-windows
+  tags:
+    - msvc16
+    - avx2
+  needs:
+    - job: build-windows-msvc16
+      artifacts: true
+  script: python scripts/test.py
 
 package-windows:
   extends: .package-windows
   tags:
     - msvc15
     - icc19
-  needs:
-    - job: build-windows-icc
-      artifacts: true
+  script: python scripts/build.py package --compiler msvc15-icc19
       
 ## -----------------------------------------------------------------------------
 ## Protex
 ## -----------------------------------------------------------------------------
 
-protex_scan:
-  stage: scan_source
+scan-protex:
+  stage: scan
   tags:
     - docker
   only:
     - schedules
     - web
   script: scripts/protex_scan.sh
-  image:  amd64/openjdk:8
+  image: amd64/openjdk:8
   dependencies: []
   # Will fail regularly, do not break nightlies because of that.
   allow_failure: true
   artifacts:
-    paths:     [ "$CI_PROJECT_DIR/ip_protex.log" ]
-    name:      "$CI_JOB_NAME"
-    when:      always
-    expire_in: 7d
+    name: "$CI_JOB_NAME"
+    paths:
+      - ip_protex.log
+    when: always
+    expire_in: 1 week

@@ -20,15 +20,20 @@ def main():
   device = init_device(cfg)
 
   # Load the checkpoint
+  print('Result:', cfg.result)
   checkpoint = load_checkpoint(cfg, device, cfg.checkpoint)
   epoch = checkpoint['epoch']
   model_state = checkpoint['model_state']
+  print('Epoch:', epoch)
 
   # Save the weights to a TZA file
-  output_filename = os.path.join(get_result_dir(cfg), cfg.result)
-  if cfg.checkpoint:
-    output_filename += '_%d' % epoch
-  output_filename += '.tza'
+  if cfg.output:
+    output_filename = cfg.output
+  else:
+    output_filename = os.path.join(get_result_dir(cfg), cfg.result)
+    if cfg.checkpoint:
+      output_filename += '_%d' % epoch
+    output_filename += '.tza'
   print('Output:', output_filename)
   print()
 

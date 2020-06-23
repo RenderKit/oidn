@@ -160,7 +160,7 @@ namespace oidn {
         }
       }
 
-      // Copy the output image to the final buffer if necessary
+      // Copy the output image to the final buffer if filtering in-place
       if (outputTemp)
         outputCopy(outputTemp, output);
     });
@@ -169,7 +169,13 @@ namespace oidn {
   void UNetFilter::computeTileSize()
   {
     const int minTileSize = 3*overlap;
-    const int estimatedBytesPerPixel = mayiuse(avx512_common) ? estimatedBytesPerPixel16 : estimatedBytesPerPixel8;
+  
+    // Estimate the required amount of memory
+    int estimatedBytesPerPixel = mayiuse(avx512_core) ? estimatedBytesPerPixel16 : estimatedBytesPerPixel8;
+    if (inplace)
+      estimatedBytesPerPixel += getFormatSize(output.format); // outputTemp
+
+    // Determine the maximum allowed tile size to fit into the requested memory limit
     const int64_t maxTilePixels = (int64_t(maxMemoryMB)*1024*1024 - estimatedBytesBase) / estimatedBytesPerPixel;
 
     tileCountH = 1;
@@ -249,8 +255,10 @@ namespace oidn {
         || (output.width != W || output.height != H))
       throw Exception(Error::InvalidOperation, "image size mismatch");
 
-    //if (output.ptr == color.ptr || output.ptr == albedo.ptr || output.ptr == normal.ptr)
-    //  throw Exception(Error::InvalidOperation, "output image is one of the input images");
+    // Determine whether in-place filtering is required
+    inplace = output.overlaps(color)
+              || output.overlaps(albedo)
+              || output.overlaps(normal);
 
     // Compute the tile size
     computeTileSize();
@@ -259,11 +267,12 @@ namespace oidn {
     if (H <= 0 || W <= 0)
       return nullptr;
 
-    // If there are multiple tiles, allocate temporary output buffer
-    if (tileCountH * tileCountW > 1)
+    // If doing in-place _tiled_ filtering, allocate a temporary output buffer
+    // For non-tiled filtering this is not necessary as we use ping-pong buffers
+    if (inplace && (tileCountH * tileCountW) > 1)
       outputTemp = Image(device, output.format, W, H);
 
-    // Parse the weights
+    // Parse the weights blob
     const auto weightsMap = parseTZA(weights.ptr, weights.size);
 
     // Create the network

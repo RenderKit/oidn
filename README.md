@@ -68,20 +68,6 @@ Join our [mailing
 list](https://groups.google.com/d/forum/openimagedenoise/) to receive
 release announcements and major news regarding Intel Open Image Denoise.
 
-## Citation
-
-If you use Intel Open Image Denoise in a research publication, please
-cite the project using the following BibTeX entry:
-
-``` bibtex
-@Misc{OpenImageDenoise,
-  author = {Attila T. {\'A}fra},
-  title  = {{Intel\textsuperscript{\textregistered} Open Image Denoise}},
-  year   = {2020},
-  note   = {\url{http://www.openimagedenoise.org/}}
-}
-```
-
 # Compiling Intel Open Image Denoise
 
 The latest Intel Open Image Denoise sources are always available at the
@@ -93,11 +79,16 @@ repository](http://github.com/OpenImageDenoise/oidn). The default
 
 You can clone the latest Intel Open Image Denoise sources using Git with
 the [Git Large File Storage (LFS)](https://git-lfs.github.com/)
-extension:
+extension installed:
 
 ``` 
     git clone --recursive https://github.com/OpenImageDenoise/oidn.git
 ```
+
+Please note that installing the Git LFS extension is *required* to
+correctly clone the repository. Cloning without Git LFS will seemingly
+succeed but actually some of the files will be invalid and thus
+compilation will fail.
 
 Intel Open Image Denoise currently supports 64-bit Linux, Windows, and
 macOS operating systems. In addition, before you can build Intel Open
@@ -772,16 +763,16 @@ supported.
 
 The filter can be created by passing `"RT"` to the `oidnNewFilter`
 function as the filter type. The filter supports the parameters listed
-in the table below. All specified images must have the same dimensions,
-and the output image must be different from the input images
-(i.e. in-place denoising is *not* supported).
+in the table below. All specified images must have the same dimensions.
+The output image can be one of the input images (i.e. in-place denoising
+is supported).
 
 | Type      | Format | Name        | Default | Description                                                                                                                                                                                                                                                                                |
 | :-------- | :----- | :---------- | ------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Image     | float3 | color       |         | input color image (LDR values in \[0, 1\] or HDR values in \[0, +∞), 3 channels)                                                                                                                                                                                                           |
 | Image     | float3 | albedo      |         | input feature image containing the albedo (values in \[0, 1\], 3 channels) of the first hit per pixel; *optional*                                                                                                                                                                          |
 | Image     | float3 | normal      |         | input feature image containing the shading normal (world-space or view-space, arbitrary length, values in (−∞, +∞), 3 channels) of the first hit per pixel; *optional*, requires setting the albedo image too                                                                              |
-| Image     | float3 | output      |         | output color image (3 channels); must be different from the input images                                                                                                                                                                                                                   |
+| Image     | float3 | output      |         | output color image (3 channels); it can be one of the input images                                                                                                                                                                                                                         |
 | Data      |        | weights     |         | trained model weights blob; *optional*                                                                                                                                                                                                                                                     |
 | bool      |        | hdr         |   false | whether the color is HDR                                                                                                                                                                                                                                                                   |
 | float     |        | hdrScale    |     NaN | HDR color values are interpreted such that, multiplied by this scale, a value of 1 corresponds to a luminance level of 100 cd/m² (this affects the quality of the output but the output color values will *not* be scaled); if set to NaN, the scale is computed automatically (*default*) |
@@ -914,7 +905,7 @@ following parameters:
 | Type      | Format | Name        | Default | Description                                                                                                                                                                                      |
 | :-------- | :----- | :---------- | ------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Image     | float3 | color       |         | input color image (HDR values in \[0, +∞), 3 channels)                                                                                                                                           |
-| Image     | float3 | output      |         | output color image (3 channels); must be different from the input images                                                                                                                         |
+| Image     | float3 | output      |         | output color image (3 channels); it can be one of the input images                                                                                                                               |
 | Data      |        | weights     |         | trained model weights blob; *optional*                                                                                                                                                           |
 | float     |        | hdrScale    |     NaN | HDR color values are interpreted such that, multiplied by this scale, a value of 1 corresponds to a luminance level of 100 cd/m²; if set to NaN, the scale is computed automatically (*default*) |
 | int       |        | maxMemoryMB |    6000 | approximate maximum amount of scratch memory to use in megabytes (actual memory usage may be higher)                                                                                             |
@@ -980,6 +971,8 @@ command-line scripts:
 Before you can run the training toolkit you need the following
 prerequisites:
 
+  - Linux (other operating systems are currently not supported)
+
   - Python 3.7 or later
 
   - [PyTorch](https://pytorch.org/) 1.4 or later
@@ -990,9 +983,6 @@ prerequisites:
 
   - [TensorBoard](https://www.tensorflow.org/tensorboard) 2.1 or later
     (*optional*)
-
-The training toolkit has been tested only on Linux, thus other operating
-systems are currently not supported.
 
 ## Datasets
 
@@ -1159,7 +1149,7 @@ default the latest checkpoint is loaded.
 The tool saves the output images in a separate directory (`-O` or
 `--output_dir`) in the requested formats (`-F` or `--format` option). It
 also evaluates a set of image quality metrics (`-M` or `--metric`
-option), e.g. SSIM, MSE, for images that have reference images
+option), e.g. PSNR, SSIM, for images that have reference images
 available. All metrics are computed in tonemapped non-linear sRGB space.
 Thus, HDR images are first tonemapped (with Naughty Dog’s Filmic
 Tonemapper from John Hable’s *Uncharted 2: HDR Lighting* presentation)

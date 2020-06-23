@@ -14,7 +14,7 @@ terms are listed below.
 
 --------------------------------------------------------------------------------
 
-1.  Intel(R) Deep Neural Network Library
+1.  Intel(R) oneAPI Deep Neural Network Library
     Copyright 2016-2020 Intel Corporation
 
     Intel(R) Threading Building Blocks
@@ -358,8 +358,8 @@ DEALINGS IN THE SOFTWARE.
 The following third party programs have their own third party programs. These
 additional third party program files are as follows:
 
-1.  Intel(R) Deep Neural Network Library
-      ./third-party-programs-DNNL.txt
+1.  Intel(R) oneAPI Deep Neural Network Library
+      ./third-party-programs-oneDNN.txt
 
 2.  Intel(R) Threading Building Blocks
       ./third-party-programs-TBB.txt

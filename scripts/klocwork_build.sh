@@ -60,8 +60,8 @@ set -e
 echo "$KW_SERVER_IP;$KW_SERVER_PORT;$KW_USER;$KW_LTOKEN" > $KLOCWORK_LTOKEN
 
 # Build
-scripts/release.py build --wrapper "$KW_CLIENT_PATH/bin/kwinject -w -o buildspec.txt"
-cd build_release
+scripts/build.py --wrapper "$KW_CLIENT_PATH/bin/kwinject -w -o buildspec.txt"
+cd build
 $KW_SERVER_PATH/bin/kwbuildproject --force --url http://$KW_SERVER_IP:$KW_SERVER_PORT/oidn buildspec.txt --tables-directory mytables
 $KW_SERVER_PATH/bin/kwadmin --url http://$KW_SERVER_IP:$KW_SERVER_PORT load --force --name build-$CI_PIPELINE_ID oidn mytables | tee project_load.log
 

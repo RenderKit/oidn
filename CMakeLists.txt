@@ -83,7 +83,7 @@ include(oidn_platform)
 include(oidn_dnnl)
 
 # ISPC
-set(OIDN_ISPC_TARGET_LIST sse4-i32x8;avx2-i32x8;avx512skx-i32x16;avx512knl-i32x16)
+set(OIDN_ISPC_TARGET_LIST sse4-i32x8;avx2-i32x8;avx512skx-i32x16)
 set(OIDN_ISPC_ADDRESSING 64)
 include(oidn_ispc)
 

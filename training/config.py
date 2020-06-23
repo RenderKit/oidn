@@ -69,6 +69,9 @@ def parse_args(cmd=None, description=None):
     parser.add_argument('--format', '-F', type=str, nargs='*', default=['exr'], help='output image formats')
     parser.add_argument('--save_all', '-a', action='store_true', help='save input and target images too')
 
+  if cmd in {'export'}:
+    parser.add_argument('--output', '-o', type=str, help='output file')
+
   if cmd in {'convert_image', 'split_exr'}:
     parser.add_argument('input', type=str, help='input image')
 

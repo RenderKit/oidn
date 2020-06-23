@@ -13,7 +13,7 @@ namespace oidn {
       sm(eng),
       weightsMap(weightsMap)
   {
-    if (mayiuse(avx512_common))
+    if (mayiuse(avx512_core))
     {
       K = 16;
       nChwKc = memory::format_tag::nChw16c;
@@ -354,7 +354,6 @@ namespace oidn {
     memory::dims scratchpadDims = { memory::dim(scratchpadSize) };
     memory::desc scratchpadDesc(scratchpadDims, memory::data_type::u8, memory::format_tag::x);
     auto scratchpad = std::make_shared<memory>(scratchpadDesc, eng);
-    activationAllocBytes += scratchpadSize;
     totalAllocBytes += scratchpadSize;
 
     // Set the scratchpad for the nodes

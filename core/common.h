@@ -25,7 +25,8 @@ namespace oidn {
   using dnnl::impl::parallel_nd;
   using dnnl::impl::memory_desc_matches_tag;
 
-  inline size_t getFormatBytes(Format format)
+  // Returns the size of the format in bytes
+  inline size_t getFormatSize(Format format)
   {
     switch (format)
     {

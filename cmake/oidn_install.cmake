@@ -38,7 +38,7 @@ install(
     ${PROJECT_SOURCE_DIR}/CHANGELOG.md
     ${PROJECT_SOURCE_DIR}/LICENSE.txt
     ${PROJECT_SOURCE_DIR}/third-party-programs.txt
-    ${PROJECT_SOURCE_DIR}/third-party-programs-DNNL.txt
+    ${PROJECT_SOURCE_DIR}/third-party-programs-oneDNN.txt
     ${PROJECT_SOURCE_DIR}/third-party-programs-TBB.txt
   DESTINATION ${CMAKE_INSTALL_DOCDIR}
   COMPONENT lib
@@ -59,10 +59,18 @@ endif()
 
 if(OIDN_ZIP_MODE)
   foreach(C IN ITEMS "tbb" "tbbmalloc")
-    get_target_property(LIB_PATH TBB::${C} IMPORTED_LOCATION_RELEASE)
+    if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+      get_target_property(LIB_PATH TBB::${C} IMPORTED_LOCATION_DEBUG)
+    else()
+      get_target_property(LIB_PATH TBB::${C} IMPORTED_LOCATION_RELEASE)
+    endif()
     if(WIN32)
       install(PROGRAMS ${LIB_PATH} DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT lib)
-      get_target_property(IMPLIB_PATH TBB::${C} IMPORTED_IMPLIB_RELEASE)
+      if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+        get_target_property(IMPLIB_PATH TBB::${C} IMPORTED_IMPLIB_DEBUG)
+      else()
+        get_target_property(IMPLIB_PATH TBB::${C} IMPORTED_IMPLIB_RELEASE)
+      endif()
       install(PROGRAMS ${IMPLIB_PATH} DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib)
     else()
       install(PROGRAMS ${LIB_PATH} DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib)
