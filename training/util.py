@@ -8,8 +8,11 @@ import json
 import csv
 from zipfile import ZipFile
 import numpy as np
+
 import torch
 import torch.nn as nn
+import torch.multiprocessing as mp
+import torch.distributed as dist
 
 def round_down(a, b):
   return a // b * b
@@ -75,6 +78,29 @@ def save_zip(filename, input_filenames):
 ## PyTorch utils
 ## -----------------------------------------------------------------------------
 
+# Starts worker processes
+def start_workers(cfg, worker_fn):
+  if cfg.num_devices > 1:
+    # Spawn a worker process for each device
+    mp.spawn(worker_fn, args=(cfg,), nprocs=cfg.num_devices)
+  else:
+    main_worker(0, cfg)
+
+# Initializes a worker process
+def init_worker(rank, cfg):
+  if cfg.num_devices > 1:
+    # Set 'fork' multiprocessing start method for improved DataLoader performance
+    # We must set it explicitly as spawned processes have the 'spawn' method set by default
+    mp.set_start_method('fork', force=True)
+
+    # Initialize the process group
+    os.environ['MASTER_ADDR'] = 'localhost'
+    os.environ['MASTER_PORT'] = '12355'
+
+    dist.init_process_group(backend='nccl',
+                            rank=rank, world_size=cfg.num_devices,
+                            init_method='env://')
+
 # Initializes and returns the PyTorch device
 def init_device(cfg, index=0):
   # Initialize the device
@@ -101,7 +127,11 @@ def init_device(cfg, index=0):
 
     device_name = 'CPU'
 
-  print(f'Device {index:2}:', device_name)
+  if cfg.num_devices > 1:
+    print(f'Device {index:2}:', device_name)
+  else:
+    print('Device:', device_name)
+
   return device
 
 # Remove wrappers like DataParallel from a module

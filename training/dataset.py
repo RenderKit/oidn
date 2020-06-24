@@ -5,8 +5,10 @@ import os
 from glob import glob
 from collections import defaultdict
 import numpy as np
+
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
+from torch.utils.data.distributed import DistributedSampler
 
 from config import *
 from util import *
@@ -180,6 +182,25 @@ def transform_feature(image, input_feature, output_feature, exposure=1.):
       # Transform [-1, 1] -> [0, 1]
       image = image * 0.5 + 0.5
   return image
+
+# Returns a data loader and its sampler for the specified dataset
+def get_data_loader(rank, cfg, dataset, shuffle):
+  if cfg.num_devices > 1:
+    sampler = DistributedSampler(dataset,
+                                 num_replicas=cfg.num_devices, 
+                                 rank=rank,
+                                 shuffle=shuffle)
+  else:
+    sampler = None
+
+  loader = DataLoader(dataset,
+                      batch_size=(cfg.batch_size // cfg.num_devices),
+                      sampler=sampler,
+                      shuffle=(shuffle if sampler is None else False),
+                      num_workers=cfg.loaders,
+                      pin_memory=(cfg.device != 'cpu'))
+
+  return loader, sampler
 
 ## -----------------------------------------------------------------------------
 ## Preprocessed dataset

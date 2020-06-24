@@ -8,15 +8,12 @@ import sys
 from glob import glob
 import time
 import numpy as np
+
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader
-from torch.utils.tensorboard import SummaryWriter
-
-import torch.multiprocessing as mp
 import torch.distributed as dist
-from torch.utils.data.distributed import DistributedSampler
+from torch.utils.tensorboard import SummaryWriter
 
 from config import *
 from dataset import *
@@ -34,30 +31,14 @@ def main():
   if not cfg.result:
     cfg.result = '%x' % int(time.time())
 
-  # Run the worker(s)
-  if cfg.num_devices == 1:
-    main_worker(0, cfg)
-  elif cfg.num_devices > 1:
-    # Spawn a worker process for each device
-    mp.spawn(main_worker, args=(cfg,), nprocs=cfg.num_devices)
-  else:
-    error('invalid number of devices')
+  # Start the worker(s)
+  start_workers(cfg, main_worker)  
 
+# Worker function
 def main_worker(rank, cfg):
+  # Initialize the worker
+  init_worker(rank, cfg)
   distributed = cfg.num_devices > 1
-
-  if distributed:
-    # Set 'fork' multiprocessing start method for improved DataLoader performance
-    # We must set it explicitly as spawned processes have the 'spawn' method set by default
-    mp.set_start_method('fork', force=True)
-
-    # Initialize the process group
-    os.environ['MASTER_ADDR'] = 'localhost'
-    os.environ['MASTER_PORT'] = '12355'
-
-    dist.init_process_group(backend='nccl',
-                            rank=rank, world_size=cfg.num_devices,
-                            init_method='env://')
 
   # Initialize the random seed
   #torch.manual_seed(cfg.seed)
@@ -78,12 +59,15 @@ def main_worker(rank, cfg):
   # Initialize the optimizer
   optimizer = optim.Adam(model.parameters(), lr=1)
 
-  # Start or resume training
+  # Check whether the result already exists
   result_dir = get_result_dir(cfg)
   resume = os.path.isdir(result_dir)
+    
+  # Sync the workers (required due to the previous isdir check)
   if distributed:
     dist.barrier()
-    
+
+  # Start or resume training
   if resume:
     if rank == 0:
       print('Resuming result:', cfg.result)
@@ -115,6 +99,7 @@ def main_worker(rank, cfg):
     step = 0
     last_step = -1
 
+  # Make sure all workers have loaded the checkpoint
   if distributed:
     dist.barrier()
 
@@ -134,47 +119,16 @@ def main_worker(rank, cfg):
       print('Training images:', train_data.num_images)
   else:
     error('no training images (forgot to run preprocess?)')
-
-  local_batch_size = cfg.batch_size // cfg.num_devices
-  pin_memory = (cfg.device != 'cpu')
-
-  if distributed:
-    train_sampler = DistributedSampler(train_data,
-                                       num_replicas=cfg.num_devices, 
-                                       rank=rank,
-                                       shuffle=True)
-  else:
-    train_sampler = None
-
-  train_data_loader = DataLoader(train_data, local_batch_size,
-                                 sampler=train_sampler,
-                                 shuffle=(train_sampler is None),
-                                 num_workers=cfg.loaders,
-                                 pin_memory=pin_memory)
-
-  train_steps_per_epoch = len(train_data_loader)
+  train_loader, train_sampler = get_data_loader(rank, cfg, train_data, shuffle=True)
+  train_steps_per_epoch = len(train_loader)
 
   # Initialize the validation dataset
   valid_data = ValidationDataset(cfg, cfg.valid_data)
   if len(valid_data) > 0:
     if rank == 0:
       print('Validation images:', valid_data.num_images)
-
-    if distributed:
-      valid_sampler = DistributedSampler(valid_data,
-                                         num_replicas=cfg.num_devices, 
-                                         rank=rank,
-                                         shuffle=False)
-    else:
-      valid_sampler = None
-
-    valid_data_loader = DataLoader(valid_data, local_batch_size,
-                                   sampler=valid_sampler,
-                                   shuffle=False,
-                                   num_workers=cfg.loaders,
-                                   pin_memory=pin_memory)
-
-    valid_steps_per_epoch = len(valid_data_loader)
+    valid_loader, valid_sampler = get_data_loader(rank, cfg, valid_data, shuffle=False)
+    valid_steps_per_epoch = len(valid_loader)
 
   # Initialize the learning rate scheduler
   lr_step_size = cfg.lr_cycle_epochs * train_steps_per_epoch // 2
@@ -218,7 +172,7 @@ def main_worker(rank, cfg):
     if distributed:
       train_sampler.set_epoch(epoch)
 
-    for i, batch in enumerate(train_data_loader, 0):
+    for i, batch in enumerate(train_loader, 0):
       # Get the batch
       input, target = batch
       input  = input.to(device,  non_blocking=True).float()
@@ -273,7 +227,7 @@ def main_worker(rank, cfg):
 
       # Iterate over the batches
       with torch.no_grad():
-        for _, batch in enumerate(valid_data_loader, 0):
+        for _, batch in enumerate(valid_loader, 0):
           # Get the batch
           input, target = batch
           input  = input.to(device,  non_blocking=True).float()
