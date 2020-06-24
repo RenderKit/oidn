@@ -30,7 +30,7 @@ class Writer(object):
       return 'h'
     else:
       raise ValueError('unsupported tensor data type')
-  
+
   def _write_uint8(self, x):
     self._file.write(struct.pack('B', x))
 

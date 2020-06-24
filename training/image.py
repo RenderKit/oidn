@@ -101,7 +101,7 @@ def save_pfm(filename, image):
       f.write('Pf\n')
       data = image[..., 0]
     data = np.flip(data, 0).astype(np.float32)
-    
+
     f.write('%d %d\n' % (image.shape[1], image.shape[0]))
     f.write('-1.0\n')
     data.tofile(f)

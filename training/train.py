@@ -32,7 +32,7 @@ def main():
     cfg.result = '%x' % int(time.time())
 
   # Start the worker(s)
-  start_workers(cfg, main_worker)  
+  start_workers(cfg, main_worker)
 
 # Worker function
 def main_worker(rank, cfg):
@@ -62,7 +62,7 @@ def main_worker(rank, cfg):
   # Check whether the result already exists
   result_dir = get_result_dir(cfg)
   resume = os.path.isdir(result_dir)
-    
+
   # Sync the workers (required due to the previous isdir check)
   if distributed:
     dist.barrier()
@@ -144,7 +144,7 @@ def main_worker(rank, cfg):
     optimizer,
     lr_lambda=[lr_lambda],
     last_epoch=last_step)
-    
+
   if lr_scheduler.last_epoch != step:
     error('failed to restore LR scheduler step')
 

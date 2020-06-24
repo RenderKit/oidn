@@ -176,5 +176,5 @@ def tonemap(x):
 
   def eval(x):
     return ((x*(A*x+C*B)+D*E)/(x*(A*x+B)+D*F))-E/F
-    
+
   return torch.clamp(eval(x * scale) / eval(W), max=1.)

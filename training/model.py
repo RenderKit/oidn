@@ -75,7 +75,7 @@ class UNet(nn.Module):
     self.dec_conv1a = Conv(dc2+ic,  dc1a)
     self.dec_conv1b = Conv(dc1a,    dc1b)
     self.dec_conv0  = Conv(dc1b,    oc)
-    
+
   def forward(self, input):
     # Encoder
     # -------------------------------------------

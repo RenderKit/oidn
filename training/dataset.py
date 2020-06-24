@@ -187,7 +187,7 @@ def transform_feature(image, input_feature, output_feature, exposure=1.):
 def get_data_loader(rank, cfg, dataset, shuffle):
   if cfg.num_devices > 1:
     sampler = DistributedSampler(dataset,
-                                 num_replicas=cfg.num_devices, 
+                                 num_replicas=cfg.num_devices,
                                  rank=rank,
                                  shuffle=shuffle)
   else:
@@ -271,7 +271,7 @@ class TrainingDataset(PreprocessedDataset):
     width  = input_image.shape[1]
     if height < self.tile_size or width < self.tile_size:
       error('image is smaller than the tile size')
-    
+
     # Generate a random crop
     sy = sx = self.tile_size
     if rand() < 0.1:

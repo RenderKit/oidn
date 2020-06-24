@@ -105,7 +105,7 @@ def init_worker(rank, cfg):
 def init_device(cfg, index=0):
   # Initialize the device
   device = torch.device(cfg.device, index)
-  
+
   if cfg.device == 'cuda':
     if cfg.deterministic:
       torch.backends.cudnn.benchmark = False
@@ -140,7 +140,7 @@ def unwrap_module(module):
     return module.module
   else:
     return module
-  
+
 # Generates a random float in [0, 1)
 def rand():
   return torch.rand(1).item()
