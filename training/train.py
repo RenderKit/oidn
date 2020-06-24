@@ -27,24 +27,19 @@ def main():
   # Parse the command line arguments
   cfg = parse_args(description='Trains a model using preprocessed datasets.')
 
-  # Generate a result name if not specified
-  if not cfg.result:
-    cfg.result = '%x' % int(time.time())
-
   # Start the worker(s)
   start_workers(cfg, main_worker)
 
 # Worker function
 def main_worker(rank, cfg):
   # Initialize the worker
-  init_worker(rank, cfg)
-  distributed = cfg.num_devices > 1
+  distributed = init_worker(rank, cfg)
 
   # Initialize the random seed
   #torch.manual_seed(cfg.seed)
 
   # Initialize the PyTorch device
-  device = init_device(cfg, rank)
+  device = init_device(cfg, id=rank)
 
   # Initialize the model
   model = UNet(get_num_channels(cfg.features))

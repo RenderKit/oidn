@@ -184,7 +184,7 @@ def transform_feature(image, input_feature, output_feature, exposure=1.):
   return image
 
 # Returns a data loader and its sampler for the specified dataset
-def get_data_loader(rank, cfg, dataset, shuffle):
+def get_data_loader(rank, cfg, dataset, shuffle=False):
   if cfg.num_devices > 1:
     sampler = DistributedSampler(dataset,
                                  num_replicas=cfg.num_devices,

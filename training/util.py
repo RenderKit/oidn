@@ -84,9 +84,9 @@ def start_workers(cfg, worker_fn):
     # Spawn a worker process for each device
     mp.spawn(worker_fn, args=(cfg,), nprocs=cfg.num_devices)
   else:
-    main_worker(0, cfg)
+    worker_fn(0, cfg)
 
-# Initializes a worker process
+# Initializes a worker process and returns whether running in distributed mode
 def init_worker(rank, cfg):
   if cfg.num_devices > 1:
     # Set 'fork' multiprocessing start method for improved DataLoader performance
@@ -101,10 +101,16 @@ def init_worker(rank, cfg):
                             rank=rank, world_size=cfg.num_devices,
                             init_method='env://')
 
-# Initializes and returns the PyTorch device
-def init_device(cfg, index=0):
+    # Running in distributed mode
+    return True
+  else:
+    # This is the only worker, not running in distributed mode
+    return False
+
+# Initializes and returns the PyTorch device with the specified ID
+def init_device(cfg, id=0):
   # Initialize the device
-  device = torch.device(cfg.device, index)
+  device = torch.device(cfg.device, id)
 
   if cfg.device == 'cuda':
     if cfg.deterministic:
@@ -113,7 +119,7 @@ def init_device(cfg, index=0):
     else:
       torch.backends.cudnn.benchmark = True # higher performance
 
-    torch.cuda.set_device(index)
+    torch.cuda.set_device(id)
     device_name = torch.cuda.get_device_name()
   else:
     # Query CPU information
@@ -128,7 +134,7 @@ def init_device(cfg, index=0):
     device_name = 'CPU'
 
   if cfg.num_devices > 1:
-    print(f'Device {index:2}:', device_name)
+    print(f'Device {id:2}:', device_name)
   else:
     print('Device:', device_name)
 

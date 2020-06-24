@@ -8,7 +8,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import DataLoader
 
 from config import *
 from dataset import *
@@ -22,22 +21,22 @@ def main():
   # Parse the command line arguments
   cfg = parse_args(description='Tool for finding the optimal minimum and maximum learning rates.')
 
-  # Generate a result name if not specified
-  if not cfg.result:
-    cfg.result = '%x' % int(time.time())
+  # Start the worker(s)
+  start_workers(cfg, main_worker)
 
-  # Set the learning rate range
-  cfg.lr     = 1e-8
-  cfg.max_lr = 1.
+# Worker function
+def main_worker(rank, cfg):
+  # Initialize the worker
+  distributed = init_worker(rank, cfg)
 
   # Initialize the PyTorch device
-  device = init_device(cfg)
+  device = init_device(cfg, id=rank)
 
   # Initialize the model
   model = UNet(get_num_channels(cfg.features))
-  if cfg.device == 'cuda' and torch.cuda.device_count() > 1:
-    model = nn.DataParallel(model)
   model.to(device)
+  if distributed:
+    model = nn.parallel.DistributedDataParallel(model, device_ids=[rank])
 
   # Initialize the loss function
   criterion = get_loss_function(cfg.loss)
@@ -46,42 +45,48 @@ def main():
   # Initialize the optimizer
   optimizer = optim.Adam(model.parameters(), lr=cfg.lr)
 
+  # Sync the workers
+  if distributed:
+    dist.barrier()
+
   # Start training
-  print('Result:', cfg.result)
+  if rank == 0:
+    print('Result:', cfg.result)
   step = 0
 
   # Initialize the training dataset
   train_data = TrainingDataset(cfg, cfg.train_data)
   if len(train_data) > 0:
-    print('Training images:', train_data.num_images)
+    if rank == 0:
+      print('Training images:', train_data.num_images)
   else:
-    error('no training images')
-  pin_memory = (cfg.device != 'cpu')
-  train_data_loader = DataLoader(
-    train_data, cfg.batch_size, shuffle=True,
-    num_workers=cfg.loaders, pin_memory=pin_memory,
-    drop_last=True)
-  train_steps_per_epoch = len(train_data_loader)
+    error('no training images (forgot to run preprocess?)')
+  train_loader, _ = get_data_loader(rank, cfg, train_data, shuffle=True)
+  train_steps_per_epoch = len(train_loader)
 
   # Initialize the learning rate scheduler
   gamma = (cfg.max_lr / cfg.lr) ** (1. / (train_steps_per_epoch-1))
   lr_scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma=gamma)
 
   # Training loop
-  print()
-  start_time = time.time()
   avg_loss = 0.
   best_loss = float('inf')
   beta = 0.98 # loss smoothing
-  result = [['learning_rate', 'smoothed_loss', 'loss']]
-  progress = ProgressBar(train_steps_per_epoch, 'Train')
+
+  if rank == 0:
+    print()
+    start_time = time.time()
+    progress = ProgressBar(train_steps_per_epoch, 'Train')
+    result = [['learning_rate', 'smoothed_loss', 'loss']]
+
+  # Switch to training mode
   model.train()
 
   # Iterate over the batches
-  for _, batch in enumerate(train_data_loader, 0):
+  for _, batch in enumerate(train_loader, 0):
     # Get the batch
     input, target = batch
-    input  = input.to(device, non_blocking=True).float()
+    input  = input.to(device,  non_blocking=True).float()
     target = target.to(device, non_blocking=True).float()
 
     # Run a training step
@@ -89,33 +94,42 @@ def main():
     loss = criterion(model(input), target)
     loss.backward()
 
+    # Get the loss
+    # In distributed mode we have to do a reduction, which is very expensive
+    if distributed:
+      dist.all_reduce(loss, op=dist.ReduceOp.SUM)
+    cur_loss = loss.item() / cfg.num_devices
+
     # Compute the smoothed loss
-    cur_loss = loss.item()
     avg_loss = beta * avg_loss + (1 - beta) * cur_loss
     smoothed_loss = avg_loss / (1 - beta ** (step+1))
     if smoothed_loss < best_loss:
       best_loss = smoothed_loss
-    elif smoothed_loss > 4 * best_loss:
+    elif smoothed_loss > 10 * best_loss:
       break
 
     # Record result
-    lr = lr_scheduler.get_last_lr()[0]
-    result.append([lr, smoothed_loss, cur_loss])
+    if rank == 0:
+      lr = lr_scheduler.get_last_lr()[0]
+      result.append([lr, smoothed_loss, cur_loss])
 
     # Next step
     optimizer.step()
     lr_scheduler.step()
     step += 1
-    progress.next()
+    if rank == 0:
+      progress.next()
 
   # Print stats
-  duration = time.time() - start_time
-  images_per_sec = (step * cfg.batch_size) / duration
-  progress.finish('(%.1f images/s, %.1fs)' % (images_per_sec, duration))
+  if rank == 0:
+    duration = time.time() - start_time
+    images_per_sec = (step * cfg.batch_size) / duration
+    progress.finish('(%.1f images/s, %.1fs)' % (images_per_sec, duration))
 
   # Save the results
-  result_filename = os.path.join(cfg.results_dir, cfg.result) + '_lr.csv'
-  save_csv(result_filename, result)
+  if rank == 0:
+    result_filename = os.path.join(cfg.results_dir, cfg.result) + '.csv'
+    save_csv(result_filename, result)
 
 if __name__ == '__main__':
   main()

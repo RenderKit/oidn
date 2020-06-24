@@ -53,6 +53,10 @@ def parse_args(cmd=None, description=None):
     parser.add_argument('--max_lr', '--max_learning_rate', type=float, default=2e-4, help='maximum learning rate')
     parser.add_argument('--lr_cycle_epochs', type=int, default=250, help='number of epochs per learning rate cycle (for CLR)')
 
+  if cmd in {'find_lr'}:
+    parser.add_argument('--lr', '--learning_rate', type=float, default=1e-8, help='minimum learning rate')
+    parser.add_argument('--max_lr', '--max_learning_rate', type=float, default=0.1, help='maximum learning rate')
+
   if cmd in {'train', 'find_lr'}:
     parser.add_argument('--batch_size', '--bs', type=int, default=8, help='size of the mini-batches')
     parser.add_argument('--loaders', type=int, default=4, help='number of data loader threads per device')
@@ -91,7 +95,7 @@ def parse_args(cmd=None, description=None):
     parser.add_argument('--device', '-d', type=str, choices=['cpu', 'cuda'], default=get_default_device(), help='device to use')
     advanced.add_argument('--deterministic', '--det', action='store_true', help='makes computations deterministic (slower performance)')
 
-  if cmd in {'train'}:
+  if cmd in {'train', 'find_lr'}:
     parser.add_argument('--num_devices', '-n', type=int, default=1, help='number of devices to use')
 
   cfg = parser.parse_args()
@@ -114,9 +118,14 @@ def parse_args(cmd=None, description=None):
       else:
         cfg.transfer = 'srgb'
 
-  if cmd in {'train'}:
+  if cmd in {'train', 'find_lr'}:
+    # Check the batch size
     if cfg.batch_size % cfg.num_devices != 0:
       parser.error('batch_size is not divisible by num_devices')
+
+    # Generate a result name if not specified
+    if not cfg.result:
+      cfg.result = '%x' % int(time.time())
 
   # Print PyTorch version
   print('PyTorch:', torch.__version__)
