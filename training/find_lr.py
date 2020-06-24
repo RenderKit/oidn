@@ -105,7 +105,7 @@ def main_worker(rank, cfg):
     smoothed_loss = avg_loss / (1 - beta ** (step+1))
     if smoothed_loss < best_loss:
       best_loss = smoothed_loss
-    elif smoothed_loss > 10 * best_loss:
+    elif smoothed_loss > 4 * best_loss:
       break
 
     # Record result
