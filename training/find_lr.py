@@ -131,5 +131,8 @@ def main_worker(rank, cfg):
     result_filename = os.path.join(cfg.results_dir, cfg.result) + '.csv'
     save_csv(result_filename, result)
 
+  # Cleanup
+  cleanup_worker(cfg)
+
 if __name__ == '__main__':
   main()

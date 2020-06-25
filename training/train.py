@@ -257,5 +257,8 @@ def main_worker(rank, cfg):
       # Save a checkpoint
       save_checkpoint(result_dir, epoch, step, model, optimizer)
 
+  # Cleanup
+  cleanup_worker(cfg)
+
 if __name__ == '__main__':
   main()

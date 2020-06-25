@@ -108,6 +108,11 @@ def init_worker(rank, cfg):
     # This is the only worker, not running in distributed mode
     return False
 
+# Cleans up resources used by the worker process
+def cleanup_worker(cfg):
+  if cfg.num_devices > 1:
+    dist.destroy_process_group()
+
 # Initializes and returns the PyTorch device with the specified ID
 def init_device(cfg, id=0):
   # Initialize the device
