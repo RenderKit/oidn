@@ -6,7 +6,7 @@ import sys
 import struct
 import json
 import csv
-from zipfile import ZipFile
+import zipfile
 import numpy as np
 
 import torch
@@ -69,10 +69,11 @@ def save_csv(filename, rows):
         csv_writer.writerow([row])
 
 # Saves a ZIP file containing the specified input files
-def save_zip(filename, input_filenames):
-  with ZipFile(filename, 'w') as zip:
+def save_zip(output_filename, input_filenames, root_dir=None):
+  with zipfile.ZipFile(output_filename, 'w', compression=zipfile.ZIP_DEFLATED) as zip:
     for input_filename in input_filenames:
-      zip.write(input_filename)
+      arcname = os.path.relpath(input_filename, root_dir) if root_dir else None
+      zip.write(input_filename, arcname=arcname)
 
 ## -----------------------------------------------------------------------------
 ## PyTorch utils

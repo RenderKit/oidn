@@ -10,22 +10,39 @@ from util import *
 def get_result_dir(cfg):
   return os.path.join(cfg.results_dir, cfg.result)
 
-# Gets the latest chechpoint epoch
-def get_latest_checkpoint_epoch(cfg):
-  checkpoint_dir = os.path.join(get_result_dir(cfg), 'checkpoints')
-  latest_filename = os.path.join(checkpoint_dir, 'latest')
+# Gets the path to the result checkpoint directory
+def get_checkpoint_dir(result_dir):
+  return os.path.join(result_dir, 'checkpoints')
+
+# Gets the path to a checkpoint file
+def get_checkpoint_filename(result_dir, epoch):
+  checkpoint_dir = get_checkpoint_dir(result_dir)
+  return os.path.join(checkpoint_dir, 'checkpoint_%d.pth' % epoch)
+
+# Gets the path to the file that contains the checkpoint state (latest epoch)
+def get_checkpoint_state_filename(result_dir):
+  checkpoint_dir = get_checkpoint_dir(result_dir)
+  return os.path.join(checkpoint_dir, 'latest')
+
+# Gets the latest checkpoint epoch
+def get_latest_checkpoint_epoch(result_dir):
+  latest_filename = get_checkpoint_state_filename(result_dir)
   if not os.path.isfile(latest_filename):
     error('no checkpoints found')
   with open(latest_filename, 'r') as f:
     return int(f.readline())
 
+# Gets the path to result log directory
+def get_result_log_dir(result_dir):
+  return os.path.join(result_dir, 'log')
+
 # Saves a training checkpoint
-def save_checkpoint(cfg, epoch, step, model, optimizer):
-  checkpoint_dir = os.path.join(get_result_dir(cfg), 'checkpoints')
+def save_checkpoint(result_dir, epoch, step, model, optimizer):
+  checkpoint_dir = get_checkpoint_dir(result_dir)
   if not os.path.isdir(checkpoint_dir):
     os.makedirs(checkpoint_dir)
 
-  checkpoint_filename = os.path.join(checkpoint_dir, 'checkpoint_%d.pth' % epoch)
+  checkpoint_filename = get_checkpoint_filename(result_dir, epoch)
   torch.save({
                'epoch': epoch,
                'step': step,
@@ -33,17 +50,16 @@ def save_checkpoint(cfg, epoch, step, model, optimizer):
                'optimizer_state': optimizer.state_dict(),
              }, checkpoint_filename)
 
-  latest_filename = os.path.join(checkpoint_dir, 'latest')
+  latest_filename = get_checkpoint_state_filename(result_dir)
   with open(latest_filename, 'w') as f:
     f.write('%d' % epoch)
 
 # Loads and returns a training checkpoint
-def load_checkpoint(cfg, device, epoch=None, model=None, optimizer=None):
+def load_checkpoint(result_dir, device, epoch=None, model=None, optimizer=None):
   if not epoch or epoch <= 0:
-    epoch = get_latest_checkpoint_epoch(cfg)
+    epoch = get_latest_checkpoint_epoch(result_dir)
 
-  checkpoint_dir = os.path.join(get_result_dir(cfg), 'checkpoints')
-  checkpoint_filename = os.path.join(checkpoint_dir, 'checkpoint_%d.pth' % epoch)
+  checkpoint_filename = get_checkpoint_filename(result_dir, epoch)
   if not os.path.isfile(checkpoint_filename):
     error('checkpoint does not exist')
 

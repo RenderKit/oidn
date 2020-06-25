@@ -74,6 +74,7 @@ def parse_args(cmd=None, description=None):
     parser.add_argument('--save_all', '-a', action='store_true', help='save input and target images too')
 
   if cmd in {'export'}:
+    parser.add_argument('target', type=str, nargs='?', choices=['weights', 'package'], default='weights', help='what to export')
     parser.add_argument('--output', '-o', type=str, help='output file')
 
   if cmd in {'convert_image', 'split_exr'}:
@@ -93,10 +94,8 @@ def parse_args(cmd=None, description=None):
 
   if cmd in {'preprocess', 'train', 'find_lr', 'infer', 'export'}:
     parser.add_argument('--device', '-d', type=str, choices=['cpu', 'cuda'], default=get_default_device(), help='device to use')
-    advanced.add_argument('--deterministic', '--det', action='store_true', help='makes computations deterministic (slower performance)')
-
-  if cmd in {'train', 'find_lr'}:
     parser.add_argument('--num_devices', '-n', type=int, default=1, help='number of devices to use')
+    advanced.add_argument('--deterministic', '--det', action='store_true', help='makes computations deterministic (slower performance)')
 
   cfg = parser.parse_args()
 
@@ -132,13 +131,17 @@ def parse_args(cmd=None, description=None):
 
   return cfg
 
+# Returns the config filename in a directory
+def get_config_filename(dir):
+  return os.path.join(dir, 'config.json')
+
 # Loads the config from a directory
 def load_config(dir):
-  filename = os.path.join(dir, 'config.json')
+  filename = get_config_filename(dir)
   cfg = load_json(filename)
   return argparse.Namespace(**cfg)
 
 # Saves the config to a directory
 def save_config(dir, cfg):
-  filename = os.path.join(dir, 'config.json')
+  filename = get_config_filename(dir)
   save_json(filename, vars(cfg))

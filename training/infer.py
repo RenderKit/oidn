@@ -89,7 +89,7 @@ def main():
   model.to(device)
 
   # Load the checkpoint
-  checkpoint = load_checkpoint(cfg, device, cfg.checkpoint, model)
+  checkpoint = load_checkpoint(result_dir, device, cfg.checkpoint, model)
   epoch = checkpoint['epoch']
 
   # Initialize the transfer function

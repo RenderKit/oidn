@@ -73,8 +73,8 @@ def main_worker(rank, cfg):
       error('input feature set mismatch')
 
     # Restore the latest checkpoint
-    last_epoch = get_latest_checkpoint_epoch(cfg)
-    checkpoint = load_checkpoint(cfg, device, last_epoch, model, optimizer)
+    last_epoch = get_latest_checkpoint_epoch(result_dir)
+    checkpoint = load_checkpoint(result_dir, device, last_epoch, model, optimizer)
     step = checkpoint['step']
     last_step = step - 1 # will be incremented by the LR scheduler init
   else:
@@ -144,7 +144,7 @@ def main_worker(rank, cfg):
     error('failed to restore LR scheduler step')
 
   # Initialize the summary writer
-  log_dir = os.path.join(result_dir, 'log')
+  log_dir = get_result_log_dir(result_dir)
   if rank == 0:
     summary_writer = SummaryWriter(log_dir)
 
@@ -254,7 +254,7 @@ def main_worker(rank, cfg):
 
     if (rank == 0) and ((cfg.save_epochs > 0 and epoch % cfg.save_epochs == 0) or epoch == cfg.epochs):
       # Save a checkpoint
-      save_checkpoint(cfg, epoch, step, model, optimizer)
+      save_checkpoint(result_dir, epoch, step, model, optimizer)
 
 if __name__ == '__main__':
   main()
