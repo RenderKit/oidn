@@ -33,13 +33,13 @@ def main_worker(rank, cfg):
   device = init_device(cfg, id=rank)
 
   # Initialize the model
-  model = UNet(get_num_channels(cfg.features))
+  model = get_model(cfg)
   model.to(device)
   if distributed:
     model = nn.parallel.DistributedDataParallel(model, device_ids=[rank])
 
   # Initialize the loss function
-  criterion = get_loss_function(cfg.loss)
+  criterion = get_loss_function(cfg)
   criterion.to(device)
 
   # Initialize the optimizer

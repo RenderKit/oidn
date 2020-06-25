@@ -23,7 +23,7 @@ def main():
   device = init_device(cfg)
 
   # Initialize the transfer function
-  transfer = get_transfer_function(cfg.transfer)
+  transfer = get_transfer_function(cfg)
 
   # Returns a preprocessed image (also changes the original image!)
   def preprocess_image(image, exposure):

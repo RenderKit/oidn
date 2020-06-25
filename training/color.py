@@ -18,7 +18,8 @@ def luminance(r, g, b):
 
 class TransferFunction: pass
 
-def get_transfer_function(type):
+def get_transfer_function(cfg):
+  type = cfg.type
   if type == 'srgb':
     return SRGBTransferFunction()
   elif type == 'pu':

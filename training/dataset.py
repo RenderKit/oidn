@@ -14,7 +14,6 @@ from config import *
 from util import *
 from image import *
 from color import *
-import model
 import tza
 
 # Returns a dataset directory path
@@ -257,6 +256,8 @@ class TrainingDataset(PreprocessedDataset):
   def __init__(self, cfg, name):
     super(TrainingDataset, self).__init__(cfg, name)
 
+    self.max_padding = 32
+
   def __len__(self):
     return self.num_images
 
@@ -276,8 +277,8 @@ class TrainingDataset(PreprocessedDataset):
     sy = sx = self.tile_size
     if rand() < 0.1:
       # Randomly zero pad later to avoid artifacts for images that require padding
-      sy -= randint(model.ALIGNMENT)
-      sx -= randint(model.ALIGNMENT)
+      sy -= randint(self.max_padding)
+      sx -= randint(self.max_padding)
     oy = randint(height - sy + 1)
     ox = randint(width  - sx + 1)
 

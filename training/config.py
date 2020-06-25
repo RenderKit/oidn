@@ -23,10 +23,10 @@ def parse_args(cmd=None, description=None):
 
   if cmd in {'preprocess', 'train', 'find_lr'}:
     parser.add_argument('features', type=str, nargs='*', choices=['hdr', 'ldr', 'albedo', 'alb', 'normal', 'nrm', []], help='set of input features')
-    parser.add_argument('--filter', '-f', type=str, choices=['RT', 'RTLightmap'], default=None, help='filter to train (sets some default arguments)')
+    parser.add_argument('--filter', '-f', type=str, choices=['RT', 'RTLightmap'], help='filter to train (sets some default arguments)')
     parser.add_argument('--preproc_dir', '-P', type=str, default='preproc', help='directory of preprocessed datasets')
     parser.add_argument('--train_data', '-t', type=str, default='train', help='name of the training dataset')
-    advanced.add_argument('--transfer', '-x', type=str, choices=['srgb', 'pu', 'log'], default=None, help='transfer function')
+    advanced.add_argument('--transfer', '-x', type=str, choices=['srgb', 'pu', 'log'], help='transfer function')
 
   if cmd in {'preprocess', 'train'}:
     parser.add_argument('--valid_data', '-v', type=str, default='valid', help='name of the validation dataset')
@@ -59,8 +59,9 @@ def parse_args(cmd=None, description=None):
   if cmd in {'train', 'find_lr'}:
     parser.add_argument('--batch_size', '--bs', type=int, default=8, help='size of the mini-batches')
     parser.add_argument('--loaders', type=int, default=4, help='number of data loader threads per device')
-    advanced.add_argument('--tile_size', '--ts', type=int, default=256, help='size of the cropped image tiles')
+    advanced.add_argument('--model', '-m', type=str, choices=['unet'], default='unet', help='network model')
     advanced.add_argument('--loss', '-l', type=str, choices=['l1', 'mape', 'smape', 'l2', 'ssim', 'msssim', 'l1_msssim', 'l1_grad'], default='l1_msssim', help='loss function')
+    advanced.add_argument('--tile_size', '--ts', type=int, default=256, help='size of the cropped image tiles')
     advanced.add_argument('--seed', '-s', type=int, default=42, help='seed for random number generation')
 
   if cmd in {'infer', 'compare_image'}:

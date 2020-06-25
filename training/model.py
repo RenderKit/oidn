@@ -6,9 +6,16 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from dataset import *
 from util import *
 
-ALIGNMENT = 32 # images must be padded to multiples of the alignment
+def get_model(cfg):
+  type = cfg.model
+  num_channels = get_num_channels(cfg.features)
+  if type == 'unet':
+    return UNet(num_channels)
+  else:
+    error('invalid model')
 
 ## -----------------------------------------------------------------------------
 ## Network layers
@@ -75,6 +82,9 @@ class UNet(nn.Module):
     self.dec_conv1a = Conv(dc2+ic,  dc1a)
     self.dec_conv1b = Conv(dc1a,    dc1b)
     self.dec_conv0  = Conv(dc1b,    oc)
+
+    # Images must be padded to multiples of the alignment
+    self.alignment = 32
 
   def forward(self, input):
     # Encoder

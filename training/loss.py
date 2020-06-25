@@ -9,6 +9,28 @@ from util import *
 from image import *
 from ssim import SSIM, MS_SSIM
 
+def get_loss_function(cfg):
+  type = cfg.loss
+  if type == 'l1':
+    return L1Loss()
+  elif type == 'l2':
+    return L2Loss()
+  elif type == 'mape':
+    return MAPELoss()
+  elif type == 'smape':
+    return SMAPELoss()
+  elif type == 'ssim':
+    return SSIMLoss()
+  elif type == 'msssim':
+    return MSSSIMLoss()
+  elif type == 'l1_msssim':
+    # [Zhao et al., 2018, "Loss Functions for Image Restoration with Neural Networks"]
+    return MixLoss(L1Loss(), MSSSIMLoss(), 0.84)
+  elif type == 'l1_grad':
+    return MixLoss(L1Loss(), GradientLoss(), 0.5)
+  else:
+    error('invalid loss function')
+
 # L1 loss (seems to be faster than the built-in L1Loss)
 class L1Loss(nn.Module):
   def forward(self, input, target):
@@ -62,24 +84,3 @@ class MixLoss(nn.Module):
 
   def forward(self, input, target):
     return (1. - self.alpha) * self.loss1(input, target) + self.alpha * self.loss2(input, target)
-
-def get_loss_function(type):
-  if type == 'l1':
-    return L1Loss()
-  elif type == 'l2':
-    return L2Loss()
-  elif type == 'mape':
-    return MAPELoss()
-  elif type == 'smape':
-    return SMAPELoss()
-  elif type == 'ssim':
-    return SSIMLoss()
-  elif type == 'msssim':
-    return MSSSIMLoss()
-  elif type == 'l1_msssim':
-    # [Zhao et al., 2018, "Loss Functions for Image Restoration with Neural Networks"]
-    return MixLoss(L1Loss(), MSSSIMLoss(), 0.84)
-  elif type == 'l1_grad':
-    return MixLoss(L1Loss(), GradientLoss(), 0.5)
-  else:
-    error('invalid loss function')

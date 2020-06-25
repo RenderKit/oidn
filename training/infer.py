@@ -15,9 +15,6 @@ from model import *
 from color import *
 from result import *
 
-def pad(x):
-  return round_up(x, ALIGNMENT)
-
 def main():
   # Parse the command line arguments
   cfg = parse_args(description='Performs inference on a dataset using the specified training result.')
@@ -35,6 +32,7 @@ def main():
   result_cfg = load_config(result_dir)
   cfg.features = result_cfg.features
   cfg.transfer = result_cfg.transfer
+  cfg.model    = result_cfg.model
   target_feature = 'hdr' if 'hdr' in cfg.features else 'ldr'
 
   # Inference function
@@ -50,7 +48,8 @@ def main():
 
     # Pad the output
     shape = x.shape
-    x = F.pad(x, (0, pad(shape[3])-shape[3], 0, pad(shape[2])-shape[2]))
+    x = F.pad(x, (0, round_up(shape[3], model.alignment) - shape[3],
+                  0, round_up(shape[2], model.alignment) - shape[2]))
 
     # Run the inference
     x = model(x)
@@ -85,7 +84,7 @@ def main():
   image_sample_groups = get_image_sample_groups(data_dir, cfg.features)
 
   # Initialize the model
-  model = UNet(get_num_channels(cfg.features))
+  model = get_model(cfg)
   model.to(device)
 
   # Load the checkpoint
@@ -93,7 +92,7 @@ def main():
   epoch = checkpoint['epoch']
 
   # Initialize the transfer function
-  transfer = get_transfer_function(cfg.transfer)
+  transfer = get_transfer_function(cfg)
 
   # Iterate over the images
   print()
