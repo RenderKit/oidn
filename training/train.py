@@ -147,6 +147,8 @@ def main_worker(rank, cfg):
   log_dir = get_result_log_dir(result_dir)
   if rank == 0:
     summary_writer = SummaryWriter(log_dir)
+    if step == 0:
+      summary_writer.add_scalar('learning_rate', lr_scheduler.get_last_lr()[0], 0)
 
   # Training and evaluation loops
   if rank == 0:
@@ -178,14 +180,6 @@ def main_worker(rank, cfg):
       loss = criterion(model(input), target)
       loss.backward()
 
-      # Write summary
-      if rank == 0:
-        if step == 0:
-          summary_writer.add_graph(unwrap_module(model), input)
-        if step % cfg.log_steps == 0 or i == 0 or i == train_steps_per_epoch-1:
-          summary_writer.add_scalar('learning_rate', lr_scheduler.get_last_lr()[0], step)
-          summary_writer.add_scalar('loss', loss.item(), step)
-
       # Next step
       optimizer.step()
       lr_scheduler.step()
@@ -198,6 +192,13 @@ def main_worker(rank, cfg):
     if distributed:
       dist.all_reduce(train_loss, op=dist.ReduceOp.SUM)
     train_loss = train_loss.item() / (train_steps_per_epoch * cfg.num_devices)
+
+    # Write summary
+    if rank == 0:
+      if epoch == 1:
+        summary_writer.add_graph(unwrap_module(model), input)
+      summary_writer.add_scalar('learning_rate', lr_scheduler.get_last_lr()[0], epoch)
+      summary_writer.add_scalar('loss', train_loss, epoch)
 
     # Print stats
     if rank == 0:
@@ -241,16 +242,16 @@ def main_worker(rank, cfg):
         dist.all_reduce(valid_loss, op=dist.ReduceOp.SUM)
       valid_loss = valid_loss.item() / (valid_steps_per_epoch * cfg.num_devices)
 
+      # Write summary
+      if rank == 0:
+        summary_writer.add_scalar('valid_loss', valid_loss, epoch)
+
       # Print stats
       if rank == 0:
         duration = time.time() - start_time
         images_per_sec = len(valid_data) / duration
         progress.finish('valid_loss=%.6f  (%.1f images/s, %.1fs)'
                         % (valid_loss, images_per_sec, duration))
-
-      # Write summary
-      if rank == 0:
-        summary_writer.add_scalar('valid_loss', valid_loss, step)
 
     if (rank == 0) and ((cfg.save_epochs > 0 and epoch % cfg.save_epochs == 0) or epoch == cfg.epochs):
       # Save a checkpoint

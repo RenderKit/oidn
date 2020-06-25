@@ -48,7 +48,6 @@ def parse_args(cmd=None, description=None):
     parser.add_argument('--epochs', '-e', type=int, default=2100, help='number of training epochs')
     parser.add_argument('--valid_epochs', type=int, default=10, help='perform validation every this many epochs')
     parser.add_argument('--save_epochs', type=int, default=10, help='save checkpoints every this many epochs')
-    parser.add_argument('--log_steps', type=int, default=100, help='save summaries every this many steps')
     parser.add_argument('--lr', '--learning_rate', type=float, default=2e-6, help='minimum learning rate')
     parser.add_argument('--max_lr', '--max_learning_rate', type=float, default=2e-4, help='maximum learning rate')
     parser.add_argument('--lr_cycle_epochs', type=int, default=250, help='number of epochs per learning rate cycle (for CLR)')
