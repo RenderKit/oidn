@@ -14,6 +14,8 @@ import torch.nn as nn
 import torch.multiprocessing as mp
 import torch.distributed as dist
 
+WORKER_RANK = 0
+
 def round_down(a, b):
   return a // b * b
 
@@ -25,7 +27,8 @@ def round_nearest(a, b):
 
 # Prints an error message and exits
 def error(*args):
-  print('Error:', *args)
+  if WORKER_RANK == 0:
+    print('Error:', *args)
   exit(1)
 
 # Returns the extension of a path without the dot
@@ -101,6 +104,10 @@ def init_worker(rank, cfg):
     dist.init_process_group(backend='nccl',
                             rank=rank, world_size=cfg.num_devices,
                             init_method='env://')
+
+    # Set the global rank for this worker process
+    global WORKER_RANK
+    WORKER_RANK = rank
 
     # Running in distributed mode
     return True
