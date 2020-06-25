@@ -36,7 +36,8 @@ def main_worker(rank, cfg):
   distributed = init_worker(rank, cfg)
 
   # Initialize the random seed
-  #torch.manual_seed(cfg.seed)
+  if cfg.seed is not None:
+    torch.manual_seed(cfg.seed)
 
   # Initialize the PyTorch device
   device = init_device(cfg, id=rank)
@@ -103,9 +104,9 @@ def main_worker(rank, cfg):
     exit() # nothing to do
 
   # Reset the random seed if resuming result
-  #if start_epoch > 1:
-  #  seed = cfg.seed + start_epoch - 1
-  #  torch.manual_seed(seed)
+  if cfg.seed is not None and start_epoch > 1:
+    seed = cfg.seed + start_epoch - 1
+    torch.manual_seed(seed)
 
   # Initialize the training dataset
   train_data = TrainingDataset(cfg, cfg.train_data)

@@ -62,7 +62,7 @@ def parse_args(cmd=None, description=None):
     advanced.add_argument('--model', '-m', type=str, choices=['unet'], default='unet', help='network model')
     advanced.add_argument('--loss', '-l', type=str, choices=['l1', 'mape', 'smape', 'l2', 'ssim', 'msssim', 'l1_msssim', 'l1_grad'], default='l1_msssim', help='loss function')
     advanced.add_argument('--tile_size', '--ts', type=int, default=256, help='size of the cropped image tiles')
-    advanced.add_argument('--seed', '-s', type=int, default=42, help='seed for random number generation')
+    advanced.add_argument('--seed', '-s', type=int, help='seed for random number generation')
 
   if cmd in {'infer', 'compare_image'}:
     parser.add_argument('--metric', '-M', type=str, nargs='*', choices=['psnr', 'mse', 'ssim'], default=['psnr', 'ssim'], help='metrics to compute')
