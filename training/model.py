@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from dataset import *
+from dataset import get_num_channels
 from util import *
 
 def get_model(cfg):
