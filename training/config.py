@@ -57,8 +57,8 @@ def parse_args(cmd=None, description=None):
     parser.add_argument('--max_lr', '--max_learning_rate', type=float, default=0.1, help='maximum learning rate')
 
   if cmd in {'train', 'find_lr'}:
-    parser.add_argument('--batch_size', '--bs', type=int, default=8, help='size of the mini-batches')
-    parser.add_argument('--loaders', type=int, default=4, help='number of data loader threads per device')
+    parser.add_argument('--batch_size', '--bs', '-b', type=int, default=8, help='mini-batch size (total batch size of all devices)')
+    parser.add_argument('--loaders', '-j', type=int, default=4, help='number of data loader threads per device')
     advanced.add_argument('--model', '-m', type=str, choices=['unet'], default='unet', help='network model')
     advanced.add_argument('--loss', '-l', type=str, choices=['l1', 'mape', 'smape', 'l2', 'ssim', 'msssim', 'l1_msssim', 'l1_grad'], default='l1_msssim', help='loss function')
     advanced.add_argument('--tile_size', '--ts', type=int, default=256, help='size of the cropped image tiles')
@@ -93,8 +93,9 @@ def parse_args(cmd=None, description=None):
     parser.add_argument('--layer', type=str, default=None, help='name of the layer')
 
   if cmd in {'preprocess', 'train', 'find_lr', 'infer', 'export'}:
-    parser.add_argument('--device', '-d', type=str, choices=['cpu', 'cuda'], default=get_default_device(), help='device to use')
-    parser.add_argument('--num_devices', '-n', type=int, default=1, help='number of devices to use')
+    parser.add_argument('--device', '-d', type=str, choices=['cpu', 'cuda'], default=get_default_device(), help='type of device(s) to use')
+    parser.add_argument('--device_id', '-k', type=int, default=0, help='ID of the first device to use')
+    parser.add_argument('--num_devices', '-n', type=int, default=1, help='number of devices to use (with IDs device_id .. device_id+num_devices-1)')
     advanced.add_argument('--deterministic', '--det', action='store_true', help='makes computations deterministic (slower performance)')
 
   cfg = parser.parse_args()

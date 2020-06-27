@@ -146,11 +146,7 @@ def init_device(cfg, id=0):
 
     device_name = 'CPU'
 
-  if cfg.num_devices > 1:
-    print(f'Device {id:2}:', device_name)
-  else:
-    print('Device:', device_name)
-
+  print(f'Device {id:2}:', device_name)
   return device
 
 # Remove wrappers like DataParallel from a module

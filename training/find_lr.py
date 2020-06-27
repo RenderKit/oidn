@@ -30,13 +30,14 @@ def main_worker(rank, cfg):
   distributed = init_worker(rank, cfg)
 
   # Initialize the PyTorch device
-  device = init_device(cfg, id=rank)
+  device_id = cfg.device_id + rank
+  device = init_device(cfg, id=device_id)
 
   # Initialize the model
   model = get_model(cfg)
   model.to(device)
   if distributed:
-    model = nn.parallel.DistributedDataParallel(model, device_ids=[rank])
+    model = nn.parallel.DistributedDataParallel(model, device_ids=[device_id])
 
   # Initialize the loss function
   criterion = get_loss_function(cfg)
