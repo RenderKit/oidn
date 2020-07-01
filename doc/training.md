@@ -161,9 +161,7 @@ The tool will produce a training *result*, the name of which can be either
 specified (`-r` or `--result` option) or automatically generated (by default).
 Each result is stored in its own subdirectory, and these are located in a common
 parent directory (`-R` or `--results_dir` option). If a training result already
-exists, the tool will resume training that result from the latest checkpoint, or
-from an earlier checkpoint at the specified epoch (`-c` or `--checkpoint`
-option).
+exists, the tool will resume training that result from the latest checkpoint.
 
 The default training hyperparameters should work reasonably well in general,
 but some adjustments might be necessary for certain datasets to attain optimal
@@ -202,8 +200,8 @@ Inference (infer.py)
 A training result can be tested by performing inference on an image dataset
 (`-i` or `--input_data` option) using the `infer.py` script. The dataset
 does *not* have to be preprocessed. In addition to the result to use, it is
-possible to specify which checkpoint to load as well. By default the latest
-checkpoint is loaded.
+possible to specify which checkpoint to load as well (`-e` or `--epochs`
+option). By default the latest checkpoint is loaded.
 
 The tool saves the output images in a separate directory (`-O` or
 `--output_dir`) in the requested formats (`-F` or `--format` option). It also
@@ -223,10 +221,10 @@ Exporting Results (export.py)
 The training result produced by the `train.py` script cannot be immediately used
 by the main library. It has to be first exported to the runtime model weights
 format, a *Tensor Archive* (TZA) file. Running the `export.py` script for a
-training result (and optionally a checkpoint) will create a binary `.tza` file
-in the directory of the result, which can be either used at runtime through the
-API or it can be included in the library build by replacing one of the built-in
-weights files.
+training result (and optionally a checkpoint epoch) will create a binary `.tza`
+file in the directory of the result, which can be either used at runtime through
+the API or it can be included in the library build by replacing one of the
+built-in weights files.
 
 Example usage:
 

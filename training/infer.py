@@ -88,8 +88,9 @@ def main():
   model.to(device)
 
   # Load the checkpoint
-  checkpoint = load_checkpoint(result_dir, device, cfg.checkpoint, model)
+  checkpoint = load_checkpoint(result_dir, device, cfg.epochs, model)
   epoch = checkpoint['epoch']
+  print('Epoch:', epoch)
 
   # Initialize the transfer function
   transfer = get_transfer_function(cfg)
@@ -152,7 +153,7 @@ def main():
 
         # Save the input and output images
         output_name = input_name + '.' + cfg.result
-        if cfg.checkpoint:
+        if cfg.epochs:
           output_name += f'_{epoch}'
         if cfg.save_all:
           save_images(os.path.join(output_dir, input_name), input, input_srgb)

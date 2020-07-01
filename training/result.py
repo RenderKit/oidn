@@ -56,7 +56,7 @@ def save_checkpoint(result_dir, epoch, step, model, optimizer):
 
 # Loads and returns a training checkpoint
 def load_checkpoint(result_dir, device, epoch=None, model=None, optimizer=None):
-  if not epoch or epoch <= 0:
+  if epoch is None or epoch <= 0:
     epoch = get_latest_checkpoint_epoch(result_dir)
 
   checkpoint_filename = get_checkpoint_filename(result_dir, epoch)
