@@ -21,6 +21,8 @@ def parse_args(cmd=None, description=None):
   parser.usage = '\rIntel(R) Open Image Denoise - Training\n' + parser.format_usage()
   advanced = parser.add_argument_group('optional advanced arguments')
 
+  parser.add_argument('--config', '-c', type=str, help='load configuration from JSON file (overrides command-line arguments)')
+
   if cmd in {'preprocess', 'train', 'find_lr'}:
     parser.add_argument('features', type=str, nargs='*', choices=['hdr', 'ldr', 'albedo', 'alb', 'normal', 'nrm', []], help='set of input features')
     parser.add_argument('--filter', '-f', type=str, choices=['RT', 'RTLightmap'], help='filter to train (sets some default arguments)')
@@ -98,6 +100,12 @@ def parse_args(cmd=None, description=None):
     advanced.add_argument('--deterministic', '--det', action='store_true', help='makes computations deterministic (slower performance)')
 
   cfg = parser.parse_args()
+
+  # Load and apply configuration from file if specified
+  if cfg.config is not None:
+    cfg_dict = vars(cfg)
+    cfg_dict.update(load_json(cfg.config))
+    cfg = argparse.Namespace(**cfg_dict)
 
   if cmd in {'preprocess', 'train', 'find_lr'}:
     # Replace feature names with IDs
