@@ -130,6 +130,8 @@ def main_worker(rank, cfg):
   # Save the results
   if rank == 0:
     result_filename = os.path.join(cfg.results_dir, cfg.result) + '.csv'
+    if not os.path.isdir(cfg.results_dir):
+      os.makedirs(cfg.results_dir)
     save_csv(result_filename, result)
 
   # Cleanup
