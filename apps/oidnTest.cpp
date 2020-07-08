@@ -28,7 +28,7 @@ void setFilterImage(FilterRef& filter, const char* name, ImageBuffer& image)
   filter.setImage(name, image.getData(), format, image.getWidth(), image.getHeight());
 }
 
-ImageBuffer makeConstImage(int W, int H, int C, float value)
+ImageBuffer makeConstImage(int W, int H, int C = 3, float value = 0.5f)
 {
   ImageBuffer image(W, H, C);
   for (int i = 0; i < image.getSize(); ++i)
@@ -43,6 +43,8 @@ bool isBetween(const ImageBuffer& image, float a, float b)
       return false;
   return true;
 }
+
+// -----------------------------------------------------------------------------
 
 void sanitizationTest(DeviceRef& device, bool hdr, float value)
 {
@@ -59,7 +61,9 @@ void sanitizationTest(DeviceRef& device, bool hdr, float value)
   setFilterImage(filter, "normal", input);
   setFilterImage(filter, "output", output);
   filter.set("hdr", hdr);
+
   filter.commit();
+  REQUIRE(device.getError() == Error::None);
 
   filter.execute();
   REQUIRE(device.getError() == Error::None);
@@ -73,8 +77,9 @@ void sanitizationTest(DeviceRef& device, bool hdr, float value)
 TEST_CASE("image sanitization", "[sanitization]")
 {
   DeviceRef device = oidn::newDevice();
-  device.commit();
   REQUIRE(device);
+  device.commit();
+  REQUIRE(device.getError() == Error::None);
 
   SECTION("HDR")
   {
@@ -90,5 +95,89 @@ TEST_CASE("image sanitization", "[sanitization]")
     sanitizationTest(device, false,  std::numeric_limits<float>::infinity());
     sanitizationTest(device, false,  10.f);
     sanitizationTest(device, false, -2.f);
+  }
+}
+
+// -----------------------------------------------------------------------------
+
+struct Progress
+{
+  double n;    // current progress
+  double nMax; // when to cancel execution
+
+  Progress(double nMax) : n(0), nMax(nMax) {}
+};
+
+// Progress monitor callback function
+bool progressCallback(void* userPtr, double n)
+{
+  Progress* progress = (Progress*)userPtr;
+  REQUIRE((std::isfinite(n) && n >= 0 && n <= 1)); // n must be between 0 and 1
+  REQUIRE(n >= progress->n);   // n must not decrease
+  progress->n = n;
+  return n < progress->nMax; // cancel if reached nMax
+}
+
+void progressTest(DeviceRef& device, double nMax = 1000)
+{
+  const int W = 1280;
+  const int H = 720;
+
+  FilterRef filter = device.newFilter("RT");
+  REQUIRE(filter);
+
+  ImageBuffer image = makeConstImage(W, H);
+  setFilterImage(filter, "color",  image);
+  setFilterImage(filter, "output", image);
+
+  Progress progress(nMax);
+  filter.setProgressMonitorFunction(progressCallback, &progress);
+
+  filter.set("maxMemoryMB", 512); // make sure there will be multiple tiles
+
+  filter.commit();
+  REQUIRE(device.getError() == Error::None);
+
+  filter.execute();
+
+  if (nMax <= 1)
+  {
+    // Execution should be cancelled
+    REQUIRE(device.getError() == Error::Cancelled);
+    REQUIRE(progress.n >= nMax); // check whether execution was cancelled too early
+  }
+  else
+  {
+    // Execution should be finished
+    REQUIRE(device.getError() == Error::None);
+    REQUIRE(progress.n == 1); // progress must be 100% at the end
+  }
+}
+
+TEST_CASE("progress monitor callback", "[progress]")
+{
+  DeviceRef device = oidn::newDevice();
+  REQUIRE(device);
+  device.commit();
+  REQUIRE(device.getError() == Error::None);
+
+  SECTION("complete")
+  {
+    progressTest(device);
+  }
+
+  SECTION("cancel at the middle")
+  {
+    progressTest(device, 0.5);
+  }
+
+  SECTION("cancel at the beginning")
+  {
+    progressTest(device, 0);
+  }
+ 
+  SECTION("cancel at the end")
+  {
+    progressTest(device, 1);
   }
 }
