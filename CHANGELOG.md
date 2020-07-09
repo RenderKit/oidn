@@ -1,6 +1,11 @@
 Version History
 ---------------
 
+### Changes in v1.2.2:
+
+-   Fixed unhandled exception when canceling filter execution from the
+    progress monitor callback function
+
 ### Changes in v1.2.1:
 
 -   Fixed tiling artifacts when in-place denoising (using one of the input

@@ -4,6 +4,11 @@
 #pragma once
 
 #include "common/platform.h"
+#include "common/ref.h"
+#include "common/exception.h"
+#include "common/thread.h"
+#include "common/tasking.h"
+#include "common/math.h"
 
 #include "mkl-dnn/include/dnnl.hpp"
 #include "mkl-dnn/include/dnnl_debug.h"
@@ -11,11 +16,6 @@
 #include "mkl-dnn/src/common/type_helpers.hpp"
 #include "mkl-dnn/src/cpu/jit_generator.hpp"
 
-#include "common/ref.h"
-#include "common/exception.h"
-#include "common/thread.h"
-#include "common/tasking.h"
-#include "common/math.h"
 #include "input_reorder_ispc.h" // ispc::Memory, ispc::Image
 
 namespace oidn {

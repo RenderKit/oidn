@@ -26,16 +26,6 @@ namespace oidn {
       update();
     }
 
-    ~Progress()
-    {
-      // Make sure total progress is reported at the end
-      if (current < total)
-      {
-        current = total;
-        update();
-      }
-    }
-
     // Calls the progress monitor function
     void update()
     {
@@ -51,6 +41,16 @@ namespace oidn {
     {
       current = std::min(current + done, total);
       update();
+    }
+
+    void finish()
+    {
+      // Make sure total progress is reported at the end
+      if (current < total)
+      {
+        current = total;
+        update();
+      }
     }
   };
 

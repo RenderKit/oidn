@@ -163,6 +163,9 @@ namespace oidn {
       // Copy the output image to the final buffer if filtering in-place
       if (outputTemp)
         outputCopy(outputTemp, output);
+
+      // Finished
+      progress.finish();
     });
   }
 
