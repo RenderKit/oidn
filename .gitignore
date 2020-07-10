@@ -71,6 +71,14 @@ Thumbs.db
 *.dll
 *.exe
 
+# Images
+/images*
+*.exr
+*.pfm
+*.png
+*.bmp
+*.ppm
+
 # Build directories
 /build*
 

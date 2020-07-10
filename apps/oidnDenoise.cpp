@@ -47,7 +47,10 @@ void signalHandler(int signal)
 bool progressCallback(void* userPtr, double n)
 {
   if (isCancelled)
+  {
+    std::cout << std::endl;
     return false;
+  }
   std::cout << "\rDenoising " << int(n * 100.) << "%" << std::flush;
   return true;
 }
