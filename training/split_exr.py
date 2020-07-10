@@ -72,6 +72,7 @@ def main():
         print(feature_filename)
         new_channels = ('R', 'G', 'B') if len(feature_channels) == 3 else ('Y')
         feature_image = oiio.ImageBufAlgo.channels(image, feature_channels, new_channels)
+        feature_image.spec().attribute('compression', 'piz')
         feature_image.write(feature_filename)
         break
 
