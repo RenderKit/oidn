@@ -57,6 +57,12 @@ namespace oidn {
       std::string str = getNextValue();
       return atoi(str.c_str());
     }
+
+    float getNextValueFloat()
+    {
+      std::string str = getNextValue();
+      return atof(str.c_str());
+    }
   };
 
 } // namespace oidn
