@@ -240,12 +240,11 @@ that can be configured in CMake:
     enabled assertions and debug symbols (RelWithDebInfo).
 
   - `OIDN_STATIC_LIB`: Build Intel Open Image Denoise as a static
-    library (OFF by default). CMake 3.13.0 or later is required to
-    enable this option. When using the statically compiled Intel Open
-    Image Denoise library, you either have to use the generated CMake
-    configuration files (recommended), or you have to manually define
-    `OIDN_STATIC_LIB` before including the library headers in your
-    application.
+    library (OFF by default). When using the statically compiled Intel
+    Open Image Denoise library, you either have to use the generated
+    CMake configuration files (recommended), or you have to manually
+    define `OIDN_STATIC_LIB` before including the library headers in
+    your application.
 
   - `OIDN_STATIC_RUNTIME`: Use the static version of the C/C++ runtime
     library (available only on Windows, OFF by default).
