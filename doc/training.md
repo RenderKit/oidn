@@ -4,7 +4,11 @@ Training
 The Intel Open Image Denoise source distribution includes a Python-based neural
 network training toolkit (located in the `training` directory), which can be
 used to train the denoising filter models with image datasets provided by the
-user. The toolkit consists of the following command-line scripts:
+user. This is an advanced feature of the library which usage requires some
+background knowledge of machine learning and basic familiarity with deep
+learning frameworks and toolkits (e.g. PyTorch or TensorFlow, TensorBoard).
+
+The training toolkit consists of the following command-line scripts:
 
 -   `preprocess.py`: Preprocesses training and validation datasets.
 
@@ -131,12 +135,14 @@ dataset directory (`-P` or `--preproc_dir` option).
 
 The preprocessing script requires the set of image features to include in the
 preprocessed dataset as command-line arguments. Only these specified features
-will be available for training. Preprocessing also depends on the filter that
-will be trained (e.g. determines which HDR/LDR transfer function has to be
-used), which should be also specified (`-f` or `--filter` option). The
-alternative is to manually specify the transfer function (`-x` or `--transfer`
-option) and other filter-specific parameters, which could be useful for training
-custom filters.
+will be available for training but it is not required to use all of them at the
+same time. Thus, a single preprocessed dataset can be reused for training
+multiple models with different combinations of the preprocessed features.
+Preprocessing also depends on the filter that will be trained (e.g. determines
+which HDR/LDR transfer function has to be used), which should be also specified
+(`-f` or `--filter` option). The alternative is to manually specify the transfer
+function (`-x` or `--transfer` option) and other filter-specific parameters,
+which could be useful for training custom filters.
 
 For example, to preprocess the training and validation datasets (`rt_train` and
 `rt_valid`) with HDR color, albedo, and normal image features, for training the
@@ -151,6 +157,10 @@ please have a look at the help message:
 
 Training (train.py)
 -------------------
+
+The filters require separate trained models for each supported combination of
+input features. Thus, depending on which combinations of features the user wants
+to support for a particular filter, one or more models have to be trained.
 
 After preprocessing the datasets, it is possible to start training a model using
 the `train.py` script. Similar to the preprocessing script, the input features

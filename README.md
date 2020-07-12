@@ -309,7 +309,7 @@ oidnCommitDevice(device);
 
 // Create a denoising filter
 OIDNFilter filter = oidnNewFilter(device, "RT"); // generic ray tracing filter
-oidnSetSharedFilterImage(filter, "color",  colorPtr, 
+oidnSetSharedFilterImage(filter, "color",  colorPtr,
                          OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0);
 oidnSetSharedFilterImage(filter, "albedo", albedoPtr,
                          OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0); // optional
@@ -891,7 +891,9 @@ normals.
 
 Instead of using the built-in trained models for filtering, it is also
 possible to specify user-trained models at runtime. This can be achieved
-by passing the model *weights* blob produced by the training tool.
+by passing the model *weights* blob corresponding to the specified set
+of features and other filter parameters, produced by the included
+training tool. See Section [Training](#training) for details.
 
 ### RTLightmap
 
@@ -938,8 +940,12 @@ command line options.
 The Intel Open Image Denoise source distribution includes a Python-based
 neural network training toolkit (located in the `training` directory),
 which can be used to train the denoising filter models with image
-datasets provided by the user. The toolkit consists of the following
-command-line scripts:
+datasets provided by the user. This is an advanced feature of the
+library which usage requires some background knowledge of machine
+learning and basic familiarity with deep learning frameworks and
+toolkits (e.g. PyTorch or TensorFlow, TensorBoard).
+
+The training toolkit consists of the following command-line scripts:
 
   - `preprocess.py`: Preprocesses training and validation datasets.
 
@@ -1068,13 +1074,15 @@ preprocessed dataset directory (`-P` or `--preproc_dir` option).
 
 The preprocessing script requires the set of image features to include
 in the preprocessed dataset as command-line arguments. Only these
-specified features will be available for training. Preprocessing also
-depends on the filter that will be trained (e.g. determines which
-HDR/LDR transfer function has to be used), which should be also
-specified (`-f` or `--filter` option). The alternative is to manually
-specify the transfer function (`-x` or `--transfer` option) and other
-filter-specific parameters, which could be useful for training custom
-filters.
+specified features will be available for training but it is not required
+to use all of them at the same time. Thus, a single preprocessed dataset
+can be reused for training multiple models with different combinations
+of the preprocessed features. Preprocessing also depends on the filter
+that will be trained (e.g. determines which HDR/LDR transfer function
+has to be used), which should be also specified (`-f` or `--filter`
+option). The alternative is to manually specify the transfer function
+(`-x` or `--transfer` option) and other filter-specific parameters,
+which could be useful for training custom filters.
 
 For example, to preprocess the training and validation datasets
 (`rt_train` and `rt_valid`) with HDR color, albedo, and normal image
@@ -1090,6 +1098,11 @@ options, please have a look at the help message:
 
 ## Training (train.py)
 
+The filters require separate trained models for each supported
+combination of input features. Thus, depending on which combinations of
+features the user wants to support for a particular filter, one or more
+models have to be trained.
+
 After preprocessing the datasets, it is possible to start training a
 model using the `train.py` script. Similar to the preprocessing script,
 the input features must be specified (could be a subset of the
@@ -1101,8 +1114,7 @@ either specified (`-r` or `--result` option) or automatically generated
 (by default). Each result is stored in its own subdirectory, and these
 are located in a common parent directory (`-R` or `--results_dir`
 option). If a training result already exists, the tool will resume
-training that result from the latest checkpoint, or from an earlier
-checkpoint at the specified epoch (`-c` or `--checkpoint` option).
+training that result from the latest checkpoint.
 
 The default training hyperparameters should work reasonably well in
 general, but some adjustments might be necessary for certain datasets to
@@ -1143,8 +1155,8 @@ e.g.:
 A training result can be tested by performing inference on an image
 dataset (`-i` or `--input_data` option) using the `infer.py` script. The
 dataset does *not* have to be preprocessed. In addition to the result to
-use, it is possible to specify which checkpoint to load as well. By
-default the latest checkpoint is loaded.
+use, it is possible to specify which checkpoint to load as well (`-e` or
+`--epochs` option). By default the latest checkpoint is loaded.
 
 The tool saves the output images in a separate directory (`-O` or
 `--output_dir`) in the requested formats (`-F` or `--format` option). It
@@ -1164,10 +1176,11 @@ Example usage:
 The training result produced by the `train.py` script cannot be
 immediately used by the main library. It has to be first exported to the
 runtime model weights format, a *Tensor Archive* (TZA) file. Running the
-`export.py` script for a training result (and optionally a checkpoint)
-will create a binary `.tza` file in the directory of the result, which
-can be either used at runtime through the API or it can be included in
-the library build by replacing one of the built-in weights files.
+`export.py` script for a training result (and optionally a checkpoint
+epoch) will create a binary `.tza` file in the directory of the result,
+which can be either used at runtime through the API or it can be
+included in the library build by replacing one of the built-in weights
+files.
 
 Example usage:
 

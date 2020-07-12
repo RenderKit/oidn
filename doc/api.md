@@ -35,7 +35,7 @@ simple example code snippets.
 
     // Create a denoising filter
     OIDNFilter filter = oidnNewFilter(device, "RT"); // generic ray tracing filter
-    oidnSetSharedFilterImage(filter, "color",  colorPtr, 
+    oidnSetSharedFilterImage(filter, "color",  colorPtr,
                              OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0);
     oidnSetSharedFilterImage(filter, "albedo", albedoPtr,
                              OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0); // optional
@@ -610,7 +610,9 @@ normals.][imgMazdaNormalNonDeltaHit]
 
 Instead of using the built-in trained models for filtering, it is also possible
 to specify user-trained models at runtime. This can be achieved by passing the
-model *weights* blob produced by the training tool.
+model *weights* blob corresponding to the specified set of features and other
+filter parameters, produced by the included training tool. See Section
+[Training] for details.
 
 ### RTLightmap
 
