@@ -155,7 +155,7 @@ def main_worker(rank, cfg):
   # Training and evaluation loops
   if rank == 0:
     print()
-    progress_format = '%-5s %' + str(len(str(cfg.epochs))) + 'd/%d: ' % cfg.epochs
+    progress_format = '%-5s %' + str(len(str(cfg.epochs))) + 'd/%d:' % cfg.epochs
     total_start_time = time.time()
 
   for epoch in range(start_epoch, cfg.epochs+1):
@@ -209,7 +209,7 @@ def main_worker(rank, cfg):
       lr = lr_scheduler.get_last_lr()[0]
       images_per_sec = len(train_data) / duration
       eta = ((cfg.epochs - epoch) * total_duration / (epoch + 1 - start_epoch))
-      progress.finish('loss=%.6f, lr=%.6f  (%.1f images/s, %s, eta %s)'
+      progress.finish('loss=%.6f, lr=%.6f (%.1f images/s, %s, eta %s)'
                       % (train_loss, lr, images_per_sec, format_time(duration), format_time(eta, precision=2)))
 
     if ((cfg.valid_epochs > 0 and epoch % cfg.valid_epochs == 0) or epoch == cfg.epochs) \
@@ -252,12 +252,17 @@ def main_worker(rank, cfg):
       if rank == 0:
         duration = time.time() - start_time
         images_per_sec = len(valid_data) / duration
-        progress.finish('valid_loss=%.6f  (%.1f images/s, %.1fs)'
+        progress.finish('valid_loss=%.6f (%.1f images/s, %.1fs)'
                         % (valid_loss, images_per_sec, duration))
 
     if (rank == 0) and ((cfg.save_epochs > 0 and epoch % cfg.save_epochs == 0) or epoch == cfg.epochs):
       # Save a checkpoint
       save_checkpoint(result_dir, epoch, step, model, optimizer)
+
+  # Print final stats
+  if rank == 0:
+    total_duration = time.time() - total_start_time
+    print('\nFinished (%s)' % format_time(total_duration))
 
   # Cleanup
   cleanup_worker(cfg)
