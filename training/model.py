@@ -56,8 +56,7 @@ class UNet(nn.Module):
     ec3  = 64
     ec4  = 80
     ec5  = 112
-    dc5  = 160
-    dc4  = 112
+    dc4  = 128
     dc3  = 96
     dc2  = 64
     dc1a = 64
@@ -71,9 +70,7 @@ class UNet(nn.Module):
     self.enc_conv3  = Conv(ec2,     ec3)
     self.enc_conv4  = Conv(ec3,     ec4)
     self.enc_conv5  = Conv(ec4,     ec5)
-    self.dec_conv5a = Conv(ec5+ec4, dc5)
-    self.dec_conv5b = Conv(dc5,     dc5)
-    self.dec_conv4a = Conv(dc5+ec3, dc4)
+    self.dec_conv4a = Conv(ec5+ec3, dc4)
     self.dec_conv4b = Conv(dc4,     dc4)
     self.dec_conv3a = Conv(dc4+ec2, dc3)
     self.dec_conv3b = Conv(dc3,     dc3)
@@ -102,18 +99,13 @@ class UNet(nn.Module):
     x = pool3 = pool(x)              # pool3
 
     x = relu(self.enc_conv4(x))      # enc_conv4
-    x = pool4 = pool(x)              # pool4
+    x = pool(x)                      # pool4
 
+    # Bottleneck
     x = relu(self.enc_conv5(x))      # enc_conv5
-    x = pool(x)                      # pool5
 
     # Decoder
     # -------------------------------------------
-
-    x = upsample(x)                  # upsample5
-    x = concat(x, pool4)             # concat5
-    x = relu(self.dec_conv5a(x))     # dec_conv5a
-    x = relu(self.dec_conv5b(x))     # dec_conv5b
 
     x = upsample(x)                  # upsample4
     x = concat(x, pool3)             # concat4
