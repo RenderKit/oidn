@@ -69,7 +69,8 @@ class UNet(nn.Module):
     self.enc_conv2  = Conv(ec1,     ec2)
     self.enc_conv3  = Conv(ec2,     ec3)
     self.enc_conv4  = Conv(ec3,     ec4)
-    self.enc_conv5  = Conv(ec4,     ec5)
+    self.enc_conv5a = Conv(ec4,     ec5)
+    self.enc_conv5b = Conv(ec5,     ec5)
     self.dec_conv4a = Conv(ec5+ec3, dc4)
     self.dec_conv4b = Conv(dc4,     dc4)
     self.dec_conv3a = Conv(dc4+ec2, dc3)
@@ -102,7 +103,8 @@ class UNet(nn.Module):
     x = pool(x)                      # pool4
 
     # Bottleneck
-    x = relu(self.enc_conv5(x))      # enc_conv5
+    x = relu(self.enc_conv5a(x))     # enc_conv5a
+    x = relu(self.enc_conv5b(x))     # enc_conv5b
 
     # Decoder
     # -------------------------------------------
