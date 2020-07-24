@@ -51,7 +51,7 @@ def parse_args(cmd=None, description=None):
     parser.add_argument('--save_epochs', type=int, default=10, help='save checkpoints every this many epochs')
     parser.add_argument('--lr', '--learning_rate', type=float, default=2e-6, help='minimum learning rate')
     parser.add_argument('--max_lr', '--max_learning_rate', type=float, default=2e-4, help='maximum learning rate')
-    parser.add_argument('--lr_cycle_epochs', type=int, default=250, help='number of epochs per learning rate cycle (for CLR)')
+    parser.add_argument('--pct_start', type=float, default=0.2, help='the percentage of the cycle spent increasing the learning rate')
 
   if cmd in {'find_lr'}:
     parser.add_argument('--lr', '--learning_rate', type=float, default=1e-8, help='minimum learning rate')

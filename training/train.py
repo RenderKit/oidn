@@ -128,18 +128,13 @@ def main_worker(rank, cfg):
     valid_steps_per_epoch = len(valid_loader)
 
   # Initialize the learning rate scheduler
-  lr_step_size = cfg.lr_cycle_epochs * train_steps_per_epoch // 2
-  lr_lambda = get_cyclic_lr_with_ramp_down_function(
-    base_lr=cfg.lr,
-    max_lr=cfg.max_lr,
-    step_size=lr_step_size,
-    mode='triangular2',
-    total_iterations=cfg.epochs * train_steps_per_epoch
-  )
-
-  lr_scheduler = optim.lr_scheduler.LambdaLR(
+  lr_scheduler = optim.lr_scheduler.OneCycleLR(
     optimizer,
-    lr_lambda=[lr_lambda],
+    max_lr=cfg.max_lr,
+    total_steps=cfg.epochs * train_steps_per_epoch,
+    pct_start=cfg.pct_start,
+    anneal_strategy='cos',
+    #div_factor=cfg.max_lr / cfg.lr,
     last_epoch=last_step)
 
   if lr_scheduler.last_epoch != step:
