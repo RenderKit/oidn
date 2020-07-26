@@ -44,14 +44,14 @@ def parse_args(cmd=None, description=None):
     parser.add_argument('--result', '-r', type=str, required=(not cmd in {'train', 'find_lr'}), help='name of the result to save/load')
 
   if cmd in {'train', 'infer', 'export'}:
-    parser.add_argument('--epochs', '-e', type=int, default=(2100 if cmd == 'train' else None), help='number of training epochs')
+    parser.add_argument('--epochs', '-e', type=int, default=(2000 if cmd == 'train' else None), help='number of training epochs')
 
   if cmd in {'train'}:
     parser.add_argument('--valid_epochs', type=int, default=10, help='perform validation every this many epochs')
     parser.add_argument('--save_epochs', type=int, default=10, help='save checkpoints every this many epochs')
-    parser.add_argument('--lr', '--learning_rate', type=float, default=2e-6, help='minimum learning rate')
+    parser.add_argument('--lr', '--learning_rate', type=float, help='initial learning rate')
     parser.add_argument('--max_lr', '--max_learning_rate', type=float, default=2e-4, help='maximum learning rate')
-    parser.add_argument('--pct_start', type=float, default=0.2, help='the percentage of the cycle spent increasing the learning rate')
+    parser.add_argument('--lr_warmup', type=float, default=0.15, help='the percentage of the cycle spent increasing the learning rate (warm-up)')
 
   if cmd in {'find_lr'}:
     parser.add_argument('--lr', '--learning_rate', type=float, default=1e-8, help='minimum learning rate')

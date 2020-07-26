@@ -19,7 +19,6 @@ from config import *
 from dataset import *
 from model import *
 from loss import *
-from learning_rate import *
 from result import *
 from util import *
 
@@ -131,10 +130,11 @@ def main_worker(rank, cfg):
   lr_scheduler = optim.lr_scheduler.OneCycleLR(
     optimizer,
     max_lr=cfg.max_lr,
-    total_steps=cfg.epochs * train_steps_per_epoch,
-    pct_start=cfg.pct_start,
+    total_steps=(cfg.epochs * train_steps_per_epoch),
+    pct_start=cfg.lr_warmup,
     anneal_strategy='cos',
-    #div_factor=cfg.max_lr / cfg.lr,
+    div_factor=(25. if cfg.lr is None else cfg.max_lr / cfg.lr),
+    final_div_factor=1e4,
     last_epoch=last_step)
 
   if lr_scheduler.last_epoch != step:
