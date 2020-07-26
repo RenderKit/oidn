@@ -256,7 +256,7 @@ class TrainingDataset(PreprocessedDataset):
   def __init__(self, cfg, name):
     super(TrainingDataset, self).__init__(cfg, name)
 
-    self.max_padding = 32
+    self.max_padding = 16
 
   def __len__(self):
     return self.num_images
