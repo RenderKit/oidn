@@ -82,7 +82,7 @@ class UNet(nn.Module):
     self.dec_conv0  = Conv(dc1b,    oc)
 
     # Images must be padded to multiples of the alignment
-    self.alignment = 32
+    self.alignment = 16
 
   def forward(self, input):
     # Encoder
