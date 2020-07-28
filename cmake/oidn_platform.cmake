@@ -1,6 +1,8 @@
 ## Copyright 2009-2020 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
+include(CheckCXXCompilerFlag)
+
 set(OIDN_C_CXX_FLAGS)
 set(OIDN_C_CXX_FLAGS_RELEASE)
 set(OIDN_C_CXX_FLAGS_DEBUG)
@@ -142,7 +144,10 @@ if(WIN32)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
   append(OIDN_C_CXX_FLAGS "-qopenmp-simd")
 else()
-  append(OIDN_C_CXX_FLAGS "-fopenmp-simd")
+  check_cxx_compiler_flag(-fopenmp-simd compiler-openmp-simd-support)
+  if(compiler-openmp-simd-support)
+    append(OIDN_C_CXX_FLAGS "-fopenmp-simd")
+  endif()
 endif()
 
 ## -----------------------------------------------------------------------------
