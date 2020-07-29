@@ -12,6 +12,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import torch.cuda.amp as amp
 import torch.distributed as dist
 from torch.utils.tensorboard import SummaryWriter
 
@@ -140,6 +141,9 @@ def main_worker(rank, cfg):
   if lr_scheduler.last_epoch != step:
     error('failed to restore LR scheduler step')
 
+  # Initialize the gradient scaler
+  scaler = amp.GradScaler()
+
   # Initialize the summary writer
   log_dir = get_result_log_dir(result_dir)
   if rank == 0:
@@ -174,11 +178,17 @@ def main_worker(rank, cfg):
 
       # Run a training step
       optimizer.zero_grad()
-      loss = criterion(model(input), target)
-      loss.backward()
+
+      with amp.autocast():
+        loss = criterion(model(input).float(), target)
+
+      #loss.backward()
+      scaler.scale(loss).backward()
 
       # Next step
-      optimizer.step()
+      #optimizer.step()
+      scaler.step(optimizer)
+      scaler.update()
       lr_scheduler.step()
       step += 1
       train_loss += loss
