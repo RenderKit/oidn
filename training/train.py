@@ -131,15 +131,14 @@ def main_worker(rank, cfg):
   lr_scheduler = optim.lr_scheduler.OneCycleLR(
     optimizer,
     max_lr=cfg.max_lr,
-    total_steps=(cfg.epochs * train_steps_per_epoch),
+    total_steps=cfg.epochs,
     pct_start=cfg.lr_warmup,
     anneal_strategy='cos',
     div_factor=(25. if cfg.lr is None else cfg.max_lr / cfg.lr),
-    final_div_factor=1e4,
-    last_epoch=last_step)
+    final_div_factor=1e4)
 
-  if lr_scheduler.last_epoch != step:
-    error('failed to restore LR scheduler step')
+  #if lr_scheduler.last_epoch != step:
+  #  error('failed to restore LR scheduler step')
 
   # Initialize the gradient scaler
   scaler = amp.GradScaler()
@@ -180,7 +179,9 @@ def main_worker(rank, cfg):
       optimizer.zero_grad()
 
       with amp.autocast():
-        loss = criterion(model(input).float(), target)
+        output = model(input)
+
+      loss = criterion(output.float(), target)
 
       #loss.backward()
       scaler.scale(loss).backward()
@@ -189,11 +190,12 @@ def main_worker(rank, cfg):
       #optimizer.step()
       scaler.step(optimizer)
       scaler.update()
-      lr_scheduler.step()
       step += 1
       train_loss += loss
       if rank == 0:
         progress.next()
+
+    lr_scheduler.step()
 
     # Compute the average training loss
     if distributed:
