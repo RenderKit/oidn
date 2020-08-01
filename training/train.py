@@ -195,6 +195,8 @@ def main_worker(rank, cfg):
       if rank == 0:
         progress.next()
 
+    # Get and update the learning rate
+    lr = lr_scheduler.get_last_lr()[0]
     lr_scheduler.step()
 
     # Compute the average training loss
@@ -204,14 +206,13 @@ def main_worker(rank, cfg):
 
     # Write summary
     if rank == 0:
-      summary_writer.add_scalar('learning_rate', lr_scheduler.get_last_lr()[0], epoch)
+      summary_writer.add_scalar('learning_rate', lr, epoch)
       summary_writer.add_scalar('loss', train_loss, epoch)
 
     # Print stats
     if rank == 0:
       duration = time.time() - start_time
       total_duration = time.time() - total_start_time
-      lr = lr_scheduler.get_last_lr()[0]
       images_per_sec = len(train_data) / duration
       eta = ((cfg.epochs - epoch) * total_duration / (epoch + 1 - start_epoch))
       progress.finish('loss=%.6f, lr=%.6f (%.1f images/s, %s, eta %s)'
