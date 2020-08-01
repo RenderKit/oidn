@@ -172,8 +172,8 @@ def main_worker(rank, cfg):
     for i, batch in enumerate(train_loader, 0):
       # Get the batch
       input, target = batch
-      input  = input.to(device,  non_blocking=True).float()
-      target = target.to(device, non_blocking=True).float()
+      input  = input.to(device,  non_blocking=True)
+      target = target.to(device, non_blocking=True)
 
       # Run a training step
       optimizer.zero_grad()
@@ -181,7 +181,7 @@ def main_worker(rank, cfg):
       with amp.autocast():
         output = model(input)
 
-      loss = criterion(output.float(), target)
+      loss = criterion(output.float(), target.float())
 
       #loss.backward()
       scaler.scale(loss).backward()
@@ -204,8 +204,6 @@ def main_worker(rank, cfg):
 
     # Write summary
     if rank == 0:
-      if epoch == 1:
-        summary_writer.add_graph(unwrap_module(model), input)
       summary_writer.add_scalar('learning_rate', lr_scheduler.get_last_lr()[0], epoch)
       summary_writer.add_scalar('loss', train_loss, epoch)
 
