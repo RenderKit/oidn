@@ -50,7 +50,7 @@ def parse_args(cmd=None, description=None):
     parser.add_argument('--valid_epochs', type=int, default=10, help='perform validation every this many epochs')
     parser.add_argument('--save_epochs', type=int, default=10, help='save checkpoints every this many epochs')
     parser.add_argument('--lr', '--learning_rate', type=float, help='initial learning rate')
-    parser.add_argument('--max_lr', '--max_learning_rate', type=float, default=2e-4, help='maximum learning rate')
+    parser.add_argument('--max_lr', '--max_learning_rate', type=float, help='maximum learning rate')
     parser.add_argument('--lr_warmup', type=float, default=0.15, help='the percentage of the cycle spent increasing the learning rate (warm-up)')
 
   if cmd in {'find_lr'}:
@@ -58,7 +58,7 @@ def parse_args(cmd=None, description=None):
     parser.add_argument('--max_lr', '--max_learning_rate', type=float, default=0.1, help='maximum learning rate')
 
   if cmd in {'train', 'find_lr'}:
-    parser.add_argument('--batch_size', '--bs', '-b', type=int, default=8, help='mini-batch size (total batch size of all devices)')
+    parser.add_argument('--batch_size', '--bs', '-b', type=int, default=16, help='mini-batch size (total batch size of all devices)')
     parser.add_argument('--loaders', '-j', type=int, default=4, help='number of data loader threads per device')
     advanced.add_argument('--model', '-m', type=str, choices=['unet'], default='unet', help='network model')
     advanced.add_argument('--loss', '-l', type=str, choices=['l1', 'mape', 'smape', 'l2', 'ssim', 'msssim', 'l1_msssim', 'l1_grad'], default='l1_msssim', help='loss function')
@@ -133,6 +133,11 @@ def parse_args(cmd=None, description=None):
     # Generate a result name if not specified
     if not cfg.result:
       cfg.result = '%x' % int(time.time())
+
+  if cmd in {'train'}:
+    # Set the default maximum learning rate
+    if cfg.max_lr is None:
+      cfg.max_lr = 3.125e-6 * cfg.batch_size
 
   # Print PyTorch version
   print('PyTorch:', torch.__version__)
