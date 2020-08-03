@@ -17,14 +17,14 @@ namespace oidn {
   {
   protected:
     // Network constants
-    static constexpr int alignment       = 32;  // required spatial alignment in pixels (padding may be necessary)
-    static constexpr int receptiveField  = 222; // receptive field in pixels
+    static constexpr int alignment       = 16;  // required spatial alignment in pixels (padding may be necessary)
+    static constexpr int receptiveField  = 174; // receptive field in pixels
     static constexpr int overlap         = round_up(receptiveField / 2, alignment); // required spatial overlap between tiles in pixels
 
     // Estimated memory usage
     static constexpr int estimatedBytesBase       = 16*1024*1024; // rough estimate
-    static constexpr int estimatedBytesPerPixel8  = 889;          // K=8, accurate
-    static constexpr int estimatedBytesPerPixel16 = 1328;         // K=16, rough due to Winograd scratchpad
+    static constexpr int estimatedBytesPerPixel8  = 886;          // K=8, accurate
+    static constexpr int estimatedBytesPerPixel16 = 1024;         // K=16, rough due to Winograd scratchpad
 
     // Images
     Image color;
