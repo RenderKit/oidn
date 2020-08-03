@@ -56,7 +56,7 @@ class UNet(nn.Module):
     ec3  = 64
     ec4  = 80
     ec5  = 96
-    dc4  = 128
+    dc4  = 112
     dc3  = 96
     dc2  = 64
     dc1a = 64
