@@ -78,7 +78,6 @@ def main_worker(rank, cfg):
     last_epoch = get_latest_checkpoint_epoch(result_dir)
     checkpoint = load_checkpoint(result_dir, device, last_epoch, model, optimizer)
     step = checkpoint['step']
-    last_step = step - 1 # will be incremented by the LR scheduler init
   else:
     if rank == 0:
       print('Result:', cfg.result)
@@ -94,7 +93,6 @@ def main_worker(rank, cfg):
 
     last_epoch = 0
     step = 0
-    last_step = -1
 
   # Make sure all workers have loaded the checkpoint
   if distributed:
@@ -135,10 +133,11 @@ def main_worker(rank, cfg):
     pct_start=cfg.lr_warmup,
     anneal_strategy='cos',
     div_factor=(25. if cfg.lr is None else cfg.max_lr / cfg.lr),
-    final_div_factor=1e4)
+    final_div_factor=1e4,
+    last_epoch=last_epoch-1)
 
-  #if lr_scheduler.last_epoch != step:
-  #  error('failed to restore LR scheduler step')
+  if lr_scheduler.last_epoch != last_epoch:
+    error('failed to restore LR scheduler state')
 
   # Initialize the gradient scaler
   scaler = amp.GradScaler()
