@@ -172,7 +172,7 @@ namespace oidn {
   void UNetFilter::computeTileSize()
   {
     const int minTileSize = 3*overlap;
-  
+
     // Estimate the required amount of memory
     int estimatedBytesPerPixel = mayiuse(avx512_core) ? estimatedBytesPerPixel16 : estimatedBytesPerPixel8;
     if (inplace)
@@ -297,17 +297,12 @@ namespace oidn {
     const auto pool3Dims     = net->getPoolDims(encConv3Dims);                      //-> concat4
 
     const auto encConv4Dims  = net->getConvDims("enc_conv4", pool3Dims);            //-> temp0
-    const auto pool4Dims     = net->getPoolDims(encConv4Dims);                      //-> concat5
+    const auto pool4Dims     = net->getPoolDims(encConv4Dims);                      //-> temp1
 
-    const auto encConv5Dims  = net->getConvDims("enc_conv5", pool4Dims);            //-> temp0
-    const auto pool5Dims     = net->getPoolDims(encConv5Dims);                      //-> temp1
+    const auto encConv5aDims = net->getConvDims("enc_conv5a", pool4Dims);           //-> temp0
+    const auto encConv5bDims = net->getConvDims("enc_conv5b", encConv5aDims);       //-> temp1
 
-    const auto upsample5Dims = net->getUpsampleDims(pool5Dims);                     //-> concat5
-    const auto concat5Dims   = net->getConcatDims(upsample5Dims, pool4Dims);
-    const auto decConv5aDims = net->getConvDims("dec_conv5a", concat5Dims);         //-> temp0
-    const auto decConv5bDims = net->getConvDims("dec_conv5b", decConv5aDims);       //-> temp1
-
-    const auto upsample4Dims = net->getUpsampleDims(decConv5bDims);                 //-> concat4
+    const auto upsample4Dims = net->getUpsampleDims(encConv5bDims);                 //-> concat4
     const auto concat4Dims   = net->getConcatDims(upsample4Dims, pool3Dims);
     const auto decConv4aDims = net->getConvDims("dec_conv4a", concat4Dims);         //-> temp0
     const auto decConv4bDims = net->getConvDims("dec_conv4b", decConv4aDims);       //-> temp1
@@ -337,8 +332,7 @@ namespace oidn {
       encConv2Dims,
       encConv3Dims,
       encConv4Dims,
-      encConv5Dims,
-      decConv5aDims,
+      encConv5aDims,
       decConv4aDims,
       decConv3aDims,
       decConv2aDims,
@@ -348,8 +342,8 @@ namespace oidn {
 
     const auto temp1Dims = getMaxMemoryDims({
       encConv1Dims,
-      pool5Dims,
-      decConv5bDims,
+      pool4Dims,
+      encConv5bDims,
       decConv4bDims,
       decConv3bDims,
       decConv2bDims,
@@ -367,7 +361,6 @@ namespace oidn {
     auto concat2Dst = net->allocMemory(concat2Dims);
     auto concat3Dst = net->allocMemory(concat3Dims);
     auto concat4Dst = net->allocMemory(concat4Dims);
-    auto concat5Dst = net->allocMemory(concat5Dims);
 
     // Transfer function
     std::shared_ptr<TransferFunction> transferFunc = makeTransferFunc();
@@ -418,29 +411,17 @@ namespace oidn {
     auto encConv4 = net->addConv("enc_conv4", pool3->getDst(), temp0);
 
     // pool4
-    // Adjust pointer for pool4 to eliminate concat4
-    auto pool4Dst = net->castMemory(pool4Dims, concat5Dst, upsample5Dims);
-    auto pool4 = net->addPool(encConv4->getDst(), pool4Dst);
+    auto pool4 = net->addPool(encConv4->getDst(), temp1);
 
-    // enc_conv5
-    auto encConv5 = net->addConv("enc_conv5", pool4->getDst(), temp0);
+    // enc_conv5a
+    auto encConv5a = net->addConv("enc_conv5a", pool4->getDst(), temp0);
 
-    // pool5
-    auto pool5 = net->addPool(encConv5->getDst(), temp1);
-
-    // upsample5
-    auto upsample5Dst = net->castMemory(upsample5Dims, concat5Dst);
-    auto upsample5 = net->addUpsample(pool5->getDst(), upsample5Dst);
-
-    // dec_conv5a
-    auto decConv5a = net->addConv("dec_conv5a", concat5Dst, temp0);
-
-    // dec_conv5b
-    auto decConv5b = net->addConv("dec_conv5b", decConv5a->getDst(), temp1);
+    // enc_conv5b
+    auto encConv5b = net->addConv("enc_conv5b", encConv5a->getDst(), temp1);
 
     // upsample4
     auto upsample4Dst = net->castMemory(upsample4Dims, concat4Dst);
-    auto upsample4 = net->addUpsample(decConv5b->getDst(), upsample4Dst);
+    auto upsample4 = net->addUpsample(encConv5b->getDst(), upsample4Dst);
 
     // dec_conv4a
     auto decConv4a = net->addConv("dec_conv4a", concat4Dst, temp0);
