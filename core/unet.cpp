@@ -172,7 +172,7 @@ namespace oidn {
   void UNetFilter::computeTileSize()
   {
     const int minTileSize = 3*overlap;
-  
+
     // Estimate the required amount of memory
     int estimatedBytesPerPixel = mayiuse(avx512_core) ? estimatedBytesPerPixel16 : estimatedBytesPerPixel8;
     if (inplace)
@@ -209,8 +209,10 @@ namespace oidn {
 
     if (device->isVerbose(2))
     {
+      std::cout << "Image size: " << W << "x" << H << std::endl;
       std::cout << "Tile size : " << tileW << "x" << tileH << std::endl;
       std::cout << "Tile count: " << tileCountW << "x" << tileCountH << std::endl;
+      std::cout << "In-place  : " << (inplace ? "true" : "false") << std::endl;
     }
   }
 
@@ -227,6 +229,15 @@ namespace oidn {
     if (color)  inputC += 3;
     if (albedo) inputC += 3;
     if (normal) inputC += 3;
+
+    if (device->isVerbose(2))
+    {
+      std::cout << "Inputs    :";
+      if (color)  std::cout << " " << (hdr ? "hdr" : "ldr");
+      if (albedo) std::cout << " " << "alb";
+      if (normal) std::cout << " " << "nrm";
+      std::cout << std::endl;
+    }
 
     // Select the weights to use
     Data weights;
