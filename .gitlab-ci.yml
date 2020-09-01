@@ -79,7 +79,7 @@ stages:
 
 .centos7:
   image: openimagedenoise/build:centos7
-  
+
 build-centos7-icc:
   extends:
     - .build-linux
@@ -257,13 +257,13 @@ build-ubuntu20.04-gcc:
 .arch:
   image: openimagedenoise/build:arch
 
-build-arch-gcc:
-  extends:
-    - .build-linux
-    - .arch
-  script:
-    - cmake -B build -G Ninja
-    - ninja -C build -v
+#build-arch-gcc:
+#  extends:
+#    - .build-linux
+#    - .arch
+#  script:
+#    - cmake -B build -G Ninja
+#    - ninja -C build -v
 
 ## -----------------------------------------------------------------------------
 ## macOS
@@ -428,7 +428,7 @@ package-windows:
     - msvc15
     - icc19
   script: python scripts/build.py package --compiler msvc15-icc19
-      
+
 ## -----------------------------------------------------------------------------
 ## Protex
 ## -----------------------------------------------------------------------------
