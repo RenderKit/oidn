@@ -2,8 +2,8 @@
 ## SPDX-License-Identifier: Apache-2.0
 
 set(DNNL_VERSION_MAJOR 1)
-set(DNNL_VERSION_MINOR 4)
-set(DNNL_VERSION_PATCH 0)
+set(DNNL_VERSION_MINOR 6)
+set(DNNL_VERSION_PATCH 1)
 set(DNNL_VERSION_HASH  "N/A")
 
 set(DNNL_CPU_RUNTIME "TBB")
@@ -20,69 +20,47 @@ configure_file(
 )
 
 file(GLOB_RECURSE DNNL_SOURCES
-  mkl-dnn/src/common/*.h
-  mkl-dnn/src/common/*.hpp
-  mkl-dnn/src/common/*.c
-  mkl-dnn/src/common/*.cpp
+  mkl-dnn/src/common/*.[ch]
+  mkl-dnn/src/common/*.[ch]pp
   mkl-dnn/src/cpu/bfloat16.cpp
-  mkl-dnn/src/cpu/cpu_barrier.hpp
-  mkl-dnn/src/cpu/cpu_barrier.cpp
   mkl-dnn/src/cpu/cpu_concat.cpp
   mkl-dnn/src/cpu/cpu_concat_pd.hpp
   mkl-dnn/src/cpu/cpu_convolution_list.cpp
   mkl-dnn/src/cpu/cpu_convolution_pd.hpp
-  mkl-dnn/src/cpu/cpu_engine.hpp
-  mkl-dnn/src/cpu/cpu_engine.cpp
-  mkl-dnn/src/cpu/cpu_isa_traits.hpp
-  mkl-dnn/src/cpu/cpu_isa_traits.cpp
+  mkl-dnn/src/cpu/cpu_engine.[ch]pp
   mkl-dnn/src/cpu/cpu_memory_storage.hpp
   mkl-dnn/src/cpu/cpu_pooling_list.cpp
   mkl-dnn/src/cpu/cpu_pooling_pd.hpp
   mkl-dnn/src/cpu/cpu_primitive.hpp
-  mkl-dnn/src/cpu/cpu_reducer.hpp
-  mkl-dnn/src/cpu/cpu_reducer.cpp
+  mkl-dnn/src/cpu/cpu_reducer.[ch]pp
   mkl-dnn/src/cpu/cpu_reorder.cpp
   mkl-dnn/src/cpu/cpu_reorder_pd.hpp
   mkl-dnn/src/cpu/cpu_stream.hpp
   mkl-dnn/src/cpu/cpu_sum.cpp
-  mkl-dnn/src/cpu/jit_avx2_conv_kernel_f32.hpp
-  mkl-dnn/src/cpu/jit_avx2_conv_kernel_f32.cpp
-  mkl-dnn/src/cpu/jit_avx2_convolution.hpp
-  mkl-dnn/src/cpu/jit_avx2_convolution.cpp
-  mkl-dnn/src/cpu/jit_avx512_core_f32_wino_conv_*.hpp
-  mkl-dnn/src/cpu/jit_avx512_core_f32_wino_conv_*.cpp
-  mkl-dnn/src/cpu/jit_generator.hpp
-  mkl-dnn/src/cpu/jit_primitive_conf.hpp
-  mkl-dnn/src/cpu/jit_sse41_conv_kernel_f32.hpp
-  mkl-dnn/src/cpu/jit_sse41_conv_kernel_f32.cpp
-  mkl-dnn/src/cpu/jit_sse41_convolution.hpp
-  mkl-dnn/src/cpu/jit_sse41_convolution.cpp
-  mkl-dnn/src/cpu/jit_transpose_src_utils.hpp
-  mkl-dnn/src/cpu/jit_transpose_src_utils.cpp
-  mkl-dnn/src/cpu/jit_uni_eltwise.hpp
-  mkl-dnn/src/cpu/jit_uni_eltwise.cpp
-  mkl-dnn/src/cpu/jit_uni_eltwise_injector.hpp
-  mkl-dnn/src/cpu/jit_uni_eltwise_injector.cpp
-  mkl-dnn/src/cpu/jit_uni_pooling.hpp
-  mkl-dnn/src/cpu/jit_uni_pooling.cpp
-  mkl-dnn/src/cpu/jit_uni_pool_kernel.hpp
-  mkl-dnn/src/cpu/jit_uni_pool_kernel.cpp
-  mkl-dnn/src/cpu/jit_uni_reorder.hpp
-  mkl-dnn/src/cpu/jit_uni_reorder.cpp
-  mkl-dnn/src/cpu/jit_uni_reorder_utils.cpp
+  mkl-dnn/src/cpu/platform.[ch]pp
   mkl-dnn/src/cpu/simple_q10n.hpp
   mkl-dnn/src/cpu/simple_reorder.hpp
   mkl-dnn/src/cpu/wino_reorder.hpp
-  mkl-dnn/src/cpu/resampling/cpu_resampling_list.cpp
-  mkl-dnn/src/cpu/resampling/cpu_resampling_pd.hpp
-  mkl-dnn/src/cpu/resampling/resampling_utils.hpp
-  mkl-dnn/src/cpu/resampling/simple_resampling.hpp
-  mkl-dnn/src/cpu/resampling/simple_resampling.cpp
-  mkl-dnn/src/cpu/jit_utils/*.h
-  mkl-dnn/src/cpu/jit_utils/*.hpp
-  mkl-dnn/src/cpu/jit_utils/*.c
-  mkl-dnn/src/cpu/jit_utils/*.cpp
-  mkl-dnn/src/cpu/xbyak/*.h
+  mkl-dnn/src/cpu/x64/cpu_barrier.[ch]pp
+  mkl-dnn/src/cpu/x64/cpu_isa_traits.[ch]pp
+  mkl-dnn/src/cpu/x64/jit_avx2_conv_kernel_f32.[ch]pp
+  mkl-dnn/src/cpu/x64/jit_avx2_convolution.[ch]pp
+  mkl-dnn/src/cpu/x64/jit_avx512_core_bf16cvt.[ch]pp
+  mkl-dnn/src/cpu/x64/jit_avx512_core_f32_wino_conv_*.[ch]pp
+  mkl-dnn/src/cpu/x64/jit_generator.hpp
+  mkl-dnn/src/cpu/x64/jit_primitive_conf.hpp
+  mkl-dnn/src/cpu/x64/jit_sse41_conv_kernel_f32.[ch]pp
+  mkl-dnn/src/cpu/x64/jit_sse41_convolution.[ch]pp
+  mkl-dnn/src/cpu/x64/jit_transpose_src_utils.[ch]pp
+  mkl-dnn/src/cpu/x64/jit_uni_eltwise.[ch]pp
+  mkl-dnn/src/cpu/x64/jit_uni_eltwise_injector.[ch]pp
+  mkl-dnn/src/cpu/x64/jit_uni_pooling.[ch]pp
+  mkl-dnn/src/cpu/x64/jit_uni_pool_kernel.[ch]pp
+  mkl-dnn/src/cpu/x64/jit_uni_reorder.[ch]pp
+  mkl-dnn/src/cpu/x64/jit_uni_reorder_utils.cpp
+  mkl-dnn/src/cpu/x64/jit_utils/*.[ch]
+  mkl-dnn/src/cpu/x64/jit_utils/*.[ch]pp
+  mkl-dnn/src/cpu/x64/xbyak/*.h
 )
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
