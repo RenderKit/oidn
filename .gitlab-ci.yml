@@ -7,11 +7,11 @@ stages:
   - deploy
   - scan
 
-.base:
-  variables:
-    GIT_SUBMODULE_STRATEGY: recursive
-    OIDN_ROOT_DIR:          "$CI_PROJECT_DIR"
-    PYTHONUNBUFFERED:       1
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+  OIDN_ROOT_DIR:          "$CI_PROJECT_DIR"
+  PYTHONUNBUFFERED:       1
+  ErrorActionPreference:  stop
 
 .build:
   stage: build
@@ -55,197 +55,174 @@ stages:
 ## Linux
 ## -----------------------------------------------------------------------------
 
-.base-linux:
-  extends: .base
+build-centos7-icc:
+  extends: .build
   tags:
     - docker
-
-.build-linux:
-  extends:
-    - .build
-    - .base-linux
-
-.test-linux:
-  extends:
-    - .test
-    - .base-linux
-
-.package-linux:
-  extends:
-    - .package
-    - .base-linux
-
-## -----------------------------------------------------------------------------
-
-.centos7:
   image: openimagedenoise/build:centos7
-
-build-centos7-icc:
-  extends:
-    - .build-linux
-    - .centos7
   script: scripts/build.py install --compiler icc
 
 test-centos7-icc-avx512:
-  extends:
-    - .test-linux
-    - .centos7
+  extends: .test
   tags:
+    - docker
     - avx512vl
+  image: openimagedenoise/build:centos7
   needs:
     - job: build-centos7-icc
       artifacts: true
   script: scripts/test.py
 
 test-centos7-icc-knl:
-  extends:
-    - .test-linux
-    - .centos7
+  extends: .test
   tags:
+    - docker
     - knl
+  image: openimagedenoise/build:centos7
   needs:
     - job: build-centos7-icc
       artifacts: true
   script: scripts/test.py
 
 test-centos7-icc-avx2:
-  extends:
-    - .test-linux
-    - .centos7
+  extends: .test
   tags:
+    - docker
     - avx2
+  image: openimagedenoise/build:centos7
   needs:
     - job: build-centos7-icc
       artifacts: true
   script: scripts/test.py
 
 test-centos7-icc-sse4:
-  extends:
-    - .test-linux
-    - .centos7
+  extends: .test
   tags:
+    - docker
     - avx512vl
+  image: openimagedenoise/build:centos7
   needs:
     - job: build-centos7-icc
       artifacts: true
   script: scripts/test.py --arch pnr
 
 package-linux:
-  extends:
-    - .package-linux
-    - .centos7
+  extends: .package
+  tags:
+    - docker
+  image: openimagedenoise/build:centos7
   script: scripts/build.py package --compiler icc
 
 ## -----------------------------------------------------------------------------
 
-.ubuntu18.04:
-  image: openimagedenoise/build:ubuntu18.04
-
 build-ubuntu18.04-gcc:
-  extends:
-    - .build-linux
-    - .ubuntu18.04
+  extends: .build
+  tags:
+    - docker
+  image: openimagedenoise/build:ubuntu18.04
   script: scripts/build.py install --compiler gcc
 
 test-ubuntu18.04-gcc-avx512:
-  extends:
-    - .test-linux
-    - .ubuntu18.04
+  extends: .test
   tags:
+    - docker
     - avx512vl
+  image: openimagedenoise/build:ubuntu18.04
   needs:
     - job: build-ubuntu18.04-gcc
       artifacts: true
   script: scripts/test.py
 
 test-ubuntu18.04-gcc-avx2:
-  extends:
-    - .test-linux
-    - .ubuntu18.04
+  extends: .test
   tags:
+    - docker
     - avx2
+  image: openimagedenoise/build:ubuntu18.04
   needs:
     - job: build-ubuntu18.04-gcc
       artifacts: true
   script: scripts/test.py
 
 test-ubuntu18.04-gcc-sse4:
-  extends:
-    - .test-linux
-    - .ubuntu18.04
+  extends: .test
   tags:
+    - docker
     - avx512vl
+  image: openimagedenoise/build:ubuntu18.04
   needs:
     - job: build-ubuntu18.04-gcc
       artifacts: true
   script: scripts/test.py --arch pnr
 
 build-ubuntu18.04-gcc-debug:
-  extends:
-    - .build-linux
-    - .ubuntu18.04
+  extends: .build
+  tags:
+    - docker
+  image: openimagedenoise/build:ubuntu18.04
   script: scripts/build.py install --compiler gcc --config Debug
 
 test-ubuntu18.04-gcc-debug-avx512:
-  extends:
-    - .test-linux
-    - .ubuntu18.04
+  extends: .test
   tags:
+    - docker
     - avx512vl
+  image: openimagedenoise/build:ubuntu18.04
   needs:
     - job: build-ubuntu18.04-gcc-debug
       artifacts: true
   script: scripts/test.py
 
 test-ubuntu18.04-gcc-debug-avx2:
-  extends:
-    - .test-linux
-    - .ubuntu18.04
+  extends: .test
   tags:
+    - docker
     - avx2
+  image: openimagedenoise/build:ubuntu18.04
   needs:
     - job: build-ubuntu18.04-gcc-debug
       artifacts: true
   script: scripts/test.py
 
 test-ubuntu18.04-gcc-debug-sse4:
-  extends:
-    - .test-linux
-    - .ubuntu18.04
+  extends: .test
   tags:
+    - docker
     - avx512vl
+  image: openimagedenoise/build:ubuntu18.04
   needs:
     - job: build-ubuntu18.04-gcc-debug
       artifacts: true
   script: scripts/test.py --arch pnr
 
 build-ubuntu18.04-gcc-static:
-  extends:
-    - .build-linux
-    - .ubuntu18.04
+  extends: .build
+  tags:
+    - docker
+  image: openimagedenoise/build:ubuntu18.04
   script: scripts/build.py --compiler gcc -D OIDN_STATIC_LIB=ON
 
 build-ubuntu18.04-clang:
-  extends:
-    - .build-linux
-    - .ubuntu18.04
+  extends: .build
+  tags:
+    - docker
+  image: openimagedenoise/build:ubuntu18.04
   script: scripts/build.py --compiler clang
 
 build-ubuntu18.04-kw-gcc:
-  extends:
-    - .build-linux
-    - .ubuntu18.04
+  extends: .build
+  tags:
+    - docker
+  image: openimagedenoise/build:ubuntu18.04
   script: scripts/klocwork_build.sh
 
 ## -----------------------------------------------------------------------------
 
-.ubuntu20.04:
-  image: openimagedenoise/build:ubuntu20.04
-
 build-ubuntu20.04-gcc:
-  extends:
-    - .build-linux
-    - .ubuntu20.04
+  extends: .build
+  tags:
+    - docker
+  image: openimagedenoise/build:ubuntu20.04
   script:
     - mkdir build
     - cd build
@@ -254,13 +231,11 @@ build-ubuntu20.04-gcc:
 
 ## -----------------------------------------------------------------------------
 
-.arch:
-  image: openimagedenoise/build:arch
-
 #build-arch-gcc:
-#  extends:
-#    - .build-linux
-#    - .arch
+#  extends: .build
+#  tags:
+#    - docker
+#  image: openimagedenoise/build:arch
 #  script:
 #    - cmake -B build -G Ninja
 #    - ninja -C build -v
@@ -269,96 +244,64 @@ build-ubuntu20.04-gcc:
 ## macOS
 ## -----------------------------------------------------------------------------
 
-.base-macos:
-  extends: .base
+build-macos-icc:
+  extends: .build
   tags:
     - osx
-
-.build-macos:
-  extends:
-    - .build
-    - .base-macos
-
-.test-macos:
-  extends:
-    - .test
-    - .base-macos
-
-.package-macos:
-  extends:
-    - .package
-    - .base-macos
-
-## -----------------------------------------------------------------------------
-
-build-macos-icc:
-  extends: .build-macos
   script: scripts/build.py install --compiler icc
 
 test-macos-icc:
-  extends: .test-macos
+  extends: .test
+  tags:
+    - osx
   needs:
     - job: build-macos-icc
       artifacts: true
   script: scripts/test.py
 
 build-macos-clang:
-  extends: .build-macos
+  extends: .build
+  tags:
+    - osx
   script: scripts/build.py install --compiler clang
 
 test-macos-clang:
-  extends: .test-macos
+  extends: .test
+  tags:
+    - osx
   needs:
     - job: build-macos-clang
       artifacts: true
   script: scripts/test.py
 
 build-macos-clang-static:
-  extends: .build-macos
+  extends: .build
+  tags:
+    - osx
   script: scripts/build.py --compiler clang -D OIDN_STATIC_LIB=ON
 
 package-macos:
-  extends: .package-macos
+  extends: .package
+  tags:
+    - osx
   script: scripts/build.py package --compiler icc
 
 ## -----------------------------------------------------------------------------
 ## Windows
 ## -----------------------------------------------------------------------------
 
-.base-windows:
-  extends: .base
+build-windows-icc:
+  extends: .build
   tags:
     - win10
-  variables:
-    ErrorActionPreference: stop
-
-.build-windows:
-  extends:
-    - .build
-    - .base-windows
-
-.test-windows:
-  extends:
-    - .test
-    - .base-windows
-
-.package-windows:
-  extends:
-    - .package
-    - .base-windows
-
-## -----------------------------------------------------------------------------
-
-build-windows-icc:
-  extends: .build-windows
-  tags:
     - msvc15
     - icc19
   script: python scripts/build.py install --compiler msvc15-icc19
 
 test-windows-icc-avx512:
-  extends: .test-windows
+  extends: .test
   tags:
+    - win10
     - msvc15
     - icc19
     - avx512vl
@@ -368,8 +311,9 @@ test-windows-icc-avx512:
   script: python scripts/test.py
 
 test-windows-icc-avx2:
-  extends: .test-windows
+  extends: .test
   tags:
+    - win10
     - msvc15
     - icc19
     - avx2
@@ -379,32 +323,37 @@ test-windows-icc-avx2:
   script: python scripts/test.py
 
 build-windows-msvc15:
-  extends: .build-windows
+  extends: .build
   tags:
+    - win10
     - msvc15
   script: python scripts/build.py --compiler msvc15
 
 build-windows-msvc15-debug:
-  extends: .build-windows
+  extends: .build
   tags:
+    - win10
     - msvc15
   script: python scripts/build.py --compiler msvc15 --config Debug
 
 build-windows-msvc15-static:
-  extends: .build-windows
+  extends: .build
   tags:
+    - win10
     - msvc15
   script: python scripts/build.py --compiler msvc15 -D OIDN_STATIC_LIB=ON
 
 build-windows-msvc16:
-  extends: .build-windows
+  extends: .build
   tags:
+    - win10
     - msvc16
   script: python scripts/build.py install --compiler msvc16
 
 test-windows-msvc16-avx512:
-  extends: .test-windows
+  extends: .test
   tags:
+    - win10
     - msvc16
     - avx512vl
   needs:
@@ -413,8 +362,9 @@ test-windows-msvc16-avx512:
   script: python scripts/test.py
 
 test-windows-msvc16-avx2:
-  extends: .test-windows
+  extends: .test
   tags:
+    - win10
     - msvc16
     - avx2
   needs:
@@ -423,8 +373,9 @@ test-windows-msvc16-avx2:
   script: python scripts/test.py
 
 package-windows:
-  extends: .package-windows
+  extends: .package
   tags:
+    - win10
     - msvc15
     - icc19
   script: python scripts/build.py package --compiler msvc15-icc19
