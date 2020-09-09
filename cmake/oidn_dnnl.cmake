@@ -40,13 +40,13 @@ file(GLOB_RECURSE DNNL_SOURCES
   mkl-dnn/src/cpu/platform.[ch]pp
   mkl-dnn/src/cpu/simple_q10n.hpp
   mkl-dnn/src/cpu/simple_reorder.hpp
-  mkl-dnn/src/cpu/wino_reorder.hpp
   mkl-dnn/src/cpu/x64/cpu_barrier.[ch]pp
   mkl-dnn/src/cpu/x64/cpu_isa_traits.[ch]pp
   mkl-dnn/src/cpu/x64/jit_avx2_conv_kernel_f32.[ch]pp
   mkl-dnn/src/cpu/x64/jit_avx2_convolution.[ch]pp
+  mkl-dnn/src/cpu/x64/jit_avx512_common_convolution.[ch]pp
+  mkl-dnn/src/cpu/x64/jit_avx512_common_conv_kernel.[ch]pp
   mkl-dnn/src/cpu/x64/jit_avx512_core_bf16cvt.[ch]pp
-  mkl-dnn/src/cpu/x64/jit_avx512_core_f32_wino_conv_*.[ch]pp
   mkl-dnn/src/cpu/x64/jit_generator.hpp
   mkl-dnn/src/cpu/x64/jit_primitive_conf.hpp
   mkl-dnn/src/cpu/x64/jit_sse41_conv_kernel_f32.[ch]pp

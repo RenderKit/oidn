@@ -203,9 +203,8 @@ namespace oidn {
     // Let the convolution primitive choose the weights format
     auto weightsDesc = memory::desc({ weightsDims }, memory::data_type::f32, memory::format_tag::any);
 
-    auto convAlgo = (K == 16) ? algorithm::convolution_winograd : algorithm::convolution_direct;
     auto convDesc = convolution_forward::desc(
-      prop_kind::forward_inference, convAlgo,
+      prop_kind::forward_inference, algorithm::convolution_direct,
       src->get_desc(),
       weightsDesc,
       bias->get_desc(),
