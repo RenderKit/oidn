@@ -1,6 +1,6 @@
 # Intel® Open Image Denoise
 
-This is release v1.2.2 of Intel Open Image Denoise. For changes and new
+This is release v1.2.3 of Intel Open Image Denoise. For changes and new
 features see the [changelog](CHANGELOG.md). Visit
 https://www.openimagedenoise.org for more information.
 
@@ -102,7 +102,7 @@ Image Denoise you need the following prerequisites:
     later)
 
   - [Intel® SPMD Program Compiler (ISPC)](http://ispc.github.io),
-    version 1.12.0 or later. Please obtain a release of ISPC from the
+    version 1.14.1 or later. Please obtain a release of ISPC from the
     [ISPC downloads page](https://ispc.github.io/downloads.html). The
     build system looks for ISPC in the `PATH` and in the directory right
     “next to” the checked-out Intel Open Image Denoise sources.\[1\]
