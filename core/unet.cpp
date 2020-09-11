@@ -174,12 +174,12 @@ namespace oidn {
     const int minTileSize = 3*overlap;
 
     // Estimate the required amount of memory
-    int estimatedBytesPerPixel = mayiuse(avx512_core) ? estimatedBytesPerPixel16 : estimatedBytesPerPixel8;
+    int totalEstimatedBytesPerPixel = estimatedBytesPerPixel;
     if (inplace)
-      estimatedBytesPerPixel += getFormatSize(output.format); // outputTemp
+      totalEstimatedBytesPerPixel += getFormatSize(output.format); // outputTemp
 
     // Determine the maximum allowed tile size to fit into the requested memory limit
-    const int64_t maxTilePixels = (int64_t(maxMemoryMB)*1024*1024 - estimatedBytesBase) / estimatedBytesPerPixel;
+    const int64_t maxTilePixels = (int64_t(maxMemoryMB)*1024*1024 - estimatedBytesBase) / totalEstimatedBytesPerPixel;
 
     tileCountH = 1;
     tileCountW = 1;

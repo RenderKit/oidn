@@ -1,6 +1,12 @@
 Version History
 ---------------
 
+### Changes in v1.2.3:
+
+-   Fixed incorrect detection of AVX-512 on macOS (sometimes causing a crash)
+-   Fixed inconsistent performance and costly initialization for AVX-512
+-   Fixed JIT'ed AVX-512 kernels not showing up correctly in VTune
+
 ### Changes in v1.2.2:
 
 -   Fixed unhandled exception when canceling filter execution from the

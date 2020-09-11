@@ -15,7 +15,7 @@ import argparse
 
 from common import *
 
-ISPC_VERSION = '1.14.0'
+ISPC_VERSION = '1.14.1'
 TBB_VERSION  = '2020.2'
 
 def download_file(url, output_dir):
@@ -158,7 +158,7 @@ if cfg.target == 'all' or not os.path.isdir(build_dir):
     config_cmd += f' -D CMAKE_BUILD_TYPE={cfg.config}'
 
     build_cmd += ' --target preinstall -- -j VERBOSE=1'
-  
+
   config_cmd += f' -D ISPC_EXECUTABLE="{ispc_executable}"'
   config_cmd += f' -D TBB_ROOT="{tbb_root}"'
   if cfg.cmake_vars:

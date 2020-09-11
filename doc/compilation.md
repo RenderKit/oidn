@@ -29,7 +29,7 @@ you need the following prerequisites:
     [Intel® C++ Compiler](https://software.intel.com/en-us/c-compilers) 17.0 or
     later)
 
--   [Intel® SPMD Program Compiler (ISPC)](http://ispc.github.io), version 1.12.0
+-   [Intel® SPMD Program Compiler (ISPC)](http://ispc.github.io), version 1.14.1
     or later. Please obtain a release of ISPC from the [ISPC downloads
     page](https://ispc.github.io/downloads.html). The build system looks for
     ISPC in the `PATH` and in the directory right "next to" the checked-out

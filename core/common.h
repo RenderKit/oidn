@@ -14,14 +14,14 @@
 #include "mkl-dnn/include/dnnl_debug.h"
 #include "mkl-dnn/src/common/dnnl_thread.hpp"
 #include "mkl-dnn/src/common/type_helpers.hpp"
-#include "mkl-dnn/src/cpu/jit_generator.hpp"
+#include "mkl-dnn/src/cpu/x64/jit_generator.hpp"
 
 #include "input_reorder_ispc.h" // ispc::Memory, ispc::Image
 
 namespace oidn {
 
   using namespace dnnl;
-  using namespace dnnl::impl::cpu;
+  using namespace dnnl::impl::cpu::x64;
   using dnnl::impl::parallel_nd;
   using dnnl::impl::memory_desc_matches_tag;
 
