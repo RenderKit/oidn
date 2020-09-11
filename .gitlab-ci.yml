@@ -76,8 +76,7 @@ test-centos7-icc-avx512:
 test-centos7-icc-knl:
   extends: .test
   tags:
-    - docker
-    - knl
+    - docker-knl
   image: openimagedenoise/build:centos7
   needs:
     - job: build-centos7-icc
