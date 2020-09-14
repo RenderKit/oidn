@@ -1,6 +1,11 @@
 Version History
 ---------------
 
+### Changes in v1.3.0:
+
+-   Fixed compile error when using an old compiler which does not support
+    OpenMP SIMD
+
 ### Changes in v1.2.3:
 
 -   Fixed incorrect detection of AVX-512 on macOS (sometimes causing a crash)
