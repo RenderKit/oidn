@@ -5,7 +5,7 @@
 
 #include "thread.h"
 
-#if defined(__clang__) && !defined(_LIBCPP_VERSION)
+#if defined(__clang__) && !defined(_LIBCPP_VERSION) && !defined(TBB_USE_GLIBCXX_VERSION)
   // TBB does not always detect the version of libstdc++ correctly when using
   // Clang, so we have to set it manually. This is required for some TBB
   // features (e.g. TBB_USE_CAPTURED_EXCEPTION=0).

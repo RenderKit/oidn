@@ -3,6 +3,7 @@ Version History
 
 ### Changes in v1.2.4:
 
+-   Fixed bug when TBB_USE_GLIBCXX_VERSION is defined
 -   Fixed compile error when using an old compiler which does not support
     OpenMP SIMD
 -   Added compatibility with oneTBB 2021
