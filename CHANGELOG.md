@@ -3,6 +3,8 @@ Version History
 
 ### Changes in v1.2.4:
 
+-   Fixed compile error when using an old compiler which does not support
+    OpenMP SIMD
 -   Added compatibility with oneTBB 2021
 
 ### Changes in v1.2.3:
