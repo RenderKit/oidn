@@ -1,6 +1,10 @@
 Version History
 ---------------
 
+### Changes in v1.2.4:
+
+-   Added compatibility with oneTBB 2021
+
 ### Changes in v1.2.3:
 
 -   Fixed incorrect detection of AVX-512 on macOS (sometimes causing a crash)
