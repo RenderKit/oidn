@@ -1,0 +1,16 @@
+{
+global:
+  oidn*;
+  _ZN?@OIDN_API_NAMESPACE@oidn*;
+  _ZN?@OIDN_API_NAMESPACE@?oidn*;
+  _ZN?@OIDN_API_NAMESPACE@??oidn*;
+  _ZN?@OIDN_API_NAMESPACE@???oidn*;
+  _ZN?@OIDN_API_NAMESPACE@????oidn*;
+  _ZN??@OIDN_API_NAMESPACE@oidn*;
+  _ZN??@OIDN_API_NAMESPACE@?oidn*;
+  _ZN??@OIDN_API_NAMESPACE@??oidn*;
+  _ZN??@OIDN_API_NAMESPACE@???oidn*;
+  _ZN??@OIDN_API_NAMESPACE@????oidn*;
+local: 
+  *;
+};

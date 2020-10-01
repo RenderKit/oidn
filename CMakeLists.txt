@@ -100,6 +100,16 @@ configure_file(
   "${PROJECT_SOURCE_DIR}/include/OpenImageDenoise/config.h"
 )
 
+# Generate list of symbols to export
+configure_file(
+  "${PROJECT_SOURCE_DIR}/core/export.linux.map.in"
+  "${PROJECT_SOURCE_DIR}/core/export.linux.map"
+)
+configure_file(
+  "${PROJECT_SOURCE_DIR}/core/export.macos.map.in"
+  "${PROJECT_SOURCE_DIR}/core/export.macos.map"
+)
+
 set(OIDN_RESOURCE ${PROJECT_SOURCE_DIR}/common/oidn.rc)
 
 add_subdirectory(common)
@@ -170,6 +180,16 @@ target_link_libraries(${PROJECT_NAME}
     common
     dnnl
 )
+
+# Specify list of symbols to export
+if(WIN32)
+elseif(APPLE)
+  set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS -Wl,-exported_symbols_list,${PROJECT_SOURCE_DIR}/core/export.macos.map)
+  set_source_files_properties(core/api.cpp PROPERTIES OBJECT_DEPENDS ${PROJECT_SOURCE_DIR}/core/export.macos.map) 
+else()
+  set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS -Wl,--version-script=${PROJECT_SOURCE_DIR}/core/export.linux.map)
+  set_source_files_properties(core/api.cpp PROPERTIES OBJECT_DEPENDS ${PROJECT_SOURCE_DIR}/core/export.linux.map)
+endif()
 
 message(STATUS "Setting target version ${PROJECT_VERSION}")
 set_property(TARGET ${PROJECT_NAME} PROPERTY VERSION ${PROJECT_VERSION})

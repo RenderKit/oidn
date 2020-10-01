@@ -9,6 +9,7 @@ Version History
 -   Fixed compile error when using an old compiler which does not support
     OpenMP SIMD
 -   Added compatibility with oneTBB 2021
+-   Export only necessary symbols on Linux and macOS
 
 ### Changes in v1.2.3:
 

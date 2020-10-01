@@ -87,3 +87,5 @@ Thumbs.db
 
 # Generated files
 include/OpenImageDenoise/config.h
+core/export.linux.map
+core/export.macos.map
