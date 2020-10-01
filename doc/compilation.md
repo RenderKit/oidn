@@ -180,6 +180,10 @@ in CMake:
 - `OIDN_STATIC_RUNTIME`: Use the static version of the C/C++ runtime library
   (available only on Windows, OFF by default).
 
+- `OIDN_API_NAMESPACE`: Specifies a namespace to put all Intel Open Image
+  Denoise API symbols inside. By default no namespace is used and plain C
+  symbols are exported.
+
 - `OIDN_APPS`: Enable building example and test applications (ON by default).
 
 - `OIDN_APPS_OPENIMAGEIO`: Enable [OpenImageIO](http://openimageio.org/)
