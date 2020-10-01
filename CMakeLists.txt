@@ -64,6 +64,9 @@ else()
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${CONFIGURATION_TYPES})
 endif()
 
+# API namespace
+set(OIDN_API_NAMESPACE "" CACHE STRING "C++ namespace to put API symbols into.")
+
 # Output paths
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
@@ -155,10 +158,6 @@ generate_cpp_from_blob(WEIGHTS_SOURCES "oidn::blobs::weights"
 
 add_library(${PROJECT_NAME} ${OIDN_LIB_TYPE} ${CORE_SOURCES} ${WEIGHTS_SOURCES})
 ispc_target_add_sources(${PROJECT_NAME} ${CORE_SOURCES_ISPC})
-
-if(OIDN_STATIC_LIB)
-  target_compile_definitions(${PROJECT_NAME} INTERFACE -DOIDN_STATIC_LIB)
-endif()
 
 target_include_directories(${PROJECT_NAME}
   PUBLIC
