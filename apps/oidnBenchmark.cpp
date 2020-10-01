@@ -20,6 +20,7 @@
 #include "apps/utils/random.h"
 #include "apps/utils/arg_parser.h"
 
+OIDN_NAMESPACE_USING
 using namespace oidn;
 
 int numRuns = -1;

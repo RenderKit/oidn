@@ -11,6 +11,7 @@
 #define CATCH_CONFIG_FAST_COMPILE
 #include "catch.hpp"
 
+OIDN_NAMESPACE_USING
 using namespace oidn;
 
 void setFilterImage(FilterRef& filter, const char* name, ImageBuffer& image)

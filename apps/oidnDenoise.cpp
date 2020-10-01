@@ -17,6 +17,7 @@
 #include "apps/utils/image_io.h"
 #include "apps/utils/arg_parser.h"
 
+OIDN_NAMESPACE_USING
 using namespace oidn;
 
 void printUsage()
