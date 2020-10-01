@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "version.h"
+#include "config.h"
 
 #if defined(__cplusplus)
 extern "C" {

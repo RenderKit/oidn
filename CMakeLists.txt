@@ -91,10 +91,10 @@ include(oidn_ispc)
 ## Library
 ## -----------------------------------------------------------------------------
 
-# Generate version.h
+# Generate config.h
 configure_file(
-  "${PROJECT_SOURCE_DIR}/include/OpenImageDenoise/version.h.in"
-  "${PROJECT_SOURCE_DIR}/include/OpenImageDenoise/version.h"
+  "${PROJECT_SOURCE_DIR}/include/OpenImageDenoise/config.h.in"
+  "${PROJECT_SOURCE_DIR}/include/OpenImageDenoise/config.h"
 )
 
 set(OIDN_RESOURCE ${PROJECT_SOURCE_DIR}/common/oidn.rc)
@@ -104,7 +104,7 @@ add_subdirectory(common)
 set(CORE_SOURCES
   include/OpenImageDenoise/oidn.h
   include/OpenImageDenoise/oidn.hpp
-  include/OpenImageDenoise/version.h
+  include/OpenImageDenoise/config.h
   ${OIDN_RESOURCE}
   core/api.cpp
   core/buffer.h

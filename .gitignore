@@ -86,4 +86,4 @@ Thumbs.db
 /deps
 
 # Generated files
-include/OpenImageDenoise/version.h
+include/OpenImageDenoise/config.h
