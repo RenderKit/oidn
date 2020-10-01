@@ -201,6 +201,13 @@ build-ubuntu18.04-gcc-static:
   image: openimagedenoise/build:ubuntu18.04
   script: scripts/build.py --compiler gcc -D OIDN_STATIC_LIB=ON
 
+build-ubuntu18.04-gcc-namespace:
+  extends: .build
+  tags:
+    - docker
+  image: openimagedenoise/build:ubuntu18.04
+  script: scripts/build.py --compiler gcc -D OIDN_API_NAMESPACE=myoidn
+
 build-ubuntu18.04-clang:
   extends: .build
   tags:
@@ -279,6 +286,12 @@ build-macos-clang-static:
     - osx
   script: scripts/build.py --compiler clang -D OIDN_STATIC_LIB=ON
 
+build-macos-clang-namespace:
+  extends: .build
+  tags:
+    - osx
+  script: scripts/build.py --compiler clang -D OIDN_API_NAMESPACE=myoidn
+
 package-macos:
   extends: .package
   tags:
@@ -341,6 +354,13 @@ build-windows-msvc15-static:
     - win10
     - msvc15
   script: python scripts/build.py --compiler msvc15 -D OIDN_STATIC_LIB=ON
+
+build-windows-msvc15-namespace:
+  extends: .build
+  tags:
+    - win10
+    - msvc15
+  script: python scripts/build.py --compiler msvc15 -D OIDN_API_NAMESPACE=myoidn
 
 build-windows-msvc16:
   extends: .build
