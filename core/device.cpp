@@ -215,7 +215,12 @@ namespace oidn {
 
     std::cout << "  Tasking :";
     std::cout << " TBB" << TBB_VERSION_MAJOR << "." << TBB_VERSION_MINOR;
+  #if TBB_INTERFACE_VERSION >= 12002
+    std::cout << " TBB_header_interface_" << TBB_INTERFACE_VERSION << " TBB_lib_interface_" << TBB_runtime_interface_version();
+  #else
     std::cout << " TBB_header_interface_" << TBB_INTERFACE_VERSION << " TBB_lib_interface_" << tbb::TBB_runtime_interface_version();
+  #endif
+
     std::cout << std::endl;
 
     std::cout << std::endl;

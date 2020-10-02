@@ -16,7 +16,7 @@ import argparse
 from common import *
 
 ISPC_VERSION = '1.14.1'
-TBB_VERSION  = '2020.2'
+TBB_VERSION  = '2020.3'
 
 def download_file(url, output_dir):
   print('Downloading file:', url)

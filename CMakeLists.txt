@@ -64,6 +64,9 @@ else()
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${CONFIGURATION_TYPES})
 endif()
 
+# API namespace
+set(OIDN_API_NAMESPACE "" CACHE STRING "C++ namespace to put API symbols into.")
+
 # Output paths
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
@@ -91,10 +94,20 @@ include(oidn_ispc)
 ## Library
 ## -----------------------------------------------------------------------------
 
-# Generate version.h
+# Generate config.h
 configure_file(
-  "${PROJECT_SOURCE_DIR}/include/OpenImageDenoise/version.h.in"
-  "${PROJECT_SOURCE_DIR}/include/OpenImageDenoise/version.h"
+  "${PROJECT_SOURCE_DIR}/include/OpenImageDenoise/config.h.in"
+  "${PROJECT_SOURCE_DIR}/include/OpenImageDenoise/config.h"
+)
+
+# Generate list of symbols to export
+configure_file(
+  "${PROJECT_SOURCE_DIR}/core/export.linux.map.in"
+  "${PROJECT_SOURCE_DIR}/core/export.linux.map"
+)
+configure_file(
+  "${PROJECT_SOURCE_DIR}/core/export.macos.map.in"
+  "${PROJECT_SOURCE_DIR}/core/export.macos.map"
 )
 
 set(OIDN_RESOURCE ${PROJECT_SOURCE_DIR}/common/oidn.rc)
@@ -104,7 +117,7 @@ add_subdirectory(common)
 set(CORE_SOURCES
   include/OpenImageDenoise/oidn.h
   include/OpenImageDenoise/oidn.hpp
-  include/OpenImageDenoise/version.h
+  include/OpenImageDenoise/config.h
   ${OIDN_RESOURCE}
   core/api.cpp
   core/buffer.h
@@ -156,10 +169,6 @@ generate_cpp_from_blob(WEIGHTS_SOURCES "oidn::blobs::weights"
 add_library(${PROJECT_NAME} ${OIDN_LIB_TYPE} ${CORE_SOURCES} ${WEIGHTS_SOURCES})
 ispc_target_add_sources(${PROJECT_NAME} ${CORE_SOURCES_ISPC})
 
-if(OIDN_STATIC_LIB)
-  target_compile_definitions(${PROJECT_NAME} INTERFACE -DOIDN_STATIC_LIB)
-endif()
-
 target_include_directories(${PROJECT_NAME}
   PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
@@ -171,6 +180,16 @@ target_link_libraries(${PROJECT_NAME}
     common
     dnnl
 )
+
+# Specify list of symbols to export
+if(WIN32)
+elseif(APPLE)
+  set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS -Wl,-exported_symbols_list,${PROJECT_SOURCE_DIR}/core/export.macos.map)
+  set_source_files_properties(core/api.cpp PROPERTIES OBJECT_DEPENDS ${PROJECT_SOURCE_DIR}/core/export.macos.map) 
+else()
+  set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS -Wl,--version-script=${PROJECT_SOURCE_DIR}/core/export.linux.map)
+  set_source_files_properties(core/api.cpp PROPERTIES OBJECT_DEPENDS ${PROJECT_SOURCE_DIR}/core/export.linux.map)
+endif()
 
 message(STATUS "Setting target version ${PROJECT_VERSION}")
 set_property(TARGET ${PROJECT_NAME} PROPERTY VERSION ${PROJECT_VERSION})

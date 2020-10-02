@@ -20,6 +20,7 @@
 #include "apps/utils/random.h"
 #include "apps/utils/arg_parser.h"
 
+OIDN_NAMESPACE_USING
 using namespace oidn;
 
 int numRuns = -1;
@@ -34,7 +35,7 @@ void printUsage()
             << "                     [-l/--list] [-h/--help]" << std::endl;
 }
 
-void errorCallback(void* userPtr, oidn::Error error, const char* message)
+void errorCallback(void* userPtr, Error error, const char* message)
 {
   throw std::runtime_error(message);
 }
@@ -86,12 +87,12 @@ void initImage(ImageBuffer& image, Random& rng, float minValue, float maxValue)
 }
 
 // Runs a benchmark
-void runBenchmark(oidn::DeviceRef& device, const Benchmark& bench)
+void runBenchmark(DeviceRef& device, const Benchmark& bench)
 {
   std::cout << bench.name << " ..." << std::flush;
 
   // Initialize the filter and the buffers
-  oidn::FilterRef filter = device.newFilter(bench.filter.c_str());
+  FilterRef filter = device.newFilter(bench.filter.c_str());
   Random rng;
 
   ImageBuffer color;
@@ -99,14 +100,14 @@ void runBenchmark(oidn::DeviceRef& device, const Benchmark& bench)
   {
     color = ImageBuffer(bench.width, bench.height, 3);
     initImage(color, rng, 0.f, 100.f);
-    filter.setImage("color", color.getData(), oidn::Format::Float3, bench.width, bench.height);
+    filter.setImage("color", color.getData(), Format::Float3, bench.width, bench.height);
     filter.set("hdr", true);
   }
   else if (bench.hasInput("ldr"))
   {
     color = ImageBuffer(bench.width, bench.height, 3);
     initImage(color, rng, 0.f, 1.f);
-    filter.setImage("color", color.getData(), oidn::Format::Float3, bench.width, bench.height);
+    filter.setImage("color", color.getData(), Format::Float3, bench.width, bench.height);
     filter.set("hdr", false);
   }
 
@@ -115,7 +116,7 @@ void runBenchmark(oidn::DeviceRef& device, const Benchmark& bench)
   {
     albedo = ImageBuffer(bench.width, bench.height, 3);
     initImage(albedo, rng, 0.f, 1.f);
-    filter.setImage("albedo", albedo.getData(), oidn::Format::Float3, bench.width, bench.height);
+    filter.setImage("albedo", albedo.getData(), Format::Float3, bench.width, bench.height);
   }
 
   ImageBuffer normal;
@@ -123,11 +124,11 @@ void runBenchmark(oidn::DeviceRef& device, const Benchmark& bench)
   {
     normal = ImageBuffer(bench.width, bench.height, 3);
     initImage(normal, rng, -1.f, 1.f);
-    filter.setImage("normal", normal.getData(), oidn::Format::Float3, bench.width, bench.height);
+    filter.setImage("normal", normal.getData(), Format::Float3, bench.width, bench.height);
   }
 
   ImageBuffer output(bench.width, bench.height, 3);
-  filter.setImage("output", output.getData(), oidn::Format::Float3, bench.width, bench.height);
+  filter.setImage("output", output.getData(), Format::Float3, bench.width, bench.height);
 
   if (maxMemoryMB >= 0)
     filter.set("maxMemoryMB", maxMemoryMB);
@@ -246,10 +247,10 @@ int main(int argc, char* argv[])
     _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
 
     // Initialize the device
-    oidn::DeviceRef device = oidn::newDevice();
+    DeviceRef device = newDevice();
 
     const char* errorMessage;
-    if (device.getError(errorMessage) != oidn::Error::None)
+    if (device.getError(errorMessage) != Error::None)
       throw std::runtime_error(errorMessage);
     device.setErrorFunction(errorCallback);
 

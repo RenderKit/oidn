@@ -18,10 +18,6 @@ add_library(common STATIC
   tza.cpp
 )
 
-if(OIDN_STATIC_LIB)
-  target_compile_definitions(common PUBLIC -DOIDN_STATIC_LIB)
-endif()
-
 target_include_directories(common
   PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>

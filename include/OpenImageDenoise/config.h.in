@@ -1,0 +1,53 @@
+// Copyright 2009-2020 Intel Corporation
+// SPDX-License-Identifier: Apache-2.0
+
+#pragma once
+
+#define OIDN_VERSION_MAJOR @OIDN_VERSION_MAJOR@
+#define OIDN_VERSION_MINOR @OIDN_VERSION_MINOR@
+#define OIDN_VERSION_PATCH @OIDN_VERSION_PATCH@
+#define OIDN_VERSION @OIDN_VERSION_NUMBER@
+#define OIDN_VERSION_STRING "@OIDN_VERSION_MAJOR@.@OIDN_VERSION_MINOR@.@OIDN_VERSION_PATCH@@OIDN_VERSION_NOTE@"
+
+#cmakedefine OIDN_STATIC_LIB
+#cmakedefine OIDN_API_NAMESPACE
+
+#if defined(OIDN_API_NAMESPACE)
+  #define OIDN_API_NAMESPACE_BEGIN namespace @OIDN_API_NAMESPACE@ {
+  #define OIDN_API_NAMESPACE_END }
+  #define OIDN_API_NAMESPACE_USING using namespace @OIDN_API_NAMESPACE@;
+  #define OIDN_API_EXTERN_C
+  #define OIDN_NAMESPACE_BEGIN namespace @OIDN_API_NAMESPACE@ {
+  #define OIDN_NAMESPACE_END }
+  #define OIDN_NAMESPACE_USING using namespace @OIDN_API_NAMESPACE@;
+  #undef OIDN_API_NAMESPACE
+#else
+  #define OIDN_API_NAMESPACE_BEGIN
+  #define OIDN_API_NAMESPACE_END
+  #define OIDN_API_NAMESPACE_USING
+  #if defined(__cplusplus)
+    #define OIDN_API_EXTERN_C extern "C"
+  #else
+    #define OIDN_API_EXTERN_C
+  #endif
+  #define OIDN_NAMESPACE_BEGIN namespace oidn {
+  #define OIDN_NAMESPACE_END }
+  #define OIDN_NAMESPACE_USING using namespace oidn;
+#endif
+
+#if defined(OIDN_STATIC_LIB)
+  #define OIDN_API_IMPORT OIDN_API_EXTERN_C
+  #define OIDN_API_EXPORT OIDN_API_EXTERN_C
+#elif defined(_WIN32)
+  #define OIDN_API_IMPORT OIDN_API_EXTERN_C __declspec(dllimport)
+  #define OIDN_API_EXPORT OIDN_API_EXTERN_C __declspec(dllexport)
+#else
+  #define OIDN_API_IMPORT OIDN_API_EXTERN_C
+  #define OIDN_API_EXPORT OIDN_API_EXTERN_C __attribute__ ((visibility ("default")))
+#endif
+
+#if defined(OIDN_EXPORT_API)
+  #define OIDN_API OIDN_API_EXPORT
+#else
+  #define OIDN_API OIDN_API_IMPORT
+#endif
