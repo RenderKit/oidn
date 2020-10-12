@@ -3,6 +3,8 @@ Version History
 
 ### Changes in v1.3.0:
 
+-   Fixed compile error for some older macOS versions
+
 ### Changes in v1.2.4:
 
 -   Added OIDN_API_NAMESPACE CMake option that allows to put all API functions
