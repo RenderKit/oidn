@@ -15,8 +15,13 @@
   #include <sys/sysctl.h>
 #endif
 
+#ifndef __aarch64__
+
 #include <xmmintrin.h>
 #include <pmmintrin.h>
+
+#endif
+
 #include <cstdint>
 #include <cstddef>
 #include <climits>

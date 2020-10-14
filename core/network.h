@@ -24,10 +24,12 @@ namespace oidn {
 
   class Network : public Executable
   {
+  protected:
+    virtual memory::format_tag getMemoryFormat() = 0;
+      
   public:
     Network(const Ref<Device>& device, const std::map<std::string, Tensor>& weightsMap);
 
-    void execute(Progress& progress) override;
     double getWorkAmount() const override;
 
     std::shared_ptr<memory> allocMemory(const memory::dims& dims,
@@ -47,32 +49,32 @@ namespace oidn {
 
     memory::dims getInputReorderDims(const memory::dims& srcDims, int alignment);
 
-    std::shared_ptr<Node> addInputReorder(const Image& color,
-                                          const Image& albedo,
-                                          const Image& normal,
-                                          const std::shared_ptr<TransferFunction>& transferFunc,
-                                          bool hdr,
-                                          int alignment,
-                                          const std::shared_ptr<memory>& userDst = nullptr);
+    virtual std::shared_ptr<Node> addInputReorder(const Image& color,
+                                                  const Image& albedo,
+                                                  const Image& normal,
+                                                  const std::shared_ptr<TransferFunction>& transferFunc,
+                                                  bool hdr,
+                                                  int alignment,
+                                                  const std::shared_ptr<memory>& userDst = nullptr) = 0;
 
-    std::shared_ptr<Node> addOutputReorder(const std::shared_ptr<memory>& src,
-                                           const std::shared_ptr<TransferFunction>& transferFunc,
-                                           bool hdr,
-                                           const Image& output);
+    virtual std::shared_ptr<Node> addOutputReorder(const std::shared_ptr<memory>& src,
+                                                   const std::shared_ptr<TransferFunction>& transferFunc,
+                                                   bool hdr,
+                                                   const Image& output) = 0;
 
     memory::dims getConvDims(const std::string& name, const memory::dims& srcDims);
-    std::shared_ptr<Node> addConv(const std::string& name,
+    virtual std::shared_ptr<Node> addConv(const std::string& name,
                                   const std::shared_ptr<memory>& src,
                                   const std::shared_ptr<memory>& userDst = nullptr,
-                                  bool relu = true);
+                                  bool relu = true) = 0;
 
     memory::dims getPoolDims(const memory::dims& srcDims);
-    std::shared_ptr<Node> addPool(const std::shared_ptr<memory>& src,
-                                  const std::shared_ptr<memory>& userDst = nullptr);
+    virtual std::shared_ptr<Node> addPool(const std::shared_ptr<memory>& src,
+                                          const std::shared_ptr<memory>& userDst = nullptr) = 0;
 
     memory::dims getUpsampleDims(const memory::dims& srcDims);
-    std::shared_ptr<Node> addUpsample(const std::shared_ptr<memory>& src,
-                                      const std::shared_ptr<memory>& userDst = nullptr);
+    virtual std::shared_ptr<Node> addUpsample(const std::shared_ptr<memory>& src,
+                                      const std::shared_ptr<memory>& userDst = nullptr) = 0;
 
     memory::dims getConcatDims(const memory::dims& src1Dims, const memory::dims& src2Dims);
 
@@ -81,12 +83,10 @@ namespace oidn {
 
     void finalize();
 
-  private:
+  protected:
     Ref<Device> device;
     engine eng;
-    stream sm;
     int K;                     // block size
-    memory::format_tag nChwKc; // native blocked format
 
     std::vector<std::shared_ptr<Node>> nodes;
     std::map<std::string, Tensor> weightsMap;
@@ -98,5 +98,67 @@ namespace oidn {
     std::shared_ptr<memory> padWeights(const Tensor& src);
     std::shared_ptr<memory> padBias(const Tensor& src);
   };
+
+
+#if !defined(USE_BNNS)
+class DnnNetwork : public Network
+{
+private:
+    stream sm;
+    memory::format_tag nChwKc; // native blocked format
+protected:
+    memory::format_tag getMemoryFormat() override { return nChwKc; }
+
+public:
+    DnnNetwork(const Ref<Device>& device, const std::map<std::string, Tensor>& weightsMap)
+        : Network(device, weightsMap), sm(eng)
+
+        {
+            if (mayiuse(avx512_core))
+            {
+              K = 16;
+              nChwKc = memory::format_tag::nChw16c;
+            }
+            else
+            {
+              K = 8;
+              nChwKc = memory::format_tag::nChw8c;
+            }
+
+        }
+    
+    void execute(Progress& progress) override;
+
+    
+    std::shared_ptr<Node> addPool(const std::shared_ptr<memory>& src,
+                                  const std::shared_ptr<memory>& userDst = nullptr) override;
+    
+    std::shared_ptr<Node> addConv(const std::string& name,
+                                  const std::shared_ptr<memory>& src,
+                                  const std::shared_ptr<memory>& userDst = nullptr,
+                                  bool relu = true) override;
+    
+    std::shared_ptr<Node> addUpsample(const std::shared_ptr<memory>& src,
+                                      const std::shared_ptr<memory>& userDst = nullptr) override;
+    
+    
+    std::shared_ptr<Node> addInputReorder(const Image& color,
+                                          const Image& albedo,
+                                          const Image& normal,
+                                          const std::shared_ptr<TransferFunction>& transferFunc,
+                                          bool hdr,
+                                          int alignment,
+                                          const std::shared_ptr<memory>& userDst = nullptr) override;
+
+    std::shared_ptr<Node> addOutputReorder(const std::shared_ptr<memory>& src,
+                                           const std::shared_ptr<TransferFunction>& transferFunc,
+                                           bool hdr,
+                                           const Image& output) override;
+};
+
+
+#endif
+
+
 
 } // namespace oidn

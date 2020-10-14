@@ -13,6 +13,10 @@
 #include "weights/rt_ldr_alb_nrm.h"
 #include "weights/rtlightmap_hdr.h"
 
+#if defined(USE_BNNS)
+#include "../bnns/bnns_network.h"
+#endif
+
 namespace oidn {
 
   // ---------------------------------------------------------------------------
@@ -279,8 +283,12 @@ namespace oidn {
     const auto weightsMap = parseTZA(weights.ptr, weights.size);
 
     // Create the network
-    std::shared_ptr<Network> net = std::make_shared<Network>(device, weightsMap);
-
+#if !defined(USE_BNNS)
+    std::shared_ptr<Network> net = std::make_shared<DnnNetwork>(device, weightsMap);
+#else
+    std::shared_ptr<Network> net = std::make_shared<BnnsNetwork>(device, weightsMap);
+#endif
+      
     // Compute the buffer sizes
     const auto inputDims        = memory::dims({1, inputC, tileH, tileW});
     const auto inputReorderDims = net->getInputReorderDims(inputDims, alignment);   //-> concat1

@@ -7878,7 +7878,16 @@ namespace Catch {
 
 #ifdef CATCH_PLATFORM_MAC
 
-    #define CATCH_TRAP() __asm__("int $3\n" : : ) /* NOLINT */
+// use inline assembler
+#if defined(__i386__) || defined(__x86_64__)
+    #define CATCH_TRAP()  __asm__("int $3")
+#elif defined(__aarch64__)
+    #define CATCH_TRAP()  __asm__(".inst 0xd4200000")
+#elif defined(__arm__) && !defined(__thumb__)
+    #define CATCH_TRAP()  __asm__(".inst 0xe7f001f0")
+#elif defined(__arm__) &&  defined(__thumb__)
+    #define CATCH_TRAP()  __asm__(".inst 0xde01")
+#endif
 
 #elif defined(CATCH_PLATFORM_IPHONE)
 

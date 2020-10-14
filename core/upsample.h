@@ -33,7 +33,7 @@ namespace oidn {
       assert(data.dst.W == data.src.W * 2);
     }
 
-    void execute(stream& sm) override
+    void execute(stream *sm) override
     {
       parallel_nd(data.src.C / K, data.src.H, [&](int ck, int h)
       {

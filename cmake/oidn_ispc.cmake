@@ -93,11 +93,21 @@ macro (ispc_compile)
   set(ISPC_TARGET_EXT ${CMAKE_CXX_OUTPUT_EXTENSION})
   string(REPLACE ";" "," ISPC_TARGET_ARGS "${ISPC_TARGETS}")
 
-  if (CMAKE_SIZEOF_VOID_P EQUAL 8)
-    set(ISPC_ARCHITECTURE "x86-64")
+  if(NOT APPLE_SILICON)
+    if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+      set(ISPC_ARCHITECTURE "x86-64")
+    else()
+      set(ISPC_ARCHITECTURE "x86")
+    endif()
   else()
-    set(ISPC_ARCHITECTURE "x86")
+      set(ISPC_ARCHITECTURE "aarch64")
+      set(ISPC_TARGET_OS "--target-os=ios")
   endif()
+
+  if (OIDN_BNNS)
+    set (ISPC_DEFINITIONS ${ISPC_DEFINITIONS} -DUSE_BNNS_CHW)
+  endif()
+  
 
   set(ISPC_TARGET_DIR ${CMAKE_CURRENT_BINARY_DIR})
   include_directories(${ISPC_TARGET_DIR})
@@ -170,28 +180,29 @@ macro (ispc_compile)
         set(results ${results} "${outdir}/${fname}.dev_${target}${ISPC_TARGET_EXT}")
       endforeach()
     endif()
+  add_custom_command(
+  OUTPUT ${results} ${ISPC_TARGET_DIR}/${fname}_ispc.h
+  COMMAND ${CMAKE_COMMAND} -E make_directory ${outdir}
+  COMMAND ${ISPC_EXECUTABLE}
+  ${ISPC_DEFINITIONS}
+  -I ${CMAKE_CURRENT_SOURCE_DIR}
+  ${ISPC_INCLUDE_DIR_PARMS}
+  --arch=${ISPC_ARCHITECTURE} 
+  --addressing=${OIDN_ISPC_ADDRESSING}
+  ${ISPC_OPT_FLAGS}
+  --target=${ISPC_TARGET_ARGS}
+  --woff
+  --opt=fast-math
+  ${ISPC_ADDITIONAL_ARGS}
+  -h ${ISPC_TARGET_DIR}/${fname}_ispc.h
+  -MMM  ${outdir}/${fname}.dev.idep
+  -o ${outdir}/${fname}.dev${ISPC_TARGET_EXT}
+  ${ISPC_TARGET_OS}
+  ${input}
+  DEPENDS ${input} ${deps}
+  COMMENT "Building ISPC object ${outdir}/${fname}.dev${ISPC_TARGET_EXT}"
+  )
 
-    add_custom_command(
-      OUTPUT ${results} ${ISPC_TARGET_DIR}/${fname}_ispc.h
-      COMMAND ${CMAKE_COMMAND} -E make_directory ${outdir}
-      COMMAND ${ISPC_EXECUTABLE}
-      ${ISPC_DEFINITIONS}
-      -I ${CMAKE_CURRENT_SOURCE_DIR}
-      ${ISPC_INCLUDE_DIR_PARMS}
-      --arch=${ISPC_ARCHITECTURE}
-      --addressing=${OIDN_ISPC_ADDRESSING}
-      ${ISPC_OPT_FLAGS}
-      --target=${ISPC_TARGET_ARGS}
-      --woff
-      --opt=fast-math
-      ${ISPC_ADDITIONAL_ARGS}
-      -h ${ISPC_TARGET_DIR}/${fname}_ispc.h
-      -MMM  ${outdir}/${fname}.dev.idep
-      -o ${outdir}/${fname}.dev${ISPC_TARGET_EXT}
-      ${input}
-      DEPENDS ${input} ${deps}
-      COMMENT "Building ISPC object ${outdir}/${fname}.dev${ISPC_TARGET_EXT}"
-    )
 
     list(APPEND ISPC_OBJECTS ${results})
   endforeach()

@@ -15,8 +15,12 @@ namespace oidn {
       return nullptr;
 
     assert((alignment & (alignment-1)) == 0);
+#if !defined(__arm64__)
     void* ptr = _mm_malloc(size, alignment);
-
+#else
+    void* ptr = aligned_alloc(alignment,size);
+#endif
+    
     if (ptr == nullptr)
       throw std::bad_alloc();
 
@@ -26,7 +30,11 @@ namespace oidn {
   void alignedFree(void* ptr)
   {
     if (ptr)
+#if !defined(__arm64__)
       _mm_free(ptr);
+#else
+      free(ptr);
+#endif
   }
 
   // ---------------------------------------------------------------------------

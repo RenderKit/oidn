@@ -13,15 +13,13 @@ namespace oidn {
   // Input reorder node
   class InputReorderNode : public Node
   {
-  private:
+  protected:
     ispc::InputReorder data;
-
     Image srcColor;
     Image srcAlbedo;
     Image srcNormal;
     std::shared_ptr<memory> dst;
     std::shared_ptr<TransferFunction> transferFunc;
-
   public:
     InputReorderNode(const Image& srcColor,
                      const Image& srcAlbedo,
@@ -60,7 +58,7 @@ namespace oidn {
       data.W = W;
     }
 
-    void execute(stream& sm) override
+    void execute(stream *sm) override
     {
       assert(data.H + data.hSrcBegin <= srcColor.height);
       assert(data.W + data.wSrcBegin <= srcColor.width);

@@ -19,7 +19,8 @@ configure_file(
   "${PROJECT_BINARY_DIR}/mkl-dnn/include/dnnl_version.h"
 )
 
-file(GLOB_RECURSE DNNL_SOURCES
+If (NOT APPLE_SILICON)
+  file(GLOB_RECURSE DNNL_SOURCES
   mkl-dnn/src/common/*.[ch]
   mkl-dnn/src/common/*.[ch]pp
   mkl-dnn/src/cpu/bfloat16.cpp
@@ -62,6 +63,32 @@ file(GLOB_RECURSE DNNL_SOURCES
   mkl-dnn/src/cpu/x64/jit_utils/*.[ch]pp
   mkl-dnn/src/cpu/x64/xbyak/*.h
 )
+else()
+    #add only cpu device resources for arm64 (needed for memory management), no point in adding jit for x86 sources
+  file(GLOB_RECURSE DNNL_SOURCES
+  mkl-dnn/src/common/*.[ch]
+  mkl-dnn/src/common/*.[ch]pp
+  mkl-dnn/src/cpu/cpu_concat.cpp
+  mkl-dnn/src/cpu/cpu_concat_pd.hpp
+  mkl-dnn/src/cpu/cpu_convolution_list.cpp
+  mkl-dnn/src/cpu/cpu_convolution_pd.hpp
+  mkl-dnn/src/cpu/cpu_engine.[ch]pp
+  mkl-dnn/src/cpu/cpu_memory_storage.hpp
+  mkl-dnn/src/cpu/cpu_pooling_list.cpp
+  mkl-dnn/src/cpu/cpu_pooling_pd.hpp
+  mkl-dnn/src/cpu/cpu_primitive.hpp
+  mkl-dnn/src/cpu/cpu_reducer.[ch]pp
+  mkl-dnn/src/cpu/cpu_reorder.cpp
+  mkl-dnn/src/cpu/cpu_reorder_pd.hpp
+  mkl-dnn/src/cpu/cpu_stream.hpp
+  mkl-dnn/src/cpu/cpu_sum.cpp
+  mkl-dnn/src/cpu/platform.[ch]pp
+  mkl-dnn/src/cpu/simple_q10n.hpp
+  mkl-dnn/src/cpu/simple_reorder.hpp
+
+)
+endif()
+
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   file(GLOB DNNL_SOURCES_BIGOBJ

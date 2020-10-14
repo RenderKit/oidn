@@ -39,6 +39,43 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 # CMake macros
 include(oidn_macros)
 
+
+option(OIDN_BNNS "use Accelrate's framework for convolutions and pooling layers" OFF)
+option(APPLE_SILICON "build for apple silicon ARM based products, using Accelerate framework for NN operations" OFF)
+
+if (APPLE AND CMAKE_OSX_ARCHITECTURES STREQUAL "arm64")
+  set(APPLE_SILICON ON)
+  set(OIDN_BNNS ON)
+  message(STATUS "Building OIDN library using BNNS API in Accelerate framework For Apple Silicon")
+endif()
+
+
+
+
+if (APPLE AND OIDN_BNNS)
+  # check for minimal Apple SDK requirements
+
+  if (NOT IOS)
+    set(SDK_VERSION_COMMAND  xcrun -sdk  macosx --show-sdk-version)
+    set(SDK_TARGET 11.0)
+  else()
+    set(SDK_VERSION_COMMAND  xcrun -sdk  iphoneos --show-sdk-version)
+    set(SDK_TARGET 14.0)
+  endif()
+  execute_process(COMMAND  ${SDK_VERSION_COMMAND}
+                  OUTPUT_VARIABLE SDK_VERSION
+                  OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+  if (SDK_VERSION VERSION_LESS SDK_TARGET)
+    message(FATAL_ERROR "Needs Apple SDK version " ${SDK_TARGET} " or above to use BNNS, current SDK version " ${SDK_VERSION})
+  endif()
+  add_definitions(-DUSE_BNNS)
+  add_link_options(-framework Accelerate)
+  if (CMAKE_OSX_DEPLOYMENT_TARGET VERSION_LESS SDK_TARGET)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET 11.0)
+  endif()
+endif()
+
 # Build as shared or static library
 option(OIDN_STATIC_LIB "Build Intel(R) Open Image Denoise as a static library.")
 mark_as_advanced(CLEAR OIDN_STATIC_LIB)
@@ -86,7 +123,12 @@ include(oidn_platform)
 include(oidn_dnnl)
 
 # ISPC
-set(OIDN_ISPC_TARGET_LIST sse4-i32x8;avx2-i32x8;avx512skx-i32x16)
+if (NOT APPLE_SILICON)
+  set(OIDN_ISPC_TARGET_LIST sse4-i32x8;avx2-i32x8;avx512skx-i32x16)
+else()
+  set(OIDN_ISPC_TARGET_LIST neon-i32x8)
+endif()
+
 set(OIDN_ISPC_ADDRESSING 64)
 include(oidn_ispc)
 
@@ -142,6 +184,14 @@ set(CORE_SOURCES
   core/unet.cpp
   core/upsample.h
 )
+
+if (OIDN_BNNS)
+  set(CORE_SOURCES ${CORE_SOURCES}
+     bnns/bnns_network.h
+     bnns/bnns_network.cpp
+     bnns/bnns_node.h
+  )
+endif()
 
 set(CORE_SOURCES_ISPC
   core/image.ih

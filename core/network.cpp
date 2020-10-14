@@ -5,34 +5,29 @@
 #include "color.h"
 #include "network.h"
 
+
 namespace oidn {
 
   Network::Network(const Ref<Device>& device, const std::map<std::string, Tensor>& weightsMap)
     : device(device),
       eng(engine::kind::cpu, 0),
-      sm(eng),
+      K(8),
       weightsMap(weightsMap)
   {
-    if (mayiuse(avx512_core))
-    {
-      K = 16;
-      nChwKc = memory::format_tag::nChw16c;
-    }
-    else
-    {
-      K = 8;
-      nChwKc = memory::format_tag::nChw8c;
-    }
   }
 
-  void Network::execute(Progress& progress)
+#if !defined(USE_BNNS)
+
+  void DnnNetwork::execute(Progress& progress)
   {
     for (size_t i = 0; i < nodes.size(); ++i)
     {
-      nodes[i]->execute(sm);
+      nodes[i]->execute(&sm);
       progress.update(1);
     }
   }
+
+#endif
 
   double Network::getWorkAmount() const
   {
@@ -46,7 +41,7 @@ namespace oidn {
     if (format == memory::format_tag::any)
     {
       if (dims.size() == 4)
-        format = nChwKc;
+        format = getMemoryFormat();
       else if (dims.size() == 1)
         format = memory::format_tag::x;
       else
@@ -56,7 +51,7 @@ namespace oidn {
     if (data == nullptr)
     {
       const size_t bytes = getMemorySize(dims) * sizeof(float);
-      if (format == nChwKc)
+      if (format == getMemoryFormat())
         activationAllocBytes += bytes;
       totalAllocBytes += bytes;
 
@@ -81,7 +76,7 @@ namespace oidn {
     if (format == memory::format_tag::any)
     {
       if (dims.size() == 4)
-        format = nChwKc;
+        format = getMemoryFormat();
       else if (dims.size() == 1)
         format = memory::format_tag::x;
       else
@@ -91,6 +86,7 @@ namespace oidn {
     float* srcPtr = (float*)src->get_data_handle() + srcOffset;
     return std::make_shared<memory>(desc, eng, srcPtr);
   }
+
 
   std::shared_ptr<memory> Network::castMemory(const memory::dims& dims,
                                               const std::shared_ptr<memory>& src,
@@ -113,8 +109,8 @@ namespace oidn {
     dstDims[3] = round_up(srcDims[3], memory::dim(alignment)); // round up W
     return dstDims;
   }
-
-  std::shared_ptr<Node> Network::addInputReorder(const Image& color,
+#if !defined(USE_BNNS)
+  std::shared_ptr<Node> DnnNetwork::addInputReorder(const Image& color,
                                                  const Image& albedo,
                                                  const Image& normal,
                                                  const std::shared_ptr<TransferFunction>& transferFunc,
@@ -134,17 +130,16 @@ namespace oidn {
     auto dst = userDst;
     if (!dst)
       dst = allocMemory(dstDims);
-
     // Push node
     auto node = std::make_shared<InputReorderNode>(color, albedo, normal, dst, transferFunc, hdr);
     nodes.push_back(node);
     return node;
   }
 
-  std::shared_ptr<Node> Network::addOutputReorder(const std::shared_ptr<memory>& src,
-                                                  const std::shared_ptr<TransferFunction>& transferFunc,
-                                                  bool hdr,
-                                                  const Image& output)
+  std::shared_ptr<Node> DnnNetwork::addOutputReorder(const std::shared_ptr<memory>& src,
+                                                     const std::shared_ptr<TransferFunction>& transferFunc,
+                                                     bool hdr,
+                                                     const Image& output)
   {
     memory::dims srcDims = getMemoryDims(src);
     assert(srcDims[1] == K);
@@ -154,6 +149,7 @@ namespace oidn {
     nodes.push_back(node);
     return node;
   }
+#endif
 
   memory::dims Network::getConvDims(const std::string& name, const memory::dims& srcDims)
   {
@@ -163,7 +159,8 @@ namespace oidn {
     return dstDims;
   }
 
-  std::shared_ptr<Node> Network::addConv(const std::string& name,
+#if !defined(USE_BNNS)
+  std::shared_ptr<Node> DnnNetwork::addConv(const std::string& name,
                                          const std::shared_ptr<memory>& src,
                                          const std::shared_ptr<memory>& userDst,
                                          bool relu)
@@ -233,7 +230,7 @@ namespace oidn {
     {
       auto oldWeights = weights;
       weights = std::make_shared<memory>(convPrimDesc.weights_desc(), eng);
-      ReorderNode(oldWeights, weights).execute(sm);
+      ReorderNode(oldWeights, weights).execute(&sm);
     }
 
     // Create convolution node and add it to the net
@@ -241,6 +238,7 @@ namespace oidn {
     nodes.push_back(node);
     return node;
   }
+#endif
 
   memory::dims Network::getPoolDims(const memory::dims& srcDims)
   {
@@ -250,7 +248,8 @@ namespace oidn {
     return dstDims;
   }
 
-  std::shared_ptr<Node> Network::addPool(const std::shared_ptr<memory>& src,
+#if !defined(USE_BNNS)
+  std::shared_ptr<Node> DnnNetwork::addPool(const std::shared_ptr<memory>& src,
                                          const std::shared_ptr<memory>& userDst)
   {
     const memory::dims kernel  = {2, 2};
@@ -282,6 +281,8 @@ namespace oidn {
     nodes.push_back(node);
     return node;
   }
+#endif
+
 
   memory::dims Network::getUpsampleDims(const memory::dims& srcDims)
   {
@@ -291,7 +292,8 @@ namespace oidn {
     return dstDims;
   }
 
-  std::shared_ptr<Node> Network::addUpsample(const std::shared_ptr<memory>& src,
+#if !defined(USE_BNNS)
+  std::shared_ptr<Node> DnnNetwork::addUpsample(const std::shared_ptr<memory>& src,
                                              const std::shared_ptr<memory>& userDst)
   {
     memory::dims srcDims = getMemoryDims(src);
@@ -322,6 +324,7 @@ namespace oidn {
     nodes.push_back(node);
     return node;
   }
+#endif
 
   memory::dims Network::getConcatDims(const memory::dims& src1Dims, const memory::dims& src2Dims)
   {
@@ -362,6 +365,7 @@ namespace oidn {
     // Free the weights
     weightsMap.clear();
 
+
     // Print statistics
     if (device->isVerbose(2))
     {
@@ -369,6 +373,8 @@ namespace oidn {
       std::cout << "Scratchpad bytes: " << scratchpadSize << std::endl;
       std::cout << "Total bytes     : " << totalAllocBytes << std::endl;
     }
+ 
+      
   }
 
   std::shared_ptr<memory> Network::padWeights(const Tensor& src)

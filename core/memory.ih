@@ -16,6 +16,7 @@ struct Memory
   uniform int W;
 };
 
+
 inline size_t getIndex(uniform Memory& mem, uniform int h, int w, uniform int c)
 {
   return ((size_t)mem.H * (c/K) + h) * ((size_t)mem.W*K) + (size_t)w*K + (c%K);
@@ -44,3 +45,40 @@ inline void set3f(uniform Memory& mem, uniform int h, int w, uniform int c, cons
   set1f(mem, h, w, c+1, value.y);
   set1f(mem, h, w, c+2, value.z);
 }
+
+
+#ifdef USE_BNNS_CHW
+
+inline size_t getIndex_chw(uniform Memory& mem, uniform int h, int w, uniform int c)
+{
+  return c*mem.H*mem.W + h*mem.W + w;
+}
+
+inline float get1f_chw(uniform Memory& mem, uniform int h, int w, uniform int c)
+{
+  return mem.ptr[getIndex_chw(mem, h, w, c)];
+}
+
+inline void set1f_chw(uniform Memory& mem, uniform int h, int w, uniform int c, float value)
+{
+  mem.ptr[getIndex_chw(mem, h, w, c)] = value;
+}
+
+inline vec3f get3f_chw(uniform Memory& mem, uniform int h, int w, uniform int c)
+{
+  return make_vec3f(get1f_chw(mem, h, w, c),
+                    get1f_chw(mem, h, w, c+1),
+                    get1f_chw(mem, h, w, c+2));
+}
+
+inline void set3f_chw(uniform Memory& mem, uniform int h, int w, uniform int c, const vec3f& value)
+{
+  set1f_chw(mem, h, w, c,   value.x);
+  set1f_chw(mem, h, w, c+1, value.y);
+  set1f_chw(mem, h, w, c+2, value.z);
+}
+
+
+
+
+#endif
