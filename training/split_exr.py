@@ -46,10 +46,12 @@ def main():
               ('Noisy Image.R', 'Noisy Image.G', 'Noisy Image.B'),
               ('Beauty.R', 'Beauty.G', 'Beauty.B')
             ],
+    'a' : [('A',)],
     'alb' : [
               ('albedo.R', 'albedo.G', 'albedo.B'),
               ('Denoising Albedo.R', 'Denoising Albedo.G', 'Denoising Albedo.B'),
               ('VisibleDiffuse.R', 'VisibleDiffuse.G', 'VisibleDiffuse.B'),
+              ('diffuse.R', 'diffuse.G', 'diffuse.B'),
             ],
     'nrm' : [
               ('normal.R', 'normal.G', 'normal.B'),
@@ -70,7 +72,7 @@ def main():
         # Save the feature image
         feature_filename = name + '.' + feature + ext
         print(feature_filename)
-        new_channels = ('R', 'G', 'B') if len(feature_channels) == 3 else ('Y')
+        new_channels = ('R', 'G', 'B') if len(feature_channels) == 3 else ('Y',)
         feature_image = oiio.ImageBufAlgo.channels(image, feature_channels, new_channels)
         feature_image.spec().attribute('compression', 'piz')
         feature_image.write(feature_filename)
