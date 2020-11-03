@@ -144,7 +144,9 @@ endmacro()
 
 macro(rk_tbb_check_version)
   # Extract the version we found in our root.
-  if (EXISTS "${TBB_INCLUDE_DIR}/tbb/tbb_stddef.h")
+  if(EXISTS "${TBB_INCLUDE_DIR}/oneapi/tbb/version.h")
+    set(_TBB_VERSION_HEADER "oneapi/tbb/version.h")
+  elseif(EXISTS "${TBB_INCLUDE_DIR}/tbb/tbb_stddef.h")
     set(_TBB_VERSION_HEADER "tbb/tbb_stddef.h")
   elseif(EXISTS "${TBB_INCLUDE_DIR}/tbb/version.h")
     set(_TBB_VERSION_HEADER "tbb/version.h")
