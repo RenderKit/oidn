@@ -66,8 +66,8 @@ def _ssim_per_channel(X, Y, win, data_range=255):
     mu1 = gaussian_filter(X, win)
     mu2 = gaussian_filter(Y, win)
 
-    mu1_sq = mu1.pow(2)
-    mu2_sq = mu2.pow(2)
+    mu1_sq  = mu1 * mu1
+    mu2_sq  = mu2 * mu2
     mu1_mu2 = mu1 * mu2
 
     sigma1_sq = compensation * ( gaussian_filter(X * X, win) - mu1_sq )
