@@ -58,7 +58,6 @@ def _ssim_per_channel(X, Y, win, data_range=255):
     K1 = 0.01
     K2 = 0.03
     batch, channel, height, width = X.shape
-    compensation = 1.0
 
     C1 = (K1 * data_range)**2
     C2 = (K2 * data_range)**2
@@ -70,9 +69,9 @@ def _ssim_per_channel(X, Y, win, data_range=255):
     mu2_sq  = mu2 * mu2
     mu1_mu2 = mu1 * mu2
 
-    sigma1_sq = compensation * ( gaussian_filter(X * X, win) - mu1_sq )
-    sigma2_sq = compensation * ( gaussian_filter(Y * Y, win) - mu2_sq )
-    sigma12   = compensation * ( gaussian_filter(X * Y, win) - mu1_mu2 )
+    sigma1_sq = gaussian_filter(X * X, win) - mu1_sq
+    sigma2_sq = gaussian_filter(Y * Y, win) - mu2_sq
+    sigma12   = gaussian_filter(X * Y, win) - mu1_mu2
 
     cs_map = (2 * sigma12 + C2) / (sigma1_sq + sigma2_sq + C2) # set alpha=beta=gamma=1
     ssim_map = ((2 * mu1_mu2 + C1) / (mu1_sq + mu2_sq + C1)) * cs_map
