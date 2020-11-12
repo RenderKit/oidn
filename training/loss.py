@@ -4,6 +4,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torch.cuda.amp as amp
 
 from util import *
 from image import *
@@ -58,7 +59,8 @@ class SSIMLoss(nn.Module):
     self.ssim = SSIM(data_range=1.)
 
   def forward(self, input, target):
-    return 1. - self.ssim(input, target)
+    with amp.autocast(enabled=False):
+      return 1. - self.ssim(input.float(), target.float())
 
 # MS-SSIM loss
 class MSSSIMLoss(nn.Module):
@@ -67,7 +69,8 @@ class MSSSIMLoss(nn.Module):
     self.msssim = MS_SSIM(data_range=1.)
 
   def forward(self, input, target):
-    return 1. - self.msssim(input, target)
+    with amp.autocast(enabled=False):
+      return 1. - self.msssim(input.float(), target.float())
 
 # Gradient loss
 class GradientLoss(nn.Module):
