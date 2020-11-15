@@ -26,9 +26,9 @@ def get_loss_function(cfg):
     return MSSSIMLoss()
   elif type == 'l1_msssim':
     # [Zhao et al., 2018, "Loss Functions for Image Restoration with Neural Networks"]
-    return MixLoss(L1Loss(), MSSSIMLoss(), 0.84)
+    return MixLoss([L1Loss(), MSSSIMLoss()], [0.16, 0.84])
   elif type == 'l1_grad':
-    return MixLoss(L1Loss(), GradientLoss(), 0.5)
+    return MixLoss([L1Loss(), GradientLoss()], [0.5, 0.5])
   else:
     error('invalid loss function')
 
@@ -79,11 +79,10 @@ class GradientLoss(nn.Module):
 
 # Mix loss
 class MixLoss(nn.Module):
-  def __init__(self, loss1, loss2, alpha):
+  def __init__(self, losses, weights):
     super(MixLoss, self).__init__()
-    self.loss1 = loss1
-    self.loss2 = loss2
-    self.alpha = alpha
+    self.losses  = nn.Sequential(*losses)
+    self.weights = weights
 
   def forward(self, input, target):
-    return (1. - self.alpha) * self.loss1(input, target) + self.alpha * self.loss2(input, target)
+    return sum([l(input, target) * w for l, w in zip(self.losses, self.weights)])
