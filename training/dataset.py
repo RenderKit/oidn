@@ -131,7 +131,7 @@ def load_image_metadata(name):
 def save_image_metadata(name, metadata):
   save_json(name + '.json', metadata)
 
-# Returns groups of image samples (input and target images at different SPPs) as a list of (group, list of input names, target name)
+# Returns groups of image samples (input and target images at different SPPs) as a list of (group name, list of input names, target name)
 def get_image_sample_groups(dir, features):
   image_filenames = glob(os.path.join(dir, '**', '*.*.exr'), recursive=True)
   target_features = get_target_features(features)
