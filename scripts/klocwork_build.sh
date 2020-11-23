@@ -1,5 +1,5 @@
 #!/bin/bash
- 
+
 ## Copyright 2009-2020 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
@@ -10,7 +10,7 @@ function retry_cmd()
     MAX_RETRY=$1
     CMD="${@:2}"
     ERROR_MSG="License check failed ... Exiting"
- 
+
     RETRY_COUNTER="0"
     while [ $RETRY_COUNTER -lt $MAX_RETRY ]; do
         CMD_OUTPUT=$($CMD)
@@ -28,7 +28,7 @@ function retry_cmd()
         echo "Found license check failed, [$RETRY_COUNTER/$MAX_RETRY] - retrying ... "
         sleep 10
     done
- 
+
     set -e
     if [ $RETRY_COUNTER -ge $MAX_RETRY ]; then
         return 62
@@ -62,8 +62,8 @@ echo "$KW_SERVER_IP;$KW_SERVER_PORT;$KW_USER;$KW_LTOKEN" > $KLOCWORK_LTOKEN
 # Build
 scripts/build.py --wrapper "$KW_CLIENT_PATH/bin/kwinject -w -o buildspec.txt"
 cd build
-$KW_SERVER_PATH/bin/kwbuildproject --force --url http://$KW_SERVER_IP:$KW_SERVER_PORT/oidn buildspec.txt --tables-directory mytables
-$KW_SERVER_PATH/bin/kwadmin --url http://$KW_SERVER_IP:$KW_SERVER_PORT load --force --name build-$CI_PIPELINE_ID oidn mytables | tee project_load.log
+$KW_SERVER_PATH/bin/kwbuildproject --classic --force --url http://$KW_SERVER_IP:$KW_SERVER_PORT/oidn buildspec.txt --tables-directory mytables
+$KW_SERVER_PATH/bin/kwadmin --url http://$KW_SERVER_IP:$KW_SERVER_PORT load --force --name build-$CI_JOB_ID oidn mytables | tee project_load.log
 
 # Store kw build number for check status later
 cat project_load.log | grep "Starting build" | cut -d":" -f2 > ./kw_build_number
