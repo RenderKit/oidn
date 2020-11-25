@@ -239,7 +239,8 @@ class MS_SSIM(torch.nn.Module):
         self.size_average = size_average
         self.data_range = data_range
         if weights is None:
-            weights = torch.FloatTensor(_MS_SSIM_WEIGHTS)
+            weights = _MS_SSIM_WEIGHTS
+        weights = torch.FloatTensor(weights)
         self.register_buffer('weights', weights)
 
     def forward(self, X, Y):
