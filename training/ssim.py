@@ -175,15 +175,16 @@ def ms_ssim(X, Y, win_size=11, win_sigma=1.5, win=None, data_range=255, size_ave
 
     levels = weights.shape[0]
     mcs = []
-    for _ in range(levels):
+    for level in range(levels):
+        if level > 0:
+            padding = (X.shape[2] % 2, X.shape[3] % 2)
+            X = F.avg_pool2d(X, kernel_size=2, padding=padding)
+            Y = F.avg_pool2d(Y, kernel_size=2, padding=padding)
+            
         ssim_val, cs = _ssim_per_channel(X, Y,
                                          win=win,
                                          data_range=data_range)
         mcs.append(cs)
-
-        padding = (X.shape[2] % 2, X.shape[3] % 2)
-        X = F.avg_pool2d(X, kernel_size=2, padding=padding)
-        Y = F.avg_pool2d(Y, kernel_size=2, padding=padding)
 
     mcs_and_ssim = torch.stack(mcs[:-1] + [ssim_val], dim=-1)  # mcs, (batch, channel, level)
     # weights, (level)
