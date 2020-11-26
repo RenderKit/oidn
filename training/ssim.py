@@ -42,7 +42,7 @@ def gaussian_filter(input, win):
     return out
 
 
-def _ssim_per_channel(X, Y, win, data_range=255):
+def _ssim_per_channel(X, Y, win, data_range=255, cs_only=False):
     r""" Calculate ssim index for each color channel of X and Y
     Args:
         X (torch.Tensor): images
@@ -50,6 +50,7 @@ def _ssim_per_channel(X, Y, win, data_range=255):
         win (torch.Tensor): 1-D gauss kernel
         data_range (float or int, optional): value range of input images. (usually 1.0 or 255)
         size_average (bool, optional): if size_average=True, ssim of all images will be averaged as a scalar
+        cs_only (bool, optional): compute only the contrast and structure measures
 
     Returns:
         torch.Tensor: ssim results
@@ -74,13 +75,15 @@ def _ssim_per_channel(X, Y, win, data_range=255):
     sigma12   = gaussian_filter(X * Y, win) - mu1_mu2
 
     cs_map = (2 * sigma12 + C2) / (sigma1_sq + sigma2_sq + C2) # set alpha=beta=gamma=1
-    ssim_map = ((2 * mu1_mu2 + C1) / (mu1_sq + mu2_sq + C1)) * cs_map
+    if cs_only:
+        ssim_map = cs_map
+    else:
+        ssim_map = ((2 * mu1_mu2 + C1) / (mu1_sq + mu2_sq + C1)) * cs_map
 
     # Average over height, width
     ssim_val = ssim_map.mean([-2, -1])
-    cs = cs_map.mean([-2, -1])
 
-    return ssim_val, cs
+    return ssim_val
 
 
 def ssim(X, Y, win_size=11, win_sigma=1.5, win=None, data_range=255, size_average=True):
@@ -118,9 +121,9 @@ def ssim(X, Y, win_size=11, win_sigma=1.5, win=None, data_range=255, size_averag
     else:
         win_size = win.shape[-1]
 
-    ssim_val, _ = _ssim_per_channel(X, Y,
-                                    win=win,
-                                    data_range=data_range)
+    ssim_val = _ssim_per_channel(X, Y,
+                                 win=win,
+                                 data_range=data_range)
     if size_average:
         ssim_val = ssim_val.mean()
     else:
@@ -142,7 +145,7 @@ def ms_ssim(X, Y, win_size=11, win_sigma=1.5, win=None, data_range=255, size_ave
         win (torch.Tensor, optional): 1-D gauss kernel. if None, a new kernel will be created according to win_size and win_sigma
         data_range (float or int, optional): value range of input images. (usually 1.0 or 255)
         size_average (bool, optional): if size_average=True, ssim of all images will be averaged as a scalar
-        weights (list, optional): weights for different levels
+        weights (list, optional): weights for different scales
 
     Returns:
         torch.Tensor: ms-ssim results
@@ -173,21 +176,22 @@ def ms_ssim(X, Y, win_size=11, win_sigma=1.5, win=None, data_range=255, size_ave
     else:
         win_size = win.shape[-1]
 
-    levels = weights.shape[0]
-    mcs = []
-    for level in range(levels):
-        if level > 0:
+    scales = weights.shape[0]
+    mcs_and_ssim = []
+    for i in range(scales):
+        if i > 0:
             padding = (X.shape[2] % 2, X.shape[3] % 2)
             X = F.avg_pool2d(X, kernel_size=2, padding=padding)
             Y = F.avg_pool2d(Y, kernel_size=2, padding=padding)
             
-        ssim_val, cs = _ssim_per_channel(X, Y,
-                                         win=win,
-                                         data_range=data_range)
-        mcs.append(cs)
+        ssim_val = _ssim_per_channel(X, Y,
+                                     win=win,
+                                     data_range=data_range,
+                                     cs_only=(i < scales-1))
+        mcs_and_ssim.append(ssim_val)
 
-    mcs_and_ssim = torch.stack(mcs[:-1] + [ssim_val], dim=-1)  # mcs, (batch, channel, level)
-    # weights, (level)
+    # weights, (scale)
+    mcs_and_ssim = torch.stack(mcs_and_ssim, dim=-1)  # (batch, channel, scale)
     msssim_val = torch.prod((F.relu(mcs_and_ssim) ** weights), dim=-1)  # (batch, channel)
 
     if size_average:
@@ -229,7 +233,7 @@ class MS_SSIM(torch.nn.Module):
             data_range (float or int, optional): value range of input images. (usually 1.0 or 255)
             size_average (bool, optional): if size_average=True, ssim of all images will be averaged as a scalar
             channel (int, optional): input channels (default: 3)
-            weights (list, optional): weights for different levels
+            weights (list, optional): weights for different scales
         """
 
         super(MS_SSIM, self).__init__()
