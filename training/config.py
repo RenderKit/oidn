@@ -66,7 +66,7 @@ def parse_args(cmd=None, description=None):
     advanced.add_argument('--seed', '-s', type=int, help='seed for random number generation')
 
   if cmd in {'infer', 'compare_image'}:
-    parser.add_argument('--metric', '-M', type=str, nargs='*', choices=['psnr', 'mse', 'ssim'], default=['psnr', 'ssim'], help='metrics to compute')
+    parser.add_argument('--metric', '-M', type=str, nargs='*', choices=['psnr', 'mse', 'ssim', 'msssim'], default=['psnr', 'ssim'], help='metrics to compute')
 
   if cmd in {'infer'}:
     parser.add_argument('--input_data', '-i', type=str, default='test', help='name of the input dataset')
