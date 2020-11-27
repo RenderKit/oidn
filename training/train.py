@@ -139,8 +139,12 @@ def main_worker(rank, cfg):
   if lr_scheduler.last_epoch != last_epoch:
     error('failed to restore LR scheduler state')
 
-  # Initialize the gradient scaler
-  scaler = amp.GradScaler()
+  # Check whether AMP is enabled
+  amp_enabled = cfg.precision == 'amp'
+
+  if amp_enabled:
+    # Initialize the gradient scaler
+    scaler = amp.GradScaler()
 
   # Initialize the summary writer
   log_dir = get_result_log_dir(result_dir)
@@ -173,21 +177,26 @@ def main_worker(rank, cfg):
       input, target = batch
       input  = input.to(device,  non_blocking=True)
       target = target.to(device, non_blocking=True)
+      if not amp_enabled:
+        input  = input.float()
+        target = target.float()
 
       # Run a training step
       optimizer.zero_grad()
 
-      with amp.autocast():
+      with amp.autocast(enabled=amp_enabled):
         output = model(input)
         loss = criterion(output, target)
 
-      #loss.backward()
-      scaler.scale(loss).backward()
+      if amp_enabled:
+        scaler.scale(loss).backward()
+        scaler.step(optimizer)
+        scaler.update()
+      else:
+        loss.backward()
+        optimizer.step()
 
       # Next step
-      #optimizer.step()
-      scaler.step(optimizer)
-      scaler.update()
       step += 1
       train_loss += loss
       if rank == 0:

@@ -60,6 +60,7 @@ def parse_args(cmd=None, description=None):
   if cmd in {'train', 'find_lr'}:
     parser.add_argument('--batch_size', '--bs', '-b', type=int, default=16, help='mini-batch size (total batch size of all devices)')
     parser.add_argument('--loaders', '-j', type=int, default=4, help='number of data loader threads per device')
+    parser.add_argument('--precision', '-p', type=str, choices=['fp32', 'amp'], help='training precision')
     advanced.add_argument('--model', '-m', type=str, choices=['unet'], default='unet', help='network model')
     advanced.add_argument('--loss', '-l', type=str, choices=['l1', 'mape', 'smape', 'l2', 'ssim', 'msssim', 'l1_msssim', 'l1_grad'], default='l1_msssim', help='loss function')
     advanced.add_argument('--tile_size', '--ts', type=int, default=256, help='size of the cropped image tiles')
@@ -135,6 +136,10 @@ def parse_args(cmd=None, description=None):
       cfg.result = '%x' % int(time.time())
 
   if cmd in {'train'}:
+    # Set the default training precision
+    if cfg.precision is None:
+      cfg.precision = 'amp' if cfg.device == 'cuda' else 'fp32'
+      
     # Set the default maximum learning rate
     if cfg.max_lr is None:
       cfg.max_lr = 3.125e-6 * cfg.batch_size
