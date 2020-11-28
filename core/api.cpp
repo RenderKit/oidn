@@ -1,11 +1,7 @@
 // Copyright 2009-2020 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#ifdef _WIN32
-#  define OIDN_API extern "C" __declspec(dllexport)
-#else
-#  define OIDN_API extern "C" __attribute__ ((visibility ("default")))
-#endif
+#define OIDN_EXPORT_API
 
 // Locks the device that owns the specified object
 // Use *only* inside OIDN_TRY/CATCH!
@@ -36,7 +32,9 @@
 #include "filter.h"
 #include <mutex>
 
-namespace oidn {
+using namespace oidn;
+
+OIDN_API_NAMESPACE_BEGIN
 
   namespace
   {
@@ -404,4 +402,4 @@ namespace oidn {
     OIDN_CATCH(filter)
   }
 
-} // namespace oidn
+OIDN_API_NAMESPACE_END

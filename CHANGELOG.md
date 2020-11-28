@@ -1,6 +1,26 @@
 Version History
 ---------------
 
+### Changes in v1.3.0:
+
+-   Fixed compile error for some older macOS versions
+
+### Changes in v1.2.4:
+
+-   Added OIDN_API_NAMESPACE CMake option that allows to put all API functions
+    inside a user-defined namespace
+-   Fixed bug when TBB_USE_GLIBCXX_VERSION is defined
+-   Fixed compile error when using an old compiler which does not support
+    OpenMP SIMD
+-   Added compatibility with oneTBB 2021
+-   Export only necessary symbols on Linux and macOS
+
+### Changes in v1.2.3:
+
+-   Fixed incorrect detection of AVX-512 on macOS (sometimes causing a crash)
+-   Fixed inconsistent performance and costly initialization for AVX-512
+-   Fixed JIT'ed AVX-512 kernels not showing up correctly in VTune
+
 ### Changes in v1.2.2:
 
 -   Fixed unhandled exception when canceling filter execution from the

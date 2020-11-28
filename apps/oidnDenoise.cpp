@@ -17,6 +17,7 @@
 #include "apps/utils/image_io.h"
 #include "apps/utils/arg_parser.h"
 
+OIDN_NAMESPACE_USING
 using namespace oidn;
 
 void printUsage()
@@ -32,7 +33,7 @@ void printUsage()
             << "                   [-h/--help]" << std::endl;
 }
 
-void errorCallback(void* userPtr, oidn::Error error, const char* message)
+void errorCallback(void* userPtr, Error error, const char* message)
 {
   throw std::runtime_error(message);
 }
@@ -215,10 +216,10 @@ int main(int argc, char* argv[])
     std::cout << "Initializing" << std::endl;
     Timer timer;
 
-    oidn::DeviceRef device = oidn::newDevice();
+    DeviceRef device = newDevice();
 
     const char* errorMessage;
-    if (device.getError(errorMessage) != oidn::Error::None)
+    if (device.getError(errorMessage) != Error::None)
       throw std::runtime_error(errorMessage);
     device.setErrorFunction(errorCallback);
 
@@ -230,15 +231,15 @@ int main(int argc, char* argv[])
       device.set("verbose", verbose);
     device.commit();
 
-    oidn::FilterRef filter = device.newFilter(filterType.c_str());
+    FilterRef filter = device.newFilter(filterType.c_str());
 
-    filter.setImage("color", color->getData(), oidn::Format::Float3, width, height);
+    filter.setImage("color", color->getData(), Format::Float3, width, height);
     if (albedo)
-      filter.setImage("albedo", albedo->getData(), oidn::Format::Float3, width, height);
+      filter.setImage("albedo", albedo->getData(), Format::Float3, width, height);
     if (normal)
-      filter.setImage("normal", normal->getData(), oidn::Format::Float3, width, height);
+      filter.setImage("normal", normal->getData(), Format::Float3, width, height);
 
-    filter.setImage("output", output->getData(), oidn::Format::Float3, width, height);
+    filter.setImage("output", output->getData(), Format::Float3, width, height);
 
     if (hdr)
       filter.set("hdr", true);

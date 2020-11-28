@@ -11,6 +11,7 @@
 #define CATCH_CONFIG_FAST_COMPILE
 #include "catch.hpp"
 
+OIDN_NAMESPACE_USING
 using namespace oidn;
 
 void setFilterImage(FilterRef& filter, const char* name, ImageBuffer& image)
@@ -76,7 +77,7 @@ void sanitizationTest(DeviceRef& device, bool hdr, float value)
 
 TEST_CASE("image sanitization", "[sanitization]")
 {
-  DeviceRef device = oidn::newDevice();
+  DeviceRef device = newDevice();
   REQUIRE(device);
   device.commit();
   REQUIRE(device.getError() == Error::None);
@@ -156,7 +157,7 @@ void progressTest(DeviceRef& device, double nMax = 1000)
 
 TEST_CASE("progress monitor callback", "[progress]")
 {
-  DeviceRef device = oidn::newDevice();
+  DeviceRef device = newDevice();
   REQUIRE(device);
   device.commit();
   REQUIRE(device.getError() == Error::None);

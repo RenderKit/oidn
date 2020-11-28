@@ -1,6 +1,6 @@
 # Intel® Open Image Denoise
 
-This is release v1.2.2 of Intel Open Image Denoise. For changes and new
+This is release v1.2.4 of Intel Open Image Denoise. For changes and new
 features see the [changelog](CHANGELOG.md). Visit
 https://www.openimagedenoise.org for more information.
 
@@ -102,7 +102,7 @@ Image Denoise you need the following prerequisites:
     later)
 
   - [Intel® SPMD Program Compiler (ISPC)](http://ispc.github.io),
-    version 1.12.0 or later. Please obtain a release of ISPC from the
+    version 1.14.1 or later. Please obtain a release of ISPC from the
     [ISPC downloads page](https://ispc.github.io/downloads.html). The
     build system looks for ISPC in the `PATH` and in the directory right
     “next to” the checked-out Intel Open Image Denoise sources.\[1\]
@@ -248,6 +248,10 @@ that can be configured in CMake:
 
   - `OIDN_STATIC_RUNTIME`: Use the static version of the C/C++ runtime
     library (available only on Windows, OFF by default).
+
+  - `OIDN_API_NAMESPACE`: Specifies a namespace to put all Intel Open
+    Image Denoise API symbols inside. By default no namespace is used
+    and plain C symbols are exported.
 
   - `OIDN_APPS`: Enable building example and test applications (ON by
     default).

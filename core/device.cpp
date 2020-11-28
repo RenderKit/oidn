@@ -12,6 +12,12 @@ namespace oidn {
   {
     if (!mayiuse(sse41))
       throw Exception(Error::UnsupportedHardware, "SSE4.1 support is required at minimum");
+
+    // Get default values from environment variables
+    if (getEnvVar("OIDN_VERBOSE", verbose))
+      error.verbose = verbose;
+    getEnvVar("OIDN_NUM_THREADS", numThreads);
+    getEnvVar("OIDN_SET_AFFINITY", setAffinity);
   }
 
   Device::~Device()
@@ -110,11 +116,11 @@ namespace oidn {
 
   void Device::set1i(const std::string& name, int value)
   {
-    if (name == "numThreads")
+    if (name == "numThreads" && !isEnvVar("OIDN_NUM_THREADS"))
       numThreads = value;
-    else if (name == "setAffinity")
+    else if (name == "setAffinity" && !isEnvVar("OIDN_SET_AFFINITY"))
       setAffinity = value;
-    else if (name == "verbose")
+    else if (name == "verbose" && !isEnvVar("OIDN_VERBOSE"))
     {
       verbose = value;
       error.verbose = value;
@@ -209,7 +215,12 @@ namespace oidn {
 
     std::cout << "  Tasking :";
     std::cout << " TBB" << TBB_VERSION_MAJOR << "." << TBB_VERSION_MINOR;
+  #if TBB_INTERFACE_VERSION >= 12002
+    std::cout << " TBB_header_interface_" << TBB_INTERFACE_VERSION << " TBB_lib_interface_" << TBB_runtime_interface_version();
+  #else
     std::cout << " TBB_header_interface_" << TBB_INTERFACE_VERSION << " TBB_lib_interface_" << tbb::TBB_runtime_interface_version();
+  #endif
+
     std::cout << std::endl;
 
     std::cout << std::endl;

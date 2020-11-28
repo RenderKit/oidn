@@ -19,6 +19,7 @@
 #include <pmmintrin.h>
 #include <cstdint>
 #include <cstddef>
+#include <cstdlib>
 #include <climits>
 #include <cstring>
 #include <limits>
@@ -33,6 +34,9 @@
 #include "include/OpenImageDenoise/oidn.hpp"
 
 namespace oidn {
+
+  // Introduce all names from the API namespace
+  OIDN_NAMESPACE_USING
 
   // ---------------------------------------------------------------------------
   // Macros
@@ -99,9 +103,24 @@ namespace oidn {
     return sm.str();
   }
 
+  template<typename T>
+  inline T fromString(const std::string& str)
+  {
+    std::stringstream sm(str);
+    T a{};
+    sm >> a;
+    return a;
+  }
+
+  template<>
+  inline std::string fromString(const std::string& str)
+  {
+    return str;
+  }
+
 #if defined(__APPLE__)
   template<typename T>
-  bool getSysctl(const char* name, T& value)
+  inline bool getSysctl(const char* name, T& value)
   {
     int64_t result = 0;
     size_t size = sizeof(result);
@@ -113,6 +132,22 @@ namespace oidn {
     return true;
   }
 #endif
+
+  template<typename T>
+  inline bool getEnvVar(const std::string& name, T& value)
+  {
+    auto* str = getenv(name.c_str());
+    bool found = (str != nullptr);
+    if (found)
+      value = fromString<T>(str);
+    return found;
+  }
+
+  inline bool isEnvVar(const std::string& name)
+  {
+    auto* str = getenv(name.c_str());
+    return (str != nullptr);
+  }
 
   // ---------------------------------------------------------------------------
   // System information

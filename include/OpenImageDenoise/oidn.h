@@ -7,19 +7,9 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "version.h"
+#include "config.h"
 
-#if defined(__cplusplus)
-extern "C" {
-#endif
-
-#ifndef OIDN_API
-#if defined(_WIN32) && !defined(OIDN_STATIC_LIB)
-#  define OIDN_API __declspec(dllimport)
-#else
-#  define OIDN_API
-#endif
-#endif
+OIDN_API_NAMESPACE_BEGIN
 
 // -----------------------------------------------------------------------------
 // Device
@@ -200,6 +190,4 @@ OIDN_API void oidnCommitFilter(OIDNFilter filter);
 // Executes the filter.
 OIDN_API void oidnExecuteFilter(OIDNFilter filter);
 
-#if defined(__cplusplus)
-}
-#endif
+OIDN_API_NAMESPACE_END
