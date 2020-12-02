@@ -59,7 +59,7 @@ build-centos7-icc:
   extends: .build
   tags:
     - docker
-  image: openimagedenoise/build:centos7
+  image: $DOCKER_REGISTRY/oidn-build:centos7
   script: scripts/build.py install --compiler icc
 
 test-centos7-icc-avx512:
@@ -67,7 +67,7 @@ test-centos7-icc-avx512:
   tags:
     - docker
     - avx512vl
-  image: openimagedenoise/build:centos7
+  image: $DOCKER_REGISTRY/oidn-build:centos7
   needs:
     - job: build-centos7-icc
       artifacts: true
@@ -77,7 +77,7 @@ test-centos7-icc-knl:
   extends: .test
   tags:
     - docker-knl
-  image: openimagedenoise/build:centos7
+  image: $DOCKER_REGISTRY/oidn-build:centos7
   needs:
     - job: build-centos7-icc
       artifacts: true
@@ -88,7 +88,7 @@ test-centos7-icc-avx2:
   tags:
     - docker
     - avx2
-  image: openimagedenoise/build:centos7
+  image: $DOCKER_REGISTRY/oidn-build:centos7
   needs:
     - job: build-centos7-icc
       artifacts: true
@@ -99,7 +99,7 @@ test-centos7-icc-sse4:
   tags:
     - docker
     - avx512vl
-  image: openimagedenoise/build:centos7
+  image: $DOCKER_REGISTRY/oidn-build:centos7
   needs:
     - job: build-centos7-icc
       artifacts: true
@@ -109,7 +109,7 @@ package-linux:
   extends: .package
   tags:
     - docker
-  image: openimagedenoise/build:centos7
+  image: $DOCKER_REGISTRY/oidn-build:centos7
   script: scripts/build.py package --compiler icc
 
 ## -----------------------------------------------------------------------------
@@ -118,7 +118,7 @@ build-ubuntu18.04-gcc:
   extends: .build
   tags:
     - docker
-  image: openimagedenoise/build:ubuntu18.04
+  image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
   script: scripts/build.py install --compiler gcc
 
 test-ubuntu18.04-gcc-avx512:
@@ -126,7 +126,7 @@ test-ubuntu18.04-gcc-avx512:
   tags:
     - docker
     - avx512vl
-  image: openimagedenoise/build:ubuntu18.04
+  image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
   needs:
     - job: build-ubuntu18.04-gcc
       artifacts: true
@@ -137,7 +137,7 @@ test-ubuntu18.04-gcc-avx2:
   tags:
     - docker
     - avx2
-  image: openimagedenoise/build:ubuntu18.04
+  image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
   needs:
     - job: build-ubuntu18.04-gcc
       artifacts: true
@@ -148,7 +148,7 @@ test-ubuntu18.04-gcc-sse4:
   tags:
     - docker
     - avx512vl
-  image: openimagedenoise/build:ubuntu18.04
+  image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
   needs:
     - job: build-ubuntu18.04-gcc
       artifacts: true
@@ -158,7 +158,7 @@ build-ubuntu18.04-gcc-debug:
   extends: .build
   tags:
     - docker
-  image: openimagedenoise/build:ubuntu18.04
+  image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
   script: scripts/build.py install --compiler gcc --config Debug
 
 test-ubuntu18.04-gcc-debug-avx512:
@@ -166,7 +166,7 @@ test-ubuntu18.04-gcc-debug-avx512:
   tags:
     - docker
     - avx512vl
-  image: openimagedenoise/build:ubuntu18.04
+  image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
   needs:
     - job: build-ubuntu18.04-gcc-debug
       artifacts: true
@@ -177,7 +177,7 @@ test-ubuntu18.04-gcc-debug-avx2:
   tags:
     - docker
     - avx2
-  image: openimagedenoise/build:ubuntu18.04
+  image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
   needs:
     - job: build-ubuntu18.04-gcc-debug
       artifacts: true
@@ -188,7 +188,7 @@ test-ubuntu18.04-gcc-debug-sse4:
   tags:
     - docker
     - avx512vl
-  image: openimagedenoise/build:ubuntu18.04
+  image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
   needs:
     - job: build-ubuntu18.04-gcc-debug
       artifacts: true
@@ -198,28 +198,28 @@ build-ubuntu18.04-gcc-static:
   extends: .build
   tags:
     - docker
-  image: openimagedenoise/build:ubuntu18.04
+  image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
   script: scripts/build.py --compiler gcc -D OIDN_STATIC_LIB=ON
 
 build-ubuntu18.04-gcc-namespace:
   extends: .build
   tags:
     - docker
-  image: openimagedenoise/build:ubuntu18.04
+  image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
   script: scripts/build.py --compiler gcc -D OIDN_API_NAMESPACE=myoidn
 
 build-ubuntu18.04-clang:
   extends: .build
   tags:
     - docker
-  image: openimagedenoise/build:ubuntu18.04
+  image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
   script: scripts/build.py --compiler clang
 
 build-ubuntu18.04-kw-gcc:
   extends: .build
   tags:
     - docker
-  image: openimagedenoise/build:ubuntu18.04
+  image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
   script: scripts/klocwork_build.sh
 
 ## -----------------------------------------------------------------------------
@@ -228,7 +228,7 @@ build-ubuntu20.04-gcc:
   extends: .build
   tags:
     - docker
-  image: openimagedenoise/build:ubuntu20.04
+  image: $DOCKER_REGISTRY/oidn-build:ubuntu20.04
   script:
     - mkdir build
     - cd build
@@ -241,7 +241,7 @@ build-ubuntu20.04-gcc:
 #  extends: .build
 #  tags:
 #    - docker
-#  image: openimagedenoise/build:arch
+#  image: $DOCKER_REGISTRY/oidn-build:arch
 #  script:
 #    - cmake -B build -G Ninja
 #    - ninja -C build -v
