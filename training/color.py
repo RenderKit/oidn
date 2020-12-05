@@ -20,7 +20,9 @@ class TransferFunction: pass
 
 def get_transfer_function(cfg):
   type = cfg.transfer
-  if type == 'srgb':
+  if type == 'linear':
+    return LinearTransferFunction()
+  elif type == 'srgb':
     return SRGBTransferFunction()
   elif type == 'pu':
     return PUTransferFunction()
@@ -28,6 +30,17 @@ def get_transfer_function(cfg):
     return LogTransferFunction()
   else:
     error('invalid transfer function')
+
+## -----------------------------------------------------------------------------
+## Transfer function: Linear
+## -----------------------------------------------------------------------------
+
+class LinearTransferFunction(TransferFunction):
+  def forward(self, y):
+    return y
+
+  def inverse(self, x):
+    return x
 
 ## -----------------------------------------------------------------------------
 ## Transfer function: sRGB

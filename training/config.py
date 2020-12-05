@@ -9,6 +9,10 @@ import torch
 
 from util import *
 
+# Returns the target features given the input features
+def get_target_features(features):
+  return list(set(features).intersection({'hdr', 'ldr', 'shl1'}))
+
 # Parses the config from the command line arguments
 def parse_args(cmd=None, description=None):
   def get_default_device():
@@ -24,11 +28,11 @@ def parse_args(cmd=None, description=None):
   parser.add_argument('--config', '-c', type=str, help='load configuration from JSON file (overrides command-line arguments)')
 
   if cmd in {'preprocess', 'train', 'find_lr'}:
-    parser.add_argument('features', type=str, nargs='*', choices=['hdr', 'ldr', 'albedo', 'alb', 'normal', 'nrm', []], help='set of input features')
+    parser.add_argument('features', type=str, nargs='*', choices=['hdr', 'ldr', 'shl1', 'albedo', 'alb', 'normal', 'nrm', []], help='set of input features')
     parser.add_argument('--filter', '-f', type=str, choices=['RT', 'RTLightmap'], help='filter to train (sets some default arguments)')
     parser.add_argument('--preproc_dir', '-P', type=str, default='preproc', help='directory of preprocessed datasets')
     parser.add_argument('--train_data', '-t', type=str, default='train', help='name of the training dataset')
-    advanced.add_argument('--transfer', '-x', type=str, choices=['srgb', 'pu', 'log'], help='transfer function')
+    advanced.add_argument('--transfer', '-x', type=str, choices=['linear', 'srgb', 'pu', 'log'], help='transfer function')
 
   if cmd in {'preprocess', 'train'}:
     parser.add_argument('--valid_data', '-v', type=str, default='valid', help='name of the validation dataset')
@@ -116,15 +120,17 @@ def parse_args(cmd=None, description=None):
     cfg.features = list(dict.fromkeys(cfg.features).keys())
 
     # Check features
-    if ('ldr' in cfg.features) == ('hdr' in cfg.features):
-      parser.error('either hdr or ldr must be specified as input feature')
+    if len(get_target_features(cfg.features)) != 1:
+      parser.error('either hdr, ldr, or shl1 must be specified as an input feature')
 
     # Set the transfer function if not specified
     if not cfg.transfer:
       if 'hdr' in cfg.features:
         cfg.transfer = 'log' if cfg.filter == 'RTLightmap' else 'pu'
-      else:
+      elif 'ldr' in cfg.features:
         cfg.transfer = 'srgb'
+      elif 'shl1' in cfg.features:
+        cfg.transfer = 'linear'
 
   if cmd in {'train', 'find_lr'}:
     # Check the batch size

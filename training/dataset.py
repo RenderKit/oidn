@@ -22,8 +22,11 @@ def get_data_dir(cfg, name):
 
 # Returns the ordered list of channel names for the specified features
 def get_channels(features):
+  channels = []
   if ('hdr' in features) or ('ldr' in features):
-    channels = ['r', 'g', 'b']
+    channels += ['r', 'g', 'b']
+  if 'shl1' in features:
+    channels += ['shl1x.r', 'shl1x.g', 'shl1x.b', 'shl1y.r', 'shl1y.g', 'shl1y.b', 'shl1z.r', 'shl1z.g', 'shl1z.b']
   if 'alb' in features:
     channels += ['alb.r', 'alb.g', 'alb.b']
   if 'nrm' in features:
@@ -32,7 +35,10 @@ def get_channels(features):
 
 # Returns the number of channels for the specified features
 def get_num_channels(features):
-  return len(get_channels(features))
+  num_channels = len(get_channels(features))
+  if 'shl1' in features:
+    num_channels -= 6 # we keep only 3 L1 SH coefficients out of 9
+  return num_channels
 
 # Returns the indices of the specified channels in the dataset
 def get_channel_indices(channels, data_channels):
@@ -45,13 +51,13 @@ def shuffle_channels(channels, first_channel, order):
   for i in range(len(new_channels)):
     channels[first+i] = new_channels[i]
 
-# Returns the target features given the input features
-def get_target_features(features):
-  return list(set(features).intersection({'hdr', 'ldr'}))
-
 # Checks whether the image with specified features exists
 def image_exists(name, features):
-  return all([os.path.isfile(name + '.' + f + '.exr') for f in features])
+  suffixes = features.copy()
+  if 'shl1' in suffixes:
+    suffixes.remove('shl1')
+    suffixes += ['shl1x', 'shl1y', 'shl1z']
+  return all([os.path.isfile(name + '.' + s + '.exr') for s in suffixes])
 
 # Returns the feature an image represents given its filename
 def get_image_feature(filename):
@@ -62,7 +68,10 @@ def get_image_feature(filename):
     ext = filename_split[-1].lower()
     if ext in {'exr', 'pfm', 'hdr'}:
       if len(filename_split) == 3:
-        return filename_split[-2]
+        feature = filename_split[-2]
+        if feature in {'shl1x', 'shl1y', 'shl1z'}:
+          feature = 'shl1'
+        return feature
       else:
         return 'hdr' # assume HDR
     else:
@@ -71,14 +80,23 @@ def get_image_feature(filename):
 # Loads target image features in EXR format with given filename prefix
 def load_target_image(name, features):
   if 'hdr' in features:
-    color_filename = name + '.hdr.exr'
-  else:
-    color_filename = name + '.ldr.exr'
-  color = load_image(color_filename, num_channels=3)
-  if 'hdr' in features:
+    color = load_image(name + '.hdr.exr', num_channels=3)
     color = np.maximum(color, 0.)
-  else:
+  elif 'ldr' in features:
+    color = load_image(name + '.ldr.exr', num_channels=3)
     color = np.clip(color, 0., 1.)
+  elif 'shl1' in features:
+    # Load RGB coefficients for all 3 axes
+    shl1x = load_image(name + '.shl1x.exr', num_channels=3)
+    shl1y = load_image(name + '.shl1y.exr', num_channels=3)
+    shl1z = load_image(name + '.shl1z.exr', num_channels=3)
+    color = np.concatenate((shl1x, shl1y, shl1z), axis=2)
+    
+    # Clip to [-1..1] range (coefficients are assumed to be normalized)
+    color = np.clip(color, -1., 1.)
+    
+    # Transform to [0..1] range
+    color = color * 0.5 + 0.5
   return color
 
 # Loads input image features in EXR format with given filename prefix
@@ -177,7 +195,7 @@ def transform_feature(image, input_feature, output_feature, exposure=1.):
   if output_feature == 'srgb':
     if input_feature in {'hdr', 'ldr', 'alb'}:
       image = srgb_forward(image)
-    elif input_feature == 'nrm':
+    elif input_feature in {'nrm', 'shl1'}:
       # Transform [-1, 1] -> [0, 1]
       image = image * 0.5 + 0.5
   return image
@@ -212,6 +230,8 @@ def get_preproc_data_dir(cfg, name):
     data_dir += 'hdr'
   elif 'ldr' in cfg.features:
     data_dir += 'ldr'
+  elif 'shl1' in cfg.features:
+    data_dir += 'shl1'
   data_dir += '.' + cfg.transfer
   return data_dir
 
@@ -285,11 +305,19 @@ class TrainingDataset(PreprocessedDataset):
     # Randomly permute some channels to improve training quality
     channels = self.channels[:] # copy
 
-    # Randomly permute the color channels
-    color_order = randperm(3)
-    shuffle_channels(channels, 'r', color_order)
-    if 'alb' in self.features:
-      shuffle_channels(channels, 'alb.r', color_order)
+    if 'shl1' in self.features:
+      # Randomly permute the L1 SH coefficients
+      color_order = randperm(9)
+      shuffle_channels(channels, 'shl1x.r', color_order)
+
+      # Keep only 3 SH coefficients
+      del channels[3:9]
+    else:
+      # Randomly permute the color channels
+      color_order = randperm(3)
+      shuffle_channels(channels, 'r', color_order)
+      if 'alb' in self.features:
+        shuffle_channels(channels, 'alb.r', color_order)
 
     # Randomly permute the normal channels
     if 'nrm' in self.features:
@@ -297,11 +325,12 @@ class TrainingDataset(PreprocessedDataset):
       shuffle_channels(channels, 'nrm.x', normal_order)
 
     # Compute the indices of the required input channels
-    channel_order = get_channel_indices(channels, self.data_channels)
+    input_channel_order  = get_channel_indices(channels, self.data_channels)
+    target_channel_order = input_channel_order[:3]
 
     # Crop the input and target images
-    input_image  = input_image [oy:oy+sy, ox:ox+sx, channel_order]
-    target_image = target_image[oy:oy+sy, ox:ox+sx, color_order]
+    input_image  = input_image [oy:oy+sy, ox:ox+sx, input_channel_order]
+    target_image = target_image[oy:oy+sy, ox:ox+sx, target_channel_order]
 
     # Randomly transform the tiles to improve training quality
     if rand() < 0.5:
@@ -327,7 +356,7 @@ class TrainingDataset(PreprocessedDataset):
 
     # Randomly zero the color channels if there are auxiliary features
     # This prevents "ghosting" artifacts when the color buffer is entirely black
-    if len(self.channels) > 3 and rand() < 0.01:
+    if len(input_channel_order) > 3 and rand() < 0.01:
       input_image[:, :, 0:3] = 0
       target_image[:] = 0
 
