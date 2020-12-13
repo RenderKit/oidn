@@ -254,6 +254,9 @@ function(rk_tbb_find_root)
           "${PROGRAMFILES32}/Intel/compilers_and_libraries/windows/tbb")
     else()
       set(TBB_HINTS "/usr/local")
+      if(APPLE)
+        list(APPEND TBB_HINTS "/opt/homebrew")
+      endif()
       set(TBB_PATHS
           "${PROJECT_SOURCE_DIR}/tbb"
           "/opt/intel/composerxe/tbb"
