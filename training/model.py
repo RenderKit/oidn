@@ -6,12 +6,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from dataset import get_num_channels
+from dataset import *
 from util import *
 
 def get_model(cfg):
   type = cfg.model
-  num_channels = get_num_channels(cfg.features)
+  num_channels = get_num_input_channels(cfg.features)
   if type == 'unet':
     return UNet(num_channels)
   else:

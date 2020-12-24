@@ -33,10 +33,33 @@ def main():
   cfg.features = result_cfg.features
   cfg.transfer = result_cfg.transfer
   cfg.model    = result_cfg.model
-  target_feature = 'hdr' if 'hdr' in cfg.features else 'ldr'
+  main_feature = get_main_feature(cfg.features)
+
+  # Initialize the dataset
+  data_dir = get_data_dir(cfg, cfg.input_data)
+  image_sample_groups = get_image_sample_groups(data_dir, cfg.features)
+
+  # Initialize the model
+  model = get_model(cfg)
+  model.to(device)
+
+  # Load the checkpoint
+  checkpoint = load_checkpoint(result_dir, device, cfg.epochs, model)
+  epoch = checkpoint['epoch']
+  print('Epoch:', epoch)
+
+  # Initialize the transfer function
+  transfer = get_transfer_function(cfg)
+
+  # Iterate over the images
+  print()
+  output_dir = os.path.join(cfg.output_dir, cfg.input_data)
+  metric_sum = {metric : 0. for metric in cfg.metric}
+  metric_count = 0
+  model.eval()
 
   # Inference function
-  def infer(model, transfer, input, exposure):
+  def infer(input, exposure):
     x = input.clone()
 
     # Apply the transfer function
@@ -72,35 +95,12 @@ def main():
   def save_images(path, image, image_srgb):
     image      = tensor_to_image(image)
     image_srgb = tensor_to_image(image_srgb)
-    filename_prefix = path + '.' + target_feature + '.'
+    filename_prefix = path + '.' + main_feature + '.'
     for format in cfg.format:
       if format in {'exr', 'pfm', 'hdr'}:
         save_image(filename_prefix + format, image)
       else:
         save_image(filename_prefix + format, image_srgb)
-
-  # Initialize the dataset
-  data_dir = get_data_dir(cfg, cfg.input_data)
-  image_sample_groups = get_image_sample_groups(data_dir, cfg.features)
-
-  # Initialize the model
-  model = get_model(cfg)
-  model.to(device)
-
-  # Load the checkpoint
-  checkpoint = load_checkpoint(result_dir, device, cfg.epochs, model)
-  epoch = checkpoint['epoch']
-  print('Epoch:', epoch)
-
-  # Initialize the transfer function
-  transfer = get_transfer_function(cfg)
-
-  # Iterate over the images
-  print()
-  output_dir = os.path.join(cfg.output_dir, cfg.input_data)
-  metric_sum = {metric : 0. for metric in cfg.metric}
-  metric_count = 0
-  model.eval()
 
   with torch.no_grad():
     for group, input_names, target_name in image_sample_groups:
@@ -118,27 +118,27 @@ def main():
 
       # Load the target image if it exists
       if target_name:
-        target = load_target_image(os.path.join(data_dir, target_name), cfg.features)
+        target = load_image_features(os.path.join(data_dir, target_name), main_feature)
         target = image_to_tensor(target, batch=True).to(device)
-        target_srgb = transform_feature(target, target_feature, 'srgb', tonemap_exposure)
+        target_srgb = transform_feature(target, main_feature, 'srgb', tonemap_exposure)
 
       # Iterate over the input images
       for input_name in input_names:
         print(input_name, '...', end='', flush=True)
 
         # Load the input image
-        input = load_input_image(os.path.join(data_dir, input_name), cfg.features)
+        input = load_image_features(os.path.join(data_dir, input_name), cfg.features)
 
         # Compute the autoexposure value
         exposure = autoexposure(input) if 'hdr' in cfg.features else 1.
 
         # Infer
         input = image_to_tensor(input, batch=True).to(device)
-        output = infer(model, transfer, input, exposure)
+        output = infer(input, exposure)
 
         input = input[:, 0:3, ...] # keep only the color
-        input_srgb  = transform_feature(input,  target_feature, 'srgb', tonemap_exposure)
-        output_srgb = transform_feature(output, target_feature, 'srgb', tonemap_exposure)
+        input_srgb  = transform_feature(input,  main_feature, 'srgb', tonemap_exposure)
+        output_srgb = transform_feature(output, main_feature, 'srgb', tonemap_exposure)
 
         # Compute metrics
         metric_str = ''

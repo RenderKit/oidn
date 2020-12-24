@@ -9,10 +9,6 @@ import torch
 
 from util import *
 
-# Returns the target features given the input features
-def get_target_features(features):
-  return list(set(features).intersection({'hdr', 'ldr', 'shl1'}))
-
 # Parses the config from the command line arguments
 def parse_args(cmd=None, description=None):
   def get_default_device():
@@ -119,17 +115,13 @@ def parse_args(cmd=None, description=None):
     # Remove duplicate features
     cfg.features = list(dict.fromkeys(cfg.features).keys())
 
-    # Check features
-    if len(get_target_features(cfg.features)) != 1:
-      parser.error('either hdr, ldr, or shl1 must be specified as an input feature')
-
     # Set the transfer function if not specified
     if not cfg.transfer:
       if 'hdr' in cfg.features:
         cfg.transfer = 'log' if cfg.filter == 'RTLightmap' else 'pu'
       elif 'ldr' in cfg.features:
         cfg.transfer = 'srgb'
-      elif 'shl1' in cfg.features:
+      else:
         cfg.transfer = 'linear'
 
   if cmd in {'train', 'find_lr'}:

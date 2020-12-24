@@ -18,6 +18,7 @@ import tza
 def main():
   # Parse the command line arguments
   cfg = parse_args(description='Preprocesses training and validation datasets.')
+  main_feature = get_main_feature(cfg.features)
 
   # Initialize the PyTorch device
   device = init_device(cfg)
@@ -43,7 +44,7 @@ def main():
 
     # Load the target image
     print(target_name)
-    target_image = load_target_image(os.path.join(input_dir, target_name), cfg.features)
+    target_image = load_image_features(os.path.join(input_dir, target_name), main_feature)
 
     # Compute the autoexposure value
     exposure = autoexposure(target_image) if 'hdr' in cfg.features else 1.
@@ -58,7 +59,7 @@ def main():
     for input_name in input_names:
       # Load the image
       print(input_name)
-      input_image = load_input_image(os.path.join(input_dir, input_name), cfg.features)
+      input_image = load_image_features(os.path.join(input_dir, input_name), cfg.features)
 
       if input_image.shape[0:2] != target_image.shape[0:2]:
         error('the input and target images have different sizes')
