@@ -36,26 +36,23 @@ def get_auxiliary_features(features):
   return list(set(features).difference([main_feature]))
 
 # Returns the ordered list of channel names for the specified features
-def get_channels(features):
+def get_channels(features, target):
+  assert target in {'dataset', 'model'}
   channels = []
   if 'hdr' in features:
     channels += ['hdr.r', 'hdr.g', 'hdr.b']
   if 'ldr' in features:
     channels += ['ldr.r', 'ldr.g', 'ldr.b']
   if 'shl1' in features:
-    channels += ['shl1x.r', 'shl1x.g', 'shl1x.b', 'shl1y.r', 'shl1y.g', 'shl1y.b', 'shl1z.r', 'shl1z.g', 'shl1z.b']
+    if target == 'model':
+      channels += ['shl1.r', 'shl1.g', 'shl1.b']
+    else:
+      channels += ['shl1x.r', 'shl1x.g', 'shl1x.b', 'shl1y.r', 'shl1y.g', 'shl1y.b', 'shl1z.r', 'shl1z.g', 'shl1z.b']
   if 'alb' in features:
     channels += ['alb.r', 'alb.g', 'alb.b']
   if 'nrm' in features:
     channels += ['nrm.x', 'nrm.y', 'nrm.z']
   return channels
-
-# Returns the number of input channels for the specified features
-def get_num_input_channels(features):
-  num_channels = len(get_channels(features))
-  if 'shl1' in features:
-    num_channels -= 6 # we keep only 3 L1 SH coefficients out of 9
-  return num_channels
 
 # Returns the indices of the specified channels in the list of all channels
 def get_channel_indices(channels, all_channels):
@@ -275,9 +272,9 @@ class PreprocessedDataset(Dataset):
     self.auxiliary_features = get_auxiliary_features(cfg.features)
 
     # Get the channels
-    self.channels = get_channels(cfg.features)
-    self.all_channels = get_channels(data_cfg.features)
-    self.num_main_channels = get_num_input_channels(self.main_feature)
+    self.channels = get_channels(cfg.features, target='dataset')
+    self.all_channels = get_channels(data_cfg.features, target='dataset')
+    self.num_target_channels = len(get_channels(self.main_feature, target='model'))
 
     # Get the image samples
     samples_filename = os.path.join(data_dir, 'samples.json')
@@ -347,7 +344,7 @@ class TrainingDataset(PreprocessedDataset):
 
     # Get the indices of the input and target channels
     input_channel_indices  = get_channel_indices(input_channels, self.all_channels)
-    target_channel_indices = input_channel_indices[:self.num_main_channels]
+    target_channel_indices = input_channel_indices[:self.num_target_channels]
     #print(input_channels, input_channel_indices)
 
     # Crop the input and target images
@@ -379,7 +376,7 @@ class TrainingDataset(PreprocessedDataset):
     # Randomly zero the main feature channels if there are auxiliary features
     # This prevents "ghosting" artifacts when the main feature is entirely black
     if self.auxiliary_features and rand() < 0.01:
-      input_image[:, :, 0:self.num_main_channels] = 0
+      input_image[:, :, 0:self.num_target_channels] = 0
       target_image[:] = 0
 
     # DEBUG: Save the tile
@@ -396,7 +393,7 @@ class ValidationDataset(PreprocessedDataset):
   def __init__(self, cfg, name):
     super(ValidationDataset, self).__init__(cfg, name)
 
-    self.input_channel_indices = get_channel_indices(self.channels, self.all_channels)
+    input_channel_indices = get_channel_indices(self.channels, self.all_channels)
 
     # Split the images into tiles
     self.tiles = []
@@ -425,14 +422,20 @@ class ValidationDataset(PreprocessedDataset):
         for x in range(num_tiles_x):
           oy = start_y + y * self.tile_size
           ox = start_x + x * self.tile_size
-          self.tiles.append((sample_index, oy, ox))
 
+          if self.main_feature == 'shl1':
+            for k in range(0, 9, 3):
+              ch = input_channel_indices[k:k+3] + input_channel_indices[9:]
+              self.tiles.append((sample_index, oy, ox, ch))
+          else:
+            self.tiles.append((sample_index, oy, ox, input_channel_indices))
+      
   def __len__(self):
     return len(self.tiles)
 
   def __getitem__(self, index):
     # Get the tile
-    sample_index, oy, ox = self.tiles[index]
+    sample_index, oy, ox, input_channel_indices = self.tiles[index]
     sy = sx = self.tile_size
 
     # Get the input and target images
@@ -440,9 +443,8 @@ class ValidationDataset(PreprocessedDataset):
     input_image,  _ = self.images[input_name]
     target_image, _ = self.images[target_name]
 
-    # Get the indices of the input and target channels
-    input_channel_indices  = self.input_channel_indices
-    target_channel_indices = input_channel_indices[:self.num_main_channels]
+    # Get the indices of target channels
+    target_channel_indices = input_channel_indices[:self.num_target_channels]
 
     # Crop the input and target images
     input_image  = input_image [oy:oy+sy, ox:ox+sx, input_channel_indices]

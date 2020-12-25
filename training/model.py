@@ -11,9 +11,9 @@ from util import *
 
 def get_model(cfg):
   type = cfg.model
-  num_channels = get_num_input_channels(cfg.features)
+  num_input_channels = len(get_channels(cfg.features, target='model'))
   if type == 'unet':
-    return UNet(num_channels)
+    return UNet(num_input_channels)
   else:
     error('invalid model')
 
