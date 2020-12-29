@@ -36,9 +36,6 @@ def parse_args(cmd=None, description=None):
   if cmd in {'preprocess', 'infer'}:
     parser.add_argument('--data_dir', '-D', type=str, default='data', help='directory of datasets (e.g. training, validation, test)')
 
-  if cmd in {'preprocess'}:
-    parser.add_argument('--clean', action='store_true', help='delete existing preprocessed datasets')
-
   if cmd in {'train', 'find_lr', 'infer', 'export', 'visualize'}:
     parser.add_argument('--results_dir', '-R', type=str, default='results', help='directory of training results')
     parser.add_argument('--result', '-r', type=str, required=(not cmd in {'train', 'find_lr'}), help='name of the result to save/load')

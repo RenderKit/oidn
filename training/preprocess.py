@@ -19,6 +19,7 @@ def main():
   # Parse the command line arguments
   cfg = parse_args(description='Preprocesses training and validation datasets.')
   main_feature = get_main_feature(cfg.features)
+  num_main_channels = len(get_channels(main_feature, target='model'))
 
   # Initialize the PyTorch device
   device = init_device(cfg)
@@ -28,14 +29,18 @@ def main():
 
   # Returns a preprocessed image (also changes the original image!)
   def preprocess_image(image, exposure):
-    color = image[..., 0:3]
-    color = torch.from_numpy(color).to(device)
-    if 'hdr' in cfg.features:
-      color *= exposure
-    color = transfer.forward(color)
-    color = torch.clamp(color, max=1.)
-    color = color.cpu().numpy()
-    image[..., 0:3] = color
+    # Apply the transfer function
+    if transfer:
+      color = image[..., 0:num_main_channels]
+      color = torch.from_numpy(color).to(device)
+      if main_feature == 'hdr':
+        color *= exposure
+      color = transfer.forward(color)
+      color = torch.clamp(color, max=1.)
+      color = color.cpu().numpy()
+      image[..., 0:num_main_channels] = color
+
+    # Convert to FP16
     return np.nan_to_num(image.astype(np.float16))
 
   # Preprocesses a group of input and target images at different SPPs
@@ -47,7 +52,7 @@ def main():
     target_image = load_image_features(os.path.join(input_dir, target_name), main_feature)
 
     # Compute the autoexposure value
-    exposure = autoexposure(target_image) if 'hdr' in cfg.features else 1.
+    exposure = autoexposure(target_image) if main_feature == 'hdr' else 1.
 
     # Preprocess the target image
     target_image = preprocess_image(target_image, exposure)
@@ -78,7 +83,6 @@ def main():
   # Preprocesses a dataset
   def preprocess_dataset(data_name):
     input_dir = get_data_dir(cfg, data_name)
-    output_dir = get_preproc_data_dir(cfg, data_name)
     print('Dataset:', input_dir)
 
     # Check whether the dataset exists
@@ -86,17 +90,17 @@ def main():
       print('Does not exist')
       return
 
-    # Create the output directory if it doesn't exist
-    if os.path.isdir(output_dir):
-      if cfg.clean:
-        shutil.rmtree(output_dir)
-      else:
-        print('Skipping, already preprocessed')
-        return
-    os.makedirs(output_dir)
-
-    # Save the config
-    save_config(output_dir, cfg)
+    # Create the output directory
+    while True:
+      # Generate a directory name
+      output_name = data_name + '.%08x' % int(time.time())
+      output_dir = os.path.join(cfg.preproc_dir, output_name)
+      try:
+        os.makedirs(output_dir)
+        break
+      except FileExistsError:
+        # Name collision, sleep a bit
+        time.sleep(1)
 
     # Preprocess image sample groups
     sample_groups = get_image_sample_groups(input_dir, cfg.features)
@@ -110,6 +114,9 @@ def main():
     # Save the samples in the dataset
     samples_filename = os.path.join(output_dir, 'samples.json')
     save_json(samples_filename, samples)
+
+    # Save the config
+    save_config(output_dir, cfg)
 
   # Preprocess all datasets
   with torch.no_grad():

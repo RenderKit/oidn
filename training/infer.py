@@ -34,6 +34,7 @@ def main():
   cfg.transfer = result_cfg.transfer
   cfg.model    = result_cfg.model
   main_feature = get_main_feature(cfg.features)
+  num_main_channels = len(get_channels(main_feature, target='model'))
 
   # Initialize the dataset
   data_dir = get_data_dir(cfg, cfg.input_data)
@@ -63,11 +64,12 @@ def main():
     x = input.clone()
 
     # Apply the transfer function
-    color = x[:, 0:3, ...]
-    if 'hdr' in cfg.features:
-      color *= exposure
-    color = transfer.forward(color)
-    x[:, 0:3, ...] = color
+    if transfer:
+      color = x[:, 0:num_main_channels, ...]
+      if main_feature == 'hdr':
+        color *= exposure
+      color = transfer.forward(color)
+      x[:, 0:num_main_channels, ...] = color
 
     # Pad the output
     shape = x.shape
@@ -84,11 +86,13 @@ def main():
     x = torch.clamp(x, min=0.)
 
     # Apply the inverse transfer function
-    x = transfer.inverse(x)
-    if 'hdr' in cfg.features:
-      x /= exposure
-    else:
-      x = torch.clamp(x, max=1.)
+    if transfer:
+      x = transfer.inverse(x)
+      if main_feature == 'hdr':
+        x /= exposure
+      else:
+        x = torch.clamp(x, max=1.)
+        
     return x
 
   # Saves an image in different formats
@@ -130,7 +134,7 @@ def main():
         input = load_image_features(os.path.join(data_dir, input_name), cfg.features)
 
         # Compute the autoexposure value
-        exposure = autoexposure(input) if 'hdr' in cfg.features else 1.
+        exposure = autoexposure(input) if main_feature == 'hdr' else 1.
 
         # Infer
         input = image_to_tensor(input, batch=True).to(device)

@@ -242,12 +242,33 @@ def get_data_loader(rank, cfg, dataset, shuffle=False):
 ## Preprocessed dataset
 ## -----------------------------------------------------------------------------
 
-# Returns a preprocessed dataset directory path
+# Returns the directory path of the best matching preprocessed dataset
 def get_preproc_data_dir(cfg, name):
-  main_feature = get_main_feature(cfg.features)
-  data_dir = os.path.join(cfg.preproc_dir, name)
-  data_dir += '.' + main_feature + '.' + cfg.transfer
-  return data_dir
+  # Get all preprocessed versions of the requested dataset
+  data_dirs = sorted([f for f in glob(os.path.join(cfg.preproc_dir, name + '.*')) if os.path.isdir(f)])
+
+  # Iterate over all dataset versions
+  best_dir = None
+  best_num_channels = None
+
+  for data_dir in data_dirs:
+    # Load the dataset config if it exists (ignore corrupted datasets)
+    if os.path.isfile(get_config_filename(data_dir)):
+      data_cfg = load_config(data_dir)
+
+      # Check whether the dataset matches the requirements
+      if get_main_feature(data_cfg.features) == get_main_feature(cfg.features) and \
+        all(f in data_cfg.features for f in cfg.features) and \
+        data_cfg.transfer == cfg.transfer:
+        # Select the most recent version with the minimal amount of channels stored
+        num_channels = len(get_channels(data_cfg.features, target='dataset'))
+        if best_dir is None or num_channels <= best_num_channels:
+          best_dir = data_dir
+          best_num_channels = num_channels
+  
+  if best_dir is None:
+    error('no matching preproccessed dataset found')
+  return best_dir
 
 class PreprocessedDataset(Dataset):
   def __init__(self, cfg, name):
@@ -259,10 +280,6 @@ class PreprocessedDataset(Dataset):
       self.num_images = 0
       return
     data_cfg = load_config(data_dir)
-    if not all(f in data_cfg.features for f in cfg.features):
-      error('the preprocessed images have an incompatible set of features')
-    if data_cfg.transfer != cfg.transfer:
-      error('the preprocessed images have a mismatching transfer function')
 
     self.tile_size = cfg.tile_size
 
@@ -274,7 +291,7 @@ class PreprocessedDataset(Dataset):
     # Get the channels
     self.channels = get_channels(cfg.features, target='dataset')
     self.all_channels = get_channels(data_cfg.features, target='dataset')
-    self.num_target_channels = len(get_channels(self.main_feature, target='model'))
+    self.num_main_channels = len(get_channels(self.main_feature, target='model'))
 
     # Get the image samples
     samples_filename = os.path.join(data_dir, 'samples.json')
@@ -344,7 +361,7 @@ class TrainingDataset(PreprocessedDataset):
 
     # Get the indices of the input and target channels
     input_channel_indices  = get_channel_indices(input_channels, self.all_channels)
-    target_channel_indices = input_channel_indices[:self.num_target_channels]
+    target_channel_indices = input_channel_indices[:self.num_main_channels]
     #print(input_channels, input_channel_indices)
 
     # Crop the input and target images
@@ -376,7 +393,7 @@ class TrainingDataset(PreprocessedDataset):
     # Randomly zero the main feature channels if there are auxiliary features
     # This prevents "ghosting" artifacts when the main feature is entirely black
     if self.auxiliary_features and rand() < 0.01:
-      input_image[:, :, 0:self.num_target_channels] = 0
+      input_image[:, :, 0:self.num_main_channels] = 0
       target_image[:] = 0
 
     # DEBUG: Save the tile
@@ -444,7 +461,7 @@ class ValidationDataset(PreprocessedDataset):
     target_image, _ = self.images[target_name]
 
     # Get the indices of target channels
-    target_channel_indices = input_channel_indices[:self.num_target_channels]
+    target_channel_indices = input_channel_indices[:self.num_main_channels]
 
     # Crop the input and target images
     input_image  = input_image [oy:oy+sy, ox:ox+sx, input_channel_indices]
