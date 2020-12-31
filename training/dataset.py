@@ -54,6 +54,12 @@ def get_channels(features, target):
     channels += ['nrm.x', 'nrm.y', 'nrm.z']
   return channels
 
+def get_dataset_channels(features):
+  return get_channels(features, target='dataset')
+
+def get_model_channels(features):
+  return get_channels(features, target='model')
+
 # Returns the indices of the specified channels in the list of all channels
 def get_channel_indices(channels, all_channels):
   return [all_channels.index(ch) for ch in channels]
@@ -261,7 +267,7 @@ def get_preproc_data_dir(cfg, name):
         all(f in data_cfg.features for f in cfg.features) and \
         data_cfg.transfer == cfg.transfer:
         # Select the most recent version with the minimal amount of channels stored
-        num_channels = len(get_channels(data_cfg.features, target='dataset'))
+        num_channels = len(get_dataset_channels(data_cfg.features))
         if best_dir is None or num_channels <= best_num_channels:
           best_dir = data_dir
           best_num_channels = num_channels
@@ -289,9 +295,9 @@ class PreprocessedDataset(Dataset):
     self.auxiliary_features = get_auxiliary_features(cfg.features)
 
     # Get the channels
-    self.channels = get_channels(cfg.features, target='dataset')
-    self.all_channels = get_channels(data_cfg.features, target='dataset')
-    self.num_main_channels = len(get_channels(self.main_feature, target='model'))
+    self.channels = get_dataset_channels(cfg.features)
+    self.all_channels = get_dataset_channels(data_cfg.features)
+    self.num_main_channels = len(get_model_channels(self.main_feature))
 
     # Get the image samples
     samples_filename = os.path.join(data_dir, 'samples.json')

@@ -34,7 +34,7 @@ def main():
   cfg.transfer = result_cfg.transfer
   cfg.model    = result_cfg.model
   main_feature = get_main_feature(cfg.features)
-  num_main_channels = len(get_channels(main_feature, target='model'))
+  num_main_channels = len(get_model_channels(main_feature))
 
   # Initialize the dataset
   data_dir = get_data_dir(cfg, cfg.input_data)
