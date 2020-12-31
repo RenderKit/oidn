@@ -27,11 +27,11 @@ def parse_args(cmd=None, description=None):
     parser.add_argument('features', type=str, nargs='*', choices=['hdr', 'ldr', 'shl1', 'albedo', 'alb', 'normal', 'nrm', []], help='set of input features')
     parser.add_argument('--filter', '-f', type=str, choices=['RT', 'RTLightmap'], help='filter to train (sets some default arguments)')
     parser.add_argument('--preproc_dir', '-P', type=str, default='preproc', help='directory of preprocessed datasets')
-    parser.add_argument('--train_data', '-t', type=str, default='train', help='name of the training dataset')
+    parser.add_argument('--train_data', '-t', type=str, help='name of the training dataset')
     advanced.add_argument('--transfer', '-x', type=str, choices=['linear', 'srgb', 'pu', 'log'], help='transfer function')
 
   if cmd in {'preprocess', 'train'}:
-    parser.add_argument('--valid_data', '-v', type=str, default='valid', help='name of the validation dataset')
+    parser.add_argument('--valid_data', '-v', type=str, help='name of the validation dataset')
 
   if cmd in {'preprocess', 'infer'}:
     parser.add_argument('--data_dir', '-D', type=str, default='data', help='directory of datasets (e.g. training, validation, test)')
@@ -120,6 +120,12 @@ def parse_args(cmd=None, description=None):
         cfg.transfer = 'srgb'
       else:
         cfg.transfer = 'linear'
+
+    # Set the default datasets if not specified
+    if cfg.train_data is None and (cmd == 'find_lr' or cfg.valid_data is None):
+      cfg.train_data = 'train'
+      if cmd != 'find_lr':
+        cfg.valid_data = 'valid'
 
   if cmd in {'train', 'find_lr'}:
     # Check the batch size

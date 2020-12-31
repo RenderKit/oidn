@@ -83,11 +83,9 @@ def main():
   # Preprocesses a dataset
   def preprocess_dataset(data_name):
     input_dir = get_data_dir(cfg, data_name)
-    print('Dataset:', input_dir)
-
-    # Check whether the dataset exists
+    print('\nDataset:', input_dir)
     if not os.path.isdir(input_dir):
-      print('Does not exist')
+      print('Not found')
       return
 
     # Create the output directory
@@ -114,8 +112,8 @@ def main():
   # Preprocess all datasets
   with torch.no_grad():
     for dataset in [cfg.train_data, cfg.valid_data]:
-      print()
-      preprocess_dataset(dataset)
+      if dataset:
+        preprocess_dataset(dataset)
 
 if __name__ == '__main__':
   main()
