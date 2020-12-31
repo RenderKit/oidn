@@ -91,16 +91,9 @@ def main():
       return
 
     # Create the output directory
-    while True:
-      # Generate a directory name
-      output_name = data_name + '.%08x' % int(time.time())
-      output_dir = os.path.join(cfg.preproc_dir, output_name)
-      try:
-        os.makedirs(output_dir)
-        break
-      except FileExistsError:
-        # Name collision, sleep a bit
-        time.sleep(1)
+    output_name = data_name + '.' + WORKER_UID
+    output_dir = os.path.join(cfg.preproc_dir, output_name)
+    os.makedirs(output_dir)
 
     # Preprocess image sample groups
     sample_groups = get_image_sample_groups(input_dir, cfg.features)

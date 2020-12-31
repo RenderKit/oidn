@@ -7,6 +7,8 @@ import struct
 import json
 import csv
 import zipfile
+import time
+import socket
 import numpy as np
 
 import torch
@@ -15,6 +17,7 @@ import torch.multiprocessing as mp
 import torch.distributed as dist
 
 WORKER_RANK = 0
+WORKER_UID = '%08x.%s.%s' % (int(time.time()), socket.gethostname(), os.getpid())
 
 def round_down(a, b):
   return a // b * b

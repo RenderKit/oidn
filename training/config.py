@@ -128,7 +128,7 @@ def parse_args(cmd=None, description=None):
 
     # Generate a result name if not specified
     if not cfg.result:
-      cfg.result = '%x' % int(time.time())
+      cfg.result = WORKER_UID
 
   if cmd in {'train'}:
     # Set the default training precision
