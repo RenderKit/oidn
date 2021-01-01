@@ -239,7 +239,7 @@ def get_data_loader(rank, cfg, dataset, shuffle=False):
                       batch_size=(cfg.batch_size // cfg.num_devices),
                       sampler=sampler,
                       shuffle=(shuffle if sampler is None else False),
-                      num_workers=cfg.loaders,
+                      num_workers=cfg.num_loaders,
                       pin_memory=(cfg.device != 'cpu'))
 
   return loader, sampler

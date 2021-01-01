@@ -99,7 +99,7 @@ def main_worker(rank, cfg):
     dist.barrier()
 
   start_epoch = last_epoch + 1
-  if start_epoch > cfg.epochs:
+  if start_epoch > cfg.num_epochs:
     exit() # nothing to do
 
   # Reset the random seed if resuming result
@@ -129,7 +129,7 @@ def main_worker(rank, cfg):
   lr_scheduler = optim.lr_scheduler.OneCycleLR(
     optimizer,
     max_lr=cfg.max_lr,
-    total_steps=cfg.epochs,
+    total_steps=cfg.num_epochs,
     pct_start=cfg.lr_warmup,
     anneal_strategy='cos',
     div_factor=(25. if cfg.lr is None else cfg.max_lr / cfg.lr),
@@ -156,10 +156,10 @@ def main_worker(rank, cfg):
   # Training and evaluation loops
   if rank == 0:
     print()
-    progress_format = '%-5s %' + str(len(str(cfg.epochs))) + 'd/%d:' % cfg.epochs
+    progress_format = '%-5s %' + str(len(str(cfg.num_epochs))) + 'd/%d:' % cfg.num_epochs
     total_start_time = time.time()
 
-  for epoch in range(start_epoch, cfg.epochs+1):
+  for epoch in range(start_epoch, cfg.num_epochs+1):
     if rank == 0:
       start_time = time.time()
       progress = ProgressBar(train_steps_per_epoch, progress_format % ('Train', epoch))
@@ -221,11 +221,11 @@ def main_worker(rank, cfg):
       duration = time.time() - start_time
       total_duration = time.time() - total_start_time
       images_per_sec = len(train_data) / duration
-      eta = ((cfg.epochs - epoch) * total_duration / (epoch + 1 - start_epoch))
+      eta = ((cfg.num_epochs - epoch) * total_duration / (epoch + 1 - start_epoch))
       progress.finish('loss=%.6f, lr=%.6f (%.1f images/s, %s, eta %s)'
                       % (train_loss, lr, images_per_sec, format_time(duration), format_time(eta, precision=2)))
 
-    if ((cfg.valid_epochs > 0 and epoch % cfg.valid_epochs == 0) or epoch == cfg.epochs) \
+    if ((cfg.num_valid_epochs > 0 and epoch % cfg.num_valid_epochs == 0) or epoch == cfg.num_epochs) \
       and len(valid_data) > 0:
       # Validation
       if rank == 0:
@@ -268,7 +268,7 @@ def main_worker(rank, cfg):
         progress.finish('valid_loss=%.6f (%.1f images/s, %.1fs)'
                         % (valid_loss, images_per_sec, duration))
 
-    if (rank == 0) and ((cfg.save_epochs > 0 and epoch % cfg.save_epochs == 0) or epoch == cfg.epochs):
+    if (rank == 0) and ((cfg.num_save_epochs > 0 and epoch % cfg.num_save_epochs == 0) or epoch == cfg.num_epochs):
       # Save a checkpoint
       save_checkpoint(result_dir, epoch, step, model, optimizer)
 
