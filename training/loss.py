@@ -66,7 +66,7 @@ class SSIMLoss(nn.Module):
 class MSSSIMLoss(nn.Module):
   def __init__(self):
     super(MSSSIMLoss, self).__init__()
-    self.msssim = MS_SSIM(data_range=1.)
+    self.msssim = MS_SSIM(data_range=1., weights=[0.2, 0.2, 0.2, 0.2, 0.2])
 
   def forward(self, input, target):
     with amp.autocast(enabled=False):
