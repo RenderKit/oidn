@@ -1,7 +1,7 @@
 // Copyright 2009-2020 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "common/tensor.h"
+#include "tensor.h"
 #include "image.h"
 #include "node.h"
 #include "input_reorder.h"
@@ -83,8 +83,6 @@ namespace oidn {
 
   private:
     Ref<Device> device;
-    engine eng;
-    stream sm;
     int K;                     // block size
     memory::format_tag nChwKc; // native blocked format
 

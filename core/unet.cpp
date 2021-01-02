@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "unet.h"
-#include "common/tza.h"
+#include "tza.h"
 
 // Built-in weights
 #include "weights/rt_hdr.h"

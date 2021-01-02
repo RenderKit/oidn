@@ -9,8 +9,6 @@ namespace oidn {
 
   Network::Network(const Ref<Device>& device, const std::map<std::string, Tensor>& weightsMap)
     : device(device),
-      eng(engine::kind::cpu, 0),
-      sm(eng),
       weightsMap(weightsMap)
   {
     if (mayiuse(avx512_core))
@@ -29,7 +27,7 @@ namespace oidn {
   {
     for (size_t i = 0; i < nodes.size(); ++i)
     {
-      nodes[i]->execute(sm);
+      nodes[i]->execute(device->getStream());
       progress.update(1);
     }
   }
@@ -60,11 +58,11 @@ namespace oidn {
         activationAllocBytes += bytes;
       totalAllocBytes += bytes;
 
-      return std::make_shared<memory>(desc, eng);
+      return std::make_shared<memory>(desc, device->getEngine());
     }
     else
     {
-      return std::make_shared<memory>(desc, eng, data);
+      return std::make_shared<memory>(desc, device->getEngine(), data);
     }
   }
 
@@ -89,7 +87,7 @@ namespace oidn {
     }
     memory::desc desc(dims, memory::data_type::f32, format);
     float* srcPtr = (float*)src->get_data_handle() + srcOffset;
-    return std::make_shared<memory>(desc, eng, srcPtr);
+    return std::make_shared<memory>(desc, device->getEngine(), srcPtr);
   }
 
   std::shared_ptr<memory> Network::castMemory(const memory::dims& dims,
@@ -226,14 +224,14 @@ namespace oidn {
     }
     convAttr.set_scratchpad_mode(scratchpad_mode::user);
 
-    auto convPrimDesc = convolution_forward::primitive_desc(convDesc, convAttr, eng);
+    auto convPrimDesc = convolution_forward::primitive_desc(convDesc, convAttr, device->getEngine());
 
     // Reorder the weights to the final format, if necessary
     if (convPrimDesc.weights_desc() != weights->get_desc())
     {
       auto oldWeights = weights;
-      weights = std::make_shared<memory>(convPrimDesc.weights_desc(), eng);
-      ReorderNode(oldWeights, weights).execute(sm);
+      weights = std::make_shared<memory>(convPrimDesc.weights_desc(), device->getEngine());
+      ReorderNode(oldWeights, weights).execute(device->getStream());
     }
 
     // Create convolution node and add it to the net
@@ -277,7 +275,7 @@ namespace oidn {
     dnnl::primitive_attr poolAttr;
     poolAttr.set_scratchpad_mode(scratchpad_mode::user);
 
-    auto poolPrimDesc = pooling_forward::primitive_desc(poolDesc, poolAttr, eng);
+    auto poolPrimDesc = pooling_forward::primitive_desc(poolDesc, poolAttr, device->getEngine());
     auto node = std::make_shared<PoolNode>(poolPrimDesc, src, dst);
     nodes.push_back(node);
     return node;
@@ -315,7 +313,7 @@ namespace oidn {
     dnnl::primitive_attr resampleAttr;
     resampleAttr.set_scratchpad_mode(scratchpad_mode::user);
 
-    auto resamplePrimDesc = resampling_forward::primitive_desc(resampleDesc, resampleAttr, eng);
+    auto resamplePrimDesc = resampling_forward::primitive_desc(resampleDesc, resampleAttr, device->getEngine());
     auto node = std::make_shared<ResampleNode>(resamplePrimDesc, src, dst);
     */
     auto node = std::make_shared<UpsampleNode>(K, src, dst);
@@ -352,7 +350,7 @@ namespace oidn {
     // Allocate the scratchpad
     memory::dims scratchpadDims = { memory::dim(scratchpadSize) };
     memory::desc scratchpadDesc(scratchpadDims, memory::data_type::u8, memory::format_tag::x);
-    auto scratchpad = std::make_shared<memory>(scratchpadDesc, eng);
+    auto scratchpad = std::make_shared<memory>(scratchpadDesc, device->getEngine());
     totalAllocBytes += scratchpadSize;
 
     // Set the scratchpad for the nodes

@@ -141,6 +141,9 @@ set(CORE_SOURCES
   core/unet.h
   core/unet.cpp
   core/upsample.h
+  core/tensor.h
+  core/tza.h
+  core/tza.cpp
 )
 
 set(CORE_SOURCES_ISPC

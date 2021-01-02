@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "platform.h"
+#include "common/platform.h"
 #include <vector>
 
 namespace oidn {
@@ -17,17 +17,8 @@ namespace oidn {
     float* data;
     Dims dims;
     std::string layout;
-    std::shared_ptr<std::vector<char>> buffer; // optional, only for reference counting
 
     __forceinline Tensor() : data(nullptr) {}
-
-    __forceinline Tensor(const Dims& dims, const std::string& layout)
-      : dims(dims),
-        layout(layout)
-    {
-      buffer = std::make_shared<std::vector<char>>(size() * sizeof(float));
-      data = (float*)buffer->data();
-    }
 
     __forceinline Tensor(const Dims& dims, const std::string& layout, float* data)
       : data(data),
