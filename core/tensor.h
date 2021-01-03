@@ -3,70 +3,264 @@
 
 #pragma once
 
-#include "common/platform.h"
+#include "device.h"
 #include <vector>
 
 namespace oidn {
-
-  // Generic tensor
-  class Tensor
+  
+  // Tensor data type
+  enum class DataType
   {
-  public:
-    using Dims = std::vector<int64_t>;
+    Float32,
+    UInt8,
+  };
 
-    float* data;
-    Dims dims;
-    std::string layout;
-
-    __forceinline Tensor() : data(nullptr) {}
-
-    __forceinline Tensor(const Dims& dims, const std::string& layout, float* data)
-      : data(data),
-        dims(dims),
-        layout(layout)
-    {}
-
-    __forceinline operator bool() const { return data != nullptr; }
-
-    __forceinline int ndims() const { return (int)dims.size(); }
-
-    // Returns the number of values
-    __forceinline size_t size() const
+  // Returns the size of the specified data type in bytes
+  __forceinline size_t getByteSize(DataType dataType)
+  {
+    switch (dataType)
     {
-      size_t size = 1;
-      for (int i = 0; i < ndims(); ++i)
-        size *= dims[i];
-      return size;
+    case DataType::Float32: return 4;
+    case DataType::UInt8:   return 1;
+    default:                assert(0);
+    }
+    return 0;
+  }
+
+  // Tensor dimensions
+  using TensorDims = std::vector<int64_t>;
+
+  // Returns the number of elements in the tensor
+  __forceinline size_t getNumElements(const TensorDims& dims)
+  {
+    if (dims.empty())
+      return 0;
+
+    size_t num = 1;
+    for (size_t i = 0; i < dims.size(); ++i)
+      num *= dims[i];
+    return num;
+  }
+
+  // Returns the maximum tensor dimensions from a list
+  inline TensorDims getMaxDims(const std::vector<TensorDims>& dims)
+  {
+    TensorDims result;
+    size_t maxSize = 0;
+
+    for (const TensorDims& d : dims)
+    {
+      const size_t size = getNumElements(d);
+      if (size > maxSize)
+      {
+        result = d;
+        maxSize = size;
+      }
     }
 
-    // Returns the size in bytes
+    return result;
+  }
+
+  // Tensor memory layout
+  enum class TensorLayout
+  {
+    x,
+    oihw,
+    chw,
+    Chw8c,  // blocked
+    Chw16c, // blocked
+  };
+
+  // Tensor descriptor
+  struct TensorDesc
+  {
+    TensorDims   dims;
+    TensorLayout layout;
+    DataType     dataType;
+
+    __forceinline TensorDesc() {}
+
+    __forceinline TensorDesc(TensorDims dims, TensorLayout layout, DataType dataType)
+      : dims(dims), layout(layout), dataType(dataType) {}
+
+    // Returns the number of dimensions
+    __forceinline int ndims() const { return int(dims.size()); }
+
+    // Returns the number of elements in the tensor
+    __forceinline size_t numElements() const
+    {
+      return getNumElements(dims);
+    }
+
+    // Return the size in bytes of an element in the tensor
+    __forceinline size_t elementByteSize() const
+    {
+      return getByteSize(dataType);
+    }
+
+    // Returns the size in bytes of the tensor
     __forceinline size_t byteSize() const
     {
-      return size() * sizeof(float);
+      return numElements() * elementByteSize();
     }
+    
+    __forceinline operator dnnl::memory::desc() const
+    {
+      dnnl::memory::dims memDims;
+      dnnl::memory::format_tag memFormat;
+      switch (layout)
+      {
+      case TensorLayout::x:
+        assert(ndims() == 1);
+        memDims   = {dims[0]};
+        memFormat = dnnl::memory::format_tag::x;
+        break;
+      case TensorLayout::oihw:
+        assert(ndims() == 4);
+        memDims   = {dims[0], dims[1], dims[2], dims[3]};
+        memFormat = dnnl::memory::format_tag::oihw;
+        break;
+      case TensorLayout::chw:
+        assert(ndims() == 3);
+        memDims   = {1, dims[0], dims[1], dims[2]};
+        memFormat = dnnl::memory::format_tag::nchw;
+        break;
+      case TensorLayout::Chw8c:
+        assert(ndims() == 3);
+        memDims   = {1, dims[0], dims[1], dims[2]};
+        memFormat = dnnl::memory::format_tag::nChw8c;
+        break;
+      case TensorLayout::Chw16c:
+        assert(ndims() == 3);
+        memDims   = {1, dims[0], dims[1], dims[2]};
+        memFormat = dnnl::memory::format_tag::nChw16c;
+        break;
+      default:
+        assert(0);
+      }
 
-    __forceinline float& operator [](size_t i) { return data[i]; }
-    __forceinline const float& operator [](size_t i) const { return data[i]; }
+      dnnl::memory::data_type memType;
+      switch (dataType)
+      {
+      case DataType::Float32:
+        memType = dnnl::memory::data_type::f32;
+        break;
+      case DataType::UInt8:
+        memType = dnnl::memory::data_type::u8;
+        break;
+      default:
+        assert(0);
+      }
 
-    __forceinline float& operator ()(int64_t i0) { return data[getIndex(i0)]; }
-    __forceinline const float& operator ()(int64_t i0) const { return data[getIndex(i0)]; }
+      return dnnl::memory::desc(memDims, memType, memFormat);
+    }
+  };
 
-    __forceinline float& operator ()(int64_t i0, int64_t i1)
-    { return data[getIndex(i0, i1)]; }
-    __forceinline const float& operator ()(int64_t i0, int64_t i1) const
-    { return data[getIndex(i0, i1)]; }
-
-    __forceinline float& operator ()(int64_t i0, int64_t i1, int64_t i2)
-    { return data[getIndex(i0, i1, i2)]; }
-    __forceinline const float& operator ()(int64_t i0, int64_t i1, int64_t i2) const
-    { return data[getIndex(i0, i1, i2)]; }
-
-    __forceinline float& operator ()(int64_t i0, int64_t i1, int64_t i2, int64_t i3)
-    { return data[getIndex(i0, i1, i2, i3)]; }
-    __forceinline const float& operator ()(int64_t i0, int64_t i1, int64_t i2, int64_t i3) const
-    { return data[getIndex(i0, i1, i2, i3)]; }
+  // Tensor
+  class Tensor : public RefCount, public TensorDesc
+  {
+  public:
+    dnnl::memory mem;
 
   private:
+    Ref<Device> device;
+    Ref<Tensor> parent; // for views
+
+  public:
+    __forceinline Tensor() {}
+
+    __forceinline Tensor(const Ref<Device>& device, const TensorDesc& desc)
+      : TensorDesc(desc), device(device)
+    {
+      init(device);
+    }
+
+    __forceinline Tensor(const Ref<Device>& device, const TensorDesc& desc, void* data)
+      : TensorDesc(desc), device(device)
+    {
+      init(device, data);
+    }
+
+    __forceinline Tensor(const Ref<Device>& device, TensorDims dims, TensorLayout layout, DataType dataType)
+      : TensorDesc(dims, layout, dataType), device(device)
+    {
+      init(device);
+    }
+
+    __forceinline Tensor(const Ref<Device>& device, TensorDims dims, TensorLayout layout, DataType dataType, void* data)
+      : TensorDesc(dims, layout, dataType), device(device)
+    {
+      init(device, data);
+    }
+
+    __forceinline Tensor(const Ref<Device>& device, const dnnl::memory::desc& desc)
+      : TensorDesc({0}, TensorLayout::x, DataType::UInt8), // FIXME
+        mem(desc, device->getEngine()),
+        device(device)
+    {
+    }
+
+    __forceinline operator bool() const { return data() != nullptr; }
+
+    __forceinline void* data() { return mem.get_data_handle(); }
+    __forceinline const void* data() const { return mem.get_data_handle(); }
+
+    // Returns a view of the tensor, optionally applying an offset in number of elements
+    __forceinline Ref<Tensor> view(const TensorDesc& newDesc, size_t offset = 0)
+    {
+      size_t byteOffset = offset * newDesc.elementByteSize();
+      assert(byteSize() >= newDesc.byteSize() + byteOffset);
+      void* newData = (char*)data() + byteOffset;
+      Ref<Tensor> result = makeRef<Tensor>(device, newDesc, newData);
+      result->parent = this;
+      return result;
+    }
+
+    __forceinline Ref<Tensor> view(const TensorDims& newDims, size_t offset = 0)
+    {
+      TensorDesc newDesc {newDims, layout, dataType};
+      return view(newDesc, offset);
+    }
+
+    template <typename T> __forceinline T& get(int64_t i0)
+    { return ((T*)data())[getIndex(i0)]; }
+    template <typename T> __forceinline const T& get(int64_t i0) const
+    { return ((T*)data())[getIndex(i0)]; }
+
+    template <typename T> __forceinline T& get(int64_t i0, int64_t i1, int64_t i2)
+    { return ((T*)data())[getIndex(i0, i1, i2)]; }
+    template <typename T> __forceinline const T& get(int64_t i0, int64_t i1, int64_t i2) const
+    { return ((T*)data())[getIndex(i0, i1, i2)]; }
+
+    template <typename T> __forceinline T& get(int64_t i0, int64_t i1, int64_t i2, int64_t i3)
+    { return ((T*)data())[getIndex(i0, i1, i2, i3)]; }
+    template <typename T> __forceinline const T& get(int64_t i0, int64_t i1, int64_t i2, int64_t i3) const
+    { return ((T*)data())[getIndex(i0, i1, i2, i3)]; }
+
+    operator ispc::Tensor() const
+    {
+      assert(ndims() == 3);
+      assert(dataType == DataType::Float32);
+
+      ispc::Tensor res;
+      res.ptr = (float*)data();
+      res.C = dims[0];
+      res.H = dims[1];
+      res.W = dims[2];
+      return res;
+    }
+
+  private:
+    __forceinline void init(const Ref<Device>& device)
+    {
+      mem = dnnl::memory(*this, device->getEngine());
+    }
+
+    __forceinline void init(const Ref<Device>& device, void* data)
+    {
+      mem = dnnl::memory(*this, device->getEngine(), data);
+    }
+
     __forceinline int64_t getIndex(int64_t i0) const
     {
       assert(ndims() == 1);
@@ -74,16 +268,10 @@ namespace oidn {
       return i0;
     }
 
-    __forceinline int64_t getIndex(int64_t i0, int64_t i1) const
-    {
-      assert(ndims() == 2);
-      assert(i0 < dims[0] && i1 < dims[1]);
-      return i0 * dims[1] + i1;
-    }
-
     __forceinline int64_t getIndex(int64_t i0, int64_t i1, int64_t i2) const
     {
       assert(ndims() == 3);
+      assert(layout == TensorLayout::chw);
       assert(i0 < dims[0] && i1 < dims[1] && i2 < dims[2]);
       return (i0 * dims[1] + i1) * dims[2] + i2;
     }
@@ -91,6 +279,7 @@ namespace oidn {
     __forceinline int64_t getIndex(int64_t i0, int64_t i1, int64_t i2, int64_t i3) const
     {
       assert(ndims() == 4);
+      assert(layout == TensorLayout::oihw);
       assert(i0 < dims[0] && i1 < dims[1] && i2 < dims[2] && i3 < dims[3]);
       return ((i0 * dims[1] + i1) * dims[2] + i2) * dims[3] + i3;
     }

@@ -17,8 +17,8 @@ namespace oidn {
 
     ispc::OutputCopy data;
 
-    data.src = toIspc(src);
-    data.dst = toIspc(dst);
+    data.src = src;
+    data.dst = dst;
 
     data.H = dst.height;
     data.W = dst.width;

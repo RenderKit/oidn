@@ -15,19 +15,19 @@ namespace oidn {
     ispc::Upsample data;
 
     int K;
-    std::shared_ptr<memory> src;
-    std::shared_ptr<memory> dst;
+    Ref<Tensor> src;
+    Ref<Tensor> dst;
 
   public:
     UpsampleNode(int K,
-                 const std::shared_ptr<memory>& src,
-                 const std::shared_ptr<memory>& dst)
+                 const Ref<Tensor>& src,
+                 const Ref<Tensor>& dst)
       : K(K),
         src(src),
         dst(dst)
     {
-      data.src = toIspc(src);
-      data.dst = toIspc(dst);
+      data.src = *src;
+      data.dst = *dst;
 
       assert(data.dst.H == data.src.H * 2);
       assert(data.dst.W == data.src.W * 2);
@@ -41,7 +41,7 @@ namespace oidn {
       });
     }
 
-    std::shared_ptr<memory> getDst() const override { return dst; }
+    Ref<Tensor> getDst() const override { return dst; }
   };
 
 } // namespace oidn

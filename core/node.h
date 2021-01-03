@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "memory.h"
+#include "tensor.h"
 #include <vector>
 
 namespace oidn {
@@ -15,10 +15,10 @@ namespace oidn {
 
     virtual void execute(stream& sm) = 0;
 
-    virtual std::shared_ptr<memory> getDst() const { return nullptr; }
+    virtual Ref<Tensor> getDst() const { return nullptr; }
 
     virtual size_t getScratchpadSize() const { return 0; }
-    virtual void setScratchpad(const std::shared_ptr<memory>& mem) {}
+    virtual void setScratchpad(const Ref<Tensor>& scratchpad) {}
 
     virtual void setTile(int hSrc, int wSrc, int hDst, int wDst, int H, int W)
     {
@@ -32,7 +32,7 @@ namespace oidn {
   private:
     primitive prim;
     std::unordered_map<int, memory> args;
-    std::shared_ptr<memory> scratchpad;
+    Ref<Tensor> scratchpad;
 
   public:
     MklNode(const primitive& prim, const std::unordered_map<int, memory>& args)
@@ -49,10 +49,10 @@ namespace oidn {
       return dnnl_memory_desc_get_size(scratchpadDesc);
     }
 
-    void setScratchpad(const std::shared_ptr<memory>& mem) override
+    void setScratchpad(const Ref<Tensor>& scratchpad) override
     {
-      scratchpad = mem;
-      args.insert(std::make_pair(DNNL_ARG_SCRATCHPAD, *scratchpad));
+      this->scratchpad = scratchpad;
+      args.insert(std::make_pair(DNNL_ARG_SCRATCHPAD, scratchpad->mem));
     }
 
     void execute(stream& sm) override
@@ -65,85 +65,85 @@ namespace oidn {
   class ConvNode : public MklNode
   {
   private:
-    std::shared_ptr<memory> src;
-    std::shared_ptr<memory> weights;
-    std::shared_ptr<memory> bias;
-    std::shared_ptr<memory> dst;
+    Ref<Tensor> src;
+    Ref<Tensor> weights;
+    Ref<Tensor> bias;
+    Ref<Tensor> dst;
 
   public:
     ConvNode(const convolution_forward::primitive_desc& desc,
-             const std::shared_ptr<memory>& src,
-             const std::shared_ptr<memory>& weights,
-             const std::shared_ptr<memory>& bias,
-             const std::shared_ptr<memory>& dst)
+             const Ref<Tensor>& src,
+             const Ref<Tensor>& weights,
+             const Ref<Tensor>& bias,
+             const Ref<Tensor>& dst)
       : MklNode(convolution_forward(desc),
-                { { DNNL_ARG_SRC, *src },
-                  { DNNL_ARG_WEIGHTS, *weights },
-                  { DNNL_ARG_BIAS, *bias },
-                  { DNNL_ARG_DST, *dst } }),
+                { { DNNL_ARG_SRC, src->mem },
+                  { DNNL_ARG_WEIGHTS, weights->mem },
+                  { DNNL_ARG_BIAS, bias->mem },
+                  { DNNL_ARG_DST, dst->mem } }),
                 src(src), weights(weights), bias(bias), dst(dst)
     {}
 
-    std::shared_ptr<memory> getDst() const override { return dst; }
+    Ref<Tensor> getDst() const override { return dst; }
   };
 
   // Pooling node
   class PoolNode : public MklNode
   {
   private:
-    std::shared_ptr<memory> src;
-    std::shared_ptr<memory> dst;
+    Ref<Tensor> src;
+    Ref<Tensor> dst;
 
   public:
     PoolNode(const pooling_forward::primitive_desc& desc,
-             const std::shared_ptr<memory>& src,
-             const std::shared_ptr<memory>& dst)
+             const Ref<Tensor>& src,
+             const Ref<Tensor>& dst)
       : MklNode(pooling_forward(desc),
-                { { DNNL_ARG_SRC, *src },
-                  { DNNL_ARG_DST, *dst } }),
+                { { DNNL_ARG_SRC, src->mem },
+                  { DNNL_ARG_DST, dst->mem } }),
                 src(src), dst(dst)
     {}
 
-    std::shared_ptr<memory> getDst() const override { return dst; }
+    Ref<Tensor> getDst() const override { return dst; }
   };
 
   // Resampling node
   class ResampleNode : public MklNode
   {
   private:
-    std::shared_ptr<memory> src;
-    std::shared_ptr<memory> dst;
+    Ref<Tensor> src;
+    Ref<Tensor> dst;
 
   public:
     ResampleNode(const resampling_forward::primitive_desc& desc,
-                 const std::shared_ptr<memory>& src,
-                 const std::shared_ptr<memory>& dst)
+                 const Ref<Tensor>& src,
+                 const Ref<Tensor>& dst)
       : MklNode(resampling_forward(desc),
-                { { DNNL_ARG_SRC, *src },
-                  { DNNL_ARG_DST, *dst } }),
+                { { DNNL_ARG_SRC, src->mem },
+                  { DNNL_ARG_DST, dst->mem } }),
                 src(src), dst(dst)
     {}
 
-    std::shared_ptr<memory> getDst() const override { return dst; }
+    Ref<Tensor> getDst() const override { return dst; }
   };
 
   // Reorder node
   class ReorderNode : public MklNode
   {
   private:
-    std::shared_ptr<memory> src;
-    std::shared_ptr<memory> dst;
+    Ref<Tensor> src;
+    Ref<Tensor> dst;
 
   public:
-    ReorderNode(const std::shared_ptr<memory>& src,
-                const std::shared_ptr<memory>& dst)
-      : MklNode(reorder(reorder::primitive_desc(*src, *dst)),
-                { { DNNL_ARG_SRC, *src },
-                  { DNNL_ARG_DST, *dst } }),
+    ReorderNode(const Ref<Tensor>& src,
+                const Ref<Tensor>& dst)
+      : MklNode(reorder(reorder::primitive_desc(src->mem, dst->mem)),
+                { { DNNL_ARG_SRC, src->mem },
+                  { DNNL_ARG_DST, dst->mem } }),
                 src(src), dst(dst)
     {}
 
-    std::shared_ptr<memory> getDst() const override { return dst; }
+    Ref<Tensor> getDst() const override { return dst; }
   };
 
 } // namespace oidn

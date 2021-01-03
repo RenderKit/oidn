@@ -16,12 +16,12 @@ namespace oidn {
   private:
     ispc::OutputReorder data;
 
-    std::shared_ptr<memory> src;
+    Ref<Tensor> src;
     Image dst;
     std::shared_ptr<TransferFunction> transferFunc;
 
   public:
-    OutputReorderNode(const std::shared_ptr<memory>& src,
+    OutputReorderNode(const Ref<Tensor>& src,
                       const Image& dst,
                       const std::shared_ptr<TransferFunction>& transferFunc,
                       bool hdr)
@@ -29,8 +29,8 @@ namespace oidn {
         dst(dst),
         transferFunc(transferFunc)
     {
-      data.src = toIspc(src);
-      data.dst = toIspc(dst);
+      data.src = *src;
+      data.dst = dst;
 
       data.hSrcBegin = 0;
       data.wSrcBegin = 0;

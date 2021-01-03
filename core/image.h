@@ -40,7 +40,7 @@ namespace oidn {
     }
 
     Image(const Ref<Device>& device, Format format, size_t width, size_t height)
-      : buffer(makeRef<Buffer>(device, width * height * getFormatSize(format)))
+      : buffer(makeRef<Buffer>(device, width * height * getByteSize(format)))
     {
       init(buffer->data(), format, width, height);
     }
@@ -54,7 +54,7 @@ namespace oidn {
       this->width  = int(width);
       this->height = int(height);
 
-      const size_t pixelSize = getFormatSize(format);
+      const size_t pixelSize = getByteSize(format);
       if (inBytePixelStride != 0)
       {
         if (inBytePixelStride < pixelSize)
@@ -123,15 +123,15 @@ namespace oidn {
 
       return begin1 < end2 && begin2 < end1;
     }
-  };
 
-  inline ispc::Image toIspc(const Image& img)
-  {
-    ispc::Image res;
-    res.ptr = (uint8_t*)img.ptr;
-    res.rowStride = img.rowStride;
-    res.bytePixelStride = img.bytePixelStride;
-    return res;
-  }
+    operator ispc::Image() const
+    {
+      ispc::Image res;
+      res.ptr = (uint8_t*)ptr;
+      res.rowStride = rowStride;
+      res.bytePixelStride = bytePixelStride;
+      return res;
+    }
+  };
 
 } // namespace oidn

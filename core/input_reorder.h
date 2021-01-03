@@ -19,25 +19,25 @@ namespace oidn {
     Image srcColor;
     Image srcAlbedo;
     Image srcNormal;
-    std::shared_ptr<memory> dst;
+    Ref<Tensor> dst;
     std::shared_ptr<TransferFunction> transferFunc;
 
   public:
     InputReorderNode(const Image& srcColor,
                      const Image& srcAlbedo,
                      const Image& srcNormal,
-                     const std::shared_ptr<memory>& dst,
+                     const Ref<Tensor>& dst,
                      const std::shared_ptr<TransferFunction>& transferFunc,
                      bool hdr)
       : srcColor(srcColor), srcAlbedo(srcAlbedo), srcNormal(srcNormal),
         dst(dst),
         transferFunc(transferFunc)
     {
-      data.srcColor  = toIspc(srcColor);
-      data.srcAlbedo = toIspc(srcAlbedo);
-      data.srcNormal = toIspc(srcNormal);
+      data.srcColor  = srcColor;
+      data.srcAlbedo = srcAlbedo;
+      data.srcNormal = srcNormal;
 
-      data.dst = toIspc(dst);
+      data.dst = *dst;
 
       data.hSrcBegin = 0;
       data.wSrcBegin = 0;
@@ -73,7 +73,7 @@ namespace oidn {
       });
     }
 
-    std::shared_ptr<memory> getDst() const override { return dst; }
+    Ref<Tensor> getDst() const override { return dst; }
   };
 
 } // namespace oidn

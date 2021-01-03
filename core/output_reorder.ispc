@@ -1,14 +1,14 @@
 // Copyright 2009-2020 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "memory.ih"
-#include "image.ih"
-#include "color.ih"
+#include "tensor.isph"
+#include "image.isph"
+#include "color.isph"
 
 struct OutputReorder
 {
   // Source
-  uniform Memory src;
+  uniform Tensor src;
 
   // Destination
   uniform Image dst;

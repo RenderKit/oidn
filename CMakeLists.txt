@@ -131,7 +131,6 @@ set(CORE_SOURCES
   core/filter.cpp
   core/image.h
   core/input_reorder.h
-  core/memory.h
   core/network.h
   core/network.cpp
   core/node.h
@@ -147,16 +146,16 @@ set(CORE_SOURCES
 )
 
 set(CORE_SOURCES_ISPC
-  core/image.ih
+  core/image.isph
   core/input_reorder.ispc
-  core/color.ih
+  core/color.isph
   core/color.ispc
-  core/math.ih
-  core/memory.ih
+  core/math.isph
   core/upsample.ispc
   core/output_copy.ispc
   core/output_reorder.ispc
-  core/vec.ih
+  core/tensor.isph
+  core/vec.isph
 )
 
 generate_cpp_from_blob(WEIGHTS_SOURCES "oidn::blobs::weights"

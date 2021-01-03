@@ -16,7 +16,7 @@
 #include "mkl-dnn/src/common/type_helpers.hpp"
 #include "mkl-dnn/src/cpu/x64/jit_generator.hpp"
 
-#include "input_reorder_ispc.h" // ispc::Memory, ispc::Image
+#include "input_reorder_ispc.h" // ispc::Tensor, ispc::Image
 
 namespace oidn {
 
@@ -26,7 +26,7 @@ namespace oidn {
   using dnnl::impl::memory_desc_matches_tag;
 
   // Returns the size of the format in bytes
-  inline size_t getFormatSize(Format format)
+  __forceinline size_t getByteSize(Format format)
   {
     switch (format)
     {
@@ -35,8 +35,8 @@ namespace oidn {
     case Format::Float2:    return sizeof(float)*2;
     case Format::Float3:    return sizeof(float)*3;
     case Format::Float4:    return sizeof(float)*4;
+    default:                assert(0);
     }
-    assert(0);
     return 0;
   }
 

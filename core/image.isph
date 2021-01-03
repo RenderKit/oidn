@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "vec.ih"
+#include "vec.isph"
 
 struct Image
 {
