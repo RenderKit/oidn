@@ -102,6 +102,9 @@ def main():
     filename_prefix = path + '.' + main_feature + '.'
     for format in cfg.format:
       if format in {'exr', 'pfm', 'hdr'}:
+        # Transform to original range
+        if main_feature in {'shl1', 'nrm'}:
+          image = image * 2. - 1. # [0..1] -> [-1..1]
         save_image(filename_prefix + format, image)
       else:
         save_image(filename_prefix + format, image_srgb)
@@ -140,7 +143,7 @@ def main():
         input = image_to_tensor(input, batch=True).to(device)
         output = infer(input, exposure)
 
-        input = input[:, 0:3, ...] # keep only the color
+        input = input[:, 0:num_main_channels, ...] # keep only the main feature
         input_srgb  = transform_feature(input,  main_feature, 'srgb', tonemap_exposure)
         output_srgb = transform_feature(output, main_feature, 'srgb', tonemap_exposure)
 
