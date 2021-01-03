@@ -403,7 +403,7 @@ class TrainingDataset(PreprocessedDataset):
       target_image[:] = 0
 
     # DEBUG: Save the tile
-    #save_image('tile_%d.png' % i, target_image)
+    #save_image('tile_%d.png' % index, target_image)
 
     # Convert the tiles to tensors
     return image_to_tensor(input_image), image_to_tensor(target_image)
