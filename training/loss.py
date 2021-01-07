@@ -23,10 +23,10 @@ def get_loss_function(cfg):
   elif type == 'ssim':
     return SSIMLoss()
   elif type == 'msssim':
-    return MSSSIMLoss()
+    return MSSSIMLoss(weights=cfg.msssim_weights)
   elif type == 'l1_msssim':
     # [Zhao et al., 2018, "Loss Functions for Image Restoration with Neural Networks"]
-    return MixLoss([L1Loss(), MSSSIMLoss()], [0.16, 0.84])
+    return MixLoss([L1Loss(), MSSSIMLoss(weights=cfg.msssim_weights)], [0.16, 0.84])
   elif type == 'l1_grad':
     return MixLoss([L1Loss(), GradientLoss()], [0.5, 0.5])
   else:
@@ -64,9 +64,9 @@ class SSIMLoss(nn.Module):
 
 # MS-SSIM loss
 class MSSSIMLoss(nn.Module):
-  def __init__(self):
+  def __init__(self, weights=None):
     super(MSSSIMLoss, self).__init__()
-    self.msssim = MS_SSIM(data_range=1., weights=[0.2, 0.2, 0.2, 0.2, 0.2])
+    self.msssim = MS_SSIM(data_range=1., weights=weights)
 
   def forward(self, input, target):
     with amp.autocast(enabled=False):

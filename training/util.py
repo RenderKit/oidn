@@ -34,6 +34,11 @@ def error(*args):
     print('Error:', *args)
   exit(1)
 
+# Prints a warning message
+def warning(*args):
+  if WORKER_RANK == 0:
+    print('Warning:', *args)
+
 # Returns the extension of a path without the dot
 def get_path_ext(path):
   return os.path.splitext(path)[1][1:]

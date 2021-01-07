@@ -29,7 +29,7 @@ def parse_args(cmd=None, description=None):
                         help='set of input features')
     parser.add_argument('--filter', '-f', type=str,
                         choices=['RT', 'RTLightmap'],
-                        help='filter to train (sets some default arguments)')
+                        help='filter to train (determines some default arguments)')
     parser.add_argument('--preproc_dir', '-P', type=str, default='preproc',
                         help='directory of preprocessed datasets')
     parser.add_argument('--train_data', '-t', type=str,
@@ -88,6 +88,8 @@ def parse_args(cmd=None, description=None):
                           choices=['l1', 'mape', 'smape', 'l2', 'ssim', 'msssim', 'l1_msssim', 'l1_grad'],
                           default='l1_msssim',
                           help='loss function')
+    advanced.add_argument('--msssim_weights', type=float, nargs='*',
+                          help='MS-SSIM scale weights')
     advanced.add_argument('--tile_size', '--ts', type=int, default=256,
                           help='size of the cropped image tiles')
     advanced.add_argument('--seed', '-s', type=int,
@@ -155,14 +157,18 @@ def parse_args(cmd=None, description=None):
     cfg = argparse.Namespace(**cfg_dict)
 
   if cmd in {'preprocess', 'train', 'find_lr'}:
+    # Check the filter
+    if cfg.filter is None:
+      warning('filter not specified, using generic default arguments')
+
     # Replace feature names with IDs
     FEATURE_IDS = {'albedo' : 'alb', 'normal' : 'nrm'}
     cfg.features = [FEATURE_IDS.get(f, f) for f in cfg.features]
     # Remove duplicate features
     cfg.features = list(dict.fromkeys(cfg.features).keys())
 
-    # Set the transfer function if not specified
-    if not cfg.transfer:
+    # Set the default transfer function
+    if cfg.transfer is None:
       if 'hdr' in cfg.features:
         cfg.transfer = 'log' if cfg.filter == 'RTLightmap' else 'pu'
       elif 'ldr' in cfg.features:
@@ -170,7 +176,7 @@ def parse_args(cmd=None, description=None):
       else:
         cfg.transfer = 'linear'
 
-    # Set the default datasets if not specified
+    # Set the default datasets
     if cfg.train_data is None and (cmd == 'find_lr' or cfg.valid_data is None):
       cfg.train_data = 'train'
       if cmd != 'find_lr':
@@ -181,9 +187,14 @@ def parse_args(cmd=None, description=None):
     if cfg.batch_size % cfg.num_devices != 0:
       parser.error('batch_size is not divisible by num_devices')
 
-    # Generate a result name if not specified
-    if not cfg.result:
+    # Set the default result name (generated)
+    if cfg.result is None:
       cfg.result = WORKER_UID
+
+    # Set the default MS-SSIM weights
+    if cfg.msssim_weights is None:
+      if cfg.filter == 'RT':
+        cfg.msssim_weights = [0.2, 0.2, 0.2, 0.2, 0.2]
 
   if cmd in {'train'}:
     # Set the default training precision
