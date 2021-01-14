@@ -26,16 +26,16 @@ namespace oidn {
     }
   };
 
-  // Node wrapping an MKL-DNN primitive
-  class MklNode : public Node
+  // Node wrapping a DNNL primitive
+  class DnnlNode : public Node
   {
   private:
-    primitive prim;
+    dnnl::primitive prim;
     std::unordered_map<int, memory> args;
     Ref<Tensor> scratchpad;
 
   public:
-    MklNode(const primitive& prim, const std::unordered_map<int, memory>& args)
+    DnnlNode(const dnnl::primitive& prim, const std::unordered_map<int, dnnl::memory>& args)
       : prim(prim),
         args(args)
     {}
@@ -62,7 +62,7 @@ namespace oidn {
   };
 
   // Convolution node
-  class ConvNode : public MklNode
+  class ConvNode : public DnnlNode
   {
   private:
     Ref<Tensor> src;
@@ -71,12 +71,12 @@ namespace oidn {
     Ref<Tensor> dst;
 
   public:
-    ConvNode(const convolution_forward::primitive_desc& desc,
+    ConvNode(const dnnl::convolution_forward::primitive_desc& desc,
              const Ref<Tensor>& src,
              const Ref<Tensor>& weights,
              const Ref<Tensor>& bias,
              const Ref<Tensor>& dst)
-      : MklNode(convolution_forward(desc),
+      : DnnlNode(dnnl::convolution_forward(desc),
                 { { DNNL_ARG_SRC, src->mem },
                   { DNNL_ARG_WEIGHTS, weights->mem },
                   { DNNL_ARG_BIAS, bias->mem },
@@ -88,17 +88,17 @@ namespace oidn {
   };
 
   // Pooling node
-  class PoolNode : public MklNode
+  class PoolNode : public DnnlNode
   {
   private:
     Ref<Tensor> src;
     Ref<Tensor> dst;
 
   public:
-    PoolNode(const pooling_forward::primitive_desc& desc,
+    PoolNode(const dnnl::pooling_forward::primitive_desc& desc,
              const Ref<Tensor>& src,
              const Ref<Tensor>& dst)
-      : MklNode(pooling_forward(desc),
+      : DnnlNode(dnnl::pooling_forward(desc),
                 { { DNNL_ARG_SRC, src->mem },
                   { DNNL_ARG_DST, dst->mem } }),
                 src(src), dst(dst)
@@ -108,7 +108,7 @@ namespace oidn {
   };
 
   // Reorder node
-  class ReorderNode : public MklNode
+  class ReorderNode : public DnnlNode
   {
   private:
     Ref<Tensor> src;
@@ -117,7 +117,7 @@ namespace oidn {
   public:
     ReorderNode(const Ref<Tensor>& src,
                 const Ref<Tensor>& dst)
-      : MklNode(reorder(reorder::primitive_desc(src->mem, dst->mem)),
+      : DnnlNode(dnnl::reorder(dnnl::reorder::primitive_desc(src->mem, dst->mem)),
                 { { DNNL_ARG_SRC, src->mem },
                   { DNNL_ARG_DST, dst->mem } }),
                 src(src), dst(dst)
