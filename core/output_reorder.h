@@ -21,11 +21,13 @@ namespace oidn {
     Ref<TransferFunction> transferFunc;
 
   public:
-    OutputReorderNode(const Ref<Tensor>& src,
+    OutputReorderNode(const Ref<Device>& device,
+                      const Ref<Tensor>& src,
                       const Image& dst,
                       const Ref<TransferFunction>& transferFunc,
                       bool hdr)
-      : src(src),
+      : Node(device),
+        src(src),
         dst(dst),
         transferFunc(transferFunc)
     {
@@ -53,7 +55,7 @@ namespace oidn {
       data.W = W;
     }
 
-    void execute(stream& sm) override
+    void execute() override
     {
       assert(data.hSrcBegin + data.H <= data.src.H);
       assert(data.wSrcBegin + data.W <= data.src.W);

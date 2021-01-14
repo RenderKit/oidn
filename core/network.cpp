@@ -19,7 +19,7 @@ namespace oidn {
   {
     for (size_t i = 0; i < nodes.size(); ++i)
     {
-      nodes[i]->execute(device->getStream());
+      nodes[i]->execute();
       progress.update(1);
     }
   }
@@ -69,7 +69,7 @@ namespace oidn {
     assert(dst->dims == getInputReorderDims({inputC, color.height, color.width}, alignment));
 
     // Push node
-    auto node = makeRef<InputReorderNode>(color, albedo, normal, dst, transferFunc, hdr);
+    auto node = makeRef<InputReorderNode>(device, color, albedo, normal, dst, transferFunc, hdr);
     nodes.push_back(node);
     return node;
   }
@@ -83,7 +83,7 @@ namespace oidn {
     assert(src->dims[0] == K);
 
     // Push node
-    auto node = makeRef<OutputReorderNode>(src, output, transferFunc, hdr);
+    auto node = makeRef<OutputReorderNode>(device, src, output, transferFunc, hdr);
     nodes.push_back(node);
     return node;
   }
@@ -105,64 +105,22 @@ namespace oidn {
   {
     assert(dst->dims == getConvDims(name, src->dims));
 
-    const dnnl::memory::dims strides = {1, 1};
-    const dnnl::memory::dims padding = {1, 1};
-
     // Get and pad the weights
-    const auto& W = weightsMap[name + ".weight"];
-    if (W->ndims() != 4 || W->layout != TensorLayout::oihw)
-      throw Exception(Error::InvalidOperation, "invalid convolution weights");
-    auto weights = padWeights(W);
-    TensorDims weightsDims = weights->dims;
+    auto weights = weightsMap[name + ".weight"];
+    if (weights->ndims() != 4 || weights->layout != TensorLayout::oihw)
+      throw Exception(Error::InvalidOperation, "invalid convolution weights");  
+    if (K > 1)
+      weights = padWeights(weights);
 
     // Get and pad the biases
-    const auto& b = weightsMap[name + ".bias"];
-    if (b->ndims() != 1)
+    auto bias = weightsMap[name + ".bias"];
+    if (bias->ndims() != 1)
       throw Exception(Error::InvalidOperation, "invalid convolution biases");
-    auto bias = padBias(b);
-    TensorDims biasDims = bias->dims;
-
-    // Create a convolution
-    // Let the convolution primitive choose the weights format
-    auto weightsDesc = dnnl::memory::desc({ weightsDims },
-                                          dnnl::memory::data_type::f32,
-                                          dnnl::memory::format_tag::any);
-
-    auto convDesc = dnnl::convolution_forward::desc(
-      dnnl::prop_kind::forward_inference, dnnl::algorithm::convolution_direct,
-      src->mem.get_desc(),
-      weightsDesc,
-      bias->mem.get_desc(),
-      dst->mem.get_desc(),
-      strides, padding, padding);
-
-    // Incorporate relu
-    dnnl::primitive_attr convAttr;
-    if (relu)
-    {
-      dnnl::post_ops ops;
-      ops.append_eltwise(
-        1.f,   // scale
-        dnnl::algorithm::eltwise_relu,
-        0.f,   // alpha
-        0.f    // beta
-      );
-      convAttr.set_post_ops(ops);
-    }
-    convAttr.set_scratchpad_mode(dnnl::scratchpad_mode::user);
-
-    auto convPrimDesc = dnnl::convolution_forward::primitive_desc(convDesc, convAttr, device->getEngine());
-
-    // Reorder the weights to the final format, if necessary
-    if (convPrimDesc.weights_desc() != weights->mem.get_desc())
-    {
-      auto oldWeights = weights;
-      weights = makeRef<Tensor>(device, convPrimDesc.weights_desc());
-      ReorderNode(oldWeights, weights).execute(device->getStream());
-    }
+    if (K > 1)
+      bias = padBias(bias);
 
     // Create convolution node and add it to the net
-    auto node = makeRef<ConvNode>(convPrimDesc, src, weights, bias, dst);
+    auto node = makeRef<ConvNode>(device, src, weights, bias, dst, relu);
     nodes.push_back(node);
     return node;
   }
@@ -182,21 +140,7 @@ namespace oidn {
   {
     assert(dst->dims == getPoolDims(src->dims));
 
-    const dnnl::memory::dims kernel  = {2, 2};
-    const dnnl::memory::dims strides = {2, 2};
-    const dnnl::memory::dims padding = {0, 0};
-
-    auto poolDesc = dnnl::pooling_forward::desc(
-      dnnl::prop_kind::forward_inference, dnnl::algorithm::pooling_max,
-      src->mem.get_desc(),
-      dst->mem.get_desc(),
-      strides, kernel, padding, padding);
-
-    dnnl::primitive_attr poolAttr;
-    poolAttr.set_scratchpad_mode(dnnl::scratchpad_mode::user);
-
-    auto poolPrimDesc = dnnl::pooling_forward::primitive_desc(poolDesc, poolAttr, device->getEngine());
-    auto node = makeRef<PoolNode>(poolPrimDesc, src, dst);
+    auto node = makeRef<PoolNode>(device, src, dst);
     nodes.push_back(node);
     return node;
   }
@@ -216,8 +160,7 @@ namespace oidn {
   {
     assert(dst->dims == getUpsampleDims(src->dims));
 
-    // Create upsampling node and add it to net
-    auto node = makeRef<UpsampleNode>(K, src, dst);
+    auto node = makeRef<UpsampleNode>(device, K, src, dst);
     nodes.push_back(node);
     return node;
   }
@@ -258,7 +201,7 @@ namespace oidn {
   Ref<Node> Network::addAutoexposure(const Image& color,
                                      const Ref<TransferFunction>& transferFunc)
   {
-    auto node = makeRef<AutoexposureNode>(color, transferFunc);
+    auto node = makeRef<AutoexposureNode>(device, color, transferFunc);
     nodes.push_back(node);
     return node;
   }

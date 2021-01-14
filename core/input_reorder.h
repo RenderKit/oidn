@@ -23,13 +23,15 @@ namespace oidn {
     Ref<TransferFunction> transferFunc;
 
   public:
-    InputReorderNode(const Image& srcColor,
+    InputReorderNode(const Ref<Device>& device,
+                     const Image& srcColor,
                      const Image& srcAlbedo,
                      const Image& srcNormal,
                      const Ref<Tensor>& dst,
                      const Ref<TransferFunction>& transferFunc,
                      bool hdr)
-      : srcColor(srcColor), srcAlbedo(srcAlbedo), srcNormal(srcNormal),
+      : Node(device),
+        srcColor(srcColor), srcAlbedo(srcAlbedo), srcNormal(srcNormal),
         dst(dst),
         transferFunc(transferFunc)
     {
@@ -60,7 +62,7 @@ namespace oidn {
       data.W = W;
     }
 
-    void execute(stream& sm) override
+    void execute() override
     {
       assert(data.H + data.hSrcBegin <= srcColor.height);
       assert(data.W + data.wSrcBegin <= srcColor.width);

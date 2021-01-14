@@ -19,10 +19,12 @@ namespace oidn {
     Ref<Tensor> dst;
 
   public:
-    UpsampleNode(int K,
+    UpsampleNode(const Ref<Device>& device,
+                 int K,
                  const Ref<Tensor>& src,
                  const Ref<Tensor>& dst)
-      : K(K),
+      : Node(device),
+        K(K),
         src(src),
         dst(dst)
     {
@@ -33,7 +35,7 @@ namespace oidn {
       assert(data.dst.W == data.src.W * 2);
     }
 
-    void execute(stream& sm) override
+    void execute() override
     {
       parallel_nd(data.src.C / K, data.src.H, [&](int ck, int h)
       {

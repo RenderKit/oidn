@@ -53,13 +53,15 @@ namespace oidn {
     Ref<TransferFunction> transferFunc;
 
   public:
-    AutoexposureNode(const Image& color,
+    AutoexposureNode(const Ref<Device>& device,
+                     const Image& color,
                      const Ref<TransferFunction>& transferFunc)
-      : color(color),
+      : Node(device),
+        color(color),
         transferFunc(transferFunc)
     {}
 
-    void execute(stream& sm) override
+    void execute() override
     {
       const float exposure = autoexposure(color);
       //printf("exposure = %f\n", exposure);
