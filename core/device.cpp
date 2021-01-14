@@ -10,7 +10,7 @@ namespace oidn {
 
   Device::Device()
   {
-    if (!mayiuse(sse41))
+    if (!x64::mayiuse(x64::sse41))
       throw Exception(Error::UnsupportedHardware, "SSE4.1 support is required at minimum");
 
     // Get default values from environment variables
@@ -153,8 +153,8 @@ namespace oidn {
 
     // Initialize DNNL
     dnnl_set_verbose(clamp(verbose - 2, 0, 2)); // unfortunately this is not per-device but global
-    eng = dnnl::engine(dnnl::engine::kind::cpu, 0);
-    sm = dnnl::stream(eng);
+    engine = dnnl::engine(dnnl::engine::kind::cpu, 0);
+    stream = dnnl::stream(engine);
 
     dirty = false;
 
@@ -209,9 +209,9 @@ namespace oidn {
     std::cout << "  Platform: " << getPlatformName() << std::endl;
 
     std::cout << "  Targets :";
-    if (mayiuse(sse41))       std::cout << " SSE4.1";
-    if (mayiuse(avx2))        std::cout << " AVX2";
-    if (mayiuse(avx512_core)) std::cout << " AVX512SKX";
+    if (x64::mayiuse(x64::sse41))       std::cout << " SSE4.1";
+    if (x64::mayiuse(x64::avx2))        std::cout << " AVX2";
+    if (x64::mayiuse(x64::avx512_core)) std::cout << " AVX512SKX";
     std::cout << " (supported)" << std::endl;
     std::cout << "            SSE4.1 AVX2 AVX512SKX (compile time enabled)" << std::endl;
 

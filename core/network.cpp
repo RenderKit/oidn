@@ -12,7 +12,7 @@ namespace oidn {
       weightsMap(weightsMap)
   {
     // Determine the block size for blocked tensor layouts
-    K = mayiuse(avx512_core) ? 16 : 8;
+    K = x64::mayiuse(x64::avx512_core) ? 16 : 8;
   }
 
   void Network::execute(Progress& progress)
@@ -33,7 +33,14 @@ namespace oidn {
   {
     assert(dims.size() == 3);
     
-    TensorLayout layout = (K == 16) ? TensorLayout::Chw16c : TensorLayout::Chw8c;
+    TensorLayout layout;
+    if (K == 16)
+      layout = TensorLayout::Chw16c;
+    else if (K == 8)
+      layout = TensorLayout::Chw8c;
+    else
+      layout = TensorLayout::chw;
+    
     Ref<Tensor> result = makeRef<Tensor>(device, dims, layout, DataType::Float32);
     
     size_t bytes = result->byteSize();

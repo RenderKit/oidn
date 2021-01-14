@@ -126,11 +126,11 @@ namespace oidn {
 
     operator ispc::Image() const
     {
-      ispc::Image res;
-      res.ptr = (uint8_t*)ptr;
-      res.rowStride = rowStride;
-      res.bytePixelStride = bytePixelStride;
-      return res;
+      ispc::Image result;
+      result.ptr = (uint8_t*)ptr;
+      result.rowStride = rowStride;
+      result.bytePixelStride = bytePixelStride;
+      return result;
     }
   };
 

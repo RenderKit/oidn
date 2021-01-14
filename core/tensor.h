@@ -242,12 +242,12 @@ namespace oidn {
       assert(ndims() == 3);
       assert(dataType == DataType::Float32);
 
-      ispc::Tensor res;
-      res.ptr = (float*)data();
-      res.C = dims[0];
-      res.H = dims[1];
-      res.W = dims[2];
-      return res;
+      ispc::Tensor result;
+      result.ptr = (float*)data();
+      result.C = dims[0];
+      result.H = dims[1];
+      result.W = dims[2];
+      return result;
     }
 
   private:

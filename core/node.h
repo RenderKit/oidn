@@ -37,7 +37,7 @@ namespace oidn {
   {
   private:
     dnnl::primitive prim;
-    std::unordered_map<int, memory> args;
+    std::unordered_map<int, dnnl::memory> args;
     Ref<Tensor> scratchpad;
 
   public:
