@@ -20,14 +20,14 @@ namespace oidn {
     Image srcAlbedo;
     Image srcNormal;
     Ref<Tensor> dst;
-    std::shared_ptr<TransferFunction> transferFunc;
+    Ref<TransferFunction> transferFunc;
 
   public:
     InputReorderNode(const Image& srcColor,
                      const Image& srcAlbedo,
                      const Image& srcNormal,
                      const Ref<Tensor>& dst,
-                     const std::shared_ptr<TransferFunction>& transferFunc,
+                     const Ref<TransferFunction>& transferFunc,
                      bool hdr)
       : srcColor(srcColor), srcAlbedo(srcAlbedo), srcNormal(srcNormal),
         dst(dst),

@@ -9,7 +9,7 @@
 
 namespace oidn {
 
-  class TransferFunction
+  class TransferFunction : public RefCount
   {
   private:
     ispc::TransferFunction data;
@@ -50,11 +50,11 @@ namespace oidn {
   {
   private:
     Image color;
-    std::shared_ptr<TransferFunction> transferFunc;
+    Ref<TransferFunction> transferFunc;
 
   public:
     AutoexposureNode(const Image& color,
-                     const std::shared_ptr<TransferFunction>& transferFunc)
+                     const Ref<TransferFunction>& transferFunc)
       : color(color),
         transferFunc(transferFunc)
     {}

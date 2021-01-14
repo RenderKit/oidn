@@ -18,12 +18,12 @@ namespace oidn {
 
     Ref<Tensor> src;
     Image dst;
-    std::shared_ptr<TransferFunction> transferFunc;
+    Ref<TransferFunction> transferFunc;
 
   public:
     OutputReorderNode(const Ref<Tensor>& src,
                       const Image& dst,
-                      const std::shared_ptr<TransferFunction>& transferFunc,
+                      const Ref<TransferFunction>& transferFunc,
                       bool hdr)
       : src(src),
         dst(dst),

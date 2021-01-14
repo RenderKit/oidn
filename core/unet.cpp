@@ -216,7 +216,7 @@ namespace oidn {
     }
   }
 
-  std::shared_ptr<Executable> UNetFilter::buildNet()
+  Ref<Network> UNetFilter::buildNet()
   {
     H = color.height;
     W = color.width;
@@ -290,7 +290,7 @@ namespace oidn {
     const auto weightsMap = parseTZA(device, weights.ptr, weights.size);
 
     // Create the network
-    std::shared_ptr<Network> net = std::make_shared<Network>(device, weightsMap);
+    Ref<Network> net = makeRef<Network>(device, weightsMap);
 
     // Compute the buffer sizes
     const auto inputDims        = TensorDims({inputC, tileH, tileW});
@@ -387,7 +387,7 @@ namespace oidn {
     auto concat5Src = net->getConcatSrc(concat5Dst, {upsample5Dims, pool4Dims});
 
     // Transfer function
-    std::shared_ptr<TransferFunction> transferFunc = makeTransferFunc();
+    Ref<TransferFunction> transferFunc = makeTransferFunc();
 
     // Autoexposure
     if (hdr)
@@ -452,14 +452,14 @@ namespace oidn {
     return net;
   }
 
-  std::shared_ptr<TransferFunction> UNetFilter::makeTransferFunc()
+  Ref<TransferFunction> UNetFilter::makeTransferFunc()
   {
     if (hdr)
-      return std::make_shared<TransferFunction>(TransferFunction::Type::PU);
+      return makeRef<TransferFunction>(TransferFunction::Type::PU);
     else if (srgb)
-      return std::make_shared<TransferFunction>(TransferFunction::Type::Linear);
+      return makeRef<TransferFunction>(TransferFunction::Type::Linear);
     else
-      return std::make_shared<TransferFunction>(TransferFunction::Type::SRGB);
+      return makeRef<TransferFunction>(TransferFunction::Type::SRGB);
   }
 
   // ---------------------------------------------------------------------------
@@ -489,9 +489,9 @@ namespace oidn {
     hdr = true;
   }
 
-  std::shared_ptr<TransferFunction> RTLightmapFilter::makeTransferFunc()
+  Ref<TransferFunction> RTLightmapFilter::makeTransferFunc()
   {
-    return std::make_shared<TransferFunction>(TransferFunction::Type::Log);
+    return makeRef<TransferFunction>(TransferFunction::Type::Log);
   }
 
 } // namespace oidn

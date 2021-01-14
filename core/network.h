@@ -14,58 +14,50 @@
 
 namespace oidn {
 
-  class Executable
-  {
-  public:
-    virtual ~Executable() {}
-    virtual void execute(Progress& progress) = 0;
-    virtual double getWorkAmount() const = 0; // for progress reporting
-  };
-
-  class Network : public Executable
+  class Network : public RefCount
   {
   public:
     Network(const Ref<Device>& device, const std::map<std::string, Ref<Tensor>>& weightsMap);
 
-    void execute(Progress& progress) override;
-    double getWorkAmount() const override;
+    void execute(Progress& progress);
+    double getWorkAmount() const;
 
     Ref<Tensor> newTensor(const TensorDims& dims);
 
     TensorDims getInputReorderDims(const TensorDims& srcDims, int alignment);
 
-    std::shared_ptr<Node> addInputReorder(const Image& color,
+    Ref<Node> addInputReorder(const Image& color,
                                           const Image& albedo,
                                           const Image& normal,
-                                          const std::shared_ptr<TransferFunction>& transferFunc,
+                                          const Ref<TransferFunction>& transferFunc,
                                           bool hdr,
                                           int alignment,
                                           const Ref<Tensor>& dst);
 
-    std::shared_ptr<Node> addOutputReorder(const Ref<Tensor>& src,
-                                           const std::shared_ptr<TransferFunction>& transferFunc,
+    Ref<Node> addOutputReorder(const Ref<Tensor>& src,
+                                           const Ref<TransferFunction>& transferFunc,
                                            bool hdr,
                                            const Image& output);
 
     TensorDims getConvDims(const std::string& name, const TensorDims& srcDims);
-    std::shared_ptr<Node> addConv(const std::string& name,
+    Ref<Node> addConv(const std::string& name,
                                   const Ref<Tensor>& src,
                                   const Ref<Tensor>& dst,
                                   bool relu = true);
 
     TensorDims getPoolDims(const TensorDims& srcDims);
-    std::shared_ptr<Node> addPool(const Ref<Tensor>& src,
+    Ref<Node> addPool(const Ref<Tensor>& src,
                                   const Ref<Tensor>& dst);
 
     TensorDims getUpsampleDims(const TensorDims& srcDims);
-    std::shared_ptr<Node> addUpsample(const Ref<Tensor>& src,
+    Ref<Node> addUpsample(const Ref<Tensor>& src,
                                       const Ref<Tensor>& dst);
 
     TensorDims getConcatDims(const std::vector<TensorDims>& srcDims);
     std::vector<Ref<Tensor>> getConcatSrc(const Ref<Tensor>& dst, const std::vector<TensorDims>& srcDims);
 
-    std::shared_ptr<Node> addAutoexposure(const Image& color,
-                                          const std::shared_ptr<TransferFunction>& transferFunc);
+    Ref<Node> addAutoexposure(const Image& color,
+                                          const Ref<TransferFunction>& transferFunc);
 
     void finalize();
 
@@ -73,7 +65,7 @@ namespace oidn {
     Ref<Device> device;
     int K; // block size of blocked tensor layouts
 
-    std::vector<std::shared_ptr<Node>> nodes;
+    std::vector<Ref<Node>> nodes;
     std::map<std::string, Ref<Tensor>> weightsMap;
 
     // Memory allocation statistics

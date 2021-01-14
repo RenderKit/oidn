@@ -8,7 +8,7 @@
 
 namespace oidn {
 
-  class Node
+  class Node : public RefCount
   {
   public:
     virtual ~Node() = default;

@@ -54,10 +54,10 @@ namespace oidn {
     return dstDims;
   }
 
-  std::shared_ptr<Node> Network::addInputReorder(const Image& color,
+  Ref<Node> Network::addInputReorder(const Image& color,
                                                  const Image& albedo,
                                                  const Image& normal,
-                                                 const std::shared_ptr<TransferFunction>& transferFunc,
+                                                 const Ref<TransferFunction>& transferFunc,
                                                  bool hdr,
                                                  int alignment,
                                                  const Ref<Tensor>& dst)
@@ -69,13 +69,13 @@ namespace oidn {
     assert(dst->dims == getInputReorderDims({inputC, color.height, color.width}, alignment));
 
     // Push node
-    auto node = std::make_shared<InputReorderNode>(color, albedo, normal, dst, transferFunc, hdr);
+    auto node = makeRef<InputReorderNode>(color, albedo, normal, dst, transferFunc, hdr);
     nodes.push_back(node);
     return node;
   }
 
-  std::shared_ptr<Node> Network::addOutputReorder(const Ref<Tensor>& src,
-                                                  const std::shared_ptr<TransferFunction>& transferFunc,
+  Ref<Node> Network::addOutputReorder(const Ref<Tensor>& src,
+                                                  const Ref<TransferFunction>& transferFunc,
                                                   bool hdr,
                                                   const Image& output)
   {
@@ -83,7 +83,7 @@ namespace oidn {
     assert(src->dims[0] == K);
 
     // Push node
-    auto node = std::make_shared<OutputReorderNode>(src, output, transferFunc, hdr);
+    auto node = makeRef<OutputReorderNode>(src, output, transferFunc, hdr);
     nodes.push_back(node);
     return node;
   }
@@ -98,7 +98,7 @@ namespace oidn {
     return dstDims;
   }
 
-  std::shared_ptr<Node> Network::addConv(const std::string& name,
+  Ref<Node> Network::addConv(const std::string& name,
                                          const Ref<Tensor>& src,
                                          const Ref<Tensor>& dst,
                                          bool relu)
@@ -162,7 +162,7 @@ namespace oidn {
     }
 
     // Create convolution node and add it to the net
-    auto node = std::make_shared<ConvNode>(convPrimDesc, src, weights, bias, dst);
+    auto node = makeRef<ConvNode>(convPrimDesc, src, weights, bias, dst);
     nodes.push_back(node);
     return node;
   }
@@ -177,7 +177,7 @@ namespace oidn {
     return dstDims;
   }
 
-  std::shared_ptr<Node> Network::addPool(const Ref<Tensor>& src,
+  Ref<Node> Network::addPool(const Ref<Tensor>& src,
                                          const Ref<Tensor>& dst)
   {
     assert(dst->dims == getPoolDims(src->dims));
@@ -196,7 +196,7 @@ namespace oidn {
     poolAttr.set_scratchpad_mode(dnnl::scratchpad_mode::user);
 
     auto poolPrimDesc = dnnl::pooling_forward::primitive_desc(poolDesc, poolAttr, device->getEngine());
-    auto node = std::make_shared<PoolNode>(poolPrimDesc, src, dst);
+    auto node = makeRef<PoolNode>(poolPrimDesc, src, dst);
     nodes.push_back(node);
     return node;
   }
@@ -211,7 +211,7 @@ namespace oidn {
     return dstDims;
   }
 
-  std::shared_ptr<Node> Network::addUpsample(const Ref<Tensor>& src,
+  Ref<Node> Network::addUpsample(const Ref<Tensor>& src,
                                              const Ref<Tensor>& dst)
   {
     assert(dst->dims == getUpsampleDims(src->dims));
@@ -227,9 +227,9 @@ namespace oidn {
     resampleAttr.set_scratchpad_mode(scratchpad_mode::user);
 
     auto resamplePrimDesc = resampling_forward::primitive_desc(resampleDesc, resampleAttr, device->getEngine());
-    auto node = std::make_shared<ResampleNode>(resamplePrimDesc, src, dst);
+    auto node = makeRef<ResampleNode>(resamplePrimDesc, src, dst);
     */
-    auto node = std::make_shared<UpsampleNode>(K, src, dst);
+    auto node = makeRef<UpsampleNode>(K, src, dst);
     nodes.push_back(node);
     return node;
   }
@@ -262,14 +262,14 @@ namespace oidn {
       src.push_back(dst->view(srcDims[i], offset));
       offset += getNumElements(srcDims[i]);
     }
-    
+
     return src;
   }
 
-  std::shared_ptr<Node> Network::addAutoexposure(const Image& color,
-                                                 const std::shared_ptr<TransferFunction>& transferFunc)
+  Ref<Node> Network::addAutoexposure(const Image& color,
+                                                 const Ref<TransferFunction>& transferFunc)
   {
-    auto node = std::make_shared<AutoexposureNode>(color, transferFunc);
+    auto node = makeRef<AutoexposureNode>(color, transferFunc);
     nodes.push_back(node);
     return node;
   }
