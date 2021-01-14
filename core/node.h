@@ -107,26 +107,6 @@ namespace oidn {
     Ref<Tensor> getDst() const override { return dst; }
   };
 
-  // Resampling node
-  class ResampleNode : public MklNode
-  {
-  private:
-    Ref<Tensor> src;
-    Ref<Tensor> dst;
-
-  public:
-    ResampleNode(const resampling_forward::primitive_desc& desc,
-                 const Ref<Tensor>& src,
-                 const Ref<Tensor>& dst)
-      : MklNode(resampling_forward(desc),
-                { { DNNL_ARG_SRC, src->mem },
-                  { DNNL_ARG_DST, dst->mem } }),
-                src(src), dst(dst)
-    {}
-
-    Ref<Tensor> getDst() const override { return dst; }
-  };
-
   // Reorder node
   class ReorderNode : public MklNode
   {

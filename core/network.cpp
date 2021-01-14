@@ -217,18 +217,6 @@ namespace oidn {
     assert(dst->dims == getUpsampleDims(src->dims));
 
     // Create upsampling node and add it to net
-    /*
-    auto resampleDesc = resampling_forward::desc(
-      prop_kind::forward_inference, algorithm::resampling_nearest,
-      src->get_desc(),
-      dst->get_desc());
-
-    dnnl::primitive_attr resampleAttr;
-    resampleAttr.set_scratchpad_mode(scratchpad_mode::user);
-
-    auto resamplePrimDesc = resampling_forward::primitive_desc(resampleDesc, resampleAttr, device->getEngine());
-    auto node = makeRef<ResampleNode>(resamplePrimDesc, src, dst);
-    */
     auto node = makeRef<UpsampleNode>(K, src, dst);
     nodes.push_back(node);
     return node;
