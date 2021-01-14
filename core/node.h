@@ -27,7 +27,7 @@ namespace oidn {
   };
 
   // Node wrapping a DNNL primitive
-  class DnnlNode : public Node
+  class DNNLNode : public Node
   {
   private:
     dnnl::primitive prim;
@@ -35,7 +35,7 @@ namespace oidn {
     Ref<Tensor> scratchpad;
 
   public:
-    DnnlNode(const dnnl::primitive& prim, const std::unordered_map<int, dnnl::memory>& args)
+    DNNLNode(const dnnl::primitive& prim, const std::unordered_map<int, dnnl::memory>& args)
       : prim(prim),
         args(args)
     {}
@@ -62,7 +62,7 @@ namespace oidn {
   };
 
   // Convolution node
-  class ConvNode : public DnnlNode
+  class ConvNode : public DNNLNode
   {
   private:
     Ref<Tensor> src;
@@ -76,7 +76,7 @@ namespace oidn {
              const Ref<Tensor>& weights,
              const Ref<Tensor>& bias,
              const Ref<Tensor>& dst)
-      : DnnlNode(dnnl::convolution_forward(desc),
+      : DNNLNode(dnnl::convolution_forward(desc),
                 { { DNNL_ARG_SRC, src->mem },
                   { DNNL_ARG_WEIGHTS, weights->mem },
                   { DNNL_ARG_BIAS, bias->mem },
@@ -88,7 +88,7 @@ namespace oidn {
   };
 
   // Pooling node
-  class PoolNode : public DnnlNode
+  class PoolNode : public DNNLNode
   {
   private:
     Ref<Tensor> src;
@@ -98,7 +98,7 @@ namespace oidn {
     PoolNode(const dnnl::pooling_forward::primitive_desc& desc,
              const Ref<Tensor>& src,
              const Ref<Tensor>& dst)
-      : DnnlNode(dnnl::pooling_forward(desc),
+      : DNNLNode(dnnl::pooling_forward(desc),
                 { { DNNL_ARG_SRC, src->mem },
                   { DNNL_ARG_DST, dst->mem } }),
                 src(src), dst(dst)
@@ -108,7 +108,7 @@ namespace oidn {
   };
 
   // Reorder node
-  class ReorderNode : public DnnlNode
+  class ReorderNode : public DNNLNode
   {
   private:
     Ref<Tensor> src;
@@ -117,7 +117,7 @@ namespace oidn {
   public:
     ReorderNode(const Ref<Tensor>& src,
                 const Ref<Tensor>& dst)
-      : DnnlNode(dnnl::reorder(dnnl::reorder::primitive_desc(src->mem, dst->mem)),
+      : DNNLNode(dnnl::reorder(dnnl::reorder::primitive_desc(src->mem, dst->mem)),
                 { { DNNL_ARG_SRC, src->mem },
                   { DNNL_ARG_DST, dst->mem } }),
                 src(src), dst(dst)
