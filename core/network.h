@@ -27,37 +27,38 @@ namespace oidn {
     TensorDims getInputReorderDims(const TensorDims& srcDims, int alignment);
 
     Ref<Node> addInputReorder(const Image& color,
-                                          const Image& albedo,
-                                          const Image& normal,
-                                          const Ref<TransferFunction>& transferFunc,
-                                          bool hdr,
-                                          int alignment,
-                                          const Ref<Tensor>& dst);
+                              const Image& albedo,
+                              const Image& normal,
+                              const Ref<TransferFunction>& transferFunc,
+                              bool hdr,
+                              int alignment,
+                              const Ref<Tensor>& dst);
 
     Ref<Node> addOutputReorder(const Ref<Tensor>& src,
-                                           const Ref<TransferFunction>& transferFunc,
-                                           bool hdr,
-                                           const Image& output);
+                               const Ref<TransferFunction>& transferFunc,
+                               bool hdr,
+                               const Image& output);
 
     TensorDims getConvDims(const std::string& name, const TensorDims& srcDims);
     Ref<Node> addConv(const std::string& name,
-                                  const Ref<Tensor>& src,
-                                  const Ref<Tensor>& dst,
-                                  bool relu = true);
+                      const Ref<Tensor>& src,
+                      const Ref<Tensor>& dst,
+                      bool relu = true);
 
     TensorDims getPoolDims(const TensorDims& srcDims);
     Ref<Node> addPool(const Ref<Tensor>& src,
-                                  const Ref<Tensor>& dst);
+                      const Ref<Tensor>& dst);
 
     TensorDims getUpsampleDims(const TensorDims& srcDims);
     Ref<Node> addUpsample(const Ref<Tensor>& src,
-                                      const Ref<Tensor>& dst);
+                          const Ref<Tensor>& dst);
 
     TensorDims getConcatDims(const std::vector<TensorDims>& srcDims);
-    std::vector<Ref<Tensor>> getConcatSrc(const Ref<Tensor>& dst, const std::vector<TensorDims>& srcDims);
+    std::vector<Ref<Tensor>> getConcatSrc(const Ref<Tensor>& dst,
+                                          const std::vector<TensorDims>& srcDims);
 
     Ref<Node> addAutoexposure(const Image& color,
-                                          const Ref<TransferFunction>& transferFunc);
+                              const Ref<TransferFunction>& transferFunc);
 
     void finalize();
 

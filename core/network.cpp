@@ -55,12 +55,12 @@ namespace oidn {
   }
 
   Ref<Node> Network::addInputReorder(const Image& color,
-                                                 const Image& albedo,
-                                                 const Image& normal,
-                                                 const Ref<TransferFunction>& transferFunc,
-                                                 bool hdr,
-                                                 int alignment,
-                                                 const Ref<Tensor>& dst)
+                                     const Image& albedo,
+                                     const Image& normal,
+                                     const Ref<TransferFunction>& transferFunc,
+                                     bool hdr,
+                                     int alignment,
+                                     const Ref<Tensor>& dst)
   {
     assert(color);
     int inputC = 3;
@@ -75,9 +75,9 @@ namespace oidn {
   }
 
   Ref<Node> Network::addOutputReorder(const Ref<Tensor>& src,
-                                                  const Ref<TransferFunction>& transferFunc,
-                                                  bool hdr,
-                                                  const Image& output)
+                                      const Ref<TransferFunction>& transferFunc,
+                                      bool hdr,
+                                      const Image& output)
   {
     assert(src->ndims() == 3); // CHW
     assert(src->dims[0] == K);
@@ -99,9 +99,9 @@ namespace oidn {
   }
 
   Ref<Node> Network::addConv(const std::string& name,
-                                         const Ref<Tensor>& src,
-                                         const Ref<Tensor>& dst,
-                                         bool relu)
+                             const Ref<Tensor>& src,
+                             const Ref<Tensor>& dst,
+                             bool relu)
   {
     assert(dst->dims == getConvDims(name, src->dims));
 
@@ -178,7 +178,7 @@ namespace oidn {
   }
 
   Ref<Node> Network::addPool(const Ref<Tensor>& src,
-                                         const Ref<Tensor>& dst)
+                             const Ref<Tensor>& dst)
   {
     assert(dst->dims == getPoolDims(src->dims));
 
@@ -212,7 +212,7 @@ namespace oidn {
   }
 
   Ref<Node> Network::addUpsample(const Ref<Tensor>& src,
-                                             const Ref<Tensor>& dst)
+                                 const Ref<Tensor>& dst)
   {
     assert(dst->dims == getUpsampleDims(src->dims));
 
@@ -250,7 +250,8 @@ namespace oidn {
     return dstDims;
   }
 
-  std::vector<Ref<Tensor>> Network::getConcatSrc(const Ref<Tensor>& dst, const std::vector<TensorDims>& srcDims)
+  std::vector<Ref<Tensor>> Network::getConcatSrc(const Ref<Tensor>& dst,
+                                                 const std::vector<TensorDims>& srcDims)
   {
     assert(dst->dims == getConcatDims(srcDims));
 
@@ -267,7 +268,7 @@ namespace oidn {
   }
 
   Ref<Node> Network::addAutoexposure(const Image& color,
-                                                 const Ref<TransferFunction>& transferFunc)
+                                     const Ref<TransferFunction>& transferFunc)
   {
     auto node = makeRef<AutoexposureNode>(color, transferFunc);
     nodes.push_back(node);
