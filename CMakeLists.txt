@@ -124,6 +124,7 @@ set(CORE_SOURCES
   core/color.h
   core/color.cpp
   core/common.h
+  core/conv.h
   core/data.h
   core/device.h
   core/device.cpp
@@ -136,13 +137,15 @@ set(CORE_SOURCES
   core/node.h
   core/output_copy.h
   core/output_reorder.h
+  core/pool.h
   core/progress.h
-  core/unet.h
-  core/unet.cpp
-  core/upsample.h
+  core/reorder.h
   core/tensor.h
   core/tza.h
   core/tza.cpp
+  core/unet.h
+  core/unet.cpp
+  core/upsample.h
 )
 
 set(CORE_SOURCES_ISPC

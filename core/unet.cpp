@@ -1,8 +1,9 @@
 // Copyright 2009-2020 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "unet.h"
 #include "tza.h"
+#include "output_copy.h"
+#include "unet.h"
 
 // Built-in weights
 #include "weights/rt_hdr.h"

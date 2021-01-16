@@ -1,7 +1,11 @@
 // Copyright 2009-2020 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
+#include "conv.h"
+#include "pool.h"
 #include "upsample.h"
+#include "input_reorder.h"
+#include "output_reorder.h"
 #include "color.h"
 #include "network.h"
 

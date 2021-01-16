@@ -4,9 +4,6 @@
 #include "tensor.h"
 #include "image.h"
 #include "node.h"
-#include "input_reorder.h"
-#include "output_reorder.h"
-#include "output_copy.h"
 #include "color.h"
 #include "progress.h"
 
