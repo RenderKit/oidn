@@ -194,7 +194,7 @@ namespace oidn {
     }
 
     __forceinline Tensor(const Ref<Device>& device, const dnnl::memory::desc& desc)
-      : TensorDesc({0}, TensorLayout::x, DataType::UInt8), // FIXME
+      : TensorDesc({int64_t(desc.get_size())}, TensorLayout::x, DataType::UInt8),
         mem(desc, device->getEngine()),
         device(device)
     {
