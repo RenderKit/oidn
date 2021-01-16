@@ -12,7 +12,7 @@ namespace oidn {
   class TransferFunction : public RefCount
   {
   private:
-    ispc::TransferFunction data;
+    ispc::TransferFunction impl;
 
   public:
     enum class Type
@@ -27,22 +27,22 @@ namespace oidn {
     {
       switch (type)
       {
-      case Type::Linear: ispc::LinearTransferFunction_Constructor(&data); break;
-      case Type::SRGB:   ispc::SRGBTransferFunction_Constructor(&data);   break;
-      case Type::PU:     ispc::PUTransferFunction_Constructor(&data);     break;
-      case Type::Log:    ispc::LogTransferFunction_Constructor(&data);    break;
+      case Type::Linear: ispc::LinearTransferFunction_Constructor(&impl); break;
+      case Type::SRGB:   ispc::SRGBTransferFunction_Constructor(&impl);   break;
+      case Type::PU:     ispc::PUTransferFunction_Constructor(&impl);     break;
+      case Type::Log:    ispc::LogTransferFunction_Constructor(&impl);    break;
       default:           assert(0);
       }
     }
 
     void setExposure(float exposure)
     {
-      ispc::TransferFunction_setExposure(&data, exposure);
+      ispc::TransferFunction_setExposure(&impl, exposure);
     }
 
-    ispc::TransferFunction* getIspc()
+    ispc::TransferFunction* getImpl()
     {
-      return &data;
+      return &impl;
     }
   };
 

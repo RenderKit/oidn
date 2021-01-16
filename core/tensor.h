@@ -237,6 +237,7 @@ namespace oidn {
     template <typename T> __forceinline const T& get(int64_t i0, int64_t i1, int64_t i2, int64_t i3) const
     { return ((T*)data())[getIndex(i0, i1, i2, i3)]; }
 
+    // Converts to ISPC equivalent
     operator ispc::Tensor() const
     {
       assert(ndims() == 3);
@@ -251,12 +252,12 @@ namespace oidn {
     }
 
   private:
-    __forceinline void init(const Ref<Device>& device)
+    void init(const Ref<Device>& device)
     {
       mem = dnnl::memory(*this, device->getEngine());
     }
 
-    __forceinline void init(const Ref<Device>& device, void* data)
+    void init(const Ref<Device>& device, void* data)
     {
       mem = dnnl::memory(*this, device->getEngine(), data);
     }

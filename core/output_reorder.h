@@ -14,7 +14,7 @@ namespace oidn {
   class OutputReorderNode : public Node
   {
   private:
-    ispc::OutputReorder data;
+    ispc::OutputReorder impl;
 
     Ref<Tensor> src;
     Image dst;
@@ -31,40 +31,40 @@ namespace oidn {
         dst(dst),
         transferFunc(transferFunc)
     {
-      data.src = *src;
-      data.dst = dst;
+      impl.src = *src;
+      impl.dst = dst;
 
-      data.hSrcBegin = 0;
-      data.wSrcBegin = 0;
-      data.hDstBegin = 0;
-      data.wDstBegin = 0;
-      data.H = dst.height;
-      data.W = dst.width;
+      impl.hSrcBegin = 0;
+      impl.wSrcBegin = 0;
+      impl.hDstBegin = 0;
+      impl.wDstBegin = 0;
+      impl.H = dst.height;
+      impl.W = dst.width;
 
-      data.transferFunc = transferFunc->getIspc();
-      data.hdr = hdr;
+      impl.transferFunc = transferFunc->getImpl();
+      impl.hdr = hdr;
     }
 
     void setTile(int hSrc, int wSrc, int hDst, int wDst, int H, int W) override
     {
-      data.hSrcBegin = hSrc;
-      data.wSrcBegin = wSrc;
-      data.hDstBegin = hDst;
-      data.wDstBegin = wDst;
-      data.H = H;
-      data.W = W;
+      impl.hSrcBegin = hSrc;
+      impl.wSrcBegin = wSrc;
+      impl.hDstBegin = hDst;
+      impl.wDstBegin = wDst;
+      impl.H = H;
+      impl.W = W;
     }
 
     void execute() override
     {
-      assert(data.hSrcBegin + data.H <= data.src.H);
-      assert(data.wSrcBegin + data.W <= data.src.W);
-      //assert(data.hDstBegin + data.H <= data.dst.H);
-      //assert(data.wDstBegin + data.W <= data.dst.W);
+      assert(impl.hSrcBegin + impl.H <= impl.src.H);
+      assert(impl.wSrcBegin + impl.W <= impl.src.W);
+      //assert(impl.hDstBegin + impl.H <= impl.dst.H);
+      //assert(impl.wDstBegin + impl.W <= impl.dst.W);
 
-      parallel_nd(data.H, [&](int h)
+      parallel_nd(impl.H, [&](int h)
       {
-        ispc::OutputReorder_kernel(&data, h);
+        ispc::OutputReorder_kernel(&impl, h);
       });
     }
   };

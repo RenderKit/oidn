@@ -100,7 +100,7 @@ namespace oidn {
     __forceinline       char* end()       { return get(height, 0); }
     __forceinline const char* end() const { return get(height, 0); }
 
-    operator bool() const
+    __forceinline operator bool() const
     {
       return ptr != nullptr;
     }
@@ -124,6 +124,7 @@ namespace oidn {
       return begin1 < end2 && begin2 < end1;
     }
 
+    // Converts to ISPC equivalent
     operator ispc::Image() const
     {
       ispc::Image result;

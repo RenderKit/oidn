@@ -12,7 +12,7 @@ namespace oidn {
   class UpsampleNode : public Node
   {
   private:
-    ispc::Upsample data;
+    ispc::Upsample impl;
 
     int K;
     Ref<Tensor> src;
@@ -28,18 +28,18 @@ namespace oidn {
         src(src),
         dst(dst)
     {
-      data.src = *src;
-      data.dst = *dst;
+      impl.src = *src;
+      impl.dst = *dst;
 
-      assert(data.dst.H == data.src.H * 2);
-      assert(data.dst.W == data.src.W * 2);
+      assert(impl.dst.H == impl.src.H * 2);
+      assert(impl.dst.W == impl.src.W * 2);
     }
 
     void execute() override
     {
-      parallel_nd(data.src.C / K, data.src.H, [&](int ck, int h)
+      parallel_nd(impl.src.C / K, impl.src.H, [&](int ck, int h)
       {
-        ispc::Upsample_kernel(&data, ck, h);
+        ispc::Upsample_kernel(&impl, ck, h);
       });
     }
 

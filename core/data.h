@@ -27,7 +27,7 @@ namespace oidn {
       return *this;
     }
 
-    operator bool() const
+    __forceinline operator bool() const
     {
       return ptr != nullptr;
     }
