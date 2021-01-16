@@ -62,7 +62,7 @@ namespace oidn {
 
     void execute() override
     {
-      prim.execute(getDevice()->getStream(), args);
+      prim.execute(getDevice()->getDNNLStream(), args);
     }
 
   protected:
@@ -149,7 +149,7 @@ namespace oidn {
       }
       convAttr.set_scratchpad_mode(dnnl::scratchpad_mode::user);
 
-      auto convPrimDesc = dnnl::convolution_forward::primitive_desc(convDesc, convAttr, device->getEngine());
+      auto convPrimDesc = dnnl::convolution_forward::primitive_desc(convDesc, convAttr, device->getDNNLEngine());
 
       // Reorder the weights to the final format, if necessary
       if (convPrimDesc.weights_desc() != weights->mem.get_desc())
@@ -195,7 +195,7 @@ namespace oidn {
       dnnl::primitive_attr poolAttr;
       poolAttr.set_scratchpad_mode(dnnl::scratchpad_mode::user);
 
-      auto poolPrimDesc = dnnl::pooling_forward::primitive_desc(poolDesc, poolAttr, device->getEngine());
+      auto poolPrimDesc = dnnl::pooling_forward::primitive_desc(poolDesc, poolAttr, device->getDNNLEngine());
 
       setPrimitive(dnnl::pooling_forward(poolPrimDesc));
       setArgs({{DNNL_ARG_SRC, src->mem},

@@ -33,9 +33,10 @@ namespace oidn {
     std::shared_ptr<PinningObserver> observer;
     std::shared_ptr<ThreadAffinity> affinity;
 
-    // DNNL
-    dnnl::engine engine;
-    dnnl::stream stream;
+    // Neural network backend
+    dnnl::engine dnnlEngine;
+    dnnl::stream dnnlStream;
+    int tensorBlockSize;
 
     // Parameters
     int numThreads = 0; // autodetect by default
@@ -76,8 +77,9 @@ namespace oidn {
     __forceinline Device* getDevice() { return this; }
     __forceinline std::mutex& getMutex() { return mutex; }
 
-    __forceinline dnnl::engine& getEngine() { return engine; }
-    __forceinline dnnl::stream& getStream() { return stream; }
+    __forceinline dnnl::engine& getDNNLEngine() { return dnnlEngine; }
+    __forceinline dnnl::stream& getDNNLStream() { return dnnlStream; }
+    __forceinline int getTensorBlockSize() const { return tensorBlockSize; }
 
   private:
     bool isCommitted() const { return bool(arena); }

@@ -195,7 +195,7 @@ namespace oidn {
 
     __forceinline Tensor(const Ref<Device>& device, const dnnl::memory::desc& desc)
       : TensorDesc({int64_t(desc.get_size())}, TensorLayout::x, DataType::UInt8),
-        mem(desc, device->getEngine()),
+        mem(desc, device->getDNNLEngine()),
         device(device)
     {
     }
@@ -254,12 +254,12 @@ namespace oidn {
   private:
     void init(const Ref<Device>& device)
     {
-      mem = dnnl::memory(*this, device->getEngine());
+      mem = dnnl::memory(*this, device->getDNNLEngine());
     }
 
     void init(const Ref<Device>& device, void* data)
     {
-      mem = dnnl::memory(*this, device->getEngine(), data);
+      mem = dnnl::memory(*this, device->getDNNLEngine(), data);
     }
 
     __forceinline int64_t getIndex(int64_t i0) const

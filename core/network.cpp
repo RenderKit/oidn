@@ -9,10 +9,9 @@ namespace oidn {
 
   Network::Network(const Ref<Device>& device, const std::map<std::string, Ref<Tensor>>& weightsMap)
     : device(device),
+      K(device->getTensorBlockSize()),
       weightsMap(weightsMap)
   {
-    // Determine the block size for blocked tensor layouts
-    K = x64::mayiuse(x64::avx512_core) ? 16 : 8;
   }
 
   void Network::execute(Progress& progress)
