@@ -206,8 +206,10 @@ def get_image_sample_groups(dir, features):
       input_names, target_name = image_names, None
 
     # Check whether all required features exist
-    if all([image_exists(os.path.join(dir, name), features) for name in input_names]) and \
-       (not target_name or image_exists(os.path.join(dir, target_name), target_features)):
+    if all([image_exists(os.path.join(dir, name), features) for name in input_names]):
+      if target_name and not image_exists(os.path.join(dir, target_name), target_features):
+        target_name = None # discard target due to missing features
+
       # Add sample
       image_sample_groups.append((group, input_names, target_name))
 
