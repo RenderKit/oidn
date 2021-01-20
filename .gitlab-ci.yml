@@ -6,6 +6,7 @@ stages:
   - test
   - deploy
   - scan
+  - report-scan
 
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
@@ -215,13 +216,6 @@ build-ubuntu18.04-clang:
   image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
   script: scripts/build.py --compiler clang
 
-build-ubuntu18.04-kw-gcc:
-  extends: .build
-  tags:
-    - docker
-  image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
-  script: scripts/klocwork_build.sh
-
 ## -----------------------------------------------------------------------------
 
 build-ubuntu20.04-gcc:
@@ -400,19 +394,26 @@ package-windows:
   script: python scripts/build.py package --compiler msvc15-icc19
 
 ## -----------------------------------------------------------------------------
-## Protex
+## Scans
 ## -----------------------------------------------------------------------------
 
-scan-protex:
+kw-build-scan:
+  stage: scan
+  tags: [docker]
+  image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
+  script: scripts/kw-build.sh
+  artifacts:
+    paths:
+      - ./klocwork/*
+  needs: []
+
+protex-scan:
   stage: scan
   tags:
     - docker
-  only:
-    - schedules
-    - web
   script: scripts/protex_scan.sh
   image: amd64/openjdk:8
-  dependencies: []
+  needs: []
   # Will fail regularly, do not break nightlies because of that.
   allow_failure: true
   artifacts:
@@ -421,3 +422,25 @@ scan-protex:
       - ip_protex.log
     when: always
     expire_in: 1 week
+
+kw-check-issues:
+  stage: report-scan
+  tags: [docker]
+  image: $DOCKER_REGISTRY/ospray/docker-images:centos7
+  needs: [kw-build-scan]
+  script:
+    - scripts/kw-check-issues.sh
+  allow_failure: true
+
+kw-gen-report:
+  stage: report-scan
+  tags: [docker]
+  image: $DOCKER_REGISTRY/ospray/docker-images:centos7
+  needs: [kw-build-scan]
+  script:
+    - scripts/kw-gen-report.sh
+    - scripts/store-files.sh $CI_PROJECT_NAME $CI_PIPELINE_ID klocwork "klocwork/report.log"
+  artifacts:
+    paths:
+      - klocwork/report.log
+
