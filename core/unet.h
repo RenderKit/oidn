@@ -23,7 +23,11 @@ namespace oidn {
 
     // Estimated memory usage
     static constexpr int estimatedBytesBase     = 16*1024*1024; // conservative base memory usage
+  #if defined(OIDN_DNNL)
     static constexpr int estimatedBytesPerPixel = 889;
+  #else
+    static constexpr int estimatedBytesPerPixel = 861;
+  #endif
 
     // Images
     Image color;

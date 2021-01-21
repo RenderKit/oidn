@@ -7,7 +7,9 @@
 
 namespace oidn {
 
-  // Pooling node
+#if defined(OIDN_DNNL)
+
+  // DNNL 2x2 max pooling node
   class PoolNode : public DNNLNode
   {
   private:
@@ -36,12 +38,50 @@ namespace oidn {
 
       auto poolPrimDesc = dnnl::pooling_forward::primitive_desc(poolDesc, poolAttr, device->getDNNLEngine());
 
-      setPrimitive(dnnl::pooling_forward(poolPrimDesc));
-      setArgs({{DNNL_ARG_SRC, src->mem},
-               {DNNL_ARG_DST, dst->mem}});
+      prim = dnnl::pooling_forward(poolPrimDesc);
+      args = {{DNNL_ARG_SRC, src->mem},
+              {DNNL_ARG_DST, dst->mem}};
     }
 
     Ref<Tensor> getDst() const override { return dst; }
   };
+
+#else
+
+  // BNNS 2x2 max pooling node
+  class PoolNode : public BNNSNode
+  {
+  private:
+    Ref<Tensor> src;
+    Ref<Tensor> dst;
+
+  public:
+    PoolNode(const Ref<Device>& device,
+             const Ref<Tensor>& src,
+             const Ref<Tensor>& dst)
+      : BNNSNode(device),
+        src(src), dst(dst)
+    {
+      BNNSLayerParametersPooling params = {
+        .i_desc = *src,
+        .o_desc = *dst,
+        .pooling_function = BNNSPoolingFunctionMax,
+        .k_width  = 2,
+        .k_height = 2,
+        .x_stride = 2,
+        .y_stride = 2
+      };
+
+      filter = BNNSFilterCreateLayerPooling(&params, nullptr);
+      if (!filter)
+        throw Exception(Error::Unknown, "BNNSFilterCreateLayerPooling failed");
+      inPtr  = src->data();
+      outPtr = dst->data();
+    }
+
+    Ref<Tensor> getDst() const override { return dst; }
+  };
+
+#endif
 
 } // namespace oidn

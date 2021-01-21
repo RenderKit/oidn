@@ -65,10 +65,10 @@ namespace oidn {
   enum class TensorLayout
   {
     x,
-    oihw,
     chw,
     Chw8c,  // blocked
     Chw16c, // blocked
+    oihw,
   };
 
   // Tensor descriptor
@@ -104,109 +104,129 @@ namespace oidn {
       return numElements() * elementByteSize();
     }
     
-    __forceinline operator dnnl::memory::desc() const
+  #if defined(OIDN_DNNL)
+    operator dnnl::memory::desc() const
     {
-      dnnl::memory::dims memDims;
-      dnnl::memory::format_tag memFormat;
+      dnnl::memory::dims dnnlDims;
+      dnnl::memory::format_tag dnnlFormat;
       switch (layout)
       {
       case TensorLayout::x:
         assert(ndims() == 1);
-        memDims   = {dims[0]};
-        memFormat = dnnl::memory::format_tag::x;
-        break;
-      case TensorLayout::oihw:
-        assert(ndims() == 4);
-        memDims   = {dims[0], dims[1], dims[2], dims[3]};
-        memFormat = dnnl::memory::format_tag::oihw;
+        dnnlDims   = {dims[0]};
+        dnnlFormat = dnnl::memory::format_tag::x;
         break;
       case TensorLayout::chw:
         assert(ndims() == 3);
-        memDims   = {1, dims[0], dims[1], dims[2]};
-        memFormat = dnnl::memory::format_tag::nchw;
+        dnnlDims   = {1, dims[0], dims[1], dims[2]};
+        dnnlFormat = dnnl::memory::format_tag::nchw;
         break;
       case TensorLayout::Chw8c:
         assert(ndims() == 3);
-        memDims   = {1, dims[0], dims[1], dims[2]};
-        memFormat = dnnl::memory::format_tag::nChw8c;
+        dnnlDims   = {1, dims[0], dims[1], dims[2]};
+        dnnlFormat = dnnl::memory::format_tag::nChw8c;
         break;
       case TensorLayout::Chw16c:
         assert(ndims() == 3);
-        memDims   = {1, dims[0], dims[1], dims[2]};
-        memFormat = dnnl::memory::format_tag::nChw16c;
+        dnnlDims   = {1, dims[0], dims[1], dims[2]};
+        dnnlFormat = dnnl::memory::format_tag::nChw16c;
+        break;
+      case TensorLayout::oihw:
+        assert(ndims() == 4);
+        dnnlDims   = {dims[0], dims[1], dims[2], dims[3]};
+        dnnlFormat = dnnl::memory::format_tag::oihw;
         break;
       default:
         assert(0);
       }
 
-      dnnl::memory::data_type memType;
+      dnnl::memory::data_type dnnlType;
       switch (dataType)
       {
-      case DataType::Float32:
-        memType = dnnl::memory::data_type::f32;
-        break;
-      case DataType::UInt8:
-        memType = dnnl::memory::data_type::u8;
-        break;
+      case DataType::Float32: dnnlType = dnnl::memory::data_type::f32; break;
+      case DataType::UInt8:   dnnlType = dnnl::memory::data_type::u8;  break;
       default:
         assert(0);
       }
 
-      return dnnl::memory::desc(memDims, memType, memFormat);
+      return dnnl::memory::desc(dnnlDims, dnnlType, dnnlFormat);
     }
+  #endif
   };
 
   // Tensor
   class Tensor : public RefCount, public TensorDesc
   {
   public:
+  #if defined(OIDN_DNNL)
     dnnl::memory mem;
+  #else
+    void* ptr;
+    bool shared;
+  #endif
 
   private:
     Ref<Device> device;
     Ref<Tensor> parent; // for views
 
   public:
-    __forceinline Tensor() {}
-
-    __forceinline Tensor(const Ref<Device>& device, const TensorDesc& desc)
-      : TensorDesc(desc), device(device)
+    Tensor(const Ref<Device>& device, const TensorDesc& desc)
+      : TensorDesc(desc),
+        device(device)
     {
       init(device);
     }
 
-    __forceinline Tensor(const Ref<Device>& device, const TensorDesc& desc, void* data)
-      : TensorDesc(desc), device(device)
+    Tensor(const Ref<Device>& device, const TensorDesc& desc, void* data)
+      : TensorDesc(desc),
+        device(device)
     {
       init(device, data);
     }
 
-    __forceinline Tensor(const Ref<Device>& device, TensorDims dims, TensorLayout layout, DataType dataType)
-      : TensorDesc(dims, layout, dataType), device(device)
+    Tensor(const Ref<Device>& device, TensorDims dims, TensorLayout layout, DataType dataType)
+      : TensorDesc(dims, layout, dataType),
+        device(device)
     {
       init(device);
     }
 
-    __forceinline Tensor(const Ref<Device>& device, TensorDims dims, TensorLayout layout, DataType dataType, void* data)
-      : TensorDesc(dims, layout, dataType), device(device)
+    Tensor(const Ref<Device>& device, TensorDims dims, TensorLayout layout, DataType dataType, void* data)
+      : TensorDesc(dims, layout, dataType),
+        device(device)
     {
       init(device, data);
     }
 
-    __forceinline Tensor(const Ref<Device>& device, const dnnl::memory::desc& desc)
+  #if defined(OIDN_DNNL)
+    Tensor(const Ref<Device>& device, const dnnl::memory::desc& desc)
       : TensorDesc({int64_t(desc.get_size())}, TensorLayout::x, DataType::UInt8),
         mem(desc, device->getDNNLEngine()),
         device(device)
     {
     }
+  #endif
+
+    ~Tensor()
+    {
+    #if !defined(OIDN_DNNL)
+      if (!shared)
+        alignedFree(ptr);
+    #endif
+    }
 
     __forceinline operator bool() const { return data() != nullptr; }
 
+  #if defined(OIDN_DNNL)
     __forceinline void* data() { return mem.get_data_handle(); }
     __forceinline const void* data() const { return mem.get_data_handle(); }
+  #else
+    __forceinline void* data() { return ptr; }
+    __forceinline const void* data() const { return ptr; }
+  #endif
 
     // Returns a view of the tensor, optionally applying an offset in number of elements
-    __forceinline Ref<Tensor> view(const TensorDesc& newDesc, size_t offset = 0)
+    Ref<Tensor> view(const TensorDesc& newDesc, size_t offset = 0)
     {
       size_t byteOffset = offset * newDesc.elementByteSize();
       assert(byteSize() >= newDesc.byteSize() + byteOffset);
@@ -216,7 +236,7 @@ namespace oidn {
       return result;
     }
 
-    __forceinline Ref<Tensor> view(const TensorDims& newDims, size_t offset = 0)
+    Ref<Tensor> view(const TensorDims& newDims, size_t offset = 0)
     {
       TensorDesc newDesc {newDims, layout, dataType};
       return view(newDesc, offset);
@@ -251,15 +271,70 @@ namespace oidn {
       return result;
     }
 
+  #if defined(OIDN_BNNS)
+    operator BNNSNDArrayDescriptor() const
+    {
+      BNNSNDArrayDescriptor bnnsDesc;
+  
+      switch (layout)
+      {
+      case TensorLayout::x:
+        assert(ndims() == 1);
+        bnnsDesc = BNNSNDArrayDescriptor({
+          .layout = BNNSDataLayoutVector,
+          .size   = {size_t(dims[0])}
+        });
+        break;
+      case TensorLayout::chw:
+        assert(ndims() == 3);
+        bnnsDesc = BNNSNDArrayDescriptor({
+          .layout = BNNSDataLayoutImageCHW,
+          .size   = {size_t(dims[2]), size_t(dims[1]), size_t(dims[0])}
+        });
+        break;
+      case TensorLayout::oihw:
+        assert(ndims() == 4);
+        bnnsDesc = BNNSNDArrayDescriptor({
+          .layout = BNNSDataLayoutConvolutionWeightsOIHW,
+          .size   = {size_t(dims[3]), size_t(dims[2]), size_t(dims[1]), size_t(dims[0])}
+        });
+        break;
+      default:
+        assert(0);
+      }
+
+      switch (dataType)
+      {
+      case DataType::Float32: bnnsDesc.data_type = BNNSDataTypeFloat32; break;
+      case DataType::UInt8:   bnnsDesc.data_type = BNNSDataTypeUInt8;   break;
+      default:
+        assert(0);
+      }
+
+      bnnsDesc.data = ptr;
+      return bnnsDesc;
+    }
+  #endif
+
   private:
     void init(const Ref<Device>& device)
     {
+    #if defined(OIDN_DNNL)
       mem = dnnl::memory(*this, device->getDNNLEngine());
+    #else
+      ptr = alignedMalloc(byteSize(), 128);
+      shared = false;
+    #endif
     }
 
     void init(const Ref<Device>& device, void* data)
     {
+    #if defined(OIDN_DNNL)
       mem = dnnl::memory(*this, device->getDNNLEngine(), data);
+    #else
+      ptr = data;
+      shared = true;
+    #endif
     }
 
     __forceinline int64_t getIndex(int64_t i0) const

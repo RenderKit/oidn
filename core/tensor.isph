@@ -16,10 +16,15 @@ struct Tensor
   uniform int W;
 };
 
-// Blocked layout (ChwKc)
 inline size_t getIndex(uniform Tensor& tz, uniform int h, int w, uniform int c)
 {
+#if defined(OIDN_DNNL)
+  // ChwKc layout (blocked)
   return ((size_t)tz.H * (c/K) + h) * ((size_t)tz.W*K) + (size_t)w*K + (c%K);
+#else
+  // chw layout
+  return ((size_t)tz.H * c + h) * (size_t)tz.W + w;
+#endif
 }
 
 inline float get1f(uniform Tensor& tz, uniform int h, int w, uniform int c)

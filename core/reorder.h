@@ -7,6 +7,8 @@
 
 namespace oidn {
 
+#if defined(OIDN_DNNL)
+
   // Reorder node
   class ReorderNode : public DNNLNode
   {
@@ -21,12 +23,14 @@ namespace oidn {
       : DNNLNode(device),
         src(src), dst(dst)
     {
-      setPrimitive(dnnl::reorder(dnnl::reorder::primitive_desc(src->mem, dst->mem)));
-      setArgs({{DNNL_ARG_SRC, src->mem},
-               {DNNL_ARG_DST, dst->mem}});
+      prim = dnnl::reorder(dnnl::reorder::primitive_desc(src->mem, dst->mem));
+      args = {{DNNL_ARG_SRC, src->mem},
+              {DNNL_ARG_DST, dst->mem}};
     }
 
     Ref<Tensor> getDst() const override { return dst; }
   };
+
+#endif
 
 } // namespace oidn

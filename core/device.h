@@ -33,9 +33,11 @@ namespace oidn {
     std::shared_ptr<PinningObserver> observer;
     std::shared_ptr<ThreadAffinity> affinity;
 
-    // Neural network backend
+    // Neural network runtime
+  #if defined(OIDN_DNNL)
     dnnl::engine dnnlEngine;
     dnnl::stream dnnlStream;
+  #endif
     int tensorBlockSize;
 
     // Parameters
@@ -77,8 +79,11 @@ namespace oidn {
     __forceinline Device* getDevice() { return this; }
     __forceinline std::mutex& getMutex() { return mutex; }
 
+  #if defined(OIDN_DNNL)
     __forceinline dnnl::engine& getDNNLEngine() { return dnnlEngine; }
     __forceinline dnnl::stream& getDNNLStream() { return dnnlStream; }
+  #endif
+
     __forceinline int getTensorBlockSize() const { return tensorBlockSize; }
 
   private:

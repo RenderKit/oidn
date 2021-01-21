@@ -1,6 +1,7 @@
 // Copyright 2009-2020 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
+#include <map>
 #include "tensor.h"
 #include "image.h"
 #include "node.h"

@@ -3,7 +3,10 @@ Version History
 
 ### Changes in v1.3.0:
 
--   Fixed compile error for some older macOS versions
+-   Added support for Apple Silicon and the BNNS library on macOS (currently
+    requires building from source)
+-   Added `OIDN_NN_RUNTIME` CMake option for setting the neural network runtime
+-   Fixed compile error on some older macOS versions
 
 ### Changes in v1.2.4:
 

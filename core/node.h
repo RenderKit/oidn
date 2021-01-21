@@ -32,18 +32,18 @@ namespace oidn {
     __forceinline Device* getDevice() { return device.get(); }
   };
 
+#if defined(OIDN_DNNL)
+
   // DNNL node base class
   class DNNLNode : public Node
   {
-  private:
+  protected:
     dnnl::primitive prim;
     std::unordered_map<int, dnnl::memory> args;
     Ref<Tensor> scratchpad;
 
   public:
-    DNNLNode(const Ref<Device>& device)
-      : Node(device)
-    {}
+    DNNLNode(const Ref<Device>& device) : Node(device) {}
 
     size_t getScratchpadSize() const override
     {
@@ -64,17 +64,33 @@ namespace oidn {
     {
       prim.execute(getDevice()->getDNNLStream(), args);
     }
+  };
 
+#elif defined(OIDN_BNNS)
+
+  // BNNS node base class
+  class BNNSNode : public Node
+  {
   protected:
-    void setPrimitive(const dnnl::primitive prim)
+    BNNSFilter  filter = nullptr;
+    const void* inPtr  = nullptr;
+    void*       outPtr = nullptr;
+
+  public:
+    BNNSNode(const Ref<Device>& device) : Node(device) {}
+
+    ~BNNSNode()
     {
-      this->prim = prim;
+      if (filter)
+        BNNSFilterDestroy(filter);
     }
 
-    void setArgs(const std::unordered_map<int, dnnl::memory>& args)
+    void execute() override
     {
-      this->args = args;
+      BNNSFilterApply(filter, inPtr, outPtr);
     }
   };
+
+#endif
 
 } // namespace oidn

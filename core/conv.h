@@ -7,7 +7,9 @@
 
 namespace oidn {
 
-  // Convolution node
+#if defined(OIDN_DNNL)
+
+  // DNNL 3x3 convolution node
   class ConvNode : public DNNLNode
   {
   private:
@@ -66,14 +68,65 @@ namespace oidn {
         ReorderNode(device, weights, this->weights).execute();
       }
 
-      setPrimitive(dnnl::convolution_forward(convPrimDesc));
-      setArgs({{DNNL_ARG_SRC,     src->mem},
-               {DNNL_ARG_WEIGHTS, this->weights->mem},
-               {DNNL_ARG_BIAS,    this->bias->mem},
-               {DNNL_ARG_DST,     dst->mem}});
+      prim = dnnl::convolution_forward(convPrimDesc);
+      args = {{DNNL_ARG_SRC,     src->mem},
+              {DNNL_ARG_WEIGHTS, this->weights->mem},
+              {DNNL_ARG_BIAS,    this->bias->mem},
+              {DNNL_ARG_DST,     dst->mem}};
     }
 
     Ref<Tensor> getDst() const override { return dst; }
   };
+
+#elif defined(OIDN_BNNS)
+
+  // BNNS 3x3 convolution node
+  class ConvNode : public BNNSNode
+  {
+  private:
+    Ref<Tensor> src;
+    Ref<Tensor> weights;
+    Ref<Tensor> bias;
+    Ref<Tensor> dst;
+
+  public:
+    ConvNode(const Ref<Device>& device,
+             const Ref<Tensor>& src,
+             const Ref<Tensor>& weights,
+             const Ref<Tensor>& bias,
+             const Ref<Tensor>& dst,
+             bool relu)
+      : BNNSNode(device),
+        src(src), weights(weights), bias(bias), dst(dst)
+    {
+      BNNSLayerParametersConvolution params = {
+        .i_desc = *src,
+        .w_desc = *weights,
+        .o_desc = *dst,
+        .bias   = *bias,
+        .x_stride = 1,
+        .y_stride = 1,
+        .x_dilation_stride = 1,
+        .y_dilation_stride = 1,
+        .x_padding = 1,
+        .y_padding = 1,
+      };
+
+      if (relu)
+        params.activation.function = BNNSActivationFunctionRectifiedLinear;
+      else
+        params.activation.function = BNNSActivationFunctionIdentity;
+
+      filter = BNNSFilterCreateLayerConvolution(&params, nullptr);
+      if (!filter)
+        throw Exception(Error::Unknown, "BNNSFilterCreateLayerConvolution failed");
+      inPtr  = src->data();
+      outPtr = dst->data();
+    }
+
+    Ref<Tensor> getDst() const override { return dst; }
+  };
+
+#endif
 
 } // namespace oidn
