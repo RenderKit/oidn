@@ -1,7 +1,7 @@
 // Copyright 2009-2020 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "exception.h"
+#include "common/exception.h"
 #include "tza.h"
 
 namespace oidn {
@@ -24,7 +24,7 @@ namespace oidn {
     return value;
   }
 
-  std::map<std::string, Tensor> parseTZA(void* buffer, size_t size)
+  std::map<std::string, Ref<Tensor>> parseTZA(const Ref<Device>& device, void* buffer, size_t size)
   {
     char* input = (char*)buffer;
     char* const bufferEnd = input + size;
@@ -49,10 +49,10 @@ namespace oidn {
     const size_t numTensors = read<uint32_t>(input, bufferEnd);
 
     // Parse the tensors
-    std::map<std::string, Tensor> tensorMap;
+    std::map<std::string, Ref<Tensor>> tensorMap;
     for (size_t i = 0; i < numTensors; ++i)
     {
-      Tensor tensor;
+      TensorDesc tensorDesc;
 
       // Parse the name
       const size_t nameLen = read<uint16_t>(input, bufferEnd);
@@ -64,28 +64,36 @@ namespace oidn {
       const int ndims = read<uint8_t>(input, bufferEnd);
 
       // Parse the shape of the tensor
-      tensor.dims.resize(ndims);
+      tensorDesc.dims.resize(ndims);
       for (int j = 0; j < ndims; ++j)
-        tensor.dims[j] = read<uint32_t>(input, bufferEnd);
+        tensorDesc.dims[j] = read<uint32_t>(input, bufferEnd);
 
       // Parse the layout of the tensor
       checkBounds(input, bufferEnd, ndims);
-      tensor.layout = std::string(input, input + ndims);
+      std::string layout = std::string(input, input + ndims);
+      if (layout == "x")
+        tensorDesc.layout = TensorLayout::x;
+      else if (layout == "oihw")
+        tensorDesc.layout = TensorLayout::oihw;
+      else
+        throw Exception(Error::InvalidOperation, "invalid tensor layout");
       input += ndims;
 
       // Parse the data type of the tensor
-      const char type = read<char>(input, bufferEnd);
-      if (type != 'f') // only float32 is supported
-        throw Exception(Error::InvalidOperation, "unsupported weights data type");
+      const char dataType = read<char>(input, bufferEnd);
+      if (dataType == 'f')
+        tensorDesc.dataType = DataType::Float32;
+      else
+        throw Exception(Error::InvalidOperation, "invalid tensor data type");
 
       // Parse the offset to the tensor data
       const uint64_t tensorOffset = read<uint64_t>(input, bufferEnd);
       char* tensorData = (char*)buffer + tensorOffset;
-      checkBounds(tensorData, bufferEnd, tensor.byteSize());
-      tensor.data = (float*)tensorData;
+      checkBounds(tensorData, bufferEnd, tensorDesc.byteSize());
 
       // Add the tensor to the map
-      tensorMap.emplace(name, std::move(tensor));
+      auto tensor = makeRef<Tensor>(device, tensorDesc, tensorData);
+      tensorMap.emplace(name, tensor);
     }
 
     return tensorMap;

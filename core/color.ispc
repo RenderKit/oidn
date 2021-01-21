@@ -1,8 +1,8 @@
 // Copyright 2009-2020 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "image.ih"
-#include "color.ih"
+#include "image.isph"
+#include "color.isph"
 
 static const uniform float HDR_Y_MAX = 65504.f; // maximum HDR value
 

@@ -10,8 +10,10 @@ namespace oidn {
 
   Device::Device()
   {
-    if (!mayiuse(sse41))
+  #if defined(OIDN_X64)
+    if (!x64::mayiuse(x64::sse41))
       throw Exception(Error::UnsupportedHardware, "SSE4.1 support is required at minimum");
+  #endif
 
     // Get default values from environment variables
     if (getEnvVar("OIDN_VERBOSE", verbose))
@@ -134,13 +136,15 @@ namespace oidn {
     if (isCommitted())
       throw Exception(Error::InvalidOperation, "device can be committed only once");
 
-    // Get the optimal thread affinities
+    // Get the optimal thread affinities (except on Apple Silicon)
+  #if !(defined(__APPLE__) && defined(OIDN_ARM64))
     if (setAffinity)
     {
       affinity = std::make_shared<ThreadAffinity>(1, verbose); // one thread per core
       if (affinity->getNumThreads() == 0)
         affinity.reset();
     }
+  #endif
 
     // Create the task arena
     const int maxNumThreads = affinity ? affinity->getNumThreads() : tbb::this_task_arena::max_concurrency();
@@ -151,8 +155,15 @@ namespace oidn {
     if (affinity)
       observer = std::make_shared<PinningObserver>(affinity, *arena);
 
-    // Initialize DNNL verbosity (unfortunately this is not per-device but global)
-    dnnl_set_verbose(clamp(verbose - 2, 0, 2));
+    // Initialize the neural network runtime
+  #if defined(OIDN_DNNL)
+    dnnl_set_verbose(clamp(verbose - 2, 0, 2)); // unfortunately this is not per-device but global
+    dnnlEngine = dnnl::engine(dnnl::engine::kind::cpu, 0);
+    dnnlStream = dnnl::stream(dnnlEngine);
+    tensorBlockSize = x64::mayiuse(x64::avx512_core) ? 16 : 8;
+  #else
+    tensorBlockSize = 1;
+  #endif
 
     dirty = false;
 
@@ -207,11 +218,21 @@ namespace oidn {
     std::cout << "  Platform: " << getPlatformName() << std::endl;
 
     std::cout << "  Targets :";
-    if (mayiuse(sse41))       std::cout << " SSE4.1";
-    if (mayiuse(avx2))        std::cout << " AVX2";
-    if (mayiuse(avx512_core)) std::cout << " AVX512SKX";
+  #if defined(OIDN_X64)
+    if (x64::mayiuse(x64::sse41))       std::cout << " SSE4.1";
+    if (x64::mayiuse(x64::avx2))        std::cout << " AVX2";
+    if (x64::mayiuse(x64::avx512_core)) std::cout << " AVX512SKX";
+  #elif defined(OIDN_ARM64)
+    std::cout << " NEON";
+  #endif
     std::cout << " (supported)" << std::endl;
-    std::cout << "            SSE4.1 AVX2 AVX512SKX (compile time enabled)" << std::endl;
+    std::cout << "            ";
+    #if defined(OIDN_X64)
+      std::cout << "SSE4.1 AVX2 AVX512SKX";
+    #elif defined(OIDN_ARM64)
+      std::cout << "NEON";
+    #endif
+    std::cout << " (compile time enabled)" << std::endl;
 
     std::cout << "  Tasking :";
     std::cout << " TBB" << TBB_VERSION_MAJOR << "." << TBB_VERSION_MINOR;

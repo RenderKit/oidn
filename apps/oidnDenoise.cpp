@@ -150,6 +150,7 @@ int main(int argc, char* argv[])
     if (!refFilename.empty() && numBenchmarkRuns > 0)
       throw std::runtime_error("reference and benchmark modes cannot be enabled at the same time");
 
+  #if defined(OIDN_X64)
     // Set MXCSR flags
     if (!refFilename.empty())
     {
@@ -163,6 +164,7 @@ int main(int argc, char* argv[])
       _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
       _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
     }
+  #endif
 
     // Load the input image
     std::shared_ptr<ImageBuffer> color, albedo, normal;

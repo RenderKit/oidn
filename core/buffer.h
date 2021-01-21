@@ -21,7 +21,7 @@ namespace oidn {
 
   public:
     __forceinline Buffer(const Ref<Device>& device, size_t size)
-      : ptr((char*)alignedMalloc(size, 64)),
+      : ptr((char*)alignedMalloc(size, 128)),
         byteSize(size),
         shared(false),
         device(device) {}

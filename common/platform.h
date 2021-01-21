@@ -3,6 +3,42 @@
 
 #pragma once
 
+// ---------------------------------------------------------------------------
+// Macros
+// ---------------------------------------------------------------------------
+
+#if defined(__x86_64__) || defined(_M_X64)
+  #define OIDN_X64
+#elif defined(__aarch64__)
+  #define OIDN_ARM64
+#endif
+
+#if defined(_WIN32)
+  // Windows
+  #if !defined(__noinline)
+    #define __noinline __declspec(noinline)
+  #endif
+#else
+  // Unix
+  #if !defined(__forceinline)
+    #define __forceinline inline __attribute__((always_inline))
+  #endif
+  #if !defined(__noinline)
+    #define __noinline __attribute__((noinline))
+  #endif
+#endif
+
+#ifndef UNUSED
+  #define UNUSED(x) ((void)x)
+#endif
+#ifndef MAYBE_UNUSED
+  #define MAYBE_UNUSED(x) UNUSED(x)
+#endif
+
+// ---------------------------------------------------------------------------
+// Includes
+// ---------------------------------------------------------------------------
+
 #if defined(_WIN32)
   #if !defined(WIN32_LEAN_AND_MEAN)
     #define WIN32_LEAN_AND_MEAN
@@ -15,8 +51,11 @@
   #include <sys/sysctl.h>
 #endif
 
-#include <xmmintrin.h>
-#include <pmmintrin.h>
+#if defined(OIDN_X64)
+  #include <xmmintrin.h>
+  #include <pmmintrin.h>
+#endif
+
 #include <cstdint>
 #include <cstddef>
 #include <cstdlib>
@@ -37,32 +76,6 @@ namespace oidn {
 
   // Introduce all names from the API namespace
   OIDN_NAMESPACE_USING
-
-  // ---------------------------------------------------------------------------
-  // Macros
-  // ---------------------------------------------------------------------------
-
-  #if defined(_WIN32)
-    // Windows
-    #if !defined(__noinline)
-      #define __noinline     __declspec(noinline)
-    #endif
-  #else
-    // Unix
-    #if !defined(__forceinline)
-      #define __forceinline  inline __attribute__((always_inline))
-    #endif
-    #if !defined(__noinline)
-      #define __noinline     __attribute__((noinline))
-    #endif
-  #endif
-
-  #ifndef UNUSED
-    #define UNUSED(x) ((void)x)
-  #endif
-  #ifndef MAYBE_UNUSED
-    #define MAYBE_UNUSED(x) UNUSED(x)
-  #endif
 
   // ---------------------------------------------------------------------------
   // Error handling and debugging

@@ -1,8 +1,9 @@
 // Copyright 2009-2020 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
+#include "tza.h"
+#include "output_copy.h"
 #include "unet.h"
-#include "common/tza.h"
 
 // Built-in weights
 #include "weights/rt_hdr.h"
@@ -176,7 +177,7 @@ namespace oidn {
     // Estimate the required amount of memory
     int totalEstimatedBytesPerPixel = estimatedBytesPerPixel;
     if (inplace)
-      totalEstimatedBytesPerPixel += getFormatSize(output.format); // outputTemp
+      totalEstimatedBytesPerPixel += getByteSize(output.format); // outputTemp
 
     // Determine the maximum allowed tile size to fit into the requested memory limit
     const int64_t maxTilePixels = (int64_t(maxMemoryMB)*1024*1024 - estimatedBytesBase) / totalEstimatedBytesPerPixel;
@@ -216,7 +217,7 @@ namespace oidn {
     }
   }
 
-  std::shared_ptr<Executable> UNetFilter::buildNet()
+  Ref<Network> UNetFilter::buildNet()
   {
     H = color.height;
     W = color.width;
@@ -287,63 +288,63 @@ namespace oidn {
       outputTemp = Image(device, output.format, W, H);
 
     // Parse the weights blob
-    const auto weightsMap = parseTZA(weights.ptr, weights.size);
+    const auto weightsMap = parseTZA(device, weights.ptr, weights.size);
 
     // Create the network
-    std::shared_ptr<Network> net = std::make_shared<Network>(device, weightsMap);
+    Ref<Network> net = makeRef<Network>(device, weightsMap);
 
     // Compute the buffer sizes
-    const auto inputDims        = memory::dims({1, inputC, tileH, tileW});
-    const auto inputReorderDims = net->getInputReorderDims(inputDims, alignment);   //-> concat1
+    const auto inputDims        = TensorDims({inputC, tileH, tileW});
+    const auto inputReorderDims = net->getInputReorderDims(inputDims, alignment); //-> concat1
 
-    const auto encConv0Dims  = net->getConvDims("enc_conv0", inputReorderDims);     //-> temp0
+    const auto encConv0Dims = net->getConvDims("enc_conv0", inputReorderDims);    //-> temp0
+ 
+    const auto encConv1Dims = net->getConvDims("enc_conv1", encConv0Dims);        //-> temp1
+    const auto pool1Dims    = net->getPoolDims(encConv1Dims);                     //-> concat2
 
-    const auto encConv1Dims  = net->getConvDims("enc_conv1", encConv0Dims);         //-> temp1
-    const auto pool1Dims     = net->getPoolDims(encConv1Dims);                      //-> concat2
+    const auto encConv2Dims = net->getConvDims("enc_conv2", pool1Dims);           //-> temp0
+    const auto pool2Dims    = net->getPoolDims(encConv2Dims);                     //-> concat3
 
-    const auto encConv2Dims  = net->getConvDims("enc_conv2", pool1Dims);            //-> temp0
-    const auto pool2Dims     = net->getPoolDims(encConv2Dims);                      //-> concat3
+    const auto encConv3Dims = net->getConvDims("enc_conv3", pool2Dims);           //-> temp0
+    const auto pool3Dims    = net->getPoolDims(encConv3Dims);                     //-> concat4
 
-    const auto encConv3Dims  = net->getConvDims("enc_conv3", pool2Dims);            //-> temp0
-    const auto pool3Dims     = net->getPoolDims(encConv3Dims);                      //-> concat4
+    const auto encConv4Dims = net->getConvDims("enc_conv4", pool3Dims);           //-> temp0
+    const auto pool4Dims    = net->getPoolDims(encConv4Dims);                     //-> concat5
 
-    const auto encConv4Dims  = net->getConvDims("enc_conv4", pool3Dims);            //-> temp0
-    const auto pool4Dims     = net->getPoolDims(encConv4Dims);                      //-> concat5
+    const auto encConv5Dims = net->getConvDims("enc_conv5", pool4Dims);           //-> temp0
+    const auto pool5Dims    = net->getPoolDims(encConv5Dims);                     //-> temp1
 
-    const auto encConv5Dims  = net->getConvDims("enc_conv5", pool4Dims);            //-> temp0
-    const auto pool5Dims     = net->getPoolDims(encConv5Dims);                      //-> temp1
+    const auto upsample5Dims = net->getUpsampleDims(pool5Dims);                   //-> concat5
+    const auto concat5Dims   = net->getConcatDims({upsample5Dims, pool4Dims});
+    const auto decConv5aDims = net->getConvDims("dec_conv5a", concat5Dims);       //-> temp0
+    const auto decConv5bDims = net->getConvDims("dec_conv5b", decConv5aDims);     //-> temp1
 
-    const auto upsample5Dims = net->getUpsampleDims(pool5Dims);                     //-> concat5
-    const auto concat5Dims   = net->getConcatDims(upsample5Dims, pool4Dims);
-    const auto decConv5aDims = net->getConvDims("dec_conv5a", concat5Dims);         //-> temp0
-    const auto decConv5bDims = net->getConvDims("dec_conv5b", decConv5aDims);       //-> temp1
+    const auto upsample4Dims = net->getUpsampleDims(decConv5bDims);               //-> concat4
+    const auto concat4Dims   = net->getConcatDims({upsample4Dims, pool3Dims});
+    const auto decConv4aDims = net->getConvDims("dec_conv4a", concat4Dims);       //-> temp0
+    const auto decConv4bDims = net->getConvDims("dec_conv4b", decConv4aDims);     //-> temp1
 
-    const auto upsample4Dims = net->getUpsampleDims(decConv5bDims);                 //-> concat4
-    const auto concat4Dims   = net->getConcatDims(upsample4Dims, pool3Dims);
-    const auto decConv4aDims = net->getConvDims("dec_conv4a", concat4Dims);         //-> temp0
-    const auto decConv4bDims = net->getConvDims("dec_conv4b", decConv4aDims);       //-> temp1
+    const auto upsample3Dims = net->getUpsampleDims(decConv4bDims);               //-> concat3
+    const auto concat3Dims   = net->getConcatDims({upsample3Dims, pool2Dims});
+    const auto decConv3aDims = net->getConvDims("dec_conv3a", concat3Dims);       //-> temp0
+    const auto decConv3bDims = net->getConvDims("dec_conv3b", decConv3aDims);     //-> temp1
 
-    const auto upsample3Dims = net->getUpsampleDims(decConv4bDims);                 //-> concat3
-    const auto concat3Dims   = net->getConcatDims(upsample3Dims, pool2Dims);
-    const auto decConv3aDims = net->getConvDims("dec_conv3a", concat3Dims);         //-> temp0
-    const auto decConv3bDims = net->getConvDims("dec_conv3b", decConv3aDims);       //-> temp1
+    const auto upsample2Dims = net->getUpsampleDims(decConv3bDims);               //-> concat2
+    const auto concat2Dims   = net->getConcatDims({upsample2Dims, pool1Dims});
+    const auto decConv2aDims = net->getConvDims("dec_conv2a", concat2Dims);       //-> temp0
+    const auto decConv2bDims = net->getConvDims("dec_conv2b", decConv2aDims);     //-> temp1
 
-    const auto upsample2Dims = net->getUpsampleDims(decConv3bDims);                 //-> concat2
-    const auto concat2Dims   = net->getConcatDims(upsample2Dims, pool1Dims);
-    const auto decConv2aDims = net->getConvDims("dec_conv2a", concat2Dims);         //-> temp0
-    const auto decConv2bDims = net->getConvDims("dec_conv2b", decConv2aDims);       //-> temp1
+    const auto upsample1Dims = net->getUpsampleDims(decConv2bDims);               //-> concat1
+    const auto concat1Dims   = net->getConcatDims({upsample1Dims, inputReorderDims});
+    const auto decConv1aDims = net->getConvDims("dec_conv1a", concat1Dims);       //-> temp0
+    const auto decConv1bDims = net->getConvDims("dec_conv1b", decConv1aDims);     //-> temp1
 
-    const auto upsample1Dims = net->getUpsampleDims(decConv2bDims);                 //-> concat1
-    const auto concat1Dims   = net->getConcatDims(upsample1Dims, inputReorderDims);
-    const auto decConv1aDims = net->getConvDims("dec_conv1a", concat1Dims);         //-> temp0
-    const auto decConv1bDims = net->getConvDims("dec_conv1b", decConv1aDims);       //-> temp1
+    const auto decConv0Dims = net->getConvDims("dec_conv0", decConv1bDims);       //-> temp0
 
-    const auto decConv0Dims  = net->getConvDims("dec_conv0", decConv1bDims);        //-> temp0
-
-    const auto outputDims = memory::dims({1, 3, tileH, tileW});
+    const auto outputDims = TensorDims({3, tileH, tileW});
 
     // Allocate two temporary ping-pong buffers to decrease memory usage
-    const auto temp0Dims = getMaxMemoryDims({
+    const auto temp0Dims = getMaxDims({
       encConv0Dims,
       encConv2Dims,
       encConv3Dims,
@@ -357,7 +358,7 @@ namespace oidn {
       decConv0Dims
     });
 
-    const auto temp1Dims = getMaxMemoryDims({
+    const auto temp1Dims = getMaxDims({
       encConv1Dims,
       pool5Dims,
       decConv5bDims,
@@ -367,21 +368,27 @@ namespace oidn {
       decConv1bDims,
     });
 
-    auto temp0 = net->allocMemory(temp0Dims);
-    auto temp1 = net->allocMemory(temp1Dims);
+    auto temp0 = net->newTensor(temp0Dims);
+    auto temp1 = net->newTensor(temp1Dims);
 
     // Allocate enough memory to hold the concat outputs. Then use the first
     // half to hold the previous conv output and the second half to hold the
     // pool/orig image output. This works because everything is C dimension
     // outermost, padded to K floats, and all the concats are on the C dimension.
-    auto concat1Dst = net->allocMemory(concat1Dims);
-    auto concat2Dst = net->allocMemory(concat2Dims);
-    auto concat3Dst = net->allocMemory(concat3Dims);
-    auto concat4Dst = net->allocMemory(concat4Dims);
-    auto concat5Dst = net->allocMemory(concat5Dims);
+    auto concat1Dst = net->newTensor(concat1Dims);
+    auto concat2Dst = net->newTensor(concat2Dims);
+    auto concat3Dst = net->newTensor(concat3Dims);
+    auto concat4Dst = net->newTensor(concat4Dims);
+    auto concat5Dst = net->newTensor(concat5Dims);
+
+    auto concat1Src = net->getConcatSrc(concat1Dst, {upsample1Dims, inputReorderDims});
+    auto concat2Src = net->getConcatSrc(concat2Dst, {upsample2Dims, pool1Dims});
+    auto concat3Src = net->getConcatSrc(concat3Dst, {upsample3Dims, pool2Dims});
+    auto concat4Src = net->getConcatSrc(concat4Dst, {upsample4Dims, pool3Dims});
+    auto concat5Src = net->getConcatSrc(concat5Dst, {upsample5Dims, pool4Dims});
 
     // Transfer function
-    std::shared_ptr<TransferFunction> transferFunc = makeTransferFunc();
+    Ref<TransferFunction> transferFunc = makeTransferFunc();
 
     // Autoexposure
     if (hdr)
@@ -392,121 +399,68 @@ namespace oidn {
         transferFunc->setExposure(hdrScale);
     }
 
-    // Input reorder
-    auto inputReorderDst = net->castMemory(inputReorderDims, concat1Dst, upsample1Dims);
+    // Create the nodes
     inputReorder = net->addInputReorder(color, albedo, normal,
                                         transferFunc, hdr,
-                                        alignment, inputReorderDst);
+                                        alignment,
+                                        concat1Src[1]);
 
-    // enc_conv0
-    auto encConv0 = net->addConv("enc_conv0", inputReorder->getDst(), temp0);
+    auto encConv0 = net->addConv("enc_conv0", inputReorder->getDst(), temp0->view(encConv0Dims));
 
-    // enc_conv1
-    auto encConv1 = net->addConv("enc_conv1", encConv0->getDst(), temp1);
+    auto encConv1 = net->addConv("enc_conv1", encConv0->getDst(), temp1->view(encConv1Dims));
+    auto pool1    = net->addPool(encConv1->getDst(), concat2Src[1]);
 
-    // pool1
-    // Adjust pointer for pool1 to eliminate concat1
-    auto pool1Dst = net->castMemory(pool1Dims, concat2Dst, upsample2Dims);
-    auto pool1 = net->addPool(encConv1->getDst(), pool1Dst);
+    auto encConv2 = net->addConv("enc_conv2", pool1->getDst(), temp0->view(encConv2Dims));
+    auto pool2    = net->addPool(encConv2->getDst(), concat3Src[1]);
 
-    // enc_conv2
-    auto encConv2 = net->addConv("enc_conv2", pool1->getDst(), temp0);
+    auto encConv3 = net->addConv("enc_conv3", pool2->getDst(), temp0->view(encConv3Dims));
+    auto pool3    = net->addPool(encConv3->getDst(), concat4Src[1]);
 
-    // pool2
-    // Adjust pointer for pool2 to eliminate concat2
-    auto pool2Dst = net->castMemory(pool2Dims, concat3Dst, upsample3Dims);
-    auto pool2 = net->addPool(encConv2->getDst(), pool2Dst);
+    auto encConv4 = net->addConv("enc_conv4", pool3->getDst(), temp0->view(encConv4Dims));
+    auto pool4    = net->addPool(encConv4->getDst(), concat5Src[1]);
 
-    // enc_conv3
-    auto encConv3 = net->addConv("enc_conv3", pool2->getDst(), temp0);
+    auto encConv5 = net->addConv("enc_conv5", pool4->getDst(), temp0->view(encConv5Dims));
+    auto pool5    = net->addPool(encConv5->getDst(), temp1->view(pool5Dims));
 
-    // pool3
-    // Adjust pointer for pool3 to eliminate concat3
-    auto pool3Dst = net->castMemory(pool3Dims, concat4Dst, upsample4Dims);
-    auto pool3 = net->addPool(encConv3->getDst(), pool3Dst);
+    auto upsample5 = net->addUpsample(pool5->getDst(), concat5Src[0]);
+    auto decConv5a = net->addConv("dec_conv5a", concat5Dst, temp0->view(decConv5aDims));
+    auto decConv5b = net->addConv("dec_conv5b", decConv5a->getDst(), temp1->view(decConv5bDims));
 
-    // enc_conv4
-    auto encConv4 = net->addConv("enc_conv4", pool3->getDst(), temp0);
+    auto upsample4 = net->addUpsample(decConv5b->getDst(), concat4Src[0]);
+    auto decConv4a = net->addConv("dec_conv4a", concat4Dst, temp0->view(decConv4aDims));
+    auto decConv4b = net->addConv("dec_conv4b", decConv4a->getDst(), temp1->view(decConv4bDims));
 
-    // pool4
-    // Adjust pointer for pool4 to eliminate concat4
-    auto pool4Dst = net->castMemory(pool4Dims, concat5Dst, upsample5Dims);
-    auto pool4 = net->addPool(encConv4->getDst(), pool4Dst);
+    auto upsample3 = net->addUpsample(decConv4b->getDst(), concat3Src[0]);
+    auto decConv3a = net->addConv("dec_conv3a", concat3Dst, temp0->view(decConv3aDims));
+    auto decConv3b = net->addConv("dec_conv3b", decConv3a->getDst(), temp1->view(decConv3bDims));
 
-    // enc_conv5
-    auto encConv5 = net->addConv("enc_conv5", pool4->getDst(), temp0);
+    auto upsample2 = net->addUpsample(decConv3b->getDst(), concat2Src[0]);
+    auto decConv2a = net->addConv("dec_conv2a", concat2Dst, temp0->view(decConv2aDims));
+    auto decConv2b = net->addConv("dec_conv2b", decConv2a->getDst(), temp1->view(decConv2bDims));
 
-    // pool5
-    auto pool5 = net->addPool(encConv5->getDst(), temp1);
+    auto upsample1 = net->addUpsample(decConv2b->getDst(), concat1Src[0]);
+    auto decConv1a = net->addConv("dec_conv1a", concat1Dst, temp0->view(decConv1aDims));
+    auto decConv1b = net->addConv("dec_conv1b", decConv1a->getDst(), temp1->view(decConv1bDims));
 
-    // upsample5
-    auto upsample5Dst = net->castMemory(upsample5Dims, concat5Dst);
-    auto upsample5 = net->addUpsample(pool5->getDst(), upsample5Dst);
+    auto decConv0 = net->addConv("dec_conv0", decConv1b->getDst(), temp0->view(decConv0Dims), false);
 
-    // dec_conv5a
-    auto decConv5a = net->addConv("dec_conv5a", concat5Dst, temp0);
-
-    // dec_conv5b
-    auto decConv5b = net->addConv("dec_conv5b", decConv5a->getDst(), temp1);
-
-    // upsample4
-    auto upsample4Dst = net->castMemory(upsample4Dims, concat4Dst);
-    auto upsample4 = net->addUpsample(decConv5b->getDst(), upsample4Dst);
-
-    // dec_conv4a
-    auto decConv4a = net->addConv("dec_conv4a", concat4Dst, temp0);
-
-    // dec_conv4b
-    auto decConv4b = net->addConv("dec_conv4b", decConv4a->getDst(), temp1);
-
-    // upsample3
-    auto upsample3Dst = net->castMemory(upsample3Dims, concat3Dst);
-    auto upsample3 = net->addUpsample(decConv4b->getDst(), upsample3Dst);
-
-    // dec_conv3a
-    auto decConv3a = net->addConv("dec_conv3a", concat3Dst, temp0);
-
-    // dec_conv3b
-    auto decConv3b = net->addConv("dec_conv3b", decConv3a->getDst(), temp1);
-
-    // upsample2
-    auto upsample2Dst = net->castMemory(upsample2Dims, concat2Dst);
-    auto upsample2 = net->addUpsample(decConv3b->getDst(), upsample2Dst);
-
-    // dec_conv2a
-    auto decConv2a = net->addConv("dec_conv2a", concat2Dst, temp0);
-
-    // dec_conv2b
-    auto decConv2b = net->addConv("dec_conv2b", decConv2a->getDst(), temp1);
-
-    // upsample1
-    auto upsample1Dst = net->castMemory(upsample1Dims, concat1Dst);
-    auto upsample1 = net->addUpsample(decConv2b->getDst(), upsample1Dst);
-
-    // dec_conv1a
-    auto decConv1a = net->addConv("dec_conv1a", concat1Dst, temp0);
-
-    // dec_conv1b
-    auto decConv1b = net->addConv("dec_conv1b", decConv1a->getDst(), temp1);
-
-    // dec_conv0
-    auto decConv0 = net->addConv("dec_conv0", decConv1b->getDst(), temp0, false /* no relu */);
-
-    // Output reorder
-    outputReorder = net->addOutputReorder(decConv0->getDst(), transferFunc, hdr, outputTemp ? outputTemp : output);
+    outputReorder = net->addOutputReorder(decConv0->getDst(),
+                                          transferFunc,
+                                          hdr,
+                                          outputTemp ? outputTemp : output);
 
     net->finalize();
     return net;
   }
 
-  std::shared_ptr<TransferFunction> UNetFilter::makeTransferFunc()
+  Ref<TransferFunction> UNetFilter::makeTransferFunc()
   {
     if (hdr)
-      return std::make_shared<TransferFunction>(TransferFunction::Type::PU);
+      return makeRef<TransferFunction>(TransferFunction::Type::PU);
     else if (srgb)
-      return std::make_shared<TransferFunction>(TransferFunction::Type::Linear);
+      return makeRef<TransferFunction>(TransferFunction::Type::Linear);
     else
-      return std::make_shared<TransferFunction>(TransferFunction::Type::SRGB);
+      return makeRef<TransferFunction>(TransferFunction::Type::SRGB);
   }
 
   // ---------------------------------------------------------------------------
@@ -536,9 +490,9 @@ namespace oidn {
     hdr = true;
   }
 
-  std::shared_ptr<TransferFunction> RTLightmapFilter::makeTransferFunc()
+  Ref<TransferFunction> RTLightmapFilter::makeTransferFunc()
   {
-    return std::make_shared<TransferFunction>(TransferFunction::Type::Log);
+    return makeRef<TransferFunction>(TransferFunction::Type::Log);
   }
 
 } // namespace oidn

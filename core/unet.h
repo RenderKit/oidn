@@ -23,7 +23,11 @@ namespace oidn {
 
     // Estimated memory usage
     static constexpr int estimatedBytesBase     = 16*1024*1024; // conservative base memory usage
+  #if defined(OIDN_DNNL)
     static constexpr int estimatedBytesPerPixel = 889;
+  #else
+    static constexpr int estimatedBytesPerPixel = 861;
+  #endif
 
     // Images
     Image color;
@@ -48,9 +52,9 @@ namespace oidn {
     bool inplace = false; // indicates whether input and output buffers overlap
 
     // Network
-    std::shared_ptr<Executable> net;
-    std::shared_ptr<Node> inputReorder;
-    std::shared_ptr<Node> outputReorder;
+    Ref<Network> net;
+    Ref<Node> inputReorder;
+    Ref<Node> outputReorder;
 
     // Weights
     struct
@@ -65,7 +69,7 @@ namespace oidn {
     Data userWeights;
 
     explicit UNetFilter(const Ref<Device>& device);
-    virtual std::shared_ptr<TransferFunction> makeTransferFunc();
+    virtual Ref<TransferFunction> makeTransferFunc();
 
   public:
     void setImage(const std::string& name, const Image& data) override;
@@ -81,7 +85,7 @@ namespace oidn {
   private:
     void computeTileSize();
 
-    std::shared_ptr<Executable> buildNet();
+    Ref<Network> buildNet();
 
     bool isCommitted() const { return bool(net); }
   };
@@ -104,7 +108,7 @@ namespace oidn {
   {
   public:
     explicit RTLightmapFilter(const Ref<Device>& device);
-    std::shared_ptr<TransferFunction> makeTransferFunc() override;
+    Ref<TransferFunction> makeTransferFunc() override;
   };
 
 } // namespace oidn

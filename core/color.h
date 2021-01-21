@@ -9,10 +9,10 @@
 
 namespace oidn {
 
-  class TransferFunction
+  class TransferFunction : public RefCount
   {
   private:
-    ispc::TransferFunction data;
+    ispc::TransferFunction impl;
 
   public:
     enum class Type
@@ -27,22 +27,22 @@ namespace oidn {
     {
       switch (type)
       {
-      case Type::Linear: ispc::LinearTransferFunction_Constructor(&data); break;
-      case Type::SRGB:   ispc::SRGBTransferFunction_Constructor(&data);   break;
-      case Type::PU:     ispc::PUTransferFunction_Constructor(&data);     break;
-      case Type::Log:    ispc::LogTransferFunction_Constructor(&data);    break;
+      case Type::Linear: ispc::LinearTransferFunction_Constructor(&impl); break;
+      case Type::SRGB:   ispc::SRGBTransferFunction_Constructor(&impl);   break;
+      case Type::PU:     ispc::PUTransferFunction_Constructor(&impl);     break;
+      case Type::Log:    ispc::LogTransferFunction_Constructor(&impl);    break;
       default:           assert(0);
       }
     }
 
     void setExposure(float exposure)
     {
-      ispc::TransferFunction_setExposure(&data, exposure);
+      ispc::TransferFunction_setExposure(&impl, exposure);
     }
 
-    ispc::TransferFunction* getIspc()
+    ispc::TransferFunction* getImpl()
     {
-      return &data;
+      return &impl;
     }
   };
 
@@ -50,16 +50,18 @@ namespace oidn {
   {
   private:
     Image color;
-    std::shared_ptr<TransferFunction> transferFunc;
+    Ref<TransferFunction> transferFunc;
 
   public:
-    AutoexposureNode(const Image& color,
-                     const std::shared_ptr<TransferFunction>& transferFunc)
-      : color(color),
+    AutoexposureNode(const Ref<Device>& device,
+                     const Image& color,
+                     const Ref<TransferFunction>& transferFunc)
+      : Node(device),
+        color(color),
         transferFunc(transferFunc)
     {}
 
-    void execute(stream& sm) override
+    void execute() override
     {
       const float exposure = autoexposure(color);
       //printf("exposure = %f\n", exposure);

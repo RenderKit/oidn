@@ -10,12 +10,9 @@ add_library(common STATIC
   ref.h
   tasking.h
   tasking.cpp
-  tensor.h
   thread.h
   thread.cpp
   timer.h
-  tza.h
-  tza.cpp
 )
 
 target_include_directories(common

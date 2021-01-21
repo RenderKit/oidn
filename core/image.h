@@ -40,7 +40,7 @@ namespace oidn {
     }
 
     Image(const Ref<Device>& device, Format format, size_t width, size_t height)
-      : buffer(makeRef<Buffer>(device, width * height * getFormatSize(format)))
+      : buffer(makeRef<Buffer>(device, width * height * getByteSize(format)))
     {
       init(buffer->data(), format, width, height);
     }
@@ -54,7 +54,7 @@ namespace oidn {
       this->width  = int(width);
       this->height = int(height);
 
-      const size_t pixelSize = getFormatSize(format);
+      const size_t pixelSize = getByteSize(format);
       if (inBytePixelStride != 0)
       {
         if (inBytePixelStride < pixelSize)
@@ -100,7 +100,7 @@ namespace oidn {
     __forceinline       char* end()       { return get(height, 0); }
     __forceinline const char* end() const { return get(height, 0); }
 
-    operator bool() const
+    __forceinline operator bool() const
     {
       return ptr != nullptr;
     }
@@ -123,15 +123,16 @@ namespace oidn {
 
       return begin1 < end2 && begin2 < end1;
     }
-  };
 
-  inline ispc::Image toIspc(const Image& img)
-  {
-    ispc::Image res;
-    res.ptr = (uint8_t*)img.ptr;
-    res.rowStride = img.rowStride;
-    res.bytePixelStride = img.bytePixelStride;
-    return res;
-  }
+    // Converts to ISPC equivalent
+    operator ispc::Image() const
+    {
+      ispc::Image result;
+      result.ptr = (uint8_t*)ptr;
+      result.rowStride = rowStride;
+      result.bytePixelStride = bytePixelStride;
+      return result;
+    }
+  };
 
 } // namespace oidn
