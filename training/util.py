@@ -130,10 +130,9 @@ def cleanup_worker(cfg):
 
 # Initializes and returns the PyTorch device with the specified ID
 def init_device(cfg, id=0):
-  # Initialize the device
-  device = torch.device(cfg.device, id)
-
   if cfg.device == 'cuda':
+    device = torch.device(cfg.device, id)
+
     if cfg.deterministic:
       torch.backends.cudnn.benchmark = False
       torch.backends.cudnn.deterministic = True
@@ -142,7 +141,9 @@ def init_device(cfg, id=0):
 
     torch.cuda.set_device(id)
     device_name = torch.cuda.get_device_name()
-  else:
+  elif cfg.device == 'cpu':
+    device = torch.device(cfg.device)
+
     # Query CPU information
     #num_sockets = int(os.popen("lscpu -b -p=Socket | grep -v '^#' | sort -u | wc -l").read())
     num_cores    = int(os.popen("lscpu -b -p=Core,Socket | grep -v '^#' | sort -u | wc -l").read())
