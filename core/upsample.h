@@ -29,8 +29,8 @@ namespace oidn {
         dst(dst)
     {
       assert(src->ndims() == 3);
-      assert(src->tensorLayout == TensorLayout::Chw8c ||
-             src->tensorLayout == TensorLayout::Chw16c);
+      assert(src->layout == TensorLayout::Chw8c ||
+             src->layout == TensorLayout::Chw16c);
       assert(src->blockSize() == device->getTensorBlockSize());
       assert(dst->ndims() == 3);
       assert(dst->layout == src->layout);
