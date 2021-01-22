@@ -31,7 +31,7 @@ def export_weights(cfg):
 
   # Load the checkpoint
   result_dir = get_result_dir(cfg)
-  checkpoint = load_checkpoint(result_dir, device, cfg.epochs)
+  checkpoint = load_checkpoint(result_dir, device, cfg.num_epochs)
   epoch = checkpoint['epoch']
   model_state = checkpoint['model_state']
   print('Epoch:', epoch)
@@ -41,7 +41,7 @@ def export_weights(cfg):
     output_filename = cfg.output
   else:
     output_filename = os.path.join(result_dir, cfg.result)
-    if cfg.epochs:
+    if cfg.num_epochs:
       output_filename += '_%d' % epoch
     output_filename += '.tza'
   print('Output:', output_filename)

@@ -12,6 +12,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
+import torch.cuda.amp as amp
 import torch.distributed as dist
 from torch.utils.tensorboard import SummaryWriter
 
@@ -19,7 +20,6 @@ from config import *
 from dataset import *
 from model import *
 from loss import *
-from learning_rate import *
 from result import *
 from util import *
 
@@ -78,7 +78,6 @@ def main_worker(rank, cfg):
     last_epoch = get_latest_checkpoint_epoch(result_dir)
     checkpoint = load_checkpoint(result_dir, device, last_epoch, model, optimizer)
     step = checkpoint['step']
-    last_step = step - 1 # will be incremented by the LR scheduler init
   else:
     if rank == 0:
       print('Result:', cfg.result)
@@ -94,14 +93,13 @@ def main_worker(rank, cfg):
 
     last_epoch = 0
     step = 0
-    last_step = -1
 
   # Make sure all workers have loaded the checkpoint
   if distributed:
     dist.barrier()
 
   start_epoch = last_epoch + 1
-  if start_epoch > cfg.epochs:
+  if start_epoch > cfg.num_epochs:
     exit() # nothing to do
 
   # Reset the random seed if resuming result
@@ -128,22 +126,25 @@ def main_worker(rank, cfg):
     valid_steps_per_epoch = len(valid_loader)
 
   # Initialize the learning rate scheduler
-  lr_step_size = cfg.lr_cycle_epochs * train_steps_per_epoch // 2
-  lr_lambda = get_cyclic_lr_with_ramp_down_function(
-    base_lr=cfg.lr,
-    max_lr=cfg.max_lr,
-    step_size=lr_step_size,
-    mode='triangular2',
-    total_iterations=cfg.epochs * train_steps_per_epoch
-  )
-
-  lr_scheduler = optim.lr_scheduler.LambdaLR(
+  lr_scheduler = optim.lr_scheduler.OneCycleLR(
     optimizer,
-    lr_lambda=[lr_lambda],
-    last_epoch=last_step)
+    max_lr=cfg.max_lr,
+    total_steps=cfg.num_epochs,
+    pct_start=cfg.lr_warmup,
+    anneal_strategy='cos',
+    div_factor=(25. if cfg.lr is None else cfg.max_lr / cfg.lr),
+    final_div_factor=1e4,
+    last_epoch=last_epoch-1)
 
-  if lr_scheduler.last_epoch != step:
-    error('failed to restore LR scheduler step')
+  if lr_scheduler.last_epoch != last_epoch:
+    error('failed to restore LR scheduler state')
+
+  # Check whether AMP is enabled
+  amp_enabled = cfg.precision == 'amp'
+
+  if amp_enabled:
+    # Initialize the gradient scaler
+    scaler = amp.GradScaler()
 
   # Initialize the summary writer
   log_dir = get_result_log_dir(result_dir)
@@ -155,10 +156,10 @@ def main_worker(rank, cfg):
   # Training and evaluation loops
   if rank == 0:
     print()
-    progress_format = '%-5s %' + str(len(str(cfg.epochs))) + 'd/%d:' % cfg.epochs
+    progress_format = '%-5s %' + str(len(str(cfg.num_epochs))) + 'd/%d:' % cfg.num_epochs
     total_start_time = time.time()
 
-  for epoch in range(start_epoch, cfg.epochs+1):
+  for epoch in range(start_epoch, cfg.num_epochs+1):
     if rank == 0:
       start_time = time.time()
       progress = ProgressBar(train_steps_per_epoch, progress_format % ('Train', epoch))
@@ -174,21 +175,36 @@ def main_worker(rank, cfg):
     for i, batch in enumerate(train_loader, 0):
       # Get the batch
       input, target = batch
-      input  = input.to(device,  non_blocking=True).float()
-      target = target.to(device, non_blocking=True).float()
+      input  = input.to(device,  non_blocking=True)
+      target = target.to(device, non_blocking=True)
+      if not amp_enabled:
+        input  = input.float()
+        target = target.float()
 
       # Run a training step
       optimizer.zero_grad()
-      loss = criterion(model(input), target)
-      loss.backward()
+
+      with amp.autocast(enabled=amp_enabled):
+        output = model(input)
+        loss = criterion(output, target)
+
+      if amp_enabled:
+        scaler.scale(loss).backward()
+        scaler.step(optimizer)
+        scaler.update()
+      else:
+        loss.backward()
+        optimizer.step()
 
       # Next step
-      optimizer.step()
-      lr_scheduler.step()
       step += 1
       train_loss += loss
       if rank == 0:
         progress.next()
+
+    # Get and update the learning rate
+    lr = lr_scheduler.get_last_lr()[0]
+    lr_scheduler.step()
 
     # Compute the average training loss
     if distributed:
@@ -197,22 +213,19 @@ def main_worker(rank, cfg):
 
     # Write summary
     if rank == 0:
-      if epoch == 1:
-        summary_writer.add_graph(unwrap_module(model), input)
-      summary_writer.add_scalar('learning_rate', lr_scheduler.get_last_lr()[0], epoch)
+      summary_writer.add_scalar('learning_rate', lr, epoch)
       summary_writer.add_scalar('loss', train_loss, epoch)
 
     # Print stats
     if rank == 0:
       duration = time.time() - start_time
       total_duration = time.time() - total_start_time
-      lr = lr_scheduler.get_last_lr()[0]
       images_per_sec = len(train_data) / duration
-      eta = ((cfg.epochs - epoch) * total_duration / (epoch + 1 - start_epoch))
+      eta = ((cfg.num_epochs - epoch) * total_duration / (epoch + 1 - start_epoch))
       progress.finish('loss=%.6f, lr=%.6f (%.1f images/s, %s, eta %s)'
                       % (train_loss, lr, images_per_sec, format_time(duration), format_time(eta, precision=2)))
 
-    if ((cfg.valid_epochs > 0 and epoch % cfg.valid_epochs == 0) or epoch == cfg.epochs) \
+    if ((cfg.num_valid_epochs > 0 and epoch % cfg.num_valid_epochs == 0) or epoch == cfg.num_epochs) \
       and len(valid_data) > 0:
       # Validation
       if rank == 0:
@@ -255,7 +268,7 @@ def main_worker(rank, cfg):
         progress.finish('valid_loss=%.6f (%.1f images/s, %.1fs)'
                         % (valid_loss, images_per_sec, duration))
 
-    if (rank == 0) and ((cfg.save_epochs > 0 and epoch % cfg.save_epochs == 0) or epoch == cfg.epochs):
+    if (rank == 0) and ((cfg.num_save_epochs > 0 and epoch % cfg.num_save_epochs == 0) or epoch == cfg.num_epochs):
       # Save a checkpoint
       save_checkpoint(result_dir, epoch, step, model, optimizer)
 

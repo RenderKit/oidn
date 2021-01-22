@@ -175,15 +175,13 @@ exists, the tool will resume training that result from the latest checkpoint.
 
 The default training hyperparameters should work reasonably well in general,
 but some adjustments might be necessary for certain datasets to attain optimal
-performance, most importantly: the number of epochs (`-e` or `--epochs` option),
-the mini-batch size (`--bs` or `--batch_size` option), and the learning rate.
-The training tool uses a cyclical learning rate (CLR) with the `triangular2`
-scaling policy and an optional linear ramp-down at the end. The learning rate
-schedule can be configured by setting the base learning rate (`--lr` or
-`--learning_rate` option), the maximum learning rate (`--max_lr` or
-`--max_learning_rate` option), and the total cycle size in number of epochs
-(`--lr_cycle_epochs` option). If there is an incomplete cycle at the end, the
-learning rate will be linearly ramped down to almost zero.
+performance, most importantly: the number of epochs (`-e` or `--num_epochs`
+option), the mini-batch size (`--bs` or `--batch_size` option), and the learning
+rate. The training tool uses a one-cycle learning rate schedule with cosine
+annealing, which can be configured by setting the base learning rate (`--lr`
+or `--learning_rate` option), the maximum learning rate (`--max_lr` or
+`--max_learning_rate` option), and the percentage of the cycle spent increasing
+the learning rate (`--lr_warmup` option).
 
 Example usage:
 
@@ -196,11 +194,11 @@ the loss curve can show when the model starts to learn (the base learning
 rate) and when it starts to diverge (the maximum learning rate).
 
 The model is evaluated with the validation dataset at regular intervals
-(`--valid_epochs` option), and checkpoints are also regularly created
-(`--save_epochs` option) to save training progress. Also, some statistics
-are logged (e.g. training and validation losses, learning rate) at a specified
-frequency (`--log_steps` option), which can be later visualized with TensorBoard
-by running the `visualize.py` script, e.g.:
+(`--num_valid_epochs` option), and checkpoints are also regularly created
+(`--num_save_epochs` option) to save training progress. Also, some statistics
+are logged (e.g. training and validation losses, learning rate) per epoch,
+which can be later visualized with TensorBoard by running the `visualize.py`
+script, e.g.:
 
     ./visualize.py --result rt_hdr_alb
 
@@ -210,7 +208,7 @@ Inference (infer.py)
 A training result can be tested by performing inference on an image dataset
 (`-i` or `--input_data` option) using the `infer.py` script. The dataset
 does *not* have to be preprocessed. In addition to the result to use, it is
-possible to specify which checkpoint to load as well (`-e` or `--epochs`
+possible to specify which checkpoint to load as well (`-e` or `--num_epochs`
 option). By default the latest checkpoint is loaded.
 
 The tool saves the output images in a separate directory (`-O` or

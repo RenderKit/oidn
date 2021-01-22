@@ -20,38 +20,67 @@ import tza
 def get_data_dir(cfg, name):
   return os.path.join(cfg.data_dir, name)
 
+# Returns the main feature from a list of features
+def get_main_feature(features):
+  if len(features) > 1:
+    features = list(set(features) & {'hdr', 'ldr', 'shl1'})
+    if len(features) > 1:
+      error('multiple main features specified')
+  if not features:
+    error('no main feature specified')
+  return features[0]
+
+# Returns the auxiliary features from a list of features
+def get_auxiliary_features(features):
+  main_feature = get_main_feature(features)
+  return list(set(features).difference([main_feature]))
+
 # Returns the ordered list of channel names for the specified features
-def get_channels(features):
-  if ('hdr' in features) or ('ldr' in features):
-    channels = ['r', 'g', 'b']
+def get_channels(features, target):
+  assert target in {'dataset', 'model'}
+  channels = []
+  if 'hdr' in features:
+    channels += ['hdr.r', 'hdr.g', 'hdr.b']
+  if 'ldr' in features:
+    channels += ['ldr.r', 'ldr.g', 'ldr.b']
+  if 'shl1' in features:
+    if target == 'model':
+      channels += ['shl1.r', 'shl1.g', 'shl1.b']
+    else:
+      channels += ['shl1x.r', 'shl1x.g', 'shl1x.b', 'shl1y.r', 'shl1y.g', 'shl1y.b', 'shl1z.r', 'shl1z.g', 'shl1z.b']
   if 'alb' in features:
     channels += ['alb.r', 'alb.g', 'alb.b']
   if 'nrm' in features:
     channels += ['nrm.x', 'nrm.y', 'nrm.z']
   return channels
 
-# Returns the number of channels for the specified features
-def get_num_channels(features):
-  return len(get_channels(features))
+def get_dataset_channels(features):
+  return get_channels(features, target='dataset')
 
-# Returns the indices of the specified channels in the dataset
-def get_channel_indices(channels, data_channels):
-  return [data_channels.index(ch) for ch in channels]
+def get_model_channels(features):
+  return get_channels(features, target='model')
 
-# Shuffles channels according to the specified order
-def shuffle_channels(channels, first_channel, order):
+# Returns the indices of the specified channels in the list of all channels
+def get_channel_indices(channels, all_channels):
+  return [all_channels.index(ch) for ch in channels]
+
+# Shuffles channels according to the specified order and optionally keeps only
+# the specified amount of channels
+def shuffle_channels(channels, first_channel, order, num_channels=None):
   first = channels.index(first_channel)
   new_channels = [channels[first+i] for i in order]
   for i in range(len(new_channels)):
     channels[first+i] = new_channels[i]
-
-# Returns the target features given the input features
-def get_target_features(features):
-  return list(set(features).intersection({'hdr', 'ldr'}))
+  if num_channels is not None:
+    del channels[first+num_channels:first+len(new_channels)]
 
 # Checks whether the image with specified features exists
 def image_exists(name, features):
-  return all([os.path.isfile(name + '.' + f + '.exr') for f in features])
+  suffixes = features.copy()
+  if 'shl1' in suffixes:
+    suffixes.remove('shl1')
+    suffixes += ['shl1x', 'shl1y', 'shl1z']
+  return all([os.path.isfile(name + '.' + s + '.exr') for s in suffixes])
 
 # Returns the feature an image represents given its filename
 def get_image_feature(filename):
@@ -62,42 +91,55 @@ def get_image_feature(filename):
     ext = filename_split[-1].lower()
     if ext in {'exr', 'pfm', 'hdr'}:
       if len(filename_split) == 3:
-        return filename_split[-2]
+        feature = filename_split[-2]
+        if feature in {'shl1x', 'shl1y', 'shl1z'}:
+          feature = 'shl1'
+        return feature
       else:
         return 'hdr' # assume HDR
     else:
       return 'srgb' # assume sRGB
 
-# Loads target image features in EXR format with given filename prefix
-def load_target_image(name, features):
-  if 'hdr' in features:
-    color_filename = name + '.hdr.exr'
-  else:
-    color_filename = name + '.ldr.exr'
-  color = load_image(color_filename, num_channels=3)
-  if 'hdr' in features:
-    color = np.maximum(color, 0.)
-  else:
-    color = np.clip(color, 0., 1.)
-  return color
+# Loads image features in EXR format with given filename prefix
+def load_image_features(name, features):
+  images = []
 
-# Loads input image features in EXR format with given filename prefix
-def load_input_image(name, features):
-  # Color
-  color = load_target_image(name, features)
-  inputs = [color]
+  # HDR color
+  if 'hdr' in features:
+    hdr = load_image(name + '.hdr.exr', num_channels=3)
+    hdr = np.maximum(hdr, 0.)
+    images.append(hdr)
+
+  # LDR color
+  if 'ldr' in features:
+    ldr = load_image(name + '.ldr.exr', num_channels=3)
+    ldr = np.clip(ldr, 0., 1.)
+    images.append(ldr)
+
+  # SH L1 color coefficients
+  if 'shl1' in features:
+    shl1x = load_image(name + '.shl1x.exr', num_channels=3)
+    shl1y = load_image(name + '.shl1y.exr', num_channels=3)
+    shl1z = load_image(name + '.shl1z.exr', num_channels=3)
+
+    for shl1 in [shl1x, shl1y, shl1z]:
+      # Clip to [-1..1] range (coefficients are assumed to be normalized)
+      shl1 = np.clip(shl1, -1., 1.)
+
+      # Transform to [0..1] range
+      shl1 = shl1 * 0.5 + 0.5
+
+      images.append(shl1)
 
   # Albedo
   if 'alb' in features:
-    albedo_filename = name + '.alb.exr'
-    albedo = load_image(albedo_filename, num_channels=3)
+    albedo = load_image(name + '.alb.exr', num_channels=3)
     albedo = np.clip(albedo, 0., 1.)
-    inputs.append(albedo)
+    images.append(albedo)
 
   # Normal
   if 'nrm' in features:
-    normal_filename = name + '.nrm.exr'
-    normal = load_image(normal_filename, num_channels=3)
+    normal = load_image(name + '.nrm.exr', num_channels=3)
 
     # Normalize
     length_sqr = np.add.reduce(np.square(normal), axis=-1, keepdims=True)
@@ -109,9 +151,10 @@ def load_input_image(name, features):
     # Transform to [0..1] range
     normal = normal * 0.5 + 0.5
 
-    inputs.append(normal)
+    images.append(normal)
 
-  return np.concatenate(inputs, axis=2)
+  # Concatenate all feature images into one image
+  return np.concatenate(images, axis=2)
 
 # Tries to load metadata for an image with given filename/prefix, returns None if it fails
 def load_image_metadata(name):
@@ -131,10 +174,10 @@ def load_image_metadata(name):
 def save_image_metadata(name, metadata):
   save_json(name + '.json', metadata)
 
-# Returns groups of image samples (input and target images at different SPPs) as a list of (group, list of input names, target name)
+# Returns groups of image samples (input and target images at different SPPs) as a list of (group name, list of input names, target name)
 def get_image_sample_groups(dir, features):
   image_filenames = glob(os.path.join(dir, '**', '*.*.exr'), recursive=True)
-  target_features = get_target_features(features)
+  target_features = [get_main_feature(features)]
 
   # Make image groups
   image_groups = defaultdict(set)
@@ -163,8 +206,10 @@ def get_image_sample_groups(dir, features):
       input_names, target_name = image_names, None
 
     # Check whether all required features exist
-    if all([image_exists(os.path.join(dir, name), features) for name in input_names]) and \
-       (not target_name or image_exists(os.path.join(dir, target_name), target_features)):
+    if all([image_exists(os.path.join(dir, name), features) for name in input_names]):
+      if target_name and not image_exists(os.path.join(dir, target_name), target_features):
+        target_name = None # discard target due to missing features
+
       # Add sample
       image_sample_groups.append((group, input_names, target_name))
 
@@ -177,7 +222,7 @@ def transform_feature(image, input_feature, output_feature, exposure=1.):
   if output_feature == 'srgb':
     if input_feature in {'hdr', 'ldr', 'alb'}:
       image = srgb_forward(image)
-    elif input_feature == 'nrm':
+    elif input_feature in {'nrm', 'shl1'}:
       # Transform [-1, 1] -> [0, 1]
       image = image * 0.5 + 0.5
   return image
@@ -196,7 +241,7 @@ def get_data_loader(rank, cfg, dataset, shuffle=False):
                       batch_size=(cfg.batch_size // cfg.num_devices),
                       sampler=sampler,
                       shuffle=(shuffle if sampler is None else False),
-                      num_workers=cfg.loaders,
+                      num_workers=cfg.num_loaders,
                       pin_memory=(cfg.device != 'cpu'))
 
   return loader, sampler
@@ -205,15 +250,33 @@ def get_data_loader(rank, cfg, dataset, shuffle=False):
 ## Preprocessed dataset
 ## -----------------------------------------------------------------------------
 
-# Returns a preprocessed dataset directory path
+# Returns the directory path of the best matching preprocessed dataset
 def get_preproc_data_dir(cfg, name):
-  data_dir = os.path.join(cfg.preproc_dir, name) + '.'
-  if 'hdr' in cfg.features:
-    data_dir += 'hdr'
-  elif 'ldr' in cfg.features:
-    data_dir += 'ldr'
-  data_dir += '.' + cfg.transfer
-  return data_dir
+  # Get all preprocessed versions of the requested dataset
+  data_dirs = sorted([f for f in glob(os.path.join(cfg.preproc_dir, name + '.*')) if os.path.isdir(f)])
+
+  # Iterate over all dataset versions
+  best_dir = None
+  best_num_channels = None
+
+  for data_dir in data_dirs:
+    # Load the dataset config if it exists (ignore corrupted datasets)
+    if os.path.isfile(get_config_filename(data_dir)):
+      data_cfg = load_config(data_dir)
+
+      # Check whether the dataset matches the requirements
+      if get_main_feature(data_cfg.features) == get_main_feature(cfg.features) and \
+        all(f in data_cfg.features for f in cfg.features) and \
+        data_cfg.transfer == cfg.transfer:
+        # Select the most recent version with the minimal amount of channels stored
+        num_channels = len(get_dataset_channels(data_cfg.features))
+        if best_dir is None or num_channels <= best_num_channels:
+          best_dir = data_dir
+          best_num_channels = num_channels
+  
+  if best_dir is None:
+    error('no matching preproccessed dataset found')
+  return best_dir
 
 class PreprocessedDataset(Dataset):
   def __init__(self, cfg, name):
@@ -225,16 +288,18 @@ class PreprocessedDataset(Dataset):
       self.num_images = 0
       return
     data_cfg = load_config(data_dir)
-    if not all(f in data_cfg.features for f in cfg.features):
-      error('the preprocessed images have an incompatible set of features')
-    if data_cfg.transfer != cfg.transfer:
-      error('the preprocessed images have a mismatching transfer function')
 
     self.tile_size = cfg.tile_size
+
+    # Get the features
     self.features = cfg.features
-    self.data_channels = get_channels(data_cfg.features)
-    self.channels = get_channels(cfg.features)
-    self.channel_order = get_channel_indices(self.channels, self.data_channels)
+    self.main_feature = get_main_feature(cfg.features)
+    self.auxiliary_features = get_auxiliary_features(cfg.features)
+
+    # Get the channels
+    self.channels = get_dataset_channels(cfg.features)
+    self.all_channels = get_dataset_channels(data_cfg.features)
+    self.num_main_channels = len(get_model_channels(self.main_feature))
 
     # Get the image samples
     samples_filename = os.path.join(data_dir, 'samples.json')
@@ -256,7 +321,7 @@ class TrainingDataset(PreprocessedDataset):
   def __init__(self, cfg, name):
     super(TrainingDataset, self).__init__(cfg, name)
 
-    self.max_padding = 32
+    self.max_padding = 16
 
   def __len__(self):
     return self.num_images
@@ -283,25 +348,33 @@ class TrainingDataset(PreprocessedDataset):
     ox = randint(width  - sx + 1)
 
     # Randomly permute some channels to improve training quality
-    channels = self.channels[:] # copy
+    input_channels = self.channels[:] # copy
 
     # Randomly permute the color channels
-    color_order = randperm(3)
-    shuffle_channels(channels, 'r', color_order)
-    if 'alb' in self.features:
-      shuffle_channels(channels, 'alb.r', color_order)
+    color_features = list(set(self.features) & {'hdr', 'ldr', 'alb'})
+    if color_features:
+      color_order = randperm(3)
+      for f in color_features:
+        shuffle_channels(input_channels, f+'.r', color_order)
+
+    # Randomly permute the L1 SH coefficients and keep only 3 of them
+    if 'shl1' in self.features:
+      shl1_order = randperm(9)
+      shuffle_channels(input_channels, 'shl1x.r', shl1_order, 3)
 
     # Randomly permute the normal channels
     if 'nrm' in self.features:
       normal_order = randperm(3)
-      shuffle_channels(channels, 'nrm.x', normal_order)
+      shuffle_channels(input_channels, 'nrm.x', normal_order)
 
-    # Compute the indices of the required input channels
-    channel_order = get_channel_indices(channels, self.data_channels)
+    # Get the indices of the input and target channels
+    input_channel_indices  = get_channel_indices(input_channels, self.all_channels)
+    target_channel_indices = input_channel_indices[:self.num_main_channels]
+    #print(input_channels, input_channel_indices)
 
     # Crop the input and target images
-    input_image  = input_image [oy:oy+sy, ox:ox+sx, channel_order]
-    target_image = target_image[oy:oy+sy, ox:ox+sx, color_order]
+    input_image  = input_image [oy:oy+sy, ox:ox+sx, input_channel_indices]
+    target_image = target_image[oy:oy+sy, ox:ox+sx, target_channel_indices]
 
     # Randomly transform the tiles to improve training quality
     if rand() < 0.5:
@@ -325,14 +398,14 @@ class TrainingDataset(PreprocessedDataset):
     input_image  = np.pad(input_image,  pad_size, mode='constant')
     target_image = np.pad(target_image, pad_size, mode='constant')
 
-    # Randomly zero the color channels if there are auxiliary features
-    # This prevents "ghosting" artifacts when the color buffer is entirely black
-    if len(self.channels) > 3 and rand() < 0.01:
-      input_image[:, :, 0:3] = 0
+    # Randomly zero the main feature channels if there are auxiliary features
+    # This prevents "ghosting" artifacts when the main feature is entirely black
+    if self.auxiliary_features and rand() < 0.01:
+      input_image[:, :, 0:self.num_main_channels] = 0
       target_image[:] = 0
 
     # DEBUG: Save the tile
-    #save_image('tile_%d.png' % i, target_image)
+    #save_image('tile_%d.png' % index, target_image)
 
     # Convert the tiles to tensors
     return image_to_tensor(input_image), image_to_tensor(target_image)
@@ -344,6 +417,8 @@ class TrainingDataset(PreprocessedDataset):
 class ValidationDataset(PreprocessedDataset):
   def __init__(self, cfg, name):
     super(ValidationDataset, self).__init__(cfg, name)
+
+    input_channel_indices = get_channel_indices(self.channels, self.all_channels)
 
     # Split the images into tiles
     self.tiles = []
@@ -372,14 +447,20 @@ class ValidationDataset(PreprocessedDataset):
         for x in range(num_tiles_x):
           oy = start_y + y * self.tile_size
           ox = start_x + x * self.tile_size
-          self.tiles.append((sample_index, oy, ox))
 
+          if self.main_feature == 'shl1':
+            for k in range(0, 9, 3):
+              ch = input_channel_indices[k:k+3] + input_channel_indices[9:]
+              self.tiles.append((sample_index, oy, ox, ch))
+          else:
+            self.tiles.append((sample_index, oy, ox, input_channel_indices))
+      
   def __len__(self):
     return len(self.tiles)
 
   def __getitem__(self, index):
     # Get the tile
-    sample_index, oy, ox = self.tiles[index]
+    sample_index, oy, ox, input_channel_indices = self.tiles[index]
     sy = sx = self.tile_size
 
     # Get the input and target images
@@ -387,9 +468,12 @@ class ValidationDataset(PreprocessedDataset):
     input_image,  _ = self.images[input_name]
     target_image, _ = self.images[target_name]
 
+    # Get the indices of target channels
+    target_channel_indices = input_channel_indices[:self.num_main_channels]
+
     # Crop the input and target images
-    input_image  = input_image [oy:oy+sy, ox:ox+sx, self.channel_order]
-    target_image = target_image[oy:oy+sy, ox:ox+sx, :]
+    input_image  = input_image [oy:oy+sy, ox:ox+sx, input_channel_indices]
+    target_image = target_image[oy:oy+sy, ox:ox+sx, target_channel_indices]
 
     # Convert the tiles to tensors
     # Copying is required because PyTorch does not support non-writeable tensors

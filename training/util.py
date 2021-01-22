@@ -7,6 +7,8 @@ import struct
 import json
 import csv
 import zipfile
+import time
+import socket
 import numpy as np
 
 import torch
@@ -15,6 +17,7 @@ import torch.multiprocessing as mp
 import torch.distributed as dist
 
 WORKER_RANK = 0
+WORKER_UID = '%08x.%s.%s' % (int(time.time()), socket.gethostname(), os.getpid())
 
 def round_down(a, b):
   return a // b * b
@@ -30,6 +33,11 @@ def error(*args):
   if WORKER_RANK == 0:
     print('Error:', *args)
   exit(1)
+
+# Prints a warning message
+def warning(*args):
+  if WORKER_RANK == 0:
+    print('Warning:', *args)
 
 # Returns the extension of a path without the dot
 def get_path_ext(path):

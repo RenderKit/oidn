@@ -20,7 +20,9 @@ class TransferFunction: pass
 
 def get_transfer_function(cfg):
   type = cfg.transfer
-  if type == 'srgb':
+  if type == 'linear':
+    return None
+  elif type == 'srgb':
     return SRGBTransferFunction()
   elif type == 'pu':
     return PUTransferFunction()

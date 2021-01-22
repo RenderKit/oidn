@@ -13,7 +13,6 @@ from config import *
 from dataset import *
 from model import *
 from loss import *
-from learning_rate import *
 from result import *
 from util import *
 

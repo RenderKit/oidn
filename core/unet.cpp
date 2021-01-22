@@ -297,29 +297,24 @@ namespace oidn {
     const auto inputDims        = TensorDims({inputC, tileH, tileW});
     const auto inputReorderDims = net->getInputReorderDims(inputDims, alignment); //-> concat1
 
-    const auto encConv0Dims = net->getConvDims("enc_conv0", inputReorderDims);    //-> temp0
- 
-    const auto encConv1Dims = net->getConvDims("enc_conv1", encConv0Dims);        //-> temp1
-    const auto pool1Dims    = net->getPoolDims(encConv1Dims);                     //-> concat2
+    const auto encConv0Dims  = net->getConvDims("enc_conv0", inputReorderDims);   //-> temp0
 
-    const auto encConv2Dims = net->getConvDims("enc_conv2", pool1Dims);           //-> temp0
-    const auto pool2Dims    = net->getPoolDims(encConv2Dims);                     //-> concat3
+    const auto encConv1Dims  = net->getConvDims("enc_conv1", encConv0Dims);       //-> temp1
+    const auto pool1Dims     = net->getPoolDims(encConv1Dims);                    //-> concat2
 
-    const auto encConv3Dims = net->getConvDims("enc_conv3", pool2Dims);           //-> temp0
-    const auto pool3Dims    = net->getPoolDims(encConv3Dims);                     //-> concat4
+    const auto encConv2Dims  = net->getConvDims("enc_conv2", pool1Dims);          //-> temp0
+    const auto pool2Dims     = net->getPoolDims(encConv2Dims);                    //-> concat3
 
-    const auto encConv4Dims = net->getConvDims("enc_conv4", pool3Dims);           //-> temp0
-    const auto pool4Dims    = net->getPoolDims(encConv4Dims);                     //-> concat5
+    const auto encConv3Dims  = net->getConvDims("enc_conv3", pool2Dims);          //-> temp0
+    const auto pool3Dims     = net->getPoolDims(encConv3Dims);                    //-> concat4
 
-    const auto encConv5Dims = net->getConvDims("enc_conv5", pool4Dims);           //-> temp0
-    const auto pool5Dims    = net->getPoolDims(encConv5Dims);                     //-> temp1
+    const auto encConv4Dims  = net->getConvDims("enc_conv4", pool3Dims);          //-> temp0
+    const auto pool4Dims     = net->getPoolDims(encConv4Dims);                    //-> temp1
 
-    const auto upsample5Dims = net->getUpsampleDims(pool5Dims);                   //-> concat5
-    const auto concat5Dims   = net->getConcatDims({upsample5Dims, pool4Dims});
-    const auto decConv5aDims = net->getConvDims("dec_conv5a", concat5Dims);       //-> temp0
-    const auto decConv5bDims = net->getConvDims("dec_conv5b", decConv5aDims);     //-> temp1
+    const auto encConv5aDims = net->getConvDims("enc_conv5a", pool4Dims);         //-> temp0
+    const auto encConv5bDims = net->getConvDims("enc_conv5b", encConv5aDims);     //-> temp1
 
-    const auto upsample4Dims = net->getUpsampleDims(decConv5bDims);               //-> concat4
+    const auto upsample4Dims = net->getUpsampleDims(encConv5bDims);               //-> concat4
     const auto concat4Dims   = net->getConcatDims({upsample4Dims, pool3Dims});
     const auto decConv4aDims = net->getConvDims("dec_conv4a", concat4Dims);       //-> temp0
     const auto decConv4bDims = net->getConvDims("dec_conv4b", decConv4aDims);     //-> temp1
@@ -339,7 +334,7 @@ namespace oidn {
     const auto decConv1aDims = net->getConvDims("dec_conv1a", concat1Dims);       //-> temp0
     const auto decConv1bDims = net->getConvDims("dec_conv1b", decConv1aDims);     //-> temp1
 
-    const auto decConv0Dims = net->getConvDims("dec_conv0", decConv1bDims);       //-> temp0
+    const auto decConv0Dims  = net->getConvDims("dec_conv0", decConv1bDims);      //-> temp0
 
     const auto outputDims = TensorDims({3, tileH, tileW});
 
@@ -349,8 +344,7 @@ namespace oidn {
       encConv2Dims,
       encConv3Dims,
       encConv4Dims,
-      encConv5Dims,
-      decConv5aDims,
+      encConv5aDims,
       decConv4aDims,
       decConv3aDims,
       decConv2aDims,
@@ -360,8 +354,8 @@ namespace oidn {
 
     const auto temp1Dims = getMaxDims({
       encConv1Dims,
-      pool5Dims,
-      decConv5bDims,
+      pool4Dims,
+      encConv5bDims,
       decConv4bDims,
       decConv3bDims,
       decConv2bDims,
@@ -379,13 +373,11 @@ namespace oidn {
     auto concat2Dst = net->newTensor(concat2Dims);
     auto concat3Dst = net->newTensor(concat3Dims);
     auto concat4Dst = net->newTensor(concat4Dims);
-    auto concat5Dst = net->newTensor(concat5Dims);
 
     auto concat1Src = net->getConcatSrc(concat1Dst, {upsample1Dims, inputReorderDims});
     auto concat2Src = net->getConcatSrc(concat2Dst, {upsample2Dims, pool1Dims});
     auto concat3Src = net->getConcatSrc(concat3Dst, {upsample3Dims, pool2Dims});
     auto concat4Src = net->getConcatSrc(concat4Dst, {upsample4Dims, pool3Dims});
-    auto concat5Src = net->getConcatSrc(concat5Dst, {upsample5Dims, pool4Dims});
 
     // Transfer function
     Ref<TransferFunction> transferFunc = makeTransferFunc();
@@ -417,16 +409,12 @@ namespace oidn {
     auto pool3    = net->addPool(encConv3->getDst(), concat4Src[1]);
 
     auto encConv4 = net->addConv("enc_conv4", pool3->getDst(), temp0->view(encConv4Dims));
-    auto pool4    = net->addPool(encConv4->getDst(), concat5Src[1]);
+    auto pool4    = net->addPool(encConv4->getDst(), temp1->view(pool4Dims));
 
-    auto encConv5 = net->addConv("enc_conv5", pool4->getDst(), temp0->view(encConv5Dims));
-    auto pool5    = net->addPool(encConv5->getDst(), temp1->view(pool5Dims));
+    auto encConv5a = net->addConv("enc_conv5a", pool4->getDst(), temp0->view(encConv5aDims));
+    auto encConv5b = net->addConv("enc_conv5b", encConv5a->getDst(), temp1->view(encConv5bDims));
 
-    auto upsample5 = net->addUpsample(pool5->getDst(), concat5Src[0]);
-    auto decConv5a = net->addConv("dec_conv5a", concat5Dst, temp0->view(decConv5aDims));
-    auto decConv5b = net->addConv("dec_conv5b", decConv5a->getDst(), temp1->view(decConv5bDims));
-
-    auto upsample4 = net->addUpsample(decConv5b->getDst(), concat4Src[0]);
+    auto upsample4 = net->addUpsample(encConv5b->getDst(), concat4Src[0]);
     auto decConv4a = net->addConv("dec_conv4a", concat4Dst, temp0->view(decConv4aDims));
     auto decConv4b = net->addConv("dec_conv4b", decConv4a->getDst(), temp1->view(decConv4bDims));
 
