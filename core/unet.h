@@ -26,7 +26,7 @@ namespace oidn {
   #if defined(OIDN_DNNL)
     static constexpr int estimatedBytesPerPixel = 882;
   #else
-    static constexpr int estimatedBytesPerPixel = 861;
+    static constexpr int estimatedBytesPerPixel = 854;
   #endif
 
     // Images
