@@ -3,10 +3,18 @@ Version History
 
 ### Changes in v1.3.0:
 
+-   Improved denoising quality
+    -   Improved sharpness of fine details / less blurriness
+    -   Fewer noisy artifacts
+-   Slightly improved performance and lower memory consumption
 -   Added support for Apple Silicon and the BNNS library on macOS (currently
     requires building from source)
 -   Added `OIDN_NN_RUNTIME` CMake option for setting the neural network runtime
+-   Reduced the size of the library binary
 -   Fixed compile error on some older macOS versions
+-   Training:
+    -   Improved training performance
+    -   Added support for training on multiple GPUs
 
 ### Changes in v1.2.4:
 

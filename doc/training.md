@@ -43,13 +43,13 @@ Before you can run the training toolkit you need the following prerequisites:
 
 -   Python 3.7 or later
 
--   [PyTorch](https://pytorch.org/) 1.4 or later
+-   [PyTorch](https://pytorch.org/) 1.7 or later
 
--   [NumPy](https://numpy.org/) 1.17 or later
+-   [NumPy](https://numpy.org/) 1.19 or later
 
 -   [OpenImageIO](http://openimageio.org/) 2.1 or later
 
--   [TensorBoard](https://www.tensorflow.org/tensorboard) 2.1 or later (*optional*)
+-   [TensorBoard](https://www.tensorflow.org/tensorboard) 2.4 or later (*optional*)
 
 Datasets
 --------
