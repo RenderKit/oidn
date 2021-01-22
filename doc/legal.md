@@ -1,7 +1,7 @@
 Disclaimer and Legal Information
 ================================
 
-© 2018-2020 Intel Corporation
+© 2018-2021 Intel Corporation
 
 [Privacy Notice](https://www.intel.com/privacy)
 

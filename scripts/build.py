@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-## Copyright 2009-2020 Intel Corporation
+## Copyright 2009-2021 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 import re

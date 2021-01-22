@@ -1,4 +1,4 @@
-## Copyright 2018-2020 Intel Corporation
+## Copyright 2018-2021 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 import os

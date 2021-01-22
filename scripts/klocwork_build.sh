@@ -1,6 +1,6 @@
 #!/bin/bash
 
-## Copyright 2009-2020 Intel Corporation
+## Copyright 2009-2021 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 # function repeat the command $1 times, when the last line output is equal ERROR_MSG
