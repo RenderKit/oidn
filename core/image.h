@@ -105,6 +105,26 @@ namespace oidn {
       return ptr != nullptr;
     }
 
+    // Returns the number of channels
+    __forceinline int numChannels() const
+    {
+      switch (format)
+      {
+      case Format::Undefined:
+        return 0;
+      case Format::Float:
+        return 1;
+      case Format::Float2:
+        return 2;
+      case Format::Float3:
+        return 3;
+      case Format::Float4:
+        return 4;
+      default:
+        assert(0);
+      }
+    }
+
     // Determines whether two images overlap in memory
     bool overlaps(const Image& other) const
     {

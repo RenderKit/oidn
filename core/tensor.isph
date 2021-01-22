@@ -5,7 +5,7 @@
 
 #include "vec.isph"
 
-#define K programCount
+#define K programCount // native tensor block size
 
 // Tensor in CHW layout
 struct Tensor

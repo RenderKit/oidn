@@ -103,6 +103,20 @@ namespace oidn {
     {
       return numElements() * elementByteSize();
     }
+
+    // Returns the block size of the layout
+    __forceinline int blockSize() const
+    {
+      switch (layout)
+      {
+      case TensorLayout::Chw8c:
+        return 8;
+      case TensorLayout::Chw16c:
+        return 16;
+      default:
+        return 1;
+      }
+    }
     
   #if defined(OIDN_DNNL)
     operator dnnl::memory::desc() const

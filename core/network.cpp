@@ -72,13 +72,6 @@ namespace oidn {
                                      int alignment,
                                      const Ref<Tensor>& dst)
   {
-    assert(color);
-    int inputC = 3;
-    if (albedo) inputC += 3;
-    if (normal) inputC += 3;
-    assert(dst->dims == getInputReorderDims({inputC, color.height, color.width}, alignment));
-
-    // Push node
     auto node = makeRef<InputReorderNode>(device, color, albedo, normal, dst, transferFunc, hdr);
     nodes.push_back(node);
     return node;
@@ -89,10 +82,6 @@ namespace oidn {
                                       bool hdr,
                                       const Image& output)
   {
-    assert(src->ndims() == 3); // CHW
-    assert(src->dims[0] == K);
-
-    // Push node
     auto node = makeRef<OutputReorderNode>(device, src, output, transferFunc, hdr);
     nodes.push_back(node);
     return node;
@@ -102,9 +91,9 @@ namespace oidn {
   {
     assert(srcDims.size() == 3); // CHW
 
-    const auto& b = weightsMap[name + ".bias"];
+    const auto& bias = weightsMap[name + ".bias"];
     TensorDims dstDims = srcDims;
-    dstDims[0] = round_up(b->dims[0], K); // dstDims[C] = round_up(OC, K)
+    dstDims[0] = round_up(bias->dims[0], K); // dstDims[C] = round_up(OC, K)
     return dstDims;
   }
 
@@ -129,7 +118,7 @@ namespace oidn {
     if (K > 1)
       bias = padBias(bias);
 
-    // Create convolution node and add it to the net
+    // Create the convolution node
     auto node = makeRef<ConvNode>(device, src, weights, bias, dst, relu);
     nodes.push_back(node);
     return node;
@@ -170,7 +159,7 @@ namespace oidn {
   {
     assert(dst->dims == getUpsampleDims(src->dims));
 
-    auto node = makeRef<UpsampleNode>(device, K, src, dst);
+    auto node = makeRef<UpsampleNode>(device, src, dst);
     nodes.push_back(node);
     return node;
   }

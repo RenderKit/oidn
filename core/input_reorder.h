@@ -35,6 +35,16 @@ namespace oidn {
         dst(dst),
         transferFunc(transferFunc)
     {
+      assert(srcColor);
+      assert(dst->ndims() == 3);
+      assert(dst->layout == TensorLayout::chw ||
+             dst->layout == TensorLayout::Chw8c ||
+             dst->layout == TensorLayout::Chw16c);
+      assert(dst->blockSize() == device->getTensorBlockSize());
+      assert(dst->dims[0] >= srcColor.numChannels()  +
+                             srcAlbedo.numChannels() +
+                             srcNormal.numChannels());
+
       impl.srcColor  = srcColor;
       impl.srcAlbedo = srcAlbedo;
       impl.srcNormal = srcNormal;

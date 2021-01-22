@@ -15,23 +15,32 @@ namespace oidn {
   {
   private:
     ispc::Upsample impl;
-
     int K;
+    
     Ref<Tensor> src;
     Ref<Tensor> dst;
 
   public:
     UpsampleNode(const Ref<Device>& device,
-                 int K,
                  const Ref<Tensor>& src,
                  const Ref<Tensor>& dst)
       : Node(device),
-        K(K),
         src(src),
         dst(dst)
     {
+      assert(src->ndims() == 3);
+      assert(src->tensorLayout == TensorLayout::Chw8c ||
+             src->tensorLayout == TensorLayout::Chw16c);
+      assert(src->blockSize() == device->getTensorBlockSize());
+      assert(dst->ndims() == 3);
+      assert(dst->layout == src->layout);
+      assert(dst->dims[0] == src->dims[0]);     // C
+      assert(dst->dims[1] == src->dims[1] * 2); // H
+      assert(dst->dims[2] == src->dims[2] * 2); // W
+
       impl.src = *src;
       impl.dst = *dst;
+      K = src->blockSize();
     }
 
     void execute() override
@@ -56,14 +65,19 @@ namespace oidn {
 
   public:
     UpsampleNode(const Ref<Device>& device,
-                 int K,
                  const Ref<Tensor>& src,
                  const Ref<Tensor>& dst)
       : Node(device),
         src(src),
         dst(dst)
     {
-      assert(K == 1);
+      assert(src->ndims() == 3);
+      assert(src->layout == TensorLayout::chw);
+      assert(dst->ndims() == 3);
+      assert(dst->layout == src->layout);
+      assert(dst->dims[0] == src->dims[0]);     // C
+      assert(dst->dims[1] == src->dims[1] * 2); // H
+      assert(dst->dims[2] == src->dims[2] * 2); // W
     }
 
     void execute() override

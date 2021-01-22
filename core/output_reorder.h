@@ -31,6 +31,14 @@ namespace oidn {
         dst(dst),
         transferFunc(transferFunc)
     {
+      assert(src->ndims() == 3);
+      assert(src->layout == TensorLayout::chw ||
+             src->layout == TensorLayout::Chw8c ||
+             src->layout == TensorLayout::Chw16c);
+      assert(src->blockSize() == device->getTensorBlockSize());
+      assert(src->dims[0] >= dst.numChannels());
+      assert(dst.numChannels() == 3);
+
       impl.src = *src;
       impl.dst = dst;
 

@@ -84,6 +84,7 @@ namespace oidn {
     __forceinline dnnl::stream& getDNNLStream() { return dnnlStream; }
   #endif
 
+    // Returns the native tensor layout block size
     __forceinline int getTensorBlockSize() const { return tensorBlockSize; }
 
   private:
