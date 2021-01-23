@@ -40,7 +40,7 @@ namespace oidn {
 
       impl.src = *src;
       impl.dst = *dst;
-      K = src->blockSize();
+      K = device->getTensorBlockSize();
     }
 
     void execute() override
