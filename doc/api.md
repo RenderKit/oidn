@@ -457,40 +457,46 @@ can be one of the input images (i.e. in-place denoising is supported).
 --------- -------- ----------- -------- ----------------------------------------
 Type      Format   Name         Default Description
 --------- -------- ----------- -------- ----------------------------------------
-Image     float3   color                input color image (LDR values in [0, 1]
-                                        or HDR values in [0, +∞), 3 channels)
+Image     float3   color                input color image (RGB, LDR values in
+                                        [0, 1] or HDR values in [0, +∞), values
+                                        being interpreted such that, after
+                                        scaling with the inputScale parameter, a
+                                        value of 1 corresponds to a luminance
+                                        level of 100 cd/m²)
 
 Image     float3   albedo               input feature image containing the
-                                        albedo (values in [0, 1], 3 channels) of
-                                        the first hit per pixel; *optional*
+                                        albedo (RGB, values in [0, 1]) of the
+                                        first hit per pixel; *optional*
 
 Image     float3   normal               input feature image containing the
-                                        shading normal (world-space or
-                                        view-space, arbitrary length, values in
-                                        (−∞, +∞), 3 channels) of the first hit
-                                        per pixel; *optional*, requires setting
-                                        the albedo image too
+                                        shading normal (3D world-space or
+                                        view-space vector with arbitrary
+                                        length, values in (−∞, +∞)) of the first
+                                        hit per pixel; *optional*, requires
+                                        setting the albedo image too
 
-Image     float3   output               output color image (3 channels); it can
-                                        be one of the input images
-
-Data               weights              trained model weights blob; *optional*
+Image     float3   output               output image; it can be one of the input
+                                        images
 
 bool               hdr            false whether the color is HDR
-
-float              hdrScale         NaN HDR color values are interpreted such
-                                        that, multiplied by this scale, a value
-                                        of 1 corresponds to a luminance level
-                                        of 100 cd/m² (this affects the quality
-                                        of the output but the output color
-                                        values will *not* be scaled); if set to
-                                        NaN, the scale is computed
-                                        automatically (*default*)
 
 bool               srgb           false whether the color is encoded with the
                                         sRGB (or 2.2 gamma) curve (LDR only) or
                                         is linear; the output will be encoded
                                         with the same curve
+
+float              inputScale       NaN scales input color values before
+                                        filtering, without scaling the output
+                                        too, which can be used to map color
+                                        values to the expected range, e.g. for
+                                        mapping HDR values to physical units
+                                        (which affects the quality of the output
+                                        but *not* the range of the output
+                                        values); if set to NaN, the scale is
+                                        computed automatically for HDR images or
+                                        set to 1 otherwise (*default*)
+
+Data               weights              trained model weights blob; *optional*
 
 int                maxMemoryMB     6000 approximate maximum amount of scratch
                                         memory to use in megabytes (actual
@@ -625,19 +631,26 @@ function as the filter type. The filter supports the following parameters:
 --------- -------- ----------- -------- ----------------------------------------
 Type      Format   Name         Default Description
 --------- -------- ----------- -------- ----------------------------------------
-Image     float3   color                input color image (HDR values in
-                                        [0, +∞), 3 channels)
+Image     float3   color                input color image (RGB, HDR values in
+                                        [0, +∞), values being interpreted such
+                                        that, after scaling with the inputScale
+                                        parameter, a value of 1 corresponds to a
+                                        luminance level of 100 cd/m²)
 
-Image     float3   output               output color image (3 channels); it can
-                                        be one of the input images
+Image     float3   output               output image; it can be one of the input
+                                        images
+
+float              inputScale       NaN scales input color values before
+                                        filtering, without scaling the output
+                                        too, which can be used to map color
+                                        values to the expected range, e.g. for
+                                        mapping HDR values to physical units
+                                        (which affects the quality of the output
+                                        but *not* the range of the output
+                                        values); if set to NaN, the scale is
+                                        computed automatically (*default*)
 
 Data               weights              trained model weights blob; *optional*
-
-float              hdrScale         NaN HDR color values are interpreted such
-                                        that, multiplied by this scale, a value
-                                        of 1 corresponds to a luminance level
-                                        of 100 cd/m²; if set to NaN, the scale
-                                        is computed automatically (*default*)
 
 int                maxMemoryMB     6000 approximate maximum amount of scratch
                                         memory to use in megabytes (actual

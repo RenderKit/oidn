@@ -16,38 +16,37 @@ namespace oidn {
   private:
     ispc::InputReorder impl;
 
-    Image srcColor;
-    Image srcAlbedo;
-    Image srcNormal;
+    Image color;
+    Image albedo;
+    Image normal;
     Ref<Tensor> dst;
     Ref<TransferFunction> transferFunc;
 
   public:
     InputReorderNode(const Ref<Device>& device,
-                     const Image& srcColor,
-                     const Image& srcAlbedo,
-                     const Image& srcNormal,
+                     const Image& color,
+                     const Image& albedo,
+                     const Image& normal,
                      const Ref<Tensor>& dst,
                      const Ref<TransferFunction>& transferFunc,
                      bool hdr)
       : Node(device),
-        srcColor(srcColor), srcAlbedo(srcAlbedo), srcNormal(srcNormal),
+        color(color), albedo(albedo), normal(normal),
         dst(dst),
         transferFunc(transferFunc)
     {
-      assert(srcColor);
       assert(dst->ndims() == 3);
       assert(dst->layout == TensorLayout::chw ||
              dst->layout == TensorLayout::Chw8c ||
              dst->layout == TensorLayout::Chw16c);
       assert(dst->blockSize() == device->getTensorBlockSize());
-      assert(dst->dims[0] >= srcColor.numChannels()  +
-                             srcAlbedo.numChannels() +
-                             srcNormal.numChannels());
+      assert(dst->dims[0] >= color.numChannels()  +
+                             albedo.numChannels() +
+                             normal.numChannels());
 
-      impl.srcColor  = srcColor;
-      impl.srcAlbedo = srcAlbedo;
-      impl.srcNormal = srcNormal;
+      impl.color  = color;
+      impl.albedo = albedo;
+      impl.normal = normal;
 
       impl.dst = *dst;
 
@@ -55,8 +54,8 @@ namespace oidn {
       impl.wSrcBegin = 0;
       impl.hDstBegin = 0;
       impl.wDstBegin = 0;
-      impl.H = srcColor.height;
-      impl.W = srcColor.width;
+      impl.H = color.height;
+      impl.W = color.width;
 
       impl.transferFunc = transferFunc->getImpl();
       impl.hdr = hdr;
@@ -74,8 +73,8 @@ namespace oidn {
 
     void execute() override
     {
-      assert(impl.H + impl.hSrcBegin <= srcColor.height);
-      assert(impl.W + impl.wSrcBegin <= srcColor.width);
+      assert(impl.H + impl.hSrcBegin <= color.height);
+      assert(impl.W + impl.wSrcBegin <= color.width);
       assert(impl.H + impl.hDstBegin <= impl.dst.H);
       assert(impl.W + impl.wDstBegin <= impl.dst.W);
 

@@ -8,9 +8,9 @@
 struct InputReorder
 {
   // Source
-  uniform Image srcColor;
-  uniform Image srcAlbedo;
-  uniform Image srcNormal;
+  uniform Image color;
+  uniform Image albedo;
+  uniform Image normal;
 
   // Destination
   uniform Tensor dst;
@@ -36,6 +36,9 @@ inline void storeZero(uniform InputReorder* uniform self, uniform int h, int w, 
 // Stores a color value
 inline void storeColor(uniform InputReorder* uniform self, uniform int h, int w, uniform int c, vec3f value)
 {
+  // Scale
+  value = value * self->transferFunc->inputScale;
+
   // Sanitize
   value = clamp(nan_to_zero(value), 0.f, self->hdr ? pos_max : 1.f);
 
@@ -94,18 +97,22 @@ export void InputReorder_kernel(uniform InputReorder* uniform self, uniform int 
       const int wDst = w + self->wDstBegin;
 
       uniform int c = 0;
-      storeColor(self, hDst, wDst, c, get3f(self->srcColor, hSrc, wSrc));
-      c += 3;
 
-      if (self->srcAlbedo.ptr)
+      if (self->color.ptr)
       {
-        storeAlbedo(self, hDst, wDst, c, get3f(self->srcAlbedo, hSrc, wSrc));
+        storeColor(self, hDst, wDst, c, get3f(self->color, hSrc, wSrc));
         c += 3;
       }
 
-      if (self->srcNormal.ptr)
+      if (self->albedo.ptr)
       {
-        storeNormal(self, hDst, wDst, c, get3f(self->srcNormal, hSrc, wSrc));
+        storeAlbedo(self, hDst, wDst, c, get3f(self->albedo, hSrc, wSrc));
+        c += 3;
+      }
+
+      if (self->normal.ptr)
+      {
+        storeNormal(self, hDst, wDst, c, get3f(self->normal, hSrc, wSrc));
         c += 3;
       }
 

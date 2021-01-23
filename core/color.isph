@@ -9,13 +9,13 @@ struct TransferFunction
   vec3f (*uniform forward)(const uniform TransferFunction* uniform self, vec3f y);
   vec3f (*uniform inverse)(const uniform TransferFunction* uniform self, vec3f x);
 
-  // Normalization (HDR only)
-  uniform float xScale;
-  uniform float xRcpScale;
+  // Input and output scales (*not* applied by the forward/inverse functions!)
+  uniform float inputScale;
+  uniform float outputScale;
 
-  // Exposure (HDR only)
-  uniform float yScale;
-  uniform float yRcpScale;
+  // Normalization scale (HDR only)
+  uniform float normScale;
+  uniform float rcpNormScale;
 };
 
 // Computes the luminance of an RGB color

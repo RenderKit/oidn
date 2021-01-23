@@ -91,14 +91,14 @@ def pu_inverse(x):
                                  torch.pow((x - PU_D) / PU_B, 1./PU_C),
                                  torch.exp((x - PU_G) / PU_E) - PU_F))
 
-PU_X_SCALE = 1. / pu_forward(torch.tensor(HDR_Y_MAX)).item()
+PU_NORM_SCALE = 1. / pu_forward(torch.tensor(HDR_Y_MAX)).item()
 
 class PUTransferFunction(TransferFunction):
   def forward(self, y):
-    return pu_forward(y) * PU_X_SCALE
+    return pu_forward(y) * PU_NORM_SCALE
 
   def inverse(self, x):
-    return pu_inverse(x / PU_X_SCALE)
+    return pu_inverse(x / PU_NORM_SCALE)
 
 ## -----------------------------------------------------------------------------
 ## Transfer function: Log
@@ -110,14 +110,14 @@ def log_forward(y):
 def log_inverse(x):
   return torch.exp(x) - 1.
 
-LOG_X_SCALE = 1. / log_forward(torch.tensor(HDR_Y_MAX)).item()
+LOG_NORM_SCALE = 1. / log_forward(torch.tensor(HDR_Y_MAX)).item()
 
 class LogTransferFunction(TransferFunction):
   def forward(self, y):
-    return log_forward(y) * LOG_X_SCALE
+    return log_forward(y) * LOG_NORM_SCALE
 
   def inverse(self, x):
-    return log_inverse(x / LOG_X_SCALE)
+    return log_inverse(x / LOG_NORM_SCALE)
 
 ## -----------------------------------------------------------------------------
 ## Autoexposure

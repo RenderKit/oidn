@@ -77,16 +77,16 @@ namespace oidn {
 
   void UNetFilter::set1f(const std::string& name, float value)
   {
-    if (name == "hdrScale")
-      hdrScale = value;
+    if (name == "inputScale" || name == "hdrScale")
+      inputScale = value;
 
     dirty = true;
   }
 
   float UNetFilter::get1f(const std::string& name)
   {
-    if (name == "hdrScale")
-      return hdrScale;
+    if (name == "inputScale" || name == "hdrScale")
+      return inputScale;
     else
       throw Exception(Error::InvalidArgument, "invalid parameter");
   }
@@ -381,21 +381,23 @@ namespace oidn {
 
     // Transfer function
     Ref<TransferFunction> transferFunc = makeTransferFunc();
-
-    // Autoexposure
-    if (hdr)
+    if (isnan(inputScale))
     {
-      if (isnan(hdrScale))
+      if (hdr)
         net->addAutoexposure(color, transferFunc);
       else
-        transferFunc->setExposure(hdrScale);
+        transferFunc->setInputScale(1.f);
+    }
+    else
+    {
+      transferFunc->setInputScale(inputScale);
     }
 
     // Create the nodes
     inputReorder = net->addInputReorder(color, albedo, normal,
+                                        concat1Src[1],
                                         transferFunc, hdr,
-                                        alignment,
-                                        concat1Src[1]);
+                                        alignment);
 
     auto encConv0 = net->addConv("enc_conv0", inputReorder->getDst(), temp0->view(encConv0Dims));
 
@@ -433,9 +435,8 @@ namespace oidn {
     auto decConv0 = net->addConv("dec_conv0", decConv1b->getDst(), temp0->view(decConv0Dims), false);
 
     outputReorder = net->addOutputReorder(decConv0->getDst(),
-                                          transferFunc,
-                                          hdr,
-                                          outputTemp ? outputTemp : output);
+                                          outputTemp ? outputTemp : output,
+                                          transferFunc, hdr);
 
     net->finalize();
     return net;

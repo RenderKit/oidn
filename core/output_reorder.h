@@ -17,18 +17,18 @@ namespace oidn {
     ispc::OutputReorder impl;
 
     Ref<Tensor> src;
-    Image dst;
+    Image output;
     Ref<TransferFunction> transferFunc;
 
   public:
     OutputReorderNode(const Ref<Device>& device,
                       const Ref<Tensor>& src,
-                      const Image& dst,
+                      const Image& output,
                       const Ref<TransferFunction>& transferFunc,
                       bool hdr)
       : Node(device),
         src(src),
-        dst(dst),
+        output(output),
         transferFunc(transferFunc)
     {
       assert(src->ndims() == 3);
@@ -36,18 +36,18 @@ namespace oidn {
              src->layout == TensorLayout::Chw8c ||
              src->layout == TensorLayout::Chw16c);
       assert(src->blockSize() == device->getTensorBlockSize());
-      assert(src->dims[0] >= dst.numChannels());
-      assert(dst.numChannels() == 3);
+      assert(src->dims[0] >= output.numChannels());
+      assert(output.numChannels() == 3);
 
       impl.src = *src;
-      impl.dst = dst;
+      impl.output = output;
 
       impl.hSrcBegin = 0;
       impl.wSrcBegin = 0;
       impl.hDstBegin = 0;
       impl.wDstBegin = 0;
-      impl.H = dst.height;
-      impl.W = dst.width;
+      impl.H = output.height;
+      impl.W = output.width;
 
       impl.transferFunc = transferFunc->getImpl();
       impl.hdr = hdr;
@@ -67,8 +67,8 @@ namespace oidn {
     {
       assert(impl.hSrcBegin + impl.H <= impl.src.H);
       assert(impl.wSrcBegin + impl.W <= impl.src.W);
-      //assert(impl.hDstBegin + impl.H <= impl.dst.H);
-      //assert(impl.wDstBegin + impl.W <= impl.dst.W);
+      //assert(impl.hDstBegin + impl.H <= impl.output.H);
+      //assert(impl.wDstBegin + impl.W <= impl.output.W);
 
       parallel_nd(impl.H, [&](int h)
       {

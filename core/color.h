@@ -35,9 +35,9 @@ namespace oidn {
       }
     }
 
-    void setExposure(float exposure)
+    void setInputScale(float inputScale)
     {
-      ispc::TransferFunction_setExposure(&impl, exposure);
+      ispc::TransferFunction_setInputScale(&impl, inputScale);
     }
 
     ispc::TransferFunction* getImpl()
@@ -65,7 +65,7 @@ namespace oidn {
     {
       const float exposure = autoexposure(color);
       //printf("exposure = %f\n", exposure);
-      transferFunc->setExposure(exposure);
+      transferFunc->setInputScale(exposure);
     }
 
   private:

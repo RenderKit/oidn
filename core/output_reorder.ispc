@@ -11,7 +11,7 @@ struct OutputReorder
   uniform Tensor src;
 
   // Destination
-  uniform Image dst;
+  uniform Image output;
 
   // Tile
   uniform int hSrcBegin;
@@ -45,11 +45,13 @@ export void OutputReorder_kernel(uniform OutputReorder* uniform self, uniform in
     // Apply the inverse transfer function
     value = self->transferFunc->inverse(self->transferFunc, value);
 
+    // Scale
+    value = value * self->transferFunc->outputScale;
+
     // Sanitize
-    if (!self->hdr)
-      value = min(value, 1.f);
+    value = clamp(nan_to_zero(value), 0.f, self->hdr ? pos_max : 1.f);
 
     // Store
-    set3f(self->dst, hDst, wDst, value);
+    set3f(self->output, hDst, wDst, value);
   }
 }

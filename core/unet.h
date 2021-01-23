@@ -38,8 +38,8 @@ namespace oidn {
 
     // Options
     bool hdr = false;
-    float hdrScale = std::numeric_limits<float>::quiet_NaN();
     bool srgb = false;
+    float inputScale = std::numeric_limits<float>::quiet_NaN();
     int maxMemoryMB = 6000; // approximate maximum memory usage in MBs
 
     // Image dimensions

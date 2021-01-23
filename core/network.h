@@ -27,15 +27,15 @@ namespace oidn {
     Ref<Node> addInputReorder(const Image& color,
                               const Image& albedo,
                               const Image& normal,
+                              const Ref<Tensor>& dst,
                               const Ref<TransferFunction>& transferFunc,
                               bool hdr,
-                              int alignment,
-                              const Ref<Tensor>& dst);
+                              int alignment);
 
     Ref<Node> addOutputReorder(const Ref<Tensor>& src,
+                               const Image& output,
                                const Ref<TransferFunction>& transferFunc,
-                               bool hdr,
-                               const Image& output);
+                               bool hdr);
 
     TensorDims getConvDims(const std::string& name, const TensorDims& srcDims);
     Ref<Node> addConv(const std::string& name,
