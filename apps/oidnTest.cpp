@@ -17,7 +17,7 @@ using namespace oidn;
 void setFilterImage(FilterRef& filter, const char* name, ImageBuffer& image)
 {
   Format format = Format::Undefined;
-  switch (image.getChannels())
+  switch (image.numChannels)
   {
   case 1: format = Format::Float;  break;
   case 2: format = Format::Float2; break;
@@ -26,20 +26,20 @@ void setFilterImage(FilterRef& filter, const char* name, ImageBuffer& image)
   default: assert(0);
   }
 
-  filter.setImage(name, image.getData(), format, image.getWidth(), image.getHeight());
+  filter.setImage(name, image.data(), format, image.width, image.height);
 }
 
 ImageBuffer makeConstImage(int W, int H, int C = 3, float value = 0.5f)
 {
   ImageBuffer image(W, H, C);
-  for (int i = 0; i < image.getSize(); ++i)
+  for (size_t i = 0; i < image.size(); ++i)
     image[i] = value;
   return image;
 }
 
 bool isBetween(const ImageBuffer& image, float a, float b)
 {
-  for (int i = 0; i < image.getSize(); ++i)
+  for (size_t i = 0; i < image.size(); ++i)
     if (!std::isfinite(image[i]) || image[i] < a || image[i] > b)
       return false;
   return true;

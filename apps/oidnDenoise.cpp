@@ -177,26 +177,26 @@ int main(int argc, char* argv[])
     if (!albedoFilename.empty())
     {
       albedo = loadImage(albedoFilename, 3, false);
-      if (albedo->getDims() != color->getDims())
+      if (albedo->dims() != color->dims())
         throw std::runtime_error("invalid albedo image");
     }
 
     if (!normalFilename.empty())
     {
       normal = loadImage(normalFilename, 3);
-      if (normal->getDims() != color->getDims())
+      if (normal->dims() != color->dims())
         throw std::runtime_error("invalid normal image");
     }
 
     if (!refFilename.empty())
     {
       ref = loadImage(refFilename, 3, srgb);
-      if (ref->getDims() != color->getDims())
+      if (ref->dims() != color->dims())
         throw std::runtime_error("invalid reference output image");
     }
 
-    const int width  = color->getWidth();
-    const int height = color->getHeight();
+    const int width  = color->width;
+    const int height = color->height;
     std::cout << "Resolution: " << width << "x" << height << std::endl;
 
     // Initialize the output image
@@ -235,13 +235,13 @@ int main(int argc, char* argv[])
 
     FilterRef filter = device.newFilter(filterType.c_str());
 
-    filter.setImage("color", color->getData(), Format::Float3, width, height);
+    filter.setImage("color", color->data(), Format::Float3, width, height);
     if (albedo)
-      filter.setImage("albedo", albedo->getData(), Format::Float3, width, height);
+      filter.setImage("albedo", albedo->data(), Format::Float3, width, height);
     if (normal)
-      filter.setImage("normal", normal->getData(), Format::Float3, width, height);
+      filter.setImage("normal", normal->data(), Format::Float3, width, height);
 
-    filter.setImage("output", output->getData(), Format::Float3, width, height);
+    filter.setImage("output", output->data(), Format::Float3, width, height);
 
     if (hdr)
       filter.set("hdr", true);
@@ -307,19 +307,19 @@ int main(int argc, char* argv[])
       // Verify the output values
       std::cout << "Verifying output" << std::endl;
 
-      int numErrors;
+      size_t numErrors;
       float maxError;
       std::tie(numErrors, maxError) = compareImage(*output, *ref, 1e-4);
 
-      std::cout << "  values=" << output->getSize() << ", errors=" << numErrors << ", maxerror=" << maxError << std::endl;
+      std::cout << "  values=" << output->size() << ", errors=" << numErrors << ", maxerror=" << maxError << std::endl;
 
       if (numErrors > 0)
       {
         // Save debug images
         std::cout << "Saving debug images" << std::endl;
-        saveImage("denoise_in.ppm",   *color,  srgb);
-        saveImage("denoise_out.ppm",  *output, srgb);
-        saveImage("denoise_ref.ppm",  *ref,    srgb);
+        saveImage("denoise_in.ppm",  *color,  srgb);
+        saveImage("denoise_out.ppm", *output, srgb);
+        saveImage("denoise_ref.ppm", *ref,    srgb);
 
         throw std::runtime_error("output does not match the reference");
       }

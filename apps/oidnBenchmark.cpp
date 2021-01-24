@@ -82,7 +82,7 @@ void addBenchmark(const std::string& filter, const std::vector<std::string>& inp
 // Initializes an image with random values
 void initImage(ImageBuffer& image, Random& rng, float minValue, float maxValue)
 {
-  for (int i = 0; i < image.getSize(); ++i)
+  for (size_t i = 0; i < image.size(); ++i)
     image[i] = minValue + rng.get1f() * (maxValue - minValue);
 }
 
@@ -100,14 +100,14 @@ void runBenchmark(DeviceRef& device, const Benchmark& bench)
   {
     color = ImageBuffer(bench.width, bench.height, 3);
     initImage(color, rng, 0.f, 100.f);
-    filter.setImage("color", color.getData(), Format::Float3, bench.width, bench.height);
+    filter.setImage("color", color.data(), Format::Float3, bench.width, bench.height);
     filter.set("hdr", true);
   }
   else if (bench.hasInput("ldr"))
   {
     color = ImageBuffer(bench.width, bench.height, 3);
     initImage(color, rng, 0.f, 1.f);
-    filter.setImage("color", color.getData(), Format::Float3, bench.width, bench.height);
+    filter.setImage("color", color.data(), Format::Float3, bench.width, bench.height);
     filter.set("hdr", false);
   }
 
@@ -116,7 +116,7 @@ void runBenchmark(DeviceRef& device, const Benchmark& bench)
   {
     albedo = ImageBuffer(bench.width, bench.height, 3);
     initImage(albedo, rng, 0.f, 1.f);
-    filter.setImage("albedo", albedo.getData(), Format::Float3, bench.width, bench.height);
+    filter.setImage("albedo", albedo.data(), Format::Float3, bench.width, bench.height);
   }
 
   ImageBuffer normal;
@@ -124,11 +124,11 @@ void runBenchmark(DeviceRef& device, const Benchmark& bench)
   {
     normal = ImageBuffer(bench.width, bench.height, 3);
     initImage(normal, rng, -1.f, 1.f);
-    filter.setImage("normal", normal.getData(), Format::Float3, bench.width, bench.height);
+    filter.setImage("normal", normal.data(), Format::Float3, bench.width, bench.height);
   }
 
   ImageBuffer output(bench.width, bench.height, 3);
-  filter.setImage("output", output.getData(), Format::Float3, bench.width, bench.height);
+  filter.setImage("output", output.data(), Format::Float3, bench.width, bench.height);
 
   if (maxMemoryMB >= 0)
     filter.set("maxMemoryMB", maxMemoryMB);

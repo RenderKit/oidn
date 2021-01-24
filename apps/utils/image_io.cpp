@@ -26,13 +26,13 @@ namespace oidn {
 
     void srgbForward(ImageBuffer& image)
     {
-      for (int i = 0; i < image.getSize(); ++i)
+      for (size_t i = 0; i < image.size(); ++i)
         image[i] = srgbForward(image[i]);
     }
 
     void srgbInverse(ImageBuffer& image)
     {
-      for (int i = 0; i < image.getSize(); ++i)
+      for (size_t i = 0; i < image.size(); ++i)
         image[i] = srgbInverse(image[i]);
     }
 
@@ -49,7 +49,7 @@ namespace oidn {
       }
     }
 
-    std::shared_ptr<ImageBuffer> loadImagePFM(const std::string& filename, int channels)
+    std::shared_ptr<ImageBuffer> loadImagePFM(const std::string& filename, int numChannels)
     {
       // Open the file
       std::ifstream file(filename, std::ios::binary);
@@ -67,9 +67,9 @@ namespace oidn {
       else
         throw std::runtime_error("invalid PFM image");
 
-      if (channels == 0)
-        channels = C;
-      else if (C < channels)
+      if (numChannels == 0)
+        numChannels = C;
+      else if (C < numChannels)
         throw std::runtime_error("not enough image channnels");
 
       int H, W;
@@ -88,7 +88,7 @@ namespace oidn {
       scale = fabs(scale);
 
       // Read the pixels
-      auto image = std::make_shared<ImageBuffer>(W, H, channels);
+      auto image = std::make_shared<ImageBuffer>(W, H, numChannels);
 
       for (int h = 0; h < H; ++h)
       {
@@ -98,8 +98,8 @@ namespace oidn {
           {
             float x;
             file.read((char*)&x, sizeof(float));
-            if (c < channels)
-              (*image)[((H-1-h)*W + w) * channels + c] = x * scale;
+            if (c < numChannels)
+              (*image)[(size_t(H-1-h)*W + w) * numChannels + c] = x * scale;
           }
         }
       }
@@ -112,9 +112,9 @@ namespace oidn {
 
     void saveImagePFM(const std::string& filename, const ImageBuffer& image)
     {
-      const int H = image.getHeight();
-      const int W = image.getWidth();
-      const int C = image.getChannels();
+      const int H = image.height;
+      const int W = image.width;
+      const int C = image.numChannels;
 
       // Open the file
       std::ofstream file(filename, std::ios::binary);
@@ -133,7 +133,7 @@ namespace oidn {
         {
           for (int c = 0; c < 3; ++c)
           {
-            const float x = image[((H-1-h)*W + w) * C + c];
+            const float x = image[(size_t(H-1-h)*W + w) * C + c];
             file.write((char*)&x, sizeof(float));
           }
         }
@@ -142,11 +142,11 @@ namespace oidn {
 
     void saveImagePPM(const std::string& filename, const ImageBuffer& image)
     {
-      if (image.getChannels() != 3)
+      if (image.numChannels != 3)
         throw std::invalid_argument("image must have 3 channels");
-      const int H = image.getHeight();
-      const int W = image.getWidth();
-      const int C = image.getChannels();
+      const int H = image.height;
+      const int W = image.width;
+      const int C = image.numChannels;
 
       // Open the file
       std::ofstream file(filename, std::ios::binary);
@@ -172,19 +172,19 @@ namespace oidn {
   }
 
 #ifdef OIDN_USE_OPENIMAGEIO
-  std::shared_ptr<ImageBuffer> loadImageOIIO(const std::string& filename, int channels)
+  std::shared_ptr<ImageBuffer> loadImageOIIO(const std::string& filename, int numChannels)
   {
     auto in = OIIO::ImageInput::open(filename);
     if (!in)
       throw std::runtime_error("cannot open image file: " + filename);
 
     const OIIO::ImageSpec& spec = in->spec();
-    if (channels == 0)
-      channels = spec.nchannels;
-    else if (spec.nchannels < channels)
+    if (numChannels == 0)
+      numChannels = spec.nchannels;
+    else if (spec.nchannels < numChannels)
       throw std::runtime_error("not enough image channels");
-    auto image = std::make_shared<ImageBuffer>(spec.width, spec.height, channels);
-    if (!in->read_image(0, 0, 0, channels, OIIO::TypeDesc::FLOAT, image->getData()))
+    auto image = std::make_shared<ImageBuffer>(spec.width, spec.height, numChannels);
+    if (!in->read_image(0, 0, 0, numChannels, OIIO::TypeDesc::FLOAT, image->getData()))
       throw std::runtime_error("failed to read image data");
     in->close();
 
@@ -200,9 +200,9 @@ namespace oidn {
     if (!out)
       throw std::runtime_error("cannot save unsupported image file format: " + filename);
 
-    OIIO::ImageSpec spec(image.getWidth(),
-                         image.getHeight(),
-                         image.getChannels(),
+    OIIO::ImageSpec spec(image.width,
+                         image.height,
+                         image.numChannels,
                          OIIO::TypeDesc::FLOAT);
 
     if (!out->open(filename, spec))
@@ -217,16 +217,16 @@ namespace oidn {
   }
 #endif
 
-  std::shared_ptr<ImageBuffer> loadImage(const std::string& filename, int channels)
+  std::shared_ptr<ImageBuffer> loadImage(const std::string& filename, int numChannels)
   {
     const std::string ext = getExtension(filename);
     std::shared_ptr<ImageBuffer> image;
 
     if (ext == "pfm")
-      image = loadImagePFM(filename, channels);
+      image = loadImagePFM(filename, numChannels);
     else
 #if OIDN_USE_OPENIMAGEIO
-      image = loadImageOIIO(filename, channels);
+      image = loadImageOIIO(filename, numChannels);
 #else
       throw std::runtime_error("cannot load unsupported image file format: " + filename);
 #endif
@@ -255,9 +255,9 @@ namespace oidn {
     return ext != "pfm" && ext != "exr" && ext != "hdr";
   }
 
-  std::shared_ptr<ImageBuffer> loadImage(const std::string& filename, int channels, bool srgb)
+  std::shared_ptr<ImageBuffer> loadImage(const std::string& filename, int numChannels, bool srgb)
   {
-    auto image = loadImage(filename, channels);
+    auto image = loadImage(filename, numChannels);
     if (!srgb && isSrgbImage(filename))
       srgbInverse(*image);
     return image;
@@ -277,16 +277,16 @@ namespace oidn {
     }
   }
 
-  std::tuple<int, float> compareImage(const ImageBuffer& image,
-                                      const ImageBuffer& ref,
-                                      float threshold)
+  std::tuple<size_t, float> compareImage(const ImageBuffer& image,
+                                         const ImageBuffer& ref,
+                                         float threshold)
   {
-    assert(ref.getDims() == image.getDims());
+    assert(ref.dims() == image.dims());
 
-    int numErrors = 0;
+    size_t numErrors = 0;
     float maxError = 0;
 
-    for (int i = 0; i < image.getSize(); ++i)
+    for (size_t i = 0; i < image.size(); ++i)
     {
       const float actual = image[i];
       const float expect = ref[i];
