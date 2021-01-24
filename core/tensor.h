@@ -22,9 +22,10 @@ namespace oidn {
     {
     case DataType::Float32: return 4;
     case DataType::UInt8:   return 1;
-    default:                assert(0);
+    default:
+      assert(0);
+      return 0;
     }
-    return 0;
   }
 
   // Tensor dimensions

@@ -122,6 +122,7 @@ namespace oidn {
         return 4;
       default:
         assert(0);
+        return 0;
       }
     }
 
