@@ -137,7 +137,7 @@ endif()
 
 if(APPLE)
   # Make sure code runs on older macOS versions
-  set(CMAKE_OSX_DEPLOYMENT_TARGET 10.7)
+  set(CMAKE_OSX_DEPLOYMENT_TARGET 10.11)
   # Link against libc++ which supports C++11 features
   append(OIDN_CXX_FLAGS "-stdlib=libc++")
 endif()
