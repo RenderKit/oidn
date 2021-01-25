@@ -184,7 +184,7 @@ namespace oidn {
     else if (spec.nchannels < numChannels)
       throw std::runtime_error("not enough image channels");
     auto image = std::make_shared<ImageBuffer>(spec.width, spec.height, numChannels);
-    if (!in->read_image(0, 0, 0, numChannels, OIIO::TypeDesc::FLOAT, image->getData()))
+    if (!in->read_image(0, 0, 0, numChannels, OIIO::TypeDesc::FLOAT, image->data()))
       throw std::runtime_error("failed to read image data");
     in->close();
 
@@ -207,7 +207,7 @@ namespace oidn {
 
     if (!out->open(filename, spec))
       throw std::runtime_error("cannot create image file: " + filename);
-    if (!out->write_image(OIIO::TypeDesc::FLOAT, image.getData()))
+    if (!out->write_image(OIIO::TypeDesc::FLOAT, image.data()))
       throw std::runtime_error("failed to write image data");
     out->close();
 
