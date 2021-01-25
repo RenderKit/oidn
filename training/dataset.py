@@ -23,7 +23,7 @@ def get_data_dir(cfg, name):
 # Returns the main feature from a list of features
 def get_main_feature(features):
   if len(features) > 1:
-    features = list(set(features) & {'hdr', 'ldr', 'shl1'})
+    features = list(set(features) & {'hdr', 'ldr', 'sh1'})
     if len(features) > 1:
       error('multiple main features specified')
   if not features:
@@ -43,11 +43,11 @@ def get_channels(features, target):
     channels += ['hdr.r', 'hdr.g', 'hdr.b']
   if 'ldr' in features:
     channels += ['ldr.r', 'ldr.g', 'ldr.b']
-  if 'shl1' in features:
+  if 'sh1' in features:
     if target == 'model':
-      channels += ['shl1.r', 'shl1.g', 'shl1.b']
+      channels += ['sh1.r', 'sh1.g', 'sh1.b']
     else:
-      channels += ['shl1x.r', 'shl1x.g', 'shl1x.b', 'shl1y.r', 'shl1y.g', 'shl1y.b', 'shl1z.r', 'shl1z.g', 'shl1z.b']
+      channels += ['sh1x.r', 'sh1x.g', 'sh1x.b', 'sh1y.r', 'sh1y.g', 'sh1y.b', 'sh1z.r', 'sh1z.g', 'sh1z.b']
   if 'alb' in features:
     channels += ['alb.r', 'alb.g', 'alb.b']
   if 'nrm' in features:
@@ -77,9 +77,9 @@ def shuffle_channels(channels, first_channel, order, num_channels=None):
 # Checks whether the image with specified features exists
 def image_exists(name, features):
   suffixes = features.copy()
-  if 'shl1' in suffixes:
-    suffixes.remove('shl1')
-    suffixes += ['shl1x', 'shl1y', 'shl1z']
+  if 'sh1' in suffixes:
+    suffixes.remove('sh1')
+    suffixes += ['sh1x', 'sh1y', 'sh1z']
   return all([os.path.isfile(name + '.' + s + '.exr') for s in suffixes])
 
 # Returns the feature an image represents given its filename
@@ -92,8 +92,8 @@ def get_image_feature(filename):
     if ext in {'exr', 'pfm', 'hdr'}:
       if len(filename_split) == 3:
         feature = filename_split[-2]
-        if feature in {'shl1x', 'shl1y', 'shl1z'}:
-          feature = 'shl1'
+        if feature in {'sh1x', 'sh1y', 'sh1z'}:
+          feature = 'sh1'
         return feature
       else:
         return 'hdr' # assume HDR
@@ -117,19 +117,19 @@ def load_image_features(name, features):
     images.append(ldr)
 
   # SH L1 color coefficients
-  if 'shl1' in features:
-    shl1x = load_image(name + '.shl1x.exr', num_channels=3)
-    shl1y = load_image(name + '.shl1y.exr', num_channels=3)
-    shl1z = load_image(name + '.shl1z.exr', num_channels=3)
+  if 'sh1' in features:
+    sh1x = load_image(name + '.sh1x.exr', num_channels=3)
+    sh1y = load_image(name + '.sh1y.exr', num_channels=3)
+    sh1z = load_image(name + '.sh1z.exr', num_channels=3)
 
-    for shl1 in [shl1x, shl1y, shl1z]:
+    for sh1 in [sh1x, sh1y, sh1z]:
       # Clip to [-1..1] range (coefficients are assumed to be normalized)
-      shl1 = np.clip(shl1, -1., 1.)
+      sh1 = np.clip(sh1, -1., 1.)
 
       # Transform to [0..1] range
-      shl1 = shl1 * 0.5 + 0.5
+      sh1 = sh1 * 0.5 + 0.5
 
-      images.append(shl1)
+      images.append(sh1)
 
   # Albedo
   if 'alb' in features:
@@ -222,7 +222,7 @@ def transform_feature(image, input_feature, output_feature, exposure=1.):
   if output_feature == 'srgb':
     if input_feature in {'hdr', 'ldr', 'alb'}:
       image = srgb_forward(image)
-    elif input_feature in {'nrm', 'shl1'}:
+    elif input_feature in {'nrm', 'sh1'}:
       # Transform [-1, 1] -> [0, 1]
       image = image * 0.5 + 0.5
   return image
@@ -358,9 +358,9 @@ class TrainingDataset(PreprocessedDataset):
         shuffle_channels(input_channels, f+'.r', color_order)
 
     # Randomly permute the L1 SH coefficients and keep only 3 of them
-    if 'shl1' in self.features:
-      shl1_order = randperm(9)
-      shuffle_channels(input_channels, 'shl1x.r', shl1_order, 3)
+    if 'sh1' in self.features:
+      sh1_order = randperm(9)
+      shuffle_channels(input_channels, 'sh1x.r', sh1_order, 3)
 
     # Randomly permute the normal channels
     if 'nrm' in self.features:
@@ -448,7 +448,7 @@ class ValidationDataset(PreprocessedDataset):
           oy = start_y + y * self.tile_size
           ox = start_x + x * self.tile_size
 
-          if self.main_feature == 'shl1':
+          if self.main_feature == 'sh1':
             for k in range(0, 9, 3):
               ch = input_channel_indices[k:k+3] + input_channel_indices[9:]
               self.tiles.append((sample_index, oy, ox, ch))

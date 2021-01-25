@@ -25,7 +25,7 @@ def parse_args(cmd=None, description=None):
 
   if cmd in {'preprocess', 'train', 'find_lr'}:
     parser.add_argument('features', type=str, nargs='*',
-                        choices=['hdr', 'ldr', 'shl1', 'albedo', 'alb', 'normal', 'nrm', []],
+                        choices=['hdr', 'ldr', 'sh1', 'albedo', 'alb', 'normal', 'nrm', []],
                         help='set of input features')
     parser.add_argument('--filter', '-f', type=str,
                         choices=['RT', 'RTLightmap'],
