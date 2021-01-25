@@ -259,10 +259,11 @@ function(rk_tbb_find_root)
       endif()
       set(TBB_PATHS
           "${PROJECT_SOURCE_DIR}/tbb"
-          "/opt/intel/composerxe/tbb"
+          "/opt/intel/oneapi/tbb/latest"
+          "/opt/intel/tbb"
           "/opt/intel/compilers_and_libraries/tbb"
           "/opt/intel/compilers_and_libraries/linux/tbb"
-          "/opt/intel/tbb")
+          "/opt/intel/composerxe/tbb")
     endif()
 
     set(TBB_ROOT "TBB_ROOT-NOTFOUND")
