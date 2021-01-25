@@ -227,12 +227,22 @@ namespace oidn {
   #endif
     std::cout << " (supported)" << std::endl;
     std::cout << "            ";
-    #if defined(OIDN_X64)
-      std::cout << "SSE4.1 AVX2 AVX512SKX";
-    #elif defined(OIDN_ARM64)
-      std::cout << "NEON";
-    #endif
+  #if defined(OIDN_X64)
+    std::cout << "SSE4.1 AVX2 AVX512SKX";
+  #elif defined(OIDN_ARM64)
+    std::cout << "NEON";
+  #endif
     std::cout << " (compile time enabled)" << std::endl;
+    
+    std::cout << "  Neural  : ";
+  #if defined(OIDN_DNNL)
+    std::cout << "DNNL (oneDNN) " << DNNL_VERSION_MAJOR << "." <<
+                                     DNNL_VERSION_MINOR << "." <<
+                                     DNNL_VERSION_PATCH;
+  #elif defined(OIDN_BNNS)
+    std::cout << "BNNS";
+  #endif
+    std::cout << std::endl;
 
     std::cout << "  Tasking :";
     std::cout << " TBB" << TBB_VERSION_MAJOR << "." << TBB_VERSION_MINOR;

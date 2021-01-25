@@ -79,20 +79,20 @@ include(oidn_package)
 include(oidn_platform)
 
 # Neural network runtime
-set(OIDN_NN_RUNTIMES)
+set(OIDN_NEURAL_RUNTIMES)
 if(OIDN_ARCH STREQUAL "X64")
-  list(APPEND OIDN_NN_RUNTIMES "DNNL")
+  list(APPEND OIDN_NEURAL_RUNTIMES "DNNL")
 endif()
 if(APPLE AND OIDN_ARCH STREQUAL "ARM64")
-  list(APPEND OIDN_NN_RUNTIMES "BNNS")
+  list(APPEND OIDN_NEURAL_RUNTIMES "BNNS")
 endif()
-list(GET OIDN_NN_RUNTIMES 0 OIDN_NN_RUNTIME_DEFAULT)
-set(OIDN_NN_RUNTIME ${OIDN_NN_RUNTIME_DEFAULT} CACHE STRING "Neural network runtime to use.")
-set_property(CACHE OIDN_NN_RUNTIME PROPERTY STRINGS ${OIDN_NN_RUNTIMES})
+list(GET OIDN_NEURAL_RUNTIMES 0 OIDN_NEURAL_RUNTIME_DEFAULT)
+set(OIDN_NEURAL_RUNTIME ${OIDN_NEURAL_RUNTIME_DEFAULT} CACHE STRING "Neural network runtime to use.")
+set_property(CACHE OIDN_NEURAL_RUNTIME PROPERTY STRINGS ${OIDN_NEURAL_RUNTIMES})
 
-if(OIDN_NN_RUNTIME STREQUAL "DNNL")
+if(OIDN_NEURAL_RUNTIME STREQUAL "DNNL")
   include(oidn_dnnl)
-elseif(OIDN_NN_RUNTIME STREQUAL "BNNS")
+elseif(OIDN_NEURAL_RUNTIME STREQUAL "BNNS")
   include(oidn_bnns)
 endif()
 
@@ -188,8 +188,8 @@ generate_cpp_from_blob(WEIGHTS_SOURCES "oidn::blobs::weights"
 
 add_library(${PROJECT_NAME} ${OIDN_LIB_TYPE} ${CORE_SOURCES} ${WEIGHTS_SOURCES})
 
-target_compile_definitions(${PROJECT_NAME} PRIVATE OIDN_${OIDN_NN_RUNTIME})
-ispc_add_definitions(-DOIDN_${OIDN_NN_RUNTIME})
+target_compile_definitions(${PROJECT_NAME} PRIVATE OIDN_${OIDN_NEURAL_RUNTIME})
+ispc_add_definitions(-DOIDN_${OIDN_NEURAL_RUNTIME})
 
 ispc_target_add_sources(${PROJECT_NAME} ${CORE_SOURCES_ISPC})
 
@@ -200,9 +200,9 @@ target_include_directories(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE common)
-if(OIDN_NN_RUNTIME STREQUAL "DNNL")
+if(OIDN_NEURAL_RUNTIME STREQUAL "DNNL")
   target_link_libraries(${PROJECT_NAME} PRIVATE dnnl)
-elseif(OIDN_NN_RUNTIME STREQUAL "BNNS")
+elseif(OIDN_NEURAL_RUNTIME STREQUAL "BNNS")
   target_link_options(${PROJECT_NAME} PRIVATE -framework Accelerate)
 endif()
 

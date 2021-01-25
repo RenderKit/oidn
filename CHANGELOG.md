@@ -11,7 +11,8 @@ Version History
     (and thus now deprecated) `hdrScale` parameter for non-HDR images
 -   Added support for Apple Silicon and the BNNS library on macOS (currently
     requires building from source)
--   Added `OIDN_NN_RUNTIME` CMake option for setting the neural network runtime
+-   Added `OIDN_NEURAL_RUNTIME` CMake option for setting the neural network
+    runtime library
 -   Reduced the size of the library binary
 -   Fixed compile error on some older macOS versions
 -   Training:

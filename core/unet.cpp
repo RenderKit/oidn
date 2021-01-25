@@ -233,7 +233,7 @@ namespace oidn {
 
     if (device->isVerbose(2))
     {
-      std::cout << "Inputs    :";
+      std::cout << "Inputs:";
       if (color)  std::cout << " " << (hdr ? "hdr" : "ldr");
       if (albedo) std::cout << " " << "alb";
       if (normal) std::cout << " " << "nrm";
