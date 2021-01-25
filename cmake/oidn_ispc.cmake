@@ -132,7 +132,7 @@ macro(ispc_compile)
     set(ISPC_ADDITIONAL_ARGS ${ISPC_ADDITIONAL_ARGS} --pic)
   endif()
 
-  if(NOT OIDN_DEBUG_BUILD)
+  if(NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     set(ISPC_ADDITIONAL_ARGS ${ISPC_ADDITIONAL_ARGS} --opt=disable-assertions)
   endif()
 
