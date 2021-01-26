@@ -121,8 +121,7 @@ namespace oidn {
       case Format::Float4:
         return 4;
       default:
-        assert(0);
-        return 0;
+        throw Exception(Error::InvalidArgument, "invalid image format");
       }
     }
 

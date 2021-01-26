@@ -23,8 +23,7 @@ namespace oidn {
     case DataType::Float32: return 4;
     case DataType::UInt8:   return 1;
     default:
-      assert(0);
-      return 0;
+      throw Exception(Error::Unknown, "invalid tensor data type");
     }
   }
 
@@ -152,16 +151,20 @@ namespace oidn {
         dnnlFormat = dnnl::memory::format_tag::oihw;
         break;
       default:
-        assert(0);
+        throw Exception(Error::Unknown, "invalid tensor layout");
       }
 
       dnnl::memory::data_type dnnlType;
       switch (dataType)
       {
-      case DataType::Float32: dnnlType = dnnl::memory::data_type::f32; break;
-      case DataType::UInt8:   dnnlType = dnnl::memory::data_type::u8;  break;
+      case DataType::Float32:
+        dnnlType = dnnl::memory::data_type::f32;
+        break;
+      case DataType::UInt8:
+        dnnlType = dnnl::memory::data_type::u8;
+        break;
       default:
-        assert(0);
+        throw Exception(Error::Unknown, "invalid tensor data type");
       }
 
       return dnnl::memory::desc(dnnlDims, dnnlType, dnnlFormat);
@@ -315,15 +318,19 @@ namespace oidn {
         });
         break;
       default:
-        assert(0);
+        throw Exception(Error::Unknown, "invalid tensor layout");
       }
 
       switch (dataType)
       {
-      case DataType::Float32: bnnsDesc.data_type = BNNSDataTypeFloat32; break;
-      case DataType::UInt8:   bnnsDesc.data_type = BNNSDataTypeUInt8;   break;
+      case DataType::Float32:
+        bnnsDesc.data_type = BNNSDataTypeFloat32;
+        break;
+      case DataType::UInt8:
+        bnnsDesc.data_type = BNNSDataTypeUInt8;
+        break;
       default:
-        assert(0);
+        throw Exception(Error::Unknown, "invalid tensor data type");
       }
 
       bnnsDesc.data = ptr;

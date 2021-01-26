@@ -31,7 +31,8 @@ namespace oidn {
       case Type::SRGB:   ispc::SRGBTransferFunction_Constructor(&impl);   break;
       case Type::PU:     ispc::PUTransferFunction_Constructor(&impl);     break;
       case Type::Log:    ispc::LogTransferFunction_Constructor(&impl);    break;
-      default:           assert(0);
+      default:
+        throw Exception(Error::Unknown, "invalid transfer function");
       }
     }
 

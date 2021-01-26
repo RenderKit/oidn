@@ -23,7 +23,8 @@ void setFilterImage(FilterRef& filter, const char* name, ImageBuffer& image)
   case 2: format = Format::Float2; break;
   case 3: format = Format::Float3; break;
   case 4: format = Format::Float4; break;
-  default: assert(0);
+  default:
+    assert(0);
   }
 
   filter.setImage(name, image.data(), format, image.width, image.height);
