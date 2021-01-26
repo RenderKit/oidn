@@ -623,7 +623,7 @@ filter parameters, produced by the included training tool. See Section
 ### RTLightmap
 
 The `RTLightmap` filter is a variant of the `RT` filter optimized for denoising
-HDR lightmaps. It does not support LDR images.
+HDR and directional lightmaps. It does not support LDR images.
 
 The filter can be created by passing `"RTLightmap"` to the `oidnNewFilter`
 function as the filter type. The filter supports the following parameters:
@@ -639,6 +639,16 @@ Image     float3   color                input color image (RGB, HDR values in
 
 Image     float3   output               output image; it can be one of the input
                                         images
+
+bool               directional    false whether the input contains normalized
+                                        coefficients (values in [-1, 1]) of a
+                                        directional lightmap (e.g. normalized L1
+                                        or higher spherical harmonics band with
+                                        the HDR L0 band divided out); if the
+                                        range of the coefficients is different
+                                        from [-1, 1], the inputScale parameter
+                                        can be used to adjust the range without
+                                        changing the stored values
 
 float              inputScale       NaN scales input color values before
                                         filtering, without scaling the output
