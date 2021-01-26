@@ -70,9 +70,10 @@ namespace oidn {
                                      const Ref<Tensor>& dst,
                                      const Ref<TransferFunction>& transferFunc,
                                      bool hdr,
+                                     bool snorm,
                                      int alignment)
   {
-    auto node = makeRef<InputReorderNode>(device, color, albedo, normal, dst, transferFunc, hdr);
+    auto node = makeRef<InputReorderNode>(device, color, albedo, normal, dst, transferFunc, hdr, snorm);
     nodes.push_back(node);
     return node;
   }
@@ -80,9 +81,10 @@ namespace oidn {
   Ref<Node> Network::addOutputReorder(const Ref<Tensor>& src,
                                       const Image& output,
                                       const Ref<TransferFunction>& transferFunc,
-                                      bool hdr)
+                                      bool hdr,
+                                      bool snorm)
   {
-    auto node = makeRef<OutputReorderNode>(device, src, output, transferFunc, hdr);
+    auto node = makeRef<OutputReorderNode>(device, src, output, transferFunc, hdr, snorm);
     nodes.push_back(node);
     return node;
   }

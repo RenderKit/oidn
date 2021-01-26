@@ -25,7 +25,8 @@ namespace oidn {
                       const Ref<Tensor>& src,
                       const Image& output,
                       const Ref<TransferFunction>& transferFunc,
-                      bool hdr)
+                      bool hdr,
+                      bool snorm)
       : Node(device),
         src(src),
         output(output),
@@ -51,6 +52,7 @@ namespace oidn {
 
       impl.transferFunc = transferFunc->getImpl();
       impl.hdr = hdr;
+      impl.snorm = snorm;
     }
 
     void setTile(int hSrc, int wSrc, int hDst, int wDst, int H, int W) override

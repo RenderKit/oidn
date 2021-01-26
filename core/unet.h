@@ -39,6 +39,7 @@ namespace oidn {
     // Options
     bool hdr = false;
     bool srgb = false;
+    bool directional = false;
     float inputScale = std::numeric_limits<float>::quiet_NaN();
     int maxMemoryMB = 6000; // approximate maximum memory usage in MBs
 
@@ -65,6 +66,7 @@ namespace oidn {
       Data ldr;
       Data ldr_alb;
       Data ldr_alb_nrm;
+      Data dir;
     } builtinWeights;
     Data userWeights;
 

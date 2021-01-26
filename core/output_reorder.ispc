@@ -24,6 +24,7 @@ struct OutputReorder
   // Transfer function
   uniform TransferFunction* uniform transferFunc;
   uniform bool hdr;
+  uniform bool snorm; // signed normalized ([-1..1])
 };
 
 export void OutputReorder_kernel(uniform OutputReorder* uniform self, uniform int h)
@@ -46,6 +47,12 @@ export void OutputReorder_kernel(uniform OutputReorder* uniform self, uniform in
     value = self->transferFunc->inverse(self->transferFunc, value);
 
     // Sanitize
+    if (self->snorm)
+    {
+      // Transform to [-1..1]
+      value = value * 2.f - 1.f;
+      value = max(value, -1.f);
+    }
     if (!self->hdr)
       value = min(value, 1.f);
 

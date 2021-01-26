@@ -24,7 +24,7 @@ void printUsage()
 {
   std::cout << "Intel(R) Open Image Denoise" << std::endl;
   std::cout << "usage: oidnDenoise [-f/--filter RT|RTLightmap]" << std::endl
-            << "                   [--ldr color.pfm] [--srgb] [--hdr color.pfm]" << std::endl
+            << "                   [--hdr color.pfm] [--ldr color.pfm] [--srgb] [--dir color.pfm]" << std::endl
             << "                   [--alb albedo.pfm] [--nrm normal.pfm]" << std::endl
             << "                   [-o/--output output.pfm] [-r/--ref reference_output.pfm]" << std::endl
             << "                   [-w/--weights weights.tza]" << std::endl
@@ -79,6 +79,7 @@ int main(int argc, char* argv[])
   std::string weightsFilename;
   bool hdr = false;
   bool srgb = false;
+  bool directional = false;
   int numBenchmarkRuns = 0;
   int numThreads = -1;
   int setAffinity = -1;
@@ -101,18 +102,23 @@ int main(int argc, char* argv[])
       std::string opt = args.getNextOpt();
       if (opt == "f" || opt == "filter")
         filterType = args.getNextValue();
-      else if (opt == "ldr")
-      {
-        colorFilename = args.getNextValue();
-        hdr = false;
-      }
       else if (opt == "hdr")
       {
         colorFilename = args.getNextValue();
         hdr = true;
       }
+      else if (opt == "ldr")
+      {
+        colorFilename = args.getNextValue();
+        hdr = false;
+      }
       else if (opt == "srgb")
         srgb = true;
+      else if (opt == "dir")
+      {
+        colorFilename = args.getNextValue();
+        directional = true;
+      }
       else if (opt == "alb" || opt == "albedo")
         albedoFilename = args.getNextValue();
       else if (opt == "nrm" || opt == "normal")
@@ -243,10 +249,18 @@ int main(int argc, char* argv[])
 
     filter.setImage("output", output->data(), Format::Float3, width, height);
 
-    if (hdr)
-      filter.set("hdr", true);
-    if (srgb)
-      filter.set("srgb", true);
+    if (filterType == "RT")
+    {
+      if (hdr)
+        filter.set("hdr", true);
+      if (srgb)
+        filter.set("srgb", true);
+    }
+    else if (filterType == "RTLightmap")
+    {
+      if (directional)
+        filter.set("directional", true);
+    }
 
     if (maxMemoryMB >= 0)
       filter.set("maxMemoryMB", maxMemoryMB);

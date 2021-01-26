@@ -26,6 +26,7 @@ struct InputReorder
   // Transfer function
   uniform TransferFunction* uniform transferFunc;
   uniform bool hdr;
+  uniform bool snorm; // signed normalized ([-1..1])
 };
 
 inline void storeZero(uniform InputReorder* uniform self, uniform int h, int w, uniform int c)
@@ -40,7 +41,13 @@ inline void storeColor(uniform InputReorder* uniform self, uniform int h, int w,
   value = value * self->transferFunc->inputScale;
 
   // Sanitize
-  value = clamp(nan_to_zero(value), 0.f, self->hdr ? pos_max : 1.f);
+  value = clamp(nan_to_zero(value), self->snorm ? -1.f : 0.f, self->hdr ? pos_max : 1.f);
+
+  if (self->snorm)
+  {
+    // Transform to [0..1]
+    value = value * 0.5f + 0.5f;
+  }
 
   // Apply the transfer function
   value = self->transferFunc->forward(self->transferFunc, value);

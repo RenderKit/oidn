@@ -13,6 +13,7 @@
 #include "weights/rt_ldr_alb.h"
 #include "weights/rt_ldr_alb_nrm.h"
 #include "weights/rtlightmap_hdr.h"
+#include "weights/rtlightmap_dir.h"
 
 namespace oidn {
 
@@ -181,8 +182,25 @@ namespace oidn {
 
   Ref<Network> UNetFilter::buildNet()
   {
-    H = color.height;
-    W = color.width;
+    // Check the input/output buffers
+    if (!color && !albedo && !normal)
+      throw Exception(Error::InvalidOperation, "input image not specified");
+    if (!output)
+      throw Exception(Error::InvalidOperation, "output image not specified");
+
+    H = output.height;
+    W = output.width;
+
+    if ((color  && color.format  != Format::Float3) ||
+        (albedo && albedo.format != Format::Float3) ||
+        (normal && normal.format != Format::Float3) ||
+        (output.format != Format::Float3))
+      throw Exception(Error::InvalidOperation, "unsupported image format");
+
+    if ((color  && (color.width  != W || color.height  != H)) ||
+        (albedo && (albedo.width != W || albedo.height != H)) ||
+        (normal && (normal.width != W || normal.height != H)))
+      throw Exception(Error::InvalidOperation, "image size mismatch");
 
     if (srgb && hdr)
       throw Exception(Error::InvalidOperation, "srgb and hdr modes cannot be enabled at the same time");
@@ -196,7 +214,7 @@ namespace oidn {
     if (device->isVerbose(2))
     {
       std::cout << "Inputs:";
-      if (color)  std::cout << " " << (hdr ? "hdr" : "ldr");
+      if (color)  std::cout << " " << (directional ? "dir" : (hdr ? "hdr" : "ldr"));
       if (albedo) std::cout << " " << "alb";
       if (normal) std::cout << " " << "nrm";
       std::cout << std::endl;
@@ -208,7 +226,7 @@ namespace oidn {
     if (userWeights)
       weights = userWeights;
     else if (color && !albedo && !normal)
-      weights = hdr ? builtinWeights.hdr : builtinWeights.ldr;
+      weights = directional ? builtinWeights.dir : (hdr ? builtinWeights.hdr : builtinWeights.ldr);
     else if (color && albedo && !normal)
       weights = hdr ? builtinWeights.hdr_alb : builtinWeights.ldr_alb;
     else if (color && albedo && normal)
@@ -217,20 +235,7 @@ namespace oidn {
     if (!weights)
       throw Exception(Error::InvalidOperation, "unsupported combination of input features");
 
-    // Check the input/output buffers
-    if (!output)
-      throw Exception(Error::InvalidOperation, "output image not specified");
-
-    if ((color  && color.format  != Format::Float3) ||
-        (albedo && albedo.format != Format::Float3) ||
-        (normal && normal.format != Format::Float3) ||
-        (output.format != Format::Float3))
-      throw Exception(Error::InvalidOperation, "unsupported image format");
-
-    if ((albedo && (albedo.width != W || albedo.height != H)) ||
-        (normal && (normal.width != W || normal.height != H)) ||
-        (output.width != W || output.height != H))
-      throw Exception(Error::InvalidOperation, "image size mismatch");
+    bool snorm = directional || (!color && !albedo && normal);
 
     // Determine whether in-place filtering is required
     inplace = output.overlaps(color)  ||
@@ -358,7 +363,7 @@ namespace oidn {
     // Create the nodes
     inputReorder = net->addInputReorder(color, albedo, normal,
                                         concat1Src[1],
-                                        transferFunc, hdr,
+                                        transferFunc, hdr, snorm,
                                         alignment);
 
     auto encConv0 = net->addConv("enc_conv0", inputReorder->getDst(), temp0->view(encConv0Dims));
@@ -398,7 +403,7 @@ namespace oidn {
 
     outputReorder = net->addOutputReorder(decConv0->getDst(),
                                           outputTemp ? outputTemp : output,
-                                          transferFunc, hdr);
+                                          transferFunc, hdr, snorm);
 
     net->finalize();
     return net;
@@ -411,9 +416,6 @@ namespace oidn {
   RTFilter::RTFilter(const Ref<Device>& device)
     : UNetFilter(device)
   {
-    hdr = false;
-    srgb = false;
-
     builtinWeights.hdr         = blobs::weights::rt_hdr;
     builtinWeights.hdr_alb     = blobs::weights::rt_hdr_alb;
     builtinWeights.hdr_alb_nrm = blobs::weights::rt_hdr_alb_nrm;
@@ -424,10 +426,10 @@ namespace oidn {
 
   Ref<TransferFunction> RTFilter::makeTransferFunc()
   {
-    if (hdr)
-      return makeRef<TransferFunction>(TransferFunction::Type::PU);
-    else if (srgb)
+    if (srgb || !color)
       return makeRef<TransferFunction>(TransferFunction::Type::Linear);
+    else if (hdr)
+      return makeRef<TransferFunction>(TransferFunction::Type::PU);
     else
       return makeRef<TransferFunction>(TransferFunction::Type::SRGB);
   }
@@ -488,11 +490,15 @@ namespace oidn {
     hdr = true;
 
     builtinWeights.hdr = blobs::weights::rtlightmap_hdr;
+    builtinWeights.dir = blobs::weights::rtlightmap_dir;
   }
 
   Ref<TransferFunction> RTLightmapFilter::makeTransferFunc()
   {
-    return makeRef<TransferFunction>(TransferFunction::Type::Log);
+    if (hdr)
+      return makeRef<TransferFunction>(TransferFunction::Type::Log);
+    else
+      return makeRef<TransferFunction>(TransferFunction::Type::Linear);
   }
 
   void RTLightmapFilter::setImage(const std::string& name, const Image& data)
@@ -509,7 +515,12 @@ namespace oidn {
 
   void RTLightmapFilter::set1i(const std::string& name, int value)
   {
-    if (name == "maxMemoryMB")
+    if (name == "directional")
+    {
+      directional = value;
+      hdr = !directional;
+    }
+    else if (name == "maxMemoryMB")
       maxMemoryMB = value;
     else
       device->warning("unknown filter parameter");
@@ -519,7 +530,9 @@ namespace oidn {
 
   int RTLightmapFilter::get1i(const std::string& name)
   {
-    if (name == "maxMemoryMB")
+    if (name == "directional")
+      return directional;
+    else if (name == "maxMemoryMB")
       return maxMemoryMB;
     else if (name == "alignment")
       return alignment;
