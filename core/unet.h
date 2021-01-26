@@ -59,23 +59,20 @@ namespace oidn {
     // Weights
     struct
     {
-      Data ldr;
-      Data ldr_alb;
-      Data ldr_alb_nrm;
       Data hdr;
       Data hdr_alb;
       Data hdr_alb_nrm;
-    } defaultWeights;
+      Data ldr;
+      Data ldr_alb;
+      Data ldr_alb_nrm;
+    } builtinWeights;
     Data userWeights;
 
     explicit UNetFilter(const Ref<Device>& device);
-    virtual Ref<TransferFunction> makeTransferFunc();
+    virtual Ref<TransferFunction> makeTransferFunc() = 0;
 
   public:
-    void setImage(const std::string& name, const Image& data) override;
     void setData(const std::string& name, const Data& data) override;
-    void set1i(const std::string& name, int value) override;
-    int get1i(const std::string& name) override;
     void set1f(const std::string& name, float value) override;
     float get1f(const std::string& name) override;
 
@@ -84,9 +81,7 @@ namespace oidn {
 
   private:
     void computeTileSize();
-
     Ref<Network> buildNet();
-
     bool isCommitted() const { return bool(net); }
   };
 
@@ -98,6 +93,13 @@ namespace oidn {
   {
   public:
     explicit RTFilter(const Ref<Device>& device);
+
+    void setImage(const std::string& name, const Image& data) override;
+    void set1i(const std::string& name, int value) override;
+    int get1i(const std::string& name) override;
+  
+  protected:
+    Ref<TransferFunction> makeTransferFunc() override;
   };
 
   // ---------------------------------------------------------------------------
@@ -108,6 +110,12 @@ namespace oidn {
   {
   public:
     explicit RTLightmapFilter(const Ref<Device>& device);
+
+    void setImage(const std::string& name, const Image& data) override;
+    void set1i(const std::string& name, int value) override;
+    int get1i(const std::string& name) override;
+
+  protected:
     Ref<TransferFunction> makeTransferFunc() override;
   };
 

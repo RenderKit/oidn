@@ -52,8 +52,9 @@ namespace oidn {
 
     static void setError(Device* device, Error code, const std::string& message);
     static Error getError(Device* device, const char** outMessage);
-
     void setErrorFunction(ErrorFunction func, void* userPtr);
+
+    void warning(const std::string& message);
 
     int get1i(const std::string& name);
     void set1i(const std::string& name, int value);

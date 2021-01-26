@@ -25,60 +25,22 @@ namespace oidn {
   {
   }
 
-  void UNetFilter::setImage(const std::string& name, const Image& data)
-  {
-    if (name == "color")
-      color = data;
-    else if (name == "albedo")
-      albedo = data;
-    else if (name == "normal")
-      normal = data;
-    else if (name == "output")
-      output = data;
-
-    dirty = true;
-  }
-
   void UNetFilter::setData(const std::string& name, const Data& data)
   {
     if (name == "weights")
       userWeights = data;
-
-    dirty = true;
-  }
-
-  void UNetFilter::set1i(const std::string& name, int value)
-  {
-    if (name == "hdr")
-      hdr = value;
-    else if (name == "srgb")
-      srgb = value;
-    else if (name == "maxMemoryMB")
-      maxMemoryMB = value;
-
-    dirty = true;
-  }
-
-  int UNetFilter::get1i(const std::string& name)
-  {
-    if (name == "hdr")
-      return hdr;
-    else if (name == "srgb")
-      return srgb;
-    else if (name == "maxMemoryMB")
-      return maxMemoryMB;
-    else if (name == "alignment")
-      return alignment;
-    else if (name == "overlap")
-      return overlap;
     else
-      throw Exception(Error::InvalidArgument, "invalid parameter");
+      device->warning("unknown filter parameter");
+
+    dirty = true;
   }
 
   void UNetFilter::set1f(const std::string& name, float value)
   {
     if (name == "inputScale" || name == "hdrScale")
       inputScale = value;
+    else
+      device->warning("unknown filter parameter");
 
     dirty = true;
   }
@@ -88,7 +50,7 @@ namespace oidn {
     if (name == "inputScale" || name == "hdrScale")
       return inputScale;
     else
-      throw Exception(Error::InvalidArgument, "invalid parameter");
+      throw Exception(Error::InvalidArgument, "unknown filter parameter");
   }
 
   void UNetFilter::commit()
@@ -246,11 +208,11 @@ namespace oidn {
     if (userWeights)
       weights = userWeights;
     else if (color && !albedo && !normal)
-      weights = hdr ? defaultWeights.hdr : defaultWeights.ldr;
+      weights = hdr ? builtinWeights.hdr : builtinWeights.ldr;
     else if (color && albedo && !normal)
-      weights = hdr ? defaultWeights.hdr_alb : defaultWeights.ldr_alb;
+      weights = hdr ? builtinWeights.hdr_alb : builtinWeights.ldr_alb;
     else if (color && albedo && normal)
-      weights = hdr ? defaultWeights.hdr_alb_nrm : defaultWeights.ldr_alb_nrm;
+      weights = hdr ? builtinWeights.hdr_alb_nrm : builtinWeights.ldr_alb_nrm;
 
     if (!weights)
       throw Exception(Error::InvalidOperation, "unsupported combination of input features");
@@ -259,21 +221,21 @@ namespace oidn {
     if (!output)
       throw Exception(Error::InvalidOperation, "output image not specified");
 
-    if ((color.format != Format::Float3)
-        || (albedo && albedo.format != Format::Float3)
-        || (normal && normal.format != Format::Float3)
-        || (output.format != Format::Float3))
+    if ((color  && color.format  != Format::Float3) ||
+        (albedo && albedo.format != Format::Float3) ||
+        (normal && normal.format != Format::Float3) ||
+        (output.format != Format::Float3))
       throw Exception(Error::InvalidOperation, "unsupported image format");
 
-    if ((albedo && (albedo.width != W || albedo.height != H))
-        || (normal && (normal.width != W || normal.height != H))
-        || (output.width != W || output.height != H))
+    if ((albedo && (albedo.width != W || albedo.height != H)) ||
+        (normal && (normal.width != W || normal.height != H)) ||
+        (output.width != W || output.height != H))
       throw Exception(Error::InvalidOperation, "image size mismatch");
 
     // Determine whether in-place filtering is required
-    inplace = output.overlaps(color)
-              || output.overlaps(albedo)
-              || output.overlaps(normal);
+    inplace = output.overlaps(color)  ||
+              output.overlaps(albedo) ||
+              output.overlaps(normal);
 
     // Compute the tile size
     computeTileSize();
@@ -442,7 +404,25 @@ namespace oidn {
     return net;
   }
 
-  Ref<TransferFunction> UNetFilter::makeTransferFunc()
+  // ---------------------------------------------------------------------------
+  // RTFilter
+  // ---------------------------------------------------------------------------
+
+  RTFilter::RTFilter(const Ref<Device>& device)
+    : UNetFilter(device)
+  {
+    hdr = false;
+    srgb = false;
+
+    builtinWeights.hdr         = blobs::weights::rt_hdr;
+    builtinWeights.hdr_alb     = blobs::weights::rt_hdr_alb;
+    builtinWeights.hdr_alb_nrm = blobs::weights::rt_hdr_alb_nrm;
+    builtinWeights.ldr         = blobs::weights::rt_ldr;
+    builtinWeights.ldr_alb     = blobs::weights::rt_ldr_alb;
+    builtinWeights.ldr_alb_nrm = blobs::weights::rt_ldr_alb_nrm;
+  }
+
+  Ref<TransferFunction> RTFilter::makeTransferFunc()
   {
     if (hdr)
       return makeRef<TransferFunction>(TransferFunction::Type::PU);
@@ -452,19 +432,50 @@ namespace oidn {
       return makeRef<TransferFunction>(TransferFunction::Type::SRGB);
   }
 
-  // ---------------------------------------------------------------------------
-  // RTFilter
-  // ---------------------------------------------------------------------------
-
-  RTFilter::RTFilter(const Ref<Device>& device)
-    : UNetFilter(device)
+  void RTFilter::setImage(const std::string& name, const Image& data)
   {
-    defaultWeights.ldr         = blobs::weights::rt_ldr;
-    defaultWeights.ldr_alb     = blobs::weights::rt_ldr_alb;
-    defaultWeights.ldr_alb_nrm = blobs::weights::rt_ldr_alb_nrm;
-    defaultWeights.hdr         = blobs::weights::rt_hdr;
-    defaultWeights.hdr_alb     = blobs::weights::rt_hdr_alb;
-    defaultWeights.hdr_alb_nrm = blobs::weights::rt_hdr_alb_nrm;
+    if (name == "color")
+      color = data;
+    else if (name == "albedo")
+      albedo = data;
+    else if (name == "normal")
+      normal = data;
+    else if (name == "output")
+      output = data;
+    else
+      device->warning("unknown filter parameter");
+
+    dirty = true;
+  }
+
+  void RTFilter::set1i(const std::string& name, int value)
+  {
+    if (name == "hdr")
+      hdr = value;
+    else if (name == "srgb")
+      srgb = value;
+    else if (name == "maxMemoryMB")
+      maxMemoryMB = value;
+    else
+      device->warning("unknown filter parameter");
+
+    dirty = true;
+  }
+
+  int RTFilter::get1i(const std::string& name)
+  {
+    if (name == "hdr")
+      return hdr;
+    else if (name == "srgb")
+      return srgb;
+    else if (name == "maxMemoryMB")
+      return maxMemoryMB;
+    else if (name == "alignment")
+      return alignment;
+    else if (name == "overlap")
+      return overlap;
+    else
+      throw Exception(Error::InvalidArgument, "unknown filter parameter");
   }
 
   // ---------------------------------------------------------------------------
@@ -474,14 +485,48 @@ namespace oidn {
   RTLightmapFilter::RTLightmapFilter(const Ref<Device>& device)
     : UNetFilter(device)
   {
-    defaultWeights.hdr = blobs::weights::rtlightmap_hdr;
-
     hdr = true;
+
+    builtinWeights.hdr = blobs::weights::rtlightmap_hdr;
   }
 
   Ref<TransferFunction> RTLightmapFilter::makeTransferFunc()
   {
     return makeRef<TransferFunction>(TransferFunction::Type::Log);
+  }
+
+  void RTLightmapFilter::setImage(const std::string& name, const Image& data)
+  {
+    if (name == "color")
+      color = data;
+    else if (name == "output")
+      output = data;
+    else
+      device->warning("unknown filter parameter");
+
+    dirty = true;
+  }
+
+  void RTLightmapFilter::set1i(const std::string& name, int value)
+  {
+    if (name == "maxMemoryMB")
+      maxMemoryMB = value;
+    else
+      device->warning("unknown filter parameter");
+
+    dirty = true;
+  }
+
+  int RTLightmapFilter::get1i(const std::string& name)
+  {
+    if (name == "maxMemoryMB")
+      return maxMemoryMB;
+    else if (name == "alignment")
+      return alignment;
+    else if (name == "overlap")
+      return overlap;
+    else
+      throw Exception(Error::InvalidArgument, "unknown filter parameter");
   }
 
 } // namespace oidn

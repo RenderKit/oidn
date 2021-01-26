@@ -96,6 +96,11 @@ namespace oidn {
     errorUserPtr = userPtr;
   }
 
+  void Device::warning(const std::string& message)
+  {
+    OIDN_WARNING(message);
+  }
+
   int Device::get1i(const std::string& name)
   {
     if (name == "numThreads")
@@ -113,7 +118,7 @@ namespace oidn {
     else if (name == "versionPatch")
       return OIDN_VERSION_PATCH;
     else
-      throw Exception(Error::InvalidArgument, "invalid parameter");
+      throw Exception(Error::InvalidArgument, "unknown device parameter");
   }
 
   void Device::set1i(const std::string& name, int value)
@@ -127,6 +132,8 @@ namespace oidn {
       verbose = value;
       error.verbose = value;
     }
+    else
+      warning("unknown device parameter");
 
     dirty = true;
   }
