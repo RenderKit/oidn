@@ -235,7 +235,7 @@ namespace oidn {
     if (!weights)
       throw Exception(Error::InvalidOperation, "unsupported combination of input features");
 
-    bool snorm = directional || (!color && !albedo && normal);
+    const bool snorm = directional || (!color && !albedo && normal);
 
     // Determine whether in-place filtering is required
     inplace = output.overlaps(color)  ||

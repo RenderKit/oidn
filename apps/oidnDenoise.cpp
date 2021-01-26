@@ -4,6 +4,7 @@
 #include <iostream>
 #include <fstream>
 #include <cassert>
+#include <limits>
 #include <cmath>
 #include <signal.h>
 
@@ -24,9 +25,10 @@ void printUsage()
 {
   std::cout << "Intel(R) Open Image Denoise" << std::endl;
   std::cout << "usage: oidnDenoise [-f/--filter RT|RTLightmap]" << std::endl
-            << "                   [--hdr color.pfm] [--ldr color.pfm] [--srgb] [--dir color.pfm]" << std::endl
+            << "                   [--hdr color.pfm] [--ldr color.pfm] [--srgb] [--dir directional.pfm]" << std::endl
             << "                   [--alb albedo.pfm] [--nrm normal.pfm]" << std::endl
             << "                   [-o/--output output.pfm] [-r/--ref reference_output.pfm]" << std::endl
+            << "                   [--is/--inputscale value]" << std::endl
             << "                   [-w/--weights weights.tza]" << std::endl
             << "                   [--threads n] [--affinity 0|1] [--maxmem MB] [--inplace]" << std::endl
             << "                   [--bench ntimes] [-v/--verbose 0-3]" << std::endl
@@ -80,6 +82,7 @@ int main(int argc, char* argv[])
   bool hdr = false;
   bool srgb = false;
   bool directional = false;
+  float inputScale = std::numeric_limits<float>::quiet_NaN();
   int numBenchmarkRuns = 0;
   int numThreads = -1;
   int setAffinity = -1;
@@ -127,6 +130,8 @@ int main(int argc, char* argv[])
         outputFilename = args.getNextValue();
       else if (opt == "r" || opt == "ref" || opt == "reference")
         refFilename = args.getNextValue();
+      else if (opt == "is" || opt == "inputscale")
+        inputScale = args.getNextValueFloat();
       else if (opt == "w" || opt == "weights")
         weightsFilename = args.getNextValue();
       else if (opt == "bench" || opt == "benchmark")
@@ -261,6 +266,9 @@ int main(int argc, char* argv[])
       if (directional)
         filter.set("directional", true);
     }
+
+    if (std::isfinite(inputScale))
+      filter.set("inputScale", inputScale);
 
     if (maxMemoryMB >= 0)
       filter.set("maxMemoryMB", maxMemoryMB);
