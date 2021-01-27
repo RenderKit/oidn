@@ -15,6 +15,7 @@ Version History
     runtime library
 -   Reduced the size of the library binary
 -   Fixed compile error on some older macOS versions
+-   Upgraded release builds to use oneTBB 2021.1.1
 -   Training:
     -   Improved training performance
     -   Added support for training on multiple GPUs

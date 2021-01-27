@@ -16,7 +16,7 @@ import argparse
 from common import *
 
 ISPC_VERSION = '1.15.0'
-TBB_VERSION  = '2020.3'
+TBB_VERSION  = '2021.1.1'
 
 def download_file(url, output_dir):
   print('Downloading file:', url)
@@ -112,7 +112,7 @@ if cfg.target == 'all' or not os.path.isdir(build_dir):
   ispc_executable = os.path.join(ispc_dir, 'bin', 'ispc')
 
   # Set up TBB
-  tbb_release = f'tbb-{TBB_VERSION}-'
+  tbb_release = f'oneapi-tbb-{TBB_VERSION}-'
   tbb_release += {'windows' : 'win', 'linux' : 'lin', 'macos' : 'mac'}[OS]
   tbb_dir = os.path.join(deps_dir, tbb_release)
   if not os.path.isdir(tbb_dir):
@@ -122,7 +122,7 @@ if cfg.target == 'all' or not os.path.isdir(build_dir):
     tbb_filename = download_file(tbb_url, deps_dir)
     extract_package(tbb_filename, tbb_dir)
     os.remove(tbb_filename)
-  tbb_root = os.path.join(tbb_dir, 'tbb')
+  tbb_root = os.path.join(tbb_dir, f'oneapi-tbb-{TBB_VERSION}')
 
   # Create a clean build directory
   if os.path.isdir(build_dir):
@@ -155,10 +155,10 @@ if cfg.target == 'all' or not os.path.isdir(build_dir):
         cxx = os.path.join(icc_dir, cxx)
     config_cmd += f' -D CMAKE_C_COMPILER:FILEPATH="{cc}"'
     config_cmd += f' -D CMAKE_CXX_COMPILER:FILEPATH="{cxx}"'
-    config_cmd += f' -D CMAKE_BUILD_TYPE={cfg.config}'
 
     build_cmd += ' --target preinstall -- -j VERBOSE=1'
 
+  config_cmd += f' -D CMAKE_BUILD_TYPE={cfg.config}'
   config_cmd += f' -D ISPC_EXECUTABLE="{ispc_executable}"'
   config_cmd += f' -D TBB_ROOT="{tbb_root}"'
   if cfg.cmake_vars:
@@ -202,9 +202,11 @@ if cfg.target == 'package':
     run('cmake --build . --target package -- -j VERBOSE=1')
 
   # Extract the package
-  package_filename = glob(os.path.join(build_dir, 'oidn-*'))[0]
-  extract_package(package_filename, build_dir)
+  package_filename = [f for f in glob(os.path.join(build_dir, 'oidn-*')) if os.path.isfile(f)][0]
   package_dir = re.sub(r'\.(tar(\..*)?|zip)$', '', package_filename)
+  if os.path.isdir(package_dir):
+    shutil.rmtree(package_dir)
+  extract_package(package_filename, build_dir)
 
   # Get the list of binaries
   binaries = glob(os.path.join(package_dir, 'bin', '*'))
