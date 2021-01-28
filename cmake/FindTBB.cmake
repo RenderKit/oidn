@@ -298,14 +298,14 @@ function(rk_tbb_find_library COMPONENT_NAME BUILD_CONFIG)
   if (BUILD_CONFIG STREQUAL "DEBUG")
     set(LIB_NAME "${COMPONENT_NAME}_debug")
     if (WIN32)
-      set(LIB_NAME_VERSION1 "${COMPONENT_NAME}[0-9]_debug")
-      set(LIB_NAME_VERSION2 "${COMPONENT_NAME}[0-9][0-9]_debug")
+      set(LIB_NAME_GLOB1 "${COMPONENT_NAME}[0-9]_debug")
+      set(LIB_NAME_GLOB2 "${COMPONENT_NAME}[0-9][0-9]_debug")
     endif()
   else()
     set(LIB_NAME "${COMPONENT_NAME}")
     if (WIN32)
-      set(LIB_NAME_VERSION1 "${COMPONENT_NAME}[0-9]")
-      set(LIB_NAME_VERSION2 "${COMPONENT_NAME}[0-9][0-9]")
+      set(LIB_NAME_GLOB1 "${COMPONENT_NAME}[0-9]")
+      set(LIB_NAME_GLOB2 "${COMPONENT_NAME}[0-9][0-9]")
     endif()
   endif()
 
@@ -338,8 +338,8 @@ function(rk_tbb_find_library COMPONENT_NAME BUILD_CONFIG)
       ${TBB_ROOT}/bin/${TBB_ARCH}/${TBB_VCVER}/${LIB_NAME}.dll
       ${TBB_ROOT}/bin/${LIB_NAME}.dll
       ${TBB_ROOT}/redist/${TBB_ARCH}/${TBB_VCVER}/${LIB_NAME}.dll
-      ${TBB_ROOT}/redist/${TBB_ARCH}/${TBB_VCVER}/${LIB_NAME_VERSION1}.dll
-      ${TBB_ROOT}/redist/${TBB_ARCH}/${TBB_VCVER}/${LIB_NAME_VERSION2}.dll
+      ${TBB_ROOT}/redist/${TBB_ARCH}/${TBB_VCVER}/${LIB_NAME_GLOB1}.dll
+      ${TBB_ROOT}/redist/${TBB_ARCH}/${TBB_VCVER}/${LIB_NAME_GLOB2}.dll
       ${TBB_ROOT}/../redist/${TBB_ARCH}/tbb/${TBB_VCVER}/${LIB_NAME}.dll
       ${TBB_ROOT}/../redist/${TBB_ARCH}_win/tbb/${TBB_VCVER}/${LIB_NAME}.dll
     )
