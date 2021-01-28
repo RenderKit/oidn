@@ -228,14 +228,14 @@ namespace oidn {
   #if defined(OIDN_X64)
     if (x64::mayiuse(x64::sse41))       std::cout << " SSE4.1";
     if (x64::mayiuse(x64::avx2))        std::cout << " AVX2";
-    if (x64::mayiuse(x64::avx512_core)) std::cout << " AVX512SKX";
+    if (x64::mayiuse(x64::avx512_core)) std::cout << " AVX512";
   #elif defined(OIDN_ARM64)
     std::cout << " NEON";
   #endif
     std::cout << " (supported)" << std::endl;
     std::cout << "            ";
   #if defined(OIDN_X64)
-    std::cout << "SSE4.1 AVX2 AVX512SKX";
+    std::cout << "SSE4.1 AVX2 AVX512";
   #elif defined(OIDN_ARM64)
     std::cout << "NEON";
   #endif
