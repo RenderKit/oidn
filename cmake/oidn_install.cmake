@@ -58,7 +58,7 @@ if(OIDN_STATIC_LIB)
 endif()
 
 if(OIDN_ZIP_MODE)
-  foreach(C IN ITEMS "tbb" "tbbmalloc")
+  foreach(C IN ITEMS "tbb")
     if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
       get_target_property(LIB_PATH TBB::${C} IMPORTED_LOCATION_DEBUG)
     else()

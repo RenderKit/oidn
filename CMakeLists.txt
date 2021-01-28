@@ -70,7 +70,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 
 # Library dependencies
 find_package(Threads REQUIRED)
-find_package(TBB 2017.0 REQUIRED tbb tbbmalloc)
+find_package(TBB 2017.0 REQUIRED tbb)
 
 # Packaging
 include(oidn_package)
