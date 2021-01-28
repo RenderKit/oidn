@@ -51,7 +51,7 @@ install(
 if(OIDN_STATIC_LIB)
   install(TARGETS TBB EXPORT TBB_Export)
   install(EXPORT TBB_Export
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}-${OIDN_VERSION}
     FILE TBBConfig.cmake
     COMPONENT devel
   )
@@ -84,7 +84,7 @@ endif()
 ## -----------------------------------------------------------------------------
 
 install(EXPORT ${PROJECT_NAME}_Export
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}-${OIDN_VERSION}
   #NAMESPACE ${PROJECT_NAME}::
   FILE ${PROJECT_NAME}Config.cmake
   COMPONENT devel
@@ -94,6 +94,6 @@ include(CMakePackageConfigHelpers)
 write_basic_package_version_file(${PROJECT_NAME}ConfigVersion.cmake
   COMPATIBILITY SameMajorVersion)
 install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}-${OIDN_VERSION}
   COMPONENT devel
 )
