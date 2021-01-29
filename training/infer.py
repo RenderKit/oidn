@@ -34,7 +34,7 @@ def main():
   cfg.transfer = result_cfg.transfer
   cfg.model    = result_cfg.model
   main_feature = get_main_feature(cfg.features)
-  num_main_channels = len(get_model_channels(main_feature))
+  num_main_channels = len(get_dataset_channels(main_feature))
 
   # Initialize the dataset
   data_dir = get_data_dir(cfg, cfg.input_data)
@@ -77,7 +77,11 @@ def main():
                   0, round_up(shape[2], model.alignment) - shape[2]))
 
     # Run the inference
-    x = model(x)
+    if main_feature == 'sh1':
+      # Iterate over x, y, z
+      x = torch.cat([model(torch.cat((x[:, i:i+3, ...], x[:, 9:, ...]), 1)) for i in [0, 3, 6]], 1)
+    else:
+      x = model(x)
 
     # Unpad the output
     x = x[:, :, :shape[2], :shape[3]]
@@ -96,10 +100,16 @@ def main():
     return x
 
   # Saves an image in different formats
-  def save_images(path, image, image_srgb):
+  def save_images(path, image, image_srgb, suffix=main_feature):
+    if suffix == 'sh1':
+      # Iterate over x, y, z
+      for i, axis in [(0, 'x'), (3, 'y'), (6, 'z')]:
+        save_images(path, image[:, i:i+3, ...], image_srgb[:, i:i+3, ...], 'sh1' + axis)
+      return
+
     image      = tensor_to_image(image)
     image_srgb = tensor_to_image(image_srgb)
-    filename_prefix = path + '.' + main_feature + '.'
+    filename_prefix = path + '.' + suffix + '.'
     for format in cfg.format:
       if format in {'exr', 'pfm', 'hdr'}:
         # Transform to original range
