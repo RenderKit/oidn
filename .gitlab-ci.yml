@@ -273,6 +273,7 @@ test-macos-icc-avx2:
   tags:
     - osx
     - avx2
+    - sign # other machines are too slow
   needs:
     - job: build-macos-icc
       artifacts: true
@@ -307,6 +308,7 @@ test-macos-clang-avx2:
   tags:
     - osx
     - avx2
+    - sign # other machines are too slow
   needs:
     - job: build-macos-clang
       artifacts: true
