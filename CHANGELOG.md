@@ -6,7 +6,9 @@ Version History
 -   Improved denoising quality
     -   Improved sharpness of fine details / less blurriness
     -   Fewer noisy artifacts
--   Slightly improved performance and lower memory consumption
+-   Slightly improved performance and lowered memory consumption
+-   Added support for denoising directional (e.g. spherical harmonics) lightmaps
+    in the `RTLightmap` filter
 -   Added `inputScale` filter parameter which generalizes the existing
     (and thus now deprecated) `hdrScale` parameter for non-HDR images
 -   Added native support for Apple Silicon and the BNNS library on macOS
