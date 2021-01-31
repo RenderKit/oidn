@@ -641,14 +641,14 @@ Image     float3   output               output image; it can be one of the input
                                         images
 
 bool               directional    false whether the input contains normalized
-                                        coefficients (values in [-1, 1]) of a
+                                        coefficients (in [-1, 1]) of a
                                         directional lightmap (e.g. normalized L1
                                         or higher spherical harmonics band with
-                                        the HDR L0 band divided out); if the
-                                        range of the coefficients is different
-                                        from [-1, 1], the inputScale parameter
-                                        can be used to adjust the range without
-                                        changing the stored values
+                                        the L0 band divided out); if the range
+                                        of the coefficients is different from
+                                        [-1, 1], the inputScale parameter can be
+                                        used to adjust the range without changing
+                                        the stored values
 
 float              inputScale       NaN scales input color values before
                                         filtering, without scaling the output

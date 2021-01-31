@@ -105,8 +105,9 @@ Denoise through CMake is easy:
 
         make
 
--   You should now have `libOpenImageDenoise.so` as well as a set of example
-    applications.
+-   You should now have `libOpenImageDenoise.so` on Linux or
+    `libOpenImageDenoise.dylib` on macOS, and a set of example applications
+    as well.
 
 
 Entitlements on macOS
@@ -115,7 +116,7 @@ Entitlements on macOS
 macOS requires notarization of applications as a security mechanism, and 
 [entitlements must be declared](https://developer.apple.com/documentation/bundleresources/entitlements)
 during the notarization process.  
-Intel Open Image Denoise uses just-in-time compilaton through the [Intel Deep Neural Network Library](https://intel.github.io/mkl-dnn/) and requires the following entitlements:
+Intel Open Image Denoise uses just-in-time compilaton through [oneDNN](https://github.com/oneapi-src/oneDNN) and requires the following entitlements:
 
 -    [`com.apple.security.cs.allow-jit`](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_cs_allow-jit)
 -    [`com.apple.security.cs.allow-unsigned-executable-memory`](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_cs_allow-unsigned-executable-memory)
@@ -180,7 +181,8 @@ in CMake:
 - `OIDN_STATIC_RUNTIME`: Use the static version of the C/C++ runtime library
   (available only on Windows, OFF by default).
 
-- `OIDN_NEURAL_RUNTIME`: Specifies which neural network runtime library to use.
+- `OIDN_NEURAL_RUNTIME`: Specifies which neural network runtime library to use: 
+  `DNNL` (oneDNN) or `BNNS` (available only on Apple Silicon).
 
 - `OIDN_API_NAMESPACE`: Specifies a namespace to put all Intel Open Image
   Denoise API symbols inside. By default no namespace is used and plain C
