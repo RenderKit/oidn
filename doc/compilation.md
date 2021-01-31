@@ -1,5 +1,5 @@
-Compiling Intel Open Image Denoise
-==================================
+Compilation
+===========
 
 The latest Intel Open Image Denoise sources are always available at the
 [Intel Open Image Denoise GitHub repository](http://github.com/OpenImageDenoise/oidn).

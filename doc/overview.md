@@ -1,5 +1,5 @@
-Intel Open Image Denoise Overview
-=================================
+Overview
+========
 
 Intel Open Image Denoise is an open source library of high-performance,
 high-quality denoising filters for images rendered with ray tracing.
