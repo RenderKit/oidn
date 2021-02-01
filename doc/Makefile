@@ -51,9 +51,6 @@ tmp/images_local_png.md: images.md
 tmp/images_local_pdf.md: images.md
 	sed -e "s@: @: images/@" -e "s@images/\(.*\)\.fig@tmp/\1.pdf@" $< > $@
 
-changelog.md:
-	ln -s ../CHANGELOG.md $@
-
 ## -----------------------------------------------------------------------------
 ## Directories
 ## -----------------------------------------------------------------------------
@@ -87,7 +84,10 @@ www/stylesheet.css: stylesheet.css
 tmp/api_html.md: api.md tmp/links.md tmp/images_local_png.md
 	$(PANDOC) $+ --indented-code-classes=cpp -t markdown-fenced_code_attributes -o $@
 
-www/index.html: teaser.html overview.md changelog.md
+tmp/changelog.md: filter-sectionnumbers.py ../CHANGELOG.md
+	$(PANDOC) --top-level-division=chapter --filter $+ -o $@
+
+www/index.html: teaser.html overview.md tmp/changelog.md
 www/gallery.html: gallery.md
 www/downloads.html: tmp/downloads.md compilation.md
 www/related_projects.html: related_projects.md
@@ -148,6 +148,9 @@ tmp/%.tex: filter-latex.py %.md tmp/links.md tmp/images_local_pdf.md
 tmp/api.tex: filter-latex.py api.md tmp/links.md tmp/images_local_pdf.md
 	$(markdown2tex) --indented-code-classes=cpp
 
+tmp/changelog.tex: filter-latex.py tmp/changelog.md tmp/links.md tmp/images_local_pdf.md
+	$(markdown2tex)
+
 ../readme.pdf: readme.tex $(tmptexfiles) $(wildcard oidn-doc/intel-spec.cls) preamble.tex tmp/version $(pdfimages)
 	md5s=0;\
 	auxf="tmp/`basename $< tex`aux";\
@@ -164,7 +167,7 @@ tmp/api.tex: filter-latex.py api.md tmp/links.md tmp/images_local_pdf.md
 ## -----------------------------------------------------------------------------
 
 clean:
-	rm -rf www tmp changelog.md __pycache__
+	rm -rf www tmp __pycache__
 
 realclean: clean
 	rm -irf images
