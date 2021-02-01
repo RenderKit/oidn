@@ -80,7 +80,7 @@ def parse_args(cmd=None, description=None):
                         help='mini-batch size (total batch size of all devices)')
     parser.add_argument('--num_loaders', '--loaders', '-j', type=int, default=4,
                         help='number of data loader threads per device')
-    parser.add_argument('--precision', '-p', type=str, choices=['fp32', 'amp'],
+    parser.add_argument('--precision', '-p', type=str, choices=['fp32', 'mixed'],
                         help='training precision')
     advanced.add_argument('--model', '-m', type=str, choices=['unet'], default='unet',
                           help='network model')
@@ -199,7 +199,7 @@ def parse_args(cmd=None, description=None):
   if cmd in {'train'}:
     # Set the default training precision
     if cfg.precision is None:
-      cfg.precision = 'amp' if cfg.device == 'cuda' else 'fp32'
+      cfg.precision = 'mixed' if cfg.device == 'cuda' else 'fp32'
       
     # Set the default maximum learning rate
     if cfg.max_lr is None:

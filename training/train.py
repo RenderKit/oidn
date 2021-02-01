@@ -140,7 +140,7 @@ def main_worker(rank, cfg):
     error('failed to restore LR scheduler state')
 
   # Check whether AMP is enabled
-  amp_enabled = cfg.precision == 'amp'
+  amp_enabled = cfg.precision == 'mixed'
 
   if amp_enabled:
     # Initialize the gradient scaler
