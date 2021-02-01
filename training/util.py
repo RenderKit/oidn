@@ -143,17 +143,9 @@ def init_device(cfg, id=0):
     device_name = torch.cuda.get_device_name()
   elif cfg.device == 'cpu':
     device = torch.device(cfg.device)
-
-    # Query CPU information
-    #num_sockets = int(os.popen("lscpu -b -p=Socket | grep -v '^#' | sort -u | wc -l").read())
-    num_cores    = int(os.popen("lscpu -b -p=Core,Socket | grep -v '^#' | sort -u | wc -l").read())
-
-    # Configure OpenMP
-    os.environ['OMP_NUM_THREADS'] = str(num_cores)
-    os.environ['KMP_BLOCKTIME']   = '0'
-    os.environ['KMP_AFFINITY']    = 'granularity=fine,compact,1,0'
-
     device_name = 'CPU'
+  else:
+    error('invalid device')
 
   print(f'Device {id:2}:', device_name)
   return device
