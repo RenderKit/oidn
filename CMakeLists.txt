@@ -204,7 +204,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE common)
 if(OIDN_NEURAL_RUNTIME STREQUAL "DNNL")
   target_link_libraries(${PROJECT_NAME} PRIVATE dnnl)
 elseif(OIDN_NEURAL_RUNTIME STREQUAL "BNNS")
-  target_link_options(${PROJECT_NAME} PRIVATE -framework Accelerate)
+  target_link_libraries(${PROJECT_NAME} PRIVATE "-framework Accelerate")
 endif()
 
 # Specify list of symbols to export
