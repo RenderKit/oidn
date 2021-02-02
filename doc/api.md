@@ -22,6 +22,9 @@ occur.
 All API calls are thread-safe, but operations that use the same device will be
 serialized, so the amount of API calls from different threads should be minimized.
 
+Examples
+--------
+
 To have a quick overview of the C99 and C++11 APIs, see the following
 simple example code snippets.
 
@@ -99,7 +102,7 @@ can be one of the following:
 Name                     Description
 ------------------------ -------------------------------------------------------
 OIDN_DEVICE_TYPE_DEFAULT select the approximately fastest device
-OIDN_DEVICE_TYPE_CPU     CPU device (requires SSE4.1 or Apple Silicon)
+OIDN_DEVICE_TYPE_CPU     CPU device (requires SSE4.1 support or Apple Silicon)
 ------------------------ -------------------------------------------------------
 : Supported device types, i.e., valid constants of type `OIDNDeviceType`.
 
@@ -511,7 +514,7 @@ const int          alignment            when manually denoising the image in
                                         be multiples of this amount of pixels
                                         to avoid artifacts; note that manual
                                         tiled denoising of HDR images is
-                                        supported *only* when hdrScale is set
+                                        supported *only* when inputScale is set
                                         by the user
 
 const int          overlap              when manually denoising the image in
@@ -623,7 +626,8 @@ filter parameters, produced by the included training tool. See Section
 ### RTLightmap
 
 The `RTLightmap` filter is a variant of the `RT` filter optimized for denoising
-HDR and directional lightmaps. It does not support LDR images.
+HDR and normalized directional (e.g. spherical harmonics) lightmaps. It does not
+support LDR images.
 
 The filter can be created by passing `"RTLightmap"` to the `oidnNewFilter`
 function as the filter type. The filter supports the following parameters:
@@ -632,10 +636,11 @@ function as the filter type. The filter supports the following parameters:
 Type      Format   Name         Default Description
 --------- -------- ----------- -------- ----------------------------------------
 Image     float3   color                input color image (RGB, HDR values in
-                                        [0, +∞), values being interpreted such
-                                        that, after scaling with the inputScale
-                                        parameter, a value of 1 corresponds to a
-                                        luminance level of 100 cd/m²)
+                                        [0, +∞), interpreted such that, after
+                                        scaling with the inputScale parameter, a
+                                        value of 1 corresponds to a luminance
+                                        level of 100 cd/m²; directional values
+                                        in [-1, 1])
 
 Image     float3   output               output image; it can be one of the input
                                         images
@@ -658,7 +663,8 @@ float              inputScale       NaN scales input color values before
                                         (which affects the quality of the output
                                         but *not* the range of the output
                                         values); if set to NaN, the scale is
-                                        computed automatically (*default*)
+                                        computed automatically for HDR images or
+                                        set to 1 otherwise (*default*)
 
 Data               weights              trained model weights blob; *optional*
 
@@ -669,6 +675,10 @@ int                maxMemoryMB     6000 approximate maximum amount of scratch
 const int          alignment            when manually denoising the image in
                                         tiles, the tile size and offsets should
                                         be multiples of this amount of pixels
+                                        to avoid artifacts; note that manual
+                                        tiled denoising of HDR images is
+                                        supported *only* when inputScale is set
+                                        by the user
 
 const int          overlap              when manually denoising the image in
                                         tiles, the tiles should overlap by this

@@ -7,21 +7,27 @@ Version History
     -   Improved sharpness of fine details / less blurriness
     -   Fewer noisy artifacts
 -   Slightly improved performance and lowered memory consumption
--   Added support for denoising directional (e.g. spherical harmonics) lightmaps
-    in the `RTLightmap` filter
+-   Added directional (e.g. spherical harmonics) lightmap denoising to the
+    `RTLightmap` filter
 -   Added `inputScale` filter parameter which generalizes the existing
     (and thus now deprecated) `hdrScale` parameter for non-HDR images
 -   Added native support for Apple Silicon and the BNNS library on macOS
-    (currently requires building from source)
+    (currently requires rebuilding from source)
 -   Added `OIDN_NEURAL_RUNTIME` CMake option for setting the neural network
     runtime library
 -   Reduced the size of the library binary
 -   Fixed compile error on some older macOS versions
 -   Upgraded release builds to use oneTBB 2021.1.1
 -   Removed tbbmalloc dependency
+-   Appended the library version to the name of the directory containing the
+    installed CMake files
 -   Training:
-    -   Improved training performance
-    -   Added support for training on multiple GPUs
+    -   Faster training performance
+    -   Added mixed precision training (enabled by default)
+    -   Added efficient data-parallel training on multiple GPUs
+    -   Enabled preprocessing datasets multiple times with possibly different
+        options
+    -   Minor bugfixes
 
 ### Changes in v1.2.4:
 

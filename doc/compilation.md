@@ -34,7 +34,7 @@ you need the following prerequisites:
     page](https://ispc.github.io/downloads.html). The build system looks for
     ISPC in the `PATH` and in the directory right "next to" the checked-out
     Intel Open Image Denoise sources.^[For example, if Intel Open Image Denoise
-    is in `~/Projects/oidn`, ISPC will also be searched in `~/Projects/ispc-v1.12.0-linux`]
+    is in `~/Projects/oidn`, ISPC will also be searched in `~/Projects/ispc-v1.14.1-linux`]
     Alternatively set the CMake variable `ISPC_EXECUTABLE` to the location of
     the ISPC compiler.
 
@@ -182,7 +182,7 @@ in CMake:
   (available only on Windows, OFF by default).
 
 - `OIDN_NEURAL_RUNTIME`: Specifies which neural network runtime library to use: 
-  `DNNL` (oneDNN) or `BNNS` (available only on Apple Silicon).
+  `DNNL` (oneDNN, default) or `BNNS` (available only on macOS).
 
 - `OIDN_API_NAMESPACE`: Specifies a namespace to put all Intel Open Image
   Denoise API symbols inside. By default no namespace is used and plain C
