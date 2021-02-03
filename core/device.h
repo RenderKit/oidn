@@ -38,7 +38,7 @@ namespace oidn {
     dnnl::engine dnnlEngine;
     dnnl::stream dnnlStream;
   #endif
-    int tensorBlockSize;
+    int tensorBlockSize = 1;
 
     // Parameters
     int numThreads = 0; // autodetect by default

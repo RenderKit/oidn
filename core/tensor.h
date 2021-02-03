@@ -78,7 +78,7 @@ namespace oidn {
     TensorLayout layout;
     DataType     dataType;
 
-    __forceinline TensorDesc() {}
+    __forceinline TensorDesc() = default;
 
     __forceinline TensorDesc(TensorDims dims, TensorLayout layout, DataType dataType)
       : dims(dims), layout(layout), dataType(dataType) {}
