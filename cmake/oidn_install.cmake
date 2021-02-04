@@ -39,7 +39,7 @@ install(
     ${PROJECT_SOURCE_DIR}/LICENSE.txt
     ${PROJECT_SOURCE_DIR}/third-party-programs.txt
     ${PROJECT_SOURCE_DIR}/third-party-programs-oneDNN.txt
-    ${PROJECT_SOURCE_DIR}/third-party-programs-TBB.txt
+    ${PROJECT_SOURCE_DIR}/third-party-programs-oneTBB.txt
   DESTINATION ${CMAKE_INSTALL_DOCDIR}
   COMPONENT lib
 )
