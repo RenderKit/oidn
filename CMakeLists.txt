@@ -219,7 +219,7 @@ endif()
 
 message(STATUS "Setting target version ${PROJECT_VERSION}")
 set_property(TARGET ${PROJECT_NAME} PROPERTY VERSION ${PROJECT_VERSION})
-set_property(TARGET ${PROJECT_NAME} PROPERTY SOVERSION "0")
+set_property(TARGET ${PROJECT_NAME} PROPERTY SOVERSION "1")
 
 ## -----------------------------------------------------------------------------
 ## Apps
