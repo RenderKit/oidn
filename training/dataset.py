@@ -31,7 +31,7 @@ def get_main_feature(features):
   return features[0]
 
 # Returns the auxiliary features from a list of features
-def get_auxiliary_features(features):
+def get_aux_features(features):
   main_feature = get_main_feature(features)
   return list(set(features).difference([main_feature]))
 
@@ -264,10 +264,15 @@ def get_preproc_data_dir(cfg, name):
     if os.path.isfile(get_config_filename(data_dir)):
       data_cfg = load_config(data_dir)
 
+      # Backward compatibility
+      if not hasattr(data_cfg, 'ref_aux'):
+        data_cfg.ref_aux = False
+
       # Check whether the dataset matches the requirements
       if get_main_feature(data_cfg.features) == get_main_feature(cfg.features) and \
         all(f in data_cfg.features for f in cfg.features) and \
-        data_cfg.transfer == cfg.transfer:
+        data_cfg.transfer == cfg.transfer and \
+        data_cfg.ref_aux == cfg.ref_aux:
         # Select the most recent version with the minimal amount of channels stored
         num_channels = len(get_dataset_channels(data_cfg.features))
         if best_dir is None or num_channels <= best_num_channels:
@@ -296,7 +301,8 @@ class PreprocessedDataset(Dataset):
     # Get the features
     self.features = cfg.features
     self.main_feature = get_main_feature(cfg.features)
-    self.auxiliary_features = get_auxiliary_features(cfg.features)
+    self.aux_features = get_aux_features(cfg.features)
+    self.ref_aux = cfg.ref_aux and self.aux_features
 
     # Get the channels
     self.channels = get_dataset_channels(cfg.features)
@@ -374,8 +380,17 @@ class TrainingDataset(PreprocessedDataset):
     #print(input_channels, input_channel_indices)
 
     # Crop the input and target images
-    input_image  = input_image [oy:oy+sy, ox:ox+sx, input_channel_indices]
-    target_image = target_image[oy:oy+sy, ox:ox+sx, target_channel_indices]
+    if self.ref_aux:
+      # Get the auxiliary features from the target image
+      aux_channel_indices = input_channel_indices[self.num_main_channels:]
+      input_image  = input_image [oy:oy+sy, ox:ox+sx, target_channel_indices]
+      aux_image    = target_image[oy:oy+sy, ox:ox+sx, aux_channel_indices]
+      target_image = target_image[oy:oy+sy, ox:ox+sx, target_channel_indices]
+      input_image  = np.concatenate((input_image, aux_image), axis=2)
+    else:
+      # Get the auxiliary features from the input image
+      input_image  = input_image [oy:oy+sy, ox:ox+sx, input_channel_indices]
+      target_image = target_image[oy:oy+sy, ox:ox+sx, target_channel_indices]
 
     # Randomly transform the tiles to improve training quality
     if rand() < 0.5:
@@ -401,7 +416,7 @@ class TrainingDataset(PreprocessedDataset):
 
     # Randomly zero the main feature channels if there are auxiliary features
     # This prevents "ghosting" artifacts when the main feature is entirely black
-    if self.auxiliary_features and rand() < 0.01:
+    if self.aux_features and rand() < 0.01:
       input_image[:, :, 0:self.num_main_channels] = 0
       target_image[:] = 0
 
@@ -475,8 +490,17 @@ class ValidationDataset(PreprocessedDataset):
     target_channel_indices = input_channel_indices[:self.num_main_channels]
 
     # Crop the input and target images
-    input_image  = input_image [oy:oy+sy, ox:ox+sx, input_channel_indices]
-    target_image = target_image[oy:oy+sy, ox:ox+sx, target_channel_indices]
+    if self.ref_aux:
+      # Get the auxiliary features from the target image
+      aux_channel_indices = input_channel_indices[self.num_main_channels:]
+      input_image  = input_image [oy:oy+sy, ox:ox+sx, target_channel_indices]
+      aux_image    = target_image[oy:oy+sy, ox:ox+sx, aux_channel_indices]
+      target_image = target_image[oy:oy+sy, ox:ox+sx, target_channel_indices]
+      input_image  = np.concatenate((input_image, aux_image), axis=2)
+    else:
+      # Get the auxiliary features from the input image
+      input_image  = input_image [oy:oy+sy, ox:ox+sx, input_channel_indices]
+      target_image = target_image[oy:oy+sy, ox:ox+sx, target_channel_indices]
 
     # Convert the tiles to tensors
     # Copying is required because PyTorch does not support non-writeable tensors

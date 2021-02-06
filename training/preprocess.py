@@ -27,6 +27,14 @@ def main():
   # Initialize the transfer function
   transfer = get_transfer_function(cfg)
 
+  # Determine the input and target features
+  if cfg.ref_aux:
+    input_features  = main_feature
+    target_features = cfg.features
+  else:
+    input_features  = cfg.features
+    target_features = main_feature
+
   # Returns a preprocessed image (also changes the original image!)
   def preprocess_image(image, exposure):
     # Apply the transfer function
@@ -49,7 +57,7 @@ def main():
 
     # Load the target image
     print(target_name)
-    target_image = load_image_features(os.path.join(input_dir, target_name), main_feature)
+    target_image = load_image_features(os.path.join(input_dir, target_name), target_features)
 
     # Compute the autoexposure value
     exposure = autoexposure(target_image) if main_feature == 'hdr' else 1.
@@ -64,7 +72,7 @@ def main():
     for input_name in input_names:
       # Load the image
       print(input_name)
-      input_image = load_image_features(os.path.join(input_dir, input_name), cfg.features)
+      input_image = load_image_features(os.path.join(input_dir, input_name), input_features)
 
       if input_image.shape[0:2] != target_image.shape[0:2]:
         error('the input and target images have different sizes')

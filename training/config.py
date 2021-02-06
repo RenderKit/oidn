@@ -37,6 +37,8 @@ def parse_args(cmd=None, description=None):
     advanced.add_argument('--transfer', '-x', type=str,
                           choices=['linear', 'srgb', 'pu', 'log'],
                           help='transfer function')
+    advanced.add_argument('--ref_aux', action='store_true',
+                          help='use reference auxiliary features for training')
 
   if cmd in {'preprocess', 'train'}:
     parser.add_argument('--valid_data', '-v', type=str,
