@@ -113,7 +113,7 @@ def main_worker(rank, cfg):
     if rank == 0:
       print('Training images:', train_data.num_images)
   else:
-    error('no training images (forgot to run preprocess?)')
+    error('no training images')
   train_loader, train_sampler = get_data_loader(rank, cfg, train_data, shuffle=True)
   train_steps_per_epoch = len(train_loader)
 

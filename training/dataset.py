@@ -282,11 +282,13 @@ class PreprocessedDataset(Dataset):
   def __init__(self, cfg, name):
     super(PreprocessedDataset, self).__init__()
 
-    # Check whether the preprocessed images have all required features
-    data_dir = get_preproc_data_dir(cfg, name)
-    if not os.path.isdir(data_dir):
+    if not name:
+      self.samples = []
       self.num_images = 0
       return
+
+    # Check whether the preprocessed images have all required features
+    data_dir = get_preproc_data_dir(cfg, name)
     data_cfg = load_config(data_dir)
 
     self.tile_size = cfg.tile_size
@@ -320,7 +322,6 @@ class PreprocessedDataset(Dataset):
 class TrainingDataset(PreprocessedDataset):
   def __init__(self, cfg, name):
     super(TrainingDataset, self).__init__(cfg, name)
-
     self.max_padding = 16
 
   def __len__(self):
@@ -417,12 +418,14 @@ class TrainingDataset(PreprocessedDataset):
 class ValidationDataset(PreprocessedDataset):
   def __init__(self, cfg, name):
     super(ValidationDataset, self).__init__(cfg, name)
+    self.tiles = []
+
+    if self.num_images == 0:
+      return
 
     input_channel_indices = get_channel_indices(self.channels, self.all_channels)
 
     # Split the images into tiles
-    self.tiles = []
-
     for sample_index in range(self.num_images):
       # Get the input image
       input_name,  _ = self.samples[sample_index]
