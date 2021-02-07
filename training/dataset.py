@@ -31,7 +31,7 @@ def get_main_feature(features):
   return features[0]
 
 # Returns the auxiliary features from a list of features
-def get_auxiliary_features(features):
+def get_aux_features(features):
   main_feature = get_main_feature(features)
   return list(set(features).difference([main_feature]))
 
@@ -296,7 +296,7 @@ class PreprocessedDataset(Dataset):
     # Get the features
     self.features = cfg.features
     self.main_feature = get_main_feature(cfg.features)
-    self.auxiliary_features = get_auxiliary_features(cfg.features)
+    self.aux_features = get_aux_features(cfg.features)
 
     # Get the channels
     self.channels = get_dataset_channels(cfg.features)
@@ -401,7 +401,7 @@ class TrainingDataset(PreprocessedDataset):
 
     # Randomly zero the main feature channels if there are auxiliary features
     # This prevents "ghosting" artifacts when the main feature is entirely black
-    if self.auxiliary_features and rand() < 0.01:
+    if self.aux_features and rand() < 0.01:
       input_image[:, :, 0:self.num_main_channels] = 0
       target_image[:] = 0
 
