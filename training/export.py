@@ -31,6 +31,8 @@ def export_weights(cfg):
 
   # Load the checkpoint
   result_dir = get_result_dir(cfg)
+  if not os.path.isdir(result_dir):
+    error('result does not exist')
   checkpoint = load_checkpoint(result_dir, device, cfg.num_epochs)
   epoch = checkpoint['epoch']
   model_state = checkpoint['model_state']
