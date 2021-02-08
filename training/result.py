@@ -7,8 +7,10 @@ import torch
 from util import *
 
 # Gets the path to the result directory
-def get_result_dir(cfg):
-  return os.path.join(cfg.results_dir, cfg.result)
+def get_result_dir(cfg, result=None):
+  if result is None:
+    result = cfg.result
+  return os.path.join(cfg.results_dir, result)
 
 # Gets the path to the result checkpoint directory
 def get_checkpoint_dir(result_dir):
