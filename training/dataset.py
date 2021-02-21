@@ -140,14 +140,8 @@ def load_image_features(name, features):
   # Normal
   if 'nrm' in features:
     normal = load_image(name + '.nrm.exr', num_channels=3)
-
-    # Normalize
-    length_sqr = np.add.reduce(np.square(normal), axis=-1, keepdims=True)
-    with np.errstate(divide='ignore'):
-      rcp_length = np.reciprocal(np.sqrt(length_sqr))
-    rcp_length = np.nan_to_num(rcp_length, nan=0., posinf=0., neginf=0.)
-    normal *= rcp_length
-
+    normal = np.clip(normal, -1., 1.)
+    
     # Transform to [0..1] range
     normal = normal * 0.5 + 0.5
 
