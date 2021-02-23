@@ -24,7 +24,7 @@ namespace oidn {
         numChannels(0) {}
 
     ImageBuffer(int width, int height, int numChannels)
-      : buffer(size_t(width) * height * numChannels),
+      : buffer(size_t(width) * height * numChannels, 0.0f),
         width(width),
         height(height),
         numChannels(numChannels) {}
