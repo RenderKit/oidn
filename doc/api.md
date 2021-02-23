@@ -1,7 +1,7 @@
-Intel Open Image Denoise API
-============================
+Open Image Denoise API
+======================
 
-Intel Open Image Denoise provides a C99 API (also compatible with C++) and a
+Open Image Denoise provides a C99 API (also compatible with C++) and a
 C++11 wrapper API as well. For simplicity, this document mostly refers to the
 C99 version of the API.
 
