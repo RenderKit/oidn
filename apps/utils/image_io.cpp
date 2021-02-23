@@ -200,15 +200,20 @@ namespace oidn {
     if (!out)
       throw std::runtime_error("cannot save unsupported image file format: " + filename);
 
+    const std::string ext = getExtension(filename);
     OIIO::ImageSpec spec(image.width,
                          image.height,
                          image.numChannels,
-                         OIIO::TypeDesc::FLOAT);
-
+                         ext == "exr" ? OIIO::TypeDesc::HALF : OIIO::TypeDesc::FLOAT);
     if (!out->open(filename, spec))
       throw std::runtime_error("cannot create image file: " + filename);
-    if (!out->write_image(OIIO::TypeDesc::FLOAT, image.data()))
-      throw std::runtime_error("failed to write image data");
+    for (int y = 0; y < image.height; y++)
+    {
+      out->write_scanline(y,
+                          0,
+                          OIIO::TypeDesc::FLOAT,
+                          image.data() + y * image.width * image.numChannels);
+    }
     out->close();
 
 #if OIIO_VERSION < 10903
