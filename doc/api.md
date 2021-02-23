@@ -28,7 +28,7 @@ Examples
 To have a quick overview of the C99 and C++11 APIs, see the following
 simple example code snippets.
 
-*C99 API Example*
+### C99 API Example
 
     #include <OpenImageDenoise/oidn.h>
     ...
@@ -61,7 +61,7 @@ simple example code snippets.
     oidnReleaseFilter(filter);
     oidnReleaseDevice(device);
 
-*C++11 API Example*
+### C++11 API Example
 
     #include <OpenImageDenoise/oidn.hpp>
     ...

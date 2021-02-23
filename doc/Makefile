@@ -24,7 +24,6 @@ all: www doc pdf
 www: $(webpages) www/stylesheet.css $(webimages)
 doc: ../README.md
 pdf: ../readme.pdf
-spec: tmp/oidn-spec.rst
 
 .PHONY: all www doc pdf clean realclean
 
@@ -67,23 +66,6 @@ wwwimgdir:
 $(process_version) tmp/version ../readme.pdf $(tmptexfiles) tmp/api.md tmp/api_html.md tmp/links.md tmp/images_web.md tmp/images_local_pdf.md tmp/images_local_png.md: | tmpdir
 tmpdir:
 	@mkdir -p tmp
-
-## ----------------------------------------------------------------------------
-## Spec
-## ---------------------------------------------------------------------------
-
-tmp/api_spec.md: api.md training.md tmp/links.md tmp/images_local_png.md
-	$(PANDOC) $+ -t gfm -o $@
-
-tmp/oidn-spec.rst: tmp/api_spec.md
-	$(PANDOC) --wrap=none --email-obfuscation=none -f markdown $+ -V select_$(basename $(@F)) --to rst -o $@
-	# Use rst2html to test translation from rst to html before
-	# integration into spec.
-	#
-	# Disable syntax highlighting because rst2html cannot handle
-	# regexp.  Spec uses a fake regexp syntax highlighter, so we
-	# still get highlighting for everything else in the spec.
-	rst2html --syntax-highlight=none $@ tmp/oidn-spec.html
 
 ## -----------------------------------------------------------------------------
 ## Webpages
