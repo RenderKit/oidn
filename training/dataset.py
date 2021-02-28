@@ -16,25 +16,6 @@ from image import *
 from color import *
 import tza
 
-# Returns a dataset directory path
-def get_data_dir(cfg, name):
-  return os.path.join(cfg.data_dir, name)
-
-# Returns the main feature from a list of features
-def get_main_feature(features):
-  if len(features) > 1:
-    features = list(set(features) & {'hdr', 'ldr', 'sh1'})
-    if len(features) > 1:
-      error('multiple main features specified')
-  if not features:
-    error('no main feature specified')
-  return features[0]
-
-# Returns the auxiliary features from a list of features
-def get_aux_features(features):
-  main_feature = get_main_feature(features)
-  return list(set(features).difference([main_feature]))
-
 # Returns the ordered list of channel names for the specified features
 def get_channels(features, target):
   assert target in {'dataset', 'model'}
@@ -167,6 +148,10 @@ def load_image_metadata(name):
 # Saves image metadata to a file with given prefix
 def save_image_metadata(name, metadata):
   save_json(name + '.json', metadata)
+
+# Returns a dataset directory path
+def get_data_dir(cfg, name):
+  return os.path.join(cfg.data_dir, name)
 
 # Returns groups of image samples (input and target images at different SPPs) as a list of (group name, list of input names, target name)
 def get_image_sample_groups(dir, features):

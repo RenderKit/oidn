@@ -9,6 +9,36 @@ import torch
 
 from util import *
 
+# Returns the main feature from a list of features
+def get_main_feature(features):
+  if len(features) > 1:
+    features = list(set(features) & {'hdr', 'ldr', 'sh1'})
+    if len(features) > 1:
+      error('multiple main features specified')
+  if not features:
+    error('no main feature specified')
+  return features[0]
+
+# Returns the auxiliary features from a list of features
+def get_aux_features(features):
+  main_feature = get_main_feature(features)
+  return list(set(features).difference([main_feature]))
+
+# Returns the config filename in a directory
+def get_config_filename(dir):
+  return os.path.join(dir, 'config.json')
+
+# Loads the config from a directory
+def load_config(dir):
+  filename = get_config_filename(dir)
+  cfg = load_json(filename)
+  return argparse.Namespace(**cfg)
+
+# Saves the config to a directory
+def save_config(dir, cfg):
+  filename = get_config_filename(dir)
+  save_json(filename, vars(cfg))
+
 # Parses the config from the command line arguments
 def parse_args(cmd=None, description=None):
   def get_default_device():
@@ -172,9 +202,10 @@ def parse_args(cmd=None, description=None):
 
     # Set the default transfer function
     if cfg.transfer is None:
-      if 'hdr' in cfg.features:
+      main_feature = get_main_feature(cfg.features)
+      if main_feature == 'hdr':
         cfg.transfer = 'log' if cfg.filter == 'RTLightmap' else 'pu'
-      elif 'ldr' in cfg.features:
+      elif main_feature in {'ldr', 'alb'}:
         cfg.transfer = 'srgb'
       else:
         cfg.transfer = 'linear'
@@ -212,18 +243,3 @@ def parse_args(cmd=None, description=None):
   print('PyTorch:', torch.__version__)
 
   return cfg
-
-# Returns the config filename in a directory
-def get_config_filename(dir):
-  return os.path.join(dir, 'config.json')
-
-# Loads the config from a directory
-def load_config(dir):
-  filename = get_config_filename(dir)
-  cfg = load_json(filename)
-  return argparse.Namespace(**cfg)
-
-# Saves the config to a directory
-def save_config(dir, cfg):
-  filename = get_config_filename(dir)
-  save_json(filename, vars(cfg))
