@@ -146,6 +146,7 @@ def parse_args(cmd=None, description=None):
     parser.add_argument('--num_devices', '-n', type=int, default=1,
                         help='number of devices to use (with IDs device_id .. device_id+num_devices-1)')
     advanced.add_argument('--deterministic', '--det', action='store_true',
+                          default=(cmd in {'preprocess', 'infer', 'export'}),
                           help='makes computations deterministic (slower performance)')
 
   cfg = parser.parse_args()
