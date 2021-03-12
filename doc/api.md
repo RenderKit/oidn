@@ -474,7 +474,7 @@ Image     float3   albedo               input feature image containing the
 Image     float3   normal               input feature image containing the
                                         shading normal (3D world-space or
                                         view-space vector with arbitrary
-                                        length, values in (−∞, +∞)) of the first
+                                        length, values in [-1, 1]) of the first
                                         hit per pixel; *optional*, requires
                                         setting the albedo image too
 
@@ -599,9 +599,8 @@ preserve as much detail as possible.
 
 Just like any other input image, the normal image should be anti-aliased (i.e.
 by accumulating the normalized normals per pixel). The final accumulated
-normals do not have to be normalized but must be in a range symmetric about 0
-(i.e. normals mapped to [0, 1] are *not* acceptable and must be remapped to
-e.g. [−1, 1]).
+normals do not have to be normalized but must be in the [-1, 1] range (i.e.
+normals mapped to [0, 1] are *not* acceptable and must be remapped to [−1, 1]).
 
 Similar to the albedo, the normal can be stored for either the first
 or a subsequent hit (if the first hit has a perfect specular/delta BSDF).

@@ -70,10 +70,7 @@ inline void storeAlbedo(uniform InputReorder* uniform self, uniform int h, int w
 inline void storeNormal(uniform InputReorder* uniform self, uniform int h, int w, uniform int c, vec3f value)
 {
   // Sanitize
-  value = clamp(nan_to_zero(value), neg_max, pos_max);
-
-  // Normalize
-  value = normalize_safe(value);
+  value = clamp(nan_to_zero(value), -1.f, 1.f);
 
   // Transform to [0..1]
   value = value * 0.5f + 0.5f;
