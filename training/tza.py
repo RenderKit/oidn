@@ -28,6 +28,10 @@ class Writer(object):
       return 'f'
     elif dtype == np.float16:
       return 'h'
+    elif dtype == np.int8:
+      return 'b'
+    elif dtype == np.uint8:
+      return 'B'
     else:
       raise ValueError('unsupported tensor data type')
 
@@ -153,6 +157,10 @@ class Reader(object):
       return np.float32
     elif dtype == 'h':
       return np.float16
+    elif dtype == 'b':
+      return np.int8
+    elif dtype == 'B':
+      return np.uint8
     else:
       raise ValueError('unsupported tensor data type')
 

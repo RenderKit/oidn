@@ -60,7 +60,8 @@ def main():
               ('Normals.R', 'Normals.G', 'Normals.B'),
               ('VisibleNormals.R', 'VisibleNormals.G', 'VisibleNormals.B'),
               ('OptixNormals.R', 'OptixNormals.G', 'OptixNormals.B'),
-            ]
+            ],
+    'z' : [('Denoising Depth.Z',)]
   }
 
   for feature, feature_channel_lists in FEATURES.items():
