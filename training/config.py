@@ -84,6 +84,10 @@ def parse_args(cmd=None, description=None):
     parser.add_argument('--result', '-r', type=str, required=(not cmd in {'train', 'find_lr'}),
                         help='name of the result to save/load')
 
+  if cmd in {'infer'}:
+    parser.add_argument('--aux_results', type=str, nargs='*', default=[],
+                        help='filter the auxiliary features with the specified trained models')
+
   if cmd in {'train', 'infer', 'export'}:
     parser.add_argument('--num_epochs', '--epochs', '-e', type=int,
                         default=(2000 if cmd == 'train' else None),
