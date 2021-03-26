@@ -153,10 +153,12 @@ def save_image_metadata(name, metadata):
 def get_data_dir(cfg, name):
   return os.path.join(cfg.data_dir, name)
 
-# Returns groups of image samples (input and target images at different SPPs) as a list of (group name, list of input names, target name)
-def get_image_sample_groups(dir, features):
+# Returns groups of image samples (input and target images at different SPPs) as
+# a list of (group name, list of input names, target name)
+def get_image_sample_groups(dir, input_features, target_features=None):
   image_filenames = glob(os.path.join(dir, '**', '*.*.exr'), recursive=True)
-  target_features = [get_main_feature(features)]
+  if target_features is None:
+    target_features = [get_main_feature(input_features)]
 
   # Make image groups
   image_groups = defaultdict(set)
@@ -185,7 +187,7 @@ def get_image_sample_groups(dir, features):
       input_names, target_name = image_names, None
 
     # Check whether all required features exist
-    if all([image_exists(os.path.join(dir, name), features) for name in input_names]):
+    if all([image_exists(os.path.join(dir, input_name), input_features) for input_name in input_names]):
       if target_name and not image_exists(os.path.join(dir, target_name), target_features):
         target_name = None # discard target due to missing features
 
@@ -244,14 +246,14 @@ def get_preproc_data_dir(cfg, name):
       data_cfg = load_config(data_dir)
 
       # Backward compatibility
-      if not hasattr(data_cfg, 'ref_aux'):
-        data_cfg.ref_aux = False
+      if not hasattr(data_cfg, 'clean_aux'):
+        data_cfg.clean_aux = False
 
       # Check whether the dataset matches the requirements
       if get_main_feature(data_cfg.features) == get_main_feature(cfg.features) and \
         all(f in data_cfg.features for f in cfg.features) and \
-        data_cfg.transfer == cfg.transfer and \
-        data_cfg.ref_aux == cfg.ref_aux:
+        data_cfg.clean_aux == cfg.clean_aux and \
+        data_cfg.transfer == cfg.transfer:
         # Select the most recent version with the minimal amount of channels stored
         num_channels = len(get_dataset_channels(data_cfg.features))
         if best_dir is None or num_channels <= best_num_channels:
@@ -281,7 +283,7 @@ class PreprocessedDataset(Dataset):
     self.features = cfg.features
     self.main_feature = get_main_feature(cfg.features)
     self.aux_features = get_aux_features(cfg.features)
-    self.ref_aux = cfg.ref_aux and self.aux_features
+    self.clean_aux = cfg.clean_aux and self.aux_features
 
     # Get the channels
     self.channels = get_dataset_channels(cfg.features)
@@ -359,7 +361,7 @@ class TrainingDataset(PreprocessedDataset):
     #print(input_channels, input_channel_indices)
 
     # Crop the input and target images
-    if self.ref_aux:
+    if self.clean_aux:
       # Get the auxiliary features from the target image
       aux_channel_indices = input_channel_indices[self.num_main_channels:]
       input_image  = input_image [oy:oy+sy, ox:ox+sx, target_channel_indices]
@@ -469,7 +471,7 @@ class ValidationDataset(PreprocessedDataset):
     target_channel_indices = input_channel_indices[:self.num_main_channels]
 
     # Crop the input and target images
-    if self.ref_aux:
+    if self.clean_aux:
       # Get the auxiliary features from the target image
       aux_channel_indices = input_channel_indices[self.num_main_channels:]
       input_image  = input_image [oy:oy+sy, ox:ox+sx, target_channel_indices]

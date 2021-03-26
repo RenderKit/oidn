@@ -15,7 +15,8 @@ from model import *
 from color import *
 from result import *
 
-class Inference(object):
+# Inference function object
+class Infer(object):
   def __init__(self, cfg, device, result=None):
     # Load the result config
     result_dir = get_result_dir(cfg, result)
@@ -42,12 +43,12 @@ class Inference(object):
     # Set the model to evaluation mode
     self.model.eval()
 
-    # Initialize inference for auxiliary features
+    # Initialize auxiliary feature inference
     self.aux_infers = {}
     if self.aux_features:
       for aux_result in set(cfg.aux_results):
-        aux_infer = Inference(cfg, device, aux_result)
-        if not aux_infer.main_feature in self.aux_features or len(aux_infer.features) != 1:
+        aux_infer = Infer(cfg, device, aux_result)
+        if (aux_infer.main_feature not in self.aux_features) or aux_infer.aux_features:
           error(f'result {aux_result} does not correspond to an auxiliary feature')
         self.aux_infers[aux_infer.main_feature] = aux_infer
 
@@ -68,7 +69,7 @@ class Inference(object):
     image = F.pad(image, (0, round_up(shape[3], self.model.alignment) - shape[3],
                           0, round_up(shape[2], self.model.alignment) - shape[2]))
 
-    # Run the inference for the auxiliary features
+    # Prefilter the auxiliary features
     for aux_feature, aux_infer in self.aux_infers.items():
       aux_channels = get_dataset_channels(aux_feature)
       aux_channel_indices = get_channel_indices(aux_channels, self.all_channels)
@@ -76,7 +77,7 @@ class Inference(object):
       aux = aux_infer(aux)
       image[:, aux_channel_indices, ...] = aux
 
-    # Run the inference for the main feature
+    # Filter the main feature
     if self.main_feature == 'sh1':
       # Iterate over x, y, z
       image = torch.cat([self.model(torch.cat((image[:, i:i+3, ...], image[:, 9:, ...]), 1)) for i in [0, 3, 6]], 1)
@@ -106,8 +107,8 @@ def main():
   # Initialize the PyTorch device
   device = init_device(cfg)
 
-  # Open the result
-  infer = Inference(cfg, device)
+  # Initialize the inference function
+  infer = Infer(cfg, device)
   print('Result:', cfg.result)
   print('Epoch:', infer.epoch)
 

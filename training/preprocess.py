@@ -28,12 +28,12 @@ def main():
   transfer = get_transfer_function(cfg)
 
   # Determine the input and target features
-  if cfg.ref_aux:
-    input_features  = main_feature
+  if cfg.clean_aux:
+    input_features  = [main_feature]
     target_features = cfg.features
   else:
     input_features  = cfg.features
-    target_features = main_feature
+    target_features = [main_feature]
 
   # Returns a preprocessed image (also changes the original image!)
   def preprocess_image(image, exposure):
@@ -102,7 +102,7 @@ def main():
     os.makedirs(output_dir)
 
     # Preprocess image sample groups
-    sample_groups = get_image_sample_groups(input_dir, cfg.features)
+    sample_groups = get_image_sample_groups(input_dir, input_features, target_features)
     tza_filename = os.path.join(output_dir, 'images.tza')
     samples = []
     with tza.Writer(tza_filename) as output_tza:

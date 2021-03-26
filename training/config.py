@@ -57,6 +57,8 @@ def parse_args(cmd=None, description=None):
     parser.add_argument('features', type=str, nargs='*',
                         choices=['hdr', 'ldr', 'sh1', 'albedo', 'alb', 'normal', 'nrm', []],
                         help='set of input features')
+    parser.add_argument('--clean_aux', action='store_true',
+                        help='train with noise-free (reference) auxiliary features')
     parser.add_argument('--filter', '-f', type=str,
                         choices=['RT', 'RTLightmap'],
                         help='filter to train (determines some default arguments)')
@@ -67,8 +69,6 @@ def parse_args(cmd=None, description=None):
     advanced.add_argument('--transfer', '-x', type=str,
                           choices=['linear', 'srgb', 'pu', 'log'],
                           help='transfer function')
-    advanced.add_argument('--ref_aux', action='store_true',
-                          help='use reference auxiliary features for training')
 
   if cmd in {'preprocess', 'train'}:
     parser.add_argument('--valid_data', '-v', type=str,
@@ -82,11 +82,11 @@ def parse_args(cmd=None, description=None):
     parser.add_argument('--results_dir', '-R', type=str, default='results',
                         help='directory of training results')
     parser.add_argument('--result', '-r', type=str, required=(not cmd in {'train', 'find_lr'}),
-                        help='name of the result to save/load')
+                        help='name of the training result')
 
   if cmd in {'infer'}:
-    parser.add_argument('--aux_results', type=str, nargs='*', default=[],
-                        help='filter the auxiliary features with the specified trained models')
+    parser.add_argument('--aux_results', '-a', type=str, nargs='*', default=[],
+                        help='prefilter auxiliary features using the specified training results')
 
   if cmd in {'train', 'infer', 'export'}:
     parser.add_argument('--num_epochs', '--epochs', '-e', type=int,
@@ -102,7 +102,7 @@ def parse_args(cmd=None, description=None):
                         help='initial learning rate')
     parser.add_argument('--max_lr', '--max_learning_rate', type=float,
                         help='maximum learning rate')
-    parser.add_argument('--lr_warmup', type=float, default=0.15,
+    parser.add_argument('--lr_warmup', '--learning_rate_warmup', type=float, default=0.15,
                         help='the percentage of the cycle spent increasing the learning rate (warm-up)')
 
   if cmd in {'find_lr'}:
@@ -143,7 +143,7 @@ def parse_args(cmd=None, description=None):
                         help='directory of output images')
     parser.add_argument('--format', '-F', type=str, nargs='*', default=['exr'],
                         help='output image formats')
-    parser.add_argument('--save_all', '-a', action='store_true',
+    parser.add_argument('--save_all', action='store_true',
                         help='save input and target images too')
 
   if cmd in {'export'}:
