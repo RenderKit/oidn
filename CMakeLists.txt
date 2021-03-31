@@ -183,6 +183,7 @@ generate_cpp_from_blob(WEIGHTS_SOURCES "oidn::blobs::weights"
   weights/rt_hdr.tza
   weights/rt_hdr_alb.tza
   weights/rt_hdr_alb_nrm.tza
+  weights/rt_hdr_calb_cnrm.tza
   weights/rtlightmap_hdr.tza
   weights/rtlightmap_dir.tza
 )

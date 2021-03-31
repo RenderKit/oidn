@@ -467,11 +467,11 @@ Image     float3   color                input color image (RGB, LDR values in
                                         value of 1 corresponds to a luminance
                                         level of 100 cd/m²)
 
-Image     float3   albedo               input feature image containing the
+Image     float3   albedo               input auxiliary image containing the
                                         albedo (RGB, values in [0, 1]) of the
                                         first hit per pixel; *optional*
 
-Image     float3   normal               input feature image containing the
+Image     float3   normal               input auxiliary image containing the
                                         shading normal (3D world-space or
                                         view-space vector with arbitrary
                                         length, values in [-1, 1]) of the first
@@ -498,6 +498,10 @@ float              inputScale       NaN scales input color values before
                                         values); if set to NaN, the scale is
                                         computed automatically for HDR images or
                                         set to 1 otherwise (*default*)
+
+bool               cleanAux       false whether the auxiliary images (albedo,
+                                        normal) are noise-free; may improve
+                                        quality
 
 Data               weights              trained model weights blob; *optional*
 

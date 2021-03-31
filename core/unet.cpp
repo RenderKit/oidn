@@ -9,6 +9,7 @@
 #include "weights/rt_hdr.h"
 #include "weights/rt_hdr_alb.h"
 #include "weights/rt_hdr_alb_nrm.h"
+#include "weights/rt_hdr_calb_cnrm.h"
 #include "weights/rt_ldr.h"
 #include "weights/rt_ldr_alb.h"
 #include "weights/rt_ldr_alb_nrm.h"
@@ -230,7 +231,12 @@ namespace oidn {
     else if (color && albedo && !normal)
       weights = hdr ? builtinWeights.hdr_alb : builtinWeights.ldr_alb;
     else if (color && albedo && normal)
-      weights = hdr ? builtinWeights.hdr_alb_nrm : builtinWeights.ldr_alb_nrm;
+    {
+      if (hdr)
+        weights = cleanAux ? builtinWeights.hdr_calb_cnrm : builtinWeights.hdr_alb_nrm;
+      else
+        weights = builtinWeights.ldr_alb_nrm;
+    }
 
     if (!weights)
       throw Exception(Error::InvalidOperation, "unsupported combination of input features");
@@ -416,12 +422,13 @@ namespace oidn {
   RTFilter::RTFilter(const Ref<Device>& device)
     : UNetFilter(device)
   {
-    builtinWeights.hdr         = blobs::weights::rt_hdr;
-    builtinWeights.hdr_alb     = blobs::weights::rt_hdr_alb;
-    builtinWeights.hdr_alb_nrm = blobs::weights::rt_hdr_alb_nrm;
-    builtinWeights.ldr         = blobs::weights::rt_ldr;
-    builtinWeights.ldr_alb     = blobs::weights::rt_ldr_alb;
-    builtinWeights.ldr_alb_nrm = blobs::weights::rt_ldr_alb_nrm;
+    builtinWeights.hdr           = blobs::weights::rt_hdr;
+    builtinWeights.hdr_alb       = blobs::weights::rt_hdr_alb;
+    builtinWeights.hdr_alb_nrm   = blobs::weights::rt_hdr_alb_nrm;
+    builtinWeights.hdr_calb_cnrm = blobs::weights::rt_hdr_calb_cnrm;
+    builtinWeights.ldr           = blobs::weights::rt_ldr;
+    builtinWeights.ldr_alb       = blobs::weights::rt_ldr_alb;
+    builtinWeights.ldr_alb_nrm   = blobs::weights::rt_ldr_alb_nrm;
   }
 
   Ref<TransferFunction> RTFilter::makeTransferFunc()
@@ -456,6 +463,8 @@ namespace oidn {
       hdr = value;
     else if (name == "srgb")
       srgb = value;
+    else if (name == "cleanAux")
+      cleanAux = value;
     else if (name == "maxMemoryMB")
       maxMemoryMB = value;
     else
@@ -470,6 +479,8 @@ namespace oidn {
       return hdr;
     else if (name == "srgb")
       return srgb;
+    else if (name == "cleanAux")
+      return cleanAux;
     else if (name == "maxMemoryMB")
       return maxMemoryMB;
     else if (name == "alignment")
