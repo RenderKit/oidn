@@ -68,7 +68,10 @@ namespace oidn {
       Data ldr;
       Data ldr_alb;
       Data ldr_alb_nrm;
+      Data ldr_calb_cnrm;
       Data dir;
+      Data alb;
+      Data nrm;
     } builtinWeights;
     Data userWeights;
 
