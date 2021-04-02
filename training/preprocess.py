@@ -38,15 +38,14 @@ def main():
   # Returns a preprocessed image (also changes the original image!)
   def preprocess_image(image, exposure):
     # Apply the transfer function
-    if transfer:
-      color = image[..., 0:num_main_channels]
-      color = torch.from_numpy(color).to(device)
-      if main_feature == 'hdr':
-        color *= exposure
-      color = transfer.forward(color)
-      color = torch.clamp(color, max=1.)
-      color = color.cpu().numpy()
-      image[..., 0:num_main_channels] = color
+    color = image[..., 0:num_main_channels]
+    color = torch.from_numpy(color).to(device)
+    if main_feature == 'hdr':
+      color *= exposure
+    color = transfer.forward(color)
+    color = torch.clamp(color, max=1.)
+    color = color.cpu().numpy()
+    image[..., 0:num_main_channels] = color
 
     # Convert to FP16
     return np.nan_to_num(image.astype(np.float16))

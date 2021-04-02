@@ -57,12 +57,11 @@ class Infer(object):
     image = input.clone()
 
     # Apply the transfer function
-    if self.transfer:
-      color = image[:, 0:self.num_main_channels, ...]
-      if self.main_feature == 'hdr':
-        color *= exposure
-      color = self.transfer.forward(color)
-      image[:, 0:self.num_main_channels, ...] = color
+    color = image[:, 0:self.num_main_channels, ...]
+    if self.main_feature == 'hdr':
+      color *= exposure
+    color = self.transfer.forward(color)
+    image[:, 0:self.num_main_channels, ...] = color
 
     # Pad the output
     shape = image.shape
@@ -91,12 +90,11 @@ class Infer(object):
     image = torch.clamp(image, min=0.)
 
     # Apply the inverse transfer function
-    if self.transfer:
-      image = self.transfer.inverse(image)
-      if self.main_feature == 'hdr':
-        image /= exposure
-      else:
-        image = torch.clamp(image, max=1.)
+    image = self.transfer.inverse(image)
+    if self.main_feature == 'hdr':
+      image /= exposure
+    else:
+      image = torch.clamp(image, max=1.)
         
     return image
 
