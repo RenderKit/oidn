@@ -11,6 +11,8 @@ import argparse
 
 from common import *
 
+MODEL_VERSION='v1.4.0'
+
 # Parse the command-line arguments
 parser = argparse.ArgumentParser(description='Runs all tests, including comparing images produced by the library with generated baseline images.')
 parser.usage = '\rIntel(R) Open Image Denoise - Test\n' + parser.format_usage()
@@ -32,7 +34,7 @@ if cfg.data_dir is None:
 if cfg.results_dir is None:
   cfg.results_dir = os.path.join(training_dir, 'results')
 if cfg.baseline_dir is None:
-  cfg.baseline_dir = os.path.join(training_dir, 'infer')
+  cfg.baseline_dir = os.path.join(training_dir, 'baseline_' + MODEL_VERSION)
 
 if cfg.command == 'run':
   # Detect the OIDN binary directory
@@ -83,9 +85,21 @@ def test():
       print_test(arch)
       run_test(os.path.join(bin_dir, 'oidnTest'), arch)
 
+# Gets the option name of a feature
+def get_feature_opt(feature):
+  if feature == 'calb':
+    return 'alb'
+  elif feature == 'cnrm':
+    return 'nrm'
+  else:
+    return feature
+
 # Gets the file extension of a feature
 def get_feature_ext(feature):
-  return feature if feature != 'dir' else 'sh1x'
+  if feature == 'dir':
+    return 'sh1x'
+  else:
+    return get_feature_opt(feature)
 
 # Runs regression tests for the specified filter
 def test_regression(filter, feature_sets, dataset):
@@ -154,9 +168,13 @@ def test_regression(filter, feature_sets, dataset):
               denoise_cmd += f' -f {filter} -v 2 --ref "{ref_filename}"'
 
               for feature in features:
+                feature_opt = get_feature_opt(feature)
                 feature_ext = get_feature_ext(feature)
                 feature_filename = os.path.join(dataset_dir, image_name) + f'.{feature_ext}.pfm'
-                denoise_cmd += f' --{feature} "{feature_filename}"'
+                denoise_cmd += f' --{feature_opt} "{feature_filename}"'
+
+              if set(features) & {'calb', 'cnrm'}:
+                denoise_cmd += ' --clean_aux'
 
               if inplace:
                 denoise_cmd += ' --inplace'
@@ -173,12 +191,16 @@ if not cfg.filter or 'RT' in cfg.filter:
   test_regression(
     'RT',
     [
+      ['hdr', 'calb', 'cnrm'],
       ['hdr', 'alb', 'nrm'],
       ['hdr', 'alb'],
       ['hdr'],
+      ['ldr', 'calb', 'cnrm'],
       ['ldr', 'alb', 'nrm'],
       ['ldr', 'alb'],
-      ['ldr']
+      ['ldr'],
+      ['alb'],
+      ['nrm']
     ],
     'rt_regress'
   )
