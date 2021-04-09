@@ -9,9 +9,13 @@
 #include "weights/rt_hdr.h"
 #include "weights/rt_hdr_alb.h"
 #include "weights/rt_hdr_alb_nrm.h"
+#include "weights/rt_hdr_calb_cnrm.h"
 #include "weights/rt_ldr.h"
 #include "weights/rt_ldr_alb.h"
 #include "weights/rt_ldr_alb_nrm.h"
+#include "weights/rt_ldr_calb_cnrm.h"
+#include "weights/rt_alb.h"
+#include "weights/rt_nrm.h"
 #include "weights/rtlightmap_hdr.h"
 #include "weights/rtlightmap_dir.h"
 
@@ -202,8 +206,10 @@ namespace oidn {
         (normal && (normal.width != W || normal.height != H)))
       throw Exception(Error::InvalidOperation, "image size mismatch");
 
-    if (srgb && hdr)
-      throw Exception(Error::InvalidOperation, "srgb and hdr modes cannot be enabled at the same time");
+    if (directional && (hdr || srgb))
+      throw Exception(Error::InvalidOperation, "directional and hdr/srgb modes cannot be enabled at the same time");
+    if (hdr && srgb)
+      throw Exception(Error::InvalidOperation, "hdr and srgb modes cannot be enabled at the same time");
 
     // Get the number of input channels
     int inputC = 0;
@@ -223,19 +229,52 @@ namespace oidn {
     // Select the weights to use
     Data weights;
 
+    if (color)
+    {
+      if (!albedo && !normal)
+      {
+        weights = directional ? builtinWeights.dir : (hdr ? builtinWeights.hdr : builtinWeights.ldr);
+      }
+      else if (albedo && !normal)
+      {
+        weights = hdr ? builtinWeights.hdr_alb : builtinWeights.ldr_alb;
+      }
+      else if (albedo && normal)
+      {
+        if (cleanAux)
+          weights = hdr ? builtinWeights.hdr_calb_cnrm : builtinWeights.ldr_calb_cnrm;
+        else
+          weights = hdr ? builtinWeights.hdr_alb_nrm : builtinWeights.ldr_alb_nrm;
+      }
+    }
+    else
+    {
+      // Auxiliary feature filtering
+      if (albedo && !normal)
+      {
+        if (hdr)
+          throw Exception(Error::InvalidOperation, "hdr mode is not supported for albedo filtering");
+        weights = builtinWeights.alb;
+      }
+      else if (!albedo && normal)
+      {
+        if (hdr || srgb)
+          throw Exception(Error::InvalidOperation, "hdr and srgb modes are not supported for normal filtering");
+        weights = builtinWeights.nrm;
+      }
+      else
+      {
+        throw Exception(Error::InvalidOperation, "invalid combination of input features");
+      }
+    }
+
     if (userWeights)
       weights = userWeights;
-    else if (color && !albedo && !normal)
-      weights = directional ? builtinWeights.dir : (hdr ? builtinWeights.hdr : builtinWeights.ldr);
-    else if (color && albedo && !normal)
-      weights = hdr ? builtinWeights.hdr_alb : builtinWeights.ldr_alb;
-    else if (color && albedo && normal)
-      weights = hdr ? builtinWeights.hdr_alb_nrm : builtinWeights.ldr_alb_nrm;
 
     if (!weights)
       throw Exception(Error::InvalidOperation, "unsupported combination of input features");
 
-    const bool snorm = directional || (!color && !albedo && normal);
+    const bool snorm = directional || (!color && normal);
 
     // Determine whether in-place filtering is required
     inplace = output.overlaps(color)  ||
@@ -416,17 +455,21 @@ namespace oidn {
   RTFilter::RTFilter(const Ref<Device>& device)
     : UNetFilter(device)
   {
-    builtinWeights.hdr         = blobs::weights::rt_hdr;
-    builtinWeights.hdr_alb     = blobs::weights::rt_hdr_alb;
-    builtinWeights.hdr_alb_nrm = blobs::weights::rt_hdr_alb_nrm;
-    builtinWeights.ldr         = blobs::weights::rt_ldr;
-    builtinWeights.ldr_alb     = blobs::weights::rt_ldr_alb;
-    builtinWeights.ldr_alb_nrm = blobs::weights::rt_ldr_alb_nrm;
+    builtinWeights.hdr           = blobs::weights::rt_hdr;
+    builtinWeights.hdr_alb       = blobs::weights::rt_hdr_alb;
+    builtinWeights.hdr_alb_nrm   = blobs::weights::rt_hdr_alb_nrm;
+    builtinWeights.hdr_calb_cnrm = blobs::weights::rt_hdr_calb_cnrm;
+    builtinWeights.ldr           = blobs::weights::rt_ldr;
+    builtinWeights.ldr_alb       = blobs::weights::rt_ldr_alb;
+    builtinWeights.ldr_alb_nrm   = blobs::weights::rt_ldr_alb_nrm;
+    builtinWeights.ldr_calb_cnrm = blobs::weights::rt_ldr_calb_cnrm;
+    builtinWeights.alb           = blobs::weights::rt_alb;
+    builtinWeights.nrm           = blobs::weights::rt_nrm;
   }
 
   Ref<TransferFunction> RTFilter::makeTransferFunc()
   {
-    if (srgb || !color)
+    if (srgb || (!color && normal))
       return makeRef<TransferFunction>(TransferFunction::Type::Linear);
     else if (hdr)
       return makeRef<TransferFunction>(TransferFunction::Type::PU);
@@ -456,6 +499,8 @@ namespace oidn {
       hdr = value;
     else if (name == "srgb")
       srgb = value;
+    else if (name == "cleanAux")
+      cleanAux = value;
     else if (name == "maxMemoryMB")
       maxMemoryMB = value;
     else
@@ -470,6 +515,8 @@ namespace oidn {
       return hdr;
     else if (name == "srgb")
       return srgb;
+    else if (name == "cleanAux")
+      return cleanAux;
     else if (name == "maxMemoryMB")
       return maxMemoryMB;
     else if (name == "alignment")

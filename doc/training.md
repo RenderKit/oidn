@@ -150,6 +150,13 @@ preprocessed dataset as command-line arguments. Only these specified features
 will be available for training but it is not required to use all of them at the
 same time. Thus, a single preprocessed dataset can be reused for training
 multiple models with different combinations of the preprocessed features.
+
+By default, all input features are assumed to be noisy, including the auxiliary
+features (e.g. albedo, normal), each having versions at different samples per
+pixel. However, it is also possible to train with noise-free auxiliary features,
+in which case the reference auxiliary features are used instead of the various
+noisy ones (`--clean_aux` option).
+
 Preprocessing also depends on the filter that will be trained (e.g. determines
 which HDR/LDR transfer function has to be used), which should be also specified
 (`--filter` or `-f` option). The alternative is to manually specify the transfer
@@ -193,12 +200,13 @@ exists, the tool will resume training that result from the latest checkpoint.
 The default training hyperparameters should work reasonably well in general,
 but some adjustments might be necessary for certain datasets to attain optimal
 performance, most importantly: the number of epochs (`--num_epochs` or `-e`
-option), the global mini-batch size (`--batch_size` or `--bs` option), and the
+option), the global mini-batch size (`--batch_size` or `-b` option), and the
 learning rate. The training tool uses a one-cycle learning rate schedule with
 cosine annealing, which can be configured by setting the base learning rate
 (`--learning_rate` or `--lr` option), the maximum learning rate
 (`--max_learning_rate` or `--max_lr` option), and the percentage of the cycle
-spent increasing the learning rate (`--lr_warmup` option).
+spent increasing the learning rate (`--learning_rate_warmup` or `--lr_warmup`
+option).
 
 Example usage:
 

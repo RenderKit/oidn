@@ -1,6 +1,9 @@
 Version History
 ---------------
 
+-   Normals are expected to be in the [-1, 1] range (but still do not have to
+    be normalized)
+
 ### Changes in v1.3.0:
 
 -   Improved denoising quality

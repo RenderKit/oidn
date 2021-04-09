@@ -186,7 +186,6 @@ macro(ispc_compile)
       ${ISPC_OPT_FLAGS}
       --target=${ISPC_TARGET_ARGS}
       --woff
-      --opt=fast-math
       ${ISPC_ADDITIONAL_ARGS}
       -h ${ISPC_TARGET_DIR}/${fname}_ispc.h
       -MMM  ${outdir}/${fname}.dev.idep

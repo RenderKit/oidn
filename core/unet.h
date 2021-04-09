@@ -41,6 +41,7 @@ namespace oidn {
     bool srgb = false;
     bool directional = false;
     float inputScale = std::numeric_limits<float>::quiet_NaN();
+    bool cleanAux = false;
     int maxMemoryMB = 6000; // approximate maximum memory usage in MBs
 
     // Image dimensions
@@ -63,10 +64,14 @@ namespace oidn {
       Data hdr;
       Data hdr_alb;
       Data hdr_alb_nrm;
+      Data hdr_calb_cnrm;
       Data ldr;
       Data ldr_alb;
       Data ldr_alb_nrm;
+      Data ldr_calb_cnrm;
       Data dir;
+      Data alb;
+      Data nrm;
     } builtinWeights;
     Data userWeights;
 

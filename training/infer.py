@@ -15,12 +15,18 @@ from model import *
 from color import *
 from result import *
 
-class Inference(object):
-  def __init__(self, result_dir, device, epoch=None):
+# Inference function object
+class Infer(object):
+  def __init__(self, cfg, device, result=None):
     # Load the result config
+    result_dir = get_result_dir(cfg, result)
+    if not os.path.isdir(result_dir):
+      error('result does not exist')
     result_cfg = load_config(result_dir)
     self.features = result_cfg.features
     self.main_feature = get_main_feature(self.features)
+    self.aux_features = get_aux_features(self.features)
+    self.all_channels = get_dataset_channels(self.features)
     self.num_main_channels = len(get_dataset_channels(self.main_feature))
 
     # Initialize the model
@@ -28,7 +34,7 @@ class Inference(object):
     self.model.to(device)
 
     # Load the checkpoint
-    checkpoint = load_checkpoint(result_dir, device, epoch, self.model)
+    checkpoint = load_checkpoint(result_dir, device, cfg.num_epochs, self.model)
     self.epoch = checkpoint['epoch']
 
     # Initialize the transfer function
@@ -37,45 +43,60 @@ class Inference(object):
     # Set the model to evaluation mode
     self.model.eval()
 
+    # Initialize auxiliary feature inference
+    self.aux_infers = {}
+    if self.aux_features:
+      for aux_result in set(cfg.aux_results):
+        aux_infer = Infer(cfg, device, aux_result)
+        if (aux_infer.main_feature not in self.aux_features) or aux_infer.aux_features:
+          error(f'result {aux_result} does not correspond to an auxiliary feature')
+        self.aux_infers[aux_infer.main_feature] = aux_infer
+
   # Inference function
   def __call__(self, input, exposure=1.):
-    x = input.clone()
+    image = input.clone()
 
     # Apply the transfer function
-    if self.transfer:
-      color = x[:, 0:self.num_main_channels, ...]
-      if self.main_feature == 'hdr':
-        color *= exposure
-      color = self.transfer.forward(color)
-      x[:, 0:self.num_main_channels, ...] = color
+    color = image[:, 0:self.num_main_channels, ...]
+    if self.main_feature == 'hdr':
+      color *= exposure
+    color = self.transfer.forward(color)
+    image[:, 0:self.num_main_channels, ...] = color
 
     # Pad the output
-    shape = x.shape
-    x = F.pad(x, (0, round_up(shape[3], self.model.alignment) - shape[3],
-                  0, round_up(shape[2], self.model.alignment) - shape[2]))
+    shape = image.shape
+    image = F.pad(image, (0, round_up(shape[3], self.model.alignment) - shape[3],
+                          0, round_up(shape[2], self.model.alignment) - shape[2]))
 
-    # Run the inference
+    # Prefilter the auxiliary features
+    for aux_feature, aux_infer in self.aux_infers.items():
+      aux_channels = get_dataset_channels(aux_feature)
+      aux_channel_indices = get_channel_indices(aux_channels, self.all_channels)
+      aux = image[:, aux_channel_indices, ...]
+      aux = aux_infer(aux)
+      image[:, aux_channel_indices, ...] = aux
+
+    # Filter the main feature
     if self.main_feature == 'sh1':
       # Iterate over x, y, z
-      x = torch.cat([self.model(torch.cat((x[:, i:i+3, ...], x[:, 9:, ...]), 1)) for i in [0, 3, 6]], 1)
+      image = torch.cat([self.model(torch.cat((image[:, i:i+3, ...], image[:, 9:, ...]), 1)) for i in [0, 3, 6]], 1)
     else:
-      x = self.model(x)
+      image = self.model(image)
 
     # Unpad the output
-    x = x[:, :, :shape[2], :shape[3]]
+    image = image[:, :, :shape[2], :shape[3]]
 
     # Sanitize the output
-    x = torch.clamp(x, min=0.)
+    image = torch.clamp(image, min=0.)
 
     # Apply the inverse transfer function
-    if self.transfer:
-      x = self.transfer.inverse(x)
-      if self.main_feature == 'hdr':
-        x /= exposure
-      else:
-        x = torch.clamp(x, max=1.)
+    image = self.transfer.inverse(image)
+    if self.main_feature == 'hdr':
+      image /= exposure
+    else:
+      image = torch.clamp(image, max=1.)
         
-    return x
+    return image
 
 def main():
   # Parse the command line arguments
@@ -84,11 +105,8 @@ def main():
   # Initialize the PyTorch device
   device = init_device(cfg)
 
-  # Open the result
-  result_dir = get_result_dir(cfg)
-  if not os.path.isdir(result_dir):
-    error('result does not exist')
-  infer = Inference(result_dir, device, cfg.num_epochs)
+  # Initialize the inference function
+  infer = Infer(cfg, device)
   print('Result:', cfg.result)
   print('Epoch:', infer.epoch)
 

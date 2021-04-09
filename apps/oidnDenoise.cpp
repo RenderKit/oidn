@@ -26,9 +26,9 @@ void printUsage()
   std::cout << "Intel(R) Open Image Denoise" << std::endl;
   std::cout << "usage: oidnDenoise [-f/--filter RT|RTLightmap]" << std::endl
             << "                   [--hdr color.pfm] [--ldr color.pfm] [--srgb] [--dir directional.pfm]" << std::endl
-            << "                   [--alb albedo.pfm] [--nrm normal.pfm]" << std::endl
+            << "                   [--alb albedo.pfm] [--nrm normal.pfm] [--clean_aux]" << std::endl
+            << "                   [--is/--input_scale value]" << std::endl
             << "                   [-o/--output output.pfm] [-r/--ref reference_output.pfm]" << std::endl
-            << "                   [--is/--inputscale value]" << std::endl
             << "                   [-w/--weights weights.tza]" << std::endl
             << "                   [--threads n] [--affinity 0|1] [--maxmem MB] [--inplace]" << std::endl
             << "                   [--bench ntimes] [-v/--verbose 0-3]" << std::endl
@@ -83,6 +83,7 @@ int main(int argc, char* argv[])
   bool srgb = false;
   bool directional = false;
   float inputScale = std::numeric_limits<float>::quiet_NaN();
+  bool cleanAux = false;
   int numBenchmarkRuns = 0;
   int numThreads = -1;
   int setAffinity = -1;
@@ -130,8 +131,10 @@ int main(int argc, char* argv[])
         outputFilename = args.getNextValue();
       else if (opt == "r" || opt == "ref" || opt == "reference")
         refFilename = args.getNextValue();
-      else if (opt == "is" || opt == "inputscale")
+      else if (opt == "is" || opt == "input_scale" || opt == "inputScale" || opt == "inputscale")
         inputScale = args.getNextValueFloat();
+      else if (opt == "clean_aux" || opt == "cleanAux")
+        cleanAux = true;
       else if (opt == "w" || opt == "weights")
         weightsFilename = args.getNextValue();
       else if (opt == "bench" || opt == "benchmark")
@@ -155,9 +158,6 @@ int main(int argc, char* argv[])
         throw std::invalid_argument("invalid argument");
     }
 
-    if (colorFilename.empty())
-      throw std::runtime_error("no color image specified");
-
     if (!refFilename.empty() && numBenchmarkRuns > 0)
       throw std::runtime_error("reference and benchmark modes cannot be enabled at the same time");
 
@@ -178,42 +178,38 @@ int main(int argc, char* argv[])
   #endif
 
     // Load the input image
+    std::shared_ptr<ImageBuffer> input, ref;
     std::shared_ptr<ImageBuffer> color, albedo, normal;
-    std::shared_ptr<ImageBuffer> ref;
 
     std::cout << "Loading input" << std::endl;
 
-    color = loadImage(colorFilename, 3, srgb);
-
     if (!albedoFilename.empty())
-    {
-      albedo = loadImage(albedoFilename, 3, false);
-      if (albedo->dims() != color->dims())
-        throw std::runtime_error("invalid albedo image");
-    }
+      input = albedo = loadImage(albedoFilename, 3, false);
 
     if (!normalFilename.empty())
-    {
-      normal = loadImage(normalFilename, 3);
-      if (normal->dims() != color->dims())
-        throw std::runtime_error("invalid normal image");
-    }
+      input = normal = loadImage(normalFilename, 3);
+
+    if (!colorFilename.empty())
+      input = color = loadImage(colorFilename, 3, srgb);
+
+    if (!input)
+      throw std::runtime_error("no input image specified");
 
     if (!refFilename.empty())
     {
       ref = loadImage(refFilename, 3, srgb);
-      if (ref->dims() != color->dims())
+      if (ref->dims() != input->dims())
         throw std::runtime_error("invalid reference output image");
     }
 
-    const int width  = color->width;
-    const int height = color->height;
+    const int width  = input->width;
+    const int height = input->height;
     std::cout << "Resolution: " << width << "x" << height << std::endl;
 
     // Initialize the output image
     std::shared_ptr<ImageBuffer> output;
     if (inplace)
-      output = color;
+      output = input;
     else
       output = std::make_shared<ImageBuffer>(width, height, 3);
 
@@ -246,7 +242,8 @@ int main(int argc, char* argv[])
 
     FilterRef filter = device.newFilter(filterType.c_str());
 
-    filter.setImage("color", color->data(), Format::Float3, width, height);
+    if (color)
+      filter.setImage("color", color->data(), Format::Float3, width, height);
     if (albedo)
       filter.setImage("albedo", albedo->data(), Format::Float3, width, height);
     if (normal)
@@ -269,6 +266,9 @@ int main(int argc, char* argv[])
 
     if (std::isfinite(inputScale))
       filter.set("inputScale", inputScale);
+
+    if (cleanAux)
+      filter.set("cleanAux", cleanAux);
 
     if (maxMemoryMB >= 0)
       filter.set("maxMemoryMB", maxMemoryMB);
@@ -339,7 +339,7 @@ int main(int argc, char* argv[])
       {
         // Save debug images
         std::cout << "Saving debug images" << std::endl;
-        saveImage("denoise_in.ppm",  *color,  srgb);
+        saveImage("denoise_in.ppm",  *input,  srgb);
         saveImage("denoise_out.ppm", *output, srgb);
         saveImage("denoise_ref.ppm", *ref,    srgb);
 

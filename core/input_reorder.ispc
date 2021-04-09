@@ -59,8 +59,16 @@ inline void storeColor(uniform InputReorder* uniform self, uniform int h, int w,
 // Stores an albedo value
 inline void storeAlbedo(uniform InputReorder* uniform self, uniform int h, int w, uniform int c, vec3f value)
 {
+  // Scale
+  if (!self->color.ptr)
+    value = value * self->transferFunc->inputScale;
+
   // Sanitize
   value = clamp(nan_to_zero(value), 0.f, 1.f);
+
+  // Apply the transfer function
+  if (!self->color.ptr)
+    value = self->transferFunc->forward(self->transferFunc, value);
 
   // Store
   set3f(self->dst, h, w, c, value);
@@ -69,11 +77,12 @@ inline void storeAlbedo(uniform InputReorder* uniform self, uniform int h, int w
 // Stores a normal value
 inline void storeNormal(uniform InputReorder* uniform self, uniform int h, int w, uniform int c, vec3f value)
 {
-  // Sanitize
-  value = clamp(nan_to_zero(value), neg_max, pos_max);
+  // Scale
+  if (!self->color.ptr)
+    value = value * self->transferFunc->inputScale;
 
-  // Normalize
-  value = normalize_safe(value);
+  // Sanitize
+  value = clamp(nan_to_zero(value), -1.f, 1.f);
 
   // Transform to [0..1]
   value = value * 0.5f + 0.5f;

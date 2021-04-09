@@ -16,6 +16,8 @@ namespace oidn {
   private:
     ispc::InputReorder impl;
 
+    int width;
+    int height;
     Image color;
     Image albedo;
     Image normal;
@@ -45,6 +47,9 @@ namespace oidn {
                              albedo.numChannels() +
                              normal.numChannels());
 
+      width  = color ? color.width  : (albedo ? albedo.width  : normal.width);
+      height = color ? color.height : (albedo ? albedo.height : normal.height);
+
       impl.color  = color;
       impl.albedo = albedo;
       impl.normal = normal;
@@ -55,8 +60,8 @@ namespace oidn {
       impl.wSrcBegin = 0;
       impl.hDstBegin = 0;
       impl.wDstBegin = 0;
-      impl.H = color.height;
-      impl.W = color.width;
+      impl.H = height;
+      impl.W = width;
 
       impl.transferFunc = transferFunc->getImpl();
       impl.hdr = hdr;
@@ -75,8 +80,8 @@ namespace oidn {
 
     void execute() override
     {
-      assert(impl.H + impl.hSrcBegin <= color.height);
-      assert(impl.W + impl.wSrcBegin <= color.width);
+      assert(impl.H + impl.hSrcBegin <= height);
+      assert(impl.W + impl.wSrcBegin <= width);
       assert(impl.H + impl.hDstBegin <= impl.dst.H);
       assert(impl.W + impl.wDstBegin <= impl.dst.W);
 
