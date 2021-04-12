@@ -243,13 +243,13 @@ int main(int argc, char* argv[])
     FilterRef filter = device.newFilter(filterType.c_str());
 
     if (color)
-      filter.setImage("color", color->data(), Format::Float3, width, height);
+      filter.setImage("color", color->data(), Format::Float3, color->width, color->height);
     if (albedo)
-      filter.setImage("albedo", albedo->data(), Format::Float3, width, height);
+      filter.setImage("albedo", albedo->data(), Format::Float3, albedo->width, albedo->height);
     if (normal)
-      filter.setImage("normal", normal->data(), Format::Float3, width, height);
+      filter.setImage("normal", normal->data(), Format::Float3, normal->width, normal->height);
 
-    filter.setImage("output", output->data(), Format::Float3, width, height);
+    filter.setImage("output", output->data(), Format::Float3, output->width, output->height);
 
     if (filterType == "RT")
     {
