@@ -75,10 +75,10 @@ namespace oidn {
   std::string getCompilerName()
   {
   #if defined(__INTEL_COMPILER)
-    int mayor = __INTEL_COMPILER / 100 % 100;
+    int major = __INTEL_COMPILER / 100 % 100;
     int minor = __INTEL_COMPILER % 100 / 10;
     std::string version = "Intel Compiler ";
-    version += toString(mayor);
+    version += toString(major);
     version += "." + toString(minor);
   #if defined(__INTEL_COMPILER_UPDATE)
     version += "." + toString(__INTEL_COMPILER_UPDATE);
