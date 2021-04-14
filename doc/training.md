@@ -43,7 +43,7 @@ Before you can run the training toolkit you need the following prerequisites:
 
 -   Python 3.7 or later
 
--   [PyTorch](https://pytorch.org/) 1.7 or later
+-   [PyTorch](https://pytorch.org/) 1.8 or later
 
 -   [NumPy](https://numpy.org/) 1.19 or later
 
@@ -101,13 +101,13 @@ pixel will be considered the reference.
 The following image features are supported:
 
 Feature Description                               Channels     File extension
-------- ----------------------------------------- ------------ -----------------
+------- ----------------------------------------- ------------ -------------------------------------
 `hdr`   color (HDR)                               3            `.hdr.exr`
 `ldr`   color (LDR)                               3            `.ldr.exr`
 `sh1`   color (normalized L1 spherical harmonics) 3 × 3 images `.sh1x.exr`, `.sh1y.exr`, `.sh1z.exr`
 `alb`   albedo                                    3            `.alb.exr`
 `nrm`   normal                                    3            `.nrm.exr`
-------- ----------------------------------------- ------------ -----------------
+------- ----------------------------------------- ------------ -------------------------------------
 : Image features supported by the training toolkit.
 
 The following directory tree demonstrates an example root dataset directory
@@ -230,8 +230,8 @@ script, e.g.:
 Training is performed with mixed precision (FP16 and FP32) by default, if it
 supported by the hardware, which makes training faster and use less memory.
 However, in some rare cases this might cause some convergence issues. The
-training precision can be manually set to FP32 if necessary (`-p` or
-`--precision` option).
+training precision can be manually set to FP32 if necessary (`--precision` or
+`-p` option).
 
 Inference (infer.py)
 --------------------
@@ -253,6 +253,11 @@ Lighting* presentation) and converted to sRGB before evaluating the metrics.
 Example usage:
 
     ./infer.py --result rt_hdr_alb --input_data rt_test --format exr png --metric ssim
+
+The inference tool supports pre-filtering of auxiliary features as well, which
+can be performed by specifying the list of training results for each feature to
+pre-filter (`--aux_results` or `-a` option). This is primarily useful for
+evaluating the quality of models trained with clean auxiliary features.
 
 Exporting Results (export.py)
 -----------------------------

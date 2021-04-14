@@ -1,8 +1,17 @@
 Version History
 ---------------
 
+### Changes in v1.4.0:
+
+-   Improved fine detail preservation
+-   Added `cleanAux` filter parameter for further improving quality when the
+    auxiliary feature (albedo, normal) images are noise-free
+-   Added support for denoising auxiliary feature images, which can be used 
+    together with the new `cleanAux` parameter for improving quality when the
+    auxiliary images are noisy
 -   Normals are expected to be in the [-1, 1] range (but still do not have to
     be normalized)
+-   Fixed detection of static TBB builds on Windows
 
 ### Changes in v1.3.0:
 

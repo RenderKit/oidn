@@ -99,11 +99,11 @@ interfering with each other. An application first needs to create a device with
 where the `type` enumeration maps to a specific device implementation, which
 can be one of the following:
 
-Name                     Description
------------------------- -------------------------------------------------------
-OIDN_DEVICE_TYPE_DEFAULT select the approximately fastest device
-OIDN_DEVICE_TYPE_CPU     CPU device (requires SSE4.1 support or Apple Silicon)
------------------------- -------------------------------------------------------
+Name                       Description
+-------------------------- -----------------------------------------------------
+`OIDN_DEVICE_TYPE_DEFAULT` select the approximately fastest device
+`OIDN_DEVICE_TYPE_CPU`     CPU device (requires SSE4.1 support or Apple Silicon)
+-------------------------- -----------------------------------------------------
 : Supported device types, i.e., valid constants of type `OIDNDeviceType`.
 
 Once a device is created, you can call
@@ -117,35 +117,36 @@ to set and get parameter values on the device. Note that some parameters are
 constants, thus trying to set them is an error. See the tables below for the
 parameters supported by devices.
 
---------- ------------ -------- ------------------------------------------------
-Type      Name          Default Description
---------- ------------ -------- ------------------------------------------------
-const int version               combined version number (major.minor.patch)
-                                with two decimal digits per component
+----------- -------------- -------- --------------------------------------------
+Type        Name            Default Description
+----------- -------------- -------- --------------------------------------------
+`const int` `version`               combined version number (major.minor.patch)
+                                    with two decimal digits per component
 
-const int versionMajor          major version number
+`const int` `versionMajor`          major version number
 
-const int versionMinor          minor version number
+`const int` `versionMinor`          minor version number
 
-const int versionPatch          patch version number
+`const int` `versionPatch`          patch version number
 
-int       verbose             0 verbosity level of the console output between
-                                0--4; when set to 0, no output is printed, when
-                                set to a higher level more output is printed
---------- ------------ -------- ------------------------------------------------
+`int`       `verbose`               0 verbosity level of the console output
+                                    between 0--4; when set to 0, no output is
+                                    printed, when set to a higher level more
+                                    output is printed
+----------- -------------- -------- --------------------------------------------
 : Parameters supported by all devices.
 
------- ------------ -------- ---------------------------------------------------
-Type   Name          Default Description
------- ------------ -------- ---------------------------------------------------
-int    numThreads          0 maximum number of threads which the library should
-                             use; 0 will set it automatically to get the best
-                             performance
+------ -------------- -------- -------------------------------------------------
+Type   Name            Default Description
+------ -------------- -------- -------------------------------------------------
+`int`  `numThreads`          0 maximum number of threads which the library
+                               should use; 0 will set it automatically to get
+                               the best performance
 
-bool   setAffinity      true bind software threads to hardware threads if set
-                             to true (improves performance); false disables
-                             binding
------- ------------ -------- ---------------------------------------------------
+`bool` `setAffinity`      true bind software threads to hardware threads if set
+                               to true (improves performance); false disables
+                               binding
+------ -------------- -------- -------------------------------------------------
 : Additional parameters supported only by CPU devices.
 
 Note that the CPU device heavily relies on setting the thread affinities to
@@ -219,23 +220,23 @@ device to the `oidnGetDeviceError` function. For all other invocations of
 
 The following errors are currently used by Intel Open Image Denoise:
 
-------------------------------- ------------------------------------------------
-Name                            Description
-------------------------------- ------------------------------------------------
-OIDN_ERROR_NONE                 no error occurred
+--------------------------------- ----------------------------------------------
+Name                              Description
+--------------------------------- ----------------------------------------------
+`OIDN_ERROR_NONE`                 no error occurred
 
-OIDN_ERROR_UNKNOWN              an unknown error occurred
+`OIDN_ERROR_UNKNOWN`              an unknown error occurred
 
-OIDN_ERROR_INVALID_ARGUMENT     an invalid argument was specified
+`OIDN_ERROR_INVALID_ARGUMENT`     an invalid argument was specified
 
-OIDN_ERROR_INVALID_OPERATION    the operation is not allowed
+`OIDN_ERROR_INVALID_OPERATION`    the operation is not allowed
 
-OIDN_ERROR_OUT_OF_MEMORY        not enough memory to execute the operation
+`OIDN_ERROR_OUT_OF_MEMORY`        not enough memory to execute the operation
 
-OIDN_ERROR_UNSUPPORTED_HARDWARE the hardware (e.g., CPU) is not supported
+`OIDN_ERROR_UNSUPPORTED_HARDWARE` the hardware (e.g., CPU) is not supported
 
-OIDN_ERROR_CANCELLED            the operation was cancelled by the user
-------------------------------- ------------------------------------------------
+`OIDN_ERROR_CANCELLED`            the operation was cancelled by the user
+--------------------------------- ----------------------------------------------
 : Possible error codes, i.e., valid constants of type `OIDNError`.
 
 
@@ -284,13 +285,13 @@ the mapped buffer data. If the specified `byteSize` is 0, the maximum
 available amount of memory will be mapped. The `access` argument must be one of
 the access modes in the following table:
 
-Name                      Description
-------------------------- ------------------------------------------------------
-OIDN_ACCESS_READ          read-only access
-OIDN_ACCESS_WRITE         write-only access
-OIDN_ACCESS_READ_WRITE    read and write access
-OIDN_ACCESS_WRITE_DISCARD write-only access but the previous contents will be discarded
-------------------------- ------------------------------------------------------
+Name                        Description
+--------------------------- -------------------------------------------------------------
+`OIDN_ACCESS_READ`          read-only access
+`OIDN_ACCESS_WRITE`         write-only access
+`OIDN_ACCESS_READ_WRITE`    read and write access
+`OIDN_ACCESS_WRITE_DISCARD` write-only access but the previous contents will be discarded
+--------------------------- -------------------------------------------------------------
 : Access modes for memory regions mapped with `oidnMapBuffer`, i.e., valid
   constants of type `OIDNAccess`.
 
@@ -310,12 +311,12 @@ format of the data. Other objects, e.g. filters, typically require specifying
 the format of the data stored in buffers or shared via pointers. This can be
 done using the `OIDNFormat` enumeration type:
 
-Name                   Description
----------------------- ---------------------------------------------------------
-OIDN_FORMAT_UNDEFINED  undefined format
-OIDN_FORMAT_FLOAT      32-bit single-precision floating point scalar
-OIDN_FORMAT_FLOAT[234] ... and [234]-element vector
----------------------- ---------------------------------------------------------
+Name                     Description
+------------------------ -------------------------------------------------------
+`OIDN_FORMAT_UNDEFINED`  undefined format
+`OIDN_FORMAT_FLOAT`      32-bit floating point scalar
+`OIDN_FORMAT_FLOAT[234]` 32-bit floating point [234]-element vector
+------------------------ -------------------------------------------------------
 : Supported data formats, i.e., valid constants of type `OIDNFormat`.
 
 
@@ -362,12 +363,17 @@ In both cases, you must also specify the name of the image parameter to set
 argument), the width and height of the image in number of pixels (`width` and
 `height` arguments), the starting offset of the image data (`byteOffset`
 argument), the pixel stride (`bytePixelStride` argument) and the row stride
-(`byteRowStride` argument), in number of bytes. Note that the row stride must
-be an integer multiple of the pixel stride.
+(`byteRowStride` argument), in number of bytes.
 
-If the pixels and/or rows are stored contiguously (tightly packed without any
-gaps), you can set `bytePixelStride` and/or `byteRowStride` to 0 to let the
-library compute the actual strides automatically, as a convenience.
+The row stride must be an integer multiple of the pixel stride. If the pixels
+and/or rows are stored contiguously (tightly packed without any gaps), you can
+set `bytePixelStride` and/or `byteRowStride` to 0 to let the library compute
+the actual strides automatically, as a convenience.
+
+Images support only the `OIDN_FORMAT_FLOAT3` pixel format. Custom image layouts
+with extra channels (e.g. alpha channel) or other data are supported as well by
+specifying a non-zero pixel stride. This way, expensive image layout conversion
+and copying can be avoided but the extra data will be ignored by the filter.
 
 Some special data used by filters are opaque/untyped (e.g. trained model weights
 blobs), which can be specified with the `oidnSetSharedFilterData` function:
@@ -440,7 +446,15 @@ based renderers and noise levels.
 It accepts either a low dynamic range (LDR) or high dynamic range (HDR) color
 image as input. Optionally, it also accepts auxiliary *feature* images, e.g.
 albedo and normal, which improve the denoising quality, preserving more details
-in the image.
+in the image. It is possible to denoise auxiliary images as well, in which case
+only the respective auxiliary image has to be specified as input, instead of
+the color image.
+
+![Example noisy color image rendered using unidirectional path tracing (4
+samples per pixel). *Scene by Evermotion.*][imgMazdaColor]
+
+![Example output image denoised using color and auxiliary feature images
+(albedo and normal).][imgMazdaDenoised]
 
 The `RT` filter has certain limitations regarding the supported input images.
 Most notably, it cannot denoise images that were not rendered with ray tracing.
@@ -457,82 +471,57 @@ as the filter type. The filter supports the parameters listed in the table
 below. All specified images must have the same dimensions. The output image
 can be one of the input images (i.e. in-place denoising is supported).
 
---------- -------- ----------- -------- ----------------------------------------
-Type      Format   Name         Default Description
---------- -------- ----------- -------- ----------------------------------------
-Image     float3   color                input color image (RGB, LDR values in
-                                        [0, 1] or HDR values in [0, +∞), values
-                                        being interpreted such that, after
-                                        scaling with the inputScale parameter, a
-                                        value of 1 corresponds to a luminance
-                                        level of 100 cd/m²)
+----------- ------------- ---------- ---------------------------------------------------------------
+Type        Name             Default Description
+----------- ------------- ---------- ---------------------------------------------------------------
+`Image`     `color`       *optional* input color image (3 channels, LDR values in [0, 1] or HDR
+                                     values in [0, +∞), values being interpreted such that, after
+                                     scaling with the `inputScale` parameter, a value of 1
+                                     corresponds to a luminance level of 100 cd/m²).
 
-Image     float3   albedo               input auxiliary image containing the
-                                        albedo (RGB, values in [0, 1]) of the
-                                        first hit per pixel; *optional*
+`Image`     `albedo`      *optional* input auxiliary image containing the albedo per pixel (3
+                                     channels, values in [0, 1])
 
-Image     float3   normal               input auxiliary image containing the
-                                        shading normal (3D world-space or
-                                        view-space vector with arbitrary
-                                        length, values in [-1, 1]) of the first
-                                        hit per pixel; *optional*, requires
-                                        setting the albedo image too
+`Image`     `normal`      *optional* input auxiliary image containing the shading normal per pixel
+                                     (3 channels, world-space or view-space vectors with arbitrary
+                                     length, values in [-1, 1])
 
-Image     float3   output               output image; it can be one of the input
-                                        images
+`Image`     `output`                 output image (3 channels); can be one of the input images
 
-bool               hdr            false whether the color is HDR
+`bool`      `hdr`              false whether the color is HDR
 
-bool               srgb           false whether the color is encoded with the
-                                        sRGB (or 2.2 gamma) curve (LDR only) or
-                                        is linear; the output will be encoded
-                                        with the same curve
+`bool`      `srgb`             false whether the color is encoded with the sRGB (or 2.2 gamma) curve
+                                     (LDR only) or is linear; the output will be encoded with the
+                                     same curve
 
-float              inputScale       NaN scales input color values before
-                                        filtering, without scaling the output
-                                        too, which can be used to map color
-                                        values to the expected range, e.g. for
-                                        mapping HDR values to physical units
-                                        (which affects the quality of the output
-                                        but *not* the range of the output
-                                        values); if set to NaN, the scale is
-                                        computed automatically for HDR images or
-                                        set to 1 otherwise (*default*)
+`float`     `inputScale`         NaN scales input values before filtering, without scaling the
+                                     output too, which can be used to map color or auxiliary feature
+                                     values to the expected range, e.g. for mapping HDR values to
+                                     physical units (which affects the quality of the output but
+                                     *not* the range of the output values); if set to NaN, the scale
+                                     is computed implicitly for HDR images or set to 1 otherwise
 
-bool               cleanAux       false whether the auxiliary images (albedo,
-                                        normal) are noise-free; may improve
-                                        quality
+`bool`      `cleanAux`         false whether the auxiliary feature (albedo, normal) images are
+                                     noise-free; recommended for highest quality but should *not* be
+                                     enabled for noisy auxiliary images to avoid residual noise
 
-Data               weights              trained model weights blob; *optional*
+`Data`      `weights`     *optional* trained model weights blob
 
-int                maxMemoryMB     6000 approximate maximum amount of scratch
-                                        memory to use in megabytes (actual
-                                        memory usage may be higher); limiting
-                                        memory usage may cause slower denoising
-                                        due to internally splitting the image
-                                        into overlapping tiles, but cannot cause
-                                        the denoising to fail
+`int`       `maxMemoryMB`       6000 approximate maximum scratch memory to use in megabytes (actual
+                                     memory usage may be higher); limiting memory usage may cause
+                                     slower denoising due to internally splitting the image into
+                                     overlapping tiles
 
-const int          alignment            when manually denoising the image in
-                                        tiles, the tile size and offsets should
-                                        be multiples of this amount of pixels
-                                        to avoid artifacts; note that manual
-                                        tiled denoising of HDR images is
-                                        supported *only* when inputScale is set
-                                        by the user
+`const int` `alignment`              when manually denoising in tiles, the tile size and offsets
+                                     should be multiples of this amount of pixels to avoid
+                                     artifacts; when denoising HDR images `inputScale` *must* be set
+                                     by the user to avoid seam artifacts
 
-const int          overlap              when manually denoising the image in
-                                        tiles, the tiles should overlap by this
-                                        amount of pixels
+`const int` `overlap`                when manually denoising in tiles, the tiles should overlap by
+                                     this amount of pixels
 
---------- -------- ----------- -------- ----------------------------------------
+----------- ------------- ---------- ---------------------------------------------------------------
 : Parameters supported by the `RT` filter.
-
-![Example noisy color image rendered using unidirectional path tracing (64
-spp). *Scene by Evermotion.*][imgMazdaColor]
-
-![Example output image denoised using color and auxiliary feature images
-(albedo and normal).][imgMazdaDenoised]
 
 Using auxiliary feature images like albedo and normal helps preserving fine
 details and textures in the image thus can significantly improve denoising
@@ -540,20 +529,37 @@ quality. These images should typically contain feature values for the first
 hit (i.e. the surface which is directly visible) per pixel. This works well for
 most surfaces but does not provide any benefits for reflections and objects
 visible through transparent surfaces (compared to just using the color as
-input). However, in certain cases this issue can be fixed by storing feature
-values for a subsequent hit (i.e. the reflection and/or refraction) instead of
-the first hit. For example, it usually works well to follow perfect specular
-(*delta*) paths and store features for the first diffuse or glossy surface hit
-instead (e.g. for perfect specular dielectrics and mirrors). This can greatly
-improve the quality of reflections and transmission. We will describe this
-approach in more detail in the following subsections.
+input). However, this issue can be usually fixed by storing feature values for
+a subsequent hit (i.e. the reflection and/or refraction) instead of the first
+hit. For example, it usually works well to follow perfect specular (*delta*)
+paths and store features for the first diffuse or glossy surface hit instead
+(e.g. for perfect specular dielectrics and mirrors). This can greatly improve
+the quality of reflections and transmission. We will describe this approach in
+more detail in the following subsections.
 
 The auxiliary feature images should be as noise-free as possible. It is not a
 strict requirement but too much noise in the feature images may cause residual
-noise in the output. Also, all feature images should use the same pixel
-reconstruction filter as the color image. Using a properly anti-aliased color
-image but aliased albedo or normal images will likely introduce artifacts
-around edges.
+noise in the output. Ideally, these should be completely noise-free. If this
+is the case, this should be hinted to the filter using the `cleanAux` parameter
+to ensure the highest possible image quality. But this parameter should be used
+with care: if enabled, any noise present in the auxiliary images will end up in
+the denoised image as well, as residual noise. Thus, `cleanAux` should be
+enabled only if the auxiliary images are guaranteed to be noise-free.
+
+Usually it is difficult to provide clean feature images, and some residual
+noise might be present in the output even with `cleanAux` being disabled. To
+eliminate this noise and to even improve the sharpness of texture details, the
+auxiliary images should be first denoised in a pre-filtering step using the same
+filter, as described earlier. Then, these denoised auxiliary images could be
+used for denoising the color image. Since these are now noise-free, the
+`cleanAux` parameter should be enabled. Pre-filtering makes denoising much more
+expensive but if there are multiple Arbitrary Output Variables (AOVs) to
+denoise, the pre-filtered auxiliary images can be reused for denoising multiple
+color AOVs, amortizing the cost of the pre-filtering step.
+
+All feature images should use the same pixel reconstruction filter as the color
+image. Using a properly anti-aliased color image but aliased albedo or normal
+images will likely introduce artifacts around edges.
 
 #### Albedo
 
@@ -635,57 +641,44 @@ support LDR images.
 The filter can be created by passing `"RTLightmap"` to the `oidnNewFilter`
 function as the filter type. The filter supports the following parameters:
 
---------- -------- ----------- -------- ----------------------------------------
-Type      Format   Name         Default Description
---------- -------- ----------- -------- ----------------------------------------
-Image     float3   color                input color image (RGB, HDR values in
-                                        [0, +∞), interpreted such that, after
-                                        scaling with the inputScale parameter, a
-                                        value of 1 corresponds to a luminance
-                                        level of 100 cd/m²; directional values
-                                        in [-1, 1])
+----------- ------------- ---------- ---------------------------------------------------------------
+Type        Name             Default Description
+----------- ------------- ---------- ---------------------------------------------------------------
+`Image`     `color`                  input color image (3 channels, HDR values in [0, +∞),
+                                     interpreted such that, after scaling with the `inputScale`
+                                     parameter, a value of 1 corresponds to aluminance level of 100
+                                     cd/m²; directional values in [-1, 1])
 
-Image     float3   output               output image; it can be one of the input
-                                        images
+`Image`     `output`                 output image (3 channels); can be one of the input images
 
-bool               directional    false whether the input contains normalized
-                                        coefficients (in [-1, 1]) of a
-                                        directional lightmap (e.g. normalized L1
-                                        or higher spherical harmonics band with
-                                        the L0 band divided out); if the range
-                                        of the coefficients is different from
-                                        [-1, 1], the inputScale parameter can be
-                                        used to adjust the range without changing
-                                        the stored values
+`bool`      `directional`      false whether the input contains normalized coefficients (in [-1, 1])
+                                     of a directional lightmap (e.g. normalized L1 or higher
+                                     spherical harmonics band with the L0 band divided out); if the
+                                     range of the coefficients is different from [-1, 1], the
+                                     `inputScale` parameter can be used to adjust the range without
+                                     changing the stored values
 
-float              inputScale       NaN scales input color values before
-                                        filtering, without scaling the output
-                                        too, which can be used to map color
-                                        values to the expected range, e.g. for
-                                        mapping HDR values to physical units
-                                        (which affects the quality of the output
-                                        but *not* the range of the output
-                                        values); if set to NaN, the scale is
-                                        computed automatically for HDR images or
-                                        set to 1 otherwise (*default*)
+`float`     `inputScale`         NaN scales input color values before filtering, without scaling the
+                                     output too, which can be used to map color values to the
+                                     expected range, e.g. for mapping HDR values to physical units
+                                     (which affects the quality of the output but *not* the range of
+                                     the output values); if set to NaN, the scale is computed
+                                     implicitly for HDR images or set to 1 otherwise
 
-Data               weights              trained model weights blob; *optional*
+`Data`      `weights`     *optional* trained model weights blob
 
-int                maxMemoryMB     6000 approximate maximum amount of scratch
-                                        memory to use in megabytes (actual
-                                        memory usage may be higher)
+`int`       `maxMemoryMB`       6000 approximate maximum scratch memory to use in megabytes (actual
+                                     memory usage may be higher); limiting memory usage may cause
+                                     slower denoising due to internally splitting the image into
+                                     overlapping tiles
 
-const int          alignment            when manually denoising the image in
-                                        tiles, the tile size and offsets should
-                                        be multiples of this amount of pixels
-                                        to avoid artifacts; note that manual
-                                        tiled denoising of HDR images is
-                                        supported *only* when inputScale is set
-                                        by the user
+`const int` `alignment`              when manually denoising in tiles, the tile size and offsets
+                                     should be multiples of this amount of pixels to avoid
+                                     artifacts; when denoising HDR images `inputScale` *must* be set
+                                     by the user to avoid seam artifacts
 
-const int          overlap              when manually denoising the image in
-                                        tiles, the tiles should overlap by this
-                                        amount of pixels
+`const int` `overlap`                when manually denoising in tiles, the tiles should overlap by
+                                     this amount of pixels
 
---------- -------- ----------- -------- ----------------------------------------
+----------- ------------- ---------- ---------------------------------------------------------------
 : Parameters supported by the `RTLightmap` filter.
