@@ -8,7 +8,7 @@ Version History
     auxiliary feature (albedo, normal) images are noise-free
 -   Added support for denoising auxiliary feature images, which can be used 
     together with the new `cleanAux` parameter for improving quality when the
-    auxiliary images are noisy
+    auxiliary images are noisy (recommended for final frame denoising)
 -   Normals are expected to be in the [-1, 1] range (but still do not have to
     be normalized)
 -   Fixed detection of static TBB builds on Windows
