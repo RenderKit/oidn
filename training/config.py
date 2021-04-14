@@ -141,6 +141,8 @@ def parse_args(cmd=None, description=None):
                         help='name of the input dataset')
     parser.add_argument('--output_dir', '-O', type=str, default='infer',
                         help='directory of output images')
+    parser.add_argument('--output_suffix', '-o', type=str,
+                        help='suffix of the output image names')
     parser.add_argument('--format', '-F', type=str, nargs='*', default=['exr'],
                         help='output image formats')
     parser.add_argument('--save_all', action='store_true',

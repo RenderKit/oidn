@@ -190,7 +190,8 @@ def main():
           metric_count += 1
 
         # Save the input and output images
-        output_name = input_name + '.' + cfg.result
+        output_suffix = cfg.result if cfg.output_suffix is None else cfg.output_suffix
+        output_name = input_name + '.' + output_suffix
         if cfg.num_epochs:
           output_name += f'_{epoch}'
         if cfg.save_all:
