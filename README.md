@@ -26,7 +26,7 @@ into most existing or new rendering solutions.
 At the heart of the Intel Open Image Denoise library is a collection of
 efficient deep learning based denoising filters, which were trained to
 handle a wide range of samples per pixel (spp), from 1 spp to almost
-fully converged. Thus it is suitable for both preview and final-frame
+fully converged. Thus it is suitable for both preview and final frame
 rendering. The filters can denoise images either using only the noisy
 color (*beauty*) buffer, or, to preserve as much detail as possible, can
 optionally utilize auxiliary feature buffers as well (e.g. albedo,
@@ -771,7 +771,7 @@ Example noisy color image rendered using unidirectional path tracing
 Evermotion.*
 
 ![](https://openimagedenoise.github.io/images/mazda_4spp_oidn.jpg)
-Example output image denoised using color and auxiliary feature images
+Example output image denoised using clean auxiliary feature images
 (albedo and
 normal).
 
@@ -839,13 +839,18 @@ Usually it is difficult to provide clean feature images, and some
 residual noise might be present in the output even with `cleanAux` being
 disabled. To eliminate this noise and to even improve the sharpness of
 texture details, the auxiliary images should be first denoised in a
-pre-filtering step using the same filter, as described earlier. Then,
-these denoised auxiliary images could be used for denoising the color
-image. Since these are now noise-free, the `cleanAux` parameter should
-be enabled. Pre-filtering makes denoising much more expensive but if
-there are multiple Arbitrary Output Variables (AOVs) to denoise, the
-pre-filtered auxiliary images can be reused for denoising multiple color
-AOVs, amortizing the cost of the pre-filtering step.
+pre-filtering step, as described earlier. Then, these denoised auxiliary
+images could be used for denoising the color image. Since these are now
+noise-free, the `cleanAux` parameter should be enabled. Pre-filtering
+makes denoising much more expensive but if there are multiple color AOVs
+to denoise, the pre-filtered auxiliary images can be reused for
+denoising multiple AOVs, amortizing the cost of the pre-filtering step.
+
+Thus, for final frame denoising, where the best possible image quality
+is required, it is recommended to pre-filter the auxiliary features if
+they are noisy and enable the `cleanAux` parameter. Denoising with noisy
+auxiliary features should be reserved for previews and interactive
+rendering.
 
 All feature images should use the same pixel reconstruction filter as
 the color image. Using a properly anti-aliased color image but aliased

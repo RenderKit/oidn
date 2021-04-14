@@ -453,8 +453,8 @@ the color image.
 ![Example noisy color image rendered using unidirectional path tracing (4
 samples per pixel). *Scene by Evermotion.*][imgMazdaColor]
 
-![Example output image denoised using color and auxiliary feature images
-(albedo and normal).][imgMazdaDenoised]
+![Example output image denoised using clean auxiliary feature images (albedo
+and normal).][imgMazdaDenoised]
 
 The `RT` filter has certain limitations regarding the supported input images.
 Most notably, it cannot denoise images that were not rendered with ray tracing.
@@ -549,13 +549,17 @@ enabled only if the auxiliary images are guaranteed to be noise-free.
 Usually it is difficult to provide clean feature images, and some residual
 noise might be present in the output even with `cleanAux` being disabled. To
 eliminate this noise and to even improve the sharpness of texture details, the
-auxiliary images should be first denoised in a pre-filtering step using the same
-filter, as described earlier. Then, these denoised auxiliary images could be
-used for denoising the color image. Since these are now noise-free, the
-`cleanAux` parameter should be enabled. Pre-filtering makes denoising much more
-expensive but if there are multiple Arbitrary Output Variables (AOVs) to
-denoise, the pre-filtered auxiliary images can be reused for denoising multiple
-color AOVs, amortizing the cost of the pre-filtering step.
+auxiliary images should be first denoised in a pre-filtering step, as described
+earlier. Then, these denoised auxiliary images could be used for denoising the
+color image. Since these are now noise-free, the `cleanAux` parameter should be
+enabled. Pre-filtering makes denoising much more expensive but if there are
+multiple color AOVs to denoise, the pre-filtered auxiliary images can be reused
+for denoising multiple AOVs, amortizing the cost of the pre-filtering step.
+
+Thus, for final frame denoising, where the best possible image quality is
+required, it is recommended to pre-filter the auxiliary features if they are
+noisy and enable the `cleanAux` parameter. Denoising with noisy auxiliary
+features should be reserved for previews and interactive rendering.
 
 All feature images should use the same pixel reconstruction filter as the color
 image. Using a properly anti-aliased color image but aliased albedo or normal
