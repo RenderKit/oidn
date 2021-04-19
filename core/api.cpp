@@ -304,6 +304,16 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_CATCH(filter)
   }
 
+  OIDN_API void oidnRemoveFilterImage(OIDNFilter hFilter, const char* name)
+  {
+    Filter* filter = (Filter*)hFilter;
+    OIDN_TRY
+      checkHandle(hFilter);
+      OIDN_LOCK(filter);
+      filter->removeImage(name);
+    OIDN_CATCH(filter)
+  }
+
   OIDN_API void oidnSetSharedFilterData(OIDNFilter hFilter, const char* name,
                                         void* ptr, size_t byteSize)
   {
@@ -313,6 +323,16 @@ OIDN_API_NAMESPACE_BEGIN
       OIDN_LOCK(filter);
       Data data(ptr, byteSize);
       filter->setData(name, data);
+    OIDN_CATCH(filter)
+  }
+
+  OIDN_API void oidnRemoveFilterData(OIDNFilter hFilter, const char* name)
+  {
+    Filter* filter = (Filter*)hFilter;
+    OIDN_TRY
+      checkHandle(hFilter);
+      OIDN_LOCK(filter);
+      filter->removeData(name);
     OIDN_CATCH(filter)
   }
 

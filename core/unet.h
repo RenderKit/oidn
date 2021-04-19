@@ -80,6 +80,7 @@ namespace oidn {
 
   public:
     void setData(const std::string& name, const Data& data) override;
+    void removeData(const std::string& name) override;
     void set1f(const std::string& name, float value) override;
     float get1f(const std::string& name) override;
 
@@ -102,6 +103,7 @@ namespace oidn {
     explicit RTFilter(const Ref<Device>& device);
 
     void setImage(const std::string& name, const Image& data) override;
+    void removeImage(const std::string& name) override;
     void set1i(const std::string& name, int value) override;
     int get1i(const std::string& name) override;
   
@@ -119,6 +121,7 @@ namespace oidn {
     explicit RTLightmapFilter(const Ref<Device>& device);
 
     void setImage(const std::string& name, const Image& data) override;
+    void removeImage(const std::string& name) override;
     void set1i(const std::string& name, int value) override;
     int get1i(const std::string& name) override;
 

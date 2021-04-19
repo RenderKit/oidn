@@ -40,6 +40,16 @@ namespace oidn {
     dirty = true;
   }
 
+  void UNetFilter::removeData(const std::string& name)
+  {
+    if (name == "weights")
+      userWeights = Data();
+    else
+      device->warning("unknown filter parameter");
+
+    dirty = true;
+  }
+
   void UNetFilter::set1f(const std::string& name, float value)
   {
     if (name == "inputScale" || name == "hdrScale")
@@ -493,6 +503,22 @@ namespace oidn {
     dirty = true;
   }
 
+  void RTFilter::removeImage(const std::string& name)
+  {
+    if (name == "color")
+      color = Image();
+    else if (name == "albedo")
+      albedo = Image();
+    else if (name == "normal")
+      normal = Image();
+    else if (name == "output")
+      output = Image();
+    else
+      device->warning("unknown filter parameter");
+
+    dirty = true;
+  }
+
   void RTFilter::set1i(const std::string& name, int value)
   {
     if (name == "hdr")
@@ -554,6 +580,18 @@ namespace oidn {
       color = data;
     else if (name == "output")
       output = data;
+    else
+      device->warning("unknown filter parameter");
+
+    dirty = true;
+  }
+
+  void RTLightmapFilter::removeImage(const std::string& name)
+  {
+    if (name == "color")
+      color = Image();
+    else if (name == "output")
+      output = Image();
     else
       device->warning("unknown filter parameter");
 

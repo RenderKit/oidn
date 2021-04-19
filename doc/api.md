@@ -375,11 +375,19 @@ with extra channels (e.g. alpha channel) or other data are supported as well by
 specifying a non-zero pixel stride. This way, expensive image layout conversion
 and copying can be avoided but the extra data will be ignored by the filter.
 
+To unbind a previously set image from the filter, call
+
+    void oidnRemoveFilterImage(OIDNFilter filter, const char* name);
+
 Some special data used by filters are opaque/untyped (e.g. trained model weights
 blobs), which can be specified with the `oidnSetSharedFilterData` function:
 
     void oidnSetSharedFilterData(OIDNFilter filter, const char* name,
                                  void* ptr, size_t byteSize);
+
+Unbinding opaque data from the filter can be performed with
+
+    void oidnRemoveFilterData(OIDNFilter filter, const char* name);
 
 Filters may have parameters other than buffers as well, which you can set and
 get using the following functions:

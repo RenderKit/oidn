@@ -24,7 +24,9 @@ namespace oidn {
     explicit Filter(const Ref<Device>& device) : device(device) {}
 
     virtual void setImage(const std::string& name, const Image& data) = 0;
+    virtual void removeImage(const std::string& name) = 0;
     virtual void setData(const std::string& name, const Data& data) = 0;
+    virtual void removeData(const std::string& name) = 0;
     virtual void set1i(const std::string& name, int value) = 0;
     virtual int get1i(const std::string& name) = 0;
     virtual void set1f(const std::string& name, float value) = 0;

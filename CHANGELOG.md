@@ -11,6 +11,8 @@ Version History
     auxiliary images are noisy (recommended for final frame denoising)
 -   Normals are expected to be in the [-1, 1] range (but still do not have to
     be normalized)
+-   Added the `oidnRemoveFilterImage` and `oidnRemoveFilterData` functions for
+    removing previously set image and opaque data parameters of filters
 -   Fixed detection of static TBB builds on Windows
 
 ### Changes in v1.3.0:

@@ -158,9 +158,15 @@ OIDN_API void oidnSetSharedFilterImage(OIDNFilter filter, const char* name,
                                        size_t byteOffset,
                                        size_t bytePixelStride, size_t byteRowStride);
 
+// Removes an image parameter of the filter that was previously set.
+OIDN_API void oidnRemoveFilterImage(OIDNFilter filter, const char* name);
+
 // Sets an opaque data parameter of the filter (owned by the user).
 OIDN_API void oidnSetSharedFilterData(OIDNFilter filter, const char* name,
                                       void* ptr, size_t byteSize);
+
+// Removes an opaque data parameter of the filter that was previously set.
+OIDN_API void oidnRemoveFilterData(OIDNFilter filter, const char* name);
 
 // Sets a boolean parameter of the filter.
 OIDN_API void oidnSetFilter1b(OIDNFilter filter, const char* name, bool value);
