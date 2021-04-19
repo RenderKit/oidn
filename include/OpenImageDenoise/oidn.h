@@ -165,6 +165,9 @@ OIDN_API void oidnRemoveFilterImage(OIDNFilter filter, const char* name);
 OIDN_API void oidnSetSharedFilterData(OIDNFilter filter, const char* name,
                                       void* ptr, size_t byteSize);
 
+// Notifies the filter that the contents of an opaque data parameter has been changed.
+OIDN_API void oidnUpdateFilterData(OIDNFilter filter, const char* name);
+
 // Removes an opaque data parameter of the filter that was previously set.
 OIDN_API void oidnRemoveFilterData(OIDNFilter filter, const char* name);
 

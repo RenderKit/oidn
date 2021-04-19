@@ -1,6 +1,6 @@
 # Intel® Open Image Denoise
 
-This is release v1.4.0-alpha.0 of Intel Open Image Denoise. For changes
+This is release v1.4.0-alpha.1 of Intel Open Image Denoise. For changes
 and new features see the [changelog](CHANGELOG.md). Visit
 https://www.openimagedenoise.org for more information.
 
@@ -692,6 +692,14 @@ void oidnSetSharedFilterData(OIDNFilter filter, const char* name,
                              void* ptr, size_t byteSize);
 ```
 
+Modifying the contents of an opaque data parameter after binding it to a
+filter is allowed but the filter needs to be notified that the data has
+been updated by calling
+
+``` cpp
+void oidnUpdateFilterData(OIDNFilter filter, const char* name);
+```
+
 Unbinding opaque data from the filter can be performed with
 
 ``` cpp
@@ -770,13 +778,6 @@ performance and quality. The filter comes with a set of pre-trained CNN
 models that work well with a wide range of ray tracing based renderers
 and noise levels.
 
-It accepts either a low dynamic range (LDR) or high dynamic range (HDR)
-color image as input. Optionally, it also accepts auxiliary *feature*
-images, e.g. albedo and normal, which improve the denoising quality,
-preserving more details in the image. It is possible to denoise
-auxiliary images as well, in which case only the respective auxiliary
-image has to be specified as input, instead of the color image.
-
 ![](https://openimagedenoise.github.io/images/mazda_4spp_input.jpg)
 Example noisy color image rendered using unidirectional path tracing
 (4 samples per pixel). *Scene by
@@ -786,6 +787,13 @@ Evermotion.*
 Example output image denoised using clean auxiliary feature images
 (albedo and
 normal).
+
+It accepts either a low dynamic range (LDR) or high dynamic range (HDR)
+color image as input. Optionally, it also accepts auxiliary *feature*
+images, e.g. albedo and normal, which improve the denoising quality,
+preserving more details in the image. It is possible to denoise
+auxiliary images as well, in which case only the respective auxiliary
+image has to be specified as input, instead of the color image.
 
 The `RT` filter has certain limitations regarding the supported input
 images. Most notably, it cannot denoise images that were not rendered

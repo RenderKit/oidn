@@ -326,6 +326,16 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_CATCH(filter)
   }
 
+  OIDN_API void oidnUpdateFilterData(OIDNFilter hFilter, const char* name)
+  {
+    Filter* filter = (Filter*)hFilter;
+    OIDN_TRY
+      checkHandle(hFilter);
+      OIDN_LOCK(filter);
+      filter->updateData(name);
+    OIDN_CATCH(filter)
+  }
+
   OIDN_API void oidnRemoveFilterData(OIDNFilter hFilter, const char* name)
   {
     Filter* filter = (Filter*)hFilter;

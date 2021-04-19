@@ -229,6 +229,12 @@ OIDN_NAMESPACE_BEGIN
                               ptr, byteSize);
     }
 
+    // Notifies the filter that the contents of an opaque data parameter has been changed.
+    void updateData(const char* name)
+    {
+      oidnUpdateFilterData(handle, name);
+    }
+
     // Removes an opaque data parameter of the filter that was previously set.
     void removeData(const char* name)
     {

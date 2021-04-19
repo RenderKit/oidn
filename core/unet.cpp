@@ -40,6 +40,18 @@ namespace oidn {
     dirty = true;
   }
 
+  void UNetFilter::updateData(const std::string& name)
+  {
+    if (name == "weights")
+    {
+      // Nothing to do
+    }
+    else
+      device->warning("unknown filter parameter");
+
+    dirty = true;
+  }
+
   void UNetFilter::removeData(const std::string& name)
   {
     if (name == "weights")
