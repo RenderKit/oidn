@@ -90,8 +90,7 @@ namespace oidn {
 
   private:
     void computeTileSize();
-    Ref<Network> buildNet();
-    bool isCommitted() const { return bool(net); }
+    void buildNet();
   };
 
   // ---------------------------------------------------------------------------

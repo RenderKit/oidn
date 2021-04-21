@@ -87,7 +87,7 @@ namespace oidn {
 
     device->executeTask([&]()
     {
-      net = buildNet();
+      buildNet();
     });
 
     dirty = false;
@@ -206,8 +206,14 @@ namespace oidn {
     }
   }
 
-  Ref<Network> UNetFilter::buildNet()
+  void UNetFilter::buildNet()
   {
+    // Cleanup
+    net = nullptr;
+    inputReorder = nullptr;
+    outputReorder = nullptr;
+    outputTemp = Image();
+
     // Check the input/output buffers
     if (!color && !albedo && !normal)
       throw Exception(Error::InvalidOperation, "input image not specified");
@@ -308,7 +314,7 @@ namespace oidn {
 
     // If the image size is zero, there is nothing else to do
     if (H <= 0 || W <= 0)
-      return nullptr;
+      return;
 
     // If doing in-place _tiled_ filtering, allocate a temporary output buffer
     // For non-tiled filtering this is not necessary as we use ping-pong buffers
@@ -319,7 +325,7 @@ namespace oidn {
     const auto weightsMap = parseTZA(device, weights.ptr, weights.size);
 
     // Create the network
-    Ref<Network> net = makeRef<Network>(device, weightsMap);
+    net = makeRef<Network>(device, weightsMap);
 
     // Compute the buffer sizes
     const auto inputDims        = TensorDims({inputC, tileH, tileW});
@@ -467,7 +473,6 @@ namespace oidn {
                                           transferFunc, hdr, snorm);
 
     net->finalize();
-    return net;
   }
 
   // ---------------------------------------------------------------------------
