@@ -1,4 +1,4 @@
-## Copyright 2009-2020 Intel Corporation
+## Copyright 2009-2021 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 cmake_minimum_required(VERSION 3.1)
@@ -9,8 +9,8 @@ if(POLICY CMP0074)
 endif()
 
 set(OIDN_VERSION_MAJOR 1)
-set(OIDN_VERSION_MINOR 2)
-set(OIDN_VERSION_PATCH 4)
+set(OIDN_VERSION_MINOR 3)
+set(OIDN_VERSION_PATCH 0)
 set(OIDN_VERSION_NOTE "")
 
 set(OIDN_VERSION ${OIDN_VERSION_MAJOR}.${OIDN_VERSION_MINOR}.${OIDN_VERSION_PATCH})
@@ -28,10 +28,6 @@ project(OpenImageDenoise
   VERSION ${OIDN_VERSION}
   LANGUAGES C CXX
 )
-
-if (NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
-  message(FATAL_ERROR "Intel(R) Open Image Denoise supports 64-bit platforms only")
-endif()
 
 # CMake modules
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
@@ -74,7 +70,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 
 # Library dependencies
 find_package(Threads REQUIRED)
-find_package(TBB 2017.0 REQUIRED tbb tbbmalloc)
+find_package(TBB 2017.0 REQUIRED tbb)
 
 # Packaging
 include(oidn_package)
@@ -82,11 +78,30 @@ include(oidn_package)
 # Platform-specific settings
 include(oidn_platform)
 
-# DNNL
-include(oidn_dnnl)
+# Neural network runtime
+set(OIDN_NEURAL_RUNTIMES)
+if(OIDN_ARCH STREQUAL "X64")
+  list(APPEND OIDN_NEURAL_RUNTIMES "DNNL")
+endif()
+if(APPLE AND OIDN_ARCH STREQUAL "ARM64")
+  list(APPEND OIDN_NEURAL_RUNTIMES "BNNS")
+endif()
+list(GET OIDN_NEURAL_RUNTIMES 0 OIDN_NEURAL_RUNTIME_DEFAULT)
+set(OIDN_NEURAL_RUNTIME ${OIDN_NEURAL_RUNTIME_DEFAULT} CACHE STRING "Neural network runtime to use.")
+set_property(CACHE OIDN_NEURAL_RUNTIME PROPERTY STRINGS ${OIDN_NEURAL_RUNTIMES})
+
+if(OIDN_NEURAL_RUNTIME STREQUAL "DNNL")
+  include(oidn_dnnl)
+elseif(OIDN_NEURAL_RUNTIME STREQUAL "BNNS")
+  include(oidn_bnns)
+endif()
 
 # ISPC
-set(OIDN_ISPC_TARGET_LIST sse4-i32x8;avx2-i32x8;avx512skx-i32x16)
+if(OIDN_ARCH STREQUAL "X64")
+  set(OIDN_ISPC_TARGET_LIST sse4-i32x8;avx2-i32x8;avx512skx-i32x16)
+elseif(OIDN_ARCH STREQUAL "ARM64")
+  set(OIDN_ISPC_TARGET_LIST neon-i32x8)
+endif()
 set(OIDN_ISPC_ADDRESSING 64)
 include(oidn_ispc)
 
@@ -124,6 +139,7 @@ set(CORE_SOURCES
   core/color.h
   core/color.cpp
   core/common.h
+  core/conv.h
   core/data.h
   core/device.h
   core/device.cpp
@@ -131,29 +147,33 @@ set(CORE_SOURCES
   core/filter.cpp
   core/image.h
   core/input_reorder.h
-  core/memory.h
   core/network.h
   core/network.cpp
   core/node.h
   core/output_copy.h
   core/output_reorder.h
+  core/pool.h
   core/progress.h
+  core/reorder.h
+  core/tensor.h
+  core/tza.h
+  core/tza.cpp
   core/unet.h
   core/unet.cpp
   core/upsample.h
 )
 
 set(CORE_SOURCES_ISPC
-  core/image.ih
+  core/image.isph
   core/input_reorder.ispc
-  core/color.ih
+  core/color.isph
   core/color.ispc
-  core/math.ih
-  core/memory.ih
+  core/math.isph
   core/upsample.ispc
   core/output_copy.ispc
   core/output_reorder.ispc
-  core/vec.ih
+  core/tensor.isph
+  core/vec.isph
 )
 
 generate_cpp_from_blob(WEIGHTS_SOURCES "oidn::blobs::weights"
@@ -164,9 +184,14 @@ generate_cpp_from_blob(WEIGHTS_SOURCES "oidn::blobs::weights"
   weights/rt_hdr_alb.tza
   weights/rt_hdr_alb_nrm.tza
   weights/rtlightmap_hdr.tza
+  weights/rtlightmap_dir.tza
 )
 
 add_library(${PROJECT_NAME} ${OIDN_LIB_TYPE} ${CORE_SOURCES} ${WEIGHTS_SOURCES})
+
+target_compile_definitions(${PROJECT_NAME} PRIVATE OIDN_${OIDN_NEURAL_RUNTIME})
+ispc_add_definitions(-DOIDN_${OIDN_NEURAL_RUNTIME})
+
 ispc_target_add_sources(${PROJECT_NAME} ${CORE_SOURCES_ISPC})
 
 target_include_directories(${PROJECT_NAME}
@@ -175,11 +200,12 @@ target_include_directories(${PROJECT_NAME}
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-target_link_libraries(${PROJECT_NAME}
-  PRIVATE
-    common
-    dnnl
-)
+target_link_libraries(${PROJECT_NAME} PRIVATE common)
+if(OIDN_NEURAL_RUNTIME STREQUAL "DNNL")
+  target_link_libraries(${PROJECT_NAME} PRIVATE dnnl)
+elseif(OIDN_NEURAL_RUNTIME STREQUAL "BNNS")
+  target_link_libraries(${PROJECT_NAME} PRIVATE "-framework Accelerate")
+endif()
 
 # Specify list of symbols to export
 if(WIN32)
@@ -193,7 +219,7 @@ endif()
 
 message(STATUS "Setting target version ${PROJECT_VERSION}")
 set_property(TARGET ${PROJECT_NAME} PROPERTY VERSION ${PROJECT_VERSION})
-set_property(TARGET ${PROJECT_NAME} PROPERTY SOVERSION "0")
+set_property(TARGET ${PROJECT_NAME} PROPERTY SOVERSION ${PROJECT_VERSION_MAJOR})
 
 ## -----------------------------------------------------------------------------
 ## Apps

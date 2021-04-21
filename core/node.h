@@ -1,44 +1,49 @@
-// Copyright 2009-2020 Intel Corporation
+// Copyright 2009-2021 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
 
-#include "memory.h"
-#include <vector>
+#include "tensor.h"
 
 namespace oidn {
 
-  class Node
+  // Node base class
+  class Node : public RefCount
   {
+  private:
+    Ref<Device> device;
+
   public:
+    Node(const Ref<Device>& device) : device(device) {}
     virtual ~Node() = default;
 
-    virtual void execute(stream& sm) = 0;
+    virtual void execute() = 0;
 
-    virtual std::shared_ptr<memory> getDst() const { return nullptr; }
+    virtual Ref<Tensor> getDst() const { return nullptr; }
 
     virtual size_t getScratchpadSize() const { return 0; }
-    virtual void setScratchpad(const std::shared_ptr<memory>& mem) {}
+    virtual void setScratchpad(const Ref<Tensor>& scratchpad) {}
 
     virtual void setTile(int hSrc, int wSrc, int hDst, int wDst, int H, int W)
     {
       assert(0); // not supported
     }
+
+    __forceinline Device* getDevice() { return device.get(); }
   };
 
-  // Node wrapping an MKL-DNN primitive
-  class MklNode : public Node
+#if defined(OIDN_DNNL)
+
+  // DNNL node base class
+  class DNNLNode : public Node
   {
-  private:
-    primitive prim;
-    std::unordered_map<int, memory> args;
-    std::shared_ptr<memory> scratchpad;
+  protected:
+    dnnl::primitive prim;
+    std::unordered_map<int, dnnl::memory> args;
+    Ref<Tensor> scratchpad;
 
   public:
-    MklNode(const primitive& prim, const std::unordered_map<int, memory>& args)
-      : prim(prim),
-        args(args)
-    {}
+    DNNLNode(const Ref<Device>& device) : Node(device) {}
 
     size_t getScratchpadSize() const override
     {
@@ -49,101 +54,43 @@ namespace oidn {
       return dnnl_memory_desc_get_size(scratchpadDesc);
     }
 
-    void setScratchpad(const std::shared_ptr<memory>& mem) override
+    void setScratchpad(const Ref<Tensor>& scratchpad) override
     {
-      scratchpad = mem;
-      args.insert(std::make_pair(DNNL_ARG_SCRATCHPAD, *scratchpad));
+      this->scratchpad = scratchpad;
+      args.insert(std::make_pair(DNNL_ARG_SCRATCHPAD, scratchpad->mem));
     }
 
-    void execute(stream& sm) override
+    void execute() override
     {
-      prim.execute(sm, args);
+      prim.execute(getDevice()->getDNNLStream(), args);
     }
   };
 
-  // Convolution node
-  class ConvNode : public MklNode
+#elif defined(OIDN_BNNS)
+
+  // BNNS node base class
+  class BNNSNode : public Node
   {
-  private:
-    std::shared_ptr<memory> src;
-    std::shared_ptr<memory> weights;
-    std::shared_ptr<memory> bias;
-    std::shared_ptr<memory> dst;
+  protected:
+    BNNSFilter  filter = nullptr;
+    const void* inPtr  = nullptr;
+    void*       outPtr = nullptr;
 
   public:
-    ConvNode(const convolution_forward::primitive_desc& desc,
-             const std::shared_ptr<memory>& src,
-             const std::shared_ptr<memory>& weights,
-             const std::shared_ptr<memory>& bias,
-             const std::shared_ptr<memory>& dst)
-      : MklNode(convolution_forward(desc),
-                { { DNNL_ARG_SRC, *src },
-                  { DNNL_ARG_WEIGHTS, *weights },
-                  { DNNL_ARG_BIAS, *bias },
-                  { DNNL_ARG_DST, *dst } }),
-                src(src), weights(weights), bias(bias), dst(dst)
-    {}
+    BNNSNode(const Ref<Device>& device) : Node(device) {}
 
-    std::shared_ptr<memory> getDst() const override { return dst; }
+    ~BNNSNode()
+    {
+      if (filter)
+        BNNSFilterDestroy(filter);
+    }
+
+    void execute() override
+    {
+      BNNSFilterApply(filter, inPtr, outPtr);
+    }
   };
 
-  // Pooling node
-  class PoolNode : public MklNode
-  {
-  private:
-    std::shared_ptr<memory> src;
-    std::shared_ptr<memory> dst;
-
-  public:
-    PoolNode(const pooling_forward::primitive_desc& desc,
-             const std::shared_ptr<memory>& src,
-             const std::shared_ptr<memory>& dst)
-      : MklNode(pooling_forward(desc),
-                { { DNNL_ARG_SRC, *src },
-                  { DNNL_ARG_DST, *dst } }),
-                src(src), dst(dst)
-    {}
-
-    std::shared_ptr<memory> getDst() const override { return dst; }
-  };
-
-  // Resampling node
-  class ResampleNode : public MklNode
-  {
-  private:
-    std::shared_ptr<memory> src;
-    std::shared_ptr<memory> dst;
-
-  public:
-    ResampleNode(const resampling_forward::primitive_desc& desc,
-                 const std::shared_ptr<memory>& src,
-                 const std::shared_ptr<memory>& dst)
-      : MklNode(resampling_forward(desc),
-                { { DNNL_ARG_SRC, *src },
-                  { DNNL_ARG_DST, *dst } }),
-                src(src), dst(dst)
-    {}
-
-    std::shared_ptr<memory> getDst() const override { return dst; }
-  };
-
-  // Reorder node
-  class ReorderNode : public MklNode
-  {
-  private:
-    std::shared_ptr<memory> src;
-    std::shared_ptr<memory> dst;
-
-  public:
-    ReorderNode(const std::shared_ptr<memory>& src,
-                const std::shared_ptr<memory>& dst)
-      : MklNode(reorder(reorder::primitive_desc(*src, *dst)),
-                { { DNNL_ARG_SRC, *src },
-                  { DNNL_ARG_DST, *dst } }),
-                src(src), dst(dst)
-    {}
-
-    std::shared_ptr<memory> getDst() const override { return dst; }
-  };
+#endif
 
 } // namespace oidn

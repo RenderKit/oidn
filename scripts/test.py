@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-## Copyright 2009-2020 Intel Corporation
+## Copyright 2009-2021 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 import sys
@@ -83,6 +83,10 @@ def test():
       print_test(arch)
       run_test(os.path.join(bin_dir, 'oidnTest'), arch)
 
+# Gets the file extension of a feature
+def get_feature_ext(feature):
+  return feature if feature != 'dir' else 'sh1x'
+
 # Runs regression tests for the specified filter
 def test_regression(filter, feature_sets, dataset):
   dataset_dir = os.path.join(cfg.data_dir, dataset)
@@ -116,9 +120,10 @@ def test_regression(filter, feature_sets, dataset):
 
     elif cfg.command == 'run':
       main_feature = features[0]
+      main_feature_ext = get_feature_ext(main_feature)
 
       # Gather the list of images
-      image_filenames = sorted(glob(os.path.join(dataset_dir, '**', f'*.{main_feature}.pfm'), recursive=True))
+      image_filenames = sorted(glob(os.path.join(dataset_dir, '**', f'*.{main_feature_ext}.pfm'), recursive=True))
       if not image_filenames:
         print('Error: baseline input images missing (run with "baseline" first)')
         exit(1)
@@ -142,14 +147,15 @@ def test_regression(filter, feature_sets, dataset):
 
               denoise_cmd = os.path.join(bin_dir, 'oidnDenoise')
 
-              ref_filename = os.path.join(cfg.baseline_dir, dataset, f'{image_name}.{result}.{main_feature}.pfm')
+              ref_filename = os.path.join(cfg.baseline_dir, dataset, f'{image_name}.{result}.{main_feature_ext}.pfm')
               if not os.path.isfile(ref_filename):
                 print('Error: baseline output image missing (run with "baseline" first)')
                 exit(1)
               denoise_cmd += f' -f {filter} -v 2 --ref "{ref_filename}"'
 
               for feature in features:
-                feature_filename = os.path.join(dataset_dir, image_name) + f'.{feature}.pfm'
+                feature_ext = get_feature_ext(feature)
+                feature_filename = os.path.join(dataset_dir, image_name) + f'.{feature_ext}.pfm'
                 denoise_cmd += f' --{feature} "{feature_filename}"'
 
               if inplace:
@@ -179,7 +185,7 @@ if not cfg.filter or 'RT' in cfg.filter:
 
 # Regression tests: RTLightmap
 if not cfg.filter or 'RTLightmap' in cfg.filter:
-  test_regression('RTLightmap', [['hdr']], 'rtlightmap_regress')
+  test_regression('RTLightmap', [['hdr'], ['dir']], 'rtlightmap_regress')
 
 # Done
 if cfg.command == 'run':

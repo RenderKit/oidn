@@ -1,4 +1,4 @@
-// Copyright 2009-2020 Intel Corporation
+// Copyright 2009-2021 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -9,10 +9,10 @@
 
 namespace oidn {
 
-  class TransferFunction
+  class TransferFunction : public RefCount
   {
   private:
-    ispc::TransferFunction data;
+    ispc::TransferFunction impl;
 
   public:
     enum class Type
@@ -27,22 +27,23 @@ namespace oidn {
     {
       switch (type)
       {
-      case Type::Linear: ispc::LinearTransferFunction_Constructor(&data); break;
-      case Type::SRGB:   ispc::SRGBTransferFunction_Constructor(&data);   break;
-      case Type::PU:     ispc::PUTransferFunction_Constructor(&data);     break;
-      case Type::Log:    ispc::LogTransferFunction_Constructor(&data);    break;
-      default:           assert(0);
+      case Type::Linear: ispc::LinearTransferFunction_Constructor(&impl); break;
+      case Type::SRGB:   ispc::SRGBTransferFunction_Constructor(&impl);   break;
+      case Type::PU:     ispc::PUTransferFunction_Constructor(&impl);     break;
+      case Type::Log:    ispc::LogTransferFunction_Constructor(&impl);    break;
+      default:
+        throw Exception(Error::Unknown, "invalid transfer function");
       }
     }
 
-    void setExposure(float exposure)
+    void setInputScale(float inputScale)
     {
-      ispc::TransferFunction_setExposure(&data, exposure);
+      ispc::TransferFunction_setInputScale(&impl, inputScale);
     }
 
-    ispc::TransferFunction* getIspc()
+    ispc::TransferFunction* getImpl()
     {
-      return &data;
+      return &impl;
     }
   };
 
@@ -50,20 +51,22 @@ namespace oidn {
   {
   private:
     Image color;
-    std::shared_ptr<TransferFunction> transferFunc;
+    Ref<TransferFunction> transferFunc;
 
   public:
-    AutoexposureNode(const Image& color,
-                     const std::shared_ptr<TransferFunction>& transferFunc)
-      : color(color),
+    AutoexposureNode(const Ref<Device>& device,
+                     const Image& color,
+                     const Ref<TransferFunction>& transferFunc)
+      : Node(device),
+        color(color),
         transferFunc(transferFunc)
     {}
 
-    void execute(stream& sm) override
+    void execute() override
     {
       const float exposure = autoexposure(color);
       //printf("exposure = %f\n", exposure);
-      transferFunc->setExposure(exposure);
+      transferFunc->setInputScale(exposure);
     }
 
   private:

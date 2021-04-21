@@ -1,4 +1,4 @@
-// Copyright 2009-2020 Intel Corporation
+// Copyright 2009-2021 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "platform.h"
@@ -15,7 +15,13 @@ namespace oidn {
       return nullptr;
 
     assert((alignment & (alignment-1)) == 0);
+  #if defined(OIDN_X64)
     void* ptr = _mm_malloc(size, alignment);
+  #else
+    void* ptr;
+    if (posix_memalign(&ptr, max(alignment, sizeof(void*)), size) != 0)
+      ptr = nullptr;
+  #endif
 
     if (ptr == nullptr)
       throw std::bad_alloc();
@@ -26,7 +32,11 @@ namespace oidn {
   void alignedFree(void* ptr)
   {
     if (ptr)
+    #if defined(OIDN_X64)
       _mm_free(ptr);
+    #else
+      free(ptr);
+    #endif
   }
 
   // ---------------------------------------------------------------------------

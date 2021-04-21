@@ -1,4 +1,4 @@
-// Copyright 2009-2020 Intel Corporation
+// Copyright 2009-2021 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "include/OpenImageDenoise/config.h"
@@ -24,7 +24,7 @@ FILESUBTYPE 0x0L
       VALUE "FileDescription", "Intel Open Image Denoise Library"
       VALUE "FileVersion", OIDN_VERSION_STRING
       VALUE "ProductVersion", OIDN_VERSION_STRING
-      VALUE "LegalCopyright", "Copyright 2009-2020 Intel Corporation"
+      VALUE "LegalCopyright", "Copyright 2009-2021 Intel Corporation"
       VALUE "InternalName", "Intel Open Image Denoise"
       VALUE "ProductName", "Intel(R) Open Image Denoise"
     }

@@ -1,4 +1,4 @@
-## Copyright 2018-2020 Intel Corporation
+## Copyright 2018-2021 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 import os
@@ -6,7 +6,7 @@ import numpy as np
 import torch
 import OpenImageIO as oiio
 
-from ssim import ssim
+from ssim import ssim, ms_ssim
 from util import *
 
 ## -----------------------------------------------------------------------------
@@ -46,6 +46,8 @@ def compare_images(a, b, metric='psnr'):
     return 10 * np.log10(1. / mse.item())
   elif metric == 'ssim':
     return ssim(a, b, data_range=1.)
+  elif metric == 'msssim':
+    return ms_ssim(a, b, data_range=1.)
   else:
     raise ValueError('invalid error metric')
 
@@ -101,7 +103,7 @@ def save_pfm(filename, image):
       f.write('Pf\n')
       data = image[..., 0]
     data = np.flip(data, 0).astype(np.float32)
-    
+
     f.write('%d %d\n' % (image.shape[1], image.shape[0]))
     f.write('-1.0\n')
     data.tofile(f)

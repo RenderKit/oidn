@@ -1,4 +1,4 @@
-// Copyright 2009-2020 Intel Corporation
+// Copyright 2009-2021 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -40,7 +40,7 @@ namespace oidn {
     }
 
     Image(const Ref<Device>& device, Format format, size_t width, size_t height)
-      : buffer(makeRef<Buffer>(device, width * height * getFormatSize(format)))
+      : buffer(makeRef<Buffer>(device, width * height * getByteSize(format)))
     {
       init(buffer->data(), format, width, height);
     }
@@ -54,7 +54,7 @@ namespace oidn {
       this->width  = int(width);
       this->height = int(height);
 
-      const size_t pixelSize = getFormatSize(format);
+      const size_t pixelSize = getByteSize(format);
       if (inBytePixelStride != 0)
       {
         if (inBytePixelStride < pixelSize)
@@ -100,9 +100,29 @@ namespace oidn {
     __forceinline       char* end()       { return get(height, 0); }
     __forceinline const char* end() const { return get(height, 0); }
 
-    operator bool() const
+    __forceinline operator bool() const
     {
       return ptr != nullptr;
+    }
+
+    // Returns the number of channels
+    __forceinline int numChannels() const
+    {
+      switch (format)
+      {
+      case Format::Undefined:
+        return 0;
+      case Format::Float:
+        return 1;
+      case Format::Float2:
+        return 2;
+      case Format::Float3:
+        return 3;
+      case Format::Float4:
+        return 4;
+      default:
+        throw Exception(Error::InvalidArgument, "invalid image format");
+      }
     }
 
     // Determines whether two images overlap in memory
@@ -123,15 +143,16 @@ namespace oidn {
 
       return begin1 < end2 && begin2 < end1;
     }
-  };
 
-  inline ispc::Image toIspc(const Image& img)
-  {
-    ispc::Image res;
-    res.ptr = (uint8_t*)img.ptr;
-    res.rowStride = img.rowStride;
-    res.bytePixelStride = img.bytePixelStride;
-    return res;
-  }
+    // Converts to ISPC equivalent
+    operator ispc::Image() const
+    {
+      ispc::Image result;
+      result.ptr = (uint8_t*)ptr;
+      result.rowStride = rowStride;
+      result.bytePixelStride = bytePixelStride;
+      return result;
+    }
+  };
 
 } // namespace oidn

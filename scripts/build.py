@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-## Copyright 2009-2020 Intel Corporation
+## Copyright 2009-2021 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 import re
@@ -15,8 +15,8 @@ import argparse
 
 from common import *
 
-ISPC_VERSION = '1.14.1'
-TBB_VERSION  = '2020.3'
+ISPC_VERSION = '1.15.0'
+TBB_VERSION  = '2021.1.1'
 
 def download_file(url, output_dir):
   print('Downloading file:', url)
@@ -72,7 +72,7 @@ def check_symbols_linux(filename):
   check_symbols(filename, 'CXXABI',  (1, 3, 7))
 
 # Parse the arguments
-compilers = {'windows' : ['msvc15', 'msvc15-icc18', 'msvc15-icc19', 'msvc15-icc20', 'msvc16', 'msvc16-icc19', 'msvc16-icc20'],
+compilers = {'windows' : ['msvc15', 'msvc15-icc18', 'msvc15-icc19', 'msvc15-icc20', 'msvc16', 'msvc16-icc19', 'msvc16-icc20', 'msvc16-icc21'],
              'linux'   : ['gcc', 'clang', 'icc'],
              'macos'   : ['clang', 'icc']}
 
@@ -112,7 +112,7 @@ if cfg.target == 'all' or not os.path.isdir(build_dir):
   ispc_executable = os.path.join(ispc_dir, 'bin', 'ispc')
 
   # Set up TBB
-  tbb_release = f'tbb-{TBB_VERSION}-'
+  tbb_release = f'oneapi-tbb-{TBB_VERSION}-'
   tbb_release += {'windows' : 'win', 'linux' : 'lin', 'macos' : 'mac'}[OS]
   tbb_dir = os.path.join(deps_dir, tbb_release)
   if not os.path.isdir(tbb_dir):
@@ -122,7 +122,7 @@ if cfg.target == 'all' or not os.path.isdir(build_dir):
     tbb_filename = download_file(tbb_url, deps_dir)
     extract_package(tbb_filename, tbb_dir)
     os.remove(tbb_filename)
-  tbb_root = os.path.join(tbb_dir, 'tbb')
+  tbb_root = os.path.join(tbb_dir, f'oneapi-tbb-{TBB_VERSION}')
 
   # Create a clean build directory
   if os.path.isdir(build_dir):
@@ -140,8 +140,8 @@ if cfg.target == 'all' or not os.path.isdir(build_dir):
         config_cmd += {'msvc15' : ' -G "Visual Studio 15 2017 Win64"',
                        'msvc16' : ' -G "Visual Studio 16 2019" -A x64'}[compiler]
       elif compiler.startswith('icc'):
-        icc_version = compiler[3:]
-        config_cmd += f' -T "Intel C++ Compiler {icc_version}.0"'
+        icc_version = {'18' : '18.0', '19' : '19.0', '20' : '19.1', '21' : '19.2'}[compiler[3:]]
+        config_cmd += f' -T "Intel C++ Compiler {icc_version}"'
     ispc_executable += '.exe'
 
     build_cmd += f' --config {cfg.config} --target ALL_BUILD'
@@ -155,10 +155,10 @@ if cfg.target == 'all' or not os.path.isdir(build_dir):
         cxx = os.path.join(icc_dir, cxx)
     config_cmd += f' -D CMAKE_C_COMPILER:FILEPATH="{cc}"'
     config_cmd += f' -D CMAKE_CXX_COMPILER:FILEPATH="{cxx}"'
-    config_cmd += f' -D CMAKE_BUILD_TYPE={cfg.config}'
 
     build_cmd += ' --target preinstall -- -j VERBOSE=1'
-  
+
+  config_cmd += f' -D CMAKE_BUILD_TYPE={cfg.config}'
   config_cmd += f' -D ISPC_EXECUTABLE="{ispc_executable}"'
   config_cmd += f' -D TBB_ROOT="{tbb_root}"'
   if cfg.cmake_vars:
@@ -202,9 +202,11 @@ if cfg.target == 'package':
     run('cmake --build . --target package -- -j VERBOSE=1')
 
   # Extract the package
-  package_filename = glob(os.path.join(build_dir, 'oidn-*'))[0]
-  extract_package(package_filename, build_dir)
+  package_filename = [f for f in glob(os.path.join(build_dir, 'oidn-*')) if os.path.isfile(f)][0]
   package_dir = re.sub(r'\.(tar(\..*)?|zip)$', '', package_filename)
+  if os.path.isdir(package_dir):
+    shutil.rmtree(package_dir)
+  extract_package(package_filename, build_dir)
 
   # Get the list of binaries
   binaries = glob(os.path.join(package_dir, 'bin', '*'))

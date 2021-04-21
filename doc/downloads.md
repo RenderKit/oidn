@@ -4,9 +4,9 @@ Download Precompiled Intel Open Image Denoise Binary Packages
 Prerequisites
 -------------
 
-Your CPU must support at least SSE4.1 to run Intel Open Image Denoise, and you
-need a 64-bit operating system as well. The TGZ/ZIP packages contain most needed
-3rd party dependencies.
+You need a CPU with SSE4.1 support or Apple Silicon to run Intel Open Image
+Denoise, and you need a 64-bit operating system as well. The TGZ/ZIP packages
+contain most needed 3rd party dependencies.
 
 Packages
 --------

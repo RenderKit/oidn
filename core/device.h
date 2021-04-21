@@ -1,4 +1,4 @@
-// Copyright 2009-2020 Intel Corporation
+// Copyright 2009-2021 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -33,6 +33,13 @@ namespace oidn {
     std::shared_ptr<PinningObserver> observer;
     std::shared_ptr<ThreadAffinity> affinity;
 
+    // Neural network runtime
+  #if defined(OIDN_DNNL)
+    dnnl::engine dnnlEngine;
+    dnnl::stream dnnlStream;
+  #endif
+    int tensorBlockSize = 1;
+
     // Parameters
     int numThreads = 0; // autodetect by default
     bool setAffinity = true;
@@ -45,8 +52,9 @@ namespace oidn {
 
     static void setError(Device* device, Error code, const std::string& message);
     static Error getError(Device* device, const char** outMessage);
-
     void setErrorFunction(ErrorFunction func, void* userPtr);
+
+    void warning(const std::string& message);
 
     int get1i(const std::string& name);
     void set1i(const std::string& name, int value);
@@ -71,6 +79,14 @@ namespace oidn {
 
     __forceinline Device* getDevice() { return this; }
     __forceinline std::mutex& getMutex() { return mutex; }
+
+  #if defined(OIDN_DNNL)
+    __forceinline dnnl::engine& getDNNLEngine() { return dnnlEngine; }
+    __forceinline dnnl::stream& getDNNLStream() { return dnnlStream; }
+  #endif
+
+    // Returns the native tensor layout block size
+    __forceinline int getTensorBlockSize() const { return tensorBlockSize; }
 
   private:
     bool isCommitted() const { return bool(arena); }

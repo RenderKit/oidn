@@ -1,4 +1,4 @@
-// Copyright 2009-2020 Intel Corporation
+// Copyright 2009-2021 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -21,7 +21,7 @@ namespace oidn {
 
   public:
     __forceinline Buffer(const Ref<Device>& device, size_t size)
-      : ptr((char*)alignedMalloc(size, 64)),
+      : ptr((char*)alignedMalloc(size, 128)),
         byteSize(size),
         shared(false),
         device(device) {}

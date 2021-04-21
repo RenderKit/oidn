@@ -1,0 +1,52 @@
+// Copyright 2009-2021 Intel Corporation
+// SPDX-License-Identifier: Apache-2.0
+
+#pragma once
+
+#include "vec.isph"
+
+#define K programCount // native tensor block size
+
+// Tensor in CHW layout
+struct Tensor
+{
+  uniform float* uniform ptr;
+  uniform int C;
+  uniform int H;
+  uniform int W;
+};
+
+inline size_t getIndex(uniform Tensor& tz, uniform int h, int w, uniform int c)
+{
+#if defined(OIDN_DNNL)
+  // ChwKc layout (blocked)
+  return ((size_t)tz.H * (c/K) + h) * ((size_t)tz.W*K) + (size_t)w*K + (c%K);
+#else
+  // chw layout
+  return ((size_t)tz.H * c + h) * (size_t)tz.W + w;
+#endif
+}
+
+inline float get1f(uniform Tensor& tz, uniform int h, int w, uniform int c)
+{
+  return tz.ptr[getIndex(tz, h, w, c)];
+}
+
+inline void set1f(uniform Tensor& tz, uniform int h, int w, uniform int c, float value)
+{
+  tz.ptr[getIndex(tz, h, w, c)] = value;
+}
+
+inline vec3f get3f(uniform Tensor& tz, uniform int h, int w, uniform int c)
+{
+  return make_vec3f(get1f(tz, h, w, c),
+                    get1f(tz, h, w, c+1),
+                    get1f(tz, h, w, c+2));
+}
+
+inline void set3f(uniform Tensor& tz, uniform int h, int w, uniform int c, const vec3f& value)
+{
+  set1f(tz, h, w, c,   value.x);
+  set1f(tz, h, w, c+1, value.y);
+  set1f(tz, h, w, c+2, value.z);
+}

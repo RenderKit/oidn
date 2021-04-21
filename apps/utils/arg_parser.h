@@ -1,4 +1,4 @@
-// Copyright 2009-2020 Intel Corporation
+// Copyright 2009-2021 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -56,6 +56,12 @@ namespace oidn {
     {
       std::string str = getNextValue();
       return atoi(str.c_str());
+    }
+
+    float getNextValueFloat()
+    {
+      std::string str = getNextValue();
+      return atof(str.c_str());
     }
   };
 

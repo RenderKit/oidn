@@ -1,12 +1,12 @@
-// Copyright 2009-2020 Intel Corporation
+// Copyright 2009-2021 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "memory.ih"
+#include "tensor.isph"
 
 struct Upsample
 {
-  uniform Memory src;
-  uniform Memory dst;
+  uniform Tensor src;
+  uniform Tensor dst;
 };
 
 export void Upsample_kernel(uniform Upsample* uniform self, uniform int ck, uniform int h)

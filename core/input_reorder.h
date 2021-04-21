@@ -1,4 +1,4 @@
-// Copyright 2009-2020 Intel Corporation
+// Copyright 2009-2021 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -14,66 +14,79 @@ namespace oidn {
   class InputReorderNode : public Node
   {
   private:
-    ispc::InputReorder data;
+    ispc::InputReorder impl;
 
-    Image srcColor;
-    Image srcAlbedo;
-    Image srcNormal;
-    std::shared_ptr<memory> dst;
-    std::shared_ptr<TransferFunction> transferFunc;
+    Image color;
+    Image albedo;
+    Image normal;
+    Ref<Tensor> dst;
+    Ref<TransferFunction> transferFunc;
 
   public:
-    InputReorderNode(const Image& srcColor,
-                     const Image& srcAlbedo,
-                     const Image& srcNormal,
-                     const std::shared_ptr<memory>& dst,
-                     const std::shared_ptr<TransferFunction>& transferFunc,
-                     bool hdr)
-      : srcColor(srcColor), srcAlbedo(srcAlbedo), srcNormal(srcNormal),
+    InputReorderNode(const Ref<Device>& device,
+                     const Image& color,
+                     const Image& albedo,
+                     const Image& normal,
+                     const Ref<Tensor>& dst,
+                     const Ref<TransferFunction>& transferFunc,
+                     bool hdr,
+                     bool snorm)
+      : Node(device),
+        color(color), albedo(albedo), normal(normal),
         dst(dst),
         transferFunc(transferFunc)
     {
-      data.srcColor  = toIspc(srcColor);
-      data.srcAlbedo = toIspc(srcAlbedo);
-      data.srcNormal = toIspc(srcNormal);
+      assert(dst->ndims() == 3);
+      assert(dst->layout == TensorLayout::chw ||
+             dst->layout == TensorLayout::Chw8c ||
+             dst->layout == TensorLayout::Chw16c);
+      assert(dst->blockSize() == device->getTensorBlockSize());
+      assert(dst->dims[0] >= color.numChannels()  +
+                             albedo.numChannels() +
+                             normal.numChannels());
 
-      data.dst = toIspc(dst);
+      impl.color  = color;
+      impl.albedo = albedo;
+      impl.normal = normal;
 
-      data.hSrcBegin = 0;
-      data.wSrcBegin = 0;
-      data.hDstBegin = 0;
-      data.wDstBegin = 0;
-      data.H = srcColor.height;
-      data.W = srcColor.width;
+      impl.dst = *dst;
 
-      data.transferFunc = transferFunc->getIspc();
-      data.hdr = hdr;
+      impl.hSrcBegin = 0;
+      impl.wSrcBegin = 0;
+      impl.hDstBegin = 0;
+      impl.wDstBegin = 0;
+      impl.H = color.height;
+      impl.W = color.width;
+
+      impl.transferFunc = transferFunc->getImpl();
+      impl.hdr = hdr;
+      impl.snorm = snorm;
     }
 
     void setTile(int hSrc, int wSrc, int hDst, int wDst, int H, int W) override
     {
-      data.hSrcBegin = hSrc;
-      data.wSrcBegin = wSrc;
-      data.hDstBegin = hDst;
-      data.wDstBegin = wDst;
-      data.H = H;
-      data.W = W;
+      impl.hSrcBegin = hSrc;
+      impl.wSrcBegin = wSrc;
+      impl.hDstBegin = hDst;
+      impl.wDstBegin = wDst;
+      impl.H = H;
+      impl.W = W;
     }
 
-    void execute(stream& sm) override
+    void execute() override
     {
-      assert(data.H + data.hSrcBegin <= srcColor.height);
-      assert(data.W + data.wSrcBegin <= srcColor.width);
-      assert(data.H + data.hDstBegin <= data.dst.H);
-      assert(data.W + data.wDstBegin <= data.dst.W);
+      assert(impl.H + impl.hSrcBegin <= color.height);
+      assert(impl.W + impl.wSrcBegin <= color.width);
+      assert(impl.H + impl.hDstBegin <= impl.dst.H);
+      assert(impl.W + impl.wDstBegin <= impl.dst.W);
 
-      parallel_nd(data.dst.H, [&](int hDst)
+      parallel_nd(impl.dst.H, [&](int hDst)
       {
-        ispc::InputReorder_kernel(&data, hDst);
+        ispc::InputReorder_kernel(&impl, hDst);
       });
     }
 
-    std::shared_ptr<memory> getDst() const override { return dst; }
+    Ref<Tensor> getDst() const override { return dst; }
   };
 
 } // namespace oidn

@@ -22,6 +22,9 @@ occur.
 All API calls are thread-safe, but operations that use the same device will be
 serialized, so the amount of API calls from different threads should be minimized.
 
+Examples
+--------
+
 To have a quick overview of the C99 and C++11 APIs, see the following
 simple example code snippets.
 
@@ -35,7 +38,7 @@ simple example code snippets.
 
     // Create a denoising filter
     OIDNFilter filter = oidnNewFilter(device, "RT"); // generic ray tracing filter
-    oidnSetSharedFilterImage(filter, "color",  colorPtr, 
+    oidnSetSharedFilterImage(filter, "color",  colorPtr,
                              OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0);
     oidnSetSharedFilterImage(filter, "albedo", albedoPtr,
                              OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0); // optional
@@ -99,7 +102,7 @@ can be one of the following:
 Name                     Description
 ------------------------ -------------------------------------------------------
 OIDN_DEVICE_TYPE_DEFAULT select the approximately fastest device
-OIDN_DEVICE_TYPE_CPU     CPU device (requires SSE4.1 support)
+OIDN_DEVICE_TYPE_CPU     CPU device (requires SSE4.1 support or Apple Silicon)
 ------------------------ -------------------------------------------------------
 : Supported device types, i.e., valid constants of type `OIDNDeviceType`.
 
@@ -457,40 +460,46 @@ can be one of the input images (i.e. in-place denoising is supported).
 --------- -------- ----------- -------- ----------------------------------------
 Type      Format   Name         Default Description
 --------- -------- ----------- -------- ----------------------------------------
-Image     float3   color                input color image (LDR values in [0, 1]
-                                        or HDR values in [0, +∞), 3 channels)
+Image     float3   color                input color image (RGB, LDR values in
+                                        [0, 1] or HDR values in [0, +∞), values
+                                        being interpreted such that, after
+                                        scaling with the inputScale parameter, a
+                                        value of 1 corresponds to a luminance
+                                        level of 100 cd/m²)
 
 Image     float3   albedo               input feature image containing the
-                                        albedo (values in [0, 1], 3 channels) of
-                                        the first hit per pixel; *optional*
+                                        albedo (RGB, values in [0, 1]) of the
+                                        first hit per pixel; *optional*
 
 Image     float3   normal               input feature image containing the
-                                        shading normal (world-space or
-                                        view-space, arbitrary length, values in
-                                        (−∞, +∞), 3 channels) of the first hit
-                                        per pixel; *optional*, requires setting
-                                        the albedo image too
+                                        shading normal (3D world-space or
+                                        view-space vector with arbitrary
+                                        length, values in (−∞, +∞)) of the first
+                                        hit per pixel; *optional*, requires
+                                        setting the albedo image too
 
-Image     float3   output               output color image (3 channels); it can
-                                        be one of the input images
-
-Data               weights              trained model weights blob; *optional*
+Image     float3   output               output image; it can be one of the input
+                                        images
 
 bool               hdr            false whether the color is HDR
-
-float              hdrScale         NaN HDR color values are interpreted such
-                                        that, multiplied by this scale, a value
-                                        of 1 corresponds to a luminance level
-                                        of 100 cd/m² (this affects the quality
-                                        of the output but the output color
-                                        values will *not* be scaled); if set to
-                                        NaN, the scale is computed
-                                        automatically (*default*)
 
 bool               srgb           false whether the color is encoded with the
                                         sRGB (or 2.2 gamma) curve (LDR only) or
                                         is linear; the output will be encoded
                                         with the same curve
+
+float              inputScale       NaN scales input color values before
+                                        filtering, without scaling the output
+                                        too, which can be used to map color
+                                        values to the expected range, e.g. for
+                                        mapping HDR values to physical units
+                                        (which affects the quality of the output
+                                        but *not* the range of the output
+                                        values); if set to NaN, the scale is
+                                        computed automatically for HDR images or
+                                        set to 1 otherwise (*default*)
+
+Data               weights              trained model weights blob; *optional*
 
 int                maxMemoryMB     6000 approximate maximum amount of scratch
                                         memory to use in megabytes (actual
@@ -505,7 +514,7 @@ const int          alignment            when manually denoising the image in
                                         be multiples of this amount of pixels
                                         to avoid artifacts; note that manual
                                         tiled denoising of HDR images is
-                                        supported *only* when hdrScale is set
+                                        supported *only* when inputScale is set
                                         by the user
 
 const int          overlap              when manually denoising the image in
@@ -610,12 +619,15 @@ normals.][imgMazdaNormalNonDeltaHit]
 
 Instead of using the built-in trained models for filtering, it is also possible
 to specify user-trained models at runtime. This can be achieved by passing the
-model *weights* blob produced by the training tool.
+model *weights* blob corresponding to the specified set of features and other
+filter parameters, produced by the included training tool. See Section
+[Training] for details.
 
 ### RTLightmap
 
 The `RTLightmap` filter is a variant of the `RT` filter optimized for denoising
-HDR lightmaps. It does not support LDR images.
+HDR and normalized directional (e.g. spherical harmonics) lightmaps. It does not
+support LDR images.
 
 The filter can be created by passing `"RTLightmap"` to the `oidnNewFilter`
 function as the filter type. The filter supports the following parameters:
@@ -623,19 +635,38 @@ function as the filter type. The filter supports the following parameters:
 --------- -------- ----------- -------- ----------------------------------------
 Type      Format   Name         Default Description
 --------- -------- ----------- -------- ----------------------------------------
-Image     float3   color                input color image (HDR values in
-                                        [0, +∞), 3 channels)
+Image     float3   color                input color image (RGB, HDR values in
+                                        [0, +∞), interpreted such that, after
+                                        scaling with the inputScale parameter, a
+                                        value of 1 corresponds to a luminance
+                                        level of 100 cd/m²; directional values
+                                        in [-1, 1])
 
-Image     float3   output               output color image (3 channels); it can
-                                        be one of the input images
+Image     float3   output               output image; it can be one of the input
+                                        images
+
+bool               directional    false whether the input contains normalized
+                                        coefficients (in [-1, 1]) of a
+                                        directional lightmap (e.g. normalized L1
+                                        or higher spherical harmonics band with
+                                        the L0 band divided out); if the range
+                                        of the coefficients is different from
+                                        [-1, 1], the inputScale parameter can be
+                                        used to adjust the range without changing
+                                        the stored values
+
+float              inputScale       NaN scales input color values before
+                                        filtering, without scaling the output
+                                        too, which can be used to map color
+                                        values to the expected range, e.g. for
+                                        mapping HDR values to physical units
+                                        (which affects the quality of the output
+                                        but *not* the range of the output
+                                        values); if set to NaN, the scale is
+                                        computed automatically for HDR images or
+                                        set to 1 otherwise (*default*)
 
 Data               weights              trained model weights blob; *optional*
-
-float              hdrScale         NaN HDR color values are interpreted such
-                                        that, multiplied by this scale, a value
-                                        of 1 corresponds to a luminance level
-                                        of 100 cd/m²; if set to NaN, the scale
-                                        is computed automatically (*default*)
 
 int                maxMemoryMB     6000 approximate maximum amount of scratch
                                         memory to use in megabytes (actual
@@ -644,6 +675,10 @@ int                maxMemoryMB     6000 approximate maximum amount of scratch
 const int          alignment            when manually denoising the image in
                                         tiles, the tile size and offsets should
                                         be multiples of this amount of pixels
+                                        to avoid artifacts; note that manual
+                                        tiled denoising of HDR images is
+                                        supported *only* when inputScale is set
+                                        by the user
 
 const int          overlap              when manually denoising the image in
                                         tiles, the tiles should overlap by this

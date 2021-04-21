@@ -1,4 +1,4 @@
-// Copyright 2009-2020 Intel Corporation
+// Copyright 2009-2021 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -17,13 +17,17 @@ namespace oidn {
   {
   protected:
     // Network constants
-    static constexpr int alignment       = 32;  // required spatial alignment in pixels (padding may be necessary)
-    static constexpr int receptiveField  = 222; // receptive field in pixels
+    static constexpr int alignment       = 16;  // required spatial alignment in pixels (padding may be necessary)
+    static constexpr int receptiveField  = 174; // receptive field in pixels
     static constexpr int overlap         = round_up(receptiveField / 2, alignment); // required spatial overlap between tiles in pixels
 
     // Estimated memory usage
     static constexpr int estimatedBytesBase     = 16*1024*1024; // conservative base memory usage
-    static constexpr int estimatedBytesPerPixel = 889;
+  #if defined(OIDN_DNNL)
+    static constexpr int estimatedBytesPerPixel = 882;
+  #else
+    static constexpr int estimatedBytesPerPixel = 854;
+  #endif
 
     // Images
     Image color;
@@ -34,8 +38,9 @@ namespace oidn {
 
     // Options
     bool hdr = false;
-    float hdrScale = std::numeric_limits<float>::quiet_NaN();
     bool srgb = false;
+    bool directional = false;
+    float inputScale = std::numeric_limits<float>::quiet_NaN();
     int maxMemoryMB = 6000; // approximate maximum memory usage in MBs
 
     // Image dimensions
@@ -48,30 +53,28 @@ namespace oidn {
     bool inplace = false; // indicates whether input and output buffers overlap
 
     // Network
-    std::shared_ptr<Executable> net;
-    std::shared_ptr<Node> inputReorder;
-    std::shared_ptr<Node> outputReorder;
+    Ref<Network> net;
+    Ref<Node> inputReorder;
+    Ref<Node> outputReorder;
 
     // Weights
     struct
     {
-      Data ldr;
-      Data ldr_alb;
-      Data ldr_alb_nrm;
       Data hdr;
       Data hdr_alb;
       Data hdr_alb_nrm;
-    } defaultWeights;
+      Data ldr;
+      Data ldr_alb;
+      Data ldr_alb_nrm;
+      Data dir;
+    } builtinWeights;
     Data userWeights;
 
     explicit UNetFilter(const Ref<Device>& device);
-    virtual std::shared_ptr<TransferFunction> makeTransferFunc();
+    virtual Ref<TransferFunction> makeTransferFunc() = 0;
 
   public:
-    void setImage(const std::string& name, const Image& data) override;
     void setData(const std::string& name, const Data& data) override;
-    void set1i(const std::string& name, int value) override;
-    int get1i(const std::string& name) override;
     void set1f(const std::string& name, float value) override;
     float get1f(const std::string& name) override;
 
@@ -80,9 +83,7 @@ namespace oidn {
 
   private:
     void computeTileSize();
-
-    std::shared_ptr<Executable> buildNet();
-
+    Ref<Network> buildNet();
     bool isCommitted() const { return bool(net); }
   };
 
@@ -94,6 +95,13 @@ namespace oidn {
   {
   public:
     explicit RTFilter(const Ref<Device>& device);
+
+    void setImage(const std::string& name, const Image& data) override;
+    void set1i(const std::string& name, int value) override;
+    int get1i(const std::string& name) override;
+  
+  protected:
+    Ref<TransferFunction> makeTransferFunc() override;
   };
 
   // ---------------------------------------------------------------------------
@@ -104,7 +112,13 @@ namespace oidn {
   {
   public:
     explicit RTLightmapFilter(const Ref<Device>& device);
-    std::shared_ptr<TransferFunction> makeTransferFunc() override;
+
+    void setImage(const std::string& name, const Image& data) override;
+    void set1i(const std::string& name, int value) override;
+    int get1i(const std::string& name) override;
+
+  protected:
+    Ref<TransferFunction> makeTransferFunc() override;
   };
 
 } // namespace oidn

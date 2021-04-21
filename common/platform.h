@@ -1,7 +1,43 @@
-// Copyright 2009-2020 Intel Corporation
+// Copyright 2009-2021 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
+
+// ---------------------------------------------------------------------------
+// Macros
+// ---------------------------------------------------------------------------
+
+#if defined(__x86_64__) || defined(_M_X64)
+  #define OIDN_X64
+#elif defined(__aarch64__)
+  #define OIDN_ARM64
+#endif
+
+#if defined(_WIN32)
+  // Windows
+  #if !defined(__noinline)
+    #define __noinline __declspec(noinline)
+  #endif
+#else
+  // Unix
+  #if !defined(__forceinline)
+    #define __forceinline inline __attribute__((always_inline))
+  #endif
+  #if !defined(__noinline)
+    #define __noinline __attribute__((noinline))
+  #endif
+#endif
+
+#ifndef UNUSED
+  #define UNUSED(x) ((void)x)
+#endif
+#ifndef MAYBE_UNUSED
+  #define MAYBE_UNUSED(x) UNUSED(x)
+#endif
+
+// ---------------------------------------------------------------------------
+// Includes
+// ---------------------------------------------------------------------------
 
 #if defined(_WIN32)
   #if !defined(WIN32_LEAN_AND_MEAN)
@@ -15,10 +51,14 @@
   #include <sys/sysctl.h>
 #endif
 
-#include <xmmintrin.h>
-#include <pmmintrin.h>
+#if defined(OIDN_X64)
+  #include <xmmintrin.h>
+  #include <pmmintrin.h>
+#endif
+
 #include <cstdint>
 #include <cstddef>
+#include <cstdlib>
 #include <climits>
 #include <cstring>
 #include <limits>
@@ -36,32 +76,6 @@ namespace oidn {
 
   // Introduce all names from the API namespace
   OIDN_NAMESPACE_USING
-
-  // ---------------------------------------------------------------------------
-  // Macros
-  // ---------------------------------------------------------------------------
-
-  #if defined(_WIN32)
-    // Windows
-    #if !defined(__noinline)
-      #define __noinline     __declspec(noinline)
-    #endif
-  #else
-    // Unix
-    #if !defined(__forceinline)
-      #define __forceinline  inline __attribute__((always_inline))
-    #endif
-    #if !defined(__noinline)
-      #define __noinline     __attribute__((noinline))
-    #endif
-  #endif
-
-  #ifndef UNUSED
-    #define UNUSED(x) ((void)x)
-  #endif
-  #ifndef MAYBE_UNUSED
-    #define MAYBE_UNUSED(x) UNUSED(x)
-  #endif
 
   // ---------------------------------------------------------------------------
   // Error handling and debugging
@@ -102,9 +116,24 @@ namespace oidn {
     return sm.str();
   }
 
+  template<typename T>
+  inline T fromString(const std::string& str)
+  {
+    std::stringstream sm(str);
+    T a{};
+    sm >> a;
+    return a;
+  }
+
+  template<>
+  inline std::string fromString(const std::string& str)
+  {
+    return str;
+  }
+
 #if defined(__APPLE__)
   template<typename T>
-  bool getSysctl(const char* name, T& value)
+  inline bool getSysctl(const char* name, T& value)
   {
     int64_t result = 0;
     size_t size = sizeof(result);
@@ -116,6 +145,22 @@ namespace oidn {
     return true;
   }
 #endif
+
+  template<typename T>
+  inline bool getEnvVar(const std::string& name, T& value)
+  {
+    auto* str = getenv(name.c_str());
+    bool found = (str != nullptr);
+    if (found)
+      value = fromString<T>(str);
+    return found;
+  }
+
+  inline bool isEnvVar(const std::string& name)
+  {
+    auto* str = getenv(name.c_str());
+    return (str != nullptr);
+  }
 
   // ---------------------------------------------------------------------------
   // System information

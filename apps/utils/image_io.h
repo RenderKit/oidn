@@ -1,4 +1,4 @@
-// Copyright 2009-2020 Intel Corporation
+// Copyright 2009-2021 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -11,50 +11,45 @@
 
 namespace oidn {
 
-  class ImageBuffer
+  struct ImageBuffer
   {
-  private:
-    std::vector<float> data;
+    std::vector<float> buffer;
     int width;
     int height;
-    int channels;
+    int numChannels;
 
-  public:
     ImageBuffer()
       : width(0),
         height(0),
-        channels(0) {}
+        numChannels(0) {}
 
-    ImageBuffer(int width, int height, int channels)
-      : data(width * height * channels),
+    ImageBuffer(int width, int height, int numChannels)
+      : buffer(size_t(width) * height * numChannels),
         width(width),
         height(height),
-        channels(channels) {}
+        numChannels(numChannels) {}
 
     operator bool() const
     {
-      return data.data() != nullptr;
+      return data() != nullptr;
     }
 
-    const float& operator [](size_t i) const { return data[i]; }
-    float& operator [](size_t i) { return data[i]; }
+    const float& operator [](size_t i) const { return buffer[i]; }
+    float& operator [](size_t i) { return buffer[i]; }
 
-    int getWidth() const { return width; }
-    int getHeight() const { return height; }
-    std::array<int, 3> getDims() const { return {width, height, channels}; }
-    int getChannels() const { return channels; }
-
-    const float* getData() const { return data.data(); }
-    float* getData() { return data.data(); }
-    int getSize() const { return int(data.size()); }
+    const float* data() const { return buffer.data(); }
+    float* data() { return buffer.data(); }
+  
+    size_t size() const { return buffer.size(); }
+    std::array<int, 3> dims() const { return {width, height, numChannels}; }
   };
 
   // Loads an image with an optionally specified number of channels (loads all
   // channels by default)
-  std::shared_ptr<ImageBuffer> loadImage(const std::string& filename, int channels = 0);
+  std::shared_ptr<ImageBuffer> loadImage(const std::string& filename, int numChannels = 0);
 
   // Loads an image with/without sRGB to linear conversion
-  std::shared_ptr<ImageBuffer> loadImage(const std::string& filename, int channels, bool srgb);
+  std::shared_ptr<ImageBuffer> loadImage(const std::string& filename, int numChannels, bool srgb);
 
   // Saves an image
   void saveImage(const std::string& filename, const ImageBuffer& image);
@@ -64,8 +59,8 @@ namespace oidn {
 
   // Compares an image to a reference image and returns the number of errors
   // and the maximum error value
-  std::tuple<int, float> compareImage(const ImageBuffer& image,
-                                      const ImageBuffer& ref,
-                                      float threshold);
+  std::tuple<size_t, float> compareImage(const ImageBuffer& image,
+                                         const ImageBuffer& ref,
+                                         float threshold);
 
 } // namespace oidn

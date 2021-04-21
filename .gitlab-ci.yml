@@ -1,4 +1,4 @@
-## Copyright 2009-2020 Intel Corporation
+## Copyright 2009-2021 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 stages:
@@ -6,6 +6,7 @@ stages:
   - test
   - deploy
   - scan
+  - report-scan
 
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
@@ -59,7 +60,7 @@ build-centos7-icc:
   extends: .build
   tags:
     - docker
-  image: openimagedenoise/build:centos7
+  image: $DOCKER_REGISTRY/oidn-build:centos7
   script: scripts/build.py install --compiler icc
 
 test-centos7-icc-avx512:
@@ -67,7 +68,7 @@ test-centos7-icc-avx512:
   tags:
     - docker
     - avx512vl
-  image: openimagedenoise/build:centos7
+  image: $DOCKER_REGISTRY/oidn-build:centos7
   needs:
     - job: build-centos7-icc
       artifacts: true
@@ -77,7 +78,7 @@ test-centos7-icc-knl:
   extends: .test
   tags:
     - docker-knl
-  image: openimagedenoise/build:centos7
+  image: $DOCKER_REGISTRY/oidn-build:centos7
   needs:
     - job: build-centos7-icc
       artifacts: true
@@ -88,7 +89,7 @@ test-centos7-icc-avx2:
   tags:
     - docker
     - avx2
-  image: openimagedenoise/build:centos7
+  image: $DOCKER_REGISTRY/oidn-build:centos7
   needs:
     - job: build-centos7-icc
       artifacts: true
@@ -99,7 +100,7 @@ test-centos7-icc-sse4:
   tags:
     - docker
     - avx512vl
-  image: openimagedenoise/build:centos7
+  image: $DOCKER_REGISTRY/oidn-build:centos7
   needs:
     - job: build-centos7-icc
       artifacts: true
@@ -109,7 +110,7 @@ package-linux:
   extends: .package
   tags:
     - docker
-  image: openimagedenoise/build:centos7
+  image: $DOCKER_REGISTRY/oidn-build:centos7
   script: scripts/build.py package --compiler icc
 
 ## -----------------------------------------------------------------------------
@@ -118,7 +119,7 @@ build-ubuntu18.04-gcc:
   extends: .build
   tags:
     - docker
-  image: openimagedenoise/build:ubuntu18.04
+  image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
   script: scripts/build.py install --compiler gcc
 
 test-ubuntu18.04-gcc-avx512:
@@ -126,7 +127,7 @@ test-ubuntu18.04-gcc-avx512:
   tags:
     - docker
     - avx512vl
-  image: openimagedenoise/build:ubuntu18.04
+  image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
   needs:
     - job: build-ubuntu18.04-gcc
       artifacts: true
@@ -137,7 +138,7 @@ test-ubuntu18.04-gcc-avx2:
   tags:
     - docker
     - avx2
-  image: openimagedenoise/build:ubuntu18.04
+  image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
   needs:
     - job: build-ubuntu18.04-gcc
       artifacts: true
@@ -148,7 +149,7 @@ test-ubuntu18.04-gcc-sse4:
   tags:
     - docker
     - avx512vl
-  image: openimagedenoise/build:ubuntu18.04
+  image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
   needs:
     - job: build-ubuntu18.04-gcc
       artifacts: true
@@ -158,7 +159,7 @@ build-ubuntu18.04-gcc-debug:
   extends: .build
   tags:
     - docker
-  image: openimagedenoise/build:ubuntu18.04
+  image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
   script: scripts/build.py install --compiler gcc --config Debug
 
 test-ubuntu18.04-gcc-debug-avx512:
@@ -166,7 +167,7 @@ test-ubuntu18.04-gcc-debug-avx512:
   tags:
     - docker
     - avx512vl
-  image: openimagedenoise/build:ubuntu18.04
+  image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
   needs:
     - job: build-ubuntu18.04-gcc-debug
       artifacts: true
@@ -177,7 +178,7 @@ test-ubuntu18.04-gcc-debug-avx2:
   tags:
     - docker
     - avx2
-  image: openimagedenoise/build:ubuntu18.04
+  image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
   needs:
     - job: build-ubuntu18.04-gcc-debug
       artifacts: true
@@ -188,7 +189,7 @@ test-ubuntu18.04-gcc-debug-sse4:
   tags:
     - docker
     - avx512vl
-  image: openimagedenoise/build:ubuntu18.04
+  image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
   needs:
     - job: build-ubuntu18.04-gcc-debug
       artifacts: true
@@ -198,29 +199,22 @@ build-ubuntu18.04-gcc-static:
   extends: .build
   tags:
     - docker
-  image: openimagedenoise/build:ubuntu18.04
+  image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
   script: scripts/build.py --compiler gcc -D OIDN_STATIC_LIB=ON
 
 build-ubuntu18.04-gcc-namespace:
   extends: .build
   tags:
     - docker
-  image: openimagedenoise/build:ubuntu18.04
+  image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
   script: scripts/build.py --compiler gcc -D OIDN_API_NAMESPACE=myoidn
 
 build-ubuntu18.04-clang:
   extends: .build
   tags:
     - docker
-  image: openimagedenoise/build:ubuntu18.04
+  image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
   script: scripts/build.py --compiler clang
-
-build-ubuntu18.04-kw-gcc:
-  extends: .build
-  tags:
-    - docker
-  image: openimagedenoise/build:ubuntu18.04
-  script: scripts/klocwork_build.sh
 
 ## -----------------------------------------------------------------------------
 
@@ -228,7 +222,7 @@ build-ubuntu20.04-gcc:
   extends: .build
   tags:
     - docker
-  image: openimagedenoise/build:ubuntu20.04
+  image: $DOCKER_REGISTRY/oidn-build:ubuntu20.04
   script:
     - mkdir build
     - cd build
@@ -241,7 +235,7 @@ build-ubuntu20.04-gcc:
 #  extends: .build
 #  tags:
 #    - docker
-#  image: openimagedenoise/build:arch
+#  image: $DOCKER_REGISTRY/oidn-build:arch
 #  script:
 #    - cmake -B build -G Ninja
 #    - ninja -C build -v
@@ -254,12 +248,32 @@ build-macos-icc:
   extends: .build
   tags:
     - osx
+    - sign # build might fail on other machines
   script: scripts/build.py install --compiler icc
 
-test-macos-icc:
+build-macos-icc-debug:
+  extends: .build
+  tags:
+    - osx
+    - sign # build might fail on other machines
+  script: scripts/build.py install --compiler icc --config Debug
+
+test-macos-icc-avx512:
   extends: .test
   tags:
     - osx
+    - avx512f
+  needs:
+    - job: build-macos-icc
+      artifacts: true
+  script: scripts/test.py
+
+test-macos-icc-avx2:
+  extends: .test
+  tags:
+    - osx
+    - avx2
+    - sign # other machines are too slow
   needs:
     - job: build-macos-icc
       artifacts: true
@@ -269,12 +283,32 @@ build-macos-clang:
   extends: .build
   tags:
     - osx
+    - avx2 # exclude slower machines
   script: scripts/build.py install --compiler clang
 
-test-macos-clang:
+build-macos-clang-debug:
+  extends: .build
+  tags:
+    - osx
+    - avx2 # exclude slower machines
+  script: scripts/build.py install --compiler clang --config Debug
+
+test-macos-clang-avx512:
   extends: .test
   tags:
     - osx
+    - avx512f
+  needs:
+    - job: build-macos-clang
+      artifacts: true
+  script: scripts/test.py
+
+test-macos-clang-avx2:
+  extends: .test
+  tags:
+    - osx
+    - avx2
+    - sign # other machines are too slow
   needs:
     - job: build-macos-clang
       artifacts: true
@@ -284,18 +318,21 @@ build-macos-clang-static:
   extends: .build
   tags:
     - osx
+    - avx2 # exclude slower machines
   script: scripts/build.py --compiler clang -D OIDN_STATIC_LIB=ON
 
 build-macos-clang-namespace:
   extends: .build
   tags:
     - osx
+    - avx2 # exclude slower machines
   script: scripts/build.py --compiler clang -D OIDN_API_NAMESPACE=myoidn
 
 package-macos:
   extends: .package
   tags:
     - osx
+    - sign
   script: scripts/build.py package --compiler icc
 
 ## -----------------------------------------------------------------------------
@@ -400,19 +437,26 @@ package-windows:
   script: python scripts/build.py package --compiler msvc15-icc19
 
 ## -----------------------------------------------------------------------------
-## Protex
+## Scans
 ## -----------------------------------------------------------------------------
 
-scan-protex:
+kw-build-scan:
+  stage: scan
+  tags: [docker]
+  image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
+  script: scripts/kw-build.sh
+  artifacts:
+    paths:
+      - ./klocwork/*
+  needs: []
+
+protex-scan:
   stage: scan
   tags:
     - docker
-  only:
-    - schedules
-    - web
   script: scripts/protex_scan.sh
   image: amd64/openjdk:8
-  dependencies: []
+  needs: []
   # Will fail regularly, do not break nightlies because of that.
   allow_failure: true
   artifacts:
@@ -421,3 +465,25 @@ scan-protex:
       - ip_protex.log
     when: always
     expire_in: 1 week
+
+kw-check-issues:
+  stage: report-scan
+  tags: [docker]
+  image: $DOCKER_REGISTRY/ospray/docker-images:centos7
+  needs: [kw-build-scan]
+  script:
+    - scripts/kw-check-issues.sh
+  allow_failure: true
+
+kw-gen-report:
+  stage: report-scan
+  tags: [docker]
+  image: $DOCKER_REGISTRY/ospray/docker-images:centos7
+  needs: [kw-build-scan]
+  script:
+    - scripts/kw-gen-report.sh
+    - scripts/store-files.sh $CI_PROJECT_NAME $CI_PIPELINE_ID klocwork "klocwork/report.log"
+  artifacts:
+    paths:
+      - klocwork/report.log
+

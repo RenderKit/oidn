@@ -1,4 +1,4 @@
-// Copyright 2009-2020 Intel Corporation
+// Copyright 2009-2021 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #define OIDN_EXPORT_API
@@ -12,16 +12,23 @@
 #define OIDN_TRY \
   try {
 
+#if defined(OIDN_DNNL)
+  #define OIDN_CATCH_DNNL(obj) \
+    } catch (dnnl::error& e) {                                                                        \
+      if (e.status == dnnl_out_of_memory)                                                             \
+        Device::setError(obj ? obj->getDevice() : nullptr, Error::OutOfMemory, "out of memory");      \
+      else                                                                                            \
+        Device::setError(obj ? obj->getDevice() : nullptr, Error::Unknown, e.message);
+#else
+  #define OIDN_CATCH_DNNL(obj)
+#endif
+
 #define OIDN_CATCH(obj) \
   } catch (Exception& e) {                                                                          \
     Device::setError(obj ? obj->getDevice() : nullptr, e.code(), e.what());                         \
   } catch (std::bad_alloc&) {                                                                       \
     Device::setError(obj ? obj->getDevice() : nullptr, Error::OutOfMemory, "out of memory");        \
-  } catch (dnnl::error& e) {                                                                        \
-    if (e.status == dnnl_out_of_memory)                                                             \
-      Device::setError(obj ? obj->getDevice() : nullptr, Error::OutOfMemory, "out of memory");      \
-    else                                                                                            \
-      Device::setError(obj ? obj->getDevice() : nullptr, Error::Unknown, e.message);                \
+  OIDN_CATCH_DNNL(obj)                                                                              \
   } catch (std::exception& e) {                                                                     \
     Device::setError(obj ? obj->getDevice() : nullptr, Error::Unknown, e.what());                   \
   } catch (...) {                                                                                   \

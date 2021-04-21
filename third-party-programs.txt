@@ -14,10 +14,10 @@ terms are listed below.
 
 --------------------------------------------------------------------------------
 
-1.  Intel(R) oneAPI Deep Neural Network Library
+1.  Intel(R) oneAPI Deep Neural Network Library (oneDNN)
     Copyright 2016-2020 Intel Corporation
 
-    Intel(R) Threading Building Blocks
+    Intel(R) oneAPI Threading Building Blocks (oneTBB)
     Copyright 2005-2020 Intel Corporation
 
                                  Apache License
@@ -358,11 +358,11 @@ DEALINGS IN THE SOFTWARE.
 The following third party programs have their own third party programs. These
 additional third party program files are as follows:
 
-1.  Intel(R) oneAPI Deep Neural Network Library
+1.  Intel(R) oneAPI Deep Neural Network Library (oneDNN)
       ./third-party-programs-oneDNN.txt
 
-2.  Intel(R) Threading Building Blocks
-      ./third-party-programs-TBB.txt
+2.  Intel(R) oneAPI Threading Building Blocks (oneTBB)
+      ./third-party-programs-oneTBB.txt
 
 --------------------------------------------------------------------------------
 

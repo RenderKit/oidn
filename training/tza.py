@@ -1,4 +1,4 @@
-## Copyright 2018-2020 Intel Corporation
+## Copyright 2018-2021 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 import struct
@@ -30,7 +30,7 @@ class Writer(object):
       return 'h'
     else:
       raise ValueError('unsupported tensor data type')
-  
+
   def _write_uint8(self, x):
     self._file.write(struct.pack('B', x))
 

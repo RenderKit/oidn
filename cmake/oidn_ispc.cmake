@@ -1,17 +1,17 @@
-## Copyright 2009-2020 Intel Corporation
+## Copyright 2009-2021 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 # ISPC versions to look for, in decending order (newest first)
-set(ISPC_VERSION_WORKING "1.14.1")
+set(ISPC_VERSION_WORKING "1.15.0" "1.14.1")
 list(GET ISPC_VERSION_WORKING -1 ISPC_VERSION_REQUIRED)
 
-if (NOT ISPC_EXECUTABLE)
+if(NOT ISPC_EXECUTABLE)
   # try sibling folder as hint for path of ISPC
-  if (APPLE)
+  if(APPLE)
     set(ISPC_DIR_SUFFIX "macOS" "osx" "Darwin")
   elseif(WIN32)
     set(ISPC_DIR_SUFFIX "windows" "win32")
-    if (MSVC_VERSION LESS 1900)
+    if(MSVC_VERSION LESS 1900)
       message(WARNING "MSVC 12 2013 is not supported anymore.")
     else()
       list(APPEND ISPC_DIR_SUFFIX "windows-vs2015")
@@ -30,7 +30,7 @@ if (NOT ISPC_EXECUTABLE)
   endforeach()
 
   find_program(ISPC_EXECUTABLE ispc HINTS ${ISPC_DIR_HINT} DOC "Path to the ISPC executable.")
-  if (NOT ISPC_EXECUTABLE)
+  if(NOT ISPC_EXECUTABLE)
     message("********************************************")
     message("Could not find ISPC (looked in PATH and ${ISPC_DIR_HINT})")
     message("")
@@ -49,7 +49,7 @@ if(NOT ISPC_VERSION)
   string(REGEX MATCH " ([0-9]+[.][0-9]+[.][0-9]+)(dev|knl|rc[0-9])? " DUMMY "${ISPC_OUTPUT}")
   set(ISPC_VERSION ${CMAKE_MATCH_1})
 
-  if (ISPC_VERSION VERSION_LESS ISPC_VERSION_REQUIRED)
+  if(ISPC_VERSION VERSION_LESS ISPC_VERSION_REQUIRED)
     message(FATAL_ERROR "Need at least version ${ISPC_VERSION_REQUIRED} of Intel SPMD Compiler (ISPC).")
   endif()
 
@@ -58,7 +58,7 @@ if(NOT ISPC_VERSION)
   mark_as_advanced(ISPC_EXECUTABLE)
 endif()
 
-if ("${ISPC_VERSION}" STREQUAL "1.11.0")
+if("${ISPC_VERSION}" STREQUAL "1.11.0")
   message(FATAL_ERROR "ISPC v1.11.0 is incompatible with Intel(R) Open Image Denoise.")
 endif()
 
@@ -69,34 +69,37 @@ get_filename_component(ISPC_DIR ${ISPC_EXECUTABLE} PATH)
 ## -----------------------------------------------------------------------------
 
 set(ISPC_INCLUDE_DIR "")
-macro (ispc_include_directories)
+macro(ispc_include_directories)
   set(ISPC_INCLUDE_DIR ${ISPC_INCLUDE_DIR} ${ARGN})
-endmacro ()
+endmacro()
 
 ## -----------------------------------------------------------------------------
 ## Macro to specify global-scope ISPC definitions
 ## -----------------------------------------------------------------------------
 
 set(ISPC_DEFINITIONS "")
-macro (ispc_add_definitions)
+macro(ispc_add_definitions)
   set(ISPC_DEFINITIONS ${ISPC_DEFINITIONS} ${ARGN})
-endmacro ()
+endmacro()
 
 ## -----------------------------------------------------------------------------
 ## Macro to compile ISPC source into an object file for linking
 ## -----------------------------------------------------------------------------
 
-macro (ispc_compile)
+macro(ispc_compile)
   set(ISPC_ADDITIONAL_ARGS "")
   set(ISPC_TARGETS ${OIDN_ISPC_TARGET_LIST})
 
   set(ISPC_TARGET_EXT ${CMAKE_CXX_OUTPUT_EXTENSION})
   string(REPLACE ";" "," ISPC_TARGET_ARGS "${ISPC_TARGETS}")
 
-  if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+  if(OIDN_ARCH STREQUAL "X64")
     set(ISPC_ARCHITECTURE "x86-64")
-  else()
-    set(ISPC_ARCHITECTURE "x86")
+  elseif(OIDN_ARCH STREQUAL "ARM64")
+    set(ISPC_ARCHITECTURE "aarch64")
+    if(APPLE)
+      set(ISPC_TARGET_OS "--target-os=ios")
+    endif()
   endif()
 
   set(ISPC_TARGET_DIR ${CMAKE_CURRENT_BINARY_DIR})
@@ -114,9 +117,9 @@ macro (ispc_compile)
   mark_as_advanced(ISPC_FLAGS_RELEASE)
   set(ISPC_FLAGS_RELWITHDEBINFO "-O2 -g" CACHE STRING "ISPC Release with Debug symbols flags")
   mark_as_advanced(ISPC_FLAGS_RELWITHDEBINFO)
-  if (WIN32 OR "${CMAKE_BUILD_TYPE}" STREQUAL "Release")
+  if(WIN32 OR "${CMAKE_BUILD_TYPE}" STREQUAL "Release")
     set(ISPC_OPT_FLAGS ${ISPC_FLAGS_RELEASE})
-  elseif ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+  elseif("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     set(ISPC_OPT_FLAGS ${ISPC_FLAGS_DEBUG})
   else()
     set(ISPC_OPT_FLAGS ${ISPC_FLAGS_RELWITHDEBINFO})
@@ -125,11 +128,11 @@ macro (ispc_compile)
   # turn space sparated list into ';' separated list
   string(REPLACE " " ";" ISPC_OPT_FLAGS "${ISPC_OPT_FLAGS}")
 
-  if (NOT WIN32)
+  if(NOT WIN32)
     set(ISPC_ADDITIONAL_ARGS ${ISPC_ADDITIONAL_ARGS} --pic)
   endif()
 
-  if (NOT OIDN_DEBUG_BUILD)
+  if(NOT "${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
     set(ISPC_ADDITIONAL_ARGS ${ISPC_ADDITIONAL_ARGS} --opt=disable-assertions)
   endif()
 
@@ -138,9 +141,9 @@ macro (ispc_compile)
     get_filename_component(dir ${src} PATH)
 
     set(input ${src})
-    if ("${dir}" MATCHES "^/") # absolute unix-style path to input
+    if("${dir}" MATCHES "^/") # absolute unix-style path to input
       set(outdir "${ISPC_TARGET_DIR}/rebased${dir}")
-    elseif ("${dir}" MATCHES "^[A-Z]:") # absolute DOS-style path to input
+    elseif("${dir}" MATCHES "^[A-Z]:") # absolute DOS-style path to input
       string(REGEX REPLACE "^[A-Z]:" "${ISPC_TARGET_DIR}/rebased/" outdir "${dir}")
     else() # relative path to input
       set(outdir "${ISPC_TARGET_DIR}/local_${OIDN_ISPC_TARGET_NAME}_${dir}")
@@ -148,22 +151,22 @@ macro (ispc_compile)
     endif()
 
     set(deps "")
-    if (EXISTS ${outdir}/${fname}.dev.idep)
+    if(EXISTS ${outdir}/${fname}.dev.idep)
       file(READ ${outdir}/${fname}.dev.idep contents)
       string(REPLACE " " ";"     contents "${contents}")
       string(REPLACE ";" "\\\\;" contents "${contents}")
       string(REPLACE "\n" ";"    contents "${contents}")
       foreach(dep ${contents})
-        if (EXISTS ${dep})
+        if(EXISTS ${dep})
           set(deps ${deps} ${dep})
-        endif (EXISTS ${dep})
+        endif(EXISTS ${dep})
       endforeach(dep ${contents})
-    endif ()
+    endif()
 
     set(results "${outdir}/${fname}.dev${ISPC_TARGET_EXT}")
     # if we have multiple targets add additional object files
     list(LENGTH ISPC_TARGETS NUM_TARGETS)
-    if (NUM_TARGETS GREATER 1)
+    if(NUM_TARGETS GREATER 1)
       foreach(target ${ISPC_TARGETS})
         string(REPLACE "-i32x8"  "" target ${target}) # strip (sse4|avx|avx2)-i32x8
         string(REPLACE "-i32x16" "" target ${target}) # strip avx512(knl|skx)-i32x16
@@ -188,6 +191,7 @@ macro (ispc_compile)
       -h ${ISPC_TARGET_DIR}/${fname}_ispc.h
       -MMM  ${outdir}/${fname}.dev.idep
       -o ${outdir}/${fname}.dev${ISPC_TARGET_EXT}
+      ${ISPC_TARGET_OS}
       ${input}
       DEPENDS ${input} ${deps}
       COMMENT "Building ISPC object ${outdir}/${fname}.dev${ISPC_TARGET_EXT}"
@@ -209,7 +213,7 @@ function(ispc_target_add_sources name)
 
   foreach(src ${ARGN})
     get_filename_component(ext ${src} EXT)
-    if (ext STREQUAL ".ispc")
+    if(ext STREQUAL ".ispc")
       set(ISPC_SOURCES ${ISPC_SOURCES} ${src})
     else()
       set(OTHER_SOURCES ${OTHER_SOURCES} ${src})

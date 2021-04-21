@@ -1,5 +1,5 @@
-Compiling Intel Open Image Denoise
-==================================
+Compilation
+===========
 
 The latest Intel Open Image Denoise sources are always available at the
 [Intel Open Image Denoise GitHub repository](http://github.com/OpenImageDenoise/oidn).
@@ -12,7 +12,7 @@ Prerequisites
 You can clone the latest Intel Open Image Denoise sources using Git with the
 [Git Large File Storage (LFS)](https://git-lfs.github.com/) extension installed:
 
-        git clone --recursive https://github.com/OpenImageDenoise/oidn.git
+    git clone --recursive https://github.com/OpenImageDenoise/oidn.git
 
 Please note that installing the Git LFS extension is *required* to correctly
 clone the repository. Cloning without Git LFS will seemingly succeed but
@@ -34,7 +34,7 @@ you need the following prerequisites:
     page](https://ispc.github.io/downloads.html). The build system looks for
     ISPC in the `PATH` and in the directory right "next to" the checked-out
     Intel Open Image Denoise sources.^[For example, if Intel Open Image Denoise
-    is in `~/Projects/oidn`, ISPC will also be searched in `~/Projects/ispc-v1.12.0-linux`]
+    is in `~/Projects/oidn`, ISPC will also be searched in `~/Projects/ispc-v1.14.1-linux`]
     Alternatively set the CMake variable `ISPC_EXECUTABLE` to the location of
     the ISPC compiler.
 
@@ -105,8 +105,9 @@ Denoise through CMake is easy:
 
         make
 
--   You should now have `libOpenImageDenoise.so` as well as a set of example
-    applications.
+-   You should now have `libOpenImageDenoise.so` on Linux or
+    `libOpenImageDenoise.dylib` on macOS, and a set of example applications
+    as well.
 
 
 Entitlements on macOS
@@ -115,7 +116,7 @@ Entitlements on macOS
 macOS requires notarization of applications as a security mechanism, and 
 [entitlements must be declared](https://developer.apple.com/documentation/bundleresources/entitlements)
 during the notarization process.  
-Intel Open Image Denoise uses just-in-time compilaton through the [Intel Deep Neural Network Library](https://intel.github.io/mkl-dnn/) and requires the following entitlements:
+Intel Open Image Denoise uses just-in-time compilaton through [oneDNN](https://github.com/oneapi-src/oneDNN) and requires the following entitlements:
 
 -    [`com.apple.security.cs.allow-jit`](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_cs_allow-jit)
 -    [`com.apple.security.cs.allow-unsigned-executable-memory`](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_cs_allow-unsigned-executable-memory)
@@ -179,6 +180,9 @@ in CMake:
 
 - `OIDN_STATIC_RUNTIME`: Use the static version of the C/C++ runtime library
   (available only on Windows, OFF by default).
+
+- `OIDN_NEURAL_RUNTIME`: Specifies which neural network runtime library to use: 
+  `DNNL` (oneDNN, default) or `BNNS` (available only on macOS).
 
 - `OIDN_API_NAMESPACE`: Specifies a namespace to put all Intel Open Image
   Denoise API symbols inside. By default no namespace is used and plain C

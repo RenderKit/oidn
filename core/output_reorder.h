@@ -1,4 +1,4 @@
-// Copyright 2009-2020 Intel Corporation
+// Copyright 2009-2021 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -14,55 +14,67 @@ namespace oidn {
   class OutputReorderNode : public Node
   {
   private:
-    ispc::OutputReorder data;
+    ispc::OutputReorder impl;
 
-    std::shared_ptr<memory> src;
-    Image dst;
-    std::shared_ptr<TransferFunction> transferFunc;
+    Ref<Tensor> src;
+    Image output;
+    Ref<TransferFunction> transferFunc;
 
   public:
-    OutputReorderNode(const std::shared_ptr<memory>& src,
-                      const Image& dst,
-                      const std::shared_ptr<TransferFunction>& transferFunc,
-                      bool hdr)
-      : src(src),
-        dst(dst),
+    OutputReorderNode(const Ref<Device>& device,
+                      const Ref<Tensor>& src,
+                      const Image& output,
+                      const Ref<TransferFunction>& transferFunc,
+                      bool hdr,
+                      bool snorm)
+      : Node(device),
+        src(src),
+        output(output),
         transferFunc(transferFunc)
     {
-      data.src = toIspc(src);
-      data.dst = toIspc(dst);
+      assert(src->ndims() == 3);
+      assert(src->layout == TensorLayout::chw ||
+             src->layout == TensorLayout::Chw8c ||
+             src->layout == TensorLayout::Chw16c);
+      assert(src->blockSize() == device->getTensorBlockSize());
+      assert(src->dims[0] >= output.numChannels());
+      assert(output.numChannels() == 3);
 
-      data.hSrcBegin = 0;
-      data.wSrcBegin = 0;
-      data.hDstBegin = 0;
-      data.wDstBegin = 0;
-      data.H = dst.height;
-      data.W = dst.width;
+      impl.src = *src;
+      impl.output = output;
 
-      data.transferFunc = transferFunc->getIspc();
-      data.hdr = hdr;
+      impl.hSrcBegin = 0;
+      impl.wSrcBegin = 0;
+      impl.hDstBegin = 0;
+      impl.wDstBegin = 0;
+      impl.H = output.height;
+      impl.W = output.width;
+
+      impl.transferFunc = transferFunc->getImpl();
+      impl.hdr = hdr;
+      impl.snorm = snorm;
     }
 
     void setTile(int hSrc, int wSrc, int hDst, int wDst, int H, int W) override
     {
-      data.hSrcBegin = hSrc;
-      data.wSrcBegin = wSrc;
-      data.hDstBegin = hDst;
-      data.wDstBegin = wDst;
-      data.H = H;
-      data.W = W;
+      impl.hSrcBegin = hSrc;
+      impl.wSrcBegin = wSrc;
+      impl.hDstBegin = hDst;
+      impl.wDstBegin = wDst;
+      impl.H = H;
+      impl.W = W;
     }
 
-    void execute(stream& sm) override
+    void execute() override
     {
-      assert(data.hSrcBegin + data.H <= data.src.H);
-      assert(data.wSrcBegin + data.W <= data.src.W);
-      //assert(data.hDstBegin + data.H <= data.dst.H);
-      //assert(data.wDstBegin + data.W <= data.dst.W);
+      assert(impl.hSrcBegin + impl.H <= impl.src.H);
+      assert(impl.wSrcBegin + impl.W <= impl.src.W);
+      //assert(impl.hDstBegin + impl.H <= impl.output.H);
+      //assert(impl.wDstBegin + impl.W <= impl.output.W);
 
-      parallel_nd(data.H, [&](int h)
+      parallel_nd(impl.H, [&](int h)
       {
-        ispc::OutputReorder_kernel(&data, h);
+        ispc::OutputReorder_kernel(&impl, h);
       });
     }
   };

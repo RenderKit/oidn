@@ -1,8 +1,8 @@
-// Copyright 2009-2020 Intel Corporation
+// Copyright 2009-2021 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "image.ih"
-#include "color.ih"
+#include "image.isph"
+#include "color.isph"
 
 static const uniform float HDR_Y_MAX = 65504.f; // maximum HDR value
 
@@ -12,10 +12,11 @@ static const uniform float HDR_Y_MAX = 65504.f; // maximum HDR value
 
 static void TransferFunction_Constructor(uniform TransferFunction* uniform self)
 {
-  self->xScale    = 1.f;
-  self->xRcpScale = 1.f;
-  self->yScale    = 1.f;
-  self->yRcpScale = 1.f;
+  self->inputScale   = 1.f;
+  self->outputScale  = 1.f;
+
+  self->normScale    = 1.f;
+  self->rcpNormScale = 1.f;
 }
 
 // Computes the normalization scale
@@ -23,14 +24,15 @@ static void TransferFunction_initNormalization(uniform TransferFunction* uniform
 {
   const uniform float xMax = extract(reduce_max(self->forward(self, make_vec3f(yMax))), 0);
 
-  self->xScale    = 1./xMax;
-  self->xRcpScale = xMax;
+  self->normScale    = 1./xMax;
+  self->rcpNormScale = xMax;
 }
 
-export void TransferFunction_setExposure(uniform TransferFunction* uniform self, uniform float exposure)
+// Sets the input and output scales
+export void TransferFunction_setInputScale(uniform TransferFunction* uniform self, uniform float inputScale)
 {
-  self->yScale    = exposure;
-  self->yRcpScale = (exposure != 0.f) ? (1.f / exposure) : 0.f;
+  self->inputScale  = inputScale;
+  self->outputScale = (inputScale != 0.f) ? (1.f / inputScale) : 0.f;
 }
 
 // -----------------------------------------------------------------------------
@@ -138,14 +140,13 @@ inline float puInverse(float x)
 
 static vec3f PUTransferFunction_forward(const uniform TransferFunction* uniform self, vec3f y)
 {
-  y = y * self->yScale;
-  return make_vec3f(puForward(y.x), puForward(y.y), puForward(y.z)) * self->xScale;
+  return make_vec3f(puForward(y.x), puForward(y.y), puForward(y.z)) * self->normScale;
 }
 
 static vec3f PUTransferFunction_inverse(const uniform TransferFunction* uniform self, vec3f x)
 {
-  x = x * self->xRcpScale;
-  return make_vec3f(puInverse(x.x), puInverse(x.y), puInverse(x.z)) * self->yRcpScale;
+  x = x * self->rcpNormScale;
+  return make_vec3f(puInverse(x.x), puInverse(x.y), puInverse(x.z));
 }
 
 export void PUTransferFunction_Constructor(uniform TransferFunction* uniform self)
@@ -162,12 +163,12 @@ export void PUTransferFunction_Constructor(uniform TransferFunction* uniform sel
 
 static vec3f LogTransferFunction_forward(const uniform TransferFunction* uniform self, vec3f y)
 {
-  return log(y * self->yScale + 1.f) * self->xScale;
+  return log(y + 1.f) * self->normScale;
 }
 
 static vec3f LogTransferFunction_inverse(const uniform TransferFunction* uniform self, vec3f x)
 {
-  return (exp(x * self->xRcpScale) - 1.f) * self->yRcpScale;
+  return (exp(x * self->rcpNormScale) - 1.f);
 }
 
 export void LogTransferFunction_Constructor(uniform TransferFunction* uniform self)

@@ -1,4 +1,4 @@
-## Copyright 2018-2020 Intel Corporation
+## Copyright 2018-2021 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 import os
@@ -6,10 +6,18 @@ import sys
 import struct
 import json
 import csv
-from zipfile import ZipFile
+import zipfile
+import time
+import socket
 import numpy as np
+
 import torch
 import torch.nn as nn
+import torch.multiprocessing as mp
+import torch.distributed as dist
+
+WORKER_RANK = 0
+WORKER_UID = '%08x.%s.%s' % (int(time.time()), socket.gethostname(), os.getpid())
 
 def round_down(a, b):
   return a // b * b
@@ -22,8 +30,14 @@ def round_nearest(a, b):
 
 # Prints an error message and exits
 def error(*args):
-  print('Error:', *args)
+  if WORKER_RANK == 0:
+    print('Error:', *args)
   exit(1)
+
+# Prints a warning message
+def warning(*args):
+  if WORKER_RANK == 0:
+    print('Warning:', *args)
 
 # Returns the extension of a path without the dot
 def get_path_ext(path):
@@ -66,49 +80,83 @@ def save_csv(filename, rows):
         csv_writer.writerow([row])
 
 # Saves a ZIP file containing the specified input files
-def save_zip(filename, input_filenames):
-  with ZipFile(filename, 'w') as zip:
+def save_zip(output_filename, input_filenames, root_dir=None):
+  with zipfile.ZipFile(output_filename, 'w', compression=zipfile.ZIP_DEFLATED) as zip:
     for input_filename in input_filenames:
-      zip.write(input_filename)
+      arcname = os.path.relpath(input_filename, root_dir) if root_dir else None
+      zip.write(input_filename, arcname=arcname)
 
 ## -----------------------------------------------------------------------------
 ## PyTorch utils
 ## -----------------------------------------------------------------------------
 
-# Initializes and returns the PyTorch device
-def init_device(cfg):
-  print('PyTorch:', torch.__version__)
+# Starts worker processes
+def start_workers(cfg, worker_fn):
+  if cfg.num_devices > 1:
+    # Spawn a worker process for each device
+    mp.spawn(worker_fn, args=(cfg,), nprocs=cfg.num_devices)
+  else:
+    worker_fn(0, cfg)
 
-  # Query CPU information
-  #num_sockets = int(os.popen("lscpu -b -p=Socket | grep -v '^#' | sort -u | wc -l").read())
-  num_cores    = int(os.popen("lscpu -b -p=Core,Socket | grep -v '^#' | sort -u | wc -l").read())
+# Initializes a worker process and returns whether running in distributed mode
+def init_worker(rank, cfg):
+  if cfg.num_devices > 1:
+    # Set 'fork' multiprocessing start method for improved DataLoader performance
+    # We must set it explicitly as spawned processes have the 'spawn' method set by default
+    mp.set_start_method('fork', force=True)
 
-  # Configure OpenMP
-  os.environ['OMP_NUM_THREADS'] = str(num_cores)
-  os.environ['KMP_BLOCKTIME']   = '0'
-  os.environ['KMP_AFFINITY']    = 'granularity=fine,compact,1,0'
+    # Initialize the process group
+    os.environ['MASTER_ADDR'] = 'localhost'
+    os.environ['MASTER_PORT'] = '12355'
 
-  # Initialize the device
-  device = torch.device(cfg.device)
+    dist.init_process_group(backend='nccl',
+                            rank=rank, world_size=cfg.num_devices,
+                            init_method='env://')
+
+    # Set the global rank for this worker process
+    global WORKER_RANK
+    WORKER_RANK = rank
+
+    # Running in distributed mode
+    return True
+  else:
+    # This is the only worker, not running in distributed mode
+    return False
+
+# Cleans up resources used by the worker process
+def cleanup_worker(cfg):
+  if cfg.num_devices > 1:
+    dist.destroy_process_group()
+
+# Initializes and returns the PyTorch device with the specified ID
+def init_device(cfg, id=0):
   if cfg.device == 'cuda':
+    device = torch.device(cfg.device, id)
+
     if cfg.deterministic:
       torch.backends.cudnn.benchmark = False
       torch.backends.cudnn.deterministic = True
     else:
       torch.backends.cudnn.benchmark = True # higher performance
+
+    torch.cuda.set_device(id)
     device_name = torch.cuda.get_device_name()
-  else:
+  elif cfg.device == 'cpu':
+    device = torch.device(cfg.device)
     device_name = 'CPU'
-  print('Device:', device_name)
+  else:
+    error('invalid device')
+
+  print(f'Device {id:2}:', device_name)
   return device
 
 # Remove wrappers like DataParallel from a module
 def unwrap_module(module):
-  if isinstance(module, nn.DataParallel):
+  if isinstance(module, nn.DataParallel) or isinstance(module, nn.parallel.DistributedDataParallel):
     return module.module
   else:
     return module
-  
+
 # Generates a random float in [0, 1)
 def rand():
   return torch.rand(1).item()

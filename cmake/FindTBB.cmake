@@ -1,4 +1,4 @@
-## Copyright 2009-2020 Intel Corporation
+## Copyright 2009-2021 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 #===============================================================================
@@ -144,7 +144,9 @@ endmacro()
 
 macro(rk_tbb_check_version)
   # Extract the version we found in our root.
-  if (EXISTS "${TBB_INCLUDE_DIR}/tbb/tbb_stddef.h")
+  if(EXISTS "${TBB_INCLUDE_DIR}/oneapi/tbb/version.h")
+    set(_TBB_VERSION_HEADER "oneapi/tbb/version.h")
+  elseif(EXISTS "${TBB_INCLUDE_DIR}/tbb/tbb_stddef.h")
     set(_TBB_VERSION_HEADER "tbb/tbb_stddef.h")
   elseif(EXISTS "${TBB_INCLUDE_DIR}/tbb/version.h")
     set(_TBB_VERSION_HEADER "tbb/version.h")
@@ -252,12 +254,16 @@ function(rk_tbb_find_root)
           "${PROGRAMFILES32}/Intel/compilers_and_libraries/windows/tbb")
     else()
       set(TBB_HINTS "/usr/local")
+      if(APPLE)
+        list(APPEND TBB_HINTS "/opt/homebrew")
+      endif()
       set(TBB_PATHS
           "${PROJECT_SOURCE_DIR}/tbb"
-          "/opt/intel/composerxe/tbb"
+          "/opt/intel/oneapi/tbb/latest"
+          "/opt/intel/tbb"
           "/opt/intel/compilers_and_libraries/tbb"
           "/opt/intel/compilers_and_libraries/linux/tbb"
-          "/opt/intel/tbb")
+          "/opt/intel/composerxe/tbb")
     endif()
 
     set(TBB_ROOT "TBB_ROOT-NOTFOUND")
@@ -291,8 +297,16 @@ function(rk_tbb_find_library COMPONENT_NAME BUILD_CONFIG)
   set(DLL_VAR "${COMPONENT_NAME}_DLL_${BUILD_CONFIG}")
   if (BUILD_CONFIG STREQUAL "DEBUG")
     set(LIB_NAME "${COMPONENT_NAME}_debug")
+    if (WIN32)
+      set(LIB_NAME_GLOB1 "${COMPONENT_NAME}[0-9]_debug")
+      set(LIB_NAME_GLOB2 "${COMPONENT_NAME}[0-9][0-9]_debug")
+    endif()
   else()
     set(LIB_NAME "${COMPONENT_NAME}")
+    if (WIN32)
+      set(LIB_NAME_GLOB1 "${COMPONENT_NAME}[0-9]")
+      set(LIB_NAME_GLOB2 "${COMPONENT_NAME}[0-9][0-9]")
+    endif()
   endif()
 
   unset(LIB_PATHS)
@@ -319,18 +333,19 @@ function(rk_tbb_find_library COMPONENT_NAME BUILD_CONFIG)
       ${TBB_ROOT}/lib
     )
 
-    # On window, also search the DLL so that the client may install it.
-    set(DLL_NAME "${LIB_NAME}.dll")
-    find_path(${BIN_DIR_VAR}
-      NAMES "${DLL_NAME}"
-      PATHS 
-        ${TBB_ROOT}/bin/${TBB_ARCH}/${TBB_VCVER}
-        ${TBB_ROOT}/bin
-        ${TBB_ROOT}/../redist/${TBB_ARCH}/tbb/${TBB_VCVER}
-        ${TBB_ROOT}/../redist/${TBB_ARCH}_win/tbb/${TBB_VCVER}
-      NO_DEFAULT_PATH
+    # On Windows, also search the DLL so that the client may install it.
+    file(GLOB DLL_NAMES
+      ${TBB_ROOT}/bin/${TBB_ARCH}/${TBB_VCVER}/${LIB_NAME}.dll
+      ${TBB_ROOT}/bin/${LIB_NAME}.dll
+      ${TBB_ROOT}/redist/${TBB_ARCH}/${TBB_VCVER}/${LIB_NAME}.dll
+      ${TBB_ROOT}/redist/${TBB_ARCH}/${TBB_VCVER}/${LIB_NAME_GLOB1}.dll
+      ${TBB_ROOT}/redist/${TBB_ARCH}/${TBB_VCVER}/${LIB_NAME_GLOB2}.dll
+      ${TBB_ROOT}/../redist/${TBB_ARCH}/tbb/${TBB_VCVER}/${LIB_NAME}.dll
+      ${TBB_ROOT}/../redist/${TBB_ARCH}_win/tbb/${TBB_VCVER}/${LIB_NAME}.dll
     )
-    set(${DLL_VAR} "${${BIN_DIR_VAR}}/${DLL_NAME}" CACHE PATH "${COMPONENT_NAME} ${BUILD_CONFIG} dll path")
+    list(GET DLL_NAMES 0 DLL_NAME)
+    get_filename_component(${BIN_DIR_VAR} "${DLL_NAME}" DIRECTORY)
+    set(${DLL_VAR} "${DLL_NAME}" CACHE PATH "${COMPONENT_NAME} ${BUILD_CONFIG} dll path")
   elseif(APPLE)
     set(LIB_PATHS ${TBB_ROOT}/lib)
   else()

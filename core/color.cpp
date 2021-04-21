@@ -1,4 +1,4 @@
-// Copyright 2009-2020 Intel Corporation
+// Copyright 2009-2021 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "color.h"
@@ -19,7 +19,7 @@ namespace oidn {
     const int HK = (H + K/2) / K; // downsampled height
     const int WK = (W + K/2) / K; // downsampled width
 
-    ispc::Image colorIspc = toIspc(color);
+    ispc::Image colorIspc = color;
 
     // Compute the average log luminance of the downsampled image
     using Sum = std::pair<float, int>;

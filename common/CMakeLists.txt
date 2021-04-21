@@ -1,4 +1,4 @@
-## Copyright 2009-2020 Intel Corporation
+## Copyright 2009-2021 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 add_library(common STATIC
@@ -10,12 +10,9 @@ add_library(common STATIC
   ref.h
   tasking.h
   tasking.cpp
-  tensor.h
   thread.h
   thread.cpp
   timer.h
-  tza.h
-  tza.cpp
 )
 
 target_include_directories(common

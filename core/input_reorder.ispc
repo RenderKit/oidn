@@ -1,19 +1,19 @@
-// Copyright 2009-2020 Intel Corporation
+// Copyright 2009-2021 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "memory.ih"
-#include "image.ih"
-#include "color.ih"
+#include "tensor.isph"
+#include "image.isph"
+#include "color.isph"
 
 struct InputReorder
 {
   // Source
-  uniform Image srcColor;
-  uniform Image srcAlbedo;
-  uniform Image srcNormal;
+  uniform Image color;
+  uniform Image albedo;
+  uniform Image normal;
 
   // Destination
-  uniform Memory dst;
+  uniform Tensor dst;
 
   // Tile
   uniform int hSrcBegin;
@@ -26,6 +26,7 @@ struct InputReorder
   // Transfer function
   uniform TransferFunction* uniform transferFunc;
   uniform bool hdr;
+  uniform bool snorm; // signed normalized ([-1..1])
 };
 
 inline void storeZero(uniform InputReorder* uniform self, uniform int h, int w, uniform int c)
@@ -36,8 +37,17 @@ inline void storeZero(uniform InputReorder* uniform self, uniform int h, int w, 
 // Stores a color value
 inline void storeColor(uniform InputReorder* uniform self, uniform int h, int w, uniform int c, vec3f value)
 {
+  // Scale
+  value = value * self->transferFunc->inputScale;
+
   // Sanitize
-  value = clamp(nan_to_zero(value), 0.f, self->hdr ? pos_max : 1.f);
+  value = clamp(nan_to_zero(value), self->snorm ? -1.f : 0.f, self->hdr ? pos_max : 1.f);
+
+  if (self->snorm)
+  {
+    // Transform to [0..1]
+    value = value * 0.5f + 0.5f;
+  }
 
   // Apply the transfer function
   value = self->transferFunc->forward(self->transferFunc, value);
@@ -94,18 +104,22 @@ export void InputReorder_kernel(uniform InputReorder* uniform self, uniform int 
       const int wDst = w + self->wDstBegin;
 
       uniform int c = 0;
-      storeColor(self, hDst, wDst, c, get3f(self->srcColor, hSrc, wSrc));
-      c += 3;
 
-      if (self->srcAlbedo.ptr)
+      if (self->color.ptr)
       {
-        storeAlbedo(self, hDst, wDst, c, get3f(self->srcAlbedo, hSrc, wSrc));
+        storeColor(self, hDst, wDst, c, get3f(self->color, hSrc, wSrc));
         c += 3;
       }
 
-      if (self->srcNormal.ptr)
+      if (self->albedo.ptr)
       {
-        storeNormal(self, hDst, wDst, c, get3f(self->srcNormal, hSrc, wSrc));
+        storeAlbedo(self, hDst, wDst, c, get3f(self->albedo, hSrc, wSrc));
+        c += 3;
+      }
+
+      if (self->normal.ptr)
+      {
+        storeNormal(self, hDst, wDst, c, get3f(self->normal, hSrc, wSrc));
         c += 3;
       }
 

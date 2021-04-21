@@ -1,4 +1,4 @@
-// Copyright 2009-2020 Intel Corporation
+// Copyright 2009-2021 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -15,17 +15,17 @@ namespace oidn {
     assert(dst.height >= src.height);
     assert(dst.width  >= src.width);
 
-    ispc::OutputCopy data;
+    ispc::OutputCopy impl;
 
-    data.src = toIspc(src);
-    data.dst = toIspc(dst);
+    impl.src = src;
+    impl.dst = dst;
 
-    data.H = dst.height;
-    data.W = dst.width;
+    impl.H = dst.height;
+    impl.W = dst.width;
 
-    parallel_nd(data.H, [&](int h)
+    parallel_nd(impl.H, [&](int h)
     {
-      ispc::OutputCopy_kernel(&data, h);
+      ispc::OutputCopy_kernel(&impl, h);
     });
   }
 

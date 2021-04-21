@@ -1,6 +1,6 @@
 #!/bin/bash
 
-## Copyright 2009-2020 Intel Corporation
+## Copyright 2009-2021 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 # Fail when individual commands fail (-e), also in intermediate steps in

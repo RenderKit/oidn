@@ -1,4 +1,4 @@
-## Copyright 2018-2020 Intel Corporation
+## Copyright 2018-2021 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 import numpy as np
@@ -6,9 +6,16 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+from dataset import *
 from util import *
 
-ALIGNMENT = 32 # images must be padded to multiples of the alignment
+def get_model(cfg):
+  type = cfg.model
+  num_input_channels = len(get_model_channels(cfg.features))
+  if type == 'unet':
+    return UNet(num_input_channels)
+  else:
+    error('invalid model')
 
 ## -----------------------------------------------------------------------------
 ## Network layers
@@ -48,8 +55,7 @@ class UNet(nn.Module):
     ec2  = 48
     ec3  = 64
     ec4  = 80
-    ec5  = 112
-    dc5  = 160
+    ec5  = 96
     dc4  = 112
     dc3  = 96
     dc2  = 64
@@ -63,10 +69,9 @@ class UNet(nn.Module):
     self.enc_conv2  = Conv(ec1,     ec2)
     self.enc_conv3  = Conv(ec2,     ec3)
     self.enc_conv4  = Conv(ec3,     ec4)
-    self.enc_conv5  = Conv(ec4,     ec5)
-    self.dec_conv5a = Conv(ec5+ec4, dc5)
-    self.dec_conv5b = Conv(dc5,     dc5)
-    self.dec_conv4a = Conv(dc5+ec3, dc4)
+    self.enc_conv5a = Conv(ec4,     ec5)
+    self.enc_conv5b = Conv(ec5,     ec5)
+    self.dec_conv4a = Conv(ec5+ec3, dc4)
     self.dec_conv4b = Conv(dc4,     dc4)
     self.dec_conv3a = Conv(dc4+ec2, dc3)
     self.dec_conv3b = Conv(dc3,     dc3)
@@ -75,7 +80,10 @@ class UNet(nn.Module):
     self.dec_conv1a = Conv(dc2+ic,  dc1a)
     self.dec_conv1b = Conv(dc1a,    dc1b)
     self.dec_conv0  = Conv(dc1b,    oc)
-    
+
+    # Images must be padded to multiples of the alignment
+    self.alignment = 16
+
   def forward(self, input):
     # Encoder
     # -------------------------------------------
@@ -92,18 +100,14 @@ class UNet(nn.Module):
     x = pool3 = pool(x)              # pool3
 
     x = relu(self.enc_conv4(x))      # enc_conv4
-    x = pool4 = pool(x)              # pool4
+    x = pool(x)                      # pool4
 
-    x = relu(self.enc_conv5(x))      # enc_conv5
-    x = pool(x)                      # pool5
+    # Bottleneck
+    x = relu(self.enc_conv5a(x))     # enc_conv5a
+    x = relu(self.enc_conv5b(x))     # enc_conv5b
 
     # Decoder
     # -------------------------------------------
-
-    x = upsample(x)                  # upsample5
-    x = concat(x, pool4)             # concat5
-    x = relu(self.dec_conv5a(x))     # dec_conv5a
-    x = relu(self.dec_conv5b(x))     # dec_conv5b
 
     x = upsample(x)                  # upsample4
     x = concat(x, pool3)             # concat4

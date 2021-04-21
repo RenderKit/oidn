@@ -1,9 +1,10 @@
-// Copyright 2009-2020 Intel Corporation
+// Copyright 2009-2021 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include <iostream>
 #include <fstream>
 #include <cassert>
+#include <limits>
 #include <cmath>
 #include <signal.h>
 
@@ -24,9 +25,10 @@ void printUsage()
 {
   std::cout << "Intel(R) Open Image Denoise" << std::endl;
   std::cout << "usage: oidnDenoise [-f/--filter RT|RTLightmap]" << std::endl
-            << "                   [--ldr color.pfm] [--srgb] [--hdr color.pfm]" << std::endl
+            << "                   [--hdr color.pfm] [--ldr color.pfm] [--srgb] [--dir directional.pfm]" << std::endl
             << "                   [--alb albedo.pfm] [--nrm normal.pfm]" << std::endl
             << "                   [-o/--output output.pfm] [-r/--ref reference_output.pfm]" << std::endl
+            << "                   [--is/--inputscale value]" << std::endl
             << "                   [-w/--weights weights.tza]" << std::endl
             << "                   [--threads n] [--affinity 0|1] [--maxmem MB] [--inplace]" << std::endl
             << "                   [--bench ntimes] [-v/--verbose 0-3]" << std::endl
@@ -79,6 +81,8 @@ int main(int argc, char* argv[])
   std::string weightsFilename;
   bool hdr = false;
   bool srgb = false;
+  bool directional = false;
+  float inputScale = std::numeric_limits<float>::quiet_NaN();
   int numBenchmarkRuns = 0;
   int numThreads = -1;
   int setAffinity = -1;
@@ -101,18 +105,23 @@ int main(int argc, char* argv[])
       std::string opt = args.getNextOpt();
       if (opt == "f" || opt == "filter")
         filterType = args.getNextValue();
-      else if (opt == "ldr")
-      {
-        colorFilename = args.getNextValue();
-        hdr = false;
-      }
       else if (opt == "hdr")
       {
         colorFilename = args.getNextValue();
         hdr = true;
       }
+      else if (opt == "ldr")
+      {
+        colorFilename = args.getNextValue();
+        hdr = false;
+      }
       else if (opt == "srgb")
         srgb = true;
+      else if (opt == "dir")
+      {
+        colorFilename = args.getNextValue();
+        directional = true;
+      }
       else if (opt == "alb" || opt == "albedo")
         albedoFilename = args.getNextValue();
       else if (opt == "nrm" || opt == "normal")
@@ -121,6 +130,8 @@ int main(int argc, char* argv[])
         outputFilename = args.getNextValue();
       else if (opt == "r" || opt == "ref" || opt == "reference")
         refFilename = args.getNextValue();
+      else if (opt == "is" || opt == "inputscale")
+        inputScale = args.getNextValueFloat();
       else if (opt == "w" || opt == "weights")
         weightsFilename = args.getNextValue();
       else if (opt == "bench" || opt == "benchmark")
@@ -150,6 +161,7 @@ int main(int argc, char* argv[])
     if (!refFilename.empty() && numBenchmarkRuns > 0)
       throw std::runtime_error("reference and benchmark modes cannot be enabled at the same time");
 
+  #if defined(OIDN_X64)
     // Set MXCSR flags
     if (!refFilename.empty())
     {
@@ -163,6 +175,7 @@ int main(int argc, char* argv[])
       _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
       _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
     }
+  #endif
 
     // Load the input image
     std::shared_ptr<ImageBuffer> color, albedo, normal;
@@ -175,26 +188,26 @@ int main(int argc, char* argv[])
     if (!albedoFilename.empty())
     {
       albedo = loadImage(albedoFilename, 3, false);
-      if (albedo->getDims() != color->getDims())
+      if (albedo->dims() != color->dims())
         throw std::runtime_error("invalid albedo image");
     }
 
     if (!normalFilename.empty())
     {
       normal = loadImage(normalFilename, 3);
-      if (normal->getDims() != color->getDims())
+      if (normal->dims() != color->dims())
         throw std::runtime_error("invalid normal image");
     }
 
     if (!refFilename.empty())
     {
       ref = loadImage(refFilename, 3, srgb);
-      if (ref->getDims() != color->getDims())
+      if (ref->dims() != color->dims())
         throw std::runtime_error("invalid reference output image");
     }
 
-    const int width  = color->getWidth();
-    const int height = color->getHeight();
+    const int width  = color->width;
+    const int height = color->height;
     std::cout << "Resolution: " << width << "x" << height << std::endl;
 
     // Initialize the output image
@@ -233,18 +246,29 @@ int main(int argc, char* argv[])
 
     FilterRef filter = device.newFilter(filterType.c_str());
 
-    filter.setImage("color", color->getData(), Format::Float3, width, height);
+    filter.setImage("color", color->data(), Format::Float3, width, height);
     if (albedo)
-      filter.setImage("albedo", albedo->getData(), Format::Float3, width, height);
+      filter.setImage("albedo", albedo->data(), Format::Float3, width, height);
     if (normal)
-      filter.setImage("normal", normal->getData(), Format::Float3, width, height);
+      filter.setImage("normal", normal->data(), Format::Float3, width, height);
 
-    filter.setImage("output", output->getData(), Format::Float3, width, height);
+    filter.setImage("output", output->data(), Format::Float3, width, height);
 
-    if (hdr)
-      filter.set("hdr", true);
-    if (srgb)
-      filter.set("srgb", true);
+    if (filterType == "RT")
+    {
+      if (hdr)
+        filter.set("hdr", true);
+      if (srgb)
+        filter.set("srgb", true);
+    }
+    else if (filterType == "RTLightmap")
+    {
+      if (directional)
+        filter.set("directional", true);
+    }
+
+    if (std::isfinite(inputScale))
+      filter.set("inputScale", inputScale);
 
     if (maxMemoryMB >= 0)
       filter.set("maxMemoryMB", maxMemoryMB);
@@ -305,19 +329,19 @@ int main(int argc, char* argv[])
       // Verify the output values
       std::cout << "Verifying output" << std::endl;
 
-      int numErrors;
+      size_t numErrors;
       float maxError;
       std::tie(numErrors, maxError) = compareImage(*output, *ref, 1e-4);
 
-      std::cout << "  values=" << output->getSize() << ", errors=" << numErrors << ", maxerror=" << maxError << std::endl;
+      std::cout << "  values=" << output->size() << ", errors=" << numErrors << ", maxerror=" << maxError << std::endl;
 
       if (numErrors > 0)
       {
         // Save debug images
         std::cout << "Saving debug images" << std::endl;
-        saveImage("denoise_in.ppm",   *color,  srgb);
-        saveImage("denoise_out.ppm",  *output, srgb);
-        saveImage("denoise_ref.ppm",  *ref,    srgb);
+        saveImage("denoise_in.ppm",  *color,  srgb);
+        saveImage("denoise_out.ppm", *output, srgb);
+        saveImage("denoise_ref.ppm", *ref,    srgb);
 
         throw std::runtime_error("output does not match the reference");
       }

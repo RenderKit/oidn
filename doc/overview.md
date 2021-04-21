@@ -1,5 +1,5 @@
-Intel Open Image Denoise Overview
-=================================
+Overview
+========
 
 Intel Open Image Denoise is an open source library of high-performance,
 high-quality denoising filters for images rendered with ray tracing.
@@ -32,17 +32,16 @@ mandatory to use these. To optimize a filter for a specific renderer, sample
 count, content type, scene, etc., it is possible to train the model using the
 included training toolkit and user-provided image datasets.
 
-Intel Open Image Denoise supports Intel® 64 architecture based CPUs and
-compatible architectures, and runs on anything from laptops, to workstations,
-to compute nodes in HPC systems. It is efficient enough to be suitable not only
-for offline rendering, but, depending on the hardware used, also for interactive
-ray tracing.
+Intel Open Image Denoise supports Intel® 64 architecture compatible CPUs and
+Apple Silicon, and runs on anything from laptops, to workstations, to compute
+nodes in HPC systems. It is efficient enough to be suitable not only for offline
+rendering, but, depending on the hardware used, also for interactive ray tracing.
 
 Intel Open Image Denoise internally builds on top of
 [Intel oneAPI Deep Neural Network Library (oneDNN)](https://github.com/oneapi-src/oneDNN),
 and automatically exploits modern instruction sets like Intel SSE4, AVX2, and
 AVX-512 to achieve high denoising performance. A CPU with support for at least
-SSE4.1 is required to run Intel Open Image Denoise.
+SSE4.1 or Apple Silicon is required to run Intel Open Image Denoise.
 
 
 Support and Contact

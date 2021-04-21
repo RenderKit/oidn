@@ -1,17 +1,17 @@
-// Copyright 2009-2020 Intel Corporation
+// Copyright 2009-2021 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "memory.ih"
-#include "image.ih"
-#include "color.ih"
+#include "tensor.isph"
+#include "image.isph"
+#include "color.isph"
 
 struct OutputReorder
 {
   // Source
-  uniform Memory src;
+  uniform Tensor src;
 
   // Destination
-  uniform Image dst;
+  uniform Image output;
 
   // Tile
   uniform int hSrcBegin;
@@ -24,6 +24,7 @@ struct OutputReorder
   // Transfer function
   uniform TransferFunction* uniform transferFunc;
   uniform bool hdr;
+  uniform bool snorm; // signed normalized ([-1..1])
 };
 
 export void OutputReorder_kernel(uniform OutputReorder* uniform self, uniform int h)
@@ -46,10 +47,19 @@ export void OutputReorder_kernel(uniform OutputReorder* uniform self, uniform in
     value = self->transferFunc->inverse(self->transferFunc, value);
 
     // Sanitize
+    if (self->snorm)
+    {
+      // Transform to [-1..1]
+      value = value * 2.f - 1.f;
+      value = max(value, -1.f);
+    }
     if (!self->hdr)
       value = min(value, 1.f);
 
+    // Scale
+    value = value * self->transferFunc->outputScale;
+
     // Store
-    set3f(self->dst, hDst, wDst, value);
+    set3f(self->output, hDst, wDst, value);
   }
 }
