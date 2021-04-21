@@ -59,7 +59,7 @@ namespace oidn {
         transferFunc(transferFunc)
     {}
 
-    void execute(stream  *) override
+    void execute(stream& sm) override
     {
       const float exposure = autoexposure(color);
       //printf("exposure = %f\n", exposure);

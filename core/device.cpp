@@ -10,10 +10,8 @@ namespace oidn {
 
   Device::Device()
   {
-#if !defined(__aarch64__)
     if (!mayiuse(sse41))
       throw Exception(Error::UnsupportedHardware, "SSE4.1 support is required at minimum");
-#endif
   }
 
   Device::~Device()
@@ -203,15 +201,11 @@ namespace oidn {
     std::cout << "  Platform: " << getPlatformName() << std::endl;
 
     std::cout << "  Targets :";
-#if !defined(__arm64__)
     if (mayiuse(sse41))       std::cout << " SSE4.1";
     if (mayiuse(avx2))        std::cout << " AVX2";
     if (mayiuse(avx512_core)) std::cout << " AVX512SKX";
     std::cout << " (supported)" << std::endl;
     std::cout << "            SSE4.1 AVX2 AVX512SKX (compile time enabled)" << std::endl;
-#else
-      std::cout << "            NEON" << std::endl;
-#endif
 
     std::cout << "  Tasking :";
     std::cout << " TBB" << TBB_VERSION_MAJOR << "." << TBB_VERSION_MINOR;

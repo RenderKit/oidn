@@ -13,7 +13,7 @@ namespace oidn {
   // Output reorder node
   class OutputReorderNode : public Node
   {
-  protected:
+  private:
     ispc::OutputReorder data;
 
     std::shared_ptr<memory> src;
@@ -53,7 +53,7 @@ namespace oidn {
       data.W = W;
     }
 
-    void execute(stream *sm) override
+    void execute(stream& sm) override
     {
       assert(data.hSrcBegin + data.H <= data.src.H);
       assert(data.wSrcBegin + data.W <= data.src.W);

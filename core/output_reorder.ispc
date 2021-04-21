@@ -50,43 +50,6 @@ export void OutputReorder_kernel(uniform OutputReorder* uniform self, uniform in
       value = min(value, 1.f);
 
     // Store
-    
     set3f(self->dst, hDst, wDst, value);
-
   }
 }
-
-
-#ifdef USE_BNNS_CHW
-
-export void OutputReorder_kernel_chw(uniform OutputReorder* uniform self, uniform int h)
-{
-  const uniform int hSrc = h + self->hSrcBegin;
-  const uniform int hDst = h + self->hDstBegin;
-
-  foreach (w = 0 ... self->W)
-  {
-    const int wSrc = w + self->wSrcBegin;
-    const int wDst = w + self->wDstBegin;
-
-    // Load
-    vec3f value = get3f_chw(self->src, hSrc, wSrc, 0);
-
-    // The CNN output may contain negative values or even NaNs, so it must be sanitized
-    value = clamp(nan_to_zero(value), 0.f, pos_max);
-
-    // Apply the inverse transfer function
-    value = self->transferFunc->inverse(self->transferFunc, value);
-
-    // Sanitize
-    if (!self->hdr)
-      value = min(value, 1.f);
-
-    // Store
-    
-    set3f(self->dst, hDst, wDst, value);
-
-  }
-}
-
-#endif

@@ -241,11 +241,11 @@ int main(int argc, char* argv[])
       else
         throw std::invalid_argument("invalid argument");
     }
-#if !defined(__aarch64__)
+
     // Enable the FTZ and DAZ flags to maximize performance
     _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
     _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
-#endif
+
     // Initialize the device
     DeviceRef device = newDevice();
 

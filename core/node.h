@@ -13,7 +13,7 @@ namespace oidn {
   public:
     virtual ~Node() = default;
 
-    virtual void execute(stream *sm) = 0;
+    virtual void execute(stream& sm) = 0;
 
     virtual std::shared_ptr<memory> getDst() const { return nullptr; }
 
@@ -25,9 +25,6 @@ namespace oidn {
       assert(0); // not supported
     }
   };
-
-
-#if !defined(USE_BNNS)
 
   // Node wrapping an MKL-DNN primitive
   class MklNode : public Node
@@ -58,9 +55,9 @@ namespace oidn {
       args.insert(std::make_pair(DNNL_ARG_SCRATCHPAD, *scratchpad));
     }
 
-    void execute(stream *sm) override
+    void execute(stream& sm) override
     {
-      prim.execute(*sm, args);
+      prim.execute(sm, args);
     }
   };
 
@@ -130,8 +127,6 @@ namespace oidn {
     std::shared_ptr<memory> getDst() const override { return dst; }
   };
 
-
-
   // Reorder node
   class ReorderNode : public MklNode
   {
@@ -150,14 +145,5 @@ namespace oidn {
 
     std::shared_ptr<memory> getDst() const override { return dst; }
   };
-
-
-#endif
-
-
-
-
-
-
 
 } // namespace oidn
