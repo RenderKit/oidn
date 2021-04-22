@@ -24,11 +24,6 @@ namespace oidn {
     virtual size_t getScratchpadSize() const { return 0; }
     virtual void setScratchpad(const Ref<Tensor>& scratchpad) {}
 
-    virtual void setTile(int hSrc, int wSrc, int hDst, int wDst, int H, int W)
-    {
-      assert(0); // not supported
-    }
-
     __forceinline Device* getDevice() { return device.get(); }
   };
 

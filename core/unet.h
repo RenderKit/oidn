@@ -55,8 +55,9 @@ namespace oidn {
 
     // Network
     Ref<Network> net;
-    Ref<Node> inputReorder;
-    Ref<Node> outputReorder;
+    Ref<InputReorderNode> inputReorder;
+    Ref<OutputReorderNode> outputReorder;
+    Ref<TransferFunction> transferFunc;
 
     // Weights
     struct

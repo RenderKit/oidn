@@ -4,8 +4,6 @@
 #include "conv.h"
 #include "pool.h"
 #include "upsample.h"
-#include "input_reorder.h"
-#include "output_reorder.h"
 #include "color.h"
 #include "network.h"
 
@@ -64,28 +62,22 @@ namespace oidn {
     return dstDims;
   }
 
-  Ref<Node> Network::addInputReorder(const Image& color,
-                                     const Image& albedo,
-                                     const Image& normal,
-                                     const Ref<Tensor>& dst,
-                                     const Ref<TransferFunction>& transferFunc,
-                                     bool hdr,
-                                     bool snorm,
-                                     bool autoexposure,
-                                     int alignment)
+  Ref<InputReorderNode> Network::addInputReorder(const Ref<Tensor>& dst,
+                                                 const Ref<TransferFunction>& transferFunc,
+                                                 bool hdr,
+                                                 bool snorm)
   {
-    auto node = makeRef<InputReorderNode>(device, color, albedo, normal, dst, transferFunc, hdr, snorm, autoexposure);
+    auto node = makeRef<InputReorderNode>(device, dst, transferFunc, hdr, snorm);
     nodes.push_back(node);
     return node;
   }
 
-  Ref<Node> Network::addOutputReorder(const Ref<Tensor>& src,
-                                      const Image& output,
-                                      const Ref<TransferFunction>& transferFunc,
-                                      bool hdr,
-                                      bool snorm)
+  Ref<OutputReorderNode> Network::addOutputReorder(const Ref<Tensor>& src,
+                                                   const Ref<TransferFunction>& transferFunc,
+                                                   bool hdr,
+                                                   bool snorm)
   {
-    auto node = makeRef<OutputReorderNode>(device, src, output, transferFunc, hdr, snorm);
+    auto node = makeRef<OutputReorderNode>(device, src, transferFunc, hdr, snorm);
     nodes.push_back(node);
     return node;
   }

@@ -109,6 +109,23 @@ namespace oidn {
         workAmount += 1;
       Progress progress(progressFunc, progressUserPtr, workAmount);
 
+      // Set the input and output
+      inputReorder->setSrc(color, albedo, normal);
+      outputReorder->setDst(outputTemp ? outputTemp : output);
+
+      // Set the input scale
+      if (isnan(inputScale))
+      {
+        if (hdr)
+          transferFunc->setInputScale(getAutoexposure(color));
+        else
+          transferFunc->setInputScale(1.f);
+      }
+      else
+      {
+        transferFunc->setInputScale(inputScale);
+      }
+
       // Iterate over the tiles
       int tileIndex = 0;
 
@@ -413,27 +430,12 @@ namespace oidn {
     auto concat3Src = net->getConcatSrc(concat3Dst, {upsample3Dims, pool2Dims});
     auto concat4Src = net->getConcatSrc(concat4Dst, {upsample4Dims, pool3Dims});
 
-    // Transfer function
-    Ref<TransferFunction> transferFunc = makeTransferFunc();
-    bool autoexposure = false;
-    if (isnan(inputScale))
-    {
-      if (hdr)
-        autoexposure = true;
-      else
-        transferFunc->setInputScale(1.f);
-    }
-    else
-    {
-      transferFunc->setInputScale(inputScale);
-    }
+    // Create the transfer function
+    transferFunc = makeTransferFunc();
 
     // Create the nodes
-    inputReorder = net->addInputReorder(color, albedo, normal,
-                                        concat1Src[1],
-                                        transferFunc,
-                                        hdr, snorm, autoexposure,
-                                        alignment);
+    inputReorder = net->addInputReorder(concat1Src[1],
+                                        transferFunc, hdr, snorm);
 
     auto encConv0 = net->addConv("enc_conv0", inputReorder->getDst(), temp0->view(encConv0Dims));
 
@@ -471,7 +473,6 @@ namespace oidn {
     auto decConv0 = net->addConv("dec_conv0", decConv1b->getDst(), temp0->view(decConv0Dims), false);
 
     outputReorder = net->addOutputReorder(decConv0->getDst(),
-                                          outputTemp ? outputTemp : output,
                                           transferFunc, hdr, snorm);
 
     net->finalize();

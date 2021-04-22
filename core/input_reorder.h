@@ -16,62 +16,51 @@ namespace oidn {
   private:
     ispc::InputReorder impl;
 
-    int width;
-    int height;
     Image color;
     Image albedo;
     Image normal;
     Ref<Tensor> dst;
     Ref<TransferFunction> transferFunc;
-    bool autoexposure;
 
   public:
     InputReorderNode(const Ref<Device>& device,
-                     const Image& color,
-                     const Image& albedo,
-                     const Image& normal,
                      const Ref<Tensor>& dst,
                      const Ref<TransferFunction>& transferFunc,
                      bool hdr,
-                     bool snorm,
-                     bool autoexposure)
+                     bool snorm)
       : Node(device),
-        color(color), albedo(albedo), normal(normal),
         dst(dst),
-        transferFunc(transferFunc),
-        autoexposure(autoexposure)
+        transferFunc(transferFunc)
     {
       assert(dst->ndims() == 3);
       assert(dst->layout == TensorLayout::chw ||
              dst->layout == TensorLayout::Chw8c ||
              dst->layout == TensorLayout::Chw16c);
       assert(dst->blockSize() == device->getTensorBlockSize());
-      assert(dst->dims[0] >= color.numChannels()  +
-                             albedo.numChannels() +
-                             normal.numChannels());
-
-      width  = color ? color.width  : (albedo ? albedo.width  : normal.width);
-      height = color ? color.height : (albedo ? albedo.height : normal.height);
-
-      impl.color  = color;
-      impl.albedo = albedo;
-      impl.normal = normal;
 
       impl.dst = *dst;
-
-      impl.hSrcBegin = 0;
-      impl.wSrcBegin = 0;
-      impl.hDstBegin = 0;
-      impl.wDstBegin = 0;
-      impl.H = height;
-      impl.W = width;
-
+      setTile(0, 0, 0, 0, 0, 0);
       impl.transferFunc = transferFunc->getImpl();
       impl.hdr = hdr;
       impl.snorm = snorm;
     }
 
-    void setTile(int hSrc, int wSrc, int hDst, int wDst, int H, int W) override
+    void setSrc(const Image& color, const Image& albedo, const Image& normal)
+    {
+      assert(dst->dims[0] >= color.numChannels()  +
+                             albedo.numChannels() +
+                             normal.numChannels());
+
+      this->color  = color;
+      this->albedo = albedo;
+      this->normal = normal;
+
+      impl.color  = color;
+      impl.albedo = albedo;
+      impl.normal = normal;
+    }
+
+    void setTile(int hSrc, int wSrc, int hDst, int wDst, int H, int W)
     {
       impl.hSrcBegin = hSrc;
       impl.wSrcBegin = wSrc;
@@ -83,16 +72,10 @@ namespace oidn {
 
     void execute() override
     {
-      assert(impl.H + impl.hSrcBegin <= height);
-      assert(impl.W + impl.wSrcBegin <= width);
+      assert(impl.H + impl.hSrcBegin <= getHeight());
+      assert(impl.W + impl.wSrcBegin <= getWidth());
       assert(impl.H + impl.hDstBegin <= impl.dst.H);
       assert(impl.W + impl.wDstBegin <= impl.dst.W);
-
-      if (autoexposure)
-      {
-        float exposure = getAutoexposure(color);
-        transferFunc->setInputScale(exposure);
-      }
 
       parallel_nd(impl.dst.H, [&](int hDst)
       {
@@ -101,6 +84,17 @@ namespace oidn {
     }
 
     Ref<Tensor> getDst() const override { return dst; }
+
+  private:
+    int getWidth() const
+    {
+      return color ? color.width : (albedo ? albedo.width : normal.width);
+    }
+
+    int getHeight() const
+    {
+      return color ? color.height : (albedo ? albedo.height : normal.height);
+    }
   };
 
 } // namespace oidn

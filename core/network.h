@@ -5,7 +5,8 @@
 #include "tensor.h"
 #include "image.h"
 #include "node.h"
-#include "color.h"
+#include "input_reorder.h"
+#include "output_reorder.h"
 #include "progress.h"
 
 #pragma once
@@ -24,21 +25,15 @@ namespace oidn {
 
     TensorDims getInputReorderDims(const TensorDims& srcDims, int alignment);
 
-    Ref<Node> addInputReorder(const Image& color,
-                              const Image& albedo,
-                              const Image& normal,
-                              const Ref<Tensor>& dst,
-                              const Ref<TransferFunction>& transferFunc,
-                              bool hdr,
-                              bool snorm,
-                              bool autoexposure,
-                              int alignment);
+    Ref<InputReorderNode> addInputReorder(const Ref<Tensor>& dst,
+                                          const Ref<TransferFunction>& transferFunc,
+                                          bool hdr,
+                                          bool snorm);
 
-    Ref<Node> addOutputReorder(const Ref<Tensor>& src,
-                               const Image& output,
-                               const Ref<TransferFunction>& transferFunc,
-                               bool hdr,
-                               bool snorm);
+    Ref<OutputReorderNode> addOutputReorder(const Ref<Tensor>& src,
+                                            const Ref<TransferFunction>& transferFunc,
+                                            bool hdr,
+                                            bool snorm);
 
     TensorDims getConvDims(const std::string& name, const TensorDims& srcDims);
     Ref<Node> addConv(const std::string& name,
