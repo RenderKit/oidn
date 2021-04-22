@@ -415,10 +415,11 @@ namespace oidn {
 
     // Transfer function
     Ref<TransferFunction> transferFunc = makeTransferFunc();
+    bool autoexposure = false;
     if (isnan(inputScale))
     {
       if (hdr)
-        net->addAutoexposure(color, transferFunc);
+        autoexposure = true;
       else
         transferFunc->setInputScale(1.f);
     }
@@ -430,7 +431,8 @@ namespace oidn {
     // Create the nodes
     inputReorder = net->addInputReorder(color, albedo, normal,
                                         concat1Src[1],
-                                        transferFunc, hdr, snorm,
+                                        transferFunc,
+                                        hdr, snorm, autoexposure,
                                         alignment);
 
     auto encConv0 = net->addConv("enc_conv0", inputReorder->getDst(), temp0->view(encConv0Dims));

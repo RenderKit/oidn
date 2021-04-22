@@ -71,9 +71,10 @@ namespace oidn {
                                      const Ref<TransferFunction>& transferFunc,
                                      bool hdr,
                                      bool snorm,
+                                     bool autoexposure,
                                      int alignment)
   {
-    auto node = makeRef<InputReorderNode>(device, color, albedo, normal, dst, transferFunc, hdr, snorm);
+    auto node = makeRef<InputReorderNode>(device, color, albedo, normal, dst, transferFunc, hdr, snorm, autoexposure);
     nodes.push_back(node);
     return node;
   }
@@ -197,14 +198,6 @@ namespace oidn {
     }
 
     return src;
-  }
-
-  Ref<Node> Network::addAutoexposure(const Image& color,
-                                     const Ref<TransferFunction>& transferFunc)
-  {
-    auto node = makeRef<AutoexposureNode>(device, color, transferFunc);
-    nodes.push_back(node);
-    return node;
   }
 
   void Network::finalize()

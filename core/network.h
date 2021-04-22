@@ -31,6 +31,7 @@ namespace oidn {
                               const Ref<TransferFunction>& transferFunc,
                               bool hdr,
                               bool snorm,
+                              bool autoexposure,
                               int alignment);
 
     Ref<Node> addOutputReorder(const Ref<Tensor>& src,
@@ -56,9 +57,6 @@ namespace oidn {
     TensorDims getConcatDims(const std::vector<TensorDims>& srcDims);
     std::vector<Ref<Tensor>> getConcatSrc(const Ref<Tensor>& dst,
                                           const std::vector<TensorDims>& srcDims);
-
-    Ref<Node> addAutoexposure(const Image& color,
-                              const Ref<TransferFunction>& transferFunc);
 
     void finalize();
 

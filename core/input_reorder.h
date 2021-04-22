@@ -23,6 +23,7 @@ namespace oidn {
     Image normal;
     Ref<Tensor> dst;
     Ref<TransferFunction> transferFunc;
+    bool autoexposure;
 
   public:
     InputReorderNode(const Ref<Device>& device,
@@ -32,11 +33,13 @@ namespace oidn {
                      const Ref<Tensor>& dst,
                      const Ref<TransferFunction>& transferFunc,
                      bool hdr,
-                     bool snorm)
+                     bool snorm,
+                     bool autoexposure)
       : Node(device),
         color(color), albedo(albedo), normal(normal),
         dst(dst),
-        transferFunc(transferFunc)
+        transferFunc(transferFunc),
+        autoexposure(autoexposure)
     {
       assert(dst->ndims() == 3);
       assert(dst->layout == TensorLayout::chw ||
@@ -84,6 +87,12 @@ namespace oidn {
       assert(impl.W + impl.wSrcBegin <= width);
       assert(impl.H + impl.hDstBegin <= impl.dst.H);
       assert(impl.W + impl.wDstBegin <= impl.dst.W);
+
+      if (autoexposure)
+      {
+        float exposure = getAutoexposure(color);
+        transferFunc->setInputScale(exposure);
+      }
 
       parallel_nd(impl.dst.H, [&](int hDst)
       {

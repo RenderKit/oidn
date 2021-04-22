@@ -5,7 +5,7 @@
 
 namespace oidn {
 
-  float AutoexposureNode::autoexposure(const Image& color)
+  float getAutoexposure(const Image& color)
   {
     assert(color.format == Format::Float3);
 

@@ -4,7 +4,6 @@
 #pragma once
 
 #include "image.h"
-#include "node.h"
 #include "color_ispc.h"
 
 namespace oidn {
@@ -47,30 +46,6 @@ namespace oidn {
     }
   };
 
-  class AutoexposureNode : public Node
-  {
-  private:
-    Image color;
-    Ref<TransferFunction> transferFunc;
-
-  public:
-    AutoexposureNode(const Ref<Device>& device,
-                     const Image& color,
-                     const Ref<TransferFunction>& transferFunc)
-      : Node(device),
-        color(color),
-        transferFunc(transferFunc)
-    {}
-
-    void execute() override
-    {
-      const float exposure = autoexposure(color);
-      //printf("exposure = %f\n", exposure);
-      transferFunc->setInputScale(exposure);
-    }
-
-  private:
-    static float autoexposure(const Image& color);
-  };
+  float getAutoexposure(const Image& color);
 
 } // namespace oidn
