@@ -48,6 +48,44 @@ bool isBetween(const ImageBuffer& image, float a, float b)
 
 // -----------------------------------------------------------------------------
 
+void imageSizeTest(DeviceRef& device, int W, int H)
+{
+  FilterRef filter = device.newFilter("RT");
+  REQUIRE(filter);
+
+  const int N = std::max(W * H * 3, 1); // make sure the buffers are never null
+  std::vector<float> input(N, 0.5f);
+  std::vector<float> output(N);
+
+  filter.setImage("color",  input.data(),  Format::Float3, W, H);
+  filter.setImage("output", output.data(), Format::Float3, W, H);
+
+  filter.commit();
+  REQUIRE(device.getError() == Error::None);
+
+  filter.execute();
+  REQUIRE(device.getError() == Error::None);
+}
+
+TEST_CASE("image size", "[size]")
+{
+  DeviceRef device = newDevice();
+  REQUIRE(device);
+  device.commit();
+  REQUIRE(device.getError() == Error::None);
+
+  // Test small image sizes
+  imageSizeTest(device, 0, 0);
+  imageSizeTest(device, 0, 1);
+  imageSizeTest(device, 1, 0);
+  imageSizeTest(device, 1, 1);
+  imageSizeTest(device, 1, 2);
+  imageSizeTest(device, 2, 1);
+  imageSizeTest(device, 2, 2);
+}
+
+// -----------------------------------------------------------------------------
+
 void sanitizationTest(DeviceRef& device, bool hdr, float value)
 {
   const int W = 190;
