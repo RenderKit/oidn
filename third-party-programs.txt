@@ -327,7 +327,7 @@ SOFTWARE.
 --------------------------------------------------------------------------------
 
 4.  Catch2
-    Copyright 2010 Two Blue Cubes Ltd
+    Copyright (c) 2021 Two Blue Cubes Ltd. All rights reserved.
 
 Boost Software License - Version 1.0 - August 17th, 2003
 
