@@ -434,7 +434,9 @@ commmitted by calling
     void oidnCommitFilter(OIDNFilter filter);
 
 The parameters can be updated after committing the filter, but it must be
-re-committed for the changes to take effect.
+re-committed for any new changes to take effect. Committing major changes to the
+filter (e.g. setting new image parameters, changing the image resolution) can
+be expensive, and thus should not be done frequently (e.g. per frame).
 
 Finally, an image can be filtered by executing the filter with
 

@@ -4,7 +4,7 @@ Version History
 ### Changes in v1.4.0:
 
 -   Improved fine detail preservation
--   Added `cleanAux` filter parameter for further improving quality when the
+-   Added the `cleanAux` filter parameter for further improving quality when the
     auxiliary feature (albedo, normal) images are noise-free
 -   Added support for denoising auxiliary feature images, which can be used 
     together with the new `cleanAux` parameter for improving quality when the
