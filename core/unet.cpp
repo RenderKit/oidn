@@ -33,7 +33,7 @@ namespace oidn {
   void UNetFilter::setData(const std::string& name, const Data& data)
   {
     if (name == "weights")
-      userWeights = data;
+      setParam(userWeights, data);
     else
       device->warning("unknown filter parameter");
 
@@ -43,9 +43,7 @@ namespace oidn {
   void UNetFilter::updateData(const std::string& name)
   {
     if (name == "weights")
-    {
-      // Nothing to do
-    }
+      dirtyParam |= userWeights;
     else
       device->warning("unknown filter parameter");
 
@@ -55,7 +53,7 @@ namespace oidn {
   void UNetFilter::removeData(const std::string& name)
   {
     if (name == "weights")
-      userWeights = Data();
+      removeParam(userWeights);
     else
       device->warning("unknown filter parameter");
 
@@ -85,12 +83,23 @@ namespace oidn {
     if (!dirty)
       return;
 
-    device->executeTask([&]()
+    // Determine whether in-place filtering is required
+    bool inplaceNew = output.overlaps(color)  ||
+                      output.overlaps(albedo) ||
+                      output.overlaps(normal);
+    setParam(inplace, inplaceNew);
+
+    if (dirtyParam)
     {
-      buildNet();
-    });
+      // Rebuild the network
+      device->executeTask([&]()
+      {
+        buildNet();
+      });
+    }
 
     dirty = false;
+    dirtyParam = false;
   }
 
   void UNetFilter::execute()
@@ -229,6 +238,7 @@ namespace oidn {
     net = nullptr;
     inputReorder = nullptr;
     outputReorder = nullptr;
+    transferFunc = nullptr;
     outputTemp = Image();
 
     // Check the input/output buffers
@@ -320,11 +330,6 @@ namespace oidn {
       throw Exception(Error::InvalidOperation, "unsupported combination of input features");
 
     const bool snorm = directional || (!color && normal);
-
-    // Determine whether in-place filtering is required
-    inplace = output.overlaps(color)  ||
-              output.overlaps(albedo) ||
-              output.overlaps(normal);
 
     // Compute the tile size
     computeTileSize();
@@ -507,16 +512,16 @@ namespace oidn {
       return makeRef<TransferFunction>(TransferFunction::Type::SRGB);
   }
 
-  void RTFilter::setImage(const std::string& name, const Image& data)
+  void RTFilter::setImage(const std::string& name, const Image& image)
   {
     if (name == "color")
-      color = data;
+      setParam(color, image);
     else if (name == "albedo")
-      albedo = data;
+      setParam(albedo, image);
     else if (name == "normal")
-      normal = data;
+      setParam(normal, image);
     else if (name == "output")
-      output = data;
+      setParam(output, image);
     else
       device->warning("unknown filter parameter");
 
@@ -526,13 +531,13 @@ namespace oidn {
   void RTFilter::removeImage(const std::string& name)
   {
     if (name == "color")
-      color = Image();
+      removeParam(color);
     else if (name == "albedo")
-      albedo = Image();
+      removeParam(albedo);
     else if (name == "normal")
-      normal = Image();
+      removeParam(normal);
     else if (name == "output")
-      output = Image();
+      removeParam(output);
     else
       device->warning("unknown filter parameter");
 
@@ -542,13 +547,13 @@ namespace oidn {
   void RTFilter::set1i(const std::string& name, int value)
   {
     if (name == "hdr")
-      hdr = value;
+      setParam(hdr, value);
     else if (name == "srgb")
-      srgb = value;
+      setParam(srgb, value);
     else if (name == "cleanAux")
-      cleanAux = value;
+      setParam(cleanAux, value);
     else if (name == "maxMemoryMB")
-      maxMemoryMB = value;
+      setParam(maxMemoryMB, value);
     else
       device->warning("unknown filter parameter");
 
@@ -594,12 +599,12 @@ namespace oidn {
       return makeRef<TransferFunction>(TransferFunction::Type::Linear);
   }
 
-  void RTLightmapFilter::setImage(const std::string& name, const Image& data)
+  void RTLightmapFilter::setImage(const std::string& name, const Image& image)
   {
     if (name == "color")
-      color = data;
+      setParam(color, image);
     else if (name == "output")
-      output = data;
+      setParam(output, image);
     else
       device->warning("unknown filter parameter");
 
@@ -609,9 +614,9 @@ namespace oidn {
   void RTLightmapFilter::removeImage(const std::string& name)
   {
     if (name == "color")
-      color = Image();
+      removeParam(color);
     else if (name == "output")
-      output = Image();
+      removeParam(output);
     else
       device->warning("unknown filter parameter");
 
@@ -622,11 +627,11 @@ namespace oidn {
   {
     if (name == "directional")
     {
-      directional = value;
+      setParam(directional, value);
       hdr = !directional;
     }
     else if (name == "maxMemoryMB")
-      maxMemoryMB = value;
+      setParam(maxMemoryMB, value);
     else
       device->warning("unknown filter parameter");
 

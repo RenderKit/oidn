@@ -103,7 +103,7 @@ namespace oidn {
   public:
     explicit RTFilter(const Ref<Device>& device);
 
-    void setImage(const std::string& name, const Image& data) override;
+    void setImage(const std::string& name, const Image& image) override;
     void removeImage(const std::string& name) override;
     void set1i(const std::string& name, int value) override;
     int get1i(const std::string& name) override;
@@ -121,7 +121,7 @@ namespace oidn {
   public:
     explicit RTLightmapFilter(const Ref<Device>& device);
 
-    void setImage(const std::string& name, const Image& data) override;
+    void setImage(const std::string& name, const Image& image) override;
     void removeImage(const std::string& name) override;
     void set1i(const std::string& name, int value) override;
     int get1i(const std::string& name) override;

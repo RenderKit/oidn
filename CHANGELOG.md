@@ -16,6 +16,8 @@ Version History
     been changed after committing the filter
 -   Added the `oidnRemoveFilterImage` and `oidnRemoveFilterData` functions for
     removing previously set image and opaque data parameters of filters
+-   Reduced the overhead of `oidnCommitFilter` to zero in some cases (e.g. when
+    changing already set image buffers/pointers or the `inputScale` parameter)
 -   Fixed detection of static TBB builds on Windows
 
 ### Changes in v1.3.0:
