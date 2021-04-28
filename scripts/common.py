@@ -11,8 +11,9 @@ def run(command):
     print('Error: non-zero return value')
     exit(1)
 
-# Detect the OS
+# Detect the OS and architecture
 OS = {'Windows' : 'windows', 'Linux' : 'linux', 'Darwin' : 'macos'}[platform.system()]
+ARCH = platform.machine()
 
 # Get the root directory
 root_dir = os.environ.get('OIDN_ROOT_DIR')
