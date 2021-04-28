@@ -23,6 +23,8 @@
 OIDN_NAMESPACE_USING
 using namespace oidn;
 
+int width = -1;
+int height = -1;
 int numRuns = -1;
 int maxMemoryMB = -1;
 
@@ -30,6 +32,7 @@ void printUsage()
 {
   std::cout << "Intel(R) Open Image Denoise - Benchmark" << std::endl;
   std::cout << "usage: oidnBenchmark [-r/--run regex] [-n times]" << std::endl
+            << "                     [-s/--size width height]" << std::endl
             << "                     [--threads n] [--affinity 0|1] [--maxmem MB]" << std::endl
             << "                     [-v/--verbose 0-3]" << std::endl
             << "                     [-l/--list] [-h/--help]" << std::endl;
@@ -168,12 +171,13 @@ void runBenchmark(DeviceRef& device, const Benchmark& bench)
 // Adds all benchmarks to the list
 void addAllBenchmarks()
 {
-  const std::vector<std::pair<int, int>> sizes =
-  {
-    {1920, 1080},
-    {3840, 2160},
-    {1280, 720},
-  };
+  std::vector<std::pair<int, int>> sizes;
+
+  // Filter: RT
+  if (width < 0)
+    sizes = {{1920, 1080}, {3840, 2160}, {1280, 720}};
+  else
+    sizes = {{width, height}};
 
   for (const auto& size : sizes)
   {
@@ -181,14 +185,11 @@ void addAllBenchmarks()
     addBenchmark("RT", {"ldr", "alb", "nrm"}, size);
   }
 
-  const std::vector<std::pair<int, int>> lightmapSizes =
-  {
-    {2048, 2048},
-    {4096, 4096},
-    {1024, 1024},
-  };
+  // Filter: RTLightmap
+  if (width < 0)
+    sizes = {{2048, 2048}, {4096, 4096}, {1024, 1024}};
 
-  for (const auto& size : lightmapSizes)
+  for (const auto& size : sizes)
   {
     addBenchmark("RTLightmap", {"hdr"}, size);
   }
@@ -200,9 +201,6 @@ int main(int argc, char* argv[])
   int numThreads = -1;
   int setAffinity = -1;
   int verbose = -1;
-
-  // Add the benchmarks to the list
-  addAllBenchmarks();
 
   try
   {
@@ -218,6 +216,13 @@ int main(int argc, char* argv[])
         if (numRuns <= 0)
           throw std::runtime_error("invalid number of runs");
       }
+      else if (opt == "s" || opt == "size")
+      {
+        width  = args.getNextValueInt();
+        height = args.getNextValueInt();
+        if (width < 1 || height < 1)
+          throw std::runtime_error("invalid image size");
+      }
       else if (opt == "threads")
         numThreads = args.getNextValueInt();
       else if (opt == "affinity")
@@ -227,12 +232,7 @@ int main(int argc, char* argv[])
       else if (opt == "v" || opt == "verbose")
         verbose = args.getNextValueInt();
       else if (opt == "l" || opt == "list")
-      {
-        // List all benchmarks
-        for (const auto& bench : benchmarks)
-          std::cout << bench.name << std::endl;
-        return 0;
-      }
+        run = "";
       else if (opt == "h" || opt == "help")
       {
         printUsage();
@@ -240,6 +240,17 @@ int main(int argc, char* argv[])
       }
       else
         throw std::invalid_argument("invalid argument");
+    }
+
+    // Add the benchmarks to the list
+    addAllBenchmarks();
+
+    if (run.empty())
+    {
+      // List all benchmarks
+      for (const auto& bench : benchmarks)
+        std::cout << bench.name << std::endl;
+      return 0;
     }
 
   #if defined(OIDN_X64)

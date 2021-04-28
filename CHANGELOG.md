@@ -20,6 +20,7 @@ Version History
     changing already set image buffers/pointers or the `inputScale` parameter)
 -   Fixed detection of static TBB builds on Windows
 -   Fixed compile error when using future glibc versions
+-   Added `oidnBenchmark` option for setting custom resolutions
 
 ### Changes in v1.3.0:
 
