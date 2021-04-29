@@ -121,8 +121,8 @@ def main():
   metric_count = 0
 
   # Saves an image in different formats
-  def save_images(path, image, image_srgb, suffix=infer.main_feature):
-    if suffix == 'sh1':
+  def save_images(path, image, image_srgb, feature_ext=infer.main_feature):
+    if feature_ext == 'sh1':
       # Iterate over x, y, z
       for i, axis in [(0, 'x'), (3, 'y'), (6, 'z')]:
         save_images(path, image[:, i:i+3, ...], image_srgb[:, i:i+3, ...], 'sh1' + axis)
@@ -130,7 +130,7 @@ def main():
 
     image      = tensor_to_image(image)
     image_srgb = tensor_to_image(image_srgb)
-    filename_prefix = path + '.' + suffix + '.'
+    filename_prefix = path + '.' + feature_ext + '.'
     for format in cfg.format:
       if format in {'exr', 'pfm', 'hdr'}:
         # Transform to original range
