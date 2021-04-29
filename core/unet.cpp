@@ -338,16 +338,16 @@ namespace oidn {
     if (H <= 0 || W <= 0)
       return;
 
-    // If doing in-place _tiled_ filtering, allocate a temporary output buffer
-    // For non-tiled filtering this is not necessary as we use ping-pong buffers
-    if (inplace && (tileCountH * tileCountW) > 1)
-      outputTemp = Image(device, output.format, W, H);
-
     // Parse the weights blob
     const auto weightsMap = parseTZA(device, weights.ptr, weights.size);
 
     // Create the network
     net = makeRef<Network>(device, weightsMap);
+
+    // If doing in-place _tiled_ filtering, allocate a temporary output buffer
+    // For non-tiled filtering this is not necessary as we use ping-pong buffers
+    if (inplace && (tileCountH * tileCountW) > 1)
+      outputTemp = net->newImage(output.format, W, H);
 
     // Compute the buffer sizes
     const auto inputDims        = TensorDims({inputC, tileH, tileW});
@@ -480,6 +480,7 @@ namespace oidn {
     outputReorder = net->addOutputReorder(decConv0->getDst(),
                                           transferFunc, hdr, snorm);
 
+    // Finalize the network
     net->finalize();
   }
 

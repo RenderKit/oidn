@@ -125,6 +125,24 @@ namespace oidn {
       }
     }
 
+    // Returns the number of pixels in the image
+    __forceinline size_t numElements() const
+    {
+      return size_t(width) * size_t(height);
+    }
+
+    // Returns the size in bytes of a pixel in the image
+    __forceinline size_t elementByteSize() const
+    {
+      return getByteSize(format);
+    }
+
+    // Returns the size in bytes of the image
+    __forceinline size_t byteSize() const
+    {
+      return numElements() * elementByteSize();
+    }
+
     // Determines whether two images overlap in memory
     bool overlaps(const Image& other) const
     {

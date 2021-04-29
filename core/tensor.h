@@ -92,7 +92,7 @@ namespace oidn {
       return getNumElements(dims);
     }
 
-    // Return the size in bytes of an element in the tensor
+    // Returns the size in bytes of an element in the tensor
     __forceinline size_t elementByteSize() const
     {
       return getByteSize(dataType);

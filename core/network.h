@@ -22,6 +22,7 @@ namespace oidn {
     double getWorkAmount() const;
 
     Ref<Tensor> newTensor(const TensorDims& dims);
+    Image newImage(Format format, size_t width, size_t height);
 
     TensorDims getInputReorderDims(const TensorDims& srcDims, int alignment);
 

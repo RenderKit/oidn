@@ -51,6 +51,13 @@ namespace oidn {
     return result;
   }
 
+  Image Network::newImage(Format format, size_t width, size_t height)
+  {
+    Image image(device, format, width, height);
+    totalAllocBytes += image.byteSize();
+    return image;
+  }
+
   TensorDims Network::getInputReorderDims(const TensorDims& srcDims, int alignment)
   {
     assert(srcDims.size() == 3); // CHW
