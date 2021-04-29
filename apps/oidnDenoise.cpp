@@ -143,7 +143,7 @@ int main(int argc, char* argv[])
         numThreads = args.getNextValueInt();
       else if (opt == "affinity")
         setAffinity = args.getNextValueInt();
-      else if (opt == "maxmem")
+      else if (opt == "maxmem" || opt == "maxMemoryMB")
         maxMemoryMB = args.getNextValueInt();
       else if (opt == "inplace")
         inplace = true;
@@ -284,9 +284,6 @@ int main(int argc, char* argv[])
     }
 
     filter.commit();
-
-    if (verbose > 1 && inplace)
-      std::cout << "In-place mode" << std::endl;
 
     const double initTime = timer.query();
 
