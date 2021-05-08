@@ -21,10 +21,12 @@ namespace oidn {
     void execute(Progress& progress);
     double getWorkAmount() const;
 
-    Ref<Tensor> newTensor(const TensorDims& dims);
-    Image newImage(Format format, size_t width, size_t height);
+    // Scratch memory
+    void setScratchSize(size_t size);
+    Ref<Tensor> newTensor(const TensorDesc& desc, ptrdiff_t offset);
+    Image newImage(const ImageDesc& desc, ptrdiff_t offset);
 
-    TensorDims getInputReorderDims(const TensorDims& srcDims, int alignment);
+    TensorDesc getInputReorderDesc(const TensorDims& srcDims, int alignment);
 
     Ref<InputReorderNode> addInputReorder(const Ref<Tensor>& dst,
                                           const Ref<TransferFunction>& transferFunc,
@@ -36,23 +38,21 @@ namespace oidn {
                                             bool hdr,
                                             bool snorm);
 
-    TensorDims getConvDims(const std::string& name, const TensorDims& srcDims);
+    TensorDesc getConvDesc(const std::string& name, const TensorDesc& srcDesc);
     Ref<Node> addConv(const std::string& name,
                       const Ref<Tensor>& src,
                       const Ref<Tensor>& dst,
                       bool relu = true);
 
-    TensorDims getPoolDims(const TensorDims& srcDims);
+    TensorDesc getPoolDesc(const TensorDesc& srcDesc);
     Ref<Node> addPool(const Ref<Tensor>& src,
                       const Ref<Tensor>& dst);
 
-    TensorDims getUpsampleDims(const TensorDims& srcDims);
+    TensorDesc getUpsampleDesc(const TensorDesc& srcDesc);
     Ref<Node> addUpsample(const Ref<Tensor>& src,
                           const Ref<Tensor>& dst);
 
-    TensorDims getConcatDims(const std::vector<TensorDims>& srcDims);
-    std::vector<Ref<Tensor>> getConcatSrc(const Ref<Tensor>& dst,
-                                          const std::vector<TensorDims>& srcDims);
+    TensorDesc getConcatDesc(const std::vector<TensorDesc>& srcDescs);
 
     void finalize();
 
@@ -63,9 +63,8 @@ namespace oidn {
     std::vector<Ref<Node>> nodes;
     std::map<std::string, Ref<Tensor>> weightsMap;
 
-    // Memory allocation statistics
-    size_t activationAllocBytes = 0; // number of allocated activation bytes
-    size_t totalAllocBytes      = 0; // total number of allocated bytes
+    Ref<Buffer> scratch;
+    size_t scratchSize = 0;
 
     Ref<Tensor> padWeights(const Ref<Tensor>& src);
     Ref<Tensor> padBias(const Ref<Tensor>& src);

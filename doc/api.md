@@ -523,7 +523,7 @@ Type        Name             Default Description
 
 `Data`      `weights`     *optional* trained model weights blob
 
-`int`       `maxMemoryMB`       6000 approximate maximum scratch memory to use in megabytes (actual
+`int`       `maxMemoryMB`       3000 approximate maximum scratch memory to use in megabytes (actual
                                      memory usage may be higher); limiting memory usage may cause
                                      slower denoising due to internally splitting the image into
                                      overlapping tiles
@@ -687,7 +687,7 @@ Type        Name             Default Description
 
 `Data`      `weights`     *optional* trained model weights blob
 
-`int`       `maxMemoryMB`       6000 approximate maximum scratch memory to use in megabytes (actual
+`int`       `maxMemoryMB`       3000 approximate maximum scratch memory to use in megabytes (actual
                                      memory usage may be higher); limiting memory usage may cause
                                      slower denoising due to internally splitting the image into
                                      overlapping tiles

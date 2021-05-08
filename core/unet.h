@@ -21,14 +21,6 @@ namespace oidn {
     static constexpr int receptiveField  = 174; // receptive field in pixels
     static constexpr int overlap         = round_up(receptiveField / 2, alignment); // required spatial overlap between tiles in pixels
 
-    // Estimated memory usage
-    static constexpr int estimatedBytesBase     = 16*1024*1024; // conservative base memory usage
-  #if defined(OIDN_DNNL)
-    static constexpr int estimatedBytesPerPixel = 882;
-  #else
-    static constexpr int estimatedBytesPerPixel = 854;
-  #endif
-
     // Images
     Image color;
     Image albedo;
@@ -90,8 +82,9 @@ namespace oidn {
     void execute() override;
 
   private:
+    void init();
     void computeTileSize();
-    void buildNet();
+    size_t buildNet(bool getScratchSizeOnly = false);
   };
 
   // ---------------------------------------------------------------------------

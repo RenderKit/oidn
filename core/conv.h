@@ -120,8 +120,11 @@ namespace oidn {
       filter = BNNSFilterCreateLayerConvolution(&params, nullptr);
       if (!filter)
         throw Exception(Error::Unknown, "BNNSFilterCreateLayerConvolution failed");
-      inPtr  = src->data();
-      outPtr = dst->data();
+    }
+
+    void execute() override
+    {
+      BNNSFilterApply(filter, src->data(), dst->data());
     }
 
     Ref<Tensor> getDst() const override { return dst; }

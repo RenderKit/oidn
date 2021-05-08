@@ -18,6 +18,8 @@ Version History
     removing previously set image and opaque data parameters of filters
 -   Reduced the overhead of `oidnCommitFilter` to zero in some cases (e.g. when
     changing already set image buffers/pointers or the `inputScale` parameter)
+-   Reduced memory consumption by about 35%
+-   Reduced the default maximum memory consumption to 3000 MB
 -   Fixed detection of static TBB builds on Windows
 -   Fixed compile error when using future glibc versions
 -   Added `oidnBenchmark` option for setting custom resolutions

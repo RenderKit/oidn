@@ -30,35 +30,25 @@ namespace oidn {
     return double(nodes.size());
   }
 
-  Ref<Tensor> Network::newTensor(const TensorDims& dims)
+  void Network::setScratchSize(size_t size)
   {
-    assert(dims.size() == 3);
-    
-    TensorLayout layout;
-    if (K == 16)
-      layout = TensorLayout::Chw16c;
-    else if (K == 8)
-      layout = TensorLayout::Chw8c;
-    else
-      layout = TensorLayout::chw;
-    
-    Ref<Tensor> result = makeRef<Tensor>(device, dims, layout, DataType::Float32);
-    
-    size_t bytes = result->byteSize();
-    activationAllocBytes += bytes;
-    totalAllocBytes += bytes;
-
-    return result;
+    scratchSize = size;
+    scratch = makeRef<Buffer>(device, scratchSize);
   }
 
-  Image Network::newImage(Format format, size_t width, size_t height)
+  Ref<Tensor> Network::newTensor(const TensorDesc& desc, ptrdiff_t offset)
   {
-    Image image(device, format, width, height);
-    totalAllocBytes += image.byteSize();
-    return image;
+    size_t absOffset = offset >= 0 ? offset : scratchSize + offset;
+    return makeRef<Tensor>(scratch, desc, absOffset);
   }
 
-  TensorDims Network::getInputReorderDims(const TensorDims& srcDims, int alignment)
+  Image Network::newImage(const ImageDesc& desc, ptrdiff_t offset)
+  {
+    size_t absOffset = offset >= 0 ? offset : scratchSize + offset;
+    return Image(scratch, desc, absOffset);
+  }
+
+  TensorDesc Network::getInputReorderDesc(const TensorDims& srcDims, int alignment)
   {
     assert(srcDims.size() == 3); // CHW
 
@@ -66,7 +56,9 @@ namespace oidn {
     dstDims[0] = round_up(srcDims[0], K); // round up C
     dstDims[1] = round_up(srcDims[1], int64_t(alignment)); // round up H
     dstDims[2] = round_up(srcDims[2], int64_t(alignment)); // round up W
-    return dstDims;
+
+    TensorLayout layout = K == 16 ? TensorLayout::Chw16c : (K == 8 ? TensorLayout::Chw8c : TensorLayout::chw);
+    return TensorDesc(dstDims, layout, DataType::Float32);
   }
 
   Ref<InputReorderNode> Network::addInputReorder(const Ref<Tensor>& dst,
@@ -89,14 +81,14 @@ namespace oidn {
     return node;
   }
 
-  TensorDims Network::getConvDims(const std::string& name, const TensorDims& srcDims)
+  TensorDesc Network::getConvDesc(const std::string& name, const TensorDesc& srcDesc)
   {
-    assert(srcDims.size() == 3); // CHW
+    assert(srcDesc.ndims() == 3); // CHW
 
     const auto& bias = weightsMap[name + ".bias"];
-    TensorDims dstDims = srcDims;
+    TensorDims dstDims = srcDesc.dims;
     dstDims[0] = round_up(bias->dims[0], K); // dstDims[C] = round_up(OC, K)
-    return dstDims;
+    return TensorDesc(dstDims, srcDesc.layout, srcDesc.dataType);
   }
 
   Ref<Node> Network::addConv(const std::string& name,
@@ -104,7 +96,7 @@ namespace oidn {
                              const Ref<Tensor>& dst,
                              bool relu)
   {
-    assert(dst->dims == getConvDims(name, src->dims));
+    assert(dst->desc() == getConvDesc(name, src->desc()));
 
     // Get and pad the weights
     auto weights = weightsMap[name + ".weight"];
@@ -126,94 +118,78 @@ namespace oidn {
     return node;
   }
 
-  TensorDims Network::getPoolDims(const TensorDims& srcDims)
+  TensorDesc Network::getPoolDesc(const TensorDesc& srcDesc)
   {
-    assert(srcDims.size() == 3); // CHW
+    assert(srcDesc.ndims() == 3); // CHW
 
-    TensorDims dstDims = srcDims;
+    TensorDims dstDims = srcDesc.dims;
     dstDims[1] /= 2; // H/2
     dstDims[2] /= 2; // W/2
-    return dstDims;
+    return TensorDesc(dstDims, srcDesc.layout, srcDesc.dataType);
   }
 
   Ref<Node> Network::addPool(const Ref<Tensor>& src,
                              const Ref<Tensor>& dst)
   {
-    assert(dst->dims == getPoolDims(src->dims));
+    assert(dst->desc() == getPoolDesc(src->desc()));
 
     auto node = makeRef<PoolNode>(device, src, dst);
     nodes.push_back(node);
     return node;
   }
 
-  TensorDims Network::getUpsampleDims(const TensorDims& srcDims)
+  TensorDesc Network::getUpsampleDesc(const TensorDesc& srcDesc)
   {
-    assert(srcDims.size() == 3); // CHW
+    assert(srcDesc.ndims() == 3); // CHW
 
-    TensorDims dstDims = srcDims;
+    TensorDims dstDims = srcDesc.dims;
     dstDims[1] *= 2; // H*2
     dstDims[2] *= 2; // W*2
-    return dstDims;
+    return TensorDesc(dstDims, srcDesc.layout, srcDesc.dataType);
   }
 
   Ref<Node> Network::addUpsample(const Ref<Tensor>& src,
                                  const Ref<Tensor>& dst)
   {
-    assert(dst->dims == getUpsampleDims(src->dims));
+    assert(dst->desc() == getUpsampleDesc(src->desc()));
 
     auto node = makeRef<UpsampleNode>(device, src, dst);
     nodes.push_back(node);
     return node;
   }
 
-  TensorDims Network::getConcatDims(const std::vector<TensorDims>& srcDims)
+  TensorDesc Network::getConcatDesc(const std::vector<TensorDesc>& srcDescs)
   {
-    assert(!srcDims.empty());
-    assert(srcDims[0].size() == 3); // CHW
+    assert(!srcDescs.empty());
+    assert(srcDescs[0].ndims() == 3); // CHW
 
-    TensorDims dstDims = srcDims[0];
-    for (size_t i = 1; i < srcDims.size(); ++i)
+    TensorDims dstDims = srcDescs[0].dims;
+    for (size_t i = 1; i < srcDescs.size(); ++i)
     {
-      assert(srcDims[i].size() == 3); // CHW
-      assert(srcDims[i][1] == srcDims[0][1]); // H
-      assert(srcDims[i][2] == srcDims[0][2]); // W
-      dstDims[0] += srcDims[i][0]; // C
+      assert(srcDescs[i].ndims() == 3); // CHW
+      assert(srcDescs[i].dims[1] == srcDescs[0].dims[1]); // H
+      assert(srcDescs[i].dims[2] == srcDescs[0].dims[2]); // W
+      assert(srcDescs[i].layout == srcDescs[0].layout);
+      assert(srcDescs[i].dataType == srcDescs[0].dataType);
+      dstDims[0] += srcDescs[i].dims[0]; // C
     }
-    return dstDims;
-  }
-
-  std::vector<Ref<Tensor>> Network::getConcatSrc(const Ref<Tensor>& dst,
-                                                 const std::vector<TensorDims>& srcDims)
-  {
-    assert(dst->dims == getConcatDims(srcDims));
-
-    std::vector<Ref<Tensor>> src;
-    size_t offset = 0;
-
-    for (size_t i = 0; i < srcDims.size(); ++i)
-    {
-      src.push_back(dst->view(srcDims[i], offset));
-      offset += getNumElements(srcDims[i]);
-    }
-
-    return src;
+    return TensorDesc(dstDims, srcDescs[0].layout, srcDescs[0].dataType);
   }
 
   void Network::finalize()
   {
-    // Compute the size of the scratchpad
-    size_t scratchpadSize = 0;
+    // Compute the size of the scratch memory for the nodes
+    size_t nodeScratchSize = 0;
     for (const auto& node : nodes)
-      scratchpadSize = max(scratchpadSize, node->getScratchpadSize());
+      nodeScratchSize = max(nodeScratchSize, node->getScratchSize());
 
-    // Allocate the scratchpad
-    TensorDims scratchpadDims = { int64_t(scratchpadSize) };
-    auto scratchpad = makeRef<Tensor>(device, scratchpadDims, TensorLayout::x, DataType::UInt8);
-    totalAllocBytes += scratchpadSize;
+    // Allocate the scratch memory for the nodes
+    TensorDims nodeScratchDims = { int64_t(nodeScratchSize) };
+    auto nodeScratch = makeRef<Tensor>(device, nodeScratchDims, TensorLayout::x, DataType::UInt8);
 
-    // Set the scratchpad for the nodes
+    // Set the scratch memory for the nodes
     for (auto& node : nodes)
-      node->setScratchpad(scratchpad);
+      node->setScratch(nodeScratch);
 
     // Free the weights
     weightsMap.clear();
@@ -221,9 +197,10 @@ namespace oidn {
     // Print statistics
     if (device->isVerbose(2))
     {
-      std::cout << "Activation bytes: " << activationAllocBytes << std::endl;
-      std::cout << "Scratchpad bytes: " << scratchpadSize << std::endl;
-      std::cout << "Total bytes     : " << totalAllocBytes << std::endl;
+      const size_t totalScratchSize = scratchSize + nodeScratchSize;
+      std::cout << "Tensor scratch bytes: " << scratchSize << std::endl;
+      std::cout << "Node scratch bytes  : " << nodeScratchSize << std::endl;
+      std::cout << "Total scratch bytes : " << totalScratchSize << std::endl;
     }
   }
 

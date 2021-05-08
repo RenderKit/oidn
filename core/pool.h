@@ -75,8 +75,11 @@ namespace oidn {
       filter = BNNSFilterCreateLayerPooling(&params, nullptr);
       if (!filter)
         throw Exception(Error::Unknown, "BNNSFilterCreateLayerPooling failed");
-      inPtr  = src->data();
-      outPtr = dst->data();
+    }
+
+    void execute() override
+    {
+      BNNSFilterApply(filter, src->data(), dst->data());
     }
 
     Ref<Tensor> getDst() const override { return dst; }

@@ -4,6 +4,7 @@
 #pragma once
 
 #include "device.h"
+#include "buffer.h"
 #include <vector>
 
 namespace oidn {
@@ -117,6 +118,16 @@ namespace oidn {
         return 1;
       }
     }
+
+    __forceinline bool operator ==(const TensorDesc& other) const
+    {
+      return (dims == other.dims) && (layout == other.layout) && (dataType == other.dataType);
+    }
+
+    __forceinline bool operator !=(const TensorDesc& other) const
+    {
+      return (dims != other.dims) || (layout != other.layout) || (dataType != other.dataType);
+    }
     
   #if defined(OIDN_DNNL)
     operator dnnl::memory::desc() const
@@ -183,9 +194,8 @@ namespace oidn {
     bool shared;
   #endif
 
-  private:
     Ref<Device> device;
-    Ref<Tensor> parent; // for views
+    Ref<Buffer> buffer; // buffer containing the tensor data (optional)
 
   public:
     Tensor(const Ref<Device>& device, const TensorDesc& desc)
@@ -225,6 +235,15 @@ namespace oidn {
     }
   #endif
 
+    Tensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
+      : TensorDesc(desc),
+        device(buffer->getDevice()),
+        buffer(buffer)
+    {
+      assert(byteOffset + desc.byteSize() <= buffer->size());
+      init(device, buffer->data() + byteOffset);
+    }
+
     ~Tensor()
     {
     #if !defined(OIDN_DNNL)
@@ -243,22 +262,7 @@ namespace oidn {
     __forceinline const void* data() const { return ptr; }
   #endif
 
-    // Returns a view of the tensor, optionally applying an offset in number of elements
-    Ref<Tensor> view(const TensorDesc& newDesc, size_t offset = 0)
-    {
-      size_t byteOffset = offset * newDesc.elementByteSize();
-      assert(byteSize() >= newDesc.byteSize() + byteOffset);
-      void* newData = (char*)data() + byteOffset;
-      Ref<Tensor> result = makeRef<Tensor>(device, newDesc, newData);
-      result->parent = this;
-      return result;
-    }
-
-    Ref<Tensor> view(const TensorDims& newDims, size_t offset = 0)
-    {
-      TensorDesc newDesc {newDims, layout, dataType};
-      return view(newDesc, offset);
-    }
+    __forceinline const TensorDesc& desc() const { return *this; }
 
     template <typename T> __forceinline T& get(int64_t i0)
     { return ((T*)data())[getIndex(i0)]; }

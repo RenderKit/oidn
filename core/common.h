@@ -56,7 +56,7 @@ namespace oidn {
   {
     switch (format)
     {
-    case Format::Undefined: return 1;
+    case Format::Undefined: return 0;
     case Format::Float:     return sizeof(float);
     case Format::Float2:    return sizeof(float)*2;
     case Format::Float3:    return sizeof(float)*3;
