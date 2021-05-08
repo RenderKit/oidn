@@ -240,6 +240,9 @@ int main(int argc, char* argv[])
       device.set("verbose", verbose);
     device.commit();
 
+    const double deviceInitTime = timer.query();
+    timer.reset();
+
     FilterRef filter = device.newFilter(filterType.c_str());
 
     if (color)
@@ -285,15 +288,17 @@ int main(int argc, char* argv[])
 
     filter.commit();
 
-    const double initTime = timer.query();
+    const double filterInitTime = timer.query();
 
     const int versionMajor = device.get<int>("versionMajor");
     const int versionMinor = device.get<int>("versionMinor");
     const int versionPatch = device.get<int>("versionPatch");
 
-    std::cout << "  version=" << versionMajor << "." << versionMinor << "." << versionPatch
-              << ", filter=" << filterType
-              << ", msec=" << (1000. * initTime) << std::endl;
+    std::cout << "  device=CPU"
+              << ", version=" << versionMajor << "." << versionMinor << "." << versionPatch
+              << ", msec=" << (1000. * deviceInitTime) << std::endl 
+              << "  filter=" << filterType
+              << ", msec=" << (1000. * filterInitTime) << std::endl;
 
     // Denoise the image
     if (!showProgress)
