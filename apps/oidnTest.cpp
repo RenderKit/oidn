@@ -48,6 +48,191 @@ bool isBetween(const ImageBuffer& image, float a, float b)
 
 // -----------------------------------------------------------------------------
 
+TEST_CASE("single filter", "[single_filter]")
+{
+  const int W = 257;
+  const int H = 89;
+
+  DeviceRef device = newDevice();
+  REQUIRE(device);
+  device.commit();
+  REQUIRE(device.getError() == Error::None);
+
+  FilterRef filter = device.newFilter("RT");
+  REQUIRE(filter);
+
+  ImageBuffer image = makeConstImage(W, H);
+  setFilterImage(filter, "color",  image);
+  setFilterImage(filter, "output", image);
+
+  filter.commit();
+  REQUIRE(device.getError() == Error::None);
+
+  SECTION("single filter: 1 frame")
+  {
+    filter.execute();
+    REQUIRE(device.getError() == Error::None);
+  }
+
+  SECTION("single filter: 3 frames")
+  {
+    for (int i = 0; i < 3; ++i)
+    {
+      filter.execute();
+      REQUIRE(device.getError() == Error::None);
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
+
+void multiFilter1PerDeviceTest(DeviceRef& device, const std::vector<int>& sizes)
+{
+  for (size_t i = 0; i < sizes.size(); ++i)
+  {
+    FilterRef filter = device.newFilter("RT");
+    REQUIRE(filter);
+
+    ImageBuffer image = makeConstImage(sizes[i], sizes[i]);
+    setFilterImage(filter, "color",  image);
+    setFilterImage(filter, "output", image);
+
+    filter.commit();
+    REQUIRE(device.getError() == Error::None);
+
+    filter.execute();
+    REQUIRE(device.getError() == Error::None);
+  }
+}
+
+void multiFilterNPerDeviceTest(DeviceRef& device, const std::vector<int>& sizes)
+{
+  std::vector<FilterRef> filters;
+  std::vector<ImageBuffer> images;
+
+  for (size_t i = 0; i < sizes.size(); ++i)
+  {
+    filters.push_back(device.newFilter("RT"));
+    REQUIRE(filters[i]);
+
+    images.push_back(makeConstImage(sizes[i], sizes[i]));
+    setFilterImage(filters[i], "color",  images[i]);
+    setFilterImage(filters[i], "output", images[i]);
+
+    filters[i].commit();
+    REQUIRE(device.getError() == Error::None);
+  }
+
+  for (size_t i = 0; i < filters.size(); ++i)
+  {
+    filters[i].execute();
+    REQUIRE(device.getError() == Error::None);
+  }
+}
+
+TEST_CASE("multiple filters", "[multi_filter]")
+{
+  DeviceRef device = newDevice();
+  REQUIRE(device);
+  device.commit();
+  REQUIRE(device.getError() == Error::None);
+
+  SECTION("1 filter / device: small -> large -> medium")
+  {
+    multiFilter1PerDeviceTest(device, {256, 3000, 1024});
+  }
+
+  SECTION("3 filters / device: small")
+  {
+    multiFilterNPerDeviceTest(device, {256, 256, 256});
+  }
+
+  SECTION("2 filters / device: small -> large")
+  {
+    multiFilterNPerDeviceTest(device, {256, 3000});
+  }
+
+  SECTION("3 filters / device: large -> small -> medium")
+  {
+    multiFilterNPerDeviceTest(device, {3000, 256, 1024});
+  }
+}
+
+// -----------------------------------------------------------------------------
+
+TEST_CASE("filter update", "[filter_update]")
+{
+  const int W = 500;
+  const int H = 300;
+
+  DeviceRef device = newDevice();
+  REQUIRE(device);
+  device.commit();
+  REQUIRE(device.getError() == Error::None);
+
+  FilterRef filter = device.newFilter("RT");
+  REQUIRE(filter);
+
+  ImageBuffer color  = makeConstImage(W, H);
+  ImageBuffer albedo = makeConstImage(W, H);
+  ImageBuffer output = makeConstImage(W, H);
+  setFilterImage(filter, "color",  color);
+  setFilterImage(filter, "albedo", albedo);
+  setFilterImage(filter, "output", output);
+
+  filter.set("hdr", true);
+
+  filter.commit();
+  REQUIRE(device.getError() == Error::None);
+
+  filter.execute();
+  REQUIRE(device.getError() == Error::None);
+
+  SECTION("filter update: none")
+  {
+    // No changes
+  }
+
+  SECTION("filter update: same image size")
+  {
+    color = makeConstImage(W, H);
+    setFilterImage(filter, "color", color);
+  }
+
+  SECTION("filter update: different image size")
+  {
+    color  = makeConstImage(W*2, H*2);
+    albedo = makeConstImage(W*2, H*2);
+    output = makeConstImage(W*2, H*2);
+    setFilterImage(filter, "color",  color);
+    setFilterImage(filter, "albedo", albedo);
+    setFilterImage(filter, "output", output);
+  }
+
+  SECTION("filter update: remove image")
+  {
+    filter.removeImage("albedo");
+  }
+
+  SECTION("filter update: remove image by setting to null")
+  {
+    filter.setImage("albedo", nullptr, Format::Float3, 0, 0);
+  }
+
+  SECTION("filter update: different mode")
+  {
+    filter.set("hdr", false);
+  }
+
+  filter.commit();
+  REQUIRE(device.getError() == Error::None);
+
+  filter.execute();
+  REQUIRE(device.getError() == Error::None);
+}
+
+// -----------------------------------------------------------------------------
+
 void imageSizeTest(DeviceRef& device, int W, int H)
 {
   FilterRef filter = device.newFilter("RT");
@@ -74,14 +259,24 @@ TEST_CASE("image size", "[size]")
   device.commit();
   REQUIRE(device.getError() == Error::None);
 
-  // Test small image sizes
-  imageSizeTest(device, 0, 0);
-  imageSizeTest(device, 0, 1);
-  imageSizeTest(device, 1, 0);
-  imageSizeTest(device, 1, 1);
-  imageSizeTest(device, 1, 2);
-  imageSizeTest(device, 2, 1);
-  imageSizeTest(device, 2, 2);
+  SECTION("image size: 0x0")
+  {
+    imageSizeTest(device, 0, 0);
+  }
+
+  SECTION("image size: [0,1]x[0,1]")
+  {
+    imageSizeTest(device, 0, 1);
+    imageSizeTest(device, 1, 0);
+  }
+
+  SECTION("image size: [1,2]x[1,2]")
+  {
+    imageSizeTest(device, 1, 1);
+    imageSizeTest(device, 1, 2);
+    imageSizeTest(device, 2, 1);
+    imageSizeTest(device, 2, 2);
+  }
 }
 
 // -----------------------------------------------------------------------------
@@ -121,7 +316,7 @@ TEST_CASE("image sanitization", "[sanitization]")
   device.commit();
   REQUIRE(device.getError() == Error::None);
 
-  SECTION("HDR")
+  SECTION("image sanitization: HDR")
   {
     sanitizationTest(device, true,  std::numeric_limits<float>::quiet_NaN());
     sanitizationTest(device, true,  std::numeric_limits<float>::infinity());
@@ -129,7 +324,7 @@ TEST_CASE("image sanitization", "[sanitization]")
     sanitizationTest(device, true, -100.f);
   }
 
-  SECTION("LDR")
+  SECTION("image sanitization: LDR")
   {
     sanitizationTest(device, false,  std::numeric_limits<float>::quiet_NaN());
     sanitizationTest(device, false,  std::numeric_limits<float>::infinity());
@@ -194,29 +389,29 @@ void progressTest(DeviceRef& device, double nMax = 1000)
   }
 }
 
-TEST_CASE("progress monitor callback", "[progress]")
+TEST_CASE("progress monitor", "[progress]")
 {
   DeviceRef device = newDevice();
   REQUIRE(device);
   device.commit();
   REQUIRE(device.getError() == Error::None);
 
-  SECTION("complete")
+  SECTION("progress monitor: complete")
   {
     progressTest(device);
   }
 
-  SECTION("cancel at the middle")
+  SECTION("progress monitor: cancel at the middle")
   {
     progressTest(device, 0.5);
   }
 
-  SECTION("cancel at the beginning")
+  SECTION("progress monitor: cancel at the beginning")
   {
     progressTest(device, 0);
   }
  
-  SECTION("cancel at the end")
+  SECTION("progress monitor: cancel at the end")
   {
     progressTest(device, 1);
   }

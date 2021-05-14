@@ -23,19 +23,24 @@ namespace oidn {
     dst = src;
   }
 
-  void Filter::setParam(Image& dst, const Image& src)
+  void Filter::setParam(std::shared_ptr<Image>& dst, const std::shared_ptr<Image>& src)
   {
     // The image parameter is *not* dirty if only the pointer changes (except to/from nullptr)
-    dirtyParam |= (!dst && src) || (dst && !src) ||
-                  (dst.width != src.width) || (dst.height != src.height) ||
-                  (dst.format != src.format);
-    dst = src;
+    dirtyParam |= (!dst && src && *src) || (dst && (!src || !(*src))) ||
+                  (dst && src && *src &&
+                   ((dst->width != src->width) || (dst->height != src->height) ||
+                    (dst->format != src->format)));
+
+    if (src && *src)
+      dst = src;
+    else
+      dst = nullptr;
   }
 
-  void Filter::removeParam(Image& dst)
+  void Filter::removeParam(std::shared_ptr<Image>& dst)
   {
-    dirtyParam |= dst;
-    dst = Image();
+    dirtyParam |= bool(dst);
+    dst = nullptr;
   }
 
   void Filter::setParam(Data& dst, const Data& src)

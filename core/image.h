@@ -93,15 +93,14 @@ namespace oidn {
     // Returns the size in bytes of the image
     __forceinline size_t byteSize() const
     {
-      return numElements() * elementByteSize();
+      return size_t(height) * rowStride * bytePixelStride;
     }
   };
 
-  class Image : public ImageDesc
+  class Image : public Memory, public ImageDesc
   {
   public:
-    char* ptr;          // pointer to the first pixel
-    Ref<Buffer> buffer; // buffer containing the image data (optional)
+    char* ptr; // pointer to the first pixel
 
     Image() :
       ImageDesc(Format::Undefined, 0, 0),
@@ -110,35 +109,35 @@ namespace oidn {
     Image(void* ptr, Format format, size_t width, size_t height, size_t byteOffset, size_t inBytePixelStride, size_t inByteRowStride)
       : ImageDesc(format, width, height, inBytePixelStride, inByteRowStride)
     {
-      if (ptr == nullptr)
-        throw Exception(Error::InvalidArgument, "buffer pointer null");
+      if ((ptr == nullptr) && (byteOffset + byteSize() > 0))
+        throw Exception(Error::InvalidArgument, "buffer region out of range");
 
       this->ptr = (char*)ptr + byteOffset;
     }
 
     Image(const Ref<Buffer>& buffer, const ImageDesc& desc, size_t byteOffset)
-      : ImageDesc(desc),
-        buffer(buffer)
+      : Memory(buffer, byteOffset),
+        ImageDesc(desc)
     {
-      if (byteOffset + height * rowStride * bytePixelStride > buffer->size())
+      if (byteOffset + byteSize() > buffer->size())
         throw Exception(Error::InvalidArgument, "buffer region out of range");
 
       this->ptr = buffer->data() + byteOffset;
     }
 
     Image(const Ref<Buffer>& buffer, Format format, size_t width, size_t height, size_t byteOffset, size_t inBytePixelStride, size_t inByteRowStride)
-      : ImageDesc(format, width, height, inBytePixelStride, inByteRowStride),
-        buffer(buffer)
+      : Memory(buffer, byteOffset),
+        ImageDesc(format, width, height, inBytePixelStride, inByteRowStride)
     {
-      if (byteOffset + height * rowStride * bytePixelStride > buffer->size())
+      if (byteOffset + byteSize() > buffer->size())
         throw Exception(Error::InvalidArgument, "buffer region out of range");
 
       this->ptr = buffer->data() + byteOffset;
     }
 
     Image(const Ref<Device>& device, Format format, size_t width, size_t height)
-      : ImageDesc(format, width, height),
-        buffer(makeRef<Buffer>(device, width * height * getByteSize(format)))
+      : Memory(device->newBuffer(width * height * getByteSize(format))),
+        ImageDesc(format, width, height)
     {
       this->ptr = buffer->data();
     }
@@ -193,6 +192,17 @@ namespace oidn {
       result.rowStride = rowStride;
       result.bytePixelStride = bytePixelStride;
       return result;
+    }
+
+    void updatePtr() override
+    {
+      if (buffer)
+      {
+        if (bufferOffset + byteSize() > buffer->size())
+          throw Exception(Error::Unknown, "buffer region out of range");
+
+        ptr = buffer->data() + bufferOffset;
+      }
     }
   };
 

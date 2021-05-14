@@ -9,7 +9,7 @@
 
 namespace oidn {
 
-  Network::Network(const Ref<Device>& device, const std::map<std::string, Ref<Tensor>>& weightsMap)
+  Network::Network(const Ref<Device>& device, const std::map<std::string, std::shared_ptr<Tensor>>& weightsMap)
     : device(device),
       K(device->getTensorBlockSize()),
       weightsMap(weightsMap)
@@ -30,22 +30,22 @@ namespace oidn {
     return double(nodes.size());
   }
 
-  void Network::setScratchSize(size_t size)
+  void Network::allocScratch(size_t size)
   {
-    scratchSize = size;
-    scratch = makeRef<Buffer>(device, scratchSize);
+    assert(!scratch);
+    scratch = device->newScratchBuffer(size);
   }
 
-  Ref<Tensor> Network::newTensor(const TensorDesc& desc, ptrdiff_t offset)
+  std::shared_ptr<Tensor> Network::newTensor(const TensorDesc& desc, ptrdiff_t offset)
   {
-    size_t absOffset = offset >= 0 ? offset : scratchSize + offset;
-    return makeRef<Tensor>(scratch, desc, absOffset);
+    assert(scratch);
+    return scratch->newTensor(desc, offset);
   }
 
-  Image Network::newImage(const ImageDesc& desc, ptrdiff_t offset)
+  std::shared_ptr<Image> Network::newImage(const ImageDesc& desc, ptrdiff_t offset)
   {
-    size_t absOffset = offset >= 0 ? offset : scratchSize + offset;
-    return Image(scratch, desc, absOffset);
+    assert(scratch);
+    return scratch->newImage(desc, offset);
   }
 
   TensorDesc Network::getInputReorderDesc(const TensorDims& srcDims, int alignment)
@@ -61,22 +61,22 @@ namespace oidn {
     return TensorDesc(dstDims, layout, DataType::Float32);
   }
 
-  Ref<InputReorderNode> Network::addInputReorder(const Ref<Tensor>& dst,
-                                                 const Ref<TransferFunction>& transferFunc,
-                                                 bool hdr,
-                                                 bool snorm)
+  std::shared_ptr<InputReorderNode> Network::addInputReorder(const std::shared_ptr<Tensor>& dst,
+                                                             const std::shared_ptr<TransferFunction>& transferFunc,
+                                                             bool hdr,
+                                                             bool snorm)
   {
-    auto node = makeRef<InputReorderNode>(device, dst, transferFunc, hdr, snorm);
+    auto node = std::make_shared<InputReorderNode>(device, dst, transferFunc, hdr, snorm);
     nodes.push_back(node);
     return node;
   }
 
-  Ref<OutputReorderNode> Network::addOutputReorder(const Ref<Tensor>& src,
-                                                   const Ref<TransferFunction>& transferFunc,
-                                                   bool hdr,
-                                                   bool snorm)
+  std::shared_ptr<OutputReorderNode> Network::addOutputReorder(const std::shared_ptr<Tensor>& src,
+                                                               const std::shared_ptr<TransferFunction>& transferFunc,
+                                                               bool hdr,
+                                                               bool snorm)
   {
-    auto node = makeRef<OutputReorderNode>(device, src, transferFunc, hdr, snorm);
+    auto node = std::make_shared<OutputReorderNode>(device, src, transferFunc, hdr, snorm);
     nodes.push_back(node);
     return node;
   }
@@ -91,10 +91,10 @@ namespace oidn {
     return TensorDesc(dstDims, srcDesc.layout, srcDesc.dataType);
   }
 
-  Ref<Node> Network::addConv(const std::string& name,
-                             const Ref<Tensor>& src,
-                             const Ref<Tensor>& dst,
-                             bool relu)
+  std::shared_ptr<Node> Network::addConv(const std::string& name,
+                                         const std::shared_ptr<Tensor>& src,
+                                         const std::shared_ptr<Tensor>& dst,
+                                         bool relu)
   {
     assert(dst->desc() == getConvDesc(name, src->desc()));
 
@@ -113,7 +113,7 @@ namespace oidn {
       bias = padBias(bias);
 
     // Create the convolution node
-    auto node = makeRef<ConvNode>(device, src, weights, bias, dst, relu);
+    auto node = std::make_shared<ConvNode>(device, src, weights, bias, dst, relu);
     nodes.push_back(node);
     return node;
   }
@@ -128,12 +128,12 @@ namespace oidn {
     return TensorDesc(dstDims, srcDesc.layout, srcDesc.dataType);
   }
 
-  Ref<Node> Network::addPool(const Ref<Tensor>& src,
-                             const Ref<Tensor>& dst)
+  std::shared_ptr<Node> Network::addPool(const std::shared_ptr<Tensor>& src,
+                                         const std::shared_ptr<Tensor>& dst)
   {
     assert(dst->desc() == getPoolDesc(src->desc()));
 
-    auto node = makeRef<PoolNode>(device, src, dst);
+    auto node = std::make_shared<PoolNode>(device, src, dst);
     nodes.push_back(node);
     return node;
   }
@@ -148,12 +148,12 @@ namespace oidn {
     return TensorDesc(dstDims, srcDesc.layout, srcDesc.dataType);
   }
 
-  Ref<Node> Network::addUpsample(const Ref<Tensor>& src,
-                                 const Ref<Tensor>& dst)
+  std::shared_ptr<Node> Network::addUpsample(const std::shared_ptr<Tensor>& src,
+                                             const std::shared_ptr<Tensor>& dst)
   {
     assert(dst->desc() == getUpsampleDesc(src->desc()));
 
-    auto node = makeRef<UpsampleNode>(device, src, dst);
+    auto node = std::make_shared<UpsampleNode>(device, src, dst);
     nodes.push_back(node);
     return node;
   }
@@ -185,7 +185,7 @@ namespace oidn {
 
     // Allocate the scratch memory for the nodes
     TensorDims nodeScratchDims = { int64_t(nodeScratchSize) };
-    auto nodeScratch = makeRef<Tensor>(device, nodeScratchDims, TensorLayout::x, DataType::UInt8);
+    auto nodeScratch = std::make_shared<Tensor>(device, nodeScratchDims, TensorLayout::x, DataType::UInt8);
 
     // Set the scratch memory for the nodes
     for (auto& node : nodes)
@@ -197,6 +197,7 @@ namespace oidn {
     // Print statistics
     if (device->isVerbose(2))
     {
+      const size_t scratchSize = scratch ? scratch->size() : 0;
       const size_t totalScratchSize = scratchSize + nodeScratchSize;
       std::cout << "Tensor scratch bytes: " << scratchSize << std::endl;
       std::cout << "Node scratch bytes  : " << nodeScratchSize << std::endl;
@@ -204,7 +205,7 @@ namespace oidn {
     }
   }
 
-  Ref<Tensor> Network::padWeights(const Ref<Tensor>& src)
+  std::shared_ptr<Tensor> Network::padWeights(const std::shared_ptr<Tensor>& src)
   {
     assert(src->layout == TensorLayout::oihw);
 
@@ -219,7 +220,7 @@ namespace oidn {
     if (dstDims == src->dims)
       return src;
 
-    Ref<Tensor> dst = makeRef<Tensor>(device, dstDims, TensorLayout::oihw, DataType::Float32);
+    auto dst = std::make_shared<Tensor>(device, dstDims, TensorLayout::oihw, DataType::Float32);
 
     for (int64_t o = 0; o < O2; ++o)
     {
@@ -244,7 +245,7 @@ namespace oidn {
     return dst;
   }
 
-  Ref<Tensor> Network::padBias(const Ref<Tensor>& src)
+  std::shared_ptr<Tensor> Network::padBias(const std::shared_ptr<Tensor>& src)
   {
     assert(src->layout == TensorLayout::x);
 
@@ -254,7 +255,7 @@ namespace oidn {
     if (X2 == X1)
       return src;
 
-    Ref<Tensor> dst = makeRef<Tensor>(device, TensorDims({X2}), TensorLayout::x, DataType::Float32);
+    auto dst = std::make_shared<Tensor>(device, TensorDims({X2}), TensorLayout::x, DataType::Float32);
 
     for (int64_t x = 0; x < X1; ++x)
       dst->get<float>(x) = src->get<float>(x);

@@ -24,7 +24,7 @@ namespace oidn {
   public:
     explicit Filter(const Ref<Device>& device) : device(device) {}
 
-    virtual void setImage(const std::string& name, const Image& image) = 0;
+    virtual void setImage(const std::string& name, const std::shared_ptr<Image>& image) = 0;
     virtual void removeImage(const std::string& name) = 0;
     virtual void setData(const std::string& name, const Data& data) = 0;
     virtual void updateData(const std::string& name) = 0;
@@ -44,8 +44,8 @@ namespace oidn {
   protected:
     void setParam(int& dst, int src);
     void setParam(bool& dst, int src);
-    void setParam(Image& dst, const Image& src);
-    void removeParam(Image& dst);
+    void setParam(std::shared_ptr<Image>& dst, const std::shared_ptr<Image>& src);
+    void removeParam(std::shared_ptr<Image>& dst);
     void setParam(Data& dst, const Data& src);
     void removeParam(Data& dst);
   };

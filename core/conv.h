@@ -13,17 +13,17 @@ namespace oidn {
   class ConvNode : public DNNLNode
   {
   private:
-    Ref<Tensor> src;
-    Ref<Tensor> weights;
-    Ref<Tensor> bias;
-    Ref<Tensor> dst;
+    std::shared_ptr<Tensor> src;
+    std::shared_ptr<Tensor> weights;
+    std::shared_ptr<Tensor> bias;
+    std::shared_ptr<Tensor> dst;
 
   public:
     ConvNode(const Ref<Device>& device,
-             const Ref<Tensor>& src,
-             const Ref<Tensor>& weights,
-             const Ref<Tensor>& bias,
-             const Ref<Tensor>& dst,
+             const std::shared_ptr<Tensor>& src,
+             const std::shared_ptr<Tensor>& weights,
+             const std::shared_ptr<Tensor>& bias,
+             const std::shared_ptr<Tensor>& dst,
              bool relu)
       : DNNLNode(device),
         src(src), weights(weights), bias(bias), dst(dst)
@@ -64,7 +64,7 @@ namespace oidn {
       // Reorder the weights to the final format, if necessary
       if (convPrimDesc.weights_desc() != weights->mem.get_desc())
       {
-        this->weights = makeRef<Tensor>(device, convPrimDesc.weights_desc());
+        this->weights = std::make_shared<Tensor>(device, convPrimDesc.weights_desc());
         ReorderNode(device, weights, this->weights).execute();
       }
 
@@ -75,7 +75,7 @@ namespace oidn {
               {DNNL_ARG_DST,     dst->mem}};
     }
 
-    Ref<Tensor> getDst() const override { return dst; }
+    std::shared_ptr<Tensor> getDst() const override { return dst; }
   };
 
 #elif defined(OIDN_BNNS)
@@ -84,17 +84,17 @@ namespace oidn {
   class ConvNode : public BNNSNode
   {
   private:
-    Ref<Tensor> src;
-    Ref<Tensor> weights;
-    Ref<Tensor> bias;
-    Ref<Tensor> dst;
+    std::shared_ptr<Tensor> src;
+    std::shared_ptr<Tensor> weights;
+    std::shared_ptr<Tensor> bias;
+    std::shared_ptr<Tensor> dst;
 
   public:
     ConvNode(const Ref<Device>& device,
-             const Ref<Tensor>& src,
-             const Ref<Tensor>& weights,
-             const Ref<Tensor>& bias,
-             const Ref<Tensor>& dst,
+             const std::shared_ptr<Tensor>& src,
+             const std::shared_ptr<Tensor>& weights,
+             const std::shared_ptr<Tensor>& bias,
+             const std::shared_ptr<Tensor>& dst,
              bool relu)
       : BNNSNode(device),
         src(src), weights(weights), bias(bias), dst(dst)
@@ -127,7 +127,7 @@ namespace oidn {
       BNNSFilterApply(filter, src->data(), dst->data());
     }
 
-    Ref<Tensor> getDst() const override { return dst; }
+    std::shared_ptr<Tensor> getDst() const override { return dst; }
   };
 
 #endif

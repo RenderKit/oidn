@@ -155,6 +155,8 @@ set(CORE_SOURCES
   core/pool.h
   core/progress.h
   core/reorder.h
+  core/scratch.h
+  core/scratch.cpp
   core/tensor.h
   core/tza.h
   core/tza.cpp

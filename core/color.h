@@ -8,7 +8,7 @@
 
 namespace oidn {
 
-  class TransferFunction : public RefCount
+  class TransferFunction
   {
   private:
     ispc::TransferFunction impl;
@@ -40,7 +40,7 @@ namespace oidn {
       ispc::TransferFunction_setInputScale(&impl, inputScale);
     }
 
-    ispc::TransferFunction* getImpl()
+    __forceinline ispc::TransferFunction* getImpl()
     {
       return &impl;
     }

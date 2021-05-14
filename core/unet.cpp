@@ -84,9 +84,10 @@ namespace oidn {
       return;
 
     // Determine whether in-place filtering is required
-    bool inplaceNew = output.overlaps(color)  ||
-                      output.overlaps(albedo) ||
-                      output.overlaps(normal);
+    bool inplaceNew = output &&
+                      ((color  && output->overlaps(*color))  ||
+                       (albedo && output->overlaps(*albedo)) ||
+                       (normal && output->overlaps(*normal)));
     setParam(inplace, inplaceNew);
 
     if (dirtyParam)
@@ -126,7 +127,7 @@ namespace oidn {
       if (isnan(inputScale))
       {
         if (hdr)
-          transferFunc->setInputScale(getAutoexposure(color));
+          transferFunc->setInputScale(getAutoexposure(*color));
         else
           transferFunc->setInputScale(1.f);
       }
@@ -178,7 +179,7 @@ namespace oidn {
 
       // Copy the output image to the final buffer if filtering in-place
       if (outputTemp)
-        outputCopy(outputTemp, output);
+        outputCopy(*outputTemp, *output);
 
       // Finished
       progress.finish();
@@ -234,7 +235,7 @@ namespace oidn {
     inputReorder = nullptr;
     outputReorder = nullptr;
     transferFunc = nullptr;
-    outputTemp = Image();
+    outputTemp = nullptr;
 
     // Check the input/output buffers
     if (!color && !albedo && !normal)
@@ -242,18 +243,18 @@ namespace oidn {
     if (!output)
       throw Exception(Error::InvalidOperation, "output image not specified");
 
-    H = output.height;
-    W = output.width;
+    H = output->height;
+    W = output->width;
 
-    if ((color  && color.format  != Format::Float3) ||
-        (albedo && albedo.format != Format::Float3) ||
-        (normal && normal.format != Format::Float3) ||
-        (output.format != Format::Float3))
+    if ((color  && color->format  != Format::Float3) ||
+        (albedo && albedo->format != Format::Float3) ||
+        (normal && normal->format != Format::Float3) ||
+        (output->format != Format::Float3))
       throw Exception(Error::InvalidOperation, "unsupported image format");
 
-    if ((color  && (color.width  != W || color.height  != H)) ||
-        (albedo && (albedo.width != W || albedo.height != H)) ||
-        (normal && (normal.width != W || normal.height != H)))
+    if ((color  && (color->width  != W || color->height  != H)) ||
+        (albedo && (albedo->width != W || albedo->height != H)) ||
+        (normal && (normal->width != W || normal->height != H)))
       throw Exception(Error::InvalidOperation, "image size mismatch");
 
     if (directional && (hdr || srgb))
@@ -322,7 +323,7 @@ namespace oidn {
     const auto weightsMap = parseTZA(device, weights.ptr, weights.size);
 
     // Create the network
-    net = makeRef<Network>(device, weightsMap);
+    net.reset(new Network(device, weightsMap));
 
     // Compute the tile size
     computeTileSize();
@@ -434,7 +435,7 @@ namespace oidn {
     ptrdiff_t scratchOfs = *std::min_element(tempOffsets.begin(), tempOffsets.end());
 
     // If doing in-place _tiled_ filtering, we need a temporary output buffer too
-    ImageDesc outputTempDesc(output.format, W, H);
+    ImageDesc outputTempDesc(output->format, W, H);
     ptrdiff_t outputTempOfs = 0;
     if (inplace && (tileCountH * tileCountW) > 1)
     {
@@ -442,16 +443,16 @@ namespace oidn {
       scratchOfs = outputTempOfs;
     }
 
-    // Compute the size of the scratch memory
+    // Compute the size of the scratch buffer
     const size_t scratchSize = -scratchOfs;
     if (getScratchSizeOnly)
       return scratchSize;
 
-    // Allocate the scratch memory
-    net->setScratchSize(scratchSize);
+    // Allocate the scratch buffer
+    net->allocScratch(scratchSize);
 
     // Create the transfer function
-    transferFunc = makeTransferFunc();
+    transferFunc = getTransferFunc();
 
     // Create the nodes
     const bool snorm = directional || (!color && normal);
@@ -580,17 +581,17 @@ namespace oidn {
     builtinWeights.nrm           = blobs::weights::rt_nrm;
   }
 
-  Ref<TransferFunction> RTFilter::makeTransferFunc()
+  std::shared_ptr<TransferFunction> RTFilter::getTransferFunc()
   {
     if (srgb || (!color && normal))
-      return makeRef<TransferFunction>(TransferFunction::Type::Linear);
+      return std::make_shared<TransferFunction>(TransferFunction::Type::Linear);
     else if (hdr)
-      return makeRef<TransferFunction>(TransferFunction::Type::PU);
+      return std::make_shared<TransferFunction>(TransferFunction::Type::PU);
     else
-      return makeRef<TransferFunction>(TransferFunction::Type::SRGB);
+      return std::make_shared<TransferFunction>(TransferFunction::Type::SRGB);
   }
 
-  void RTFilter::setImage(const std::string& name, const Image& image)
+  void RTFilter::setImage(const std::string& name, const std::shared_ptr<Image>& image)
   {
     if (name == "color")
       setParam(color, image);
@@ -669,15 +670,15 @@ namespace oidn {
     builtinWeights.dir = blobs::weights::rtlightmap_dir;
   }
 
-  Ref<TransferFunction> RTLightmapFilter::makeTransferFunc()
+  std::shared_ptr<TransferFunction> RTLightmapFilter::getTransferFunc()
   {
     if (hdr)
-      return makeRef<TransferFunction>(TransferFunction::Type::Log);
+      return std::make_shared<TransferFunction>(TransferFunction::Type::Log);
     else
-      return makeRef<TransferFunction>(TransferFunction::Type::Linear);
+      return std::make_shared<TransferFunction>(TransferFunction::Type::Linear);
   }
 
-  void RTLightmapFilter::setImage(const std::string& name, const Image& image)
+  void RTLightmapFilter::setImage(const std::string& name, const std::shared_ptr<Image>& image)
   {
     if (name == "color")
       setParam(color, image);

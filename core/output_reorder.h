@@ -14,16 +14,16 @@ namespace oidn {
   class OutputReorderNode : public Node
   {
   private:
-    ispc::OutputReorder impl;
+    std::shared_ptr<Tensor> src;
+    std::shared_ptr<Image> output;
+    std::shared_ptr<TransferFunction> transferFunc;
 
-    Ref<Tensor> src;
-    Image output;
-    Ref<TransferFunction> transferFunc;
+    ispc::OutputReorder impl;
 
   public:
     OutputReorderNode(const Ref<Device>& device,
-                      const Ref<Tensor>& src,
-                      const Ref<TransferFunction>& transferFunc,
+                      const std::shared_ptr<Tensor>& src,
+                      const std::shared_ptr<TransferFunction>& transferFunc,
                       bool hdr,
                       bool snorm)
       : Node(device),
@@ -36,20 +36,19 @@ namespace oidn {
              src->layout == TensorLayout::Chw16c);
       assert(src->blockSize() == device->getTensorBlockSize());
 
-      impl.src = *src;
       setTile(0, 0, 0, 0, 0, 0);
       impl.transferFunc = transferFunc->getImpl();
       impl.hdr = hdr;
       impl.snorm = snorm;
     }
 
-    void setDst(const Image& output)
+    void setDst(const std::shared_ptr<Image>& output)
     {
-      assert(src->dims[0] >= output.numChannels());
-      assert(output.numChannels() == 3);
+      assert(output);
+      assert(src->dims[0] >= output->numChannels());
+      assert(output->numChannels() == 3);
 
       this->output = output;
-      impl.output = output;
     }
 
     void setTile(int hSrc, int wSrc, int hDst, int wDst, int H, int W)
@@ -64,6 +63,9 @@ namespace oidn {
 
     void execute() override
     {
+      impl.src = *src;
+      impl.output = *output;
+
       assert(impl.hSrcBegin + impl.H <= impl.src.H);
       assert(impl.wSrcBegin + impl.W <= impl.src.W);
       //assert(impl.hDstBegin + impl.H <= impl.output.H);

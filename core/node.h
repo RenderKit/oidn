@@ -8,7 +8,7 @@
 namespace oidn {
 
   // Node base class
-  class Node : public RefCount
+  class Node
   {
   private:
     Ref<Device> device;
@@ -19,10 +19,10 @@ namespace oidn {
 
     virtual void execute() = 0;
 
-    virtual Ref<Tensor> getDst() const { return nullptr; }
+    virtual std::shared_ptr<Tensor> getDst() const { return nullptr; }
 
     virtual size_t getScratchSize() const { return 0; }
-    virtual void setScratch(const Ref<Tensor>& scratch) {}
+    virtual void setScratch(const std::shared_ptr<Tensor>& scratch) {}
 
     __forceinline Device* getDevice() { return device.get(); }
   };
@@ -35,7 +35,7 @@ namespace oidn {
   protected:
     dnnl::primitive prim;
     std::unordered_map<int, dnnl::memory> args;
-    Ref<Tensor> scratch;
+    std::shared_ptr<Tensor> scratch;
 
   public:
     DNNLNode(const Ref<Device>& device) : Node(device) {}
@@ -49,7 +49,7 @@ namespace oidn {
       return dnnl_memory_desc_get_size(scratchpadDesc);
     }
 
-    void setScratch(const Ref<Tensor>& scratch) override
+    void setScratch(const std::shared_ptr<Tensor>& scratch) override
     {
       this->scratch = scratch;
       args.insert(std::make_pair(DNNL_ARG_SCRATCHPAD, scratch->mem));

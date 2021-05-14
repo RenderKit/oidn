@@ -184,18 +184,15 @@ namespace oidn {
   };
 
   // Tensor
-  class Tensor : public RefCount, public TensorDesc
+  class Tensor : public Memory, public TensorDesc
   {
   public:
   #if defined(OIDN_DNNL)
     dnnl::memory mem;
   #else
     void* ptr;
-    bool shared;
   #endif
-
     Ref<Device> device;
-    Ref<Buffer> buffer; // buffer containing the tensor data (optional)
 
   public:
     Tensor(const Ref<Device>& device, const TensorDesc& desc)
@@ -236,20 +233,14 @@ namespace oidn {
   #endif
 
     Tensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
-      : TensorDesc(desc),
-        device(buffer->getDevice()),
-        buffer(buffer)
+      : Memory(buffer, byteOffset),
+        TensorDesc(desc),
+        device(buffer->getDevice())
     {
-      assert(byteOffset + desc.byteSize() <= buffer->size());
-      init(device, buffer->data() + byteOffset);
-    }
+      if (byteOffset + byteSize() > buffer->size())
+        throw Exception(Error::InvalidArgument, "buffer region out of range");
 
-    ~Tensor()
-    {
-    #if !defined(OIDN_DNNL)
-      if (!shared)
-        alignedFree(ptr);
-    #endif
+      init(device, buffer->data() + byteOffset);
     }
 
     __forceinline operator bool() const { return data() != nullptr; }
@@ -348,8 +339,8 @@ namespace oidn {
     #if defined(OIDN_DNNL)
       mem = dnnl::memory(*this, device->getDNNLEngine());
     #else
-      ptr = alignedMalloc(byteSize(), 128);
-      shared = false;
+      buffer = device->newBuffer(byteSize());
+      ptr = buffer->data();
     #endif
     }
 
@@ -359,7 +350,6 @@ namespace oidn {
       mem = dnnl::memory(*this, device->getDNNLEngine(), data);
     #else
       ptr = data;
-      shared = true;
     #endif
     }
 
@@ -384,6 +374,21 @@ namespace oidn {
       assert(layout == TensorLayout::oihw);
       assert(i0 < dims[0] && i1 < dims[1] && i2 < dims[2] && i3 < dims[3]);
       return ((i0 * dims[1] + i1) * dims[2] + i2) * dims[3] + i3;
+    }
+
+    void updatePtr() override
+    {
+      if (buffer)
+      {
+        if (bufferOffset + byteSize() > buffer->size())
+          throw Exception(Error::Unknown, "buffer region out of range");
+
+      #if defined(OIDN_DNNL)
+        mem.set_data_handle(buffer->data() + bufferOffset);
+      #else
+        ptr = buffer->data() + bufferOffset;
+      #endif
+      }
     }
   };
 
