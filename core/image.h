@@ -43,12 +43,19 @@ namespace oidn {
 
       if (inByteRowStride != 0)
       {
-        if (inByteRowStride < width * this->bytePixelStride)
-          throw Exception(Error::InvalidArgument, "row stride smaller than width * pixel stride");
-        if (inByteRowStride % this->bytePixelStride != 0)
-          throw Exception(Error::InvalidArgument, "row stride not integer multiple of pixel stride");
+        if (this->bytePixelStride != 0)
+        {
+          if (inByteRowStride < width * this->bytePixelStride)
+            throw Exception(Error::InvalidArgument, "row stride smaller than width * pixel stride");
+          if (inByteRowStride % this->bytePixelStride != 0)
+            throw Exception(Error::InvalidArgument, "row stride not integer multiple of pixel stride");
 
-        this->rowStride = inByteRowStride / this->bytePixelStride;
+          this->rowStride = inByteRowStride / this->bytePixelStride;
+        }
+        else
+        {
+          this->rowStride = inByteRowStride;
+        }
       }
       else
       {
