@@ -25,6 +25,7 @@ Version History
 -   Fixed detection of static TBB builds on Windows
 -   Fixed compile error when using future glibc versions
 -   Added `oidnBenchmark` option for setting custom resolutions
+-   Upgraded to oneTBB 2021.2.0 in the official binaries
 
 ### Changes in v1.3.0:
 
