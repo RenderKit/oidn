@@ -1,7 +1,7 @@
 # Intel® Open Image Denoise
 
-This is release v1.4.0-alpha.1 of Intel Open Image Denoise. For changes
-and new features see the [changelog](CHANGELOG.md). Visit
+This is release v1.4.0 of Intel Open Image Denoise. For changes and new
+features see the [changelog](CHANGELOG.md). Visit
 https://www.openimagedenoise.org for more information.
 
 # Overview
@@ -256,6 +256,14 @@ that can be configured in CMake:
   - `OIDN_API_NAMESPACE`: Specifies a namespace to put all Intel Open
     Image Denoise API symbols inside. By default no namespace is used
     and plain C symbols are exported.
+
+  - `OIDN_FILTER_RT`: Include the trained weights of the `RT` filter in
+    the build (ON by default). Turning this OFF significantly decreases
+    the size of the library binary, while the filter remains functional
+    if the weights are set by the user at runtime.
+
+  - `OIDN_FILTER_RTLIGHTMAP`: Include the trained weights of the
+    `RTLightmap` filter in the build (ON by default).
 
   - `OIDN_APPS`: Enable building example and test applications (ON by
     default).
@@ -827,7 +835,7 @@ is supported).
 | `float`     | `inputScale`  |        NaN | scales input values before filtering, without scaling the output too, which can be used to map color or auxiliary feature values to the expected range, e.g. for mapping HDR values to physical units (which affects the quality of the output but *not* the range of the output values); if set to NaN, the scale is computed implicitly for HDR images or set to 1 otherwise |
 | `bool`      | `cleanAux`    |      false | whether the auxiliary feature (albedo, normal) images are noise-free; recommended for highest quality but should *not* be enabled for noisy auxiliary images to avoid residual noise                                                                                                                                                                                           |
 | `Data`      | `weights`     | *optional* | trained model weights blob                                                                                                                                                                                                                                                                                                                                                     |
-| `int`       | `maxMemoryMB` |       6000 | approximate maximum scratch memory to use in megabytes (actual memory usage may be higher); limiting memory usage may cause slower denoising due to internally splitting the image into overlapping tiles                                                                                                                                                                      |
+| `int`       | `maxMemoryMB` |       3000 | approximate maximum scratch memory to use in megabytes (actual memory usage may be higher); limiting memory usage may cause slower denoising due to internally splitting the image into overlapping tiles                                                                                                                                                                      |
 | `const int` | `alignment`   |            | when manually denoising in tiles, the tile size and offsets should be multiples of this amount of pixels to avoid artifacts; when denoising HDR images `inputScale` *must* be set by the user to avoid seam artifacts                                                                                                                                                          |
 | `const int` | `overlap`     |            | when manually denoising in tiles, the tiles should overlap by this amount of pixels                                                                                                                                                                                                                                                                                            |
 
@@ -976,7 +984,7 @@ following parameters:
 | `bool`      | `directional` |      false | whether the input contains normalized coefficients (in \[-1, 1\]) of a directional lightmap (e.g. normalized L1 or higher spherical harmonics band with the L0 band divided out); if the range of the coefficients is different from \[-1, 1\], the `inputScale` parameter can be used to adjust the range without changing the stored values                   |
 | `float`     | `inputScale`  |        NaN | scales input color values before filtering, without scaling the output too, which can be used to map color values to the expected range, e.g. for mapping HDR values to physical units (which affects the quality of the output but *not* the range of the output values); if set to NaN, the scale is computed implicitly for HDR images or set to 1 otherwise |
 | `Data`      | `weights`     | *optional* | trained model weights blob                                                                                                                                                                                                                                                                                                                                      |
-| `int`       | `maxMemoryMB` |       6000 | approximate maximum scratch memory to use in megabytes (actual memory usage may be higher); limiting memory usage may cause slower denoising due to internally splitting the image into overlapping tiles                                                                                                                                                       |
+| `int`       | `maxMemoryMB` |       3000 | approximate maximum scratch memory to use in megabytes (actual memory usage may be higher); limiting memory usage may cause slower denoising due to internally splitting the image into overlapping tiles                                                                                                                                                       |
 | `const int` | `alignment`   |            | when manually denoising in tiles, the tile size and offsets should be multiples of this amount of pixels to avoid artifacts; when denoising HDR images `inputScale` *must* be set by the user to avoid seam artifacts                                                                                                                                           |
 | `const int` | `overlap`     |            | when manually denoising in tiles, the tiles should overlap by this amount of pixels                                                                                                                                                                                                                                                                             |
 
