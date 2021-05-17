@@ -66,7 +66,7 @@ namespace oidn {
       Data dir;
       Data alb;
       Data nrm;
-    } builtinWeights;
+    } defaultWeights;
     Data userWeights;
 
     explicit UNetFilter(const Ref<Device>& device);

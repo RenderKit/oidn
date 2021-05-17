@@ -207,7 +207,7 @@ build-ubuntu18.04-clang:
 
 ## -----------------------------------------------------------------------------
 
-build-ubuntu20.04-gcc:
+build-ubuntu20.04-gcc-oiio:
   extends: .build
   tags:
     - docker
@@ -217,6 +217,13 @@ build-ubuntu20.04-gcc:
     - cd build
     - cmake .. -D OIDN_APPS_OPENIMAGEIO=ON
     - make -j VERBOSE=1
+
+build-ubuntu20.04-gcc-minimal:
+  extends: .build
+  tags:
+    - docker
+  image: $DOCKER_REGISTRY/oidn-build:ubuntu20.04
+  script: scripts/build.py --compiler gcc -D OIDN_FILTER_RT=OFF -D OIDN_FILTER_RTLIGHTMAP=OFF
 
 ## -----------------------------------------------------------------------------
 

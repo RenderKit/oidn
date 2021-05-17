@@ -22,6 +22,9 @@ Version History
 -   Reduced total memory consumption significantly when using multiple filters
     that belong to the same device
 -   Reduced the default maximum memory consumption to 3000 MB
+-   Added the `OIDN_FILTER_RT` and `OIDN_FILTER_RTLIGHTMAP` CMake options for
+    excluding the trained filter weights from the build to significantly
+    decrease its size
 -   Fixed detection of static TBB builds on Windows
 -   Fixed compile error when using future glibc versions
 -   Added `oidnBenchmark` option for setting custom resolutions

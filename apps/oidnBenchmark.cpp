@@ -181,6 +181,7 @@ void addAllBenchmarks()
   std::vector<std::pair<int, int>> sizes;
 
   // Filter: RT
+#if defined(OIDN_FILTER_RT)
   if (width < 0)
     sizes = {{1920, 1080}, {3840, 2160}, {1280, 720}};
   else
@@ -191,8 +192,10 @@ void addAllBenchmarks()
     addBenchmark("RT", {"hdr", "alb", "nrm"}, size);
     addBenchmark("RT", {"ldr", "alb", "nrm"}, size);
   }
+#endif
 
   // Filter: RTLightmap
+#if defined(OIDN_FILTER_RTLIGHTMAP)
   if (width < 0)
     sizes = {{2048, 2048}, {4096, 4096}, {1024, 1024}};
 
@@ -200,6 +203,7 @@ void addAllBenchmarks()
   {
     addBenchmark("RTLightmap", {"hdr"}, size);
   }
+#endif
 }
 
 int main(int argc, char* argv[])

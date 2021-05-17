@@ -14,6 +14,8 @@
 OIDN_NAMESPACE_USING
 using namespace oidn;
 
+#if defined(OIDN_FILTER_RT)
+
 void setFilterImage(FilterRef& filter, const char* name, ImageBuffer& image)
 {
   Format format = Format::Undefined;
@@ -451,3 +453,5 @@ TEST_CASE("progress monitor", "[progress]")
     progressTest(device, 1);
   }
 }
+
+#endif // defined(OIDN_FILTER_RT)

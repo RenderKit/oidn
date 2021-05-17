@@ -5,19 +5,24 @@
 #include "output_copy.h"
 #include "unet.h"
 
-// Built-in weights
-#include "weights/rt_hdr.h"
-#include "weights/rt_hdr_alb.h"
-#include "weights/rt_hdr_alb_nrm.h"
-#include "weights/rt_hdr_calb_cnrm.h"
-#include "weights/rt_ldr.h"
-#include "weights/rt_ldr_alb.h"
-#include "weights/rt_ldr_alb_nrm.h"
-#include "weights/rt_ldr_calb_cnrm.h"
-#include "weights/rt_alb.h"
-#include "weights/rt_nrm.h"
-#include "weights/rtlightmap_hdr.h"
-#include "weights/rtlightmap_dir.h"
+// Default weights
+#if defined(OIDN_FILTER_RT)
+  #include "weights/rt_hdr.h"
+  #include "weights/rt_hdr_alb.h"
+  #include "weights/rt_hdr_alb_nrm.h"
+  #include "weights/rt_hdr_calb_cnrm.h"
+  #include "weights/rt_ldr.h"
+  #include "weights/rt_ldr_alb.h"
+  #include "weights/rt_ldr_alb_nrm.h"
+  #include "weights/rt_ldr_calb_cnrm.h"
+  #include "weights/rt_alb.h"
+  #include "weights/rt_nrm.h"
+#endif
+
+#if defined(OIDN_FILTER_RTLIGHTMAP)
+  #include "weights/rtlightmap_hdr.h"
+  #include "weights/rtlightmap_dir.h"
+#endif
 
 namespace oidn {
 
@@ -278,18 +283,18 @@ namespace oidn {
     {
       if (!albedo && !normal)
       {
-        weights = directional ? builtinWeights.dir : (hdr ? builtinWeights.hdr : builtinWeights.ldr);
+        weights = directional ? defaultWeights.dir : (hdr ? defaultWeights.hdr : defaultWeights.ldr);
       }
       else if (albedo && !normal)
       {
-        weights = hdr ? builtinWeights.hdr_alb : builtinWeights.ldr_alb;
+        weights = hdr ? defaultWeights.hdr_alb : defaultWeights.ldr_alb;
       }
       else if (albedo && normal)
       {
         if (cleanAux)
-          weights = hdr ? builtinWeights.hdr_calb_cnrm : builtinWeights.ldr_calb_cnrm;
+          weights = hdr ? defaultWeights.hdr_calb_cnrm : defaultWeights.ldr_calb_cnrm;
         else
-          weights = hdr ? builtinWeights.hdr_alb_nrm : builtinWeights.ldr_alb_nrm;
+          weights = hdr ? defaultWeights.hdr_alb_nrm : defaultWeights.ldr_alb_nrm;
       }
     }
     else
@@ -299,13 +304,13 @@ namespace oidn {
       {
         if (hdr)
           throw Exception(Error::InvalidOperation, "hdr mode is not supported for albedo filtering");
-        weights = builtinWeights.alb;
+        weights = defaultWeights.alb;
       }
       else if (!albedo && normal)
       {
         if (hdr || srgb)
           throw Exception(Error::InvalidOperation, "hdr and srgb modes are not supported for normal filtering");
-        weights = builtinWeights.nrm;
+        weights = defaultWeights.nrm;
       }
       else
       {
@@ -569,16 +574,18 @@ namespace oidn {
   RTFilter::RTFilter(const Ref<Device>& device)
     : UNetFilter(device)
   {
-    builtinWeights.hdr           = blobs::weights::rt_hdr;
-    builtinWeights.hdr_alb       = blobs::weights::rt_hdr_alb;
-    builtinWeights.hdr_alb_nrm   = blobs::weights::rt_hdr_alb_nrm;
-    builtinWeights.hdr_calb_cnrm = blobs::weights::rt_hdr_calb_cnrm;
-    builtinWeights.ldr           = blobs::weights::rt_ldr;
-    builtinWeights.ldr_alb       = blobs::weights::rt_ldr_alb;
-    builtinWeights.ldr_alb_nrm   = blobs::weights::rt_ldr_alb_nrm;
-    builtinWeights.ldr_calb_cnrm = blobs::weights::rt_ldr_calb_cnrm;
-    builtinWeights.alb           = blobs::weights::rt_alb;
-    builtinWeights.nrm           = blobs::weights::rt_nrm;
+  #if defined(OIDN_FILTER_RT)
+    defaultWeights.hdr           = blobs::weights::rt_hdr;
+    defaultWeights.hdr_alb       = blobs::weights::rt_hdr_alb;
+    defaultWeights.hdr_alb_nrm   = blobs::weights::rt_hdr_alb_nrm;
+    defaultWeights.hdr_calb_cnrm = blobs::weights::rt_hdr_calb_cnrm;
+    defaultWeights.ldr           = blobs::weights::rt_ldr;
+    defaultWeights.ldr_alb       = blobs::weights::rt_ldr_alb;
+    defaultWeights.ldr_alb_nrm   = blobs::weights::rt_ldr_alb_nrm;
+    defaultWeights.ldr_calb_cnrm = blobs::weights::rt_ldr_calb_cnrm;
+    defaultWeights.alb           = blobs::weights::rt_alb;
+    defaultWeights.nrm           = blobs::weights::rt_nrm;
+  #endif
   }
 
   std::shared_ptr<TransferFunction> RTFilter::getTransferFunc()
@@ -666,8 +673,10 @@ namespace oidn {
   {
     hdr = true;
 
-    builtinWeights.hdr = blobs::weights::rtlightmap_hdr;
-    builtinWeights.dir = blobs::weights::rtlightmap_dir;
+  #if defined(OIDN_FILTER_RTLIGHTMAP)
+    defaultWeights.hdr = blobs::weights::rtlightmap_hdr;
+    defaultWeights.dir = blobs::weights::rtlightmap_dir;
+  #endif
   }
 
   std::shared_ptr<TransferFunction> RTLightmapFilter::getTransferFunc()
