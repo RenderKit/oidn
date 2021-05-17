@@ -160,10 +160,45 @@ TEST_CASE("multiple filters", "[multi_filter]")
 
 // -----------------------------------------------------------------------------
 
+TEST_CASE("multiple devices", "[multi_device]")
+{
+  const std::vector<int> sizes = {111, 256, 80};
+
+  std::vector<DeviceRef> devices;
+  std::vector<FilterRef> filters;
+  std::vector<ImageBuffer> images;
+
+  for (size_t i = 0; i < sizes.size(); ++i)
+  {
+    devices.push_back(newDevice());
+    REQUIRE(devices[i]);
+    devices[i].commit();
+    REQUIRE(devices[i].getError() == Error::None);
+
+    filters.push_back(devices[i].newFilter("RT"));
+    REQUIRE(filters[i]);
+
+    images.push_back(makeConstImage(sizes[i], sizes[i]));
+    setFilterImage(filters[i], "color",  images[i]);
+    setFilterImage(filters[i], "output", images[i]);
+
+    filters[i].commit();
+    REQUIRE(devices[i].getError() == Error::None);
+  }
+
+  for (size_t i = 0; i < devices.size(); ++i)
+  {
+    filters[i].execute();
+    REQUIRE(devices[i].getError() == Error::None);
+  }
+}
+
+// -----------------------------------------------------------------------------
+
 TEST_CASE("filter update", "[filter_update]")
 {
-  const int W = 500;
-  const int H = 300;
+  const int W = 300;
+  const int H = 200;
 
   DeviceRef device = newDevice();
   REQUIRE(device);

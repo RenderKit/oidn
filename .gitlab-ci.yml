@@ -184,17 +184,6 @@ test-ubuntu18.04-gcc-debug-avx2:
       artifacts: true
   script: scripts/test.py
 
-test-ubuntu18.04-gcc-debug-sse4:
-  extends: .test
-  tags:
-    - docker
-    - avx512vl
-  image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
-  needs:
-    - job: build-ubuntu18.04-gcc-debug
-      artifacts: true
-  script: scripts/test.py --arch pnr
-
 build-ubuntu18.04-gcc-static:
   extends: .build
   tags:

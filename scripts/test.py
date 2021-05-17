@@ -82,7 +82,7 @@ def test():
   if cfg.command == 'run':
     # Iterate over architectures
     for arch in cfg.arch:
-      print_test(arch)
+      print_test(f'oidnTest.{arch}')
       run_test(os.path.join(bin_dir, 'oidnTest'), arch)
 
 # Gets the option name of a feature
@@ -118,7 +118,7 @@ def test_regression(filter, feature_sets, dataset):
       run_test(convert_cmd)
 
   # Iterate over the feature sets
-  for features in feature_sets:
+  for features, full_test in feature_sets:
     # Get the result name
     result = filter.lower()
     for f in features:
@@ -148,9 +148,9 @@ def test_regression(filter, feature_sets, dataset):
         # Iterate over images
         for image_name in image_names:
           # Iterate over in-place mode
-          for inplace in [False, True]:
+          for inplace in ([False, True] if full_test else [False]):
             # Iterate over maximum memory usages (tiling)
-            for maxmem in [None, 512]:
+            for maxmem in ([None, 256] if full_test else [None]):
               # Run test
               test_name = f'{filter}.{features_str}.{arch}.{image_name}'
               if inplace:
@@ -191,23 +191,30 @@ if not cfg.filter or 'RT' in cfg.filter:
   test_regression(
     'RT',
     [
-      ['hdr', 'calb', 'cnrm'],
-      ['hdr', 'alb', 'nrm'],
-      ['hdr', 'alb'],
-      ['hdr'],
-      ['ldr', 'calb', 'cnrm'],
-      ['ldr', 'alb', 'nrm'],
-      ['ldr', 'alb'],
-      ['ldr'],
-      ['alb'],
-      ['nrm']
+      (['hdr', 'alb', 'nrm'],   True),
+      (['hdr', 'alb'],          True),
+      (['hdr'],                 True),
+      (['hdr', 'calb', 'cnrm'], False),
+      (['ldr', 'alb', 'nrm'],   False),
+      (['ldr', 'alb'],          False),
+      (['ldr'],                 True),
+      (['ldr', 'calb', 'cnrm'], False),
+      (['alb'],                 True),
+      (['nrm'],                 True)
     ],
     'rt_regress'
   )
 
 # Regression tests: RTLightmap
 if not cfg.filter or 'RTLightmap' in cfg.filter:
-  test_regression('RTLightmap', [['hdr'], ['dir']], 'rtlightmap_regress')
+  test_regression(
+    'RTLightmap',
+    [
+      (['hdr'], True),
+      (['dir'], True)
+    ],
+    'rtlightmap_regress'
+  )
 
 # Done
 if cfg.command == 'run':
