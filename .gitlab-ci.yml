@@ -399,17 +399,17 @@ test-windows-icc-avx512:
       artifacts: true
   script: python scripts/test.py
 
-test-windows-icc-avx2:
-  extends: .test
-  tags:
-    - win10
-    - msvc15
-    - icc19
-    - avx2
-  needs:
-    - job: build-windows-icc
-      artifacts: true
-  script: python scripts/test.py
+#test-windows-icc-avx2:
+#  extends: .test
+#  tags:
+#    - win10
+#    - msvc15
+#    - icc19
+#    - avx2
+#  needs:
+#    - job: build-windows-icc
+#      artifacts: true
+#  script: python scripts/test.py
 
 build-windows-msvc15:
   extends: .build
@@ -457,16 +457,16 @@ test-windows-msvc16-avx512:
       artifacts: true
   script: python scripts/test.py
 
-test-windows-msvc16-avx2:
-  extends: .test
-  tags:
-    - win10
-    - msvc16
-    - avx2
-  needs:
-    - job: build-windows-msvc16
-      artifacts: true
-  script: python scripts/test.py
+#test-windows-msvc16-avx2:
+#  extends: .test
+#  tags:
+#    - win10
+#    - msvc16
+#    - avx2
+#  needs:
+#    - job: build-windows-msvc16
+#      artifacts: true
+#  script: python scripts/test.py
 
 package-windows:
   extends: .package
