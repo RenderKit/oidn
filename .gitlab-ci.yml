@@ -457,16 +457,16 @@ test-windows-msvc16-avx512:
       artifacts: true
   script: python scripts/test.py
 
-test-windows-msvc16-avx2:
-  extends: .test
-  tags:
-    - win10
-    - msvc16
-    - avx2
-  needs:
-    - job: build-windows-msvc16
-      artifacts: true
-  script: python scripts/test.py
+#test-windows-msvc16-avx2:
+#  extends: .test
+#  tags:
+#    - win10
+#    - msvc16
+#    - avx2
+#  needs:
+#    - job: build-windows-msvc16
+#      artifacts: true
+#  script: python scripts/test.py
 
 package-windows:
   extends: .package
