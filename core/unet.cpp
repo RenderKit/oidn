@@ -425,7 +425,7 @@ namespace oidn {
     ptrdiff_t decConv1aOfs = min(upsample1Ofs, decConv1bOfs) - decConv1aDesc.byteSize();
     ptrdiff_t decConv0Ofs  = decConv1bOfs - decConv0Desc.byteSize();
 
-    const std::vector<ptrdiff_t> tempOffsets = {
+    const std::vector<ptrdiff_t> minOfsList = {
       encConv1Ofs,
       encConv2Ofs,
       encConv3Ofs,
@@ -437,19 +437,19 @@ namespace oidn {
       decConv1aOfs,
       decConv0Ofs
     };
-    ptrdiff_t scratchOfs = *std::min_element(tempOffsets.begin(), tempOffsets.end());
+    ptrdiff_t minOfs = *std::min_element(minOfsList.begin(), minOfsList.end());
 
     // If doing in-place _tiled_ filtering, we need a temporary output buffer too
     ImageDesc outputTempDesc(output->format, W, H);
     ptrdiff_t outputTempOfs = 0;
     if (inplace && (tileCountH * tileCountW) > 1)
     {
-      outputTempOfs = scratchOfs - outputTempDesc.byteSize();
-      scratchOfs = outputTempOfs;
+      outputTempOfs = minOfs - outputTempDesc.byteSize();
+      minOfs = outputTempOfs;
     }
 
     // Compute the size of the scratch buffer
-    const size_t scratchSize = -scratchOfs;
+    const size_t scratchSize = -minOfs;
     if (getScratchSizeOnly)
       return scratchSize;
 
