@@ -28,7 +28,7 @@ Examples
 To have a quick overview of the C99 and C++11 APIs, see the following
 simple example code snippets.
 
-### C99 API Example
+### Basic denoising (C99 API)
 
     #include <OpenImageDenoise/oidn.h>
     ...
@@ -36,17 +36,17 @@ simple example code snippets.
     OIDNDevice device = oidnNewDevice(OIDN_DEVICE_TYPE_DEFAULT);
     oidnCommitDevice(device);
 
-    // Create a denoising filter
+    // Create a filter for denoising a beauty (color) image using optional auxiliary images too
     OIDNFilter filter = oidnNewFilter(device, "RT"); // generic ray tracing filter
     oidnSetSharedFilterImage(filter, "color",  colorPtr,
-                             OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0);
+                             OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0); // beauty
     oidnSetSharedFilterImage(filter, "albedo", albedoPtr,
-                             OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0); // optional
+                             OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0); // auxiliary
     oidnSetSharedFilterImage(filter, "normal", normalPtr,
-                             OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0); // optional
+                             OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0); // auxiliary
     oidnSetSharedFilterImage(filter, "output", outputPtr,
-                             OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0);
-    oidnSetFilter1b(filter, "hdr", true); // image is HDR
+                             OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0); // denoised beauty
+    oidnSetFilter1b(filter, "hdr", true); // beauty image is HDR
     oidnCommitFilter(filter);
 
     // Filter the image
@@ -61,7 +61,7 @@ simple example code snippets.
     oidnReleaseFilter(filter);
     oidnReleaseDevice(device);
 
-### C++11 API Example
+### Basic denoising (C++11 API)
 
     #include <OpenImageDenoise/oidn.hpp>
     ...
@@ -69,13 +69,13 @@ simple example code snippets.
     oidn::DeviceRef device = oidn::newDevice();
     device.commit();
 
-    // Create a denoising filter
+    // Create a filter for denoising a beauty (color) image using optional auxiliary images too
     oidn::FilterRef filter = device.newFilter("RT"); // generic ray tracing filter
-    filter.setImage("color",  colorPtr,  oidn::Format::Float3, width, height);
-    filter.setImage("albedo", albedoPtr, oidn::Format::Float3, width, height); // optional
-    filter.setImage("normal", normalPtr, oidn::Format::Float3, width, height); // optional
-    filter.setImage("output", outputPtr, oidn::Format::Float3, width, height);
-    filter.set("hdr", true); // image is HDR
+    filter.setImage("color",  colorPtr,  oidn::Format::Float3, width, height); // beauty
+    filter.setImage("albedo", albedoPtr, oidn::Format::Float3, width, height); // auxiliary
+    filter.setImage("normal", normalPtr, oidn::Format::Float3, width, height); // auxiliary
+    filter.setImage("output", outputPtr, oidn::Format::Float3, width, height); // denoised beauty
+    filter.set("hdr", true); // beauty image is HDR
     filter.commit();
 
     // Filter the image
@@ -85,6 +85,37 @@ simple example code snippets.
     const char* errorMessage;
     if (device.getError(errorMessage) != oidn::Error::None)
       std::cout << "Error: " << errorMessage << std::endl;
+
+### Denoising with pre-filtering (C++11 API)
+
+    // Create a filter for denoising a beauty (color) image using pre-filtered auxiliary images too
+    oidn::FilterRef filter = device.newFilter("RT"); // generic ray tracing filter
+    filter.setImage("color",  colorPtr,  oidn::Format::Float3, width, height); // beauty
+    filter.setImage("albedo", albedoPtr, oidn::Format::Float3, width, height); // auxiliary
+    filter.setImage("normal", normalPtr, oidn::Format::Float3, width, height); // auxiliary
+    filter.setImage("output", outputPtr, oidn::Format::Float3, width, height); // denoised beauty
+    filter.set("hdr", true); // beauty image is HDR
+    filter.set("cleanAux", true); // auxiliary images will be pre-filtered
+    filter.commit();
+
+    // Create a separate filter for denoising an auxiliary albedo image (in-place)
+    oidn::FilterRef albedoFilter = device.newFilter("RT"); // same filter type as for beauty
+    albedoFilter.setImage("albedo", albedoPtr, oidn::Format::Float3, width, height);
+    albedoFilter.setImage("output", albedoPtr, oidn::Format::Float3, width, height);
+    albedoFilter.commit();
+
+    // Create a separate filter for denoising an auxiliary normal image (in-place)
+    oidn::FilterRef normalFilter = device.newFilter("RT"); // same filter type as for beauty
+    normalFilter.setImage("normal", normalPtr, oidn::Format::Float3, width, height);
+    normalFilter.setImage("output", normalPtr, oidn::Format::Float3, width, height);
+    normalFilter.commit();
+
+    // Pre-filter the auxiliary images
+    albedoFilter.execute();
+    normalFilter.execute();
+
+    // Filter the beauty image
+    filter.execute();
 
 
 Device
@@ -459,18 +490,22 @@ good balance between denoising performance and quality. The filter comes with a
 set of pre-trained CNN models that work well with a wide range of ray tracing
 based renderers and noise levels.
 
-![Example noisy color image rendered using unidirectional path tracing (4
+![Example noisy beauty image rendered using unidirectional path tracing (4
 samples per pixel). *Scene by Evermotion.*][imgMazdaColor]
 
-![Example output image denoised using clean auxiliary feature images (albedo
-and normal).][imgMazdaDenoised]
+![Example output beauty image denoised using pre-filtered auxiliary feature
+images (albedo and normal) too.][imgMazdaDenoised]
 
-It accepts either a low dynamic range (LDR) or high dynamic range (HDR) color
-image as input. Optionally, it also accepts auxiliary *feature* images, e.g.
-albedo and normal, which improve the denoising quality, preserving more details
-in the image. It is possible to denoise auxiliary images as well, in which case
-only the respective auxiliary image has to be specified as input, instead of
-the color image.
+For denoising *beauty* images, it accepts either a low dynamic range (LDR) or
+high dynamic range (HDR) image (`color`) as the main input image. In addition
+to this, it also accepts *auxiliary feature* images, `albedo` and `normal`,
+which are optional inputs that usually improve the denoising quality
+significantly, preserving more details.
+
+It is possible to denoise auxiliary images as well, in which case only the
+respective auxiliary image has to be specified as input, instead of the beauty
+image. This can be done as a *pre-filtering* step to further improve the quality
+of the denoised beauty image.
 
 The `RT` filter has certain limitations regarding the supported input images.
 Most notably, it cannot denoise images that were not rendered with ray tracing.
@@ -485,15 +520,17 @@ to fail (the noise will not be filtered), thus it is not supported.
 The filter can be created by passing `"RT"` to the `oidnNewFilter` function
 as the filter type. The filter supports the parameters listed in the table
 below. All specified images must have the same dimensions. The output image
-can be one of the input images (i.e. in-place denoising is supported).
+can be one of the input images (i.e. in-place denoising is supported). See
+section [Examples] for simple code snippets that demonstrate the usage of
+the filter.
 
 ----------- ------------- ---------- ---------------------------------------------------------------
 Type        Name             Default Description
 ----------- ------------- ---------- ---------------------------------------------------------------
-`Image`     `color`       *optional* input color image (3 channels, LDR values in [0, 1] or HDR
+`Image`     `color`       *optional* input beauty image (3 channels, LDR values in [0, 1] or HDR
                                      values in [0, +∞), values being interpreted such that, after
                                      scaling with the `inputScale` parameter, a value of 1
-                                     corresponds to a luminance level of 100 cd/m²).
+                                     corresponds to a luminance level of 100 cd/m²)
 
 `Image`     `albedo`      *optional* input auxiliary image containing the albedo per pixel (3
                                      channels, values in [0, 1])
@@ -504,18 +541,19 @@ Type        Name             Default Description
 
 `Image`     `output`                 output image (3 channels); can be one of the input images
 
-`bool`      `hdr`              false whether the color is HDR
+`bool`      `hdr`              false whether the main input image is HDR
 
-`bool`      `srgb`             false whether the color is encoded with the sRGB (or 2.2 gamma) curve
-                                     (LDR only) or is linear; the output will be encoded with the
-                                     same curve
+`bool`      `srgb`             false whether the main input image is encoded with the sRGB (or 2.2
+                                     gamma) curve (LDR only) or is linear; the output will be
+                                     encoded with the same curve
 
-`float`     `inputScale`         NaN scales input values before filtering, without scaling the
-                                     output too, which can be used to map color or auxiliary feature
-                                     values to the expected range, e.g. for mapping HDR values to
-                                     physical units (which affects the quality of the output but
-                                     *not* the range of the output values); if set to NaN, the scale
-                                     is computed implicitly for HDR images or set to 1 otherwise
+`float`     `inputScale`         NaN scales values in the main input image before filtering, without
+                                     scaling the output too, which can be used to map color or
+                                     auxiliary feature values to the expected range, e.g. for
+                                     mapping HDR values to physical units (which affects the quality
+                                     of the output but *not* the range of the output values); if set
+                                     to NaN, the scale is computed implicitly for HDR images or set
+                                     to 1 otherwise
 
 `bool`      `cleanAux`         false whether the auxiliary feature (albedo, normal) images are
                                      noise-free; recommended for highest quality but should *not* be
@@ -565,10 +603,11 @@ enabled only if the auxiliary images are guaranteed to be noise-free.
 Usually it is difficult to provide clean feature images, and some residual
 noise might be present in the output even with `cleanAux` being disabled. To
 eliminate this noise and to even improve the sharpness of texture details, the
-auxiliary images should be first denoised in a pre-filtering step, as described
+auxiliary images should be first denoised in a pre-filtering step, as mentioned
 earlier. Then, these denoised auxiliary images could be used for denoising the
-color image. Since these are now noise-free, the `cleanAux` parameter should be
-enabled. Pre-filtering makes denoising much more expensive but if there are
+beauty image. Since these are now noise-free, the `cleanAux` parameter should be
+enabled. See section [Denoising with pre-filtering (C++11 API)] for a simple
+code example. Pre-filtering makes denoising much more expensive but if there are
 multiple color AOVs to denoise, the pre-filtered auxiliary images can be reused
 for denoising multiple AOVs, amortizing the cost of the pre-filtering step.
 
@@ -577,22 +616,15 @@ required, it is recommended to pre-filter the auxiliary features if they are
 noisy and enable the `cleanAux` parameter. Denoising with noisy auxiliary
 features should be reserved for previews and interactive rendering.
 
-All feature images should use the same pixel reconstruction filter as the color
-image. Using a properly anti-aliased color image but aliased albedo or normal
-images will likely introduce artifacts around edges.
+All auxiliary images should use the same pixel reconstruction filter as the
+beauty image. Using a properly anti-aliased beauty image but aliased albedo or
+normal images will likely introduce artifacts around edges.
 
 #### Albedo
 
 The albedo image is the feature image that usually provides the biggest quality
 improvement. It should contain the approximate color of the surfaces
 independent of illumination and viewing angle.
-
-For simple matte surfaces this means using the diffuse color/texture as the
-albedo. For other, more complex surfaces it is not always obvious what is
-the best way to compute the albedo, but the denoising filter is flexibile to
-a certain extent and works well with differently computed albedos. Thus it is
-not necessary to compute the strict, exact albedo values but must be always
-between 0 and 1.
 
 ![Example albedo image obtained using the first hit. Note that the albedos of
 all transparent surfaces are 1.][imgMazdaAlbedoFirstHit]
@@ -602,6 +634,13 @@ hit. Note that the albedos of perfect specular (delta) transparent surfaces
 are computed as the Fresnel blend of the reflected and transmitted
 albedos.][imgMazdaAlbedoNonDeltaHit]
 
+For simple matte surfaces this means using the diffuse color/texture as the
+albedo. For other, more complex surfaces it is not always obvious what is
+the best way to compute the albedo, but the denoising filter is flexibile to
+a certain extent and works well with differently computed albedos. Thus it is
+not necessary to compute the strict, exact albedo values but must be always
+between 0 and 1.
+
 For metallic surfaces the albedo should be either the reflectivity at normal
 incidence (e.g. from the artist friendly metallic Fresnel model) or the
 average reflectivity; or if these are constant (not textured) or unknown, the
@@ -609,12 +648,12 @@ albedo can be simply 1 as well.
 
 The albedo for dielectric surfaces (e.g. glass) should be either 1 or, if the
 surface is perfect specular (i.e. has a delta BSDF), the Fresnel blend of the
-reflected and transmitted albedos (as previously discussed). The latter usually
-works better but *only* if it does not introduce too much additional noise due to
-random sampling. Thus we recommend to split the path into a reflected and a
-transmitted path at the first hit, and perhaps fall back to an albedo of 1 for
-subsequent dielectric hits, to avoid noise. The reflected albedo in itself can
-be used for mirror-like surfaces as well.
+reflected and transmitted albedos. The latter usually works better but only
+if it does not introduce too much noise or the albedo is pre-filtered. If noise
+is an issue, we recommend to split the path into a reflected and a transmitted
+path at the first hit, and perhaps fall back to an albedo of 1 for subsequent
+dielectric hits. The reflected albedo in itself can be used for mirror-like
+surfaces as well.
 
 The albedo for layered surfaces can be computed as the weighted sum of the
 albedos of the individual layers. Non-absorbing clear coat layers can be simply
@@ -627,14 +666,6 @@ The normal image should contain the shading normals of the surfaces either in
 world-space or view-space. It is recommended to include normal maps to
 preserve as much detail as possible.
 
-Just like any other input image, the normal image should be anti-aliased (i.e.
-by accumulating the normalized normals per pixel). The final accumulated
-normals do not have to be normalized but must be in the [-1, 1] range (i.e.
-normals mapped to [0, 1] are *not* acceptable and must be remapped to [−1, 1]).
-
-Similar to the albedo, the normal can be stored for either the first
-or a subsequent hit (if the first hit has a perfect specular/delta BSDF).
-
 ![Example normal image obtained using the first hit (the values are actually
 in [−1, 1] but were mapped to [0, 1] for illustration
 purposes).][imgMazdaNormalFirstHit]
@@ -643,6 +674,14 @@ purposes).][imgMazdaNormalFirstHit]
 hit. Note that the normals of perfect specular (delta) transparent surfaces
 are computed as the Fresnel blend of the reflected and transmitted
 normals.][imgMazdaNormalNonDeltaHit]
+
+Just like any other input image, the normal image should be anti-aliased (i.e.
+by accumulating the normalized normals per pixel). The final accumulated
+normals do not have to be normalized but must be in the [-1, 1] range (i.e.
+normals mapped to [0, 1] are *not* acceptable and must be remapped to [−1, 1]).
+
+Similar to the albedo, the normal can be stored for either the first
+or a subsequent hit (if the first hit has a perfect specular/delta BSDF).
 
 #### Weights
 
@@ -664,7 +703,7 @@ function as the filter type. The filter supports the following parameters:
 ----------- ------------- ---------- ---------------------------------------------------------------
 Type        Name             Default Description
 ----------- ------------- ---------- ---------------------------------------------------------------
-`Image`     `color`                  input color image (3 channels, HDR values in [0, +∞),
+`Image`     `color`                  input beauty image (3 channels, HDR values in [0, +∞),
                                      interpreted such that, after scaling with the `inputScale`
                                      parameter, a value of 1 corresponds to aluminance level of 100
                                      cd/m²; directional values in [-1, 1])
