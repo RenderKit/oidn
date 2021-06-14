@@ -254,9 +254,9 @@ Example usage:
 
     ./infer.py --result rt_hdr_alb --input_data rt_test --format exr png --metric ssim
 
-The inference tool supports pre-filtering of auxiliary features as well, which
+The inference tool supports prefiltering of auxiliary features as well, which
 can be performed by specifying the list of training results for each feature to
-pre-filter (`--aux_results` or `-a` option). This is primarily useful for
+prefilter (`--aux_results` or `-a` option). This is primarily useful for
 evaluating the quality of models trained with clean auxiliary features.
 
 Exporting Results (export.py)

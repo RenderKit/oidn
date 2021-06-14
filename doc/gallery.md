@@ -14,7 +14,7 @@ email](mailto:openimagedenoise@googlegroups.com).
 Cabins
 ------
 
-Rendered at 16 spp and denoised using pre-filtered albedo and normal buffers:
+Rendered at 16 spp and denoised using prefiltered albedo and normal buffers:
 
 <div class="img-compare" style="padding-bottom: 62.5%; /* 10/16 */" onmousemove="this.getElementsByTagName('div')[0].style.width=event.offsetX+'px'">
 <img src="images/cabins2_16spp_oidn.jpg"><span>Denoised</span>

@@ -86,16 +86,16 @@ simple example code snippets.
     if (device.getError(errorMessage) != oidn::Error::None)
       std::cout << "Error: " << errorMessage << std::endl;
 
-### Denoising with pre-filtering (C++11 API)
+### Denoising with prefiltering (C++11 API)
 
-    // Create a filter for denoising a beauty (color) image using pre-filtered auxiliary images too
+    // Create a filter for denoising a beauty (color) image using prefiltered auxiliary images too
     oidn::FilterRef filter = device.newFilter("RT"); // generic ray tracing filter
     filter.setImage("color",  colorPtr,  oidn::Format::Float3, width, height); // beauty
     filter.setImage("albedo", albedoPtr, oidn::Format::Float3, width, height); // auxiliary
     filter.setImage("normal", normalPtr, oidn::Format::Float3, width, height); // auxiliary
     filter.setImage("output", outputPtr, oidn::Format::Float3, width, height); // denoised beauty
     filter.set("hdr", true); // beauty image is HDR
-    filter.set("cleanAux", true); // auxiliary images will be pre-filtered
+    filter.set("cleanAux", true); // auxiliary images will be prefiltered
     filter.commit();
 
     // Create a separate filter for denoising an auxiliary albedo image (in-place)
@@ -110,7 +110,7 @@ simple example code snippets.
     normalFilter.setImage("output", normalPtr, oidn::Format::Float3, width, height);
     normalFilter.commit();
 
-    // Pre-filter the auxiliary images
+    // Prefilter the auxiliary images
     albedoFilter.execute();
     normalFilter.execute();
 
@@ -493,7 +493,7 @@ based renderers and noise levels.
 ![Example noisy beauty image rendered using unidirectional path tracing (4
 samples per pixel). *Scene by Evermotion.*][imgMazdaColor]
 
-![Example output beauty image denoised using pre-filtered auxiliary feature
+![Example output beauty image denoised using prefiltered auxiliary feature
 images (albedo and normal) too.][imgMazdaDenoised]
 
 For denoising *beauty* images, it accepts either a low dynamic range (LDR) or
@@ -504,7 +504,7 @@ significantly, preserving more details.
 
 It is possible to denoise auxiliary images as well, in which case only the
 respective auxiliary image has to be specified as input, instead of the beauty
-image. This can be done as a *pre-filtering* step to further improve the quality
+image. This can be done as a *prefiltering* step to further improve the quality
 of the denoised beauty image.
 
 The `RT` filter has certain limitations regarding the supported input images.
@@ -603,16 +603,16 @@ enabled only if the auxiliary images are guaranteed to be noise-free.
 Usually it is difficult to provide clean feature images, and some residual
 noise might be present in the output even with `cleanAux` being disabled. To
 eliminate this noise and to even improve the sharpness of texture details, the
-auxiliary images should be first denoised in a pre-filtering step, as mentioned
+auxiliary images should be first denoised in a prefiltering step, as mentioned
 earlier. Then, these denoised auxiliary images could be used for denoising the
 beauty image. Since these are now noise-free, the `cleanAux` parameter should be
-enabled. See section [Denoising with pre-filtering (C++11 API)] for a simple
-code example. Pre-filtering makes denoising much more expensive but if there are
-multiple color AOVs to denoise, the pre-filtered auxiliary images can be reused
-for denoising multiple AOVs, amortizing the cost of the pre-filtering step.
+enabled. See section [Denoising with prefiltering (C++11 API)] for a simple
+code example. Prefiltering makes denoising much more expensive but if there are
+multiple color AOVs to denoise, the prefiltered auxiliary images can be reused
+for denoising multiple AOVs, amortizing the cost of the prefiltering step.
 
 Thus, for final frame denoising, where the best possible image quality is
-required, it is recommended to pre-filter the auxiliary features if they are
+required, it is recommended to prefilter the auxiliary features if they are
 noisy and enable the `cleanAux` parameter. Denoising with noisy auxiliary
 features should be reserved for previews and interactive rendering.
 
@@ -649,7 +649,7 @@ albedo can be simply 1 as well.
 The albedo for dielectric surfaces (e.g. glass) should be either 1 or, if the
 surface is perfect specular (i.e. has a delta BSDF), the Fresnel blend of the
 reflected and transmitted albedos. The latter usually works better but only
-if it does not introduce too much noise or the albedo is pre-filtered. If noise
+if it does not introduce too much noise or the albedo is prefiltered. If noise
 is an issue, we recommend to split the path into a reflected and a transmitted
 path at the first hit, and perhaps fall back to an albedo of 1 for subsequent
 dielectric hits. The reflected albedo in itself can be used for mirror-like
