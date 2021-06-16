@@ -10,7 +10,7 @@ namespace oidn {
   // Node base class
   class Node
   {
-  private:
+  protected:
     Ref<Device> device;
 
   public:
@@ -57,7 +57,7 @@ namespace oidn {
 
     void execute() override
     {
-      prim.execute(getDevice()->getDNNLStream(), args);
+      prim.execute(device->getDNNLStream(), args);
     }
   };
 
