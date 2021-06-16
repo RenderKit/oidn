@@ -141,7 +141,7 @@ TEST_CASE("multiple filters", "[multi_filter]")
 
   SECTION("1 filter / device: small -> large -> medium")
   {
-    multiFilter1PerDeviceTest(device, {256, 3000, 1024});
+    multiFilter1PerDeviceTest(device, {257, 3001, 1024});
   }
 
   SECTION("3 filters / device: small")
@@ -151,12 +151,12 @@ TEST_CASE("multiple filters", "[multi_filter]")
 
   SECTION("2 filters / device: small -> large")
   {
-    multiFilterNPerDeviceTest(device, {256, 3000});
+    multiFilterNPerDeviceTest(device, {256, 3001});
   }
 
   SECTION("3 filters / device: large -> small -> medium")
   {
-    multiFilterNPerDeviceTest(device, {3000, 256, 1024});
+    multiFilterNPerDeviceTest(device, {3001, 257, 1024});
   }
 }
 
@@ -199,8 +199,8 @@ TEST_CASE("multiple devices", "[multi_device]")
 
 TEST_CASE("filter update", "[filter_update]")
 {
-  const int W = 300;
-  const int H = 200;
+  const int W = 211;
+  const int H = 599;
 
   DeviceRef device = newDevice();
   REQUIRE(device);
@@ -320,7 +320,7 @@ TEST_CASE("image size", "[size]")
 
 void sanitizationTest(DeviceRef& device, bool hdr, float value)
 {
-  const int W = 190;
+  const int W = 191;
   const int H = 347;
 
   FilterRef filter = device.newFilter("RT");
@@ -392,20 +392,20 @@ bool progressCallback(void* userPtr, double n)
 
 void progressTest(DeviceRef& device, double nMax = 1000)
 {
-  const int W = 1280;
-  const int H = 720;
+  const int W = 1283;
+  const int H = 727;
 
   FilterRef filter = device.newFilter("RT");
   REQUIRE(filter);
 
   ImageBuffer image = makeConstImage(W, H);
   setFilterImage(filter, "color",  image);
-  setFilterImage(filter, "output", image);
+  setFilterImage(filter, "output", image); // in-place
 
   Progress progress(nMax);
   filter.setProgressMonitorFunction(progressCallback, &progress);
 
-  filter.set("maxMemoryMB", 512); // make sure there will be multiple tiles
+  filter.set("maxMemoryMB", 0); // make sure there will be multiple tiles
 
   filter.commit();
   REQUIRE(device.getError() == Error::None);
