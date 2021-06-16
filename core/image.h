@@ -102,6 +102,12 @@ namespace oidn {
     {
       return size_t(height) * rowStride * bytePixelStride;
     }
+
+    // Returns the aligned size in bytes of the image
+    __forceinline size_t alignedByteSize() const
+    {
+      return round_up(byteSize(), memoryAlignment);
+    }
   };
 
   class Image : public Memory, public ImageDesc

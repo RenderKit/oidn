@@ -91,7 +91,7 @@ namespace oidn {
   private:
     static char* alloc(size_t size)
     {
-      return (char*)alignedMalloc(size, 128);
+      return (char*)alignedMalloc(size);
     }
   };
 

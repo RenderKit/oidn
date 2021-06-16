@@ -399,31 +399,31 @@ namespace oidn {
     TensorDesc decConv0Desc  = net->getConvDesc("dec_conv0", decConv1bDesc);
 
     // Compute the tensor offsets
-    ptrdiff_t inputReorderOfs = -inputReorderDesc.byteSize();
-    ptrdiff_t encConv0Ofs  = inputReorderOfs - encConv0Desc.byteSize();
-    ptrdiff_t pool1Ofs     = inputReorderOfs - pool1Desc.byteSize();
-    ptrdiff_t encConv1Ofs  = min(encConv0Ofs, pool1Ofs) - encConv1Desc.byteSize();
-    ptrdiff_t pool2Ofs     = pool1Ofs - pool2Desc.byteSize();
-    ptrdiff_t encConv2Ofs  = pool2Ofs - encConv2Desc.byteSize();
-    ptrdiff_t pool3Ofs     = pool2Ofs - pool3Desc.byteSize();
-    ptrdiff_t encConv3Ofs  = pool3Ofs - encConv3Desc.byteSize();
-    ptrdiff_t encConv4Ofs  = pool3Ofs - encConv4Desc.byteSize();
-    ptrdiff_t encConv5aOfs = pool3Ofs - encConv5aDesc.byteSize();
-    ptrdiff_t pool4Ofs     = min(encConv4Ofs, encConv5aOfs) - pool4Desc.byteSize();
-    ptrdiff_t upsample4Ofs = pool3Ofs - upsample4Desc.byteSize();
-    ptrdiff_t encConv5bOfs = min(encConv5aOfs, upsample4Ofs) - encConv5bDesc.byteSize();
-    ptrdiff_t upsample3Ofs = pool2Ofs - upsample3Desc.byteSize();
-    ptrdiff_t decConv4bOfs = upsample3Ofs - decConv4bDesc.byteSize();
-    ptrdiff_t decConv4aOfs = min(upsample4Ofs, decConv4bOfs) - decConv4aDesc.byteSize();
-    ptrdiff_t upsample2Ofs = pool1Ofs - upsample2Desc.byteSize();
-    ptrdiff_t decConv3bOfs = upsample2Ofs - decConv3bDesc.byteSize();
-    ptrdiff_t decConv3aOfs = min(upsample3Ofs, decConv3bOfs) - decConv3aDesc.byteSize();
-    ptrdiff_t upsample1Ofs = inputReorderOfs - upsample1Desc.byteSize();
-    ptrdiff_t decConv2bOfs = upsample1Ofs - decConv2bDesc.byteSize();
-    ptrdiff_t decConv2aOfs = min(upsample2Ofs, decConv2bOfs) - decConv2aDesc.byteSize();
-    ptrdiff_t decConv1bOfs = -decConv1bDesc.byteSize();
-    ptrdiff_t decConv1aOfs = min(upsample1Ofs, decConv1bOfs) - decConv1aDesc.byteSize();
-    ptrdiff_t decConv0Ofs  = decConv1bOfs - decConv0Desc.byteSize();
+    ptrdiff_t inputReorderOfs = -inputReorderDesc.alignedByteSize();
+    ptrdiff_t encConv0Ofs  = inputReorderOfs - encConv0Desc.alignedByteSize();
+    ptrdiff_t pool1Ofs     = inputReorderOfs - pool1Desc.alignedByteSize();
+    ptrdiff_t encConv1Ofs  = min(encConv0Ofs, pool1Ofs) - encConv1Desc.alignedByteSize();
+    ptrdiff_t pool2Ofs     = pool1Ofs - pool2Desc.alignedByteSize();
+    ptrdiff_t encConv2Ofs  = pool2Ofs - encConv2Desc.alignedByteSize();
+    ptrdiff_t pool3Ofs     = pool2Ofs - pool3Desc.alignedByteSize();
+    ptrdiff_t encConv3Ofs  = pool3Ofs - encConv3Desc.alignedByteSize();
+    ptrdiff_t encConv4Ofs  = pool3Ofs - encConv4Desc.alignedByteSize();
+    ptrdiff_t encConv5aOfs = pool3Ofs - encConv5aDesc.alignedByteSize();
+    ptrdiff_t pool4Ofs     = min(encConv4Ofs, encConv5aOfs) - pool4Desc.alignedByteSize();
+    ptrdiff_t upsample4Ofs = pool3Ofs - upsample4Desc.alignedByteSize();
+    ptrdiff_t encConv5bOfs = min(encConv5aOfs, upsample4Ofs) - encConv5bDesc.alignedByteSize();
+    ptrdiff_t upsample3Ofs = pool2Ofs - upsample3Desc.alignedByteSize();
+    ptrdiff_t decConv4bOfs = upsample3Ofs - decConv4bDesc.alignedByteSize();
+    ptrdiff_t decConv4aOfs = min(upsample4Ofs, decConv4bOfs) - decConv4aDesc.alignedByteSize();
+    ptrdiff_t upsample2Ofs = pool1Ofs - upsample2Desc.alignedByteSize();
+    ptrdiff_t decConv3bOfs = upsample2Ofs - decConv3bDesc.alignedByteSize();
+    ptrdiff_t decConv3aOfs = min(upsample3Ofs, decConv3bOfs) - decConv3aDesc.alignedByteSize();
+    ptrdiff_t upsample1Ofs = inputReorderOfs - upsample1Desc.alignedByteSize();
+    ptrdiff_t decConv2bOfs = upsample1Ofs - decConv2bDesc.alignedByteSize();
+    ptrdiff_t decConv2aOfs = min(upsample2Ofs, decConv2bOfs) - decConv2aDesc.alignedByteSize();
+    ptrdiff_t decConv1bOfs = -decConv1bDesc.alignedByteSize();
+    ptrdiff_t decConv1aOfs = min(upsample1Ofs, decConv1bOfs) - decConv1aDesc.alignedByteSize();
+    ptrdiff_t decConv0Ofs  = decConv1bOfs - decConv0Desc.alignedByteSize();
 
     const std::vector<ptrdiff_t> minOfsList = {
       encConv1Ofs,
@@ -444,7 +444,7 @@ namespace oidn {
     ptrdiff_t outputTempOfs = 0;
     if (inplace && (tileCountH * tileCountW) > 1)
     {
-      outputTempOfs = minOfs - outputTempDesc.byteSize();
+      outputTempOfs = minOfs - outputTempDesc.alignedByteSize();
       minOfs = outputTempOfs;
     }
 

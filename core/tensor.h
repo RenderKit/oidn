@@ -105,6 +105,12 @@ namespace oidn {
       return numElements() * elementByteSize();
     }
 
+    // Returns the aligned size in bytes of the tensor
+    __forceinline size_t alignedByteSize() const
+    {
+      return round_up(byteSize(), memoryAlignment);
+    }
+
     // Returns the block size of the layout
     __forceinline int blockSize() const
     {

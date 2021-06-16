@@ -105,7 +105,9 @@ namespace oidn {
     return min(max(value, minValue), maxValue);
   }
 
-  void* alignedMalloc(size_t size, size_t alignment);
+  constexpr size_t memoryAlignment = 128;
+
+  void* alignedMalloc(size_t size, size_t alignment = memoryAlignment);
   void alignedFree(void* ptr);
 
   template<typename T>
