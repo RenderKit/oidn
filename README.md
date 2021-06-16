@@ -1,6 +1,6 @@
 # Intel® Open Image Denoise
 
-This is release v1.4.0 of Intel Open Image Denoise. For changes and new
+This is release v1.4.1 of Intel Open Image Denoise. For changes and new
 features see the [changelog](CHANGELOG.md). Visit
 https://www.openimagedenoise.org for more information.
 

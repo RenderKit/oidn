@@ -1,6 +1,10 @@
 Version History
 ---------------
 
+### Changes in v1.4.1:
+
+-   Fixed crash when in-place denoising images with certain unusual resolutions
+
 ### Changes in v1.4.0:
 
 -   Improved fine detail preservation
