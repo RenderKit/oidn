@@ -399,7 +399,8 @@ namespace oidn {
     TensorDesc decConv0Desc  = net->getConvDesc("dec_conv0", decConv1bDesc);
 
     // Compute the tensor offsets
-    ptrdiff_t inputReorderOfs = -inputReorderDesc.alignedByteSize();
+    ptrdiff_t endOfs = 0; // we'll have negative offsets relative to the end of the buffer
+    ptrdiff_t inputReorderOfs = endOfs - inputReorderDesc.alignedByteSize();
     ptrdiff_t encConv0Ofs  = inputReorderOfs - encConv0Desc.alignedByteSize();
     ptrdiff_t pool1Ofs     = inputReorderOfs - pool1Desc.alignedByteSize();
     ptrdiff_t encConv1Ofs  = min(encConv0Ofs, pool1Ofs) - encConv1Desc.alignedByteSize();
@@ -421,7 +422,7 @@ namespace oidn {
     ptrdiff_t upsample1Ofs = inputReorderOfs - upsample1Desc.alignedByteSize();
     ptrdiff_t decConv2bOfs = upsample1Ofs - decConv2bDesc.alignedByteSize();
     ptrdiff_t decConv2aOfs = min(upsample2Ofs, decConv2bOfs) - decConv2aDesc.alignedByteSize();
-    ptrdiff_t decConv1bOfs = -decConv1bDesc.alignedByteSize();
+    ptrdiff_t decConv1bOfs = endOfs - decConv1bDesc.alignedByteSize();
     ptrdiff_t decConv1aOfs = min(upsample1Ofs, decConv1bOfs) - decConv1aDesc.alignedByteSize();
     ptrdiff_t decConv0Ofs  = decConv1bOfs - decConv0Desc.alignedByteSize();
 
