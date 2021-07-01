@@ -12,7 +12,7 @@ namespace oidn {
   Device::Device()
   {
   #if defined(OIDN_X64)
-    if (!x64::mayiuse(x64::sse41))
+    if (!isISASupported(ISA::SSE41))
       throw Exception(Error::UnsupportedHardware, "SSE4.1 support is required at minimum");
   #endif
 
@@ -168,7 +168,7 @@ namespace oidn {
     dnnl_set_verbose(clamp(verbose - 2, 0, 2)); // unfortunately this is not per-device but global
     dnnlEngine = dnnl::engine(dnnl::engine::kind::cpu, 0);
     dnnlStream = dnnl::stream(dnnlEngine);
-    tensorBlockSize = x64::mayiuse(x64::avx512_core) ? 16 : 8;
+    tensorBlockSize = isISASupported(ISA::AVX512_CORE) ? 16 : 8;
   #else
     tensorBlockSize = 1;
   #endif
@@ -231,9 +231,9 @@ namespace oidn {
 
     std::cout << "  Targets :";
   #if defined(OIDN_X64)
-    if (x64::mayiuse(x64::sse41))       std::cout << " SSE4.1";
-    if (x64::mayiuse(x64::avx2))        std::cout << " AVX2";
-    if (x64::mayiuse(x64::avx512_core)) std::cout << " AVX512";
+    if (isISASupported(ISA::SSE41))       std::cout << " SSE4.1";
+    if (isISASupported(ISA::AVX2))        std::cout << " AVX2";
+    if (isISASupported(ISA::AVX512_CORE)) std::cout << " AVX512";
   #elif defined(OIDN_ARM64)
     std::cout << " NEON";
   #endif

@@ -12,9 +12,6 @@
 
 #if defined(OIDN_DNNL)
   #include "mkl-dnn/include/dnnl.hpp"
-  #include "mkl-dnn/include/dnnl_debug.h"
-  #include "mkl-dnn/src/common/dnnl_thread.hpp"
-  #include "mkl-dnn/src/cpu/x64/cpu_isa_traits.hpp"
 #elif defined(OIDN_BNNS)
   #include <Accelerate/Accelerate.h>
 #endif
@@ -23,10 +20,6 @@
 
 namespace oidn {
 
-#if defined(OIDN_DNNL)
-  namespace x64 = dnnl::impl::cpu::x64;
-  using dnnl::impl::parallel_nd;
-#else
   template <typename T0, typename F>
   __forceinline void parallel_nd(const T0& D0, F f)
   {
@@ -49,7 +42,6 @@ namespace oidn {
       }
     });
   }
-#endif
 
   // Returns the size of the format in bytes
   __forceinline size_t getByteSize(Format format)

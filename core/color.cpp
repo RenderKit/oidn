@@ -54,8 +54,7 @@ namespace oidn {
 
           return sum;
         },
-        [](Sum a, Sum b) -> Sum { return Sum(a.first+b.first, a.second+b.second); },
-        tbb::static_partitioner()
+        [](Sum a, Sum b) -> Sum { return Sum(a.first+b.first, a.second+b.second); }
       );
 
     return (sum.second > 0) ? (key / exp2(sum.first / float(sum.second))) : 1.f;

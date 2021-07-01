@@ -1,6 +1,7 @@
 // Copyright 2009-2021 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
+#include "mkl-dnn/src/cpu/x64/xbyak/xbyak_util.h"
 #include "platform.h"
 
 namespace oidn {
@@ -42,6 +43,25 @@ namespace oidn {
   // ---------------------------------------------------------------------------
   // System information
   // ---------------------------------------------------------------------------
+
+  bool isISASupported(ISA isa)
+  {
+    using Xbyak::util::Cpu;
+    static Cpu cpu;
+    
+    switch (isa)
+    {
+    case ISA::SSE41:
+      return cpu.has(Cpu::tSSE41);
+    case ISA::AVX2:
+      return cpu.has(Cpu::tAVX2);
+    case ISA::AVX512_CORE:
+      return cpu.has(Cpu::tAVX512F)  && cpu.has(Cpu::tAVX512BW) &&
+             cpu.has(Cpu::tAVX512VL) && cpu.has(Cpu::tAVX512DQ);
+    default:
+      return false;
+    }
+  }
 
   std::string getPlatformName()
   {

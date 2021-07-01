@@ -1,119 +1,38 @@
 ## Copyright 2009-2021 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
-set(DNNL_VERSION_MAJOR 2)
-set(DNNL_VERSION_MINOR 2)
-set(DNNL_VERSION_PATCH 4)
-set(DNNL_VERSION_HASH  "N/A")
+set(DNNL_VERBOSE ON CACHE INTERNAL "")
+set(DNNL_ENABLE_CONCURRENT_EXEC ON CACHE INTERNAL "")
+set(DNNL_ENABLE_PRIMITIVE_CACHE ON CACHE INTERNAL "")
+set(DNNL_ENABLE_MAX_CPU_ISA OFF CACHE INTERNAL "")
+set(DNNL_ENABLE_CPU_ISA_HINTS OFF CACHE INTERNAL "")
 
-set(DNNL_CPU_RUNTIME "TBB")
-set(DNNL_CPU_THREADING_RUNTIME "TBB")
-set(DNNL_GPU_RUNTIME "NONE")
+set(DNNL_LIBRARY_TYPE "STATIC" CACHE INTERNAL "")
+set(DNNL_BUILD_EXAMPLES OFF CACHE INTERNAL "")
+set(DNNL_BUILD_TESTS OFF CACHE INTERNAL "")
+set(DNNL_BUILD_FOR_CI OFF CACHE INTERNAL "")
+set(DNNL_WERROR OFF CACHE INTERNAL "")
+set(DNNL_TEST_SET "CI" CACHE INTERNAL "")
+set(DNNL_INSTALL_MODE "DEFAULT" CACHE INTERNAL "")
+set(DNNL_CODE_COVERAGE "OFF" CACHE INTERNAL "")
 
-configure_file(
-  "${PROJECT_SOURCE_DIR}/mkl-dnn/include/oneapi/dnnl/dnnl_config.h.in"
-  "${PROJECT_BINARY_DIR}/mkl-dnn/include/oneapi/dnnl/dnnl_config.h"
-)
-configure_file(
-  "${PROJECT_SOURCE_DIR}/mkl-dnn/include/oneapi/dnnl/dnnl_version.h.in"
-  "${PROJECT_BINARY_DIR}/mkl-dnn/include/oneapi/dnnl/dnnl_version.h"
-)
+set(DNNL_ARCH_OPT_FLAGS "" CACHE INTERNAL "")
+set(DNNL_ENABLE_JIT_PROFILING ON CACHE INTERNAL "")
+set(DNNL_ENABLE_ITT_TASKS ON CACHE INTERNAL "")
 
-file(GLOB DNNL_SOURCES
-  mkl-dnn/src/common/*.[ch]
-  mkl-dnn/src/common/*.[ch]pp
-  mkl-dnn/src/common/ittnotify/*.[ch]
-  mkl-dnn/src/cpu/bfloat16.cpp
-  mkl-dnn/src/cpu/binary_injector_utils.[ch]pp
-  mkl-dnn/src/cpu/cpu_concat.cpp
-  mkl-dnn/src/cpu/cpu_concat_pd.hpp
-  mkl-dnn/src/cpu/cpu_convolution_list.cpp
-  mkl-dnn/src/cpu/cpu_convolution_pd.hpp
-  mkl-dnn/src/cpu/cpu_engine.[ch]pp
-  mkl-dnn/src/cpu/cpu_memory_storage.hpp
-  mkl-dnn/src/cpu/cpu_pooling_list.cpp
-  mkl-dnn/src/cpu/cpu_pooling_pd.hpp
-  mkl-dnn/src/cpu/cpu_primitive.hpp
-  mkl-dnn/src/cpu/cpu_stream.hpp
-  mkl-dnn/src/cpu/cpu_sum.cpp
-  mkl-dnn/src/cpu/platform.[ch]pp
-  mkl-dnn/src/cpu/simple_q10n.hpp
-  mkl-dnn/src/cpu/jit_utils/*.[ch]pp
-  mkl-dnn/src/cpu/jit_utils/linux_perf/*.[ch]pp
-  mkl-dnn/src/cpu/reorder/cpu_reorder.[ch]pp
-  mkl-dnn/src/cpu/reorder/cpu_reorder_regular_f32_f32.cpp
-  mkl-dnn/src/cpu/reorder/simple_reorder.hpp
-  mkl-dnn/src/cpu/x64/cpu_barrier.[ch]pp
-  mkl-dnn/src/cpu/x64/cpu_isa_traits.[ch]pp
-  mkl-dnn/src/cpu/x64/cpu_reducer.[ch]pp
-  mkl-dnn/src/cpu/x64/jit_avx2_conv_kernel_f32.[ch]pp
-  mkl-dnn/src/cpu/x64/jit_avx2_convolution.[ch]pp
-  mkl-dnn/src/cpu/x64/jit_avx512_common_convolution.[ch]pp
-  mkl-dnn/src/cpu/x64/jit_avx512_common_conv_kernel.[ch]pp
-  mkl-dnn/src/cpu/x64/jit_avx512_core_bf16cvt.[ch]pp
-  mkl-dnn/src/cpu/x64/jit_generator.hpp
-  mkl-dnn/src/cpu/x64/jit_primitive_conf.hpp
-  mkl-dnn/src/cpu/x64/jit_sse41_conv_kernel_f32.[ch]pp
-  mkl-dnn/src/cpu/x64/jit_sse41_convolution.[ch]pp
-  mkl-dnn/src/cpu/x64/jit_transpose_src_utils.[ch]pp
-  mkl-dnn/src/cpu/x64/jit_uni_eltwise.[ch]pp
-  mkl-dnn/src/cpu/x64/jit_uni_pooling.[ch]pp
-  mkl-dnn/src/cpu/x64/jit_uni_pool_kernel.[ch]pp
-  mkl-dnn/src/cpu/x64/jit_uni_reorder.[ch]pp
-  mkl-dnn/src/cpu/x64/jit_uni_reorder_utils.cpp
-  mkl-dnn/src/cpu/x64/injectors/*.[ch]pp
-  mkl-dnn/src/cpu/x64/xbyak/*.h
-)
+set(DNNL_CPU_RUNTIME "TBB" CACHE INTERNAL "")
+set(_DNNL_TEST_THREADPOOL_IMPL "STANDALONE" CACHE INTERNAL "")
+set(TBBROOT ${TBB_ROOT} CACHE INTERNAL "")
+set(DNNL_GPU_RUNTIME "NONE" CACHE INTERNAL "")
+set(DNNL_GPU_VENDOR "INTEL" CACHE INTERNAL "")
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-  file(GLOB DNNL_SOURCES_BIGOBJ
-    mkl-dnn/src/cpu/cpu_engine.cpp
-    mkl-dnn/src/cpu/reorder/cpu_reorder_regular_f32_f32.cpp
-    mkl-dnn/src/cpu/cpu_convolution_list.cpp
-  )
-  set_source_files_properties(${DNNL_SOURCES_BIGOBJ} PROPERTIES COMPILE_FLAGS "/bigobj")
-endif()
+set(BENCHDNN_USE_RDPMC OFF CACHE INTERNAL "")
+set(DNNL_USE_CLANG_SANITIZER "" CACHE INTERNAL "")
+set(DNNL_ENABLE_MEM_DEBUG OFF CACHE INTERNAL "")
+set(DNNL_USE_CLANG_TIDY "NONE" CACHE INTERNAL "")
 
-add_library(dnnl STATIC ${DNNL_SOURCES})
+set(DNNL_BLAS_VENDOR "NONE" CACHE INTERNAL "")
 
-target_include_directories(dnnl
-  PUBLIC
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/mkl-dnn/include>
-    $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/mkl-dnn/include>
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/mkl-dnn/src>
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/mkl-dnn/src/common>
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/mkl-dnn/src/cpu>
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/mkl-dnn/src/cpu/xbyak>
-)
+set(DNNL_AARCH64_USE_ACL OFF CACHE INTERNAL "")
 
-target_compile_definitions(dnnl
-  PUBLIC
-    -DDNNL_ENABLE_CONCURRENT_EXEC
-    -DDNNL_ENABLE_ITT_TASKS
-)
-
-set(DNNL_COMPILE_OPTIONS "")
-if(WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-  # Correct 'jnl' macro/jit issue
-  list(APPEND DNNL_COMPILE_OPTIONS "/Qlong-double")
-endif()
-target_compile_options(dnnl PRIVATE ${DNNL_COMPILE_OPTIONS})
-
-target_link_libraries(dnnl
-  PUBLIC
-    ${CMAKE_THREAD_LIBS_INIT}
-    TBB
-)
-if(UNIX AND NOT APPLE)
-  # Not every compiler adds -ldl automatically
-  target_link_libraries(dnnl PUBLIC ${CMAKE_DL_LIBS})
-endif()
-
-if(OIDN_STATIC_LIB)
-  install(TARGETS dnnl
-    EXPORT
-      ${PROJECT_NAME}_Export
-    ARCHIVE
-      DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT devel
-  )
-endif()
+add_subdirectory(mkl-dnn)

@@ -168,6 +168,15 @@ namespace oidn {
   // System information
   // ---------------------------------------------------------------------------
 
+  enum class ISA
+  {
+    SSE41,
+    AVX2,
+    AVX512_CORE
+  };
+
+  bool isISASupported(ISA isa);
+
   std::string getPlatformName();
   std::string getCompilerName();
   std::string getBuildName();
