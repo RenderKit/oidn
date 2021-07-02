@@ -20,7 +20,7 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
@@ -34,6 +34,16 @@ list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 # CMake macros
 include(oidn_macros)
+
+# Detect the processor architecture
+if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
+  message(FATAL_ERROR "Intel(R) Open Image Denoise supports 64-bit platforms only")
+endif()
+if(${CMAKE_HOST_SYSTEM_PROCESSOR} MATCHES "arm64|aarch64")
+  set(OIDN_ARCH "ARM64")
+else()
+  set(OIDN_ARCH "X64")
+endif()
 
 # Build as shared or static library
 option(OIDN_STATIC_LIB "Build Intel(R) Open Image Denoise as a static library.")
@@ -72,12 +82,6 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 find_package(Threads REQUIRED)
 find_package(TBB 2017.0 REQUIRED tbb)
 
-# Packaging
-include(oidn_package)
-
-# Platform-specific settings
-include(oidn_platform)
-
 # Neural network runtime
 set(OIDN_NEURAL_RUNTIMES)
 if(OIDN_ARCH STREQUAL "X64")
@@ -91,6 +95,7 @@ set(OIDN_NEURAL_RUNTIME ${OIDN_NEURAL_RUNTIME_DEFAULT} CACHE STRING "Neural netw
 set_property(CACHE OIDN_NEURAL_RUNTIME PROPERTY STRINGS ${OIDN_NEURAL_RUNTIMES})
 
 if(OIDN_NEURAL_RUNTIME STREQUAL "DNNL")
+  option(OIDN_DEVICE_GPU "Enable GPU device." ON)
   include(oidn_dnnl)
 elseif(OIDN_NEURAL_RUNTIME STREQUAL "BNNS")
   include(oidn_bnns)
@@ -104,6 +109,12 @@ elseif(OIDN_ARCH STREQUAL "ARM64")
 endif()
 set(OIDN_ISPC_ADDRESSING 64)
 include(oidn_ispc)
+
+# Packaging
+include(oidn_package)
+
+# Platform-specific settings
+include(oidn_platform)
 
 ## -----------------------------------------------------------------------------
 ## Library

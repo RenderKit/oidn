@@ -3,16 +3,6 @@
 
 include(CheckCXXCompilerFlag)
 
-# Detect the processor architecture
-if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
-  message(FATAL_ERROR "Intel(R) Open Image Denoise supports 64-bit platforms only")
-endif()
-if(${CMAKE_HOST_SYSTEM_PROCESSOR} MATCHES "arm64|aarch64")
-  set(OIDN_ARCH "ARM64")
-else()
-  set(OIDN_ARCH "X64")
-endif()
-
 # Initialize the compile flags
 set(OIDN_C_CXX_FLAGS)
 set(OIDN_C_CXX_FLAGS_RELEASE)
