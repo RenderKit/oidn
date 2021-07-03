@@ -36,6 +36,10 @@ namespace oidn {
     std::shared_ptr<PinningObserver> observer;
     std::shared_ptr<ThreadAffinity> affinity;
 
+    // Memory
+    std::weak_ptr<ScratchBufferManager> scratchManagerWp;
+
+  protected:
     // Neural network runtime
   #if defined(OIDN_DNNL)
     dnnl::engine dnnlEngine;
@@ -43,14 +47,12 @@ namespace oidn {
   #endif
     int tensorBlockSize = 1;
 
-    // Memory
-    std::weak_ptr<ScratchBufferManager> scratchManagerWp;
-
     // Parameters
     int numThreads = 0; // autodetect by default
     bool setAffinity = true;
 
     bool dirty = true;
+    bool committed = false;
 
   public:
     Device();
@@ -62,28 +64,35 @@ namespace oidn {
 
     void warning(const std::string& message);
 
-    int get1i(const std::string& name);
-    void set1i(const std::string& name, int value);
+    virtual int get1i(const std::string& name);
+    virtual void set1i(const std::string& name, int value);
 
-    void commit();
+    virtual void commit() = 0;
 
     template<typename F>
     void executeTask(F& f)
     {
-      arena->execute(f);
+      if (arena)
+        arena->execute(f);
+      else
+        f();
     }
 
     template<typename F>
     void executeTask(const F& f)
     {
-      arena->execute(f);
+      if (arena)
+        arena->execute(f);
+      else
+        f();
     }
 
-    Ref<Buffer> newBuffer(size_t byteSize);
-    Ref<Buffer> newBuffer(void* ptr, size_t byteSize);
-    Ref<Filter> newFilter(const std::string& type);
+    virtual Ref<Buffer> newBuffer(size_t byteSize) = 0;
+    virtual Ref<Buffer> newBuffer(void* ptr, size_t byteSize) = 0;
 
     Ref<ScratchBuffer> newScratchBuffer(size_t byteSize);
+
+    Ref<Filter> newFilter(const std::string& type);
 
     __forceinline Device* getDevice() { return this; }
     __forceinline std::mutex& getMutex() { return mutex; }
@@ -96,10 +105,11 @@ namespace oidn {
     // Returns the native tensor layout block size
     __forceinline int getTensorBlockSize() const { return tensorBlockSize; }
 
-    bool isCommitted() const { return bool(arena); }
+    bool isCommitted() const { return committed; }
     void checkCommitted();
 
-  private:
+  protected:
+    void initTasking();
     void print();
   };
 

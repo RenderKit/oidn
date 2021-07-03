@@ -3,6 +3,7 @@
 
 #include "device.h"
 #include "scratch.h"
+#include "cpu_buffer.h"
 #include "unet.h"
 
 namespace oidn {
@@ -139,60 +140,10 @@ namespace oidn {
     dirty = true;
   }
 
-  void Device::commit()
-  {
-    if (isCommitted())
-      throw Exception(Error::InvalidOperation, "device can be committed only once");
-
-    // Get the optimal thread affinities (except on Apple Silicon)
-  #if !(defined(__APPLE__) && defined(OIDN_ARM64))
-    if (setAffinity)
-    {
-      affinity = std::make_shared<ThreadAffinity>(1, verbose); // one thread per core
-      if (affinity->getNumThreads() == 0)
-        affinity.reset();
-    }
-  #endif
-
-    // Create the task arena
-    const int maxNumThreads = affinity ? affinity->getNumThreads() : tbb::this_task_arena::max_concurrency();
-    numThreads = (numThreads > 0) ? min(numThreads, maxNumThreads) : maxNumThreads;
-    arena = std::make_shared<tbb::task_arena>(numThreads);
-
-    // Automatically set the thread affinities
-    if (affinity)
-      observer = std::make_shared<PinningObserver>(affinity, *arena);
-
-    // Initialize the neural network runtime
-  #if defined(OIDN_DNNL)
-    dnnl_set_verbose(clamp(verbose - 2, 0, 2)); // unfortunately this is not per-device but global
-    dnnlEngine = dnnl::engine(dnnl::engine::kind::cpu, 0);
-    dnnlStream = dnnl::stream(dnnlEngine);
-    tensorBlockSize = isISASupported(ISA::AVX512_CORE) ? 16 : 8;
-  #else
-    tensorBlockSize = 1;
-  #endif
-
-    dirty = false;
-
-    if (isVerbose())
-      print();
-  }
-
   void Device::checkCommitted()
   {
     if (dirty)
       throw Exception(Error::InvalidOperation, "changes to the device are not committed");
-  }
-
-  Ref<Buffer> Device::newBuffer(size_t byteSize)
-  {
-    return makeRef<CPUBuffer>(Ref<Device>(this), byteSize);
-  }
-
-  Ref<Buffer> Device::newBuffer(void* ptr, size_t byteSize)
-  {
-    return makeRef<CPUBuffer>(Ref<Device>(this), ptr, byteSize);
   }
 
   Ref<Filter> Device::newFilter(const std::string& type)
@@ -218,6 +169,28 @@ namespace oidn {
     if (!scratchManager)
       scratchManagerWp = scratchManager = std::make_shared<ScratchBufferManager>(this);
     return makeRef<ScratchBuffer>(scratchManager, byteSize);
+  }
+
+  void Device::initTasking()
+  {
+    // Get the optimal thread affinities (except on Apple Silicon)
+  #if !(defined(__APPLE__) && defined(OIDN_ARM64))
+    if (setAffinity)
+    {
+      affinity = std::make_shared<ThreadAffinity>(1, verbose); // one thread per core
+      if (affinity->getNumThreads() == 0)
+        affinity.reset();
+    }
+  #endif
+
+    // Create the task arena
+    const int maxNumThreads = affinity ? affinity->getNumThreads() : tbb::this_task_arena::max_concurrency();
+    numThreads = (numThreads > 0) ? min(numThreads, maxNumThreads) : maxNumThreads;
+    arena = std::make_shared<tbb::task_arena>(numThreads);
+
+    // Automatically set the thread affinities
+    if (affinity)
+      observer = std::make_shared<PinningObserver>(affinity, *arena);
   }
 
   void Device::print()

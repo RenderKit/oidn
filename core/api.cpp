@@ -35,7 +35,7 @@
     Device::setError(obj ? obj->getDevice() : nullptr, Error::Unknown, "unknown exception caught"); \
   }
 
-#include "device.h"
+#include "cpu_device.h"
 #include "filter.h"
 #include <mutex>
 
@@ -98,7 +98,7 @@ OIDN_API_NAMESPACE_BEGIN
     Ref<Device> device = nullptr;
     OIDN_TRY
       if (type == OIDN_DEVICE_TYPE_CPU || type == OIDN_DEVICE_TYPE_DEFAULT)
-        device = makeRef<Device>();
+        device = makeRef<CPUDevice>();
       else
         throw Exception(Error::InvalidArgument, "invalid device type");
     OIDN_CATCH(device)

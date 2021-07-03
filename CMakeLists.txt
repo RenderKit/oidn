@@ -151,6 +151,9 @@ set(CORE_SOURCES
   core/color.cpp
   core/common.h
   core/conv.h
+  core/cpu_buffer.h
+  core/cpu_device.h
+  core/cpu_device.cpp
   core/data.h
   core/device.h
   core/device.cpp
@@ -176,6 +179,11 @@ set(CORE_SOURCES
   core/upsample.h
 )
 
+set(CORE_SOURCES_SYCL
+)
+
+set_source_files_properties(${CORE_SOURCES_SYCL} PROPERTIES COMPILE_FLAGS ${OIDN_CXX_FLAGS_SYCL})
+
 set(CORE_SOURCES_ISPC
   core/image.isph
   core/input_reorder.ispc
@@ -189,7 +197,7 @@ set(CORE_SOURCES_ISPC
   core/vec.isph
 )
 
-add_library(${PROJECT_NAME} ${OIDN_LIB_TYPE} ${CORE_SOURCES})
+add_library(${PROJECT_NAME} ${OIDN_LIB_TYPE} ${CORE_SOURCES} ${CORE_SOURCES_SYCL})
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE OIDN_${OIDN_NEURAL_RUNTIME})
 ispc_add_definitions(-DOIDN_${OIDN_NEURAL_RUNTIME})

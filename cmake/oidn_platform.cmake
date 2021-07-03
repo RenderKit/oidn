@@ -8,6 +8,7 @@ set(OIDN_C_CXX_FLAGS)
 set(OIDN_C_CXX_FLAGS_RELEASE)
 set(OIDN_C_CXX_FLAGS_DEBUG)
 set(OIDN_CXX_FLAGS)
+set(OIDN_CXX_FLAGS_SYCL)
 
 # UINT8_MAX-like macros are a part of the C99 standard and not a part of the
 # C++ standard (see C99 standard 7.18.2 and 7.18.4)
@@ -141,22 +142,11 @@ if(APPLE)
 endif()
 
 ## -----------------------------------------------------------------------------
-## OpenMP SIMD
+## SYCL
 ## -----------------------------------------------------------------------------
 
-if(WIN32)
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    add_compile_options(/Qpar)
-  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-    append(OIDN_C_CXX_FLAGS "/Qopenmp-simd")
-  endif()
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-  append(OIDN_C_CXX_FLAGS "-qopenmp-simd")
-else()
-  check_cxx_compiler_flag(-fopenmp-simd compiler-openmp-simd-support)
-  if(compiler-openmp-simd-support)
-    append(OIDN_C_CXX_FLAGS "-fopenmp-simd")
-  endif()
+if(OIDN_DEVICE_GPU)
+  append(OIDN_CXX_FLAGS_SYCL "-fsycl")
 endif()
 
 ## -----------------------------------------------------------------------------
