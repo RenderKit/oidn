@@ -255,6 +255,28 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_CATCH(buffer)
   }
 
+  OIDN_API void* oidnGetBufferData(OIDNBuffer hBuffer)
+  {
+    Buffer* buffer = (Buffer*)hBuffer;
+    OIDN_TRY
+      checkHandle(hBuffer);
+      OIDN_LOCK(buffer);
+      return buffer->data();
+    OIDN_CATCH(buffer)
+    return nullptr;
+  }
+
+  OIDN_API size_t oidnGetBufferSize(OIDNBuffer hBuffer)
+  {
+    Buffer* buffer = (Buffer*)hBuffer;
+    OIDN_TRY
+      checkHandle(hBuffer);
+      OIDN_LOCK(buffer);
+      return buffer->size();
+    OIDN_CATCH(buffer)
+    return 0;
+  }
+
   OIDN_API OIDNFilter oidnNewFilter(OIDNDevice hDevice, const char* type)
   {
     Device* device = (Device*)hDevice;

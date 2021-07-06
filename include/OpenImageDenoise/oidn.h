@@ -118,6 +118,12 @@ OIDN_API void* oidnMapBuffer(OIDNBuffer buffer, OIDNAccess access, size_t byteOf
 // mappedPtr must be a pointer returned by a previous call to oidnMapBuffer.
 OIDN_API void oidnUnmapBuffer(OIDNBuffer buffer, void* mappedPtr);
 
+// Gets a pointer to the buffer data.
+OIDN_API void* oidnGetBufferData(OIDNBuffer buffer);
+
+// Gets the size of the buffer in bytes.
+OIDN_API size_t oidnGetBufferSize(OIDNBuffer buffer);
+
 // Retains the buffer (increments the reference count).
 OIDN_API void oidnRetainBuffer(OIDNBuffer buffer);
 

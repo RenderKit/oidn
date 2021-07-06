@@ -112,6 +112,18 @@ OIDN_NAMESPACE_BEGIN
     {
       oidnUnmapBuffer(handle, mappedPtr);
     }
+
+    // Gets a pointer to the buffer data.
+    void* getData()
+    {
+      return oidnGetBufferData(handle);
+    }
+
+    // Gets the size of the buffer in bytes.
+    size_t getSize()
+    {
+      return oidnGetBufferSize(handle);
+    }
   };
 
   // ---------------------------------------------------------------------------
