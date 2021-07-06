@@ -4,7 +4,6 @@
 #pragma once
 
 #include "common.h"
-#include "device.h"
 
 namespace oidn {
 
@@ -14,6 +13,14 @@ namespace oidn {
   class Buffer : public RefCount
   {
   public:
+    enum class Kind
+    {
+      Host,
+      Device,
+      Shared,
+      Unknown
+    };
+
     virtual char* data() = 0;
     virtual const char* data() const = 0;
     virtual size_t size() const = 0;

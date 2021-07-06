@@ -36,6 +36,9 @@
   }
 
 #include "cpu_device.h"
+#if defined(OIDN_DEVICE_GPU)
+  #include "sycl_device.h"
+#endif
 #include "filter.h"
 #include <mutex>
 
@@ -99,6 +102,10 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_TRY
       if (type == OIDN_DEVICE_TYPE_CPU || type == OIDN_DEVICE_TYPE_DEFAULT)
         device = makeRef<CPUDevice>();
+    #if defined(OIDN_DEVICE_GPU)
+      else if (type == OIDN_DEVICE_TYPE_GPU)
+        device = makeRef<SYCLDevice>();
+    #endif
       else
         throw Exception(Error::InvalidArgument, "invalid device type");
     OIDN_CATCH(device)

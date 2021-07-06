@@ -313,6 +313,7 @@ OIDN_NAMESPACE_BEGIN
     Default = OIDN_DEVICE_TYPE_DEFAULT, // select device automatically
 
     CPU = OIDN_DEVICE_TYPE_CPU, // CPU device
+    GPU = OIDN_DEVICE_TYPE_GPU, // GPU device
   };
 
   // Error codes

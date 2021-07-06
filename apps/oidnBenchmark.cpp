@@ -32,7 +32,8 @@ bool inplace = false;
 void printUsage()
 {
   std::cout << "Intel(R) Open Image Denoise - Benchmark" << std::endl;
-  std::cout << "usage: oidnBenchmark [-r/--run regex] [-n times]" << std::endl
+  std::cout << "usage: oidnBenchmark [-d/--device default|cpu|gpu]" << std::endl
+            << "                     [-r/--run regex] [-n times]" << std::endl
             << "                     [-s/--size width height]" << std::endl
             << "                     [--threads n] [--affinity 0|1] [--maxmem MB] [--inplace]" << std::endl
             << "                     [-v/--verbose 0-3]" << std::endl
@@ -208,6 +209,7 @@ void addAllBenchmarks()
 
 int main(int argc, char* argv[])
 {
+  DeviceType deviceType = DeviceType::Default;
   std::string run = ".*";
   int numThreads = -1;
   int setAffinity = -1;
@@ -219,7 +221,19 @@ int main(int argc, char* argv[])
     while (args.hasNext())
     {
       std::string opt = args.getNextOpt();
-      if (opt == "r" || opt == "run")
+      if (opt == "d" || opt == "dev" || opt == "device")
+      {
+        const auto val = args.getNextValue();
+        if (val == "default" || val == "Default")
+          deviceType = DeviceType::Default;
+        else if (val == "cpu" || val == "CPU")
+          deviceType = DeviceType::CPU;
+        else if (val == "gpu" || val == "GPU")
+          deviceType = DeviceType::GPU;
+        else
+          throw std::invalid_argument("invalid device");
+      }
+      else if (opt == "r" || opt == "run")
         run = args.getNextValue();
       else if (opt == "n")
       {
@@ -273,7 +287,7 @@ int main(int argc, char* argv[])
   #endif
 
     // Initialize the device
-    DeviceRef device = newDevice();
+    DeviceRef device = newDevice(deviceType);
 
     const char* errorMessage;
     if (device.getError(errorMessage) != Error::None)

@@ -18,7 +18,7 @@ namespace oidn {
 
   public:
     CPUBuffer(const Ref<Device>& device, size_t size)
-      : ptr(alloc(size)),
+      : ptr(allocData(size)),
         byteSize(size),
         shared(false),
         device(device) {}
@@ -36,7 +36,7 @@ namespace oidn {
     ~CPUBuffer()
     {
       if (!shared)
-        alignedFree(ptr);
+        freeData(ptr);
     }
 
     char* data() override { return ptr; }
@@ -58,17 +58,22 @@ namespace oidn {
       if (shared)
         throw std::logic_error("shared buffers cannot be resized");
 
-      alignedFree(ptr);
-      ptr = alloc(newSize);
+      freeData(ptr);
+      ptr = allocData(newSize);
       byteSize = newSize;
     }
 
     Device* getDevice() override { return device.get(); }
 
   private:
-    static char* alloc(size_t size)
+    char* allocData(size_t size)
     {
       return (char*)alignedMalloc(size);
+    }
+
+    void freeData(void* ptr)
+    {
+      alignedFree(ptr);
     }
   };
 

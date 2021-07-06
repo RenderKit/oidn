@@ -24,7 +24,8 @@ using namespace oidn;
 void printUsage()
 {
   std::cout << "Intel(R) Open Image Denoise" << std::endl;
-  std::cout << "usage: oidnDenoise [-f/--filter RT|RTLightmap]" << std::endl
+  std::cout << "usage: oidnDenoise [-d/--device default|cpu|gpu]" << std::endl
+            << "                   [-f/--filter RT|RTLightmap]" << std::endl
             << "                   [--hdr color.pfm] [--ldr color.pfm] [--srgb] [--dir directional.pfm]" << std::endl
             << "                   [--alb albedo.pfm] [--nrm normal.pfm] [--clean_aux]" << std::endl
             << "                   [--is/--input_scale value]" << std::endl
@@ -75,6 +76,7 @@ std::vector<char> loadFile(const std::string& filename)
 
 int main(int argc, char* argv[])
 {
+  DeviceType deviceType = DeviceType::Default;
   std::string filterType = "RT";
   std::string colorFilename, albedoFilename, normalFilename;
   std::string outputFilename, refFilename;
@@ -104,7 +106,19 @@ int main(int argc, char* argv[])
     while (args.hasNext())
     {
       std::string opt = args.getNextOpt();
-      if (opt == "f" || opt == "filter")
+      if (opt == "d" || opt == "dev" || opt == "device")
+      {
+        const auto val = args.getNextValue();
+        if (val == "default" || val == "Default")
+          deviceType = DeviceType::Default;
+        else if (val == "cpu" || val == "CPU")
+          deviceType = DeviceType::CPU;
+        else if (val == "gpu" || val == "GPU")
+          deviceType = DeviceType::GPU;
+        else
+          throw std::invalid_argument("invalid device");
+      }
+      else if (opt == "f" || opt == "filter")
         filterType = args.getNextValue();
       else if (opt == "hdr")
       {
@@ -225,7 +239,7 @@ int main(int argc, char* argv[])
     std::cout << "Initializing" << std::endl;
     Timer timer;
 
-    DeviceRef device = newDevice();
+    DeviceRef device = newDevice(deviceType);
 
     const char* errorMessage;
     if (device.getError(errorMessage) != Error::None)

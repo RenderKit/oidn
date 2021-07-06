@@ -4,10 +4,10 @@
 #pragma once
 
 #include "common.h"
+#include "buffer.h"
 
 namespace oidn {
 
-  class Buffer;
   class Filter;
 
   class ScratchBuffer;
@@ -67,7 +67,7 @@ namespace oidn {
     virtual int get1i(const std::string& name);
     virtual void set1i(const std::string& name, int value);
 
-    virtual void commit() = 0;
+    void commit();
 
     template<typename F>
     void executeTask(F& f)
@@ -87,7 +87,7 @@ namespace oidn {
         f();
     }
 
-    virtual Ref<Buffer> newBuffer(size_t byteSize) = 0;
+    virtual Ref<Buffer> newBuffer(size_t byteSize, Buffer::Kind kind = Buffer::Kind::Shared) = 0;
     virtual Ref<Buffer> newBuffer(void* ptr, size_t byteSize) = 0;
 
     Ref<ScratchBuffer> newScratchBuffer(size_t byteSize);
@@ -109,8 +109,9 @@ namespace oidn {
     void checkCommitted();
 
   protected:
+    virtual void init() = 0;
+    virtual void printInfo() = 0;
     void initTasking();
-    void print();
   };
 
 } // namespace oidn

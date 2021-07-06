@@ -4,14 +4,22 @@
 #pragma once
 
 #include "device.h"
+#include <CL/sycl.hpp>
 
 namespace oidn {
 
-  class CPUDevice : public Device
+  class SYCLDevice : public Device
   { 
+  private:
+    cl::sycl::device syclDevice;
+    cl::sycl::context syclContext;
+
   public:
     Ref<Buffer> newBuffer(size_t byteSize, Buffer::Kind kind) override;
     Ref<Buffer> newBuffer(void* ptr, size_t byteSize) override;
+
+    __forceinline cl::sycl::device&  getSYCLDevice()  { return syclDevice; }
+    __forceinline cl::sycl::context& getSYCLContext() { return syclContext; }
 
   protected:
     void init() override;

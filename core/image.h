@@ -4,6 +4,7 @@
 #pragma once
 
 #include "common.h"
+#include "device.h"
 #include "buffer.h"
 
 namespace oidn {
@@ -149,7 +150,7 @@ namespace oidn {
     }
 
     Image(const Ref<Device>& device, Format format, size_t width, size_t height)
-      : Memory(device->newBuffer(width * height * getByteSize(format))),
+      : Memory(device->newBuffer(width * height * getByteSize(format), Buffer::Kind::Device)),
         ImageDesc(format, width, height)
     {
       this->ptr = buffer->data();

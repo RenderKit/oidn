@@ -145,7 +145,6 @@ set(CORE_SOURCES
   include/OpenImageDenoise/oidn.hpp
   include/OpenImageDenoise/config.h
   ${OIDN_RESOURCE}
-  core/api.cpp
   core/buffer.h
   core/color.h
   core/color.cpp
@@ -180,6 +179,10 @@ set(CORE_SOURCES
 )
 
 set(CORE_SOURCES_SYCL
+  core/api.cpp
+  core/sycl_buffer.h
+  core/sycl_device.h
+  core/sycl_device.cpp
 )
 
 set_source_files_properties(${CORE_SOURCES_SYCL} PROPERTIES COMPILE_FLAGS ${OIDN_CXX_FLAGS_SYCL})
@@ -215,6 +218,10 @@ if(OIDN_NEURAL_RUNTIME STREQUAL "DNNL")
   target_link_libraries(${PROJECT_NAME} PRIVATE dnnl)
 elseif(OIDN_NEURAL_RUNTIME STREQUAL "BNNS")
   target_link_libraries(${PROJECT_NAME} PRIVATE "-framework Accelerate")
+endif()
+
+if(OIDN_DEVICE_GPU)
+  target_compile_definitions(${PROJECT_NAME} PUBLIC OIDN_DEVICE_GPU)
 endif()
 
 # Include weights
