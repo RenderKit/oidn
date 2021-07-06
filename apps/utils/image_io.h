@@ -8,48 +8,57 @@
 #include <vector>
 #include <array>
 #include <tuple>
+#include <OpenImageDenoise/oidn.hpp>
 
 namespace oidn {
 
   struct ImageBuffer
   {
-    std::vector<float> buffer;
+    BufferRef buffer;
+    float* bufferPtr;
+    size_t bufferSize;
     int width;
     int height;
     int numChannels;
 
     ImageBuffer()
-      : width(0),
+      : bufferPtr(nullptr),
+        bufferSize(0),
+        width(0),
         height(0),
         numChannels(0) {}
 
-    ImageBuffer(int width, int height, int numChannels)
-      : buffer(size_t(width) * height * numChannels),
+    ImageBuffer(DeviceRef& device, int width, int height, int numChannels)
+      : bufferSize(size_t(width) * height * numChannels),
         width(width),
         height(height),
-        numChannels(numChannels) {}
+        numChannels(numChannels)
+    {
+      buffer = device.newBuffer(bufferSize * sizeof(float));
+      bufferPtr = (float*)buffer.getData();
+    }
 
     operator bool() const
     {
       return data() != nullptr;
     }
 
-    const float& operator [](size_t i) const { return buffer[i]; }
-    float& operator [](size_t i) { return buffer[i]; }
+    const float& operator [](size_t i) const { return bufferPtr[i]; }
+    float& operator [](size_t i) { return bufferPtr[i]; }
 
-    const float* data() const { return buffer.data(); }
-    float* data() { return buffer.data(); }
+    const float* data() const { return bufferPtr; }
+    float* data() { return bufferPtr; }
   
-    size_t size() const { return buffer.size(); }
+    size_t size() const { return bufferSize; }
     std::array<int, 3> dims() const { return {width, height, numChannels}; }
   };
 
   // Loads an image with an optionally specified number of channels (loads all
   // channels by default)
-  std::shared_ptr<ImageBuffer> loadImage(const std::string& filename, int numChannels = 0);
+  std::shared_ptr<ImageBuffer> loadImage(DeviceRef& device, const std::string& filename, int numChannels = 0);
 
   // Loads an image with/without sRGB to linear conversion
-  std::shared_ptr<ImageBuffer> loadImage(const std::string& filename, int numChannels, bool srgb);
+  std::shared_ptr<ImageBuffer> loadImage(DeviceRef& device, const std::string& filename, int numChannels, bool srgb);
 
   // Saves an image
   void saveImage(const std::string& filename, const ImageBuffer& image);

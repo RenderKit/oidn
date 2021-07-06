@@ -105,7 +105,7 @@ void runBenchmark(DeviceRef& device, const Benchmark& bench)
   std::shared_ptr<ImageBuffer> albedo;
   if (bench.hasInput("alb"))
   {
-    input = albedo = std::make_shared<ImageBuffer>(bench.width, bench.height, 3);
+    input = albedo = std::make_shared<ImageBuffer>(device, bench.width, bench.height, 3);
     initImage(*albedo, rng, 0.f, 1.f);
     filter.setImage("albedo", albedo->data(), Format::Float3, bench.width, bench.height);
   }
@@ -113,7 +113,7 @@ void runBenchmark(DeviceRef& device, const Benchmark& bench)
   std::shared_ptr<ImageBuffer> normal;
   if (bench.hasInput("nrm"))
   {
-    input = normal = std::make_shared<ImageBuffer>(bench.width, bench.height, 3);
+    input = normal = std::make_shared<ImageBuffer>(device, bench.width, bench.height, 3);
     initImage(*normal, rng, -1.f, 1.f);
     filter.setImage("normal", normal->data(), Format::Float3, bench.width, bench.height);
   }
@@ -121,14 +121,14 @@ void runBenchmark(DeviceRef& device, const Benchmark& bench)
   std::shared_ptr<ImageBuffer> color;
   if (bench.hasInput("hdr"))
   {
-    input = color = std::make_shared<ImageBuffer>(bench.width, bench.height, 3);
+    input = color = std::make_shared<ImageBuffer>(device, bench.width, bench.height, 3);
     initImage(*color, rng, 0.f, 100.f);
     filter.setImage("color", color->data(), Format::Float3, bench.width, bench.height);
     filter.set("hdr", true);
   }
   else if (bench.hasInput("ldr"))
   {
-    input = color = std::make_shared<ImageBuffer>(bench.width, bench.height, 3);
+    input = color = std::make_shared<ImageBuffer>(device, bench.width, bench.height, 3);
     initImage(*color, rng, 0.f, 1.f);
     filter.setImage("color", color->data(), Format::Float3, bench.width, bench.height);
     filter.set("hdr", false);
@@ -138,7 +138,7 @@ void runBenchmark(DeviceRef& device, const Benchmark& bench)
   if (inplace)
     output = input;
   else
-    output = std::make_shared<ImageBuffer>(bench.width, bench.height, 3);
+    output = std::make_shared<ImageBuffer>(device, bench.width, bench.height, 3);
   filter.setImage("output", output->data(), Format::Float3, bench.width, bench.height);
 
   if (maxMemoryMB >= 0)

@@ -191,52 +191,8 @@ int main(int argc, char* argv[])
     }
   #endif
 
-    // Load the input image
-    std::shared_ptr<ImageBuffer> input, ref;
-    std::shared_ptr<ImageBuffer> color, albedo, normal;
-
-    std::cout << "Loading input" << std::endl;
-
-    if (!albedoFilename.empty())
-      input = albedo = loadImage(albedoFilename, 3, false);
-
-    if (!normalFilename.empty())
-      input = normal = loadImage(normalFilename, 3);
-
-    if (!colorFilename.empty())
-      input = color = loadImage(colorFilename, 3, srgb);
-
-    if (!input)
-      throw std::runtime_error("no input image specified");
-
-    if (!refFilename.empty())
-    {
-      ref = loadImage(refFilename, 3, srgb);
-      if (ref->dims() != input->dims())
-        throw std::runtime_error("invalid reference output image");
-    }
-
-    const int width  = input->width;
-    const int height = input->height;
-    std::cout << "Resolution: " << width << "x" << height << std::endl;
-
-    // Initialize the output image
-    std::shared_ptr<ImageBuffer> output;
-    if (inplace)
-      output = input;
-    else
-      output = std::make_shared<ImageBuffer>(width, height, 3);
-
-    // Load the filter weights if specified
-    std::vector<char> weights;
-    if (!weightsFilename.empty())
-    {
-      std::cout << "Loading filter weights" << std::endl;
-      weights = loadFile(weightsFilename);
-    }
-
-    // Initialize the denoising filter
-    std::cout << "Initializing" << std::endl;
+    // Initialize the denoising device
+    std::cout << "Initializing device" << std::endl;
     Timer timer;
 
     DeviceRef device = newDevice(deviceType);
@@ -255,6 +211,61 @@ int main(int argc, char* argv[])
     device.commit();
 
     const double deviceInitTime = timer.query();
+
+    const int versionMajor = device.get<int>("versionMajor");
+    const int versionMinor = device.get<int>("versionMinor");
+    const int versionPatch = device.get<int>("versionPatch");
+
+    std::cout << "  device=CPU"
+              << ", version=" << versionMajor << "." << versionMinor << "." << versionPatch
+              << ", msec=" << (1000. * deviceInitTime) << std::endl;
+
+    // Load the input image
+    std::shared_ptr<ImageBuffer> input, ref;
+    std::shared_ptr<ImageBuffer> color, albedo, normal;
+
+    std::cout << "Loading input" << std::endl;
+
+    if (!albedoFilename.empty())
+      input = albedo = loadImage(device, albedoFilename, 3, false);
+
+    if (!normalFilename.empty())
+      input = normal = loadImage(device, normalFilename, 3);
+
+    if (!colorFilename.empty())
+      input = color = loadImage(device, colorFilename, 3, srgb);
+
+    if (!input)
+      throw std::runtime_error("no input image specified");
+
+    if (!refFilename.empty())
+    {
+      ref = loadImage(device, refFilename, 3, srgb);
+      if (ref->dims() != input->dims())
+        throw std::runtime_error("invalid reference output image");
+    }
+
+    const int width  = input->width;
+    const int height = input->height;
+    std::cout << "Resolution: " << width << "x" << height << std::endl;
+
+    // Initialize the output image
+    std::shared_ptr<ImageBuffer> output;
+    if (inplace)
+      output = input;
+    else
+      output = std::make_shared<ImageBuffer>(device, width, height, 3);
+
+    // Load the filter weights if specified
+    std::vector<char> weights;
+    if (!weightsFilename.empty())
+    {
+      std::cout << "Loading filter weights" << std::endl;
+      weights = loadFile(weightsFilename);
+    }
+
+    // Initialize the denoising filter
+    std::cout << "Initializing filter" << std::endl;
     timer.reset();
 
     FilterRef filter = device.newFilter(filterType.c_str());
@@ -304,14 +315,7 @@ int main(int argc, char* argv[])
 
     const double filterInitTime = timer.query();
 
-    const int versionMajor = device.get<int>("versionMajor");
-    const int versionMinor = device.get<int>("versionMinor");
-    const int versionPatch = device.get<int>("versionPatch");
-
-    std::cout << "  device=CPU"
-              << ", version=" << versionMajor << "." << versionMinor << "." << versionPatch
-              << ", msec=" << (1000. * deviceInitTime) << std::endl 
-              << "  filter=" << filterType
+    std::cout << "  filter=" << filterType
               << ", msec=" << (1000. * filterInitTime) << std::endl;
 
     // Denoise the image

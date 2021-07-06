@@ -10,7 +10,7 @@ add_library(utils STATIC
   random.h
 )
 
-target_link_libraries(utils PUBLIC common)
+target_link_libraries(utils PUBLIC common ${PROJECT_NAME})
 
 # OpenImageIO
 find_package(OpenImageIO)

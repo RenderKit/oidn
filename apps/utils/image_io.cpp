@@ -49,7 +49,7 @@ namespace oidn {
       }
     }
 
-    std::shared_ptr<ImageBuffer> loadImagePFM(const std::string& filename, int numChannels)
+    std::shared_ptr<ImageBuffer> loadImagePFM(DeviceRef& device, const std::string& filename, int numChannels)
     {
       // Open the file
       std::ifstream file(filename, std::ios::binary);
@@ -88,7 +88,7 @@ namespace oidn {
       scale = fabs(scale);
 
       // Read the pixels
-      auto image = std::make_shared<ImageBuffer>(W, H, numChannels);
+      auto image = std::make_shared<ImageBuffer>(device, W, H, numChannels);
 
       for (int h = 0; h < H; ++h)
       {
@@ -172,7 +172,7 @@ namespace oidn {
   }
 
 #ifdef OIDN_USE_OPENIMAGEIO
-  std::shared_ptr<ImageBuffer> loadImageOIIO(const std::string& filename, int numChannels)
+  std::shared_ptr<ImageBuffer> loadImageOIIO(DeviceRef& device, const std::string& filename, int numChannels)
   {
     auto in = OIIO::ImageInput::open(filename);
     if (!in)
@@ -183,7 +183,7 @@ namespace oidn {
       numChannels = spec.nchannels;
     else if (spec.nchannels < numChannels)
       throw std::runtime_error("not enough image channels");
-    auto image = std::make_shared<ImageBuffer>(spec.width, spec.height, numChannels);
+    auto image = std::make_shared<ImageBuffer>(device, spec.width, spec.height, numChannels);
     if (!in->read_image(0, 0, 0, numChannels, OIIO::TypeDesc::FLOAT, image->data()))
       throw std::runtime_error("failed to read image data");
     in->close();
@@ -217,16 +217,16 @@ namespace oidn {
   }
 #endif
 
-  std::shared_ptr<ImageBuffer> loadImage(const std::string& filename, int numChannels)
+  std::shared_ptr<ImageBuffer> loadImage(DeviceRef& device, const std::string& filename, int numChannels)
   {
     const std::string ext = getExtension(filename);
     std::shared_ptr<ImageBuffer> image;
 
     if (ext == "pfm")
-      image = loadImagePFM(filename, numChannels);
+      image = loadImagePFM(device, filename, numChannels);
     else
 #if OIDN_USE_OPENIMAGEIO
-      image = loadImageOIIO(filename, numChannels);
+      image = loadImageOIIO(device, filename, numChannels);
 #else
       throw std::runtime_error("cannot load unsupported image file format: " + filename);
 #endif
@@ -255,9 +255,9 @@ namespace oidn {
     return ext != "pfm" && ext != "exr" && ext != "hdr";
   }
 
-  std::shared_ptr<ImageBuffer> loadImage(const std::string& filename, int numChannels, bool srgb)
+  std::shared_ptr<ImageBuffer> loadImage(DeviceRef& device, const std::string& filename, int numChannels, bool srgb)
   {
-    auto image = loadImage(filename, numChannels);
+    auto image = loadImage(device, filename, numChannels);
     if (!srgb && isSrgbImage(filename))
       srgbInverse(*image);
     return image;
