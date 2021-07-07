@@ -8,15 +8,12 @@
 
 namespace oidn {
 
-#if defined(OIDN_DNNL)
-
   // 2x2 nearest-neighbor upsampling node (blocked layout)
   class UpsampleNode : public Node
   {
-  private:
+  protected:
     std::shared_ptr<Tensor> src;
     std::shared_ptr<Tensor> dst;
-    int K;
 
   public:
     UpsampleNode(const Ref<Device>& device,
@@ -27,14 +24,33 @@ namespace oidn {
         dst(dst)
     {
       assert(src->ndims() == 3);
-      assert(src->layout == TensorLayout::Chw8c ||
-             src->layout == TensorLayout::Chw16c);
-      assert(src->blockSize() == device->getTensorBlockSize());
       assert(dst->ndims() == 3);
       assert(dst->layout == src->layout);
       assert(dst->dims[0] == src->dims[0]);     // C
       assert(dst->dims[1] == src->dims[1] * 2); // H
       assert(dst->dims[2] == src->dims[2] * 2); // W
+    }
+
+    std::shared_ptr<Tensor> getDst() const override { return dst; }
+  };
+
+#if defined(OIDN_DNNL)
+
+  // 2x2 nearest-neighbor upsampling node (blocked layout)
+  class CPUUpsampleNode : public UpsampleNode
+  {
+  private:
+    int K;
+
+  public:
+    CPUUpsampleNode(const Ref<Device>& device,
+                    const std::shared_ptr<Tensor>& src,
+                    const std::shared_ptr<Tensor>& dst)
+      : UpsampleNode(device, src, dst)
+    {
+      assert(src->layout == TensorLayout::Chw8c ||
+             src->layout == TensorLayout::Chw16c);
+      assert(src->blockSize() == device->getTensorBlockSize());
 
       K = device->getTensorBlockSize();
     }
@@ -50,34 +66,20 @@ namespace oidn {
         ispc::Upsample_kernel(&impl, ck, h);
       });
     }
-
-    std::shared_ptr<Tensor> getDst() const override { return dst; }
   };
 
 #else
 
   // 2x2 nearest-neighbor upsampling node
-  class UpsampleNode : public Node
+  class CPUUpsampleNode : public UpsampleNode
   {
-  private:
-    std::shared_ptr<Tensor> src;
-    std::shared_ptr<Tensor> dst;
-
   public:
-    UpsampleNode(const Ref<Device>& device,
-                 const std::shared_ptr<Tensor>& src,
-                 const std::shared_ptr<Tensor>& dst)
-      : Node(device),
-        src(src),
-        dst(dst)
+    CPUUpsampleNode(const Ref<Device>& device,
+                    const std::shared_ptr<Tensor>& src,
+                    const std::shared_ptr<Tensor>& dst)
+      : UpsampleNode(device, src, dst)
     {
-      assert(src->ndims() == 3);
       assert(src->layout == TensorLayout::chw);
-      assert(dst->ndims() == 3);
-      assert(dst->layout == src->layout);
-      assert(dst->dims[0] == src->dims[0]);     // C
-      assert(dst->dims[1] == src->dims[1] * 2); // H
-      assert(dst->dims[2] == src->dims[2] * 2); // W
     }
 
     void execute() override
@@ -107,8 +109,6 @@ namespace oidn {
         }
       });
     }
-
-    std::shared_ptr<Tensor> getDst() const override { return dst; }
   };
 
 #endif

@@ -28,13 +28,6 @@ static void TransferFunction_initNormalization(uniform TransferFunction* uniform
   self->rcpNormScale = xMax;
 }
 
-// Sets the input and output scales
-export void TransferFunction_setInputScale(uniform TransferFunction* uniform self, uniform float inputScale)
-{
-  self->inputScale  = inputScale;
-  self->outputScale = (inputScale != 0.f) ? (1.f / inputScale) : 0.f;
-}
-
 // -----------------------------------------------------------------------------
 // Transfer function: Linear
 // -----------------------------------------------------------------------------

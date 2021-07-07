@@ -10,9 +10,6 @@ namespace oidn {
 
   class TransferFunction
   {
-  private:
-    ispc::TransferFunction impl;
-
   public:
     enum class Type
     {
@@ -22,27 +19,38 @@ namespace oidn {
       Log,
     };
 
-    TransferFunction(Type type)
-    {
-      switch (type)
-      {
-      case Type::Linear: ispc::LinearTransferFunction_Constructor(&impl); break;
-      case Type::SRGB:   ispc::SRGBTransferFunction_Constructor(&impl);   break;
-      case Type::PU:     ispc::PUTransferFunction_Constructor(&impl);     break;
-      case Type::Log:    ispc::LogTransferFunction_Constructor(&impl);    break;
-      default:
-        throw Exception(Error::Unknown, "invalid transfer function");
-      }
-    }
+  private:
+    Type type;
+    float inputScale  = 1.f;
+    float outputScale = 1.f;
+
+  public:
+    TransferFunction(Type type) : type(type) {}
 
     void setInputScale(float inputScale)
     {
-      ispc::TransferFunction_setInputScale(&impl, inputScale);
+      this->inputScale  = inputScale;
+      this->outputScale = (inputScale != 0.f) ? (1.f / inputScale) : 0.f;
     }
 
-    __forceinline ispc::TransferFunction* getImpl()
+    operator ispc::TransferFunction() const
     {
-      return &impl;
+      ispc::TransferFunction res;
+
+      switch (type)
+      {
+      case Type::Linear: ispc::LinearTransferFunction_Constructor(&res); break;
+      case Type::SRGB:   ispc::SRGBTransferFunction_Constructor(&res);   break;
+      case Type::PU:     ispc::PUTransferFunction_Constructor(&res);     break;
+      case Type::Log:    ispc::LogTransferFunction_Constructor(&res);    break;
+      default:
+        assert(0);
+      }
+
+      res.inputScale  = inputScale;
+      res.outputScale = outputScale;
+      
+      return res;
     }
   };
 

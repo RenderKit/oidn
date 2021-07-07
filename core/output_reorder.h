@@ -13,12 +13,21 @@ namespace oidn {
   // Output reorder node
   class OutputReorderNode : public Node
   {
-  private:
+  protected:
     std::shared_ptr<Tensor> src;
     std::shared_ptr<Image> output;
     std::shared_ptr<TransferFunction> transferFunc;
 
-    ispc::OutputReorder impl;
+    // Tile
+    int hSrcBegin = 0;
+    int wSrcBegin = 0;
+    int hDstBegin = 0;
+    int wDstBegin = 0;
+    int H = 0;
+    int W = 0;
+
+    bool hdr;
+    bool snorm;
 
   public:
     OutputReorderNode(const Ref<Device>& device,
@@ -28,18 +37,15 @@ namespace oidn {
                       bool snorm)
       : Node(device),
         src(src),
-        transferFunc(transferFunc)
+        transferFunc(transferFunc),
+        hdr(hdr),
+        snorm(snorm)
     {
       assert(src->ndims() == 3);
       assert(src->layout == TensorLayout::chw ||
              src->layout == TensorLayout::Chw8c ||
              src->layout == TensorLayout::Chw16c);
       assert(src->blockSize() == device->getTensorBlockSize());
-
-      setTile(0, 0, 0, 0, 0, 0);
-      impl.transferFunc = transferFunc->getImpl();
-      impl.hdr = hdr;
-      impl.snorm = snorm;
     }
 
     void setDst(const std::shared_ptr<Image>& output)
@@ -53,23 +59,47 @@ namespace oidn {
 
     void setTile(int hSrc, int wSrc, int hDst, int wDst, int H, int W)
     {
-      impl.hSrcBegin = hSrc;
-      impl.wSrcBegin = wSrc;
-      impl.hDstBegin = hDst;
-      impl.wDstBegin = wDst;
-      impl.H = H;
-      impl.W = W;
+      this->hSrcBegin = hSrc;
+      this->wSrcBegin = wSrc;
+      this->hDstBegin = hDst;
+      this->wDstBegin = wDst;
+      this->H = H;
+      this->W = W;
     }
+  };
+
+  class CPUOutputReorderNode : public OutputReorderNode
+  {
+  public:
+    CPUOutputReorderNode(const Ref<Device>& device,
+                         const std::shared_ptr<Tensor>& src,
+                         const std::shared_ptr<TransferFunction>& transferFunc,
+                         bool hdr,
+                         bool snorm)
+      : OutputReorderNode(device, src, transferFunc, hdr, snorm) {}
 
     void execute() override
     {
+      assert(hSrcBegin + H <= src->dims[1]);
+      assert(wSrcBegin + W <= src->dims[2]);
+      //assert(hDstBegin + H <= output->height);
+      //assert(wDstBegin + W <= output->width);
+
+      ispc::OutputReorder impl;
+
       impl.src = *src;
       impl.output = *output;
 
-      assert(impl.hSrcBegin + impl.H <= impl.src.H);
-      assert(impl.wSrcBegin + impl.W <= impl.src.W);
-      //assert(impl.hDstBegin + impl.H <= impl.output.H);
-      //assert(impl.wDstBegin + impl.W <= impl.output.W);
+      impl.hSrcBegin = hSrcBegin;
+      impl.wSrcBegin = wSrcBegin;
+      impl.hDstBegin = hDstBegin;
+      impl.wDstBegin = wDstBegin;
+      impl.H = H;
+      impl.W = W;
+
+      impl.transferFunc = *transferFunc;
+      impl.hdr = hdr;
+      impl.snorm = snorm;
 
       parallel_nd(impl.H, [&](int h)
       {

@@ -22,7 +22,7 @@ struct OutputReorder
   uniform int W;
 
   // Transfer function
-  uniform TransferFunction* uniform transferFunc;
+  uniform TransferFunction transferFunc;
   uniform bool hdr;
   uniform bool snorm; // signed normalized ([-1..1])
 };
@@ -44,7 +44,7 @@ export void OutputReorder_kernel(uniform OutputReorder* uniform self, uniform in
     value = clamp(nan_to_zero(value), 0.f, pos_max);
 
     // Apply the inverse transfer function
-    value = self->transferFunc->inverse(self->transferFunc, value);
+    value = self->transferFunc.inverse(&self->transferFunc, value);
 
     // Sanitize
     if (self->snorm)
@@ -57,7 +57,7 @@ export void OutputReorder_kernel(uniform OutputReorder* uniform self, uniform in
       value = min(value, 1.f);
 
     // Scale
-    value = value * self->transferFunc->outputScale;
+    value = value * self->transferFunc.outputScale;
 
     // Store
     set3f(self->output, hDst, wDst, value);

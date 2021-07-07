@@ -24,7 +24,7 @@ struct InputReorder
   uniform int W;
 
   // Transfer function
-  uniform TransferFunction* uniform transferFunc;
+  uniform TransferFunction transferFunc;
   uniform bool hdr;
   uniform bool snorm; // signed normalized ([-1..1])
 };
@@ -38,7 +38,7 @@ inline void storeZero(uniform InputReorder* uniform self, uniform int h, int w, 
 inline void storeColor(uniform InputReorder* uniform self, uniform int h, int w, uniform int c, vec3f value)
 {
   // Scale
-  value = value * self->transferFunc->inputScale;
+  value = value * self->transferFunc.inputScale;
 
   // Sanitize
   value = clamp(nan_to_zero(value), self->snorm ? -1.f : 0.f, self->hdr ? pos_max : 1.f);
@@ -50,7 +50,7 @@ inline void storeColor(uniform InputReorder* uniform self, uniform int h, int w,
   }
 
   // Apply the transfer function
-  value = self->transferFunc->forward(self->transferFunc, value);
+  value = self->transferFunc.forward(&self->transferFunc, value);
 
   // Store
   set3f(self->dst, h, w, c, value);
@@ -61,14 +61,14 @@ inline void storeAlbedo(uniform InputReorder* uniform self, uniform int h, int w
 {
   // Scale
   if (!self->color.ptr)
-    value = value * self->transferFunc->inputScale;
+    value = value * self->transferFunc.inputScale;
 
   // Sanitize
   value = clamp(nan_to_zero(value), 0.f, 1.f);
 
   // Apply the transfer function
   if (!self->color.ptr)
-    value = self->transferFunc->forward(self->transferFunc, value);
+    value = self->transferFunc.forward(&self->transferFunc, value);
 
   // Store
   set3f(self->dst, h, w, c, value);
@@ -79,7 +79,7 @@ inline void storeNormal(uniform InputReorder* uniform self, uniform int h, int w
 {
   // Scale
   if (!self->color.ptr)
-    value = value * self->transferFunc->inputScale;
+    value = value * self->transferFunc.inputScale;
 
   // Sanitize
   value = clamp(nan_to_zero(value), -1.f, 1.f);

@@ -66,7 +66,7 @@ namespace oidn {
                                                              bool hdr,
                                                              bool snorm)
   {
-    auto node = std::make_shared<InputReorderNode>(device, dst, transferFunc, hdr, snorm);
+    auto node = std::make_shared<CPUInputReorderNode>(device, dst, transferFunc, hdr, snorm);
     nodes.push_back(node);
     return node;
   }
@@ -76,7 +76,7 @@ namespace oidn {
                                                                bool hdr,
                                                                bool snorm)
   {
-    auto node = std::make_shared<OutputReorderNode>(device, src, transferFunc, hdr, snorm);
+    auto node = std::make_shared<CPUOutputReorderNode>(device, src, transferFunc, hdr, snorm);
     nodes.push_back(node);
     return node;
   }
@@ -153,7 +153,7 @@ namespace oidn {
   {
     assert(dst->desc() == getUpsampleDesc(src->desc()));
 
-    auto node = std::make_shared<UpsampleNode>(device, src, dst);
+    auto node = std::make_shared<CPUUpsampleNode>(device, src, dst);
     nodes.push_back(node);
     return node;
   }
@@ -217,8 +217,8 @@ namespace oidn {
     const int64_t W = src->dims[3];
 
     TensorDims dstDims = {O2, I2, H, W};
-    if (dstDims == src->dims)
-      return src;
+    //if (dstDims == src->dims)
+    //  return src;
 
     auto dst = std::make_shared<Tensor>(device, dstDims, TensorLayout::oihw, DataType::Float32);
 
@@ -252,8 +252,8 @@ namespace oidn {
     const int64_t X1 = src->dims[0];
     const int64_t X2 = round_up(X1, K);
 
-    if (X2 == X1)
-      return src;
+    //if (X2 == X1)
+    //  return src;
 
     auto dst = std::make_shared<Tensor>(device, TensorDims({X2}), TensorLayout::x, DataType::Float32);
 
