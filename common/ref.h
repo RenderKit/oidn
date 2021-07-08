@@ -135,16 +135,16 @@ namespace oidn {
     return Ref<T>(new T(std::forward<Args>(args)...));
   }
 
-  template<typename T, typename Y>
-  __forceinline Ref<Y> staticRefCast(const Ref<T>& a)
+  template<typename T, typename U>
+  __forceinline Ref<T> staticRefCast(const Ref<U>& a)
   {
-    return Ref<Y>(static_cast<Y*>(a.get()));
+    return Ref<T>(static_cast<T*>(a.get()));
   }
 
-  template<typename T, typename Y>
-  __forceinline Ref<Y> dynamicRefCast(const Ref<T>& a)
+  template<typename T, typename U>
+  __forceinline Ref<T> dynamicRefCast(const Ref<U>& a)
   {
-    return Ref<Y>(dynamic_cast<Y*>(a.get()));
+    return Ref<T>(dynamic_cast<T*>(a.get()));
   }
 
 } // namespace oidn
