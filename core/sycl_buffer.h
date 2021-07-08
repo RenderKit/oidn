@@ -20,11 +20,13 @@ namespace oidn {
 
   public:
     SYCLBuffer(const Ref<SYCLDevice>& device, size_t size, Kind kind)
-      : ptr(allocData(size, kind)),
-        byteSize(size),
+      : byteSize(size),
         shared(false),
         kind(kind),
-        device(device) {}
+        device(device)
+    {
+      ptr = allocData(size);
+    }
 
     SYCLBuffer(const Ref<SYCLDevice>& device, void* data, size_t size)
       : ptr((char*)data),
@@ -63,14 +65,14 @@ namespace oidn {
         throw std::logic_error("shared buffers cannot be resized");
 
       freeData(ptr);
-      ptr = allocData(newSize, kind);
+      ptr = allocData(newSize);
       byteSize = newSize;
     }
 
     Device* getDevice() override { return device.get(); }
 
   private:
-    char* allocData(size_t size, Kind kind)
+    char* allocData(size_t size)
     {
       switch (kind)
       {
