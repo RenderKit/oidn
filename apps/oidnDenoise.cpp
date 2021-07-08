@@ -216,7 +216,7 @@ int main(int argc, char* argv[])
     const int versionMinor = device.get<int>("versionMinor");
     const int versionPatch = device.get<int>("versionPatch");
 
-    std::cout << "  device=CPU"
+    std::cout << "  device=" << (deviceType == DeviceType::Default ? "default" : (deviceType == DeviceType::GPU ? "GPU" : "CPU"))
               << ", version=" << versionMajor << "." << versionMinor << "." << versionPatch
               << ", msec=" << (1000. * deviceInitTime) << std::endl;
 
