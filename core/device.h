@@ -76,6 +76,10 @@ namespace oidn {
         arena->execute(f);
       else
         f();
+
+    #if defined(OIDN_DNNL)
+      dnnlStream.wait();
+    #endif
     }
 
     template<typename F>
@@ -85,6 +89,10 @@ namespace oidn {
         arena->execute(f);
       else
         f();
+
+    #if defined(OIDN_DNNL)
+      dnnlStream.wait();
+    #endif
     }
 
     virtual Ref<Buffer> newBuffer(size_t byteSize, Buffer::Kind kind = Buffer::Kind::Shared) = 0;
