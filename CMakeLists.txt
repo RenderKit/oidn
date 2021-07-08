@@ -161,7 +161,6 @@ set(CORE_SOURCES
   core/image.h
   core/input_reorder.h
   core/network.h
-  core/network.cpp
   core/node.h
   core/output_copy.h
   core/output_reorder.h
@@ -180,9 +179,13 @@ set(CORE_SOURCES
 
 set(CORE_SOURCES_SYCL
   core/api.cpp
+  core/input_reorder.cpp
+  core/output_reorder.cpp
+  core/network.cpp
   core/sycl_buffer.h
   core/sycl_device.h
   core/sycl_device.cpp
+  core/upsample.cpp
 )
 
 set_source_files_properties(${CORE_SOURCES_SYCL} PROPERTIES COMPILE_FLAGS ${OIDN_CXX_FLAGS_SYCL})

@@ -1,6 +1,10 @@
 // Copyright 2009-2021 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
+#if defined(OIDN_DEVICE_GPU)
+  #include "sycl_device.h"
+#endif
+
 #include "conv.h"
 #include "pool.h"
 #include "upsample.h"
@@ -66,7 +70,14 @@ namespace oidn {
                                                              bool hdr,
                                                              bool snorm)
   {
-    auto node = std::make_shared<CPUInputReorderNode>(device, dst, transferFunc, hdr, snorm);
+    std::shared_ptr<InputReorderNode> node;
+  #if defined(OIDN_DEVICE_GPU)
+    if (auto syclDevice = dynamicRefCast<SYCLDevice>(device))
+      node = std::make_shared<SYCLInputReorderNode>(syclDevice, dst, transferFunc, hdr, snorm);
+    else
+  #endif
+      node = std::make_shared<CPUInputReorderNode>(device, dst, transferFunc, hdr, snorm);
+    
     nodes.push_back(node);
     return node;
   }
@@ -76,7 +87,14 @@ namespace oidn {
                                                                bool hdr,
                                                                bool snorm)
   {
-    auto node = std::make_shared<CPUOutputReorderNode>(device, src, transferFunc, hdr, snorm);
+    std::shared_ptr<OutputReorderNode> node;
+  #if defined(OIDN_DEVICE_GPU)
+    if (auto syclDevice = dynamicRefCast<SYCLDevice>(device))
+      node = std::make_shared<SYCLOutputReorderNode>(syclDevice, src, transferFunc, hdr, snorm);
+    else
+  #endif
+      node = std::make_shared<CPUOutputReorderNode>(device, src, transferFunc, hdr, snorm);
+    
     nodes.push_back(node);
     return node;
   }
@@ -153,7 +171,14 @@ namespace oidn {
   {
     assert(dst->desc() == getUpsampleDesc(src->desc()));
 
-    auto node = std::make_shared<CPUUpsampleNode>(device, src, dst);
+    std::shared_ptr<Node> node;
+  #if defined(OIDN_DEVICE_GPU)
+    if (auto syclDevice = dynamicRefCast<SYCLDevice>(device))
+      node = std::make_shared<SYCLUpsampleNode>(syclDevice, src, dst);
+    else
+  #endif
+      node = std::make_shared<CPUUpsampleNode>(device, src, dst);
+
     nodes.push_back(node);
     return node;
   }

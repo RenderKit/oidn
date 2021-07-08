@@ -13,6 +13,7 @@ namespace oidn {
   private:
     cl::sycl::device syclDevice;
     cl::sycl::context syclContext;
+    cl::sycl::queue syclQueue;
 
   public:
     Ref<Buffer> newBuffer(size_t byteSize, Buffer::Kind kind) override;
@@ -20,6 +21,7 @@ namespace oidn {
 
     __forceinline cl::sycl::device&  getSYCLDevice()  { return syclDevice; }
     __forceinline cl::sycl::context& getSYCLContext() { return syclContext; }
+    __forceinline cl::sycl::queue&   getSYCLQueue()   { return syclQueue; }
 
   protected:
     void init() override;
