@@ -9,6 +9,7 @@
 #include "common/thread.h"
 #include "common/tasking.h"
 #include "common/math.h"
+#include "vec.h"
 
 #if defined(OIDN_DNNL)
   #include "mkl-dnn/include/dnnl.hpp"
@@ -16,7 +17,7 @@
   #include <Accelerate/Accelerate.h>
 #endif
 
-#include "input_reorder_ispc.h" // ispc::Tensor, ispc::Image
+#include "input_reorder_ispc.h" // ispc::TensorAccessor, ispc::ImageAccessor, ispc::ReorderTile
 
 namespace oidn {
 

@@ -7,6 +7,28 @@
 
 namespace oidn {
 
+  struct ReorderTile
+  {
+    int hSrcBegin;
+    int wSrcBegin;
+    int hDstBegin;
+    int wDstBegin;
+    int H;
+    int W;
+
+    operator ispc::ReorderTile() const
+    {
+      ispc::ReorderTile res;
+      res.hSrcBegin = hSrcBegin;
+      res.wSrcBegin = wSrcBegin;
+      res.hDstBegin = hDstBegin;
+      res.wDstBegin = wDstBegin;
+      res.H = H;
+      res.W = W;
+      return res;
+    }
+  };
+
 #if defined(OIDN_DNNL)
 
   // Reorder node

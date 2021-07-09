@@ -26,6 +26,8 @@ namespace oidn {
            src->layout == TensorLayout::Chw8c ||
            src->layout == TensorLayout::Chw16c);
     assert(src->blockSize() == device->getTensorBlockSize());
+
+    setTile(0, 0, 0, 0, 0, 0);
   }
 
   void OutputReorderNode::setDst(const std::shared_ptr<Image>& output)
@@ -39,12 +41,12 @@ namespace oidn {
 
   void OutputReorderNode::setTile(int hSrc, int wSrc, int hDst, int wDst, int H, int W)
   {
-    this->hSrcBegin = hSrc;
-    this->wSrcBegin = wSrc;
-    this->hDstBegin = hDst;
-    this->wDstBegin = wDst;
-    this->H = H;
-    this->W = W;
+    tile.hSrcBegin = hSrc;
+    tile.wSrcBegin = wSrc;
+    tile.hDstBegin = hDst;
+    tile.wDstBegin = wDst;
+    tile.H = H;
+    tile.W = W;
   }
 
   CPUOutputReorderNode::CPUOutputReorderNode(const Ref<Device>& device,
@@ -56,34 +58,79 @@ namespace oidn {
 
   void CPUOutputReorderNode::execute()
   {
-    assert(hSrcBegin + H <= src->dims[1]);
-    assert(wSrcBegin + W <= src->dims[2]);
-    //assert(hDstBegin + H <= output->height);
-    //assert(wDstBegin + W <= output->width);
+    assert(tile.hSrcBegin + tile.H <= src->dims[1]);
+    assert(tile.wSrcBegin + tile.W <= src->dims[2]);
+    //assert(tile.hDstBegin + tile.H <= output->height);
+    //assert(tile.wDstBegin + tile.W <= output->width);
 
     ispc::OutputReorder impl;
 
     impl.src = *src;
     impl.output = *output;
-
-    impl.hSrcBegin = hSrcBegin;
-    impl.wSrcBegin = wSrcBegin;
-    impl.hDstBegin = hDstBegin;
-    impl.wDstBegin = wDstBegin;
-    impl.H = H;
-    impl.W = W;
-
+    impl.tile = tile;
     impl.transferFunc = *transferFunc;
     impl.hdr = hdr;
     impl.snorm = snorm;
 
-    parallel_nd(impl.H, [&](int h)
+    parallel_nd(impl.tile.H, [&](int h)
     {
       ispc::OutputReorder_kernel(&impl, h);
     });
   }
 
 #if defined(OIDN_DEVICE_GPU)
+
+  struct OutputReorder
+  {
+    // Source
+    TensorAccessor src;
+
+    // Destination
+    ImageAccessor output;
+
+    // Tile
+    ReorderTile tile;
+
+    // Transfer function
+    TransferFunction transferFunc;
+    bool hdr;
+    bool snorm; // signed normalized ([-1..1])
+
+    __forceinline void operator()(int h, int w) const
+    {
+      const int hSrc = h + tile.hSrcBegin;
+      const int hDst = h + tile.hDstBegin;
+      const int wSrc = w + tile.wSrcBegin;
+      const int wDst = w + tile.wDstBegin;
+
+      // Load
+      vec3f value = src.get3f(hSrc, wSrc, 0);
+
+      // The CNN output may contain negative values or even NaNs, so it must be sanitized
+      //value = clamp(nan_to_zero(value), 0.f, pos_max);
+
+      // Apply the inverse transfer function
+      //value = transferFunc.inverse(&transferFunc, value);
+
+      // Sanitize
+      /*
+      if (snorm)
+      {
+        // Transform to [-1..1]
+        value = value * 2.f - 1.f;
+        value = max(value, -1.f);
+      }
+      if (!hdr)
+        value = min(value, 1.f);
+
+      // Scale
+      value = value * transferFunc.outputScale;
+      */
+
+      // Store
+      output.set3f(hDst, wDst, value);
+    }
+  };
 
   SYCLOutputReorderNode::SYCLOutputReorderNode(const Ref<SYCLDevice>& device,
                                                const std::shared_ptr<Tensor>& src,
@@ -94,10 +141,23 @@ namespace oidn {
 
   void SYCLOutputReorderNode::execute()
   {
-    assert(hSrcBegin + H <= src->dims[1]);
-    assert(wSrcBegin + W <= src->dims[2]);
-    //assert(hDstBegin + H <= output->height);
-    //assert(wDstBegin + W <= output->width);
+    assert(tile.hSrcBegin + tile.H <= src->dims[1]);
+    assert(tile.wSrcBegin + tile.W <= src->dims[2]);
+    //assert(tile.hDstBegin + tile.H <= output->height);
+    //assert(tile.wDstBegin + tile.W <= output->width);
+
+    OutputReorder kernel;
+    kernel.src = *src;
+    kernel.output = *output;
+    kernel.tile = tile;
+    kernel.transferFunc = *transferFunc;
+    kernel.hdr = hdr;
+    kernel.snorm = snorm;
+
+    auto queue = ((SYCLDevice*)getDevice())->getSYCLQueue();
+    queue.parallel_for(sycl::range<2>(tile.H, tile.W), [=](sycl::id<2> idx) {
+      kernel(int(idx[0]), int(idx[1]));
+    });
   }
 
 #endif

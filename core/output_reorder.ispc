@@ -4,22 +4,18 @@
 #include "tensor.isph"
 #include "image.isph"
 #include "color.isph"
+#include "reorder.isph"
 
 struct OutputReorder
 {
   // Source
-  uniform Tensor src;
+  uniform TensorAccessor src;
 
   // Destination
-  uniform Image output;
+  uniform ImageAccessor output;
 
   // Tile
-  uniform int hSrcBegin;
-  uniform int wSrcBegin;
-  uniform int hDstBegin;
-  uniform int wDstBegin;
-  uniform int H;
-  uniform int W;
+  uniform ReorderTile tile;
 
   // Transfer function
   uniform TransferFunction transferFunc;
@@ -29,13 +25,13 @@ struct OutputReorder
 
 export void OutputReorder_kernel(uniform OutputReorder* uniform self, uniform int h)
 {
-  const uniform int hSrc = h + self->hSrcBegin;
-  const uniform int hDst = h + self->hDstBegin;
+  const uniform int hSrc = h + self->tile.hSrcBegin;
+  const uniform int hDst = h + self->tile.hDstBegin;
 
-  foreach (w = 0 ... self->W)
+  foreach (w = 0 ... self->tile.W)
   {
-    const int wSrc = w + self->wSrcBegin;
-    const int wDst = w + self->wDstBegin;
+    const int wSrc = w + self->tile.wSrcBegin;
+    const int wDst = w + self->tile.wDstBegin;
 
     // Load
     vec3f value = get3f(self->src, hSrc, wSrc, 0);

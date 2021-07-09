@@ -77,21 +77,21 @@ namespace oidn {
       switch (kind)
       {
       case Kind::Host:
-        return (char*)cl::sycl::aligned_alloc_host(memoryAlignment,
-                                                   size,
-                                                   device->getSYCLContext());
+        return (char*)sycl::aligned_alloc_host(memoryAlignment,
+                                               size,
+                                               device->getSYCLContext());
 
       case Kind::Device:
-        return (char*)cl::sycl::aligned_alloc_device(memoryAlignment,
-                                                     size,
-                                                     device->getSYCLDevice(),
-                                                     device->getSYCLContext());
+        return (char*)sycl::aligned_alloc_device(memoryAlignment,
+                                                 size,
+                                                 device->getSYCLDevice(),
+                                                 device->getSYCLContext());
 
       case Kind::Shared:
-        return (char*)cl::sycl::aligned_alloc_shared(memoryAlignment,
-                                                     size,
-                                                     device->getSYCLDevice(),
-                                                     device->getSYCLContext());
+        return (char*)sycl::aligned_alloc_shared(memoryAlignment,
+                                                 size,
+                                                 device->getSYCLDevice(),
+                                                 device->getSYCLContext());
 
       default:
         throw Exception(Error::InvalidArgument, "invalid SYCL buffer type");
@@ -100,7 +100,7 @@ namespace oidn {
     
     void freeData(void* ptr)
     {
-      cl::sycl::free(ptr, device->getSYCLContext());
+      sycl::free(ptr, device->getSYCLContext());
     }
   };
 

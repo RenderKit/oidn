@@ -177,7 +177,7 @@ export void LogTransferFunction_Constructor(uniform TransferFunction* uniform se
 // -----------------------------------------------------------------------------
 
 // Returns the average luminance of the specified image tile
-export uniform float getAvgLuminance(const uniform Image& color,
+export uniform float getAvgLuminance(const uniform ImageAccessor& color,
                                      uniform int beginH, uniform int endH,
                                      uniform int beginW, uniform int endW)
 {

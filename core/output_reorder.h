@@ -6,6 +6,7 @@
 #include "node.h"
 #include "image.h"
 #include "color.h"
+#include "reorder.h"
 
 namespace oidn {
 
@@ -16,15 +17,7 @@ namespace oidn {
     std::shared_ptr<Tensor> src;
     std::shared_ptr<Image> output;
     std::shared_ptr<TransferFunction> transferFunc;
-
-    // Tile
-    int hSrcBegin = 0;
-    int wSrcBegin = 0;
-    int hDstBegin = 0;
-    int wDstBegin = 0;
-    int H = 0;
-    int W = 0;
-
+    ReorderTile tile;
     bool hdr;
     bool snorm;
 

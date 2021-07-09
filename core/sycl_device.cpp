@@ -24,7 +24,7 @@ namespace oidn {
 
   void SYCLDevice::printInfo()
   {
-    std::cout << "  Device  : " << syclDevice.get_info<cl::sycl::info::device::name>() << std::endl;
+    std::cout << "  Device  : " << syclDevice.get_info<sycl::info::device::name>() << std::endl;
 
     std::cout << "  Neural  : ";
     std::cout << "DNNL (oneDNN) " << DNNL_VERSION_MAJOR << "." <<

@@ -78,6 +78,23 @@ namespace oidn {
 
 #if defined(OIDN_DEVICE_GPU)
 
+  struct Upsample
+  {
+    TensorAccessor src;
+    TensorAccessor dst;
+
+    __forceinline void operator()(int hDst, int wDst) const
+    {
+      const int hSrc = hDst / 2;
+      const int wSrc = wDst / 2;
+
+      for (int c = 0; c < src.C; ++c)
+      {
+        dst.set1f(hDst, wDst, c, src.get1f(hSrc, wSrc, c));
+      }
+    }
+  };
+
   SYCLUpsampleNode::SYCLUpsampleNode(const Ref<SYCLDevice>& device,
                                      const std::shared_ptr<Tensor>& src,
                                      const std::shared_ptr<Tensor>& dst)
@@ -89,6 +106,14 @@ namespace oidn {
 
   void SYCLUpsampleNode::execute()
   {
+    Upsample kernel;
+    kernel.src = *src;
+    kernel.dst = *dst;
+
+    auto queue = ((SYCLDevice*)getDevice())->getSYCLQueue();
+    queue.parallel_for(sycl::range<2>(kernel.dst.H, kernel.dst.W), [=](sycl::id<2> idx) {
+      kernel(int(idx[0]), int(idx[1]));
+    });
   }
 
 #endif

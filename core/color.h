@@ -25,7 +25,7 @@ namespace oidn {
     float outputScale = 1.f;
 
   public:
-    TransferFunction(Type type) : type(type) {}
+    explicit TransferFunction(Type type = Type::Linear) : type(type) {}
 
     void setInputScale(float inputScale)
     {

@@ -189,6 +189,52 @@ namespace oidn {
   #endif
   };
 
+  // Tensor in CHW layout
+  struct TensorAccessor
+  {
+    static constexpr int K = 16;
+
+    float* ptr;
+    int C;
+    int H;
+    int W;
+
+    __forceinline size_t getIndex(int h, int w, int c) const
+    {
+    #if defined(OIDN_DNNL)
+      // ChwKc layout (blocked)
+      return ((size_t)H * (c/K) + h) * ((size_t)W*K) + (size_t)w*K + (c%K);
+    #else
+      // chw layout
+      return ((size_t)H * c + h) * (size_t)W + w;
+    #endif
+    }
+
+    __forceinline float get1f(int h, int w, int c) const
+    {
+      return ptr[getIndex(h, w, c)];
+    }
+
+    __forceinline void set1f(int h, int w, int c, float value) const
+    {
+      ptr[getIndex(h, w, c)] = value;
+    }
+
+    __forceinline vec3f get3f(int h, int w, int c) const
+    {
+      return vec3f(get1f(h, w, c),
+                   get1f(h, w, c+1),
+                   get1f(h, w, c+2));
+    }
+
+    __forceinline void set3f(int h, int w, int c, const vec3f& value) const
+    {
+      set1f(h, w, c,   value.x);
+      set1f(h, w, c+1, value.y);
+      set1f(h, w, c+2, value.z);
+    }
+  };
+
   // Tensor
   class Tensor : public Memory, public TensorDesc
   {
@@ -276,13 +322,26 @@ namespace oidn {
     template <typename T> __forceinline const T& get(int64_t i0, int64_t i1, int64_t i2, int64_t i3) const
     { return ((T*)data())[getIndex(i0, i1, i2, i3)]; }
 
-    // Converts to ISPC equivalent
-    operator ispc::Tensor() const
+    operator TensorAccessor() const
     {
       assert(ndims() == 3);
       assert(dataType == DataType::Float32);
 
-      ispc::Tensor result;
+      TensorAccessor result;
+      result.ptr = (float*)data();
+      result.C = dims[0];
+      result.H = dims[1];
+      result.W = dims[2];
+      return result;
+    }
+
+    // Converts to ISPC equivalent
+    operator ispc::TensorAccessor() const
+    {
+      assert(ndims() == 3);
+      assert(dataType == DataType::Float32);
+
+      ispc::TensorAccessor result;
       result.ptr = (float*)data();
       result.C = dims[0];
       result.H = dims[1];

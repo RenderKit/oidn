@@ -111,6 +111,44 @@ namespace oidn {
     }
   };
 
+  struct ImageAccessor
+  {
+    uint8_t* ptr;
+    size_t bytePixelStride; // pixel stride in number of *bytes*
+    size_t rowStride;       // row stride in number of *pixel strides*
+
+    __forceinline size_t getOffset(int h, int w) const
+    {
+      return (((size_t)h * rowStride + (size_t)w) * bytePixelStride);
+    }
+
+    __forceinline float get1f(size_t offset) const
+    {
+      return *((float*)&ptr[offset]);
+    }
+
+    __forceinline void set1f(size_t offset, float value) const
+    {
+      *((float*)&ptr[offset]) = value;
+    }
+
+    __forceinline vec3f get3f(int h, int w) const
+    {
+      const size_t offset = getOffset(h, w);
+      return vec3f(get1f(offset),
+                   get1f(offset + 4),
+                   get1f(offset + 8));
+    }
+
+    __forceinline void set3f(int h, int w, const vec3f& value) const
+    {
+      const size_t offset = getOffset(h, w);
+      set1f(offset,     value.x);
+      set1f(offset + 4, value.y);
+      set1f(offset + 8, value.z);
+    }
+  };
+
   class Image : public Memory, public ImageDesc
   {
   public:
@@ -198,10 +236,19 @@ namespace oidn {
       return begin1 < end2 && begin2 < end1;
     }
 
-    // Converts to ISPC equivalent
-    operator ispc::Image() const
+    operator ImageAccessor() const
     {
-      ispc::Image result;
+      ImageAccessor result;
+      result.ptr = (uint8_t*)ptr;
+      result.rowStride = rowStride;
+      result.bytePixelStride = bytePixelStride;
+      return result;
+    }
+
+    // Converts to ISPC equivalent
+    operator ispc::ImageAccessor() const
+    {
+      ispc::ImageAccessor result;
       result.ptr = (uint8_t*)ptr;
       result.rowStride = rowStride;
       result.bytePixelStride = bytePixelStride;

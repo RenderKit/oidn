@@ -26,7 +26,7 @@ namespace oidn {
     return ceil_div(a, b) * b;
   }
 
-  __forceinline float toFloatUnorm(uint32_t x)
+  __forceinline float to_float_unorm(uint32_t x)
   {
     return float(x) * 2.3283064365386962890625e-10f; // x / 2^32
   }

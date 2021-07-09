@@ -175,6 +175,7 @@ set(CORE_SOURCES
   core/unet.h
   core/unet.cpp
   core/upsample.h
+  core/vec.h
 )
 
 set(CORE_SOURCES_SYCL
@@ -199,6 +200,7 @@ set(CORE_SOURCES_ISPC
   core/upsample.ispc
   core/output_copy.ispc
   core/output_reorder.ispc
+  core/reorder.isph
   core/tensor.isph
   core/vec.isph
 )
@@ -225,6 +227,7 @@ endif()
 
 if(OIDN_DEVICE_GPU)
   target_compile_definitions(${PROJECT_NAME} PUBLIC OIDN_DEVICE_GPU)
+  target_link_options(${PROJECT_NAME} PUBLIC "-fsycl")
 endif()
 
 # Include weights

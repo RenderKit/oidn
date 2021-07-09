@@ -5,8 +5,8 @@
 
 struct Upsample
 {
-  uniform Tensor src;
-  uniform Tensor dst;
+  uniform TensorAccessor src;
+  uniform TensorAccessor dst;
 };
 
 export void Upsample_kernel(uniform Upsample* uniform self, uniform int ck, uniform int h)
