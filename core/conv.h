@@ -67,6 +67,7 @@ namespace oidn {
       {
         this->weights = std::make_shared<Tensor>(device, convPrimDesc.weights_desc());
         ReorderNode(device, "weightsReorder", weights, this->weights).execute();
+        device->wait();
       }
 
       prim = dnnl::convolution_forward(convPrimDesc);

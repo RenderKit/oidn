@@ -24,12 +24,11 @@ namespace oidn {
   {
     for (size_t i = 0; i < nodes.size(); ++i)
     {
-      //device->wait();
       nodes[i]->execute();
-      //device->wait();
       
       // Dump
       /*
+      //device->wait();
       auto dst = nodes[i]->getDst();
       if (dst)
         dst->dump("gpu/" + nodes[i]->getName() + "_");
