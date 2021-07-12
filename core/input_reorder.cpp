@@ -64,8 +64,8 @@ namespace oidn {
   {
     assert(tile.H + tile.hSrcBegin <= getHeight());
     assert(tile.W + tile.wSrcBegin <= getWidth());
-    assert(tile.H + tile.hDstBegin <= dst.H);
-    assert(tile.W + tile.wDstBegin <= dst.W);
+    assert(tile.H + tile.hDstBegin <= dst->dims[1]);
+    assert(tile.W + tile.wDstBegin <= dst->dims[2]);
 
     ispc::InputReorder impl;
 
