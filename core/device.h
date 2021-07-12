@@ -77,9 +77,7 @@ namespace oidn {
       else
         f();
 
-    #if defined(OIDN_DNNL)
-      dnnlStream.wait();
-    #endif
+      wait();
     }
 
     template<typename F>
@@ -90,6 +88,11 @@ namespace oidn {
       else
         f();
 
+      wait();
+    }
+
+    void wait()
+    {
     #if defined(OIDN_DNNL)
       dnnlStream.wait();
     #endif

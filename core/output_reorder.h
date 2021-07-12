@@ -23,6 +23,7 @@ namespace oidn {
 
   public:
     OutputReorderNode(const Ref<Device>& device,
+                      const std::string& name,
                       const std::shared_ptr<Tensor>& src,
                       const std::shared_ptr<TransferFunction>& transferFunc,
                       bool hdr,
@@ -36,6 +37,7 @@ namespace oidn {
   {
   public:
     CPUOutputReorderNode(const Ref<Device>& device,
+                         const std::string& name,
                          const std::shared_ptr<Tensor>& src,
                          const std::shared_ptr<TransferFunction>& transferFunc,
                          bool hdr,
@@ -52,6 +54,7 @@ namespace oidn {
   {
   public:
     SYCLOutputReorderNode(const Ref<SYCLDevice>& device,
+                          const std::string& name,
                           const std::shared_ptr<Tensor>& src,
                           const std::shared_ptr<TransferFunction>& transferFunc,
                           bool hdr,

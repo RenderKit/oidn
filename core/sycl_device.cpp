@@ -15,7 +15,7 @@ namespace oidn {
     // Initialize the neural network runtime
     dnnl_set_verbose(clamp(verbose - 2, 0, 2)); // unfortunately this is not per-device but global
     dnnlEngine  = dnnl::engine(dnnl::engine::kind::gpu, 0);
-    dnnlStream  = dnnl::stream(dnnlEngine);
+    dnnlStream  = dnnl::stream(dnnlEngine, dnnl::stream::flags::in_order);
     syclDevice  = dnnl::sycl_interop::get_device(dnnlEngine);
     syclContext = dnnl::sycl_interop::get_context(dnnlEngine);
     syclQueue   = dnnl::sycl_interop::get_queue(dnnlStream);

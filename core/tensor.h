@@ -6,6 +6,7 @@
 #include "device.h"
 #include "buffer.h"
 #include <vector>
+#include <fstream>
 
 namespace oidn {
   
@@ -192,7 +193,7 @@ namespace oidn {
   // Tensor in CHW layout
   struct TensorAccessor
   {
-    static constexpr int K = 16;
+    static constexpr int K = 16; // FIXME
 
     float* ptr;
     int C;
@@ -453,6 +454,44 @@ namespace oidn {
       #else
         ptr = buffer->data() + bufferOffset;
       #endif
+      }
+    }
+
+  public:
+    void dump(const std::string& filenamePrefix) const
+    {
+      assert(ndims() == 3);
+      assert(dataType == DataType::Float32);
+
+      const int C = dims[0];
+      const int H = dims[1];
+      const int W = dims[2];
+      const int K = blockSize();
+
+      const float* ptr = (const float*)data();
+
+      for (int c = 0; c < C; ++c)
+      {
+        // Open the file
+        const std::string filename = filenamePrefix + toString(c) + ".pfm";
+        std::ofstream file(filename, std::ios::binary);
+        if (file.fail())
+          throw std::runtime_error("cannot open image file: " + std::string(filename));
+
+        // Write the header
+        file << "Pf" << std::endl;
+        file << W << " " << H << std::endl;
+        file << "-1.0" << std::endl;
+
+        // Write the pixels
+        for (int h = H-1; h >= 0; --h)
+        {
+          for (int w = 0; w < W; ++w)
+          {
+            const float x = ptr[((size_t)H * (c/K) + h) * ((size_t)W*K) + (size_t)w*K + (c%K)];
+            file.write((char*)&x, sizeof(float));
+          }
+        }
       }
     }
   };

@@ -16,9 +16,10 @@ namespace oidn {
 
   public:
     UpsampleNode(const Ref<Device>& device,
+                 const std::string& name,
                  const std::shared_ptr<Tensor>& src,
                  const std::shared_ptr<Tensor>& dst)
-      : Node(device),
+      : Node(device, name),
         src(src),
         dst(dst)
     {
@@ -37,6 +38,7 @@ namespace oidn {
   {
   public:
     CPUUpsampleNode(const Ref<Device>& device,
+                    const std::string& name,
                     const std::shared_ptr<Tensor>& src,
                     const std::shared_ptr<Tensor>& dst);
 
@@ -50,6 +52,7 @@ namespace oidn {
   {
   public:
     SYCLUpsampleNode(const Ref<SYCLDevice>& device,
+                     const std::string& name,
                      const std::shared_ptr<Tensor>& src,
                      const std::shared_ptr<Tensor>& dst);
 

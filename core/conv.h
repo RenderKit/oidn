@@ -20,12 +20,13 @@ namespace oidn {
 
   public:
     ConvNode(const Ref<Device>& device,
+             const std::string& name,
              const std::shared_ptr<Tensor>& src,
              const std::shared_ptr<Tensor>& weights,
              const std::shared_ptr<Tensor>& bias,
              const std::shared_ptr<Tensor>& dst,
              bool relu)
-      : DNNLNode(device),
+      : DNNLNode(device, name),
         src(src), weights(weights), bias(bias), dst(dst)
     {
       const dnnl::memory::dims strides = {1, 1};
@@ -65,7 +66,7 @@ namespace oidn {
       if (convPrimDesc.weights_desc() != weights->mem.get_desc())
       {
         this->weights = std::make_shared<Tensor>(device, convPrimDesc.weights_desc());
-        ReorderNode(device, weights, this->weights).execute();
+        ReorderNode(device, "weightsReorder", weights, this->weights).execute();
       }
 
       prim = dnnl::convolution_forward(convPrimDesc);

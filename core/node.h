@@ -12,9 +12,10 @@ namespace oidn {
   {
   protected:
     Ref<Device> device;
+    std::string name;
 
   public:
-    Node(const Ref<Device>& device) : device(device) {}
+    Node(const Ref<Device>& device, const std::string& name) : device(device), name(name) {}
     virtual ~Node() = default;
 
     virtual void execute() = 0;
@@ -25,6 +26,7 @@ namespace oidn {
     virtual void setScratch(const std::shared_ptr<Tensor>& scratch) {}
 
     __forceinline Device* getDevice() { return device.get(); }
+    __forceinline const std::string& getName() const { return name; }
   };
 
 #if defined(OIDN_DNNL)
@@ -38,7 +40,7 @@ namespace oidn {
     std::shared_ptr<Tensor> scratch;
 
   public:
-    DNNLNode(const Ref<Device>& device) : Node(device) {}
+    DNNLNode(const Ref<Device>& device, const std::string& name) : Node(device, name) {}
 
     size_t getScratchSize() const override
     {
@@ -70,7 +72,7 @@ namespace oidn {
     BNNSFilter filter = nullptr;
 
   public:
-    BNNSNode(const Ref<Device>& device) : Node(device) {}
+    BNNSNode(const Ref<Device>& device, const std::string& name) : Node(device, name) {}
 
     ~BNNSNode()
     {

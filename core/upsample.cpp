@@ -13,9 +13,10 @@ namespace oidn {
 #if defined(OIDN_DNNL)
 
   CPUUpsampleNode::CPUUpsampleNode(const Ref<Device>& device,
+                                   const std::string& name,
                                    const std::shared_ptr<Tensor>& src,
                                    const std::shared_ptr<Tensor>& dst)
-    : UpsampleNode(device, src, dst)
+    : UpsampleNode(device, name, src, dst)
   {
     assert(src->layout == TensorLayout::Chw8c ||
            src->layout == TensorLayout::Chw16c);
@@ -39,9 +40,10 @@ namespace oidn {
 #else
 
   CPUUpsampleNode::CPUUpsampleNode(const Ref<Device>& device,
+                                   const std::string& name,
                                    const std::shared_ptr<Tensor>& src,
                                    const std::shared_ptr<Tensor>& dst)
-    : UpsampleNode(device, src, dst)
+    : UpsampleNode(device, name, src, dst)
   {
     assert(src->layout == TensorLayout::chw);
   }
@@ -96,9 +98,10 @@ namespace oidn {
   };
 
   SYCLUpsampleNode::SYCLUpsampleNode(const Ref<SYCLDevice>& device,
+                                     const std::string& name,
                                      const std::shared_ptr<Tensor>& src,
                                      const std::shared_ptr<Tensor>& dst)
-    : UpsampleNode(device, src, dst)
+    : UpsampleNode(device, name, src, dst)
   {
     assert(src->layout == TensorLayout::Chw16c);
     assert(src->blockSize() == device->getTensorBlockSize());

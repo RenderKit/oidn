@@ -463,7 +463,8 @@ namespace oidn {
     // Create the nodes
     const bool snorm = directional || (!color && normal);
 
-    inputReorder = net->addInputReorder(net->newTensor(inputReorderDesc, inputReorderOfs),
+    inputReorder = net->addInputReorder("input",
+                                        net->newTensor(inputReorderDesc, inputReorderOfs),
                                         transferFunc, hdr, snorm);
 
     auto encConv0 = net->addConv("enc_conv0",
@@ -474,28 +475,32 @@ namespace oidn {
                                  encConv0->getDst(),
                                  net->newTensor(encConv1Desc, encConv1Ofs));
 
-    auto pool1 = net->addPool(encConv1->getDst(),
+    auto pool1 = net->addPool("pool1",
+                              encConv1->getDst(),
                               net->newTensor(pool1Desc, pool1Ofs));
 
     auto encConv2 = net->addConv("enc_conv2",
                                  pool1->getDst(),
                                  net->newTensor(encConv2Desc, encConv2Ofs));
 
-    auto pool2 = net->addPool(encConv2->getDst(),
+    auto pool2 = net->addPool("pool2",
+                              encConv2->getDst(),
                               net->newTensor(pool2Desc, pool2Ofs));
 
     auto encConv3 = net->addConv("enc_conv3",
                                  pool2->getDst(),
                                  net->newTensor(encConv3Desc, encConv3Ofs));
 
-    auto pool3 = net->addPool(encConv3->getDst(),
+    auto pool3 = net->addPool("pool3",
+                              encConv3->getDst(),
                               net->newTensor(pool3Desc, pool3Ofs));
 
     auto encConv4 = net->addConv("enc_conv4",
                                  pool3->getDst(),
                                  net->newTensor(encConv4Desc, encConv4Ofs));
 
-    auto pool4 = net->addPool(encConv4->getDst(),
+    auto pool4 = net->addPool("pool4",
+                              encConv4->getDst(),
                               net->newTensor(pool4Desc, pool4Ofs));
 
     auto encConv5a = net->addConv("enc_conv5a",
@@ -506,7 +511,8 @@ namespace oidn {
                                   encConv5a->getDst(),
                                   net->newTensor(encConv5bDesc, encConv5bOfs));
 
-    auto upsample4 = net->addUpsample(encConv5b->getDst(),
+    auto upsample4 = net->addUpsample("upsample4",
+                                      encConv5b->getDst(),
                                       net->newTensor(upsample4Desc, upsample4Ofs));
 
     auto decConv4a = net->addConv("dec_conv4a",
@@ -517,7 +523,8 @@ namespace oidn {
                                   decConv4a->getDst(),
                                   net->newTensor(decConv4bDesc, decConv4bOfs));
 
-    auto upsample3 = net->addUpsample(decConv4b->getDst(),
+    auto upsample3 = net->addUpsample("upsample3",
+                                      decConv4b->getDst(),
                                       net->newTensor(upsample3Desc, upsample3Ofs));
 
     auto decConv3a = net->addConv("dec_conv3a",
@@ -528,7 +535,8 @@ namespace oidn {
                                   decConv3a->getDst(),
                                   net->newTensor(decConv3bDesc, decConv3bOfs));
 
-    auto upsample2 = net->addUpsample(decConv3b->getDst(),
+    auto upsample2 = net->addUpsample("upsample2",
+                                      decConv3b->getDst(),
                                       net->newTensor(upsample2Desc, upsample2Ofs));
 
     auto decConv2a = net->addConv("dec_conv2a",
@@ -539,7 +547,8 @@ namespace oidn {
                                   decConv2a->getDst(),
                                   net->newTensor(decConv2bDesc, decConv2bOfs));
 
-    auto upsample1 = net->addUpsample(decConv2b->getDst(),
+    auto upsample1 = net->addUpsample("upsample1",
+                                      decConv2b->getDst(),
                                       net->newTensor(upsample1Desc, upsample1Ofs));
 
     auto decConv1a = net->addConv("dec_conv1a",
@@ -555,7 +564,8 @@ namespace oidn {
                                  net->newTensor(decConv0Desc, decConv0Ofs),
                                  false);
 
-    outputReorder = net->addOutputReorder(decConv0->getDst(),
+    outputReorder = net->addOutputReorder("output",
+                                          decConv0->getDst(),
                                           transferFunc, hdr, snorm);
 
     // Create the temporary output

@@ -18,9 +18,10 @@ namespace oidn {
 
   public:
     PoolNode(const Ref<Device>& device,
+             const std::string& name,
              const std::shared_ptr<Tensor>& src,
              const std::shared_ptr<Tensor>& dst)
-      : DNNLNode(device),
+      : DNNLNode(device, name),
         src(src), dst(dst)
     {
       const dnnl::memory::dims kernel  = {2, 2};
@@ -57,9 +58,10 @@ namespace oidn {
 
   public:
     PoolNode(const Ref<Device>& device,
+             const std::string& name,
              const std::shared_ptr<Tensor>& src,
              const std::shared_ptr<Tensor>& dst)
-      : BNNSNode(device),
+      : BNNSNode(device, name),
         src(src), dst(dst)
     {
       BNNSLayerParametersPooling params = {

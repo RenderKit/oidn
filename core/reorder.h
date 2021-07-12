@@ -40,9 +40,10 @@ namespace oidn {
 
   public:
     ReorderNode(const Ref<Device>& device,
+                const std::string& name,
                 const std::shared_ptr<Tensor>& src,
                 const std::shared_ptr<Tensor>& dst)
-      : DNNLNode(device),
+      : DNNLNode(device, name),
         src(src), dst(dst)
     {
       prim = dnnl::reorder(dnnl::reorder::primitive_desc(src->mem, dst->mem));

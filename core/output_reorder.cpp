@@ -11,11 +11,12 @@
 namespace oidn {
   
   OutputReorderNode::OutputReorderNode(const Ref<Device>& device,
+                                       const std::string& name,
                                        const std::shared_ptr<Tensor>& src,
                                        const std::shared_ptr<TransferFunction>& transferFunc,
                                        bool hdr,
                                        bool snorm)
-    : Node(device),
+    : Node(device, name),
       src(src),
       transferFunc(transferFunc),
       hdr(hdr),
@@ -50,11 +51,12 @@ namespace oidn {
   }
 
   CPUOutputReorderNode::CPUOutputReorderNode(const Ref<Device>& device,
+                                             const std::string& name,
                                              const std::shared_ptr<Tensor>& src,
                                              const std::shared_ptr<TransferFunction>& transferFunc,
                                              bool hdr,
                                              bool snorm)
-    : OutputReorderNode(device, src, transferFunc, hdr, snorm) {}
+    : OutputReorderNode(device, name, src, transferFunc, hdr, snorm) {}
 
   void CPUOutputReorderNode::execute()
   {
@@ -133,11 +135,12 @@ namespace oidn {
   };
 
   SYCLOutputReorderNode::SYCLOutputReorderNode(const Ref<SYCLDevice>& device,
+                                               const std::string& name,   
                                                const std::shared_ptr<Tensor>& src,
                                                const std::shared_ptr<TransferFunction>& transferFunc,
                                                bool hdr,
                                                bool snorm)
-    : OutputReorderNode(device, src, transferFunc, hdr, snorm) {}
+    : OutputReorderNode(device, name, src, transferFunc, hdr, snorm) {}
 
   void SYCLOutputReorderNode::execute()
   {

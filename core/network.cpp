@@ -24,7 +24,17 @@ namespace oidn {
   {
     for (size_t i = 0; i < nodes.size(); ++i)
     {
+      //device->wait();
       nodes[i]->execute();
+      //device->wait();
+      
+      // Dump
+      /*
+      auto dst = nodes[i]->getDst();
+      if (dst)
+        dst->dump("gpu/" + nodes[i]->getName() + "_");
+      */
+
       progress.update(1);
     }
   }
@@ -65,7 +75,8 @@ namespace oidn {
     return TensorDesc(dstDims, layout, DataType::Float32);
   }
 
-  std::shared_ptr<InputReorderNode> Network::addInputReorder(const std::shared_ptr<Tensor>& dst,
+  std::shared_ptr<InputReorderNode> Network::addInputReorder(const std::string& name,
+                                                             const std::shared_ptr<Tensor>& dst,
                                                              const std::shared_ptr<TransferFunction>& transferFunc,
                                                              bool hdr,
                                                              bool snorm)
@@ -73,16 +84,17 @@ namespace oidn {
     std::shared_ptr<InputReorderNode> node;
   #if defined(OIDN_DEVICE_GPU)
     if (auto syclDevice = dynamicRefCast<SYCLDevice>(device))
-      node = std::make_shared<SYCLInputReorderNode>(syclDevice, dst, transferFunc, hdr, snorm);
+      node = std::make_shared<SYCLInputReorderNode>(syclDevice, name, dst, transferFunc, hdr, snorm);
     else
   #endif
-      node = std::make_shared<CPUInputReorderNode>(device, dst, transferFunc, hdr, snorm);
+      node = std::make_shared<CPUInputReorderNode>(device, name, dst, transferFunc, hdr, snorm);
     
     nodes.push_back(node);
     return node;
   }
 
-  std::shared_ptr<OutputReorderNode> Network::addOutputReorder(const std::shared_ptr<Tensor>& src,
+  std::shared_ptr<OutputReorderNode> Network::addOutputReorder(const std::string& name,
+                                                               const std::shared_ptr<Tensor>& src,
                                                                const std::shared_ptr<TransferFunction>& transferFunc,
                                                                bool hdr,
                                                                bool snorm)
@@ -90,10 +102,10 @@ namespace oidn {
     std::shared_ptr<OutputReorderNode> node;
   #if defined(OIDN_DEVICE_GPU)
     if (auto syclDevice = dynamicRefCast<SYCLDevice>(device))
-      node = std::make_shared<SYCLOutputReorderNode>(syclDevice, src, transferFunc, hdr, snorm);
+      node = std::make_shared<SYCLOutputReorderNode>(syclDevice, name, src, transferFunc, hdr, snorm);
     else
   #endif
-      node = std::make_shared<CPUOutputReorderNode>(device, src, transferFunc, hdr, snorm);
+      node = std::make_shared<CPUOutputReorderNode>(device, name, src, transferFunc, hdr, snorm);
     
     nodes.push_back(node);
     return node;
@@ -131,7 +143,7 @@ namespace oidn {
       bias = padBias(bias);
 
     // Create the convolution node
-    auto node = std::make_shared<ConvNode>(device, src, weights, bias, dst, relu);
+    auto node = std::make_shared<ConvNode>(device, name, src, weights, bias, dst, relu);
     nodes.push_back(node);
     return node;
   }
@@ -146,12 +158,13 @@ namespace oidn {
     return TensorDesc(dstDims, srcDesc.layout, srcDesc.dataType);
   }
 
-  std::shared_ptr<Node> Network::addPool(const std::shared_ptr<Tensor>& src,
+  std::shared_ptr<Node> Network::addPool(const std::string& name,
+                                         const std::shared_ptr<Tensor>& src,
                                          const std::shared_ptr<Tensor>& dst)
   {
     assert(dst->desc() == getPoolDesc(src->desc()));
 
-    auto node = std::make_shared<PoolNode>(device, src, dst);
+    auto node = std::make_shared<PoolNode>(device, name, src, dst);
     nodes.push_back(node);
     return node;
   }
@@ -166,7 +179,8 @@ namespace oidn {
     return TensorDesc(dstDims, srcDesc.layout, srcDesc.dataType);
   }
 
-  std::shared_ptr<Node> Network::addUpsample(const std::shared_ptr<Tensor>& src,
+  std::shared_ptr<Node> Network::addUpsample(const std::string& name,
+                                             const std::shared_ptr<Tensor>& src,
                                              const std::shared_ptr<Tensor>& dst)
   {
     assert(dst->desc() == getUpsampleDesc(src->desc()));
@@ -174,10 +188,10 @@ namespace oidn {
     std::shared_ptr<Node> node;
   #if defined(OIDN_DEVICE_GPU)
     if (auto syclDevice = dynamicRefCast<SYCLDevice>(device))
-      node = std::make_shared<SYCLUpsampleNode>(syclDevice, src, dst);
+      node = std::make_shared<SYCLUpsampleNode>(syclDevice, name, src, dst);
     else
   #endif
-      node = std::make_shared<CPUUpsampleNode>(device, src, dst);
+      node = std::make_shared<CPUUpsampleNode>(device, name, src, dst);
 
     nodes.push_back(node);
     return node;

@@ -11,11 +11,12 @@
 namespace oidn {
 
   InputReorderNode::InputReorderNode(const Ref<Device>& device,
+                                     const std::string& name,
                                      const std::shared_ptr<Tensor>& dst,
                                      const std::shared_ptr<TransferFunction>& transferFunc,
                                      bool hdr,
                                      bool snorm)
-    : Node(device),
+    : Node(device, name),
       dst(dst),
       transferFunc(transferFunc),
       hdr(hdr),
@@ -52,11 +53,12 @@ namespace oidn {
   }
 
   CPUInputReorderNode::CPUInputReorderNode(const Ref<Device>& device,
+                                           const std::string& name,
                                            const std::shared_ptr<Tensor>& dst,
                                            const std::shared_ptr<TransferFunction>& transferFunc,
                                            bool hdr,
                                            bool snorm)
-    : InputReorderNode(device, dst, transferFunc, hdr, snorm) {}
+    : InputReorderNode(device, name, dst, transferFunc, hdr, snorm) {}
 
   void CPUInputReorderNode::execute()
   {
@@ -144,7 +146,7 @@ namespace oidn {
 
         int c = 0;
 
-        //if (color.ptr)
+        if (color.ptr)
         {
           storeColor(hDst, wDst, c, color.get3f(hSrc, wSrc));
           c += 3;
@@ -177,11 +179,12 @@ namespace oidn {
   };
 
   SYCLInputReorderNode::SYCLInputReorderNode(const Ref<SYCLDevice>& device,
+                                             const std::string& name,
                                              const std::shared_ptr<Tensor>& dst,
                                              const std::shared_ptr<TransferFunction>& transferFunc,
                                              bool hdr,
                                              bool snorm)
-    : InputReorderNode(device, dst, transferFunc, hdr, snorm) {}
+    : InputReorderNode(device, name, dst, transferFunc, hdr, snorm) {}
 
   void SYCLInputReorderNode::execute()
   {
@@ -190,18 +193,20 @@ namespace oidn {
     assert(tile.H + tile.hDstBegin <= dst.H);
     assert(tile.W + tile.wDstBegin <= dst.W);
 
-    //printf("input reorder prepare\n");
-
     InputReorder kernel;
-
-    //printf("input reorder begin\n");
+    kernel.color  = color  ? *color  : Image();
+    kernel.albedo = albedo ? *albedo : Image();
+    kernel.normal = normal ? *normal : Image();
+    kernel.dst = *dst;
+    kernel.tile = tile;
+    kernel.transferFunc = *transferFunc;
+    kernel.hdr = hdr;
+    kernel.snorm = snorm;
 
     auto queue = ((SYCLDevice*)getDevice())->getSYCLQueue();
     queue.parallel_for(sycl::range<2>(tile.H, tile.W), [=](sycl::id<2> idx) {
       kernel(int(idx[0]), int(idx[1]));
     });
-
-    //printf("input reorder end\n");
   }
 
 #endif
