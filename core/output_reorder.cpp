@@ -109,13 +109,12 @@ namespace oidn {
       vec3f value = src.get3f(hSrc, wSrc, 0);
 
       // The CNN output may contain negative values or even NaNs, so it must be sanitized
-      //value = clamp(nan_to_zero(value), 0.f, pos_max);
+      value = clamp(nan_to_zero(value), 0.f, std::numeric_limits<float>::max());
 
       // Apply the inverse transfer function
-      //value = transferFunc.inverse(&transferFunc, value);
+      value = transferFunc.inverse(value);
 
       // Sanitize
-      /*
       if (snorm)
       {
         // Transform to [-1..1]
@@ -126,8 +125,7 @@ namespace oidn {
         value = min(value, 1.f);
 
       // Scale
-      value = value * transferFunc.outputScale;
-      */
+      value = value * transferFunc.getOutputScale();
 
       // Store
       output.set3f(hDst, wDst, value);

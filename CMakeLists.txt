@@ -146,8 +146,6 @@ set(CORE_SOURCES
   include/OpenImageDenoise/config.h
   ${OIDN_RESOURCE}
   core/buffer.h
-  core/color.h
-  core/color.cpp
   core/common.h
   core/conv.h
   core/cpu_buffer.h
@@ -180,6 +178,8 @@ set(CORE_SOURCES
 
 set(CORE_SOURCES_SYCL
   core/api.cpp
+  core/color.h
+  core/color.cpp
   core/input_reorder.cpp
   core/output_reorder.cpp
   core/network.cpp

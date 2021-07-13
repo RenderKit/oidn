@@ -113,21 +113,54 @@ namespace oidn {
     __forceinline void storeColor(int h, int w, int c, vec3f value) const
     {
       // Scale
-      //value = value * transferFunc.inputScale;
+      value = value * transferFunc.getInputScale();
 
       // Sanitize
-      //value = clamp(nan_to_zero(value), snorm ? -1.f : 0.f, hdr ? pos_max : 1.f);
+      value = clamp(nan_to_zero(value), snorm ? -1.f : 0.f, hdr ? std::numeric_limits<float>::max() : 1.f);
 
-      /*
       if (snorm)
       {
         // Transform to [0..1]
         value = value * 0.5f + 0.5f;
       }
-      */
 
       // Apply the transfer function
-      //value = transferFunc.forward(&transferFunc, value);
+      value = transferFunc.forward(value);
+
+      // Store
+      dst.set3f(h, w, c, value);
+    }
+
+    // Stores an albedo value
+    __forceinline void storeAlbedo(int h, int w, int c, vec3f value) const
+    {
+      // Scale
+      if (!color.ptr)
+        value = value * transferFunc.getInputScale();
+
+      // Sanitize
+      value = clamp(nan_to_zero(value), 0.f, 1.f);
+
+      // Apply the transfer function
+      if (!color.ptr)
+        value = transferFunc.forward(value);
+
+      // Store
+      dst.set3f(h, w, c, value);
+    }
+
+    // Stores a normal value
+    __forceinline void storeNormal(int h, int w, int c, vec3f value) const
+    {
+      // Scale
+      if (!color.ptr)
+        value = value * transferFunc.getInputScale();
+
+      // Sanitize
+      value = clamp(nan_to_zero(value), -1.f, 1.f);
+
+      // Transform to [0..1]
+      value = value * 0.5f + 0.5f;
 
       // Store
       dst.set3f(h, w, c, value);
@@ -151,20 +184,18 @@ namespace oidn {
           storeColor(hDst, wDst, c, color.get3f(hSrc, wSrc));
           c += 3;
         }
-
-        /*
+        
         if (albedo.ptr)
         {
-          storeAlbedo(self, hDst, wDst, c, get3f(albedo, hSrc, wSrc));
+          storeAlbedo(hDst, wDst, c, albedo.get3f(hSrc, wSrc));
           c += 3;
         }
 
         if (normal.ptr)
         {
-          storeNormal(self, hDst, wDst, c, get3f(normal, hSrc, wSrc));
+          storeNormal(hDst, wDst, c, normal.get3f(hSrc, wSrc));
           c += 3;
         }
-        */
 
         for (; c < dst.C; ++c)
           storeZero(hDst, wDst, c);
