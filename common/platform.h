@@ -100,9 +100,9 @@ namespace oidn {
   using std::max;
 
   template<typename T>
-  __forceinline T clamp(const T& value, const T& minValue, const T& maxValue)
+  __forceinline T clamp(const T& x, const T& minVal, const T& maxVal)
   {
-    return min(max(value, minValue), maxValue);
+    return min(max(x, minVal), maxVal);
   }
 
   constexpr size_t memoryAlignment = 128;
