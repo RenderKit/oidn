@@ -184,7 +184,7 @@ namespace oidn {
 
       // Copy the output image to the final buffer if filtering in-place
       if (outputTemp)
-        outputCopy(*outputTemp, *output);
+        outputCopy(device, *outputTemp, *output);
 
       // Finished
       progress.finish();

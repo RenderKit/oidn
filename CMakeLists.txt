@@ -181,6 +181,7 @@ set(CORE_SOURCES_SYCL
   core/color.h
   core/color.cpp
   core/input_reorder.cpp
+  core/output_copy.cpp
   core/output_reorder.cpp
   core/network.cpp
   core/sycl_buffer.h
