@@ -17,6 +17,7 @@ MODEL_VERSION='v1.4.0'
 parser = argparse.ArgumentParser(description='Runs all tests, including comparing images produced by the library with generated baseline images.')
 parser.usage = '\rIntel(R) Open Image Denoise - Test\n' + parser.format_usage()
 parser.add_argument('command', type=str, nargs='?', choices=['baseline', 'run'], default='run')
+parser.add_argument('--device', '-d', type=str, choices=['default', 'cpu', 'gpu'], default='default', help='device to test')
 parser.add_argument('--filter', '-f', type=str, nargs='*', choices=['RT', 'RTLightmap'], default=None, help='filters to test')
 parser.add_argument('--build_dir', '-B', type=str, help='build directory')
 parser.add_argument('--data_dir', '-D', type=str, help='directory of datasets (e.g. training, validation, test)')
@@ -156,6 +157,8 @@ def test_regression(filter, feature_sets, dataset):
             print_test(test_name)
 
             denoise_cmd = os.path.join(bin_dir, 'oidnDenoise')
+            if cfg.device != 'default':
+              denoise_cmd += f' -d {cfg.device}'
 
             ref_filename = os.path.join(cfg.baseline_dir, dataset, f'{image_name}.{result}.{main_feature_ext}.pfm')
             if not os.path.isfile(ref_filename):
