@@ -8,9 +8,9 @@
 namespace oidn {
 
   // Node base class
-  class Node : public RefCount
+  class Node
   {
-  private:
+  protected:
     Ref<Device> device;
 
   public:
@@ -19,15 +19,10 @@ namespace oidn {
 
     virtual void execute() = 0;
 
-    virtual Ref<Tensor> getDst() const { return nullptr; }
+    virtual std::shared_ptr<Tensor> getDst() const { return nullptr; }
 
-    virtual size_t getScratchpadSize() const { return 0; }
-    virtual void setScratchpad(const Ref<Tensor>& scratchpad) {}
-
-    virtual void setTile(int hSrc, int wSrc, int hDst, int wDst, int H, int W)
-    {
-      assert(0); // not supported
-    }
+    virtual size_t getScratchSize() const { return 0; }
+    virtual void setScratch(const std::shared_ptr<Tensor>& scratch) {}
 
     __forceinline Device* getDevice() { return device.get(); }
   };
@@ -40,12 +35,12 @@ namespace oidn {
   protected:
     dnnl::primitive prim;
     std::unordered_map<int, dnnl::memory> args;
-    Ref<Tensor> scratchpad;
+    std::shared_ptr<Tensor> scratch;
 
   public:
     DNNLNode(const Ref<Device>& device) : Node(device) {}
 
-    size_t getScratchpadSize() const override
+    size_t getScratchSize() const override
     {
       const auto primDesc = prim.get_primitive_desc();
       const dnnl_memory_desc_t* scratchpadDesc = dnnl_primitive_desc_query_md(primDesc, dnnl_query_scratchpad_md, 0);
@@ -54,15 +49,15 @@ namespace oidn {
       return dnnl_memory_desc_get_size(scratchpadDesc);
     }
 
-    void setScratchpad(const Ref<Tensor>& scratchpad) override
+    void setScratch(const std::shared_ptr<Tensor>& scratch) override
     {
-      this->scratchpad = scratchpad;
-      args.insert(std::make_pair(DNNL_ARG_SCRATCHPAD, scratchpad->mem));
+      this->scratch = scratch;
+      args.insert(std::make_pair(DNNL_ARG_SCRATCHPAD, scratch->mem));
     }
 
     void execute() override
     {
-      prim.execute(getDevice()->getDNNLStream(), args);
+      prim.execute(device->getDNNLStream(), args);
     }
   };
 
@@ -72,9 +67,7 @@ namespace oidn {
   class BNNSNode : public Node
   {
   protected:
-    BNNSFilter  filter = nullptr;
-    const void* inPtr  = nullptr;
-    void*       outPtr = nullptr;
+    BNNSFilter filter = nullptr;
 
   public:
     BNNSNode(const Ref<Device>& device) : Node(device) {}
@@ -83,11 +76,6 @@ namespace oidn {
     {
       if (filter)
         BNNSFilterDestroy(filter);
-    }
-
-    void execute() override
-    {
-      BNNSFilterApply(filter, inPtr, outPtr);
     }
   };
 

@@ -20,7 +20,7 @@ integrated into most existing or new rendering solutions.
 At the heart of the Intel Open Image Denoise library is a collection of
 efficient deep learning based denoising filters, which were trained to handle
 a wide range of samples per pixel (spp), from 1 spp to almost fully converged.
-Thus it is suitable for both preview and final-frame rendering. The filters can
+Thus it is suitable for both preview and final frame rendering. The filters can
 denoise images either using only the noisy color (*beauty*) buffer, or, to
 preserve as much detail as possible, can optionally utilize auxiliary feature
 buffers as well (e.g. albedo, normal). Such buffers are supported by most

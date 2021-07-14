@@ -13,13 +13,13 @@ namespace oidn {
   class PoolNode : public DNNLNode
   {
   private:
-    Ref<Tensor> src;
-    Ref<Tensor> dst;
+    std::shared_ptr<Tensor> src;
+    std::shared_ptr<Tensor> dst;
 
   public:
     PoolNode(const Ref<Device>& device,
-             const Ref<Tensor>& src,
-             const Ref<Tensor>& dst)
+             const std::shared_ptr<Tensor>& src,
+             const std::shared_ptr<Tensor>& dst)
       : DNNLNode(device),
         src(src), dst(dst)
     {
@@ -43,7 +43,7 @@ namespace oidn {
               {DNNL_ARG_DST, dst->mem}};
     }
 
-    Ref<Tensor> getDst() const override { return dst; }
+    std::shared_ptr<Tensor> getDst() const override { return dst; }
   };
 
 #else
@@ -52,13 +52,13 @@ namespace oidn {
   class PoolNode : public BNNSNode
   {
   private:
-    Ref<Tensor> src;
-    Ref<Tensor> dst;
+    std::shared_ptr<Tensor> src;
+    std::shared_ptr<Tensor> dst;
 
   public:
     PoolNode(const Ref<Device>& device,
-             const Ref<Tensor>& src,
-             const Ref<Tensor>& dst)
+             const std::shared_ptr<Tensor>& src,
+             const std::shared_ptr<Tensor>& dst)
       : BNNSNode(device),
         src(src), dst(dst)
     {
@@ -75,11 +75,14 @@ namespace oidn {
       filter = BNNSFilterCreateLayerPooling(&params, nullptr);
       if (!filter)
         throw Exception(Error::Unknown, "BNNSFilterCreateLayerPooling failed");
-      inPtr  = src->data();
-      outPtr = dst->data();
     }
 
-    Ref<Tensor> getDst() const override { return dst; }
+    void execute() override
+    {
+      BNNSFilterApply(filter, src->data(), dst->data());
+    }
+
+    std::shared_ptr<Tensor> getDst() const override { return dst; }
   };
 
 #endif

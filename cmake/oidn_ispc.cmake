@@ -1,8 +1,8 @@
 ## Copyright 2009-2021 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
-# ISPC versions to look for, in decending order (newest first)
-set(ISPC_VERSION_WORKING "1.15.0" "1.14.1")
+# ISPC versions to look for, in descending order (newest first)
+set(ISPC_VERSION_WORKING "1.16.0" "1.15.0" "1.14.1")
 list(GET ISPC_VERSION_WORKING -1 ISPC_VERSION_REQUIRED)
 
 if(NOT ISPC_EXECUTABLE)
@@ -97,7 +97,7 @@ macro(ispc_compile)
     set(ISPC_ARCHITECTURE "x86-64")
   elseif(OIDN_ARCH STREQUAL "ARM64")
     set(ISPC_ARCHITECTURE "aarch64")
-    if(APPLE)
+    if(APPLE AND ISPC_VERSION VERSION_LESS "1.16.0")
       set(ISPC_TARGET_OS "--target-os=ios")
     endif()
   endif()
@@ -186,7 +186,6 @@ macro(ispc_compile)
       ${ISPC_OPT_FLAGS}
       --target=${ISPC_TARGET_ARGS}
       --woff
-      --opt=fast-math
       ${ISPC_ADDITIONAL_ARGS}
       -h ${ISPC_TARGET_DIR}/${fname}_ispc.h
       -MMM  ${outdir}/${fname}.dev.idep

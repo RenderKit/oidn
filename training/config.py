@@ -9,6 +9,36 @@ import torch
 
 from util import *
 
+# Returns the main feature from a list of features
+def get_main_feature(features):
+  if len(features) > 1:
+    features = list(set(features) & {'hdr', 'ldr', 'sh1'})
+    if len(features) > 1:
+      error('multiple main features specified')
+  if not features:
+    error('no main feature specified')
+  return features[0]
+
+# Returns the auxiliary features from a list of features
+def get_aux_features(features):
+  main_feature = get_main_feature(features)
+  return list(set(features).difference([main_feature]))
+
+# Returns the config filename in a directory
+def get_config_filename(dir):
+  return os.path.join(dir, 'config.json')
+
+# Loads the config from a directory
+def load_config(dir):
+  filename = get_config_filename(dir)
+  cfg = load_json(filename)
+  return argparse.Namespace(**cfg)
+
+# Saves the config to a directory
+def save_config(dir, cfg):
+  filename = get_config_filename(dir)
+  save_json(filename, vars(cfg))
+
 # Parses the config from the command line arguments
 def parse_args(cmd=None, description=None):
   def get_default_device():
@@ -27,6 +57,8 @@ def parse_args(cmd=None, description=None):
     parser.add_argument('features', type=str, nargs='*',
                         choices=['hdr', 'ldr', 'sh1', 'albedo', 'alb', 'normal', 'nrm', []],
                         help='set of input features')
+    parser.add_argument('--clean_aux', action='store_true',
+                        help='train with noise-free (reference) auxiliary features')
     parser.add_argument('--filter', '-f', type=str,
                         choices=['RT', 'RTLightmap'],
                         help='filter to train (determines some default arguments)')
@@ -50,7 +82,11 @@ def parse_args(cmd=None, description=None):
     parser.add_argument('--results_dir', '-R', type=str, default='results',
                         help='directory of training results')
     parser.add_argument('--result', '-r', type=str, required=(not cmd in {'train', 'find_lr'}),
-                        help='name of the result to save/load')
+                        help='name of the training result')
+
+  if cmd in {'infer'}:
+    parser.add_argument('--aux_results', '-a', type=str, nargs='*', default=[],
+                        help='prefilter auxiliary features using the specified training results')
 
   if cmd in {'train', 'infer', 'export'}:
     parser.add_argument('--num_epochs', '--epochs', '-e', type=int,
@@ -66,7 +102,7 @@ def parse_args(cmd=None, description=None):
                         help='initial learning rate')
     parser.add_argument('--max_lr', '--max_learning_rate', type=float,
                         help='maximum learning rate')
-    parser.add_argument('--lr_warmup', type=float, default=0.15,
+    parser.add_argument('--lr_warmup', '--learning_rate_warmup', type=float, default=0.15,
                         help='the percentage of the cycle spent increasing the learning rate (warm-up)')
 
   if cmd in {'find_lr'}:
@@ -105,9 +141,11 @@ def parse_args(cmd=None, description=None):
                         help='name of the input dataset')
     parser.add_argument('--output_dir', '-O', type=str, default='infer',
                         help='directory of output images')
+    parser.add_argument('--output_suffix', '-o', type=str,
+                        help='suffix of the output image names')
     parser.add_argument('--format', '-F', type=str, nargs='*', default=['exr'],
                         help='output image formats')
-    parser.add_argument('--save_all', '-a', action='store_true',
+    parser.add_argument('--save_all', action='store_true',
                         help='save input and target images too')
 
   if cmd in {'export'}:
@@ -146,6 +184,7 @@ def parse_args(cmd=None, description=None):
     parser.add_argument('--num_devices', '-n', type=int, default=1,
                         help='number of devices to use (with IDs device_id .. device_id+num_devices-1)')
     advanced.add_argument('--deterministic', '--det', action='store_true',
+                          default=(cmd in {'preprocess', 'infer', 'export'}),
                           help='makes computations deterministic (slower performance)')
 
   cfg = parser.parse_args()
@@ -169,9 +208,10 @@ def parse_args(cmd=None, description=None):
 
     # Set the default transfer function
     if cfg.transfer is None:
-      if 'hdr' in cfg.features:
+      main_feature = get_main_feature(cfg.features)
+      if main_feature == 'hdr':
         cfg.transfer = 'log' if cfg.filter == 'RTLightmap' else 'pu'
-      elif 'ldr' in cfg.features:
+      elif main_feature in {'ldr', 'alb'}:
         cfg.transfer = 'srgb'
       else:
         cfg.transfer = 'linear'
@@ -209,18 +249,3 @@ def parse_args(cmd=None, description=None):
   print('PyTorch:', torch.__version__)
 
   return cfg
-
-# Returns the config filename in a directory
-def get_config_filename(dir):
-  return os.path.join(dir, 'config.json')
-
-# Loads the config from a directory
-def load_config(dir):
-  filename = get_config_filename(dir)
-  cfg = load_json(filename)
-  return argparse.Namespace(**cfg)
-
-# Saves the config to a directory
-def save_config(dir, cfg):
-  filename = get_config_filename(dir)
-  save_json(filename, vars(cfg))

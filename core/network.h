@@ -5,60 +5,55 @@
 #include "tensor.h"
 #include "image.h"
 #include "node.h"
-#include "color.h"
+#include "input_reorder.h"
+#include "output_reorder.h"
 #include "progress.h"
+#include "scratch.h"
 
 #pragma once
 
 namespace oidn {
 
-  class Network : public RefCount
+  class Network
   {
   public:
-    Network(const Ref<Device>& device, const std::map<std::string, Ref<Tensor>>& weightsMap);
+    Network(const Ref<Device>& device, const std::map<std::string, std::shared_ptr<Tensor>>& weightsMap);
 
     void execute(Progress& progress);
     double getWorkAmount() const;
 
-    Ref<Tensor> newTensor(const TensorDims& dims);
+    // Scratch memory
+    void allocScratch(size_t size);
+    std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, ptrdiff_t offset);
+    std::shared_ptr<Image> newImage(const ImageDesc& desc, ptrdiff_t offset);
 
-    TensorDims getInputReorderDims(const TensorDims& srcDims, int alignment);
+    TensorDesc getInputReorderDesc(const TensorDims& srcDims, int alignment);
 
-    Ref<Node> addInputReorder(const Image& color,
-                              const Image& albedo,
-                              const Image& normal,
-                              const Ref<Tensor>& dst,
-                              const Ref<TransferFunction>& transferFunc,
-                              bool hdr,
-                              bool snorm,
-                              int alignment);
+    std::shared_ptr<InputReorderNode> addInputReorder(const std::shared_ptr<Tensor>& dst,
+                                                      const std::shared_ptr<TransferFunction>& transferFunc,
+                                                      bool hdr,
+                                                      bool snorm);
 
-    Ref<Node> addOutputReorder(const Ref<Tensor>& src,
-                               const Image& output,
-                               const Ref<TransferFunction>& transferFunc,
-                               bool hdr,
-                               bool snorm);
+    std::shared_ptr<OutputReorderNode> addOutputReorder(const std::shared_ptr<Tensor>& src,
+                                                        const std::shared_ptr<TransferFunction>& transferFunc,
+                                                        bool hdr,
+                                                        bool snorm);
 
-    TensorDims getConvDims(const std::string& name, const TensorDims& srcDims);
-    Ref<Node> addConv(const std::string& name,
-                      const Ref<Tensor>& src,
-                      const Ref<Tensor>& dst,
-                      bool relu = true);
+    TensorDesc getConvDesc(const std::string& name, const TensorDesc& srcDesc);
+    std::shared_ptr<Node> addConv(const std::string& name,
+                                  const std::shared_ptr<Tensor>& src,
+                                  const std::shared_ptr<Tensor>& dst,
+                                  bool relu = true);
 
-    TensorDims getPoolDims(const TensorDims& srcDims);
-    Ref<Node> addPool(const Ref<Tensor>& src,
-                      const Ref<Tensor>& dst);
+    TensorDesc getPoolDesc(const TensorDesc& srcDesc);
+    std::shared_ptr<Node> addPool(const std::shared_ptr<Tensor>& src,
+                                  const std::shared_ptr<Tensor>& dst);
 
-    TensorDims getUpsampleDims(const TensorDims& srcDims);
-    Ref<Node> addUpsample(const Ref<Tensor>& src,
-                          const Ref<Tensor>& dst);
+    TensorDesc getUpsampleDesc(const TensorDesc& srcDesc);
+    std::shared_ptr<Node> addUpsample(const std::shared_ptr<Tensor>& src,
+                                      const std::shared_ptr<Tensor>& dst);
 
-    TensorDims getConcatDims(const std::vector<TensorDims>& srcDims);
-    std::vector<Ref<Tensor>> getConcatSrc(const Ref<Tensor>& dst,
-                                          const std::vector<TensorDims>& srcDims);
-
-    Ref<Node> addAutoexposure(const Image& color,
-                              const Ref<TransferFunction>& transferFunc);
+    TensorDesc getConcatDesc(const std::vector<TensorDesc>& srcDescs);
 
     void finalize();
 
@@ -66,15 +61,12 @@ namespace oidn {
     Ref<Device> device;
     int K; // block size of blocked tensor layouts
 
-    std::vector<Ref<Node>> nodes;
-    std::map<std::string, Ref<Tensor>> weightsMap;
+    std::vector<std::shared_ptr<Node>> nodes;
+    std::map<std::string, std::shared_ptr<Tensor>> weightsMap;
+    Ref<ScratchBuffer> scratch;
 
-    // Memory allocation statistics
-    size_t activationAllocBytes = 0; // number of allocated activation bytes
-    size_t totalAllocBytes      = 0; // total number of allocated bytes
-
-    Ref<Tensor> padWeights(const Ref<Tensor>& src);
-    Ref<Tensor> padBias(const Ref<Tensor>& src);
+    std::shared_ptr<Tensor> padWeights(const std::shared_ptr<Tensor>& src);
+    std::shared_ptr<Tensor> padBias(const std::shared_ptr<Tensor>& src);
   };
 
 } // namespace oidn

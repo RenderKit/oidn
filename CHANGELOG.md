@@ -1,6 +1,41 @@
 Version History
 ---------------
 
+### Changes in v1.4.1:
+
+-   Fixed crash when in-place denoising images with certain unusual resolutions
+-   Fixed compile error when building for Apple Silicon using some unofficial
+    builds of ISPC
+
+### Changes in v1.4.0:
+
+-   Improved fine detail preservation
+-   Added the `cleanAux` filter parameter for further improving quality when the
+    auxiliary feature (albedo, normal) images are noise-free
+-   Added support for denoising auxiliary feature images, which can be used 
+    together with the new `cleanAux` parameter for improving quality when the
+    auxiliary images are noisy (recommended for final frame denoising)
+-   Normals are expected to be in the [-1, 1] range (but still do not have to
+    be normalized)
+-   Added the `oidnUpdateFilterData` function which must be called when the
+    contents of an opaque data parameter bound to a filter (e.g. `weights`) has
+    been changed after committing the filter
+-   Added the `oidnRemoveFilterImage` and `oidnRemoveFilterData` functions for
+    removing previously set image and opaque data parameters of filters
+-   Reduced the overhead of `oidnCommitFilter` to zero in some cases (e.g. when
+    changing already set image buffers/pointers or the `inputScale` parameter)
+-   Reduced filter memory consumption by about 35%
+-   Reduced total memory consumption significantly when using multiple filters
+    that belong to the same device
+-   Reduced the default maximum memory consumption to 3000 MB
+-   Added the `OIDN_FILTER_RT` and `OIDN_FILTER_RTLIGHTMAP` CMake options for
+    excluding the trained filter weights from the build to significantly
+    decrease its size
+-   Fixed detection of static TBB builds on Windows
+-   Fixed compile error when using future glibc versions
+-   Added `oidnBenchmark` option for setting custom resolutions
+-   Upgraded to oneTBB 2021.2.0 in the official binaries
+
 ### Changes in v1.3.0:
 
 -   Improved denoising quality

@@ -8,49 +8,23 @@
 
 namespace oidn {
 
-  struct Image
+  struct ImageDesc
   {
     static constexpr int maxSize = 65536;
 
-    char* ptr;              // pointer to the first pixel
     int width;              // width in number of pixels
     int height;             // height in number of pixels
     size_t bytePixelStride; // pixel stride in number of *bytes*
     size_t rowStride;       // row stride in number of *pixel strides*
     Format format;          // pixel format
-    Ref<Buffer> buffer;     // buffer containing the image data
 
-    Image() : ptr(nullptr), width(0), height(0), bytePixelStride(0), rowStride(0), format(Format::Undefined) {}
+    __forceinline ImageDesc() = default;
 
-    Image(void* ptr, Format format, size_t width, size_t height, size_t byteOffset, size_t inBytePixelStride, size_t inByteRowStride)
-    {
-      if (ptr == nullptr)
-        throw Exception(Error::InvalidArgument, "buffer pointer null");
-
-      init((char*)ptr + byteOffset, format, width, height, inBytePixelStride, inByteRowStride);
-    }
-
-    Image(const Ref<Buffer>& buffer, Format format, size_t width, size_t height, size_t byteOffset, size_t inBytePixelStride, size_t inByteRowStride)
-      : buffer(buffer)
-    {
-      init(buffer->data() + byteOffset, format, width, height, inBytePixelStride, inByteRowStride);
-
-      if (byteOffset + height * rowStride * bytePixelStride > buffer->size())
-        throw Exception(Error::InvalidArgument, "buffer region out of range");
-    }
-
-    Image(const Ref<Device>& device, Format format, size_t width, size_t height)
-      : buffer(makeRef<Buffer>(device, width * height * getByteSize(format)))
-    {
-      init(buffer->data(), format, width, height);
-    }
-
-    void init(char* ptr, Format format, size_t width, size_t height, size_t inBytePixelStride = 0, size_t inByteRowStride = 0)
+    ImageDesc(Format format, size_t width, size_t height, size_t inBytePixelStride = 0, size_t inByteRowStride = 0)
     {
       if (width > maxSize || height > maxSize)
         throw Exception(Error::InvalidArgument, "image size too large");
 
-      this->ptr = ptr;
       this->width  = int(width);
       this->height = int(height);
 
@@ -69,12 +43,19 @@ namespace oidn {
 
       if (inByteRowStride != 0)
       {
-        if (inByteRowStride < width * this->bytePixelStride)
-          throw Exception(Error::InvalidArgument, "row stride smaller than width * pixel stride");
-        if (inByteRowStride % this->bytePixelStride != 0)
-          throw Exception(Error::InvalidArgument, "row stride not integer multiple of pixel stride");
+        if (this->bytePixelStride != 0)
+        {
+          if (inByteRowStride < width * this->bytePixelStride)
+            throw Exception(Error::InvalidArgument, "row stride smaller than width * pixel stride");
+          if (inByteRowStride % this->bytePixelStride != 0)
+            throw Exception(Error::InvalidArgument, "row stride not integer multiple of pixel stride");
 
-        this->rowStride = inByteRowStride / this->bytePixelStride;
+          this->rowStride = inByteRowStride / this->bytePixelStride;
+        }
+        else
+        {
+          this->rowStride = inByteRowStride;
+        }
       }
       else
       {
@@ -82,6 +63,96 @@ namespace oidn {
       }
 
       this->format = format;
+    }
+
+    // Returns the number of channels
+    __forceinline int numChannels() const
+    {
+      switch (format)
+      {
+      case Format::Undefined:
+        return 0;
+      case Format::Float:
+        return 1;
+      case Format::Float2:
+        return 2;
+      case Format::Float3:
+        return 3;
+      case Format::Float4:
+        return 4;
+      default:
+        throw Exception(Error::InvalidArgument, "invalid image format");
+      }
+    }
+
+    // Returns the number of pixels in the image
+    __forceinline size_t numElements() const
+    {
+      return size_t(width) * size_t(height);
+    }
+
+    // Returns the size in bytes of a pixel in the image
+    __forceinline size_t elementByteSize() const
+    {
+      return getByteSize(format);
+    }
+
+    // Returns the size in bytes of the image
+    __forceinline size_t byteSize() const
+    {
+      return size_t(height) * rowStride * bytePixelStride;
+    }
+
+    // Returns the aligned size in bytes of the image
+    __forceinline size_t alignedByteSize() const
+    {
+      return round_up(byteSize(), memoryAlignment);
+    }
+  };
+
+  class Image : public Memory, public ImageDesc
+  {
+  public:
+    char* ptr; // pointer to the first pixel
+
+    Image() :
+      ImageDesc(Format::Undefined, 0, 0),
+      ptr(nullptr) {}
+
+    Image(void* ptr, Format format, size_t width, size_t height, size_t byteOffset, size_t inBytePixelStride, size_t inByteRowStride)
+      : ImageDesc(format, width, height, inBytePixelStride, inByteRowStride)
+    {
+      if ((ptr == nullptr) && (byteOffset + byteSize() > 0))
+        throw Exception(Error::InvalidArgument, "buffer region out of range");
+
+      this->ptr = (char*)ptr + byteOffset;
+    }
+
+    Image(const Ref<Buffer>& buffer, const ImageDesc& desc, size_t byteOffset)
+      : Memory(buffer, byteOffset),
+        ImageDesc(desc)
+    {
+      if (byteOffset + byteSize() > buffer->size())
+        throw Exception(Error::InvalidArgument, "buffer region out of range");
+
+      this->ptr = buffer->data() + byteOffset;
+    }
+
+    Image(const Ref<Buffer>& buffer, Format format, size_t width, size_t height, size_t byteOffset, size_t inBytePixelStride, size_t inByteRowStride)
+      : Memory(buffer, byteOffset),
+        ImageDesc(format, width, height, inBytePixelStride, inByteRowStride)
+    {
+      if (byteOffset + byteSize() > buffer->size())
+        throw Exception(Error::InvalidArgument, "buffer region out of range");
+
+      this->ptr = buffer->data() + byteOffset;
+    }
+
+    Image(const Ref<Device>& device, Format format, size_t width, size_t height)
+      : Memory(device->newBuffer(width * height * getByteSize(format))),
+        ImageDesc(format, width, height)
+    {
+      this->ptr = buffer->data();
     }
 
     __forceinline char* get(int h, int w)
@@ -105,25 +176,7 @@ namespace oidn {
       return ptr != nullptr;
     }
 
-    // Returns the number of channels
-    __forceinline int numChannels() const
-    {
-      switch (format)
-      {
-      case Format::Undefined:
-        return 0;
-      case Format::Float:
-        return 1;
-      case Format::Float2:
-        return 2;
-      case Format::Float3:
-        return 3;
-      case Format::Float4:
-        return 4;
-      default:
-        throw Exception(Error::InvalidArgument, "invalid image format");
-      }
-    }
+    __forceinline const ImageDesc& desc() const { return *this; }
 
     // Determines whether two images overlap in memory
     bool overlaps(const Image& other) const
@@ -152,6 +205,17 @@ namespace oidn {
       result.rowStride = rowStride;
       result.bytePixelStride = bytePixelStride;
       return result;
+    }
+
+    void updatePtr() override
+    {
+      if (buffer)
+      {
+        if (bufferOffset + byteSize() > buffer->size())
+          throw Exception(Error::Unknown, "buffer region out of range");
+
+        ptr = buffer->data() + bufferOffset;
+      }
     }
   };
 

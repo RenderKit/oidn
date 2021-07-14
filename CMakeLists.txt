@@ -9,8 +9,8 @@ if(POLICY CMP0074)
 endif()
 
 set(OIDN_VERSION_MAJOR 1)
-set(OIDN_VERSION_MINOR 3)
-set(OIDN_VERSION_PATCH 0)
+set(OIDN_VERSION_MINOR 4)
+set(OIDN_VERSION_PATCH 1)
 set(OIDN_VERSION_NOTE "")
 
 set(OIDN_VERSION ${OIDN_VERSION_MAJOR}.${OIDN_VERSION_MINOR}.${OIDN_VERSION_PATCH})
@@ -155,6 +155,8 @@ set(CORE_SOURCES
   core/pool.h
   core/progress.h
   core/reorder.h
+  core/scratch.h
+  core/scratch.cpp
   core/tensor.h
   core/tza.h
   core/tza.cpp
@@ -176,18 +178,7 @@ set(CORE_SOURCES_ISPC
   core/vec.isph
 )
 
-generate_cpp_from_blob(WEIGHTS_SOURCES "oidn::blobs::weights"
-  weights/rt_ldr.tza
-  weights/rt_ldr_alb.tza
-  weights/rt_ldr_alb_nrm.tza
-  weights/rt_hdr.tza
-  weights/rt_hdr_alb.tza
-  weights/rt_hdr_alb_nrm.tza
-  weights/rtlightmap_hdr.tza
-  weights/rtlightmap_dir.tza
-)
-
-add_library(${PROJECT_NAME} ${OIDN_LIB_TYPE} ${CORE_SOURCES} ${WEIGHTS_SOURCES})
+add_library(${PROJECT_NAME} ${OIDN_LIB_TYPE} ${CORE_SOURCES})
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE OIDN_${OIDN_NEURAL_RUNTIME})
 ispc_add_definitions(-DOIDN_${OIDN_NEURAL_RUNTIME})
@@ -206,6 +197,39 @@ if(OIDN_NEURAL_RUNTIME STREQUAL "DNNL")
 elseif(OIDN_NEURAL_RUNTIME STREQUAL "BNNS")
   target_link_libraries(${PROJECT_NAME} PRIVATE "-framework Accelerate")
 endif()
+
+# Include weights
+option(OIDN_FILTER_RT "Include trained weights of the RT filter." ON)
+option(OIDN_FILTER_RTLIGHTMAP "Include trained weights of the RTLightmap filter." ON)
+
+set(WEIGHTS)
+
+if(OIDN_FILTER_RT)
+  target_compile_definitions(${PROJECT_NAME} PUBLIC OIDN_FILTER_RT)
+  list(APPEND WEIGHTS
+    weights/rt_alb.tza
+    weights/rt_hdr.tza
+    weights/rt_hdr_alb.tza
+    weights/rt_hdr_alb_nrm.tza
+    weights/rt_hdr_calb_cnrm.tza
+    weights/rt_ldr.tza
+    weights/rt_ldr_alb.tza
+    weights/rt_ldr_alb_nrm.tza
+    weights/rt_ldr_calb_cnrm.tza
+    weights/rt_nrm.tza
+  )
+endif()
+
+if(OIDN_FILTER_RTLIGHTMAP)
+  target_compile_definitions(${PROJECT_NAME} PUBLIC OIDN_FILTER_RTLIGHTMAP)
+  list(APPEND WEIGHTS
+    weights/rtlightmap_hdr.tza
+    weights/rtlightmap_dir.tza
+  )
+endif()
+
+generate_cpp_from_blob(WEIGHTS_SOURCES "oidn::blobs::weights" ${WEIGHTS})
+target_sources(${PROJECT_NAME} PRIVATE ${WEIGHTS_SOURCES})
 
 # Specify list of symbols to export
 if(WIN32)

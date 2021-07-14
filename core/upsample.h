@@ -14,16 +14,14 @@ namespace oidn {
   class UpsampleNode : public Node
   {
   private:
-    ispc::Upsample impl;
+    std::shared_ptr<Tensor> src;
+    std::shared_ptr<Tensor> dst;
     int K;
-    
-    Ref<Tensor> src;
-    Ref<Tensor> dst;
 
   public:
     UpsampleNode(const Ref<Device>& device,
-                 const Ref<Tensor>& src,
-                 const Ref<Tensor>& dst)
+                 const std::shared_ptr<Tensor>& src,
+                 const std::shared_ptr<Tensor>& dst)
       : Node(device),
         src(src),
         dst(dst)
@@ -38,20 +36,22 @@ namespace oidn {
       assert(dst->dims[1] == src->dims[1] * 2); // H
       assert(dst->dims[2] == src->dims[2] * 2); // W
 
-      impl.src = *src;
-      impl.dst = *dst;
       K = device->getTensorBlockSize();
     }
 
     void execute() override
     {
+      ispc::Upsample impl;
+      impl.src = *src;
+      impl.dst = *dst;
+
       parallel_nd(impl.src.C / K, impl.src.H, [&](int ck, int h)
       {
         ispc::Upsample_kernel(&impl, ck, h);
       });
     }
 
-    Ref<Tensor> getDst() const override { return dst; }
+    std::shared_ptr<Tensor> getDst() const override { return dst; }
   };
 
 #else
@@ -60,13 +60,13 @@ namespace oidn {
   class UpsampleNode : public Node
   {
   private:
-    Ref<Tensor> src;
-    Ref<Tensor> dst;
+    std::shared_ptr<Tensor> src;
+    std::shared_ptr<Tensor> dst;
 
   public:
     UpsampleNode(const Ref<Device>& device,
-                 const Ref<Tensor>& src,
-                 const Ref<Tensor>& dst)
+                 const std::shared_ptr<Tensor>& src,
+                 const std::shared_ptr<Tensor>& dst)
       : Node(device),
         src(src),
         dst(dst)
@@ -108,7 +108,7 @@ namespace oidn {
       });
     }
 
-    Ref<Tensor> getDst() const override { return dst; }
+    std::shared_ptr<Tensor> getDst() const override { return dst; }
   };
 
 #endif

@@ -15,8 +15,8 @@ import argparse
 
 from common import *
 
-ISPC_VERSION = '1.15.0'
-TBB_VERSION  = '2021.1.1'
+ISPC_VERSION = '1.16.0'
+TBB_VERSION  = '2021.2.0'
 
 def download_file(url, output_dir):
   print('Downloading file:', url)
@@ -112,17 +112,18 @@ if cfg.target == 'all' or not os.path.isdir(build_dir):
   ispc_executable = os.path.join(ispc_dir, 'bin', 'ispc')
 
   # Set up TBB
-  tbb_release = f'oneapi-tbb-{TBB_VERSION}-'
-  tbb_release += {'windows' : 'win', 'linux' : 'lin', 'macos' : 'mac'}[OS]
-  tbb_dir = os.path.join(deps_dir, tbb_release)
-  if not os.path.isdir(tbb_dir):
-    # Download and extract TBB
-    tbb_url = f'https://github.com/oneapi-src/oneTBB/releases/download/v{TBB_VERSION}/{tbb_release}'
-    tbb_url += '.zip' if OS == 'windows' else '.tgz'
-    tbb_filename = download_file(tbb_url, deps_dir)
-    extract_package(tbb_filename, tbb_dir)
-    os.remove(tbb_filename)
-  tbb_root = os.path.join(tbb_dir, f'oneapi-tbb-{TBB_VERSION}')
+  if ARCH != 'arm64':
+    tbb_release = f'oneapi-tbb-{TBB_VERSION}-'
+    tbb_release += {'windows' : 'win', 'linux' : 'lin', 'macos' : 'mac'}[OS]
+    tbb_dir = os.path.join(deps_dir, tbb_release)
+    if not os.path.isdir(tbb_dir):
+      # Download and extract TBB
+      tbb_url = f'https://github.com/oneapi-src/oneTBB/releases/download/v{TBB_VERSION}/{tbb_release}'
+      tbb_url += '.zip' if OS == 'windows' else '.tgz'
+      tbb_filename = download_file(tbb_url, deps_dir)
+      extract_package(tbb_filename, tbb_dir)
+      os.remove(tbb_filename)
+    tbb_root = os.path.join(tbb_dir, f'oneapi-tbb-{TBB_VERSION}')
 
   # Create a clean build directory
   if os.path.isdir(build_dir):
@@ -160,7 +161,8 @@ if cfg.target == 'all' or not os.path.isdir(build_dir):
 
   config_cmd += f' -D CMAKE_BUILD_TYPE={cfg.config}'
   config_cmd += f' -D ISPC_EXECUTABLE="{ispc_executable}"'
-  config_cmd += f' -D TBB_ROOT="{tbb_root}"'
+  if ARCH != 'arm64':
+    config_cmd += f' -D TBB_ROOT="{tbb_root}"'
   if cfg.cmake_vars:
     for var in cfg.cmake_vars:
       config_cmd += f' -D {var}'

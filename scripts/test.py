@@ -11,6 +11,8 @@ import argparse
 
 from common import *
 
+MODEL_VERSION='v1.4.0'
+
 # Parse the command-line arguments
 parser = argparse.ArgumentParser(description='Runs all tests, including comparing images produced by the library with generated baseline images.')
 parser.usage = '\rIntel(R) Open Image Denoise - Test\n' + parser.format_usage()
@@ -32,7 +34,7 @@ if cfg.data_dir is None:
 if cfg.results_dir is None:
   cfg.results_dir = os.path.join(training_dir, 'results')
 if cfg.baseline_dir is None:
-  cfg.baseline_dir = os.path.join(training_dir, 'infer')
+  cfg.baseline_dir = os.path.join(training_dir, 'baseline_' + MODEL_VERSION)
 
 if cfg.command == 'run':
   # Detect the OIDN binary directory
@@ -80,12 +82,24 @@ def test():
   if cfg.command == 'run':
     # Iterate over architectures
     for arch in cfg.arch:
-      print_test(arch)
+      print_test(f'oidnTest.{arch}')
       run_test(os.path.join(bin_dir, 'oidnTest'), arch)
+
+# Gets the option name of a feature
+def get_feature_opt(feature):
+  if feature == 'calb':
+    return 'alb'
+  elif feature == 'cnrm':
+    return 'nrm'
+  else:
+    return feature
 
 # Gets the file extension of a feature
 def get_feature_ext(feature):
-  return feature if feature != 'dir' else 'sh1x'
+  if feature == 'dir':
+    return 'sh1x'
+  else:
+    return get_feature_opt(feature)
 
 # Runs regression tests for the specified filter
 def test_regression(filter, feature_sets, dataset):
@@ -104,7 +118,7 @@ def test_regression(filter, feature_sets, dataset):
       run_test(convert_cmd)
 
   # Iterate over the feature sets
-  for features in feature_sets:
+  for features, full_test in feature_sets:
     # Get the result name
     result = filter.lower()
     for f in features:
@@ -134,36 +148,34 @@ def test_regression(filter, feature_sets, dataset):
         # Iterate over images
         for image_name in image_names:
           # Iterate over in-place mode
-          for inplace in [False, True]:
-            # Iterate over maximum memory usages (tiling)
-            for maxmem in [None, 512]:
-              # Run test
-              test_name = f'{filter}.{features_str}.{arch}.{image_name}'
-              if inplace:
-                test_name += '.inplace'
-              if maxmem:
-                test_name += f'.{maxmem}mb'
-              print_test(test_name)
+          for inplace in ([False, True] if full_test else [False]):
+            # Run test
+            test_name = f'{filter}.{features_str}.{arch}.{image_name}'
+            if inplace:
+              test_name += '.inplace'
+            print_test(test_name)
 
-              denoise_cmd = os.path.join(bin_dir, 'oidnDenoise')
+            denoise_cmd = os.path.join(bin_dir, 'oidnDenoise')
 
-              ref_filename = os.path.join(cfg.baseline_dir, dataset, f'{image_name}.{result}.{main_feature_ext}.pfm')
-              if not os.path.isfile(ref_filename):
-                print('Error: baseline output image missing (run with "baseline" first)')
-                exit(1)
-              denoise_cmd += f' -f {filter} -v 2 --ref "{ref_filename}"'
+            ref_filename = os.path.join(cfg.baseline_dir, dataset, f'{image_name}.{result}.{main_feature_ext}.pfm')
+            if not os.path.isfile(ref_filename):
+              print('Error: baseline output image missing (run with "baseline" first)')
+              exit(1)
+            denoise_cmd += f' -f {filter} -v 2 --ref "{ref_filename}"'
 
-              for feature in features:
-                feature_ext = get_feature_ext(feature)
-                feature_filename = os.path.join(dataset_dir, image_name) + f'.{feature_ext}.pfm'
-                denoise_cmd += f' --{feature} "{feature_filename}"'
+            for feature in features:
+              feature_opt = get_feature_opt(feature)
+              feature_ext = get_feature_ext(feature)
+              feature_filename = os.path.join(dataset_dir, image_name) + f'.{feature_ext}.pfm'
+              denoise_cmd += f' --{feature_opt} "{feature_filename}"'
 
-              if inplace:
-                denoise_cmd += ' --inplace'
-              if maxmem:
-                denoise_cmd += f' --maxmem {maxmem}'
+            if set(features) & {'calb', 'cnrm'}:
+              denoise_cmd += ' --clean_aux'
 
-              run_test(denoise_cmd, arch)
+            if inplace:
+              denoise_cmd += ' --inplace'
+
+            run_test(denoise_cmd, arch)
 
 # Main tests
 test()
@@ -173,19 +185,30 @@ if not cfg.filter or 'RT' in cfg.filter:
   test_regression(
     'RT',
     [
-      ['hdr', 'alb', 'nrm'],
-      ['hdr', 'alb'],
-      ['hdr'],
-      ['ldr', 'alb', 'nrm'],
-      ['ldr', 'alb'],
-      ['ldr']
+      (['hdr', 'alb', 'nrm'],   True),
+      (['hdr', 'alb'],          True),
+      (['hdr'],                 True),
+      (['hdr', 'calb', 'cnrm'], False),
+      (['ldr', 'alb', 'nrm'],   False),
+      (['ldr', 'alb'],          False),
+      (['ldr'],                 True),
+      (['ldr', 'calb', 'cnrm'], False),
+      (['alb'],                 True),
+      (['nrm'],                 True)
     ],
     'rt_regress'
   )
 
 # Regression tests: RTLightmap
 if not cfg.filter or 'RTLightmap' in cfg.filter:
-  test_regression('RTLightmap', [['hdr'], ['dir']], 'rtlightmap_regress')
+  test_regression(
+    'RTLightmap',
+    [
+      (['hdr'], True),
+      (['dir'], True)
+    ],
+    'rtlightmap_regress'
+  )
 
 # Done
 if cfg.command == 'run':
