@@ -38,7 +38,7 @@ namespace oidn {
   }
 
   template <typename T0, typename T1, typename F>
-  void parallel_nd(const T0& D0, const T1& D1, F f)
+  __forceinline void parallel_nd(const T0& D0, const T1& D1, F f)
   {
     tbb::parallel_for(tbb::blocked_range2d<T0, T1>(0, D0, 0, D1), [&](const tbb::blocked_range2d<T0, T1>& r)
     {
@@ -56,7 +56,7 @@ namespace oidn {
   {
     switch (format)
     {
-    case Format::Undefined: return 1;
+    case Format::Undefined: return 0;
     case Format::Float:     return sizeof(float);
     case Format::Float2:    return sizeof(float)*2;
     case Format::Float3:    return sizeof(float)*3;

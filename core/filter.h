@@ -19,12 +19,16 @@ namespace oidn {
     void* progressUserPtr = nullptr;
 
     bool dirty = true;
+    bool dirtyParam = true;
 
   public:
     explicit Filter(const Ref<Device>& device) : device(device) {}
 
-    virtual void setImage(const std::string& name, const Image& data) = 0;
+    virtual void setImage(const std::string& name, const std::shared_ptr<Image>& image) = 0;
+    virtual void removeImage(const std::string& name) = 0;
     virtual void setData(const std::string& name, const Data& data) = 0;
+    virtual void updateData(const std::string& name) = 0;
+    virtual void removeData(const std::string& name) = 0;
     virtual void set1i(const std::string& name, int value) = 0;
     virtual int get1i(const std::string& name) = 0;
     virtual void set1f(const std::string& name, float value) = 0;
@@ -36,6 +40,14 @@ namespace oidn {
     virtual void execute() = 0;
 
     Device* getDevice() { return device.get(); }
+
+  protected:
+    void setParam(int& dst, int src);
+    void setParam(bool& dst, int src);
+    void setParam(std::shared_ptr<Image>& dst, const std::shared_ptr<Image>& src);
+    void removeParam(std::shared_ptr<Image>& dst);
+    void setParam(Data& dst, const Data& src);
+    void removeParam(Data& dst);
   };
 
 } // namespace oidn

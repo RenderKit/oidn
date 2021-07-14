@@ -10,6 +10,9 @@ namespace oidn {
   class Buffer;
   class Filter;
 
+  class ScratchBuffer;
+  class ScratchBufferManager;
+
   class Device : public RefCount, public Verbose
   {
   private:
@@ -39,6 +42,9 @@ namespace oidn {
     dnnl::stream dnnlStream;
   #endif
     int tensorBlockSize = 1;
+
+    // Memory
+    std::weak_ptr<ScratchBufferManager> scratchManagerWp;
 
     // Parameters
     int numThreads = 0; // autodetect by default
@@ -77,6 +83,8 @@ namespace oidn {
     Ref<Buffer> newBuffer(void* ptr, size_t byteSize);
     Ref<Filter> newFilter(const std::string& type);
 
+    Ref<ScratchBuffer> newScratchBuffer(size_t byteSize);
+
     __forceinline Device* getDevice() { return this; }
     __forceinline std::mutex& getMutex() { return mutex; }
 
@@ -88,10 +96,10 @@ namespace oidn {
     // Returns the native tensor layout block size
     __forceinline int getTensorBlockSize() const { return tensorBlockSize; }
 
-  private:
     bool isCommitted() const { return bool(arena); }
     void checkCommitted();
 
+  private:
     void print();
   };
 

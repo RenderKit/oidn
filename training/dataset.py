@@ -16,25 +16,6 @@ from image import *
 from color import *
 import tza
 
-# Returns a dataset directory path
-def get_data_dir(cfg, name):
-  return os.path.join(cfg.data_dir, name)
-
-# Returns the main feature from a list of features
-def get_main_feature(features):
-  if len(features) > 1:
-    features = list(set(features) & {'hdr', 'ldr', 'sh1'})
-    if len(features) > 1:
-      error('multiple main features specified')
-  if not features:
-    error('no main feature specified')
-  return features[0]
-
-# Returns the auxiliary features from a list of features
-def get_aux_features(features):
-  main_feature = get_main_feature(features)
-  return list(set(features).difference([main_feature]))
-
 # Returns the ordered list of channel names for the specified features
 def get_channels(features, target):
   assert target in {'dataset', 'model'}
@@ -140,14 +121,8 @@ def load_image_features(name, features):
   # Normal
   if 'nrm' in features:
     normal = load_image(name + '.nrm.exr', num_channels=3)
-
-    # Normalize
-    length_sqr = np.add.reduce(np.square(normal), axis=-1, keepdims=True)
-    with np.errstate(divide='ignore'):
-      rcp_length = np.reciprocal(np.sqrt(length_sqr))
-    rcp_length = np.nan_to_num(rcp_length, nan=0., posinf=0., neginf=0.)
-    normal *= rcp_length
-
+    normal = np.clip(normal, -1., 1.)
+    
     # Transform to [0..1] range
     normal = normal * 0.5 + 0.5
 
@@ -174,10 +149,16 @@ def load_image_metadata(name):
 def save_image_metadata(name, metadata):
   save_json(name + '.json', metadata)
 
-# Returns groups of image samples (input and target images at different SPPs) as a list of (group name, list of input names, target name)
-def get_image_sample_groups(dir, features):
+# Returns a dataset directory path
+def get_data_dir(cfg, name):
+  return os.path.join(cfg.data_dir, name)
+
+# Returns groups of image samples (input and target images at different SPPs) as
+# a list of (group name, list of input names, target name)
+def get_image_sample_groups(dir, input_features, target_features=None):
   image_filenames = glob(os.path.join(dir, '**', '*.*.exr'), recursive=True)
-  target_features = [get_main_feature(features)]
+  if target_features is None:
+    target_features = [get_main_feature(input_features)]
 
   # Make image groups
   image_groups = defaultdict(set)
@@ -206,7 +187,7 @@ def get_image_sample_groups(dir, features):
       input_names, target_name = image_names, None
 
     # Check whether all required features exist
-    if all([image_exists(os.path.join(dir, name), features) for name in input_names]):
+    if all([image_exists(os.path.join(dir, input_name), input_features) for input_name in input_names]):
       if target_name and not image_exists(os.path.join(dir, target_name), target_features):
         target_name = None # discard target due to missing features
 
@@ -264,9 +245,14 @@ def get_preproc_data_dir(cfg, name):
     if os.path.isfile(get_config_filename(data_dir)):
       data_cfg = load_config(data_dir)
 
+      # Backward compatibility
+      if not hasattr(data_cfg, 'clean_aux'):
+        data_cfg.clean_aux = False
+
       # Check whether the dataset matches the requirements
       if get_main_feature(data_cfg.features) == get_main_feature(cfg.features) and \
         all(f in data_cfg.features for f in cfg.features) and \
+        data_cfg.clean_aux == cfg.clean_aux and \
         data_cfg.transfer == cfg.transfer:
         # Select the most recent version with the minimal amount of channels stored
         num_channels = len(get_dataset_channels(data_cfg.features))
@@ -297,6 +283,7 @@ class PreprocessedDataset(Dataset):
     self.features = cfg.features
     self.main_feature = get_main_feature(cfg.features)
     self.aux_features = get_aux_features(cfg.features)
+    self.clean_aux = cfg.clean_aux and self.aux_features
 
     # Get the channels
     self.channels = get_dataset_channels(cfg.features)
@@ -374,8 +361,17 @@ class TrainingDataset(PreprocessedDataset):
     #print(input_channels, input_channel_indices)
 
     # Crop the input and target images
-    input_image  = input_image [oy:oy+sy, ox:ox+sx, input_channel_indices]
-    target_image = target_image[oy:oy+sy, ox:ox+sx, target_channel_indices]
+    if self.clean_aux:
+      # Get the auxiliary features from the target image
+      aux_channel_indices = input_channel_indices[self.num_main_channels:]
+      input_image  = input_image [oy:oy+sy, ox:ox+sx, target_channel_indices]
+      aux_image    = target_image[oy:oy+sy, ox:ox+sx, aux_channel_indices]
+      target_image = target_image[oy:oy+sy, ox:ox+sx, target_channel_indices]
+      input_image  = np.concatenate((input_image, aux_image), axis=2)
+    else:
+      # Get the auxiliary features from the input image
+      input_image  = input_image [oy:oy+sy, ox:ox+sx, input_channel_indices]
+      target_image = target_image[oy:oy+sy, ox:ox+sx, target_channel_indices]
 
     # Randomly transform the tiles to improve training quality
     if rand() < 0.5:
@@ -475,8 +471,17 @@ class ValidationDataset(PreprocessedDataset):
     target_channel_indices = input_channel_indices[:self.num_main_channels]
 
     # Crop the input and target images
-    input_image  = input_image [oy:oy+sy, ox:ox+sx, input_channel_indices]
-    target_image = target_image[oy:oy+sy, ox:ox+sx, target_channel_indices]
+    if self.clean_aux:
+      # Get the auxiliary features from the target image
+      aux_channel_indices = input_channel_indices[self.num_main_channels:]
+      input_image  = input_image [oy:oy+sy, ox:ox+sx, target_channel_indices]
+      aux_image    = target_image[oy:oy+sy, ox:ox+sx, aux_channel_indices]
+      target_image = target_image[oy:oy+sy, ox:ox+sx, target_channel_indices]
+      input_image  = np.concatenate((input_image, aux_image), axis=2)
+    else:
+      # Get the auxiliary features from the input image
+      input_image  = input_image [oy:oy+sy, ox:ox+sx, input_channel_indices]
+      target_image = target_image[oy:oy+sy, ox:ox+sx, target_channel_indices]
 
     # Convert the tiles to tensors
     # Copying is required because PyTorch does not support non-writeable tensors

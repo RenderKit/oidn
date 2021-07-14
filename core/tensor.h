@@ -4,6 +4,7 @@
 #pragma once
 
 #include "device.h"
+#include "buffer.h"
 #include <vector>
 
 namespace oidn {
@@ -92,7 +93,7 @@ namespace oidn {
       return getNumElements(dims);
     }
 
-    // Return the size in bytes of an element in the tensor
+    // Returns the size in bytes of an element in the tensor
     __forceinline size_t elementByteSize() const
     {
       return getByteSize(dataType);
@@ -102,6 +103,12 @@ namespace oidn {
     __forceinline size_t byteSize() const
     {
       return numElements() * elementByteSize();
+    }
+
+    // Returns the aligned size in bytes of the tensor
+    __forceinline size_t alignedByteSize() const
+    {
+      return round_up(byteSize(), memoryAlignment);
     }
 
     // Returns the block size of the layout
@@ -116,6 +123,16 @@ namespace oidn {
       default:
         return 1;
       }
+    }
+
+    __forceinline bool operator ==(const TensorDesc& other) const
+    {
+      return (dims == other.dims) && (layout == other.layout) && (dataType == other.dataType);
+    }
+
+    __forceinline bool operator !=(const TensorDesc& other) const
+    {
+      return (dims != other.dims) || (layout != other.layout) || (dataType != other.dataType);
     }
     
   #if defined(OIDN_DNNL)
@@ -173,19 +190,15 @@ namespace oidn {
   };
 
   // Tensor
-  class Tensor : public RefCount, public TensorDesc
+  class Tensor : public Memory, public TensorDesc
   {
   public:
   #if defined(OIDN_DNNL)
     dnnl::memory mem;
   #else
     void* ptr;
-    bool shared;
   #endif
-
-  private:
     Ref<Device> device;
-    Ref<Tensor> parent; // for views
 
   public:
     Tensor(const Ref<Device>& device, const TensorDesc& desc)
@@ -225,12 +238,15 @@ namespace oidn {
     }
   #endif
 
-    ~Tensor()
+    Tensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
+      : Memory(buffer, byteOffset),
+        TensorDesc(desc),
+        device(buffer->getDevice())
     {
-    #if !defined(OIDN_DNNL)
-      if (!shared)
-        alignedFree(ptr);
-    #endif
+      if (byteOffset + byteSize() > buffer->size())
+        throw Exception(Error::InvalidArgument, "buffer region out of range");
+
+      init(device, buffer->data() + byteOffset);
     }
 
     __forceinline operator bool() const { return data() != nullptr; }
@@ -243,22 +259,7 @@ namespace oidn {
     __forceinline const void* data() const { return ptr; }
   #endif
 
-    // Returns a view of the tensor, optionally applying an offset in number of elements
-    Ref<Tensor> view(const TensorDesc& newDesc, size_t offset = 0)
-    {
-      size_t byteOffset = offset * newDesc.elementByteSize();
-      assert(byteSize() >= newDesc.byteSize() + byteOffset);
-      void* newData = (char*)data() + byteOffset;
-      Ref<Tensor> result = makeRef<Tensor>(device, newDesc, newData);
-      result->parent = this;
-      return result;
-    }
-
-    Ref<Tensor> view(const TensorDims& newDims, size_t offset = 0)
-    {
-      TensorDesc newDesc {newDims, layout, dataType};
-      return view(newDesc, offset);
-    }
+    __forceinline const TensorDesc& desc() const { return *this; }
 
     template <typename T> __forceinline T& get(int64_t i0)
     { return ((T*)data())[getIndex(i0)]; }
@@ -344,8 +345,8 @@ namespace oidn {
     #if defined(OIDN_DNNL)
       mem = dnnl::memory(*this, device->getDNNLEngine());
     #else
-      ptr = alignedMalloc(byteSize(), 128);
-      shared = false;
+      buffer = device->newBuffer(byteSize());
+      ptr = buffer->data();
     #endif
     }
 
@@ -355,7 +356,6 @@ namespace oidn {
       mem = dnnl::memory(*this, device->getDNNLEngine(), data);
     #else
       ptr = data;
-      shared = true;
     #endif
     }
 
@@ -380,6 +380,21 @@ namespace oidn {
       assert(layout == TensorLayout::oihw);
       assert(i0 < dims[0] && i1 < dims[1] && i2 < dims[2] && i3 < dims[3]);
       return ((i0 * dims[1] + i1) * dims[2] + i2) * dims[3] + i3;
+    }
+
+    void updatePtr() override
+    {
+      if (buffer)
+      {
+        if (bufferOffset + byteSize() > buffer->size())
+          throw Exception(Error::Unknown, "buffer region out of range");
+
+      #if defined(OIDN_DNNL)
+        mem.set_data_handle(buffer->data() + bufferOffset);
+      #else
+        ptr = buffer->data() + bufferOffset;
+      #endif
+      }
     }
   };
 

@@ -195,6 +195,7 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_TRY
       checkHandle(hDevice);
       OIDN_LOCK(device);
+      device->checkCommitted();
       Ref<Buffer> buffer = device->newBuffer(byteSize);
       return (OIDNBuffer)buffer.detach();
     OIDN_CATCH(device)
@@ -207,6 +208,7 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_TRY
       checkHandle(hDevice);
       OIDN_LOCK(device);
+      device->checkCommitted();
       Ref<Buffer> buffer = device->newBuffer(ptr, byteSize);
       return (OIDNBuffer)buffer.detach();
     OIDN_CATCH(device)
@@ -252,6 +254,7 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_TRY
       checkHandle(hDevice);
       OIDN_LOCK(device);
+      device->checkCommitted();
       Ref<Filter> filter = device->newFilter(type);
       return (OIDNFilter)filter.detach();
     OIDN_CATCH(device)
@@ -284,8 +287,8 @@ OIDN_API_NAMESPACE_BEGIN
       Ref<Buffer> buffer = (Buffer*)hBuffer;
       if (buffer->getDevice() != filter->getDevice())
         throw Exception(Error::InvalidArgument, "the specified objects are bound to different devices");
-      Image data(buffer, (Format)format, (int)width, (int)height, byteOffset, bytePixelStride, byteRowStride);
-      filter->setImage(name, data);
+      auto image = std::make_shared<Image>(buffer, (Format)format, (int)width, (int)height, byteOffset, bytePixelStride, byteRowStride);
+      filter->setImage(name, image);
     OIDN_CATCH(filter)
   }
 
@@ -299,8 +302,18 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_TRY
       checkHandle(hFilter);
       OIDN_LOCK(filter);
-      Image data(ptr, (Format)format, (int)width, (int)height, byteOffset, bytePixelStride, byteRowStride);
-      filter->setImage(name, data);
+      auto image = std::make_shared<Image>(ptr, (Format)format, (int)width, (int)height, byteOffset, bytePixelStride, byteRowStride);
+      filter->setImage(name, image);
+    OIDN_CATCH(filter)
+  }
+
+  OIDN_API void oidnRemoveFilterImage(OIDNFilter hFilter, const char* name)
+  {
+    Filter* filter = (Filter*)hFilter;
+    OIDN_TRY
+      checkHandle(hFilter);
+      OIDN_LOCK(filter);
+      filter->removeImage(name);
     OIDN_CATCH(filter)
   }
 
@@ -313,6 +326,26 @@ OIDN_API_NAMESPACE_BEGIN
       OIDN_LOCK(filter);
       Data data(ptr, byteSize);
       filter->setData(name, data);
+    OIDN_CATCH(filter)
+  }
+
+  OIDN_API void oidnUpdateFilterData(OIDNFilter hFilter, const char* name)
+  {
+    Filter* filter = (Filter*)hFilter;
+    OIDN_TRY
+      checkHandle(hFilter);
+      OIDN_LOCK(filter);
+      filter->updateData(name);
+    OIDN_CATCH(filter)
+  }
+
+  OIDN_API void oidnRemoveFilterData(OIDNFilter hFilter, const char* name)
+  {
+    Filter* filter = (Filter*)hFilter;
+    OIDN_TRY
+      checkHandle(hFilter);
+      OIDN_LOCK(filter);
+      filter->removeData(name);
     OIDN_CATCH(filter)
   }
 

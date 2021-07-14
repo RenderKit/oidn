@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "device.h"
+#include "scratch.h"
 #include "unet.h"
 
 namespace oidn {
@@ -186,20 +187,16 @@ namespace oidn {
 
   Ref<Buffer> Device::newBuffer(size_t byteSize)
   {
-    checkCommitted();
-    return makeRef<Buffer>(Ref<Device>(this), byteSize);
+    return makeRef<CPUBuffer>(Ref<Device>(this), byteSize);
   }
 
   Ref<Buffer> Device::newBuffer(void* ptr, size_t byteSize)
   {
-    checkCommitted();
-    return makeRef<Buffer>(Ref<Device>(this), ptr, byteSize);
+    return makeRef<CPUBuffer>(Ref<Device>(this), ptr, byteSize);
   }
 
   Ref<Filter> Device::newFilter(const std::string& type)
   {
-    checkCommitted();
-
     if (isVerbose())
       std::cout << "Filter: " << type << std::endl;
 
@@ -213,6 +210,14 @@ namespace oidn {
       throw Exception(Error::InvalidArgument, "unknown filter type");
 
     return filter;
+  }
+
+  Ref<ScratchBuffer> Device::newScratchBuffer(size_t byteSize)
+  {
+    auto scratchManager = scratchManagerWp.lock();
+    if (!scratchManager)
+      scratchManagerWp = scratchManager = std::make_shared<ScratchBufferManager>(this);
+    return makeRef<ScratchBuffer>(scratchManager, byteSize);
   }
 
   void Device::print()

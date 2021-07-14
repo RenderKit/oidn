@@ -52,6 +52,7 @@ def main():
               ('Denoising Albedo.R', 'Denoising Albedo.G', 'Denoising Albedo.B'),
               ('VisibleDiffuse.R', 'VisibleDiffuse.G', 'VisibleDiffuse.B'),
               ('diffuse.R', 'diffuse.G', 'diffuse.B'),
+              ('DiffCol.R', 'DiffCol.G', 'DiffCol.B'),
             ],
     'nrm' : [
               ('normal.R', 'normal.G', 'normal.B'),

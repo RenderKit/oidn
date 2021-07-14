@@ -184,17 +184,6 @@ test-ubuntu18.04-gcc-debug-avx2:
       artifacts: true
   script: scripts/test.py
 
-test-ubuntu18.04-gcc-debug-sse4:
-  extends: .test
-  tags:
-    - docker
-    - avx512vl
-  image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
-  needs:
-    - job: build-ubuntu18.04-gcc-debug
-      artifacts: true
-  script: scripts/test.py --arch pnr
-
 build-ubuntu18.04-gcc-static:
   extends: .build
   tags:
@@ -218,7 +207,7 @@ build-ubuntu18.04-clang:
 
 ## -----------------------------------------------------------------------------
 
-build-ubuntu20.04-gcc:
+build-ubuntu20.04-gcc-oiio:
   extends: .build
   tags:
     - docker
@@ -228,6 +217,13 @@ build-ubuntu20.04-gcc:
     - cd build
     - cmake .. -D OIDN_APPS_OPENIMAGEIO=ON
     - make -j VERBOSE=1
+
+build-ubuntu20.04-gcc-minimal:
+  extends: .build
+  tags:
+    - docker
+  image: $DOCKER_REGISTRY/oidn-build:ubuntu20.04
+  script: scripts/build.py --compiler gcc -D OIDN_FILTER_RT=OFF -D OIDN_FILTER_RTLIGHTMAP=OFF
 
 ## -----------------------------------------------------------------------------
 
@@ -336,6 +332,50 @@ package-macos:
   script: scripts/build.py package --compiler icc
 
 ## -----------------------------------------------------------------------------
+
+build-macos-clang-arm:
+  extends: .build
+  tags:
+    - mac-arm
+  script: scripts/build.py install --compiler clang
+
+test-macos-clang-arm:
+  extends: .test
+  tags:
+    - mac-arm
+  needs:
+    - job: build-macos-clang-arm
+      artifacts: true
+  script: scripts/test.py
+
+build-macos-clang-debug-arm:
+  extends: .build
+  tags:
+    - mac-arm
+  script: scripts/build.py install --compiler clang --config Debug
+
+test-macos-clang-debug-arm:
+  extends: .test
+  tags:
+    - mac-arm
+  needs:
+    - job: build-macos-clang-debug-arm
+      artifacts: true
+  script: scripts/test.py
+
+build-macos-clang-static-arm:
+  extends: .build
+  tags:
+    - mac-arm
+  script: scripts/build.py --compiler clang -D OIDN_STATIC_LIB=ON
+
+build-macos-clang-namespace-arm:
+  extends: .build
+  tags:
+    - mac-arm
+  script: scripts/build.py --compiler clang -D OIDN_API_NAMESPACE=myoidn
+
+## -----------------------------------------------------------------------------
 ## Windows
 ## -----------------------------------------------------------------------------
 
@@ -359,17 +399,17 @@ test-windows-icc-avx512:
       artifacts: true
   script: python scripts/test.py
 
-test-windows-icc-avx2:
-  extends: .test
-  tags:
-    - win10
-    - msvc15
-    - icc19
-    - avx2
-  needs:
-    - job: build-windows-icc
-      artifacts: true
-  script: python scripts/test.py
+#test-windows-icc-avx2:
+#  extends: .test
+#  tags:
+#    - win10
+#    - msvc15
+#    - icc19
+#    - avx2
+#  needs:
+#    - job: build-windows-icc
+#      artifacts: true
+#  script: python scripts/test.py
 
 build-windows-msvc15:
   extends: .build
@@ -417,16 +457,16 @@ test-windows-msvc16-avx512:
       artifacts: true
   script: python scripts/test.py
 
-test-windows-msvc16-avx2:
-  extends: .test
-  tags:
-    - win10
-    - msvc16
-    - avx2
-  needs:
-    - job: build-windows-msvc16
-      artifacts: true
-  script: python scripts/test.py
+#test-windows-msvc16-avx2:
+#  extends: .test
+#  tags:
+#    - win10
+#    - msvc16
+#    - avx2
+#  needs:
+#    - job: build-windows-msvc16
+#      artifacts: true
+#  script: python scripts/test.py
 
 package-windows:
   extends: .package

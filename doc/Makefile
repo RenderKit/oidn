@@ -3,7 +3,7 @@ SHELL := /bin/bash
 webpages := $(addprefix www/, $(addsuffix .html, index documentation gallery downloads related_projects legal))
 process_version := $(addprefix tmp/, $(addsuffix .md, downloads readme_head))
 tmptexfiles := $(addprefix tmp/, $(addsuffix .tex, overview changelog compilation api examples training))
-images_jpg := $(addprefix images/, $(addsuffix .jpg, moana_16spp_input moana_16spp_oidn bistro_64spp_input bistro_64spp_oidn bistro2_16spp_input bistro2_16spp_oidn bistro3_16spp_input bistro3_16spp_oidn sponza_16spp_input sponza_16spp_oidn mazda_64spp_input mazda_64spp_oidn mazda_firsthit_512spp_albedo mazda_nondeltahit_512spp_albedo mazda_firsthit_512spp_normal mazda_nondeltahit_512spp_normal villa_32spp_input villa_32spp_oidn villa2_16spp_input villa2_16spp_oidn artdeco_2048spp_input artdeco_2048spp_oidn))
+images_jpg := $(addprefix images/, $(addsuffix .jpg, moana_8spp_input moana_8spp_oidn cabins1_16spp_input cabins1_16spp_oidn cabins2_16spp_input cabins2_16spp_oidn bistro_64spp_input bistro_64spp_oidn bistro2_16spp_input bistro2_16spp_oidn bistro3_16spp_input bistro3_16spp_oidn sponza_16spp_input sponza_16spp_oidn mazda_4spp_input mazda_4spp_oidn mazda_64spp_input mazda_64spp_oidn mazda_firsthit_512spp_albedo mazda_nondeltahit_512spp_albedo mazda_firsthit_512spp_normal mazda_nondeltahit_512spp_normal villa_32spp_input villa_32spp_oidn villa2_16spp_input villa2_16spp_oidn artdeco_2048spp_input artdeco_2048spp_oidn))
 images_png := $(addprefix images/, $(addsuffix .png, blacktocat))
 images_fig :=
 images_svg :=
@@ -27,13 +27,8 @@ pdf: ../readme.pdf
 
 .PHONY: all www doc pdf clean realclean
 
-if_is_devel_then = if [[ "${CI_BUILD_REF_NAME}" == "devel" || (-d ../.git && "`git rev-parse --abbrev-ref HEAD`" == "devel") ]] ; then
-
-tmp/version: ../CMakeLists.txt $(wildcard ../.git/HEAD)
-	sed -n $< -e "s/^SET(OIDN_VERSION_MAJOR \([0-9]\+\))/\1./ip" | tr -d '\n' > $@
-	sed -n $< -e "s/^SET(OIDN_VERSION_MINOR \([0-9]\+\))/\1./ip" | tr -d '\n' >> $@
-	sed -n $< -e "s/^SET(OIDN_VERSION_PATCH \([0-9]\+\))/\1/ip" | tr -d '\n' >> $@
-	#$(if_is_devel_then) echo " (devel)"; else echo; fi >> $@
+tmp/version: ../include/OpenImageDenoise/config.h
+	sed -n 's/#define OIDN_VERSION_STRING \"\(.*\)\".*/\1/p' $< > $@
 
 replace_version = sed -e "s/<OIDN_VERSION>/`cat tmp/version`/g" $< > $@
 

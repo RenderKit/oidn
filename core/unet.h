@@ -5,6 +5,7 @@
 
 #include "filter.h"
 #include "network.h"
+#include "scratch.h"
 #include "color.h"
 
 namespace oidn {
@@ -21,27 +22,20 @@ namespace oidn {
     static constexpr int receptiveField  = 174; // receptive field in pixels
     static constexpr int overlap         = round_up(receptiveField / 2, alignment); // required spatial overlap between tiles in pixels
 
-    // Estimated memory usage
-    static constexpr int estimatedBytesBase     = 16*1024*1024; // conservative base memory usage
-  #if defined(OIDN_DNNL)
-    static constexpr int estimatedBytesPerPixel = 882;
-  #else
-    static constexpr int estimatedBytesPerPixel = 854;
-  #endif
-
     // Images
-    Image color;
-    Image albedo;
-    Image normal;
-    Image output;
-    Image outputTemp; // required for in-place tiled filtering
+    std::shared_ptr<Image> color;
+    std::shared_ptr<Image> albedo;
+    std::shared_ptr<Image> normal;
+    std::shared_ptr<Image> output;
+    std::shared_ptr<Image> outputTemp; // required for in-place tiled filtering
 
     // Options
     bool hdr = false;
     bool srgb = false;
     bool directional = false;
     float inputScale = std::numeric_limits<float>::quiet_NaN();
-    int maxMemoryMB = 6000; // approximate maximum memory usage in MBs
+    bool cleanAux = false;
+    int maxMemoryMB = 3000; // approximate maximum memory usage in MBs
 
     // Image dimensions
     int H = 0;            // image height
@@ -53,9 +47,10 @@ namespace oidn {
     bool inplace = false; // indicates whether input and output buffers overlap
 
     // Network
-    Ref<Network> net;
-    Ref<Node> inputReorder;
-    Ref<Node> outputReorder;
+    std::unique_ptr<Network> net;
+    std::shared_ptr<InputReorderNode> inputReorder;
+    std::shared_ptr<OutputReorderNode> outputReorder;
+    std::shared_ptr<TransferFunction> transferFunc;
 
     // Weights
     struct
@@ -63,18 +58,24 @@ namespace oidn {
       Data hdr;
       Data hdr_alb;
       Data hdr_alb_nrm;
+      Data hdr_calb_cnrm;
       Data ldr;
       Data ldr_alb;
       Data ldr_alb_nrm;
+      Data ldr_calb_cnrm;
       Data dir;
-    } builtinWeights;
+      Data alb;
+      Data nrm;
+    } defaultWeights;
     Data userWeights;
 
     explicit UNetFilter(const Ref<Device>& device);
-    virtual Ref<TransferFunction> makeTransferFunc() = 0;
+    virtual std::shared_ptr<TransferFunction> getTransferFunc() = 0;
 
   public:
     void setData(const std::string& name, const Data& data) override;
+    void updateData(const std::string& name) override;
+    void removeData(const std::string& name) override;
     void set1f(const std::string& name, float value) override;
     float get1f(const std::string& name) override;
 
@@ -82,9 +83,9 @@ namespace oidn {
     void execute() override;
 
   private:
+    void init();
     void computeTileSize();
-    Ref<Network> buildNet();
-    bool isCommitted() const { return bool(net); }
+    size_t buildNet(bool getScratchSizeOnly = false);
   };
 
   // ---------------------------------------------------------------------------
@@ -96,12 +97,13 @@ namespace oidn {
   public:
     explicit RTFilter(const Ref<Device>& device);
 
-    void setImage(const std::string& name, const Image& data) override;
+    void setImage(const std::string& name, const std::shared_ptr<Image>& image) override;
+    void removeImage(const std::string& name) override;
     void set1i(const std::string& name, int value) override;
     int get1i(const std::string& name) override;
   
   protected:
-    Ref<TransferFunction> makeTransferFunc() override;
+    std::shared_ptr<TransferFunction> getTransferFunc() override;
   };
 
   // ---------------------------------------------------------------------------
@@ -113,12 +115,13 @@ namespace oidn {
   public:
     explicit RTLightmapFilter(const Ref<Device>& device);
 
-    void setImage(const std::string& name, const Image& data) override;
+    void setImage(const std::string& name, const std::shared_ptr<Image>& image) override;
+    void removeImage(const std::string& name) override;
     void set1i(const std::string& name, int value) override;
     int get1i(const std::string& name) override;
 
   protected:
-    Ref<TransferFunction> makeTransferFunc() override;
+    std::shared_ptr<TransferFunction> getTransferFunc() override;
   };
 
 } // namespace oidn

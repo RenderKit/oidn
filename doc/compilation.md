@@ -188,6 +188,14 @@ in CMake:
   Denoise API symbols inside. By default no namespace is used and plain C
   symbols are exported.
 
+- `OIDN_FILTER_RT`: Include the trained weights of the `RT` filter in the build
+  (ON by default). Turning this OFF significantly decreases the size of the
+  library binary, while the filter remains functional if the weights are set by
+  the user at runtime.
+
+- `OIDN_FILTER_RTLIGHTMAP`: Include the trained weights of the `RTLightmap`
+  filter in the build (ON by default).
+
 - `OIDN_APPS`: Enable building example and test applications (ON by default).
 
 - `OIDN_APPS_OPENIMAGEIO`: Enable [OpenImageIO](http://openimageio.org/)
