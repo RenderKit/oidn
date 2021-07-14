@@ -184,7 +184,7 @@ namespace oidn {
           storeColor(hDst, wDst, c, color.get3f(hSrc, wSrc));
           c += 3;
         }
-        
+
         if (albedo.ptr)
         {
           storeAlbedo(hDst, wDst, c, albedo.get3f(hSrc, wSrc));
@@ -235,7 +235,7 @@ namespace oidn {
     kernel.snorm = snorm;
 
     auto queue = ((SYCLDevice*)getDevice())->getSYCLQueue();
-    queue.parallel_for(sycl::range<2>(tile.H, tile.W), [=](sycl::id<2> idx) {
+    queue.parallel_for(sycl::range<2>(kernel.dst.H, kernel.dst.W), [=](sycl::id<2> idx) {
       kernel(int(idx[0]), int(idx[1]));
     });
   }
