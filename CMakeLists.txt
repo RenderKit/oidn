@@ -145,7 +145,10 @@ set(CORE_SOURCES
   include/OpenImageDenoise/oidn.hpp
   include/OpenImageDenoise/config.h
   ${OIDN_RESOURCE}
+  core/api.cpp
   core/buffer.h
+  core/color.h
+  core/color.cpp
   core/common.h
   core/conv.h
   core/cpu_buffer.h
@@ -158,10 +161,14 @@ set(CORE_SOURCES
   core/filter.cpp
   core/image.h
   core/input_reorder.h
+  core/input_reorder.cpp
   core/network.h
+  core/network.cpp
   core/node.h
   core/output_copy.h
+  core/output_copy.cpp
   core/output_reorder.h
+  core/output_reorder.cpp
   core/pool.h
   core/progress.h
   core/reorder.h
@@ -173,24 +180,14 @@ set(CORE_SOURCES
   core/unet.h
   core/unet.cpp
   core/upsample.h
+  core/upsample.cpp
   core/vec.h
-)
-
-set(CORE_SOURCES_SYCL
-  core/api.cpp
-  core/color.h
-  core/color.cpp
-  core/input_reorder.cpp
-  core/output_copy.cpp
-  core/output_reorder.cpp
-  core/network.cpp
   core/sycl_buffer.h
   core/sycl_device.h
   core/sycl_device.cpp
-  core/upsample.cpp
 )
 
-set_source_files_properties(${CORE_SOURCES_SYCL} PROPERTIES COMPILE_FLAGS ${OIDN_CXX_FLAGS_SYCL})
+set_source_files_properties(${CORE_SOURCES} PROPERTIES COMPILE_FLAGS ${OIDN_CXX_FLAGS_SYCL})
 
 set(CORE_SOURCES_ISPC
   core/image.isph
@@ -206,7 +203,7 @@ set(CORE_SOURCES_ISPC
   core/vec.isph
 )
 
-add_library(${PROJECT_NAME} ${OIDN_LIB_TYPE} ${CORE_SOURCES} ${CORE_SOURCES_SYCL})
+add_library(${PROJECT_NAME} ${OIDN_LIB_TYPE} ${CORE_SOURCES})
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE OIDN_${OIDN_NEURAL_RUNTIME})
 ispc_add_definitions(-DOIDN_${OIDN_NEURAL_RUNTIME})

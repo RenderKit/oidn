@@ -45,6 +45,7 @@ namespace oidn {
     dnnl::engine dnnlEngine;
     dnnl::stream dnnlStream;
   #endif
+    DataType tensorDataType = DataType::Float32;
     int tensorBlockSize = 1;
 
     // Parameters
@@ -112,6 +113,9 @@ namespace oidn {
     __forceinline dnnl::engine& getDNNLEngine() { return dnnlEngine; }
     __forceinline dnnl::stream& getDNNLStream() { return dnnlStream; }
   #endif
+
+    // Returns the native tensor data type
+    __forceinline DataType getTensorDataType() const { return tensorDataType; }
 
     // Returns the native tensor layout block size
     __forceinline int getTensorBlockSize() const { return tensorBlockSize; }

@@ -35,18 +35,18 @@ namespace oidn {
     struct OutputCopy
     {
       // Source
-      ImageAccessor src;
+      ImageAccessor<float> src;
 
       // Destination
-      ImageAccessor dst;
+      ImageAccessor<float> dst;
 
       __forceinline void operator()(int h, int w) const
       {
         // Load
-        vec3f value = src.get3f(h, w);
+        vec3f value = src.get3(h, w);
 
         // Store
-        dst.set3f(h, w, value);
+        dst.set3(h, w, value);
       }
     };
 

@@ -15,6 +15,9 @@ namespace oidn {
     __forceinline vec3() {}
     __forceinline vec3(const T& x) : x(x), y(x), z(x) {}
     __forceinline vec3(const T& x, const T& y, const T& z) : x(x), y(y), z(z) {}
+
+    template<typename U>
+    __forceinline vec3(const vec3<U>& v) : x(v.x), y(v.y), z(v.z) {}
   };
 
   using vec3f = vec3<float>;

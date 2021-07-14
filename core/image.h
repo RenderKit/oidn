@@ -111,6 +111,7 @@ namespace oidn {
     }
   };
 
+  template<typename T>
   struct ImageAccessor
   {
     uint8_t* ptr;
@@ -122,30 +123,30 @@ namespace oidn {
       return (((size_t)h * rowStride + (size_t)w) * bytePixelStride);
     }
 
-    __forceinline float get1f(size_t offset) const
+    __forceinline T get(size_t offset) const
     {
-      return *((float*)&ptr[offset]);
+      return *((T*)&ptr[offset]);
     }
 
-    __forceinline void set1f(size_t offset, float value) const
+    __forceinline void set(size_t offset, T value) const
     {
-      *((float*)&ptr[offset]) = value;
+      *((T*)&ptr[offset]) = value;
     }
 
-    __forceinline vec3f get3f(int h, int w) const
+    __forceinline vec3<T> get3(int h, int w) const
     {
       const size_t offset = getOffset(h, w);
-      return vec3f(get1f(offset),
-                   get1f(offset + 4),
-                   get1f(offset + 8));
+      return vec3<T>(get(offset),
+                     get(offset + 4),
+                     get(offset + 8));
     }
 
-    __forceinline void set3f(int h, int w, const vec3f& value) const
+    __forceinline void set3(int h, int w, const vec3<T>& value) const
     {
       const size_t offset = getOffset(h, w);
-      set1f(offset,     value.x);
-      set1f(offset + 4, value.y);
-      set1f(offset + 8, value.z);
+      set(offset,     value.x);
+      set(offset + 4, value.y);
+      set(offset + 8, value.z);
     }
   };
 
@@ -236,9 +237,10 @@ namespace oidn {
       return begin1 < end2 && begin2 < end1;
     }
 
-    operator ImageAccessor() const
+    template<typename T>
+    operator ImageAccessor<T>() const
     {
-      ImageAccessor result;
+      ImageAccessor<T> result;
       result.ptr = (uint8_t*)ptr;
       result.rowStride = rowStride;
       result.bytePixelStride = bytePixelStride;

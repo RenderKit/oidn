@@ -19,6 +19,8 @@ namespace oidn {
     syclDevice  = dnnl::sycl_interop::get_device(dnnlEngine);
     syclContext = dnnl::sycl_interop::get_context(dnnlEngine);
     syclQueue   = dnnl::sycl_interop::get_queue(dnnlStream);
+
+    tensorDataType = DataType::Float16;
     tensorBlockSize = 16;
   }
 

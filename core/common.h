@@ -17,9 +17,42 @@
   #include <Accelerate/Accelerate.h>
 #endif
 
+#if defined(OIDN_DEVICE_GPU)
+  #include <CL/sycl.hpp>
+#endif
+
 #include "input_reorder_ispc.h" // ispc::TensorAccessor, ispc::ImageAccessor, ispc::ReorderTile
 
 namespace oidn {
+
+  enum class DataType
+  {
+    Float32,
+    Float16,
+    UInt8,
+  };
+
+  template<typename T>
+  struct DataTypeOf;
+
+  template<> struct DataTypeOf<float>   { static constexpr DataType value = DataType::Float32; };
+  template<> struct DataTypeOf<uint8_t> { static constexpr DataType value = DataType::UInt8;   };
+#if defined(OIDN_DEVICE_GPU)
+  template<> struct DataTypeOf<half>    { static constexpr DataType value = DataType::Float16; };
+#endif
+
+  // Returns the size of the specified data type in bytes
+  __forceinline size_t getByteSize(DataType dataType)
+  {
+    switch (dataType)
+    {
+    case DataType::Float32: return 4;
+    case DataType::Float16: return 2;
+    case DataType::UInt8:   return 1;
+    default:
+      throw Exception(Error::Unknown, "invalid data type");
+    }
+  }
 
   template <typename T0, typename F>
   __forceinline void parallel_nd(const T0& D0, F f)

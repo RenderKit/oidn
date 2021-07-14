@@ -4,7 +4,6 @@
 #pragma once
 
 #include "device.h"
-#include <CL/sycl.hpp>
 
 namespace oidn {
 

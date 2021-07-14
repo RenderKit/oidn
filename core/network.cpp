@@ -71,7 +71,7 @@ namespace oidn {
     dstDims[2] = round_up(srcDims[2], int64_t(alignment)); // round up W
 
     TensorLayout layout = K == 16 ? TensorLayout::Chw16c : (K == 8 ? TensorLayout::Chw8c : TensorLayout::chw);
-    return TensorDesc(dstDims, layout, DataType::Float32);
+    return TensorDesc(dstDims, layout, device->getTensorDataType());
   }
 
   std::shared_ptr<InputReorderNode> Network::addInputReorder(const std::string& name,

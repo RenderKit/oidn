@@ -89,12 +89,12 @@ namespace oidn {
   struct InputReorder
   {
     // Source
-    ImageAccessor color;
-    ImageAccessor albedo;
-    ImageAccessor normal;
+    ImageAccessor<float> color;
+    ImageAccessor<float> albedo;
+    ImageAccessor<float> normal;
 
     // Destination
-    TensorAccessor dst;
+    TensorAccessor<half> dst;
 
     // Tile
     ReorderTile tile;
@@ -106,7 +106,7 @@ namespace oidn {
 
     __forceinline void storeZero(int h, int w, int c) const
     {
-      dst.set1f(h, w, c, 0.f);
+      dst.set(h, w, c, 0.f);
     }
 
     // Stores a color value
@@ -128,7 +128,7 @@ namespace oidn {
       value = transferFunc.forward(value);
 
       // Store
-      dst.set3f(h, w, c, value);
+      dst.set3(h, w, c, value);
     }
 
     // Stores an albedo value
@@ -146,7 +146,7 @@ namespace oidn {
         value = transferFunc.forward(value);
 
       // Store
-      dst.set3f(h, w, c, value);
+      dst.set3(h, w, c, value);
     }
 
     // Stores a normal value
@@ -163,7 +163,7 @@ namespace oidn {
       value = value * 0.5f + 0.5f;
 
       // Store
-      dst.set3f(h, w, c, value);
+      dst.set3(h, w, c, value);
     }
 
     __forceinline void operator()(int hDst, int wDst) const
@@ -181,19 +181,19 @@ namespace oidn {
 
         if (color.ptr)
         {
-          storeColor(hDst, wDst, c, color.get3f(hSrc, wSrc));
+          storeColor(hDst, wDst, c, color.get3(hSrc, wSrc));
           c += 3;
         }
 
         if (albedo.ptr)
         {
-          storeAlbedo(hDst, wDst, c, albedo.get3f(hSrc, wSrc));
+          storeAlbedo(hDst, wDst, c, albedo.get3(hSrc, wSrc));
           c += 3;
         }
 
         if (normal.ptr)
         {
-          storeNormal(hDst, wDst, c, normal.get3f(hSrc, wSrc));
+          storeNormal(hDst, wDst, c, normal.get3(hSrc, wSrc));
           c += 3;
         }
 

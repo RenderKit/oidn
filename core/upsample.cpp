@@ -82,8 +82,8 @@ namespace oidn {
 
   struct Upsample
   {
-    TensorAccessor src;
-    TensorAccessor dst;
+    TensorAccessor<half> src;
+    TensorAccessor<half> dst;
 
     __forceinline void operator()(int hDst, int wDst) const
     {
@@ -92,7 +92,7 @@ namespace oidn {
 
       for (int c = 0; c < src.C; ++c)
       {
-        dst.set1f(hDst, wDst, c, src.get1f(hSrc, wSrc, c));
+        dst.set(hDst, wDst, c, src.get(hSrc, wSrc, c));
       }
     }
   };

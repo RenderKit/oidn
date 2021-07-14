@@ -9,25 +9,6 @@
 #include <fstream>
 
 namespace oidn {
-  
-  // Tensor data type
-  enum class DataType
-  {
-    Float32,
-    UInt8,
-  };
-
-  // Returns the size of the specified data type in bytes
-  __forceinline size_t getByteSize(DataType dataType)
-  {
-    switch (dataType)
-    {
-    case DataType::Float32: return 4;
-    case DataType::UInt8:   return 1;
-    default:
-      throw Exception(Error::Unknown, "invalid tensor data type");
-    }
-  }
 
   // Tensor dimensions
   using TensorDims = std::vector<int64_t>;
@@ -178,6 +159,9 @@ namespace oidn {
       case DataType::Float32:
         dnnlType = dnnl::memory::data_type::f32;
         break;
+      case DataType::Float16:
+        dnnlType = dnnl::memory::data_type::f16;
+        break;
       case DataType::UInt8:
         dnnlType = dnnl::memory::data_type::u8;
         break;
@@ -191,11 +175,12 @@ namespace oidn {
   };
 
   // Tensor in CHW layout
+  template<typename T>
   struct TensorAccessor
   {
     static constexpr int K = 16; // FIXME
 
-    float* ptr;
+    T* ptr;
     int C;
     int H;
     int W;
@@ -211,28 +196,28 @@ namespace oidn {
     #endif
     }
 
-    __forceinline float get1f(int h, int w, int c) const
+    __forceinline T get(int h, int w, int c) const
     {
       return ptr[getIndex(h, w, c)];
     }
 
-    __forceinline void set1f(int h, int w, int c, float value) const
+    __forceinline void set(int h, int w, int c, T value) const
     {
       ptr[getIndex(h, w, c)] = value;
     }
 
-    __forceinline vec3f get3f(int h, int w, int c) const
+    __forceinline vec3<T> get3(int h, int w, int c) const
     {
-      return vec3f(get1f(h, w, c),
-                   get1f(h, w, c+1),
-                   get1f(h, w, c+2));
+      return vec3<T>(get(h, w, c),
+                     get(h, w, c+1),
+                     get(h, w, c+2));
     }
 
-    __forceinline void set3f(int h, int w, int c, const vec3f& value) const
+    __forceinline void set3(int h, int w, int c, const vec3<T>& value) const
     {
-      set1f(h, w, c,   value.x);
-      set1f(h, w, c+1, value.y);
-      set1f(h, w, c+2, value.z);
+      set(h, w, c,   value.x);
+      set(h, w, c+1, value.y);
+      set(h, w, c+2, value.z);
     }
   };
 
@@ -323,13 +308,14 @@ namespace oidn {
     template <typename T> __forceinline const T& get(int64_t i0, int64_t i1, int64_t i2, int64_t i3) const
     { return ((T*)data())[getIndex(i0, i1, i2, i3)]; }
 
-    operator TensorAccessor() const
+    template<typename T>
+    operator TensorAccessor<T>() const
     {
       assert(ndims() == 3);
-      assert(dataType == DataType::Float32);
+      //assert(dataType == DataType::Float32);
 
-      TensorAccessor result;
-      result.ptr = (float*)data();
+      TensorAccessor<T> result;
+      result.ptr = (T*)data();
       result.C = dims[0];
       result.H = dims[1];
       result.W = dims[2];
@@ -386,6 +372,9 @@ namespace oidn {
       {
       case DataType::Float32:
         bnnsDesc.data_type = BNNSDataTypeFloat32;
+        break;
+      case DataType::Float16:
+        bnnsDesc.data_type = BNNSDataTypeFloat16;
         break;
       case DataType::UInt8:
         bnnsDesc.data_type = BNNSDataTypeUInt8;
