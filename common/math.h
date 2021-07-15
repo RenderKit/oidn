@@ -9,23 +9,9 @@ namespace oidn {
 
   using std::isfinite;
   using std::isnan;
-
-#if defined(OIDN_SYCL)
-  using sycl::pow;
-  using sycl::powr;
-  using sycl::log;
-  using sycl::exp;
-#else
   using std::pow;
   using std::log;
   using std::exp;
-
-  template<typename T>
-  __forceinline T powr(T x)
-  {
-    return pow(x);
-  }
-#endif
 
   // Returns ceil(a / b) for non-negative integers
   template<typename Int, typename IntB>
