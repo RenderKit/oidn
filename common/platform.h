@@ -13,6 +13,10 @@
   #define OIDN_ARM64
 #endif
 
+#if defined(SYCL_LANGUAGE_VERSION)
+  #define OIDN_SYCL
+#endif
+
 #if defined(_WIN32)
   // Windows
   #if !defined(__noinline)
@@ -70,6 +74,11 @@
 #include <sstream>
 #include <iostream>
 #include <cassert>
+
+#if defined(OIDN_SYCL)
+  #include <CL/sycl.hpp>
+#endif
+
 #include "include/OpenImageDenoise/oidn.hpp"
 
 namespace oidn {

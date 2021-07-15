@@ -49,6 +49,8 @@ namespace oidn {
       return vec3<T>(f(v.x), f(v.y), f(v.z));   \
     }
 
+  define_vec_unary_func(pow)
+  define_vec_unary_func(powr)
   define_vec_unary_func(log)
   define_vec_unary_func(exp)
   define_vec_unary_func(nan_to_zero)

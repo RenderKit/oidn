@@ -42,7 +42,7 @@ namespace oidn {
         if (y <= y0)
           return a * y;
         else
-          return b * powf(y, c) + d;
+          return b * powr(y, c) + d;
       }
 
       static __forceinline float inverse(float x)
@@ -50,7 +50,7 @@ namespace oidn {
         if (x <= x0)
           return x / a;
         else
-          return powf((x - d) / b, 1.f/c);
+          return powr((x - d) / b, 1.f/c);
       }
     };
 
@@ -73,9 +73,9 @@ namespace oidn {
         if (y <= y0)
           return a * y;
         else if (y <= y1)
-          return b * powf(y, c) + d;
+          return b * powr(y, c) + d;
         else
-          return e * logf(y + f) + g;
+          return e * log(y + f) + g;
       }
 
       static __forceinline float inverse(float x)
@@ -83,9 +83,9 @@ namespace oidn {
         if (x <= x0)
           return x / a;
         else if (x <= x1)
-          return powf((x - d) / b, 1.f/c);
+          return powr((x - d) / b, 1.f/c);
         else
-          return expf((x - g) / e) - f;
+          return exp((x - g) / e) - f;
       }
     };
 

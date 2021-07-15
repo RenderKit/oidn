@@ -17,10 +17,6 @@
   #include <Accelerate/Accelerate.h>
 #endif
 
-#if defined(OIDN_DEVICE_GPU)
-  #include <CL/sycl.hpp>
-#endif
-
 #include "input_reorder_ispc.h" // ispc::TensorAccessor, ispc::ImageAccessor, ispc::ReorderTile
 
 namespace oidn {
@@ -37,7 +33,7 @@ namespace oidn {
 
   template<> struct DataTypeOf<float>   { static constexpr DataType value = DataType::Float32; };
   template<> struct DataTypeOf<uint8_t> { static constexpr DataType value = DataType::UInt8;   };
-#if defined(OIDN_DEVICE_GPU)
+#if defined(OIDN_SYCL)
   template<> struct DataTypeOf<half>    { static constexpr DataType value = DataType::Float16; };
 #endif
 
