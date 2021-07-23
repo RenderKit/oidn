@@ -77,8 +77,6 @@ namespace oidn {
         arena->execute(f);
       else
         f();
-
-      wait();
     }
 
     template<typename F>
@@ -88,8 +86,6 @@ namespace oidn {
         arena->execute(f);
       else
         f();
-
-      wait();
     }
 
     void wait()

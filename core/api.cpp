@@ -107,7 +107,20 @@ OIDN_API_NAMESPACE_BEGIN
         device = makeRef<SYCLDevice>();
     #endif
       else
-        throw Exception(Error::InvalidArgument, "invalid device type");
+        throw Exception(Error::InvalidArgument, "unsupported device type");
+    OIDN_CATCH(device)
+    return (OIDNDevice)device.detach();
+  }
+
+  OIDN_API OIDNDevice oidnNewDeviceSYCL(void* syclQueue)
+  {
+    Ref<Device> device = nullptr;
+    OIDN_TRY
+    #if defined(OIDN_DEVICE_GPU)
+      device = makeRef<SYCLDevice>(*((sycl::queue*)syclQueue));
+    #else
+      throw Exception(Error::InvalidArgument, "unsupported device type");
+    #endif
     OIDN_CATCH(device)
     return (OIDNDevice)device.detach();
   }
@@ -468,6 +481,16 @@ OIDN_API_NAMESPACE_BEGIN
       checkHandle(hFilter);
       OIDN_LOCK(filter);
       filter->execute();
+    OIDN_CATCH(filter)
+  }
+
+  OIDN_API void oidnExecuteFilterAsync(OIDNFilter hFilter)
+  {
+    Filter* filter = (Filter*)hFilter;
+    OIDN_TRY
+      checkHandle(hFilter);
+      OIDN_LOCK(filter);
+      filter->execute(false);
     OIDN_CATCH(filter)
   }
 

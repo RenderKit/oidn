@@ -3,6 +3,10 @@
 
 #pragma once
 
+#if defined(SYCL_LANGUAGE_VERSION)
+  #include <CL/sycl.hpp>
+#endif
+
 #include <algorithm>
 #include "oidn.h"
 
@@ -292,6 +296,12 @@ OIDN_NAMESPACE_BEGIN
     {
       oidnExecuteFilter(handle);
     }
+
+    // Executes the filter asynchronously.
+    void executeAsync()
+    {
+      oidnExecuteFilterAsync(handle);
+    }
   };
 
   // Gets a boolean parameter of the filter.
@@ -490,5 +500,13 @@ OIDN_NAMESPACE_BEGIN
   {
     return DeviceRef(oidnNewDevice((OIDNDeviceType)type));
   }
+
+  // Creates a new SYCL device using an in-order SYCL queue.
+#if defined(SYCL_LANGUAGE_VERSION)
+  inline DeviceRef newDevice(sycl::queue& queue)
+  {
+    return DeviceRef(oidnNewDeviceSYCL(&queue));
+  }
+#endif
 
 OIDN_NAMESPACE_END

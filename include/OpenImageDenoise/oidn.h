@@ -45,6 +45,9 @@ typedef struct OIDNDeviceImpl* OIDNDevice;
 // Creates a new device.
 OIDN_API OIDNDevice oidnNewDevice(OIDNDeviceType type);
 
+// Creates a new SYCL device using an in-order SYCL queue.
+OIDN_API OIDNDevice oidnNewDeviceSYCL(void* syclQueue);
+
 // Retains the device (increments the reference count).
 OIDN_API void oidnRetainDevice(OIDNDevice device);
 
@@ -205,5 +208,8 @@ OIDN_API void oidnCommitFilter(OIDNFilter filter);
 
 // Executes the filter.
 OIDN_API void oidnExecuteFilter(OIDNFilter filter);
+
+// Executes the filter asynchronously.
+OIDN_API void oidnExecuteFilterAsync(OIDNFilter filter);
 
 OIDN_API_NAMESPACE_END

@@ -102,13 +102,15 @@ namespace oidn {
       {
         init();
       });
+
+      device->wait();
     }
 
     dirty = false;
     dirtyParam = false;
   }
 
-  void UNetFilter::execute()
+  void UNetFilter::execute(bool sync)
   {
     if (dirty)
       throw Exception(Error::InvalidOperation, "changes to the filter are not committed");
@@ -189,6 +191,9 @@ namespace oidn {
       // Finished
       progress.finish();
     });
+
+    if (sync)
+      device->wait();
   }
 
   void UNetFilter::computeTileSize()
