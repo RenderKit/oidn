@@ -86,12 +86,13 @@ namespace oidn {
 
 #if defined(OIDN_DEVICE_GPU)
 
+  template<typename T>
   struct InputReorder
   {
     // Source
-    ImageAccessor<float> color;
-    ImageAccessor<float> albedo;
-    ImageAccessor<float> normal;
+    ImageAccessor<T> color;
+    ImageAccessor<T> albedo;
+    ImageAccessor<T> normal;
 
     // Destination
     TensorAccessor<half> dst;
@@ -219,12 +220,23 @@ namespace oidn {
 
   void SYCLInputReorderNode::execute()
   {
-    assert(tile.H + tile.hSrcBegin <= getHeight());
-    assert(tile.W + tile.wSrcBegin <= getWidth());
+    switch (getDataType(getInput()->format))
+    {
+    case DataType::Float32: executeKernel<float>(); break;
+    case DataType::Float16: executeKernel<half>();  break;
+    default:                assert(0);
+    }
+  }
+
+  template<typename T>
+  void SYCLInputReorderNode::executeKernel()
+  {
+    assert(tile.H + tile.hSrcBegin <= getInput()->height);
+    assert(tile.W + tile.wSrcBegin <= getInput()->width);
     assert(tile.H + tile.hDstBegin <= dst->dims[1]);
     assert(tile.W + tile.wDstBegin <= dst->dims[2]);
-
-    InputReorder kernel;
+    
+    InputReorder<T> kernel;
     kernel.color  = color  ? *color  : Image();
     kernel.albedo = albedo ? *albedo : Image();
     kernel.normal = normal ? *normal : Image();
@@ -234,7 +246,7 @@ namespace oidn {
     kernel.hdr = hdr;
     kernel.snorm = snorm;
 
-    auto queue = ((SYCLDevice*)getDevice())->getSYCLQueue();
+    auto& queue = ((SYCLDevice*)getDevice())->getSYCLQueue();
     queue.parallel_for(sycl::range<2>(kernel.dst.H, kernel.dst.W), [=](sycl::id<2> idx) {
       kernel(int(idx[0]), int(idx[1]));
     });

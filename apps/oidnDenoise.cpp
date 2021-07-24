@@ -254,7 +254,7 @@ int main(int argc, char* argv[])
     if (inplace)
       output = input;
     else
-      output = std::make_shared<ImageBuffer>(device, width, height, 3);
+      output = std::make_shared<ImageBuffer>(device, width, height, 3, input->dataType);
 
     // Load the filter weights if specified
     std::vector<char> weights;
@@ -271,13 +271,13 @@ int main(int argc, char* argv[])
     FilterRef filter = device.newFilter(filterType.c_str());
 
     if (color)
-      filter.setImage("color", color->data(), Format::Float3, color->width, color->height);
+      filter.setImage("color", color->data(), color->format(), color->width, color->height);
     if (albedo)
-      filter.setImage("albedo", albedo->data(), Format::Float3, albedo->width, albedo->height);
+      filter.setImage("albedo", albedo->data(), albedo->format(), albedo->width, albedo->height);
     if (normal)
-      filter.setImage("normal", normal->data(), Format::Float3, normal->width, normal->height);
+      filter.setImage("normal", normal->data(), normal->format(), normal->width, normal->height);
 
-    filter.setImage("output", output->data(), Format::Float3, output->width, output->height);
+    filter.setImage("output", output->data(), output->format(), output->width, output->height);
 
     if (filterType == "RT")
     {

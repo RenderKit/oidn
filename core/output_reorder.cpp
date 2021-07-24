@@ -82,13 +82,14 @@ namespace oidn {
 
 #if defined(OIDN_DEVICE_GPU)
 
+  template<typename T>
   struct OutputReorder
   {
     // Source
     TensorAccessor<half> src;
 
     // Destination
-    ImageAccessor<float> output;
+    ImageAccessor<T> output;
 
     // Tile
     ReorderTile tile;
@@ -142,12 +143,23 @@ namespace oidn {
 
   void SYCLOutputReorderNode::execute()
   {
+    switch (getDataType(output->format))
+    {
+    case DataType::Float32: executeKernel<float>(); break;
+    case DataType::Float16: executeKernel<half>();  break;
+    default:                assert(0);
+    }
+  }
+
+  template<typename T>
+  void SYCLOutputReorderNode::executeKernel()
+  {
     assert(tile.hSrcBegin + tile.H <= src->dims[1]);
     assert(tile.wSrcBegin + tile.W <= src->dims[2]);
     //assert(tile.hDstBegin + tile.H <= output->height);
     //assert(tile.wDstBegin + tile.W <= output->width);
 
-    OutputReorder kernel;
+    OutputReorder<T> kernel;
     kernel.src = *src;
     kernel.output = *output;
     kernel.tile = tile;
@@ -155,7 +167,7 @@ namespace oidn {
     kernel.hdr = hdr;
     kernel.snorm = snorm;
 
-    auto queue = ((SYCLDevice*)getDevice())->getSYCLQueue();
+    auto& queue = ((SYCLDevice*)getDevice())->getSYCLQueue();
     queue.parallel_for(sycl::range<2>(tile.H, tile.W), [=](sycl::id<2> idx) {
       kernel(int(idx[0]), int(idx[1]));
     });

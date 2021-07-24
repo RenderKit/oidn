@@ -36,15 +36,18 @@ ImageBuffer makeConstImage(DeviceRef& device, int W, int H, int C = 3, float val
 {
   ImageBuffer image(device, W, H, C);
   for (size_t i = 0; i < image.size(); ++i)
-    image[i] = value;
+    image.set(i, value);
   return image;
 }
 
 bool isBetween(const ImageBuffer& image, float a, float b)
 {
   for (size_t i = 0; i < image.size(); ++i)
-    if (!std::isfinite(image[i]) || image[i] < a || image[i] > b)
+  {
+    const float x = image.get(i);
+    if (!std::isfinite(x) || x < a || x > b)
       return false;
+  }
   return true;
 }
 

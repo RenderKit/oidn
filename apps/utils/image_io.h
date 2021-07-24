@@ -9,33 +9,45 @@
 #include <array>
 #include <tuple>
 #include <OpenImageDenoise/oidn.hpp>
+#include "common/platform.h"
 
 namespace oidn {
 
   struct ImageBuffer
   {
     BufferRef buffer;
-    float* bufferPtr;
-    size_t bufferSize;
+    char* bufferPtr;
+    size_t numValues;
     int width;
     int height;
     int numChannels;
+    Format dataType;
 
     ImageBuffer()
       : bufferPtr(nullptr),
-        bufferSize(0),
+        numValues(0),
         width(0),
         height(0),
-        numChannels(0) {}
+        numChannels(0),
+        dataType(Format::Undefined) {}
 
-    ImageBuffer(DeviceRef& device, int width, int height, int numChannels)
-      : bufferSize(size_t(width) * height * numChannels),
+    ImageBuffer(DeviceRef& device, int width, int height, int numChannels, Format dataType = Format::Float)
+      : numValues(size_t(width) * height * numChannels),
         width(width),
         height(height),
-        numChannels(numChannels)
+        numChannels(numChannels),
+        dataType(dataType)
     {
-      buffer = device.newBuffer(bufferSize * sizeof(float));
-      bufferPtr = (float*)buffer.getData();
+      size_t valueSize = 0;
+      switch (dataType)
+      {
+      case Format::Float: valueSize = sizeof(float);   break;
+      case Format::Half:  valueSize = sizeof(int16_t); break;
+      default:            assert(0);
+      }
+    
+      buffer = device.newBuffer(numValues * valueSize);
+      bufferPtr = (char*)buffer.getData();
     }
 
     operator bool() const
@@ -43,15 +55,70 @@ namespace oidn {
       return data() != nullptr;
     }
 
-    const float& operator [](size_t i) const { return bufferPtr[i]; }
-    float& operator [](size_t i) { return bufferPtr[i]; }
+    template<typename T = float>
+    T get(size_t i) const;
 
-    const float* data() const { return bufferPtr; }
-    float* data() { return bufferPtr; }
+    // Float
+    __forceinline void set(size_t i, float x)
+    {
+      switch (dataType)
+      {
+      case Format::Float: ((float*)bufferPtr)[i]   = x;
+      case Format::Half:  ((int16_t*)bufferPtr)[i] = float_to_half(x);
+      default:            assert(0);
+      }
+    }
+
+    // Half
+    __forceinline void set(size_t i, int16_t x)
+    {
+      switch (dataType)
+      {
+      case Format::Float: ((float*)bufferPtr)[i]   = half_to_float(x);
+      case Format::Half:  ((int16_t*)bufferPtr)[i] = x;
+      default:            assert(0);
+      }
+    }
+
+    const void* data() const { return bufferPtr; }
+    void* data() { return bufferPtr; }
   
-    size_t size() const { return bufferSize; }
+    __forceinline size_t size() const { return numValues; }
     std::array<int, 3> dims() const { return {width, height, numChannels}; }
+
+    Format format() const
+    {
+      if (dataType == Format::Undefined)
+        return Format::Undefined;
+      return Format(int(dataType) + numChannels - 1);
+    }
   };
+
+  // Float
+  template<>
+  __forceinline float ImageBuffer::get(size_t i) const
+  {
+    switch (dataType)
+    {
+    case Format::Float: return ((float*)bufferPtr)[i];
+    case Format::Half:  return half_to_float(((int16_t*)bufferPtr)[i]);
+    default:            assert(0);
+    }
+    return 0;
+  }
+
+  // Half
+  template<>
+  __forceinline int16_t ImageBuffer::get(size_t i) const
+  {
+    switch (dataType)
+    {
+    case Format::Float: return float_to_half(((float*)bufferPtr)[i]);
+    case Format::Half:  return ((int16_t*)bufferPtr)[i];
+    default:            assert(0);
+    }
+    return 0;
+  }
 
   // Loads an image with an optionally specified number of channels (loads all
   // channels by default)

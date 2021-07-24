@@ -5,11 +5,19 @@
 
 #include "vec.isph"
 
+enum DataType
+{
+  DataType_Float32,
+  DataType_Float16,
+  DataType_UInt8,
+};
+
 struct ImageAccessor
 {
   uniform uint8* uniform ptr;
   uniform size_t bytePixelStride; // pixel stride in number of *bytes*
   uniform size_t rowStride;       // row stride in number of *pixel strides*
+  uniform DataType dataType;
 };
 
 inline size_t getOffset(const uniform ImageAccessor& img, uniform int h, int w)
@@ -17,28 +25,42 @@ inline size_t getOffset(const uniform ImageAccessor& img, uniform int h, int w)
   return (((size_t)h * img.rowStride + (size_t)w) * img.bytePixelStride);
 }
 
-inline float get1f(const uniform ImageAccessor& img, size_t offset)
-{
-  return *((uniform float*)&img.ptr[offset]);
-}
-
-inline void set1f(const uniform ImageAccessor& img, size_t offset, float value)
-{
-  *((uniform float*)&img.ptr[offset]) = value;
-}
-
 inline vec3f get3f(const uniform ImageAccessor& img, uniform int h, int w)
 {
   const size_t offset = getOffset(img, h, w);
-  return make_vec3f(get1f(img, offset),
-                    get1f(img, offset + 4),
-                    get1f(img, offset + 8));
+  if (img.dataType == DataType_Float32)
+  {
+    uniform float* pixel = (uniform float*)&img.ptr[offset];
+    return make_vec3f(pixel[0], pixel[1], pixel[2]);
+  }
+  else if (img.dataType == DataType_Float16)
+  {
+    uniform int16* pixel = (uniform int16*)&img.ptr[offset];
+    return make_vec3f(half_to_float(pixel[0]),
+                      half_to_float(pixel[1]),
+                      half_to_float(pixel[2]));
+  }
+  else
+    assert(0);
 }
 
 inline void set3f(const uniform ImageAccessor& img, uniform int h, int w, const vec3f& value)
 {
   const size_t offset = getOffset(img, h, w);
-  set1f(img, offset,     value.x);
-  set1f(img, offset + 4, value.y);
-  set1f(img, offset + 8, value.z);
+  if (img.dataType == DataType_Float32)
+  {
+    uniform float* pixel = (uniform float*)&img.ptr[offset];
+    pixel[0] = value.x;
+    pixel[1] = value.y;
+    pixel[2] = value.z;
+  }
+  else if (img.dataType == DataType_Float16)
+  {
+    uniform int16* pixel = (uniform int16*)&img.ptr[offset];
+    pixel[0] = float_to_half(value.x);
+    pixel[1] = float_to_half(value.y);
+    pixel[2] = float_to_half(value.z);
+  }
+  else
+    assert(0);
 }

@@ -26,6 +26,12 @@ OIDN_NAMESPACE_BEGIN
     Float2 = OIDN_FORMAT_FLOAT2,
     Float3 = OIDN_FORMAT_FLOAT3,
     Float4 = OIDN_FORMAT_FLOAT4,
+
+    // 16-bit half-precision floating point scalar and vector formats
+    Half  = OIDN_FORMAT_HALF,
+    Half2 = OIDN_FORMAT_HALF2,
+    Half3 = OIDN_FORMAT_HALF3,
+    Half4 = OIDN_FORMAT_HALF4,
   };
 
   // Access modes for mapping buffers

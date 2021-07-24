@@ -61,6 +61,10 @@ namespace oidn {
                           bool snorm);
 
     void execute() override;
+
+  private:
+    template<typename T>
+    void executeKernel();
   };
 
 #endif

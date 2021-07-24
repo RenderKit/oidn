@@ -113,7 +113,7 @@ namespace oidn {
     kernel.src = *src;
     kernel.dst = *dst;
 
-    auto queue = ((SYCLDevice*)getDevice())->getSYCLQueue();
+    auto& queue = ((SYCLDevice*)getDevice())->getSYCLQueue();
     queue.parallel_for(sycl::range<2>(kernel.dst.H, kernel.dst.W), [=](sycl::id<2> idx) {
       kernel(int(idx[0]), int(idx[1]));
     });

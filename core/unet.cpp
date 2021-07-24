@@ -256,11 +256,16 @@ namespace oidn {
     H = output->height;
     W = output->width;
 
-    if ((color  && color->format  != Format::Float3) ||
-        (albedo && albedo->format != Format::Float3) ||
-        (normal && normal->format != Format::Float3) ||
-        (output->format != Format::Float3))
-      throw Exception(Error::InvalidOperation, "unsupported image format");
+    if (((color  && color->format  != Format::Float3) ||
+         (albedo && albedo->format != Format::Float3) ||
+         (normal && normal->format != Format::Float3)) &&
+        ((color  && color->format  != Format::Half3) ||
+         (albedo && albedo->format != Format::Half3) ||
+         (normal && normal->format != Format::Half3)))
+      throw Exception(Error::InvalidOperation, "unsupported input image format");
+
+    if (output->format != Format::Float3 && output->format != Format::Half3)
+      throw Exception(Error::InvalidOperation, "unsupported output image format");
 
     if ((color  && (color->width  != W || color->height  != H)) ||
         (albedo && (albedo->width != W || albedo->height != H)) ||
@@ -275,10 +280,11 @@ namespace oidn {
     if (device->isVerbose(2))
     {
       std::cout << "Inputs:";
-      if (color)  std::cout << " " << (directional ? "dir" : (hdr ? "hdr" : "ldr"));
-      if (albedo) std::cout << " " << "alb";
-      if (normal) std::cout << " " << "nrm";
+      if (color)  std::cout << " " << (directional ? "dir" : (hdr ? "hdr" : "ldr")) << ":" << color->format;
+      if (albedo) std::cout << " " << "alb" << ":" << albedo->format;
+      if (normal) std::cout << " " << "nrm" << ":" << normal->format;
       std::cout << std::endl;
+      std::cout << "Output: " << output->format << std::endl;
     }
 
     // Select the weights to use

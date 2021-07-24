@@ -74,12 +74,16 @@ namespace oidn {
       case Format::Undefined:
         return 0;
       case Format::Float:
+      case Format::Half:
         return 1;
       case Format::Float2:
+      case Format::Half2:
         return 2;
       case Format::Float3:
+      case Format::Half3: 
         return 3;
       case Format::Float4:
+      case Format::Half4:
         return 4;
       default:
         throw Exception(Error::InvalidArgument, "invalid image format");
@@ -123,30 +127,20 @@ namespace oidn {
       return (((size_t)h * rowStride + (size_t)w) * bytePixelStride);
     }
 
-    __forceinline T get(size_t offset) const
-    {
-      return *((T*)&ptr[offset]);
-    }
-
-    __forceinline void set(size_t offset, T value) const
-    {
-      *((T*)&ptr[offset]) = value;
-    }
-
     __forceinline vec3<T> get3(int h, int w) const
     {
       const size_t offset = getOffset(h, w);
-      return vec3<T>(get(offset),
-                     get(offset + 4),
-                     get(offset + 8));
+      T* pixel = (T*)&ptr[offset];
+      return vec3<T>(pixel[0], pixel[1], pixel[2]);
     }
 
     __forceinline void set3(int h, int w, const vec3<T>& value) const
     {
       const size_t offset = getOffset(h, w);
-      set(offset,     value.x);
-      set(offset + 4, value.y);
-      set(offset + 8, value.z);
+      T* pixel = (T*)&ptr[offset];
+      pixel[0] = value.x;
+      pixel[1] = value.y;
+      pixel[2] = value.z;
     }
   };
 
@@ -240,6 +234,8 @@ namespace oidn {
     template<typename T>
     operator ImageAccessor<T>() const
     {
+      assert(format == Format::Undefined || DataTypeOf<T>::value == getDataType(format));
+
       ImageAccessor<T> result;
       result.ptr = (uint8_t*)ptr;
       result.rowStride = rowStride;
@@ -254,6 +250,20 @@ namespace oidn {
       result.ptr = (uint8_t*)ptr;
       result.rowStride = rowStride;
       result.bytePixelStride = bytePixelStride;
+
+      if (format != Format::Undefined)
+      {
+        switch (getDataType(format))
+        {
+        case DataType::Float32: result.dataType = ispc::DataType_Float32; break;
+        case DataType::Float16: result.dataType = ispc::DataType_Float16; break;
+        case DataType::UInt8:   result.dataType = ispc::DataType_UInt8;   break;
+        default:                assert(0);
+        }
+      }
+      else
+        result.dataType = ispc::DataType_Float32;
+
       return result;
     }
 

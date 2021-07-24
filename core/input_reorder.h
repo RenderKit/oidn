@@ -37,14 +37,9 @@ namespace oidn {
     std::shared_ptr<Tensor> getDst() const override { return dst; }
 
   protected:
-    int getWidth() const
+    Image* getInput()
     {
-      return color ? color->width : (albedo ? albedo->width : normal->width);
-    }
-
-    int getHeight() const
-    {
-      return color ? color->height : (albedo ? albedo->height : normal->height);
+      return color ? color.get() : (albedo ? albedo.get() : normal.get());
     }
   };
 
@@ -76,6 +71,10 @@ namespace oidn {
                          bool snorm);
 
     void execute() override;
+
+  private:
+    template<typename T>
+    void executeKernel();
   };
 
 #endif

@@ -32,33 +32,35 @@ namespace oidn {
 
   #if defined(OIDN_DEVICE_GPU)
 
+    template<typename T>
     struct OutputCopy
     {
       // Source
-      ImageAccessor<float> src;
+      ImageAccessor<T> src;
 
       // Destination
-      ImageAccessor<float> dst;
+      ImageAccessor<T> dst;
 
       __forceinline void operator()(int h, int w) const
       {
         // Load
-        vec3f value = src.get3(h, w);
+        vec3<T> value = src.get3(h, w);
 
         // Store
         dst.set3(h, w, value);
       }
     };
 
+    template<typename T>
     void syclOutputCopy(const Ref<SYCLDevice>& device,
                         const Image& src,
                         const Image& dst)
     {
-      OutputCopy kernel;
+      OutputCopy<T> kernel;
       kernel.src = src;
       kernel.dst = dst;
 
-      auto queue = device->getSYCLQueue();
+      auto& queue = device->getSYCLQueue();
       queue.parallel_for(sycl::range<2>(dst.height, dst.width), [=](sycl::id<2> idx) {
         kernel(int(idx[0]), int(idx[1]));
       });
@@ -76,7 +78,14 @@ namespace oidn {
 
   #if defined(OIDN_DEVICE_GPU)
     if (auto syclDevice = dynamicRefCast<SYCLDevice>(device))
-      syclOutputCopy(syclDevice, src, dst);
+    {
+      switch (getDataType(src.format))
+      {
+      case DataType::Float32: syclOutputCopy<float>(syclDevice, src, dst); break;
+      case DataType::Float16: syclOutputCopy<half>(syclDevice, src, dst);  break;
+      default:                assert(0);
+      }
+    }
     else
   #endif
       cpuOutputCopy(src, dst);
