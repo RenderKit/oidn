@@ -82,17 +82,47 @@ namespace oidn {
 
   struct Upsample
   {
+    static constexpr int K = TensorAccessor<half>::K;
+
     TensorAccessor<half> src;
     TensorAccessor<half> dst;
 
-    __forceinline void operator()(int hDst, int wDst) const
-    {
-      const int hSrc = hDst / 2;
-      const int wSrc = wDst / 2;
+    __forceinline void operator() (int hSrc, int wSrc) const SYCL_ESIMD_KERNEL
+    { 
+      using namespace sycl::ext::intel::experimental::esimd;
 
-      for (int c = 0; c < src.C; ++c)
-      {
-        dst.set(hDst, wDst, c, src.get(hSrc, wSrc, c));
+      const int hDst = hSrc * 2;
+      const int wDst = wSrc * 2;
+
+      const size_t srcRowStride   = (size_t)src.W * K;
+      const size_t dstRowStride   = (size_t)dst.W * K;
+      const size_t srcPlaneStride = (size_t)src.H * srcRowStride;
+      const size_t dstPlaneStride = (size_t)dst.H * dstRowStride;
+
+      const size_t srcIndex = (size_t)hSrc * srcRowStride + (size_t)wSrc * K;
+      const size_t dstIndex = (size_t)hDst * dstRowStride + (size_t)wDst * K;
+
+      int16_t* srcPtr  = (int16_t*)&src.ptr[srcIndex];
+      int16_t* dstPtr0 = (int16_t*)&dst.ptr[dstIndex];
+      int16_t* dstPtr1 = dstPtr0 + K;
+      int16_t* dstPtr2 = dstPtr0 + dstRowStride;
+      int16_t* dstPtr3 = dstPtr2 + K;
+
+      for (int c = 0; c < src.C; c += K)
+      {        
+        simd<int16_t, K> v;
+        v.copy_from(srcPtr);
+
+        v.copy_to(dstPtr0);
+        v.copy_to(dstPtr1);
+        v.copy_to(dstPtr2);
+        v.copy_to(dstPtr3);
+
+        srcPtr  += srcPlaneStride;
+        dstPtr0 += dstPlaneStride;
+        dstPtr1 += dstPlaneStride;
+        dstPtr2 += dstPlaneStride;
+        dstPtr3 += dstPlaneStride;
       }
     }
   };
@@ -114,7 +144,8 @@ namespace oidn {
     kernel.dst = *dst;
 
     auto& queue = ((SYCLDevice*)getDevice())->getSYCLQueue();
-    queue.parallel_for(sycl::range<2>(kernel.dst.H, kernel.dst.W), [=](sycl::id<2> idx) {
+    queue.parallel_for(sycl::range<2>(src->height(), src->width()), [=](sycl::id<2> idx) SYCL_ESIMD_KERNEL
+    {
       kernel(int(idx[0]), int(idx[1]));
     });
   }

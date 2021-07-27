@@ -77,6 +77,7 @@
 
 #if defined(OIDN_SYCL)
   #include <CL/sycl.hpp>
+  #include <sycl/ext/intel/experimental/esimd.hpp>
 #endif
 
 #include "include/OpenImageDenoise/oidn.hpp"

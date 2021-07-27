@@ -62,10 +62,10 @@ namespace oidn {
 
   void CPUInputReorderNode::execute()
   {
-    assert(tile.H + tile.hSrcBegin <= getHeight());
-    assert(tile.W + tile.wSrcBegin <= getWidth());
-    assert(tile.H + tile.hDstBegin <= dst->dims[1]);
-    assert(tile.W + tile.wDstBegin <= dst->dims[2]);
+    assert(tile.H + tile.hSrcBegin <= getInput()->height);
+    assert(tile.W + tile.wSrcBegin <= getInput()->width);
+    assert(tile.H + tile.hDstBegin <= dst->height());
+    assert(tile.W + tile.wDstBegin <= dst->width());
 
     ispc::InputReorder impl;
 
@@ -233,8 +233,8 @@ namespace oidn {
   {
     assert(tile.H + tile.hSrcBegin <= getInput()->height);
     assert(tile.W + tile.wSrcBegin <= getInput()->width);
-    assert(tile.H + tile.hDstBegin <= dst->dims[1]);
-    assert(tile.W + tile.wDstBegin <= dst->dims[2]);
+    assert(tile.H + tile.hDstBegin <= dst->height());
+    assert(tile.W + tile.wDstBegin <= dst->width());
     
     InputReorder<T> kernel;
     kernel.color  = color  ? *color  : Image();
@@ -247,7 +247,7 @@ namespace oidn {
     kernel.snorm = snorm;
 
     auto& queue = ((SYCLDevice*)getDevice())->getSYCLQueue();
-    queue.parallel_for(sycl::range<2>(kernel.dst.H, kernel.dst.W), [=](sycl::id<2> idx) {
+    queue.parallel_for(sycl::range<2>(dst->height(), dst->width()), [=](sycl::id<2> idx) {
       kernel(int(idx[0]), int(idx[1]));
     });
   }

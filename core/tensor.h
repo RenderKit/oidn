@@ -107,6 +107,27 @@ namespace oidn {
       }
     }
 
+    // Return the number of channels in the tensor
+    __forceinline int numChannels() const
+    {
+      assert(dims.size() >= 3);
+      return int(dims[dims.size()-3]);
+    }
+
+    // Returns the height of the tensor
+    __forceinline int height() const
+    {
+      assert(dims.size() >= 2);
+      return int(dims[dims.size()-2]);
+    }
+
+    // Returns the width of the tensor
+    __forceinline int width() const
+    {
+      assert(dims.size() >= 2);
+      return int(dims[dims.size()-1]);
+    }
+
     __forceinline bool operator ==(const TensorDesc& other) const
     {
       return (dims == other.dims) && (layout == other.layout) && (dataType == other.dataType);
@@ -316,9 +337,9 @@ namespace oidn {
 
       TensorAccessor<T> result;
       result.ptr = (T*)data();
-      result.C = dims[0];
-      result.H = dims[1];
-      result.W = dims[2];
+      result.C = numChannels();
+      result.H = height();
+      result.W = width();
       return result;
     }
 
@@ -330,9 +351,9 @@ namespace oidn {
 
       ispc::TensorAccessor result;
       result.ptr = (float*)data();
-      result.C = dims[0];
-      result.H = dims[1];
-      result.W = dims[2];
+      result.C = numChannels();
+      result.H = height();
+      result.W = width();
       return result;
     }
 
