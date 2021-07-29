@@ -163,7 +163,14 @@ namespace oidn {
   {
     assert(dst->desc() == getPoolDesc(src->desc()));
 
-    auto node = std::make_shared<PoolNode>(device, name, src, dst);
+    std::shared_ptr<Node> node;
+  #if defined(OIDN_DEVICE_GPU)
+    if (auto syclDevice = dynamicRefCast<SYCLDevice>(device))
+      node = std::make_shared<SYCLPoolNode>(syclDevice, name, src, dst);
+    else
+  #endif
+      node = std::make_shared<PoolNode>(device, name, src, dst);
+
     nodes.push_back(node);
     return node;
   }

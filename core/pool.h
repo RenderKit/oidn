@@ -89,4 +89,25 @@ namespace oidn {
 
 #endif
 
+#if defined(OIDN_DEVICE_GPU)
+  class SYCLDevice;
+
+  class SYCLPoolNode : public Node
+  {
+  private:
+    std::shared_ptr<Tensor> src;
+    std::shared_ptr<Tensor> dst;
+
+  public:
+    SYCLPoolNode(const Ref<SYCLDevice>& device,
+                 const std::string& name,
+                 const std::shared_ptr<Tensor>& src,
+                 const std::shared_ptr<Tensor>& dst);
+
+    void execute() override;
+
+    std::shared_ptr<Tensor> getDst() const override { return dst; }
+  };
+#endif
+
 } // namespace oidn

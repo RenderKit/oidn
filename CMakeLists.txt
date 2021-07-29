@@ -170,6 +170,7 @@ set(CORE_SOURCES
   core/output_reorder.h
   core/output_reorder.cpp
   core/pool.h
+  core/pool.cpp
   core/progress.h
   core/reorder.h
   core/scratch.h
