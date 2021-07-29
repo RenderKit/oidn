@@ -9,6 +9,7 @@ stages:
   - report-scan
 
 variables:
+  CI_TOOLS_PATH: /NAS/tools/ci_tools/ci_tools-tgt-initial-package/bin
   GIT_SUBMODULE_STRATEGY: recursive
   OIDN_ROOT_DIR:          "$CI_PROJECT_DIR"
   PYTHONUNBUFFERED:       1
@@ -479,6 +480,26 @@ package-windows:
 ## -----------------------------------------------------------------------------
 ## Scans
 ## -----------------------------------------------------------------------------
+
+bdba:
+  stage: scan
+  tags: [docker]
+  image: $DOCKER_REGISTRY/oidn-build:centos7
+  only:
+    - schedules
+    - web
+  needs:
+    - package-linux
+    - package-macos
+    - package-windows
+  script:
+    - $CI_TOOLS_PATH/bdba.sh "build/oidn-*"
+    - $CI_TOOLS_PATH/store-files.sh $CI_PROJECT_NAME $CI_PIPELINE_ID bdba "oidn-*.pdf"
+    - $CI_TOOLS_PATH/store-files.sh $CI_PROJECT_NAME $CI_PIPELINE_ID bdba "oidn-*.csv"
+  artifacts:
+    paths:
+      - oidn-*.pdf
+      - oidn-*.csv
 
 kw-build-scan:
   stage: scan
