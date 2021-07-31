@@ -13,8 +13,10 @@
 
 namespace oidn {
 
-  struct ImageBuffer
+  class ImageBuffer
   {
+  public:
+    DeviceRef device;
     BufferRef buffer;
     char* bufferPtr;
     size_t numValues;
@@ -32,7 +34,8 @@ namespace oidn {
         dataType(Format::Undefined) {}
 
     ImageBuffer(DeviceRef& device, int width, int height, int numChannels, Format dataType = Format::Float)
-      : numValues(size_t(width) * height * numChannels),
+      : device(device),
+        numValues(size_t(width) * height * numChannels),
         width(width),
         height(height),
         numChannels(numChannels),
@@ -50,6 +53,17 @@ namespace oidn {
       bufferPtr = (char*)buffer.getData();
     }
 
+    ImageBuffer(const ImageBuffer& other)
+    {
+      copy(other);
+    }
+
+    ImageBuffer& operator =(const ImageBuffer& other)
+    {
+      copy(other);
+      return *this;
+    }
+
     operator bool() const
     {
       return data() != nullptr;
@@ -63,9 +77,16 @@ namespace oidn {
     {
       switch (dataType)
       {
-      case Format::Float: ((float*)bufferPtr)[i]   = x;
-      case Format::Half:  ((int16_t*)bufferPtr)[i] = float_to_half(x);
-      default:            assert(0);
+      case Format::Float:
+        ((float*)bufferPtr)[i] = x;
+        break;
+
+      case Format::Half:
+        ((int16_t*)bufferPtr)[i] = float_to_half(x);
+        break;
+
+      default:
+        assert(0);
       }
     }
 
@@ -74,9 +95,16 @@ namespace oidn {
     {
       switch (dataType)
       {
-      case Format::Float: ((float*)bufferPtr)[i]   = half_to_float(x);
-      case Format::Half:  ((int16_t*)bufferPtr)[i] = x;
-      default:            assert(0);
+      case Format::Float:
+        ((float*)bufferPtr)[i] = half_to_float(x);
+        break;
+
+      case Format::Half:
+        ((int16_t*)bufferPtr)[i] = x;
+        break;
+
+      default:
+        assert(0);
       }
     }
 
@@ -92,6 +120,23 @@ namespace oidn {
         return Format::Undefined;
       return Format(int(dataType) + numChannels - 1);
     }
+
+  private:
+    void copy(const ImageBuffer& other)
+    {
+      const size_t bufferSize = other.buffer.getSize();
+
+      device      = other.device;
+      buffer      = device.newBuffer(bufferSize);
+      bufferPtr   = (char*)buffer.getData();
+      numValues   = other.numValues;
+      width       = other.width;
+      height      = other.height;
+      numChannels = other.numChannels;
+      dataType    = other.dataType;
+
+      memcpy(bufferPtr, other.bufferPtr, bufferSize);
+    }
   };
 
   // Float
@@ -100,11 +145,16 @@ namespace oidn {
   {
     switch (dataType)
     {
-    case Format::Float: return ((float*)bufferPtr)[i];
-    case Format::Half:  return half_to_float(((int16_t*)bufferPtr)[i]);
-    default:            assert(0);
+    case Format::Float:
+      return ((float*)bufferPtr)[i];
+
+    case Format::Half:
+      return half_to_float(((int16_t*)bufferPtr)[i]);
+
+    default:
+      assert(0);
+      return 0;
     }
-    return 0;
   }
 
   // Half
@@ -113,11 +163,16 @@ namespace oidn {
   {
     switch (dataType)
     {
-    case Format::Float: return float_to_half(((float*)bufferPtr)[i]);
-    case Format::Half:  return ((int16_t*)bufferPtr)[i];
-    default:            assert(0);
+    case Format::Float:
+      return float_to_half(((float*)bufferPtr)[i]);
+
+    case Format::Half:
+      return ((int16_t*)bufferPtr)[i];
+
+    default:
+      assert(0);
+      return 0;
     }
-    return 0;
   }
 
   // Loads an image with an optionally specified number of channels (loads all
