@@ -124,13 +124,13 @@ OIDN_NAMESPACE_BEGIN
     }
 
     // Gets a pointer to the buffer data.
-    void* getData()
+    void* getData() const
     {
       return oidnGetBufferData(handle);
     }
 
     // Gets the size of the buffer in bytes.
-    size_t getSize()
+    size_t getSize() const
     {
       return oidnGetBufferSize(handle);
     }
@@ -283,7 +283,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Gets a parameter of the filter.
     template<typename T>
-    T get(const char* name);
+    T get(const char* name) const;
 
     // Sets the progress monitor callback function of the filter.
     void setProgressMonitorFunction(ProgressMonitorFunction func, void* userPtr = nullptr)
@@ -312,21 +312,21 @@ OIDN_NAMESPACE_BEGIN
 
   // Gets a boolean parameter of the filter.
   template<>
-  inline bool FilterRef::get(const char* name)
+  inline bool FilterRef::get(const char* name) const
   {
     return oidnGetFilter1b(handle, name);
   }
 
   // Gets an integer parameter of the filter.
   template<>
-  inline int FilterRef::get(const char* name)
+  inline int FilterRef::get(const char* name) const
   {
     return oidnGetFilter1i(handle, name);
   }
 
   // Gets a float parameter of the filter.
   template<>
-  inline float FilterRef::get(const char* name)
+  inline float FilterRef::get(const char* name) const
   {
     return oidnGetFilter1f(handle, name);
   }
@@ -439,7 +439,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Gets a parameter of the device.
     template<typename T>
-    T get(const char* name);
+    T get(const char* name) const;
 
     // Sets the error callback function of the device.
     void setErrorFunction(ErrorFunction func, void* userPtr = nullptr)
@@ -489,14 +489,14 @@ OIDN_NAMESPACE_BEGIN
 
   // Gets a boolean parameter of the device.
   template<>
-  inline bool DeviceRef::get(const char* name)
+  inline bool DeviceRef::get(const char* name) const
   {
     return oidnGetDevice1b(handle, name);
   }
 
   // Gets an integer parameter of the device (e.g. "version").
   template<>
-  inline int DeviceRef::get(const char* name)
+  inline int DeviceRef::get(const char* name) const
   {
     return oidnGetDevice1i(handle, name);
   }
