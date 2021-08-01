@@ -104,25 +104,20 @@ namespace oidn {
 
       int16_t* srcPtr  = (int16_t*)&src.ptr[srcIndex];
       int16_t* dstPtr0 = (int16_t*)&dst.ptr[dstIndex];
-      int16_t* dstPtr1 = dstPtr0 + K;
-      int16_t* dstPtr2 = dstPtr0 + dstRowStride;
-      int16_t* dstPtr3 = dstPtr2 + K;
+      int16_t* dstPtr1 = dstPtr0 + dstRowStride;
 
       for (int c = 0; c < src.C; c += K)
       {        
         simd<int16_t, K> v;
         v.copy_from(srcPtr);
 
-        v.copy_to(dstPtr0);
-        v.copy_to(dstPtr1);
-        v.copy_to(dstPtr2);
-        v.copy_to(dstPtr3);
+        simd<int16_t, K*2> v2 = v.replicate<2, 0, K, 1>(0);
+        v2.copy_to(dstPtr0);
+        v2.copy_to(dstPtr1);
 
         srcPtr  += srcPlaneStride;
         dstPtr0 += dstPlaneStride;
         dstPtr1 += dstPlaneStride;
-        dstPtr2 += dstPlaneStride;
-        dstPtr3 += dstPlaneStride;
       }
     }
   };
