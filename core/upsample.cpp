@@ -96,8 +96,6 @@ namespace oidn {
 
       const size_t srcRowStride   = (size_t)src.W * K;
       const size_t dstRowStride   = (size_t)dst.W * K;
-      const size_t srcPlaneStride = (size_t)src.H * srcRowStride;
-      const size_t dstPlaneStride = (size_t)dst.H * dstRowStride;
 
       const size_t srcIndex = (size_t)hSrc * srcRowStride + (size_t)wSrc * K;
       const size_t dstIndex = (size_t)hDst * dstRowStride + (size_t)wDst * K;
@@ -106,19 +104,12 @@ namespace oidn {
       int16_t* dstPtr0 = (int16_t*)&dst.ptr[dstIndex];
       int16_t* dstPtr1 = dstPtr0 + dstRowStride;
 
-      for (int c = 0; c < src.C; c += K)
-      {        
-        simd<int16_t, K> v;
-        v.copy_from(srcPtr);
+      simd<int16_t, K> v;
+      v.copy_from(srcPtr);
 
-        simd<int16_t, K*2> v2 = v.replicate<2, 0, K, 1>(0);
-        v2.copy_to(dstPtr0);
-        v2.copy_to(dstPtr1);
-
-        srcPtr  += srcPlaneStride;
-        dstPtr0 += dstPlaneStride;
-        dstPtr1 += dstPlaneStride;
-      }
+      simd<int16_t, K*2> v2 = v.replicate<2, 0, K, 1>(0);
+      v2.copy_to(dstPtr0);
+      v2.copy_to(dstPtr1);
     }
   };
 
@@ -139,7 +130,7 @@ namespace oidn {
     kernel.dst = *dst;
 
     auto& queue = ((SYCLDevice*)getDevice())->getSYCLQueue();
-    queue.parallel_for(sycl::range<2>(src->height(), src->width()), [=](sycl::id<2> idx) SYCL_ESIMD_KERNEL
+    queue.parallel_for(sycl::range<2>(src->height() * src->numChannels() / src->blockSize(), src->width()), [=](sycl::id<2> idx) SYCL_ESIMD_KERNEL
     {
       kernel(int(idx[0]), int(idx[1]));
     });
