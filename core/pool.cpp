@@ -18,45 +18,31 @@ namespace oidn {
     TensorAccessor<half> src;
     TensorAccessor<half> dst;
 
-    __forceinline void operator() (int hDst, int wDst) const SYCL_ESIMD_KERNEL
+    __forceinline void operator ()(size_t hDst, size_t wDst) const SYCL_ESIMD_KERNEL
     { 
       using namespace sycl::ext::intel::experimental::esimd;
 
-      const int hSrc = hDst * 2;
-      const int wSrc = wDst * 2;
+      const size_t hDstOffset = hDst * dst.rowStride;
+      const size_t wDstOffset = wDst * dst.itemStride;
+      
+      const size_t dstOffset = hDstOffset     + wDstOffset;
+      const size_t srcOffset = hDstOffset * 4 + wDstOffset * 2;
 
-      const size_t srcRowStride   = (size_t)src.W * K;
-      const size_t dstRowStride   = (size_t)dst.W * K;
-      const size_t srcPlaneStride = (size_t)src.H * srcRowStride;
-      const size_t dstPlaneStride = (size_t)dst.H * dstRowStride;
+      char* srcPtr0 = src.ptr + srcOffset;
+      char* srcPtr1 = srcPtr0 + src.itemStride;
+      char* srcPtr2 = srcPtr0 + src.rowStride;
+      char* srcPtr3 = srcPtr2 + src.itemStride;
+      char* dstPtr  = dst.ptr + dstOffset;
 
-      const size_t srcIndex = (size_t)hSrc * srcRowStride + (size_t)wSrc * K;
-      const size_t dstIndex = (size_t)hDst * dstRowStride + (size_t)wDst * K;
+      simd<int16_t, K> v0, v1, v2, v3;
+      v0.copy_from((int16_t*)srcPtr0);
+      v1.copy_from((int16_t*)srcPtr1);
+      v2.copy_from((int16_t*)srcPtr2);
+      v3.copy_from((int16_t*)srcPtr3);
 
-      int16_t* srcPtr0 = (int16_t*)&src.ptr[srcIndex];
-      int16_t* srcPtr1 = srcPtr0 + K;
-      int16_t* srcPtr2 = srcPtr0 + srcRowStride;
-      int16_t* srcPtr3 = srcPtr2 + K;
-      int16_t* dstPtr  = (int16_t*)&dst.ptr[dstIndex];
-
-      for (int c = 0; c < src.C; c += K)
-      {        
-        simd<int16_t, K> v0, v1, v2, v3;
-        v0.copy_from(srcPtr0);
-        v1.copy_from(srcPtr1);
-        v2.copy_from(srcPtr2);
-        v3.copy_from(srcPtr3);
-
-        // FIXME: use half
-        simd<int16_t, K> v = esimd_max(esimd_max(v0, v1), esimd_max(v2, v3));
-        v.copy_to(dstPtr);
-
-        srcPtr0 += srcPlaneStride;
-        srcPtr1 += srcPlaneStride;
-        srcPtr2 += srcPlaneStride;
-        srcPtr3 += srcPlaneStride;
-        dstPtr  += dstPlaneStride;
-      }
+      // FIXME: use half
+      simd<int16_t, K> v = esimd_max(esimd_max(v0, v1), esimd_max(v2, v3));
+      v.copy_to((int16_t*)dstPtr);
     }
   };
 
@@ -79,9 +65,9 @@ namespace oidn {
     kernel.dst = *dst;
 
     auto& queue = ((SYCLDevice*)getDevice())->getSYCLQueue();
-    queue.parallel_for(sycl::range<2>(dst->height(), dst->width()), [=](sycl::id<2> idx) SYCL_ESIMD_KERNEL
+    queue.parallel_for(sycl::range<2>(dst->height() * dst->numChannelBlocks(), dst->width()), [=](sycl::id<2> idx) SYCL_ESIMD_KERNEL
     {
-      kernel(int(idx[0]), int(idx[1]));
+      kernel(idx[0], idx[1]);
     });
   }
 

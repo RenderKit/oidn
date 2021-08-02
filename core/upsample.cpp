@@ -87,29 +87,26 @@ namespace oidn {
     TensorAccessor<half> src;
     TensorAccessor<half> dst;
 
-    __forceinline void operator() (int hSrc, int wSrc) const SYCL_ESIMD_KERNEL
+    __forceinline void operator ()(size_t hSrc, size_t wSrc) const SYCL_ESIMD_KERNEL
     { 
       using namespace sycl::ext::intel::experimental::esimd;
 
-      const int hDst = hSrc * 2;
-      const int wDst = wSrc * 2;
+      const size_t hSrcOffset = hSrc * src.rowStride;
+      const size_t wSrcOffset = wSrc * src.itemStride;
+      
+      const size_t srcOffset = hSrcOffset     + wSrcOffset;
+      const size_t dstOffset = hSrcOffset * 4 + wSrcOffset * 2;
 
-      const size_t srcRowStride   = (size_t)src.W * K;
-      const size_t dstRowStride   = (size_t)dst.W * K;
-
-      const size_t srcIndex = (size_t)hSrc * srcRowStride + (size_t)wSrc * K;
-      const size_t dstIndex = (size_t)hDst * dstRowStride + (size_t)wDst * K;
-
-      int16_t* srcPtr  = (int16_t*)&src.ptr[srcIndex];
-      int16_t* dstPtr0 = (int16_t*)&dst.ptr[dstIndex];
-      int16_t* dstPtr1 = dstPtr0 + dstRowStride;
+      char* srcPtr  = src.ptr + srcOffset;
+      char* dstPtr0 = dst.ptr + dstOffset;
+      char* dstPtr2 = dstPtr0 + dst.rowStride;
 
       simd<int16_t, K> v;
-      v.copy_from(srcPtr);
+      v.copy_from((int16_t*)srcPtr);
 
       simd<int16_t, K*2> v2 = v.replicate<2, 0, K, 1>(0);
-      v2.copy_to(dstPtr0);
-      v2.copy_to(dstPtr1);
+      v2.copy_to((int16_t*)dstPtr0);
+      v2.copy_to((int16_t*)dstPtr2);
     }
   };
 
@@ -130,9 +127,9 @@ namespace oidn {
     kernel.dst = *dst;
 
     auto& queue = ((SYCLDevice*)getDevice())->getSYCLQueue();
-    queue.parallel_for(sycl::range<2>(src->height() * src->numChannels() / src->blockSize(), src->width()), [=](sycl::id<2> idx) SYCL_ESIMD_KERNEL
+    queue.parallel_for(sycl::range<2>(src->height() * src->numChannelBlocks(), src->width()), [=](sycl::id<2> idx) SYCL_ESIMD_KERNEL
     {
-      kernel(int(idx[0]), int(idx[1]));
+      kernel(idx[0], idx[1]);
     });
   }
 

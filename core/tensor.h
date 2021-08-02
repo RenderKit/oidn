@@ -107,11 +107,17 @@ namespace oidn {
       }
     }
 
-    // Return the number of channels in the tensor
+    // Returns the number of channels in the tensor
     __forceinline int numChannels() const
     {
       assert(dims.size() >= 3);
       return int(dims[dims.size()-3]);
+    }
+
+    // Returns the number of channel blocks in the tensor
+    __forceinline int numChannelBlocks() const
+    {
+      return numChannels() / blockSize();
     }
 
     // Returns the height of the tensor
@@ -200,31 +206,35 @@ namespace oidn {
   struct TensorAccessor
   {
     static constexpr int K = 16; // FIXME
+    static constexpr size_t itemStride = K * sizeof(T);
 
-    T* ptr;
+    char* ptr;
+    size_t rowStride;
+    size_t planeStride;
+
     int C;
     int H;
     int W;
 
-    __forceinline size_t getIndex(int h, int w, int c) const
+    __forceinline size_t getOffset(int h, int w, int c) const
     {
     #if defined(OIDN_DNNL)
       // ChwKc layout (blocked)
-      return ((size_t)H * (c/K) + h) * ((size_t)W*K) + (size_t)w*K + (c%K);
+      return size_t(c/K) * planeStride + size_t(h) * rowStride + size_t(w) * itemStride + size_t(c%K) * sizeof(T);
     #else
       // chw layout
-      return ((size_t)H * c + h) * (size_t)W + w;
+      return size_t(c) * planeStride + size_t(h) * rowStride + size_t(w) * itemStride;
     #endif
     }
 
     __forceinline T get(int h, int w, int c) const
     {
-      return ptr[getIndex(h, w, c)];
+      return *(T*)(ptr + getOffset(h, w, c));
     }
 
     __forceinline void set(int h, int w, int c, T value) const
     {
-      ptr[getIndex(h, w, c)] = value;
+      *(T*)(ptr + getOffset(h, w, c)) = value;
     }
 
     __forceinline vec3<T> get3(int h, int w, int c) const
@@ -336,10 +346,12 @@ namespace oidn {
       //assert(dataType == DataType::Float32);
 
       TensorAccessor<T> result;
-      result.ptr = (T*)data();
+      result.ptr = (char*)data();
       result.C = numChannels();
       result.H = height();
       result.W = width();
+      result.rowStride   = size_t(result.W) * result.itemStride;
+      result.planeStride = size_t(result.H) * result.rowStride;
       return result;
     }
 
