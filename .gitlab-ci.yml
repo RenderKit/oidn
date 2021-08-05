@@ -9,7 +9,6 @@ stages:
   - report-scan
 
 variables:
-  CI_TOOLS_PATH: /NAS/tools/ci_tools/ci_tools-0.1.0/bin
   GIT_SUBMODULE_STRATEGY: recursive
   OIDN_ROOT_DIR:          "$CI_PROJECT_DIR"
   PYTHONUNBUFFERED:       1
@@ -495,7 +494,7 @@ av:
   script:
     - freshclam | tee -a /tmp/av_scan.log
     - clamscan -va --max-filesize=512M --max-scansize=2048M --alert-broken --alert-exceeds-max build/oidn-* | tee -a /tmp/av_scan.log
-    - $CI_TOOLS_PATH/store-files.sh $CI_PROJECT_NAME $CI_PIPELINE_ID av /tmp/av_scan.log
+    - $CI_TOOLS_PATH/bin/store-files.sh $CI_PROJECT_NAME $CI_PIPELINE_ID av /tmp/av_scan.log
     
 bdba:
   stage: scan
@@ -509,9 +508,9 @@ bdba:
     - package-macos
     - package-windows
   script:
-    - $CI_TOOLS_PATH/bdba.sh "build/oidn-*"
-    - $CI_TOOLS_PATH/store-files.sh $CI_PROJECT_NAME $CI_PIPELINE_ID bdba "oidn-*.pdf"
-    - $CI_TOOLS_PATH/store-files.sh $CI_PROJECT_NAME $CI_PIPELINE_ID bdba "oidn-*.csv"
+    - $CI_TOOLS_PATH/bin/bdba.sh "build/oidn-*"
+    - $CI_TOOLS_PATH/bin/store-files.sh $CI_PROJECT_NAME $CI_PIPELINE_ID bdba "oidn-*.pdf"
+    - $CI_TOOLS_PATH/bin/store-files.sh $CI_PROJECT_NAME $CI_PIPELINE_ID bdba "oidn-*.csv"
   artifacts:
     paths:
       - oidn-*.pdf
