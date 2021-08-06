@@ -144,12 +144,14 @@ namespace oidn {
     if (isCommitted())
       throw Exception(Error::InvalidOperation, "device can be committed only once");
 
-    // Get the optimal thread affinities (except on Apple Silicon)
+    // Get the thread affinities for one thread per core on non-hybrid CPUs with SMT
   #if !(defined(__APPLE__) && defined(OIDN_ARM64))
     if (setAffinity)
     {
-      affinity = std::make_shared<ThreadAffinity>(1, verbose); // one thread per core
-      if (affinity->getNumThreads() == 0)
+      affinity = std::make_shared<ThreadAffinity>(1, verbose);
+      if (affinity->getNumThreads() == 0 ||                                           // detection failed
+          tbb::this_task_arena::max_concurrency() == affinity->getNumThreads() ||     // no SMT
+          (tbb::this_task_arena::max_concurrency() % affinity->getNumThreads()) != 0) // hybrid
         affinity.reset();
     }
   #endif
@@ -263,8 +265,9 @@ namespace oidn {
   #else
     std::cout << " TBB_header_interface_" << TBB_INTERFACE_VERSION << " TBB_lib_interface_" << tbb::TBB_runtime_interface_version();
   #endif
-
     std::cout << std::endl;
+
+    std::cout << "  Threads : " << numThreads << " (" << (affinity ? "affinitized" : "non-affinitized") << ")" << std::endl;
 
     std::cout << std::endl;
   }

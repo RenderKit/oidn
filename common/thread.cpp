@@ -226,7 +226,7 @@ namespace oidn {
     }
 
     if ((numLogicalCpus % numPhysicalCpus != 0) && (numThreadsPerCore > 1))
-      return; // this shouldn't happen
+      return; // hybrid, not supported
     const int maxThreadsPerCore = numLogicalCpus / numPhysicalCpus;
 
     // Create the affinity structures

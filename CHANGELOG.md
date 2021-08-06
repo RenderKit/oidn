@@ -1,6 +1,10 @@
 Version History
 ---------------
 
+### Changes in v1.4.2:
+
+-   Fixed performance issue on CPUs with hybrid cores
+
 ### Changes in v1.4.1:
 
 -   Fixed crash when in-place denoising images with certain unusual resolutions
