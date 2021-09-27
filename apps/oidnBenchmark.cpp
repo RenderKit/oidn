@@ -275,6 +275,9 @@ int main(int argc, char* argv[])
     // Initialize the device
     DeviceRef device = newDevice();
 
+    if (verbose >= 0)
+      device.set("verbose", verbose);
+
     const char* errorMessage;
     if (device.getError(errorMessage) != Error::None)
       throw std::runtime_error(errorMessage);
@@ -284,8 +287,7 @@ int main(int argc, char* argv[])
       device.set("numThreads", numThreads);
     if (setAffinity >= 0)
       device.set("setAffinity", bool(setAffinity));
-    if (verbose >= 0)
-      device.set("verbose", verbose);
+
     device.commit();
 
     // Run the benchmarks
