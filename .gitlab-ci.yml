@@ -512,9 +512,6 @@ snyk-scan:
   needs: []
   script:
     - $CI_TOOLS_PATH/bin/snyk.sh
-  only:
-    - schedules
-    - web
 
 kw-check-issues:
   stage: report-scan
