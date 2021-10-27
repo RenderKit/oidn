@@ -124,14 +124,29 @@ namespace oidn {
 
   void Device::set1i(const std::string& name, int value)
   {
-    if (name == "numThreads" && !isEnvVar("OIDN_NUM_THREADS"))
-      numThreads = value;
-    else if (name == "setAffinity" && !isEnvVar("OIDN_SET_AFFINITY"))
-      setAffinity = value;
-    else if (name == "verbose" && !isEnvVar("OIDN_VERBOSE"))
+    if (name == "numThreads")
     {
-      verbose = value;
-      error.verbose = value;
+      if (!isEnvVar("OIDN_NUM_THREADS"))
+        numThreads = value;
+      else if (numThreads != value)
+        warning("OIDN_NUM_THREADS environment variable overrides device parameter");
+    }
+    else if (name == "setAffinity")
+    {
+      if (!isEnvVar("OIDN_SET_AFFINITY"))
+        setAffinity = value;
+      else if (setAffinity != value)
+        warning("OIDN_SET_AFFINITY environment variable overrides device parameter");
+    }
+    else if (name == "verbose")
+    {
+      if (!isEnvVar("OIDN_VERBOSE"))
+      {
+        verbose = value;
+        error.verbose = value;
+      }
+      else if (verbose != value || error.verbose != value)
+        warning("OIDN_VERBOSE environment variable overrides device parameter");
     }
     else
       warning("unknown device parameter");

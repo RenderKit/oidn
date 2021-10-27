@@ -1,9 +1,9 @@
 ## Copyright 2009-2021 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
-set(DNNL_VERSION_MAJOR 1)
-set(DNNL_VERSION_MINOR 6)
-set(DNNL_VERSION_PATCH 2)
+set(DNNL_VERSION_MAJOR 2)
+set(DNNL_VERSION_MINOR 2)
+set(DNNL_VERSION_PATCH 4)
 set(DNNL_VERSION_HASH  "N/A")
 
 set(DNNL_CPU_RUNTIME "TBB")
@@ -11,18 +11,20 @@ set(DNNL_CPU_THREADING_RUNTIME "TBB")
 set(DNNL_GPU_RUNTIME "NONE")
 
 configure_file(
-  "${PROJECT_SOURCE_DIR}/mkl-dnn/include/dnnl_config.h.in"
-  "${PROJECT_BINARY_DIR}/mkl-dnn/include/dnnl_config.h"
+  "${PROJECT_SOURCE_DIR}/mkl-dnn/include/oneapi/dnnl/dnnl_config.h.in"
+  "${PROJECT_BINARY_DIR}/mkl-dnn/include/oneapi/dnnl/dnnl_config.h"
 )
 configure_file(
-  "${PROJECT_SOURCE_DIR}/mkl-dnn/include/dnnl_version.h.in"
-  "${PROJECT_BINARY_DIR}/mkl-dnn/include/dnnl_version.h"
+  "${PROJECT_SOURCE_DIR}/mkl-dnn/include/oneapi/dnnl/dnnl_version.h.in"
+  "${PROJECT_BINARY_DIR}/mkl-dnn/include/oneapi/dnnl/dnnl_version.h"
 )
 
-file(GLOB_RECURSE DNNL_SOURCES
+file(GLOB DNNL_SOURCES
   mkl-dnn/src/common/*.[ch]
   mkl-dnn/src/common/*.[ch]pp
+  mkl-dnn/src/common/ittnotify/*.[ch]
   mkl-dnn/src/cpu/bfloat16.cpp
+  mkl-dnn/src/cpu/binary_injector_utils.[ch]pp
   mkl-dnn/src/cpu/cpu_concat.cpp
   mkl-dnn/src/cpu/cpu_concat_pd.hpp
   mkl-dnn/src/cpu/cpu_convolution_list.cpp
@@ -32,16 +34,18 @@ file(GLOB_RECURSE DNNL_SOURCES
   mkl-dnn/src/cpu/cpu_pooling_list.cpp
   mkl-dnn/src/cpu/cpu_pooling_pd.hpp
   mkl-dnn/src/cpu/cpu_primitive.hpp
-  mkl-dnn/src/cpu/cpu_reducer.[ch]pp
-  mkl-dnn/src/cpu/cpu_reorder.cpp
-  mkl-dnn/src/cpu/cpu_reorder_pd.hpp
   mkl-dnn/src/cpu/cpu_stream.hpp
   mkl-dnn/src/cpu/cpu_sum.cpp
   mkl-dnn/src/cpu/platform.[ch]pp
   mkl-dnn/src/cpu/simple_q10n.hpp
-  mkl-dnn/src/cpu/simple_reorder.hpp
+  mkl-dnn/src/cpu/jit_utils/*.[ch]pp
+  mkl-dnn/src/cpu/jit_utils/linux_perf/*.[ch]pp
+  mkl-dnn/src/cpu/reorder/cpu_reorder.[ch]pp
+  mkl-dnn/src/cpu/reorder/cpu_reorder_regular_f32_f32.cpp
+  mkl-dnn/src/cpu/reorder/simple_reorder.hpp
   mkl-dnn/src/cpu/x64/cpu_barrier.[ch]pp
   mkl-dnn/src/cpu/x64/cpu_isa_traits.[ch]pp
+  mkl-dnn/src/cpu/x64/cpu_reducer.[ch]pp
   mkl-dnn/src/cpu/x64/jit_avx2_conv_kernel_f32.[ch]pp
   mkl-dnn/src/cpu/x64/jit_avx2_convolution.[ch]pp
   mkl-dnn/src/cpu/x64/jit_avx512_common_convolution.[ch]pp
@@ -53,20 +57,19 @@ file(GLOB_RECURSE DNNL_SOURCES
   mkl-dnn/src/cpu/x64/jit_sse41_convolution.[ch]pp
   mkl-dnn/src/cpu/x64/jit_transpose_src_utils.[ch]pp
   mkl-dnn/src/cpu/x64/jit_uni_eltwise.[ch]pp
-  mkl-dnn/src/cpu/x64/jit_uni_eltwise_injector.[ch]pp
   mkl-dnn/src/cpu/x64/jit_uni_pooling.[ch]pp
   mkl-dnn/src/cpu/x64/jit_uni_pool_kernel.[ch]pp
   mkl-dnn/src/cpu/x64/jit_uni_reorder.[ch]pp
   mkl-dnn/src/cpu/x64/jit_uni_reorder_utils.cpp
-  mkl-dnn/src/cpu/x64/jit_utils/*.[ch]
-  mkl-dnn/src/cpu/x64/jit_utils/*.[ch]pp
+  mkl-dnn/src/cpu/x64/injectors/*.[ch]pp
   mkl-dnn/src/cpu/x64/xbyak/*.h
 )
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   file(GLOB DNNL_SOURCES_BIGOBJ
     mkl-dnn/src/cpu/cpu_engine.cpp
-    mkl-dnn/src/cpu/cpu_reorder.cpp
+    mkl-dnn/src/cpu/reorder/cpu_reorder_regular_f32_f32.cpp
+    mkl-dnn/src/cpu/cpu_convolution_list.cpp
   )
   set_source_files_properties(${DNNL_SOURCES_BIGOBJ} PROPERTIES COMPILE_FLAGS "/bigobj")
 endif()
@@ -86,6 +89,7 @@ target_include_directories(dnnl
 target_compile_definitions(dnnl
   PUBLIC
     -DDNNL_ENABLE_CONCURRENT_EXEC
+    -DDNNL_ENABLE_ITT_TASKS
 )
 
 set(DNNL_COMPILE_OPTIONS "")
