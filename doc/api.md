@@ -174,9 +174,9 @@ Type   Name            Default Description
                                should use; 0 will set it automatically to get
                                the best performance
 
-`bool` `setAffinity`      true bind software threads to hardware threads if set
-                               to true and supported by the device (improves
-                               performance); false disables binding
+`bool` `setAffinity`      true enables thread affinitization (pinning software
+                               threads to hardware threads) if it is necessary
+                               for achieving optimal performance
 ------ -------------- -------- -------------------------------------------------
 : Additional parameters supported only by CPU devices.
 

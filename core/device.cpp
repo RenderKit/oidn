@@ -159,7 +159,7 @@ namespace oidn {
     if (isCommitted())
       throw Exception(Error::InvalidOperation, "device can be committed only once");
 
-    // Get the thread affinities for one thread per core on non-hybrid CPUs
+    // Get the thread affinities for one thread per core on non-hybrid CPUs with SMT
   #if !(defined(__APPLE__) && defined(OIDN_ARM64))
     if (setAffinity
       #if TBB_INTERFACE_VERSION >= 12020 // oneTBB 2021.2 or later
@@ -169,8 +169,9 @@ namespace oidn {
     {
       affinity = std::make_shared<ThreadAffinity>(1, verbose);
       if (affinity->getNumThreads() == 0 ||                                           // detection failed
+          tbb::this_task_arena::max_concurrency() == affinity->getNumThreads() ||     // no SMT
           (tbb::this_task_arena::max_concurrency() % affinity->getNumThreads()) != 0) // hybrid SMT
-        affinity.reset(); // disable affinity
+        affinity.reset(); // disable affinitization
     }
   #endif
 
