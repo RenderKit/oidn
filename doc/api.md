@@ -175,8 +175,8 @@ Type   Name            Default Description
                                the best performance
 
 `bool` `setAffinity`      true bind software threads to hardware threads if set
-                               to true (improves performance); false disables
-                               binding
+                               to true and supported by the device (improves
+                               performance); false disables binding
 ------ -------------- -------- -------------------------------------------------
 : Additional parameters supported only by CPU devices.
 
