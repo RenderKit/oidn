@@ -3,7 +3,7 @@ Version History
 
 ### Changes in v1.4.2:
 
--   Fixed performance issue on CPUs with hybrid cores
+-   Fixed performance issue on CPUs with Intel Hybrid Technology
 
 ### Changes in v1.4.1:
 
