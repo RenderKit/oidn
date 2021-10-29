@@ -9,6 +9,9 @@ namespace oidn {
 
   using std::isfinite;
   using std::isnan;
+  using std::pow;
+  using std::log;
+  using std::exp;
 
   // Returns ceil(a / b) for non-negative integers
   template<typename Int, typename IntB>
@@ -26,9 +29,15 @@ namespace oidn {
     return ceil_div(a, b) * b;
   }
 
-  __forceinline float toFloatUnorm(uint32_t x)
+  __forceinline float to_float_unorm(uint32_t x)
   {
     return float(x) * 2.3283064365386962890625e-10f; // x / 2^32
+  }
+
+  // Maps nan to zero
+  __forceinline float nan_to_zero(float x)
+  {
+    return isnan(x) ? 0.f : x;
   }
 
 } // namespace oidn

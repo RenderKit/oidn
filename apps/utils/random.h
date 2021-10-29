@@ -43,7 +43,7 @@ namespace oidn {
     __forceinline float get1f()
     {
       next();
-      return toFloatUnorm(state);
+      return to_float_unorm(state);
     }
   };
 

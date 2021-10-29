@@ -4,27 +4,23 @@
 #include "tensor.isph"
 #include "image.isph"
 #include "color.isph"
+#include "reorder.isph"
 
 struct InputReorder
 {
   // Source
-  uniform Image color;
-  uniform Image albedo;
-  uniform Image normal;
+  uniform ImageAccessor color;
+  uniform ImageAccessor albedo;
+  uniform ImageAccessor normal;
 
   // Destination
-  uniform Tensor dst;
+  uniform TensorAccessor dst;
 
   // Tile
-  uniform int hSrcBegin;
-  uniform int wSrcBegin;
-  uniform int hDstBegin;
-  uniform int wDstBegin;
-  uniform int H;
-  uniform int W;
+  uniform ReorderTile tile;
 
   // Transfer function
-  uniform TransferFunction* uniform transferFunc;
+  uniform TransferFunction transferFunc;
   uniform bool hdr;
   uniform bool snorm; // signed normalized ([-1..1])
 };
@@ -38,7 +34,7 @@ inline void storeZero(uniform InputReorder* uniform self, uniform int h, int w, 
 inline void storeColor(uniform InputReorder* uniform self, uniform int h, int w, uniform int c, vec3f value)
 {
   // Scale
-  value = value * self->transferFunc->inputScale;
+  value = value * self->transferFunc.inputScale;
 
   // Sanitize
   value = clamp(nan_to_zero(value), self->snorm ? -1.f : 0.f, self->hdr ? pos_max : 1.f);
@@ -50,7 +46,7 @@ inline void storeColor(uniform InputReorder* uniform self, uniform int h, int w,
   }
 
   // Apply the transfer function
-  value = self->transferFunc->forward(self->transferFunc, value);
+  value = self->transferFunc.forward(&self->transferFunc, value);
 
   // Store
   set3f(self->dst, h, w, c, value);
@@ -61,14 +57,14 @@ inline void storeAlbedo(uniform InputReorder* uniform self, uniform int h, int w
 {
   // Scale
   if (!self->color.ptr)
-    value = value * self->transferFunc->inputScale;
+    value = value * self->transferFunc.inputScale;
 
   // Sanitize
   value = clamp(nan_to_zero(value), 0.f, 1.f);
 
   // Apply the transfer function
   if (!self->color.ptr)
-    value = self->transferFunc->forward(self->transferFunc, value);
+    value = self->transferFunc.forward(&self->transferFunc, value);
 
   // Store
   set3f(self->dst, h, w, c, value);
@@ -79,7 +75,7 @@ inline void storeNormal(uniform InputReorder* uniform self, uniform int h, int w
 {
   // Scale
   if (!self->color.ptr)
-    value = value * self->transferFunc->inputScale;
+    value = value * self->transferFunc.inputScale;
 
   // Sanitize
   value = clamp(nan_to_zero(value), -1.f, 1.f);
@@ -93,24 +89,24 @@ inline void storeNormal(uniform InputReorder* uniform self, uniform int h, int w
 
 export void InputReorder_kernel(uniform InputReorder* uniform self, uniform int hDst)
 {
-  const uniform int h = hDst - self->hDstBegin;
+  const uniform int h = hDst - self->tile.hDstBegin;
 
-  if (h >= 0 && h < self->H)
+  if (h >= 0 && h < self->tile.H)
   {
-    const uniform int hSrc = h + self->hSrcBegin;
+    const uniform int hSrc = h + self->tile.hSrcBegin;
 
     // Zero pad
-    foreach (wDst = 0 ... self->wDstBegin)
+    foreach (wDst = 0 ... self->tile.wDstBegin)
     {
       for (uniform int c = 0; c < self->dst.C; ++c)
         storeZero(self, hDst, wDst, c);
     }
 
     // Reorder
-    foreach (w = 0 ... self->W)
+    foreach (w = 0 ... self->tile.W)
     {
-      const int wSrc = w + self->wSrcBegin;
-      const int wDst = w + self->wDstBegin;
+      const int wSrc = w + self->tile.wSrcBegin;
+      const int wDst = w + self->tile.wDstBegin;
 
       uniform int c = 0;
 
@@ -137,7 +133,7 @@ export void InputReorder_kernel(uniform InputReorder* uniform self, uniform int 
     }
 
     // Zero pad
-    foreach (wDst = self->W + self->wDstBegin ... self->dst.W)
+    foreach (wDst = self->tile.W + self->tile.wDstBegin ... self->dst.W)
     {
       for (uniform int c = 0; c < self->dst.C; ++c)
         storeZero(self, hDst, wDst, c);

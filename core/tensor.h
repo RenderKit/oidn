@@ -6,27 +6,9 @@
 #include "device.h"
 #include "buffer.h"
 #include <vector>
+#include <fstream>
 
 namespace oidn {
-  
-  // Tensor data type
-  enum class DataType
-  {
-    Float32,
-    UInt8,
-  };
-
-  // Returns the size of the specified data type in bytes
-  __forceinline size_t getByteSize(DataType dataType)
-  {
-    switch (dataType)
-    {
-    case DataType::Float32: return 4;
-    case DataType::UInt8:   return 1;
-    default:
-      throw Exception(Error::Unknown, "invalid tensor data type");
-    }
-  }
 
   // Tensor dimensions
   using TensorDims = std::vector<int64_t>;
@@ -125,6 +107,33 @@ namespace oidn {
       }
     }
 
+    // Returns the number of channels in the tensor
+    __forceinline int numChannels() const
+    {
+      assert(dims.size() >= 3);
+      return int(dims[dims.size()-3]);
+    }
+
+    // Returns the number of channel blocks in the tensor
+    __forceinline int numChannelBlocks() const
+    {
+      return numChannels() / blockSize();
+    }
+
+    // Returns the height of the tensor
+    __forceinline int height() const
+    {
+      assert(dims.size() >= 2);
+      return int(dims[dims.size()-2]);
+    }
+
+    // Returns the width of the tensor
+    __forceinline int width() const
+    {
+      assert(dims.size() >= 2);
+      return int(dims[dims.size()-1]);
+    }
+
     __forceinline bool operator ==(const TensorDesc& other) const
     {
       return (dims == other.dims) && (layout == other.layout) && (dataType == other.dataType);
@@ -176,6 +185,9 @@ namespace oidn {
       {
       case DataType::Float32:
         dnnlType = dnnl::memory::data_type::f32;
+        break;
+      case DataType::Float16:
+        dnnlType = dnnl::memory::data_type::f16;
         break;
       case DataType::UInt8:
         dnnlType = dnnl::memory::data_type::u8;
@@ -277,16 +289,16 @@ namespace oidn {
     { return ((T*)data())[getIndex(i0, i1, i2, i3)]; }
 
     // Converts to ISPC equivalent
-    operator ispc::Tensor() const
+    operator ispc::TensorAccessor() const
     {
       assert(ndims() == 3);
       assert(dataType == DataType::Float32);
 
-      ispc::Tensor result;
+      ispc::TensorAccessor result;
       result.ptr = (float*)data();
-      result.C = dims[0];
-      result.H = dims[1];
-      result.W = dims[2];
+      result.C = numChannels();
+      result.H = height();
+      result.W = width();
       return result;
     }
 
@@ -326,6 +338,9 @@ namespace oidn {
       {
       case DataType::Float32:
         bnnsDesc.data_type = BNNSDataTypeFloat32;
+        break;
+      case DataType::Float16:
+        bnnsDesc.data_type = BNNSDataTypeFloat16;
         break;
       case DataType::UInt8:
         bnnsDesc.data_type = BNNSDataTypeUInt8;
@@ -394,6 +409,44 @@ namespace oidn {
       #else
         ptr = buffer->data() + bufferOffset;
       #endif
+      }
+    }
+
+  public:
+    void dump(const std::string& filenamePrefix) const
+    {
+      assert(ndims() == 3);
+      assert(dataType == DataType::Float32);
+
+      const int C = dims[0];
+      const int H = dims[1];
+      const int W = dims[2];
+      const int K = blockSize();
+
+      const float* ptr = (const float*)data();
+
+      for (int c = 0; c < C; ++c)
+      {
+        // Open the file
+        const std::string filename = filenamePrefix + toString(c) + ".pfm";
+        std::ofstream file(filename, std::ios::binary);
+        if (file.fail())
+          throw std::runtime_error("cannot open image file: " + std::string(filename));
+
+        // Write the header
+        file << "Pf" << std::endl;
+        file << W << " " << H << std::endl;
+        file << "-1.0" << std::endl;
+
+        // Write the pixels
+        for (int h = H-1; h >= 0; --h)
+        {
+          for (int w = 0; w < W; ++w)
+          {
+            const float x = ptr[((size_t)H * (c/K) + h) * ((size_t)W*K) + (size_t)w*K + (c%K)];
+            file.write((char*)&x, sizeof(float));
+          }
+        }
       }
     }
   };

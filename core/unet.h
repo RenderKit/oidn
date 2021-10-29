@@ -80,7 +80,7 @@ namespace oidn {
     float get1f(const std::string& name) override;
 
     void commit() override;
-    void execute() override;
+    void execute(bool sync) override;
 
   private:
     void init();

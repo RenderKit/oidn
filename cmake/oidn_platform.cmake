@@ -24,6 +24,10 @@ set(OIDN_CXX_FLAGS)
 add_definitions(-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS)
 
 if(MSVC)
+  if(CMAKE_BASE_NAME STREQUAL "icx" OR CMAKE_BASE_NAME STREQUAL "icpx")
+    # Default fp-model in icx and dpcpp (unlike clang) may be precise or fast=1 depending on the version
+    append(OIDN_C_CXX_FLAGS "/fp:precise")
+  endif()
   append_if(OIDN_WARN_AS_ERRORS OIDN_C_CXX_FLAGS "/WX")
   # Enable intrinsic functions
   append(OIDN_C_CXX_FLAGS "/Oi")
@@ -70,6 +74,10 @@ if(MSVC)
     append(OIDN_C_CXX_FLAGS "-Wno-unneeded-internal-declaration")
   endif()
 elseif(UNIX OR MINGW)
+  if(CMAKE_BASE_NAME STREQUAL "icx" OR CMAKE_BASE_NAME STREQUAL "icpx")
+    # Default fp-model in icx and dpcpp (unlike clang) may be precise or fast=1 depending on the version
+    append(OIDN_C_CXX_FLAGS "-ffp-model=precise -fno-reciprocal-math")
+  endif()
   append(OIDN_C_CXX_FLAGS "-Wall -Wno-unknown-pragmas")
   append_if(OIDN_WARN_AS_ERRORS OIDN_C_CXX_FLAGS "-Werror")
   append(OIDN_C_CXX_FLAGS "-fvisibility=internal")

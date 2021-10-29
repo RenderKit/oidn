@@ -37,7 +37,7 @@ namespace oidn {
     void setProgressMonitorFunction(ProgressMonitorFunction func, void* userPtr);
 
     virtual void commit() = 0;
-    virtual void execute() = 0;
+    virtual void execute(bool sync = true) = 0;
 
     Device* getDevice() { return device.get(); }
 

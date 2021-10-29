@@ -27,13 +27,13 @@ namespace oidn {
     void srgbForward(ImageBuffer& image)
     {
       for (size_t i = 0; i < image.size(); ++i)
-        image[i] = srgbForward(image[i]);
+        image.set(i, srgbForward(image.get(i)));
     }
 
     void srgbInverse(ImageBuffer& image)
     {
       for (size_t i = 0; i < image.size(); ++i)
-        image[i] = srgbInverse(image[i]);
+        image.set(i, srgbInverse(image.get(i)));
     }
 
     std::string getExtension(const std::string& filename)
@@ -49,7 +49,7 @@ namespace oidn {
       }
     }
 
-    std::shared_ptr<ImageBuffer> loadImagePFM(const std::string& filename, int numChannels)
+    std::shared_ptr<ImageBuffer> loadImagePFM(DeviceRef& device, const std::string& filename, int numChannels)
     {
       // Open the file
       std::ifstream file(filename, std::ios::binary);
@@ -88,7 +88,7 @@ namespace oidn {
       scale = fabs(scale);
 
       // Read the pixels
-      auto image = std::make_shared<ImageBuffer>(W, H, numChannels);
+      auto image = std::make_shared<ImageBuffer>(device, W, H, numChannels);
 
       for (int h = 0; h < H; ++h)
       {
@@ -99,7 +99,7 @@ namespace oidn {
             float x;
             file.read((char*)&x, sizeof(float));
             if (c < numChannels)
-              (*image)[(size_t(H-1-h)*W + w) * numChannels + c] = x * scale;
+              image->set((size_t(H-1-h)*W + w) * numChannels + c, x * scale);
           }
         }
       }
@@ -133,7 +133,7 @@ namespace oidn {
         {
           for (int c = 0; c < 3; ++c)
           {
-            const float x = image[(size_t(H-1-h)*W + w) * C + c];
+            const float x = image.get((size_t(H-1-h)*W + w) * C + c);
             file.write((char*)&x, sizeof(float));
           }
         }
@@ -163,7 +163,7 @@ namespace oidn {
       {
         for (int c = 0; c < 3; ++c)
         {
-          const float x = image[i*C+c];
+          const float x = image.get(i*C+c);
           const int ch = std::min(std::max(int(x * 255.f), 0), 255);
           file.put(char(ch));
         }
@@ -172,7 +172,7 @@ namespace oidn {
   }
 
 #ifdef OIDN_USE_OPENIMAGEIO
-  std::shared_ptr<ImageBuffer> loadImageOIIO(const std::string& filename, int numChannels)
+  std::shared_ptr<ImageBuffer> loadImageOIIO(DeviceRef& device, const std::string& filename, int numChannels)
   {
     auto in = OIIO::ImageInput::open(filename);
     if (!in)
@@ -183,8 +183,11 @@ namespace oidn {
       numChannels = spec.nchannels;
     else if (spec.nchannels < numChannels)
       throw std::runtime_error("not enough image channels");
-    auto image = std::make_shared<ImageBuffer>(spec.width, spec.height, numChannels);
-    if (!in->read_image(0, 0, 0, numChannels, OIIO::TypeDesc::FLOAT, image->data()))
+
+    const bool isFP16 = spec.channelformat(0) == OIIO::TypeDesc::HALF;
+    auto image = std::make_shared<ImageBuffer>(device, spec.width, spec.height, numChannels,
+                                               isFP16 ? Format::Half : Format::Float);
+    if (!in->read_image(0, 0, 0, numChannels, isFP16 ? OIIO::TypeDesc::HALF : OIIO::TypeDesc::FLOAT, image->data()))
       throw std::runtime_error("failed to read image data");
     in->close();
 
@@ -200,14 +203,22 @@ namespace oidn {
     if (!out)
       throw std::runtime_error("cannot save unsupported image file format: " + filename);
 
+    OIIO::TypeDesc format;
+    switch (image.dataType)
+    {
+    case Format::Float: format = OIIO::TypeDesc::FLOAT; break;
+    case Format::Half:  format = OIIO::TypeDesc::HALF;  break;
+    default:            throw std::runtime_error("unsupported image data type");
+    }
+
     OIIO::ImageSpec spec(image.width,
                          image.height,
                          image.numChannels,
-                         OIIO::TypeDesc::FLOAT);
+                         format);
 
     if (!out->open(filename, spec))
       throw std::runtime_error("cannot create image file: " + filename);
-    if (!out->write_image(OIIO::TypeDesc::FLOAT, image.data()))
+    if (!out->write_image(format, image.data()))
       throw std::runtime_error("failed to write image data");
     out->close();
 
@@ -217,16 +228,16 @@ namespace oidn {
   }
 #endif
 
-  std::shared_ptr<ImageBuffer> loadImage(const std::string& filename, int numChannels)
+  std::shared_ptr<ImageBuffer> loadImage(DeviceRef& device, const std::string& filename, int numChannels)
   {
     const std::string ext = getExtension(filename);
     std::shared_ptr<ImageBuffer> image;
 
     if (ext == "pfm")
-      image = loadImagePFM(filename, numChannels);
+      image = loadImagePFM(device, filename, numChannels);
     else
 #if OIDN_USE_OPENIMAGEIO
-      image = loadImageOIIO(filename, numChannels);
+      image = loadImageOIIO(device, filename, numChannels);
 #else
       throw std::runtime_error("cannot load unsupported image file format: " + filename);
 #endif
@@ -255,9 +266,9 @@ namespace oidn {
     return ext != "pfm" && ext != "exr" && ext != "hdr";
   }
 
-  std::shared_ptr<ImageBuffer> loadImage(const std::string& filename, int numChannels, bool srgb)
+  std::shared_ptr<ImageBuffer> loadImage(DeviceRef& device, const std::string& filename, int numChannels, bool srgb)
   {
-    auto image = loadImage(filename, numChannels);
+    auto image = loadImage(device, filename, numChannels);
     if (!srgb && isSrgbImage(filename))
       srgbInverse(*image);
     return image;
@@ -288,8 +299,8 @@ namespace oidn {
 
     for (size_t i = 0; i < image.size(); ++i)
     {
-      const float actual = image[i];
-      const float expect = ref[i];
+      const float actual = image.get(i);
+      const float expect = ref.get(i);
 
       float error = std::abs(expect - actual);
       if (expect != 0)

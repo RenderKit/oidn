@@ -70,6 +70,7 @@
 #include <sstream>
 #include <iostream>
 #include <cassert>
+
 #include "include/OpenImageDenoise/oidn.hpp"
 
 namespace oidn {
@@ -100,9 +101,9 @@ namespace oidn {
   using std::max;
 
   template<typename T>
-  __forceinline T clamp(const T& value, const T& minValue, const T& maxValue)
+  __forceinline T clamp(const T& x, const T& minVal, const T& maxVal)
   {
-    return min(max(value, minValue), maxValue);
+    return min(max(x, minVal), maxVal);
   }
 
   constexpr size_t memoryAlignment = 128;
@@ -165,8 +166,24 @@ namespace oidn {
   }
 
   // ---------------------------------------------------------------------------
+  // FP16
+  // ---------------------------------------------------------------------------
+
+  float half_to_float(int16_t x);
+  int16_t float_to_half(float x);
+
+  // ---------------------------------------------------------------------------
   // System information
   // ---------------------------------------------------------------------------
+
+  enum class ISA
+  {
+    SSE41,
+    AVX2,
+    AVX512_CORE
+  };
+
+  bool isISASupported(ISA isa);
 
   std::string getPlatformName();
   std::string getCompilerName();

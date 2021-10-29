@@ -4,38 +4,34 @@
 #include "tensor.isph"
 #include "image.isph"
 #include "color.isph"
+#include "reorder.isph"
 
 struct OutputReorder
 {
   // Source
-  uniform Tensor src;
+  uniform TensorAccessor src;
 
   // Destination
-  uniform Image output;
+  uniform ImageAccessor output;
 
   // Tile
-  uniform int hSrcBegin;
-  uniform int wSrcBegin;
-  uniform int hDstBegin;
-  uniform int wDstBegin;
-  uniform int H;
-  uniform int W;
+  uniform ReorderTile tile;
 
   // Transfer function
-  uniform TransferFunction* uniform transferFunc;
+  uniform TransferFunction transferFunc;
   uniform bool hdr;
   uniform bool snorm; // signed normalized ([-1..1])
 };
 
 export void OutputReorder_kernel(uniform OutputReorder* uniform self, uniform int h)
 {
-  const uniform int hSrc = h + self->hSrcBegin;
-  const uniform int hDst = h + self->hDstBegin;
+  const uniform int hSrc = h + self->tile.hSrcBegin;
+  const uniform int hDst = h + self->tile.hDstBegin;
 
-  foreach (w = 0 ... self->W)
+  foreach (w = 0 ... self->tile.W)
   {
-    const int wSrc = w + self->wSrcBegin;
-    const int wDst = w + self->wDstBegin;
+    const int wSrc = w + self->tile.wSrcBegin;
+    const int wDst = w + self->tile.wDstBegin;
 
     // Load
     vec3f value = get3f(self->src, hSrc, wSrc, 0);
@@ -44,7 +40,7 @@ export void OutputReorder_kernel(uniform OutputReorder* uniform self, uniform in
     value = clamp(nan_to_zero(value), 0.f, pos_max);
 
     // Apply the inverse transfer function
-    value = self->transferFunc->inverse(self->transferFunc, value);
+    value = self->transferFunc.inverse(&self->transferFunc, value);
 
     // Sanitize
     if (self->snorm)
@@ -57,7 +53,7 @@ export void OutputReorder_kernel(uniform OutputReorder* uniform self, uniform in
       value = min(value, 1.f);
 
     // Scale
-    value = value * self->transferFunc->outputScale;
+    value = value * self->transferFunc.outputScale;
 
     // Store
     set3f(self->output, hDst, wDst, value);

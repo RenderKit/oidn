@@ -140,6 +140,9 @@ set(CORE_SOURCES
   core/color.cpp
   core/common.h
   core/conv.h
+  core/cpu_buffer.h
+  core/cpu_device.h
+  core/cpu_device.cpp
   core/data.h
   core/device.h
   core/device.cpp
@@ -147,11 +150,14 @@ set(CORE_SOURCES
   core/filter.cpp
   core/image.h
   core/input_reorder.h
+  core/input_reorder.cpp
   core/network.h
   core/network.cpp
   core/node.h
   core/output_copy.h
+  core/output_copy.cpp
   core/output_reorder.h
+  core/output_reorder.cpp
   core/pool.h
   core/progress.h
   core/reorder.h
@@ -163,6 +169,8 @@ set(CORE_SOURCES
   core/unet.h
   core/unet.cpp
   core/upsample.h
+  core/upsample.cpp
+  core/vec.h
 )
 
 set(CORE_SOURCES_ISPC
@@ -174,6 +182,7 @@ set(CORE_SOURCES_ISPC
   core/upsample.ispc
   core/output_copy.ispc
   core/output_reorder.ispc
+  core/reorder.isph
   core/tensor.isph
   core/vec.isph
 )

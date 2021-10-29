@@ -25,6 +25,7 @@ using namespace oidn;
 
 int width  = -1;
 int height = -1;
+Format dataType = Format::Float;
 int numRuns = 4;
 int maxMemoryMB = -1;
 bool inplace = false;
@@ -32,8 +33,10 @@ bool inplace = false;
 void printUsage()
 {
   std::cout << "Intel(R) Open Image Denoise - Benchmark" << std::endl;
-  std::cout << "usage: oidnBenchmark [-r/--run regex] [-n times]" << std::endl
+  std::cout << "usage: oidnBenchmark [-d/--device default|cpu]" << std::endl
+            << "                     [-r/--run regex] [-n times]" << std::endl
             << "                     [-s/--size width height]" << std::endl
+            << "                     [-t/--type float|half]" << std::endl
             << "                     [--threads n] [--affinity 0|1] [--maxmem MB] [--inplace]" << std::endl
             << "                     [-v/--verbose 0-3]" << std::endl
             << "                     [-l/--list] [-h/--help]" << std::endl;
@@ -87,7 +90,7 @@ void addBenchmark(const std::string& filter, const std::vector<std::string>& inp
 void initImage(ImageBuffer& image, Random& rng, float minValue, float maxValue)
 {
   for (size_t i = 0; i < image.size(); ++i)
-    image[i] = minValue + rng.get1f() * (maxValue - minValue);
+    image.set(i, minValue + rng.get1f() * (maxValue - minValue));
 }
 
 // Runs a benchmark
@@ -104,32 +107,32 @@ void runBenchmark(DeviceRef& device, const Benchmark& bench)
   std::shared_ptr<ImageBuffer> albedo;
   if (bench.hasInput("alb"))
   {
-    input = albedo = std::make_shared<ImageBuffer>(bench.width, bench.height, 3);
+    input = albedo = std::make_shared<ImageBuffer>(device, bench.width, bench.height, 3, dataType);
     initImage(*albedo, rng, 0.f, 1.f);
-    filter.setImage("albedo", albedo->data(), Format::Float3, bench.width, bench.height);
+    filter.setImage("albedo", albedo->data(), albedo->format(), bench.width, bench.height);
   }
 
   std::shared_ptr<ImageBuffer> normal;
   if (bench.hasInput("nrm"))
   {
-    input = normal = std::make_shared<ImageBuffer>(bench.width, bench.height, 3);
+    input = normal = std::make_shared<ImageBuffer>(device, bench.width, bench.height, 3, dataType);
     initImage(*normal, rng, -1.f, 1.f);
-    filter.setImage("normal", normal->data(), Format::Float3, bench.width, bench.height);
+    filter.setImage("normal", normal->data(), normal->format(), bench.width, bench.height);
   }
 
   std::shared_ptr<ImageBuffer> color;
   if (bench.hasInput("hdr"))
   {
-    input = color = std::make_shared<ImageBuffer>(bench.width, bench.height, 3);
+    input = color = std::make_shared<ImageBuffer>(device, bench.width, bench.height, 3, dataType);
     initImage(*color, rng, 0.f, 100.f);
-    filter.setImage("color", color->data(), Format::Float3, bench.width, bench.height);
+    filter.setImage("color", color->data(), color->format(), bench.width, bench.height);
     filter.set("hdr", true);
   }
   else if (bench.hasInput("ldr"))
   {
-    input = color = std::make_shared<ImageBuffer>(bench.width, bench.height, 3);
+    input = color = std::make_shared<ImageBuffer>(device, bench.width, bench.height, 3, dataType);
     initImage(*color, rng, 0.f, 1.f);
-    filter.setImage("color", color->data(), Format::Float3, bench.width, bench.height);
+    filter.setImage("color", color->data(), color->format(), bench.width, bench.height);
     filter.set("hdr", false);
   }
 
@@ -137,8 +140,8 @@ void runBenchmark(DeviceRef& device, const Benchmark& bench)
   if (inplace)
     output = input;
   else
-    output = std::make_shared<ImageBuffer>(bench.width, bench.height, 3);
-  filter.setImage("output", output->data(), Format::Float3, bench.width, bench.height);
+    output = std::make_shared<ImageBuffer>(device, bench.width, bench.height, 3, dataType);
+  filter.setImage("output", output->data(), output->format(), bench.width, bench.height);
 
   if (maxMemoryMB >= 0)
     filter.set("maxMemoryMB", maxMemoryMB);
@@ -208,6 +211,7 @@ void addAllBenchmarks()
 
 int main(int argc, char* argv[])
 {
+  DeviceType deviceType = DeviceType::Default;
   std::string run = ".*";
   int numThreads = -1;
   int setAffinity = -1;
@@ -219,7 +223,17 @@ int main(int argc, char* argv[])
     while (args.hasNext())
     {
       std::string opt = args.getNextOpt();
-      if (opt == "r" || opt == "run")
+      if (opt == "d" || opt == "dev" || opt == "device")
+      {
+        const auto val = args.getNextValue();
+        if (val == "default" || val == "Default")
+          deviceType = DeviceType::Default;
+        else if (val == "cpu" || val == "CPU")
+          deviceType = DeviceType::CPU;
+        else
+          throw std::invalid_argument("invalid device");
+      }
+      else if (opt == "r" || opt == "run")
         run = args.getNextValue();
       else if (opt == "n")
       {
@@ -233,6 +247,16 @@ int main(int argc, char* argv[])
         height = args.getNextValueInt();
         if (width < 1 || height < 1)
           throw std::runtime_error("invalid image size");
+      }
+      else if (opt == "t" || opt == "type" || opt == "dtype")
+      {
+        const auto val = args.getNextValue();
+        if (val == "float" || val == "Float" || val == "fp32" || val == "f32" || val == "f")
+          dataType = Format::Float;
+        else if (val == "half" || val == "Half" || val == "fp16" || val == "f16" || val == "h")
+          dataType = Format::Half;
+        else
+          throw std::runtime_error("invalid data type");
       }
       else if (opt == "threads")
         numThreads = args.getNextValueInt();
@@ -273,7 +297,7 @@ int main(int argc, char* argv[])
   #endif
 
     // Initialize the device
-    DeviceRef device = newDevice();
+    DeviceRef device = newDevice(deviceType);
 
     if (verbose >= 0)
       device.set("verbose", verbose);

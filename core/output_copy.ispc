@@ -6,10 +6,10 @@
 struct OutputCopy
 {
   // Source
-  uniform Image src;
+  uniform ImageAccessor src;
 
   // Destination
-  uniform Image dst;
+  uniform ImageAccessor dst;
 
   // Size
   uniform int H;

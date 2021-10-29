@@ -24,7 +24,8 @@ using namespace oidn;
 void printUsage()
 {
   std::cout << "Intel(R) Open Image Denoise" << std::endl;
-  std::cout << "usage: oidnDenoise [-f/--filter RT|RTLightmap]" << std::endl
+  std::cout << "usage: oidnDenoise [-d/--device default|cpu]" << std::endl
+            << "                   [-f/--filter RT|RTLightmap]" << std::endl
             << "                   [--hdr color.pfm] [--ldr color.pfm] [--srgb] [--dir directional.pfm]" << std::endl
             << "                   [--alb albedo.pfm] [--nrm normal.pfm] [--clean_aux]" << std::endl
             << "                   [--is/--input_scale value]" << std::endl
@@ -75,6 +76,7 @@ std::vector<char> loadFile(const std::string& filename)
 
 int main(int argc, char* argv[])
 {
+  DeviceType deviceType = DeviceType::Default;
   std::string filterType = "RT";
   std::string colorFilename, albedoFilename, normalFilename;
   std::string outputFilename, refFilename;
@@ -104,7 +106,17 @@ int main(int argc, char* argv[])
     while (args.hasNext())
     {
       std::string opt = args.getNextOpt();
-      if (opt == "f" || opt == "filter")
+      if (opt == "d" || opt == "dev" || opt == "device")
+      {
+        const auto val = args.getNextValue();
+        if (val == "default" || val == "Default")
+          deviceType = DeviceType::Default;
+        else if (val == "cpu" || val == "CPU")
+          deviceType = DeviceType::CPU;
+        else
+          throw std::invalid_argument("invalid device");
+      }
+      else if (opt == "f" || opt == "filter")
         filterType = args.getNextValue();
       else if (opt == "hdr")
       {
@@ -177,6 +189,35 @@ int main(int argc, char* argv[])
     }
   #endif
 
+    // Initialize the denoising device
+    std::cout << "Initializing device" << std::endl;
+    Timer timer;
+
+    DeviceRef device = newDevice(deviceType);
+
+    const char* errorMessage;
+    if (device.getError(errorMessage) != Error::None)
+      throw std::runtime_error(errorMessage);
+    device.setErrorFunction(errorCallback);
+
+    if (numThreads > 0)
+      device.set("numThreads", numThreads);
+    if (setAffinity >= 0)
+      device.set("setAffinity", bool(setAffinity));
+    if (verbose >= 0)
+      device.set("verbose", verbose);
+    device.commit();
+
+    const double deviceInitTime = timer.query();
+
+    const int versionMajor = device.get<int>("versionMajor");
+    const int versionMinor = device.get<int>("versionMinor");
+    const int versionPatch = device.get<int>("versionPatch");
+
+    std::cout << "  device=" << (deviceType == DeviceType::Default ? "default" : (deviceType == DeviceType::CPU ? "CPU" : "unknown"))
+              << ", version=" << versionMajor << "." << versionMinor << "." << versionPatch
+              << ", msec=" << (1000. * deviceInitTime) << std::endl;
+
     // Load the input image
     std::shared_ptr<ImageBuffer> input, ref;
     std::shared_ptr<ImageBuffer> color, albedo, normal;
@@ -184,20 +225,20 @@ int main(int argc, char* argv[])
     std::cout << "Loading input" << std::endl;
 
     if (!albedoFilename.empty())
-      input = albedo = loadImage(albedoFilename, 3, false);
+      input = albedo = loadImage(device, albedoFilename, 3, false);
 
     if (!normalFilename.empty())
-      input = normal = loadImage(normalFilename, 3);
+      input = normal = loadImage(device, normalFilename, 3);
 
     if (!colorFilename.empty())
-      input = color = loadImage(colorFilename, 3, srgb);
+      input = color = loadImage(device, colorFilename, 3, srgb);
 
     if (!input)
       throw std::runtime_error("no input image specified");
 
     if (!refFilename.empty())
     {
-      ref = loadImage(refFilename, 3, srgb);
+      ref = loadImage(device, refFilename, 3, srgb);
       if (ref->dims() != input->dims())
         throw std::runtime_error("invalid reference output image");
     }
@@ -211,7 +252,7 @@ int main(int argc, char* argv[])
     if (inplace)
       output = input;
     else
-      output = std::make_shared<ImageBuffer>(width, height, 3);
+      output = std::make_shared<ImageBuffer>(device, width, height, 3, input->dataType);
 
     // Load the filter weights if specified
     std::vector<char> weights;
@@ -222,39 +263,19 @@ int main(int argc, char* argv[])
     }
 
     // Initialize the denoising filter
-    std::cout << "Initializing" << std::endl;
-    Timer timer;
-
-    DeviceRef device = newDevice();
-
-    if (verbose >= 0)
-      device.set("verbose", verbose);
-
-    const char* errorMessage;
-    if (device.getError(errorMessage) != Error::None)
-      throw std::runtime_error(errorMessage);
-    device.setErrorFunction(errorCallback);
-
-    if (numThreads > 0)
-      device.set("numThreads", numThreads);
-    if (setAffinity >= 0)
-      device.set("setAffinity", bool(setAffinity));
-
-    device.commit();
-
-    const double deviceInitTime = timer.query();
+    std::cout << "Initializing filter" << std::endl;
     timer.reset();
 
     FilterRef filter = device.newFilter(filterType.c_str());
 
     if (color)
-      filter.setImage("color", color->data(), Format::Float3, color->width, color->height);
+      filter.setImage("color", color->data(), color->format(), color->width, color->height);
     if (albedo)
-      filter.setImage("albedo", albedo->data(), Format::Float3, albedo->width, albedo->height);
+      filter.setImage("albedo", albedo->data(), albedo->format(), albedo->width, albedo->height);
     if (normal)
-      filter.setImage("normal", normal->data(), Format::Float3, normal->width, normal->height);
+      filter.setImage("normal", normal->data(), normal->format(), normal->width, normal->height);
 
-    filter.setImage("output", output->data(), Format::Float3, output->width, output->height);
+    filter.setImage("output", output->data(), output->format(), output->width, output->height);
 
     if (filterType == "RT")
     {
@@ -292,14 +313,7 @@ int main(int argc, char* argv[])
 
     const double filterInitTime = timer.query();
 
-    const int versionMajor = device.get<int>("versionMajor");
-    const int versionMinor = device.get<int>("versionMinor");
-    const int versionPatch = device.get<int>("versionPatch");
-
-    std::cout << "  device=CPU"
-              << ", version=" << versionMajor << "." << versionMinor << "." << versionPatch
-              << ", msec=" << (1000. * deviceInitTime) << std::endl 
-              << "  filter=" << filterType
+    std::cout << "  filter=" << filterType
               << ", msec=" << (1000. * filterInitTime) << std::endl;
 
     // Denoise the image

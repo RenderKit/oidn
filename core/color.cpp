@@ -5,6 +5,31 @@
 
 namespace oidn {
 
+  TransferFunction::TransferFunction(Type type)
+    : type(type)
+  {
+  }
+
+  TransferFunction::operator ispc::TransferFunction() const
+  {
+    ispc::TransferFunction res;
+
+    switch (type)
+    {
+    case Type::Linear: ispc::LinearTransferFunction_Constructor(&res); break;
+    case Type::SRGB:   ispc::SRGBTransferFunction_Constructor(&res);   break;
+    case Type::PU:     ispc::PUTransferFunction_Constructor(&res);     break;
+    case Type::Log:    ispc::LogTransferFunction_Constructor(&res);    break;
+    default:
+      assert(0);
+    }
+
+    res.inputScale  = inputScale;
+    res.outputScale = outputScale;
+    
+    return res;
+  }
+
   float getAutoexposure(const Image& color)
   {
     assert(color.format == Format::Float3);
@@ -19,7 +44,7 @@ namespace oidn {
     const int HK = (H + K/2) / K; // downsampled height
     const int WK = (W + K/2) / K; // downsampled width
 
-    ispc::Image colorIspc = color;
+    ispc::ImageAccessor colorIspc = color;
 
     // Compute the average log luminance of the downsampled image
     using Sum = std::pair<float, int>;
@@ -54,8 +79,7 @@ namespace oidn {
 
           return sum;
         },
-        [](Sum a, Sum b) -> Sum { return Sum(a.first+b.first, a.second+b.second); },
-        tbb::static_partitioner()
+        [](Sum a, Sum b) -> Sum { return Sum(a.first+b.first, a.second+b.second); }
       );
 
     return (sum.second > 0) ? (key / exp2(sum.first / float(sum.second))) : 1.f;

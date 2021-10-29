@@ -7,6 +7,28 @@
 
 namespace oidn {
 
+  struct ReorderTile
+  {
+    int hSrcBegin;
+    int wSrcBegin;
+    int hDstBegin;
+    int wDstBegin;
+    int H;
+    int W;
+
+    operator ispc::ReorderTile() const
+    {
+      ispc::ReorderTile res;
+      res.hSrcBegin = hSrcBegin;
+      res.wSrcBegin = wSrcBegin;
+      res.hDstBegin = hDstBegin;
+      res.wDstBegin = wDstBegin;
+      res.H = H;
+      res.W = W;
+      return res;
+    }
+  };
+
 #if defined(OIDN_DNNL)
 
   // Reorder node
@@ -18,9 +40,10 @@ namespace oidn {
 
   public:
     ReorderNode(const Ref<Device>& device,
+                const std::string& name,
                 const std::shared_ptr<Tensor>& src,
                 const std::shared_ptr<Tensor>& dst)
-      : DNNLNode(device),
+      : DNNLNode(device, name),
         src(src), dst(dst)
     {
       prim = dnnl::reorder(dnnl::reorder::primitive_desc(src->mem, dst->mem));

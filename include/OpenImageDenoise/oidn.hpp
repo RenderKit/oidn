@@ -17,11 +17,17 @@ OIDN_NAMESPACE_BEGIN
   {
     Undefined = OIDN_FORMAT_UNDEFINED,
 
-    // 32-bit single-precision floating point scalar and vector formats
+    // 32-bit single-precision floating-point scalar and vector formats
     Float  = OIDN_FORMAT_FLOAT,
     Float2 = OIDN_FORMAT_FLOAT2,
     Float3 = OIDN_FORMAT_FLOAT3,
     Float4 = OIDN_FORMAT_FLOAT4,
+
+    // 16-bit half-precision floating-point scalar and vector formats
+    Half  = OIDN_FORMAT_HALF,
+    Half2 = OIDN_FORMAT_HALF2,
+    Half3 = OIDN_FORMAT_HALF3,
+    Half4 = OIDN_FORMAT_HALF4,
   };
 
   // Access modes for mapping buffers
@@ -111,6 +117,18 @@ OIDN_NAMESPACE_BEGIN
     void unmap(void* mappedPtr)
     {
       oidnUnmapBuffer(handle, mappedPtr);
+    }
+
+    // Gets a pointer to the buffer data.
+    void* getData() const
+    {
+      return oidnGetBufferData(handle);
+    }
+
+    // Gets the size of the buffer in bytes.
+    size_t getSize() const
+    {
+      return oidnGetBufferSize(handle);
     }
   };
 
@@ -261,7 +279,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Gets a parameter of the filter.
     template<typename T>
-    T get(const char* name);
+    T get(const char* name) const;
 
     // Sets the progress monitor callback function of the filter.
     void setProgressMonitorFunction(ProgressMonitorFunction func, void* userPtr = nullptr)
@@ -284,21 +302,21 @@ OIDN_NAMESPACE_BEGIN
 
   // Gets a boolean parameter of the filter.
   template<>
-  inline bool FilterRef::get(const char* name)
+  inline bool FilterRef::get(const char* name) const
   {
     return oidnGetFilter1b(handle, name);
   }
 
   // Gets an integer parameter of the filter.
   template<>
-  inline int FilterRef::get(const char* name)
+  inline int FilterRef::get(const char* name) const
   {
     return oidnGetFilter1i(handle, name);
   }
 
   // Gets a float parameter of the filter.
   template<>
-  inline float FilterRef::get(const char* name)
+  inline float FilterRef::get(const char* name) const
   {
     return oidnGetFilter1f(handle, name);
   }
@@ -410,7 +428,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Gets a parameter of the device.
     template<typename T>
-    T get(const char* name);
+    T get(const char* name) const;
 
     // Sets the error callback function of the device.
     void setErrorFunction(ErrorFunction func, void* userPtr = nullptr)
@@ -460,14 +478,14 @@ OIDN_NAMESPACE_BEGIN
 
   // Gets a boolean parameter of the device.
   template<>
-  inline bool DeviceRef::get(const char* name)
+  inline bool DeviceRef::get(const char* name) const
   {
     return oidnGetDevice1b(handle, name);
   }
 
   // Gets an integer parameter of the device (e.g. "version").
   template<>
-  inline int DeviceRef::get(const char* name)
+  inline int DeviceRef::get(const char* name) const
   {
     return oidnGetDevice1i(handle, name);
   }

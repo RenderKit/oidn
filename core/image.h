@@ -4,6 +4,7 @@
 #pragma once
 
 #include "common.h"
+#include "device.h"
 #include "buffer.h"
 
 namespace oidn {
@@ -73,12 +74,16 @@ namespace oidn {
       case Format::Undefined:
         return 0;
       case Format::Float:
+      case Format::Half:
         return 1;
       case Format::Float2:
+      case Format::Half2:
         return 2;
       case Format::Float3:
+      case Format::Half3: 
         return 3;
       case Format::Float4:
+      case Format::Half4:
         return 4;
       default:
         throw Exception(Error::InvalidArgument, "invalid image format");
@@ -149,7 +154,7 @@ namespace oidn {
     }
 
     Image(const Ref<Device>& device, Format format, size_t width, size_t height)
-      : Memory(device->newBuffer(width * height * getByteSize(format))),
+      : Memory(device->newBuffer(width * height * getByteSize(format), Buffer::Kind::Device)),
         ImageDesc(format, width, height)
     {
       this->ptr = buffer->data();
@@ -198,12 +203,26 @@ namespace oidn {
     }
 
     // Converts to ISPC equivalent
-    operator ispc::Image() const
+    operator ispc::ImageAccessor() const
     {
-      ispc::Image result;
+      ispc::ImageAccessor result;
       result.ptr = (uint8_t*)ptr;
       result.rowStride = rowStride;
       result.bytePixelStride = bytePixelStride;
+
+      if (format != Format::Undefined)
+      {
+        switch (getDataType(format))
+        {
+        case DataType::Float32: result.dataType = ispc::DataType_Float32; break;
+        case DataType::Float16: result.dataType = ispc::DataType_Float16; break;
+        case DataType::UInt8:   result.dataType = ispc::DataType_UInt8;   break;
+        default:                assert(0);
+        }
+      }
+      else
+        result.dataType = ispc::DataType_Float32;
+
       return result;
     }
 

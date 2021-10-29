@@ -35,7 +35,7 @@
     Device::setError(obj ? obj->getDevice() : nullptr, Error::Unknown, "unknown exception caught"); \
   }
 
-#include "device.h"
+#include "cpu_device.h"
 #include "filter.h"
 #include <mutex>
 
@@ -98,9 +98,9 @@ OIDN_API_NAMESPACE_BEGIN
     Ref<Device> device = nullptr;
     OIDN_TRY
       if (type == OIDN_DEVICE_TYPE_CPU || type == OIDN_DEVICE_TYPE_DEFAULT)
-        device = makeRef<Device>();
+        device = makeRef<CPUDevice>();
       else
-        throw Exception(Error::InvalidArgument, "invalid device type");
+        throw Exception(Error::InvalidArgument, "unsupported device type");
     OIDN_CATCH(device)
     return (OIDNDevice)device.detach();
   }
@@ -246,6 +246,28 @@ OIDN_API_NAMESPACE_BEGIN
       OIDN_LOCK(buffer);
       return buffer->unmap(mappedPtr);
     OIDN_CATCH(buffer)
+  }
+
+  OIDN_API void* oidnGetBufferData(OIDNBuffer hBuffer)
+  {
+    Buffer* buffer = (Buffer*)hBuffer;
+    OIDN_TRY
+      checkHandle(hBuffer);
+      OIDN_LOCK(buffer);
+      return buffer->data();
+    OIDN_CATCH(buffer)
+    return nullptr;
+  }
+
+  OIDN_API size_t oidnGetBufferSize(OIDNBuffer hBuffer)
+  {
+    Buffer* buffer = (Buffer*)hBuffer;
+    OIDN_TRY
+      checkHandle(hBuffer);
+      OIDN_LOCK(buffer);
+      return buffer->size();
+    OIDN_CATCH(buffer)
+    return 0;
   }
 
   OIDN_API OIDNFilter oidnNewFilter(OIDNDevice hDevice, const char* type)

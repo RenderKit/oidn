@@ -8,48 +8,179 @@
 #include <vector>
 #include <array>
 #include <tuple>
+#include <OpenImageDenoise/oidn.hpp>
+#include "common/platform.h"
 
 namespace oidn {
 
-  struct ImageBuffer
+  class ImageBuffer
   {
-    std::vector<float> buffer;
+  public:
+    DeviceRef device;
+    BufferRef buffer;
+    char* bufferPtr;
+    size_t numValues;
     int width;
     int height;
     int numChannels;
+    Format dataType;
 
     ImageBuffer()
-      : width(0),
+      : bufferPtr(nullptr),
+        numValues(0),
+        width(0),
         height(0),
-        numChannels(0) {}
+        numChannels(0),
+        dataType(Format::Undefined) {}
 
-    ImageBuffer(int width, int height, int numChannels)
-      : buffer(size_t(width) * height * numChannels),
+    ImageBuffer(DeviceRef& device, int width, int height, int numChannels, Format dataType = Format::Float)
+      : device(device),
+        numValues(size_t(width) * height * numChannels),
         width(width),
         height(height),
-        numChannels(numChannels) {}
+        numChannels(numChannels),
+        dataType(dataType)
+    {
+      size_t valueSize = 0;
+      switch (dataType)
+      {
+      case Format::Float: valueSize = sizeof(float);   break;
+      case Format::Half:  valueSize = sizeof(int16_t); break;
+      default:            assert(0);
+      }
+    
+      buffer = device.newBuffer(numValues * valueSize);
+      bufferPtr = (char*)buffer.getData();
+    }
+
+    ImageBuffer(const ImageBuffer& other)
+    {
+      copy(other);
+    }
+
+    ImageBuffer& operator =(const ImageBuffer& other)
+    {
+      copy(other);
+      return *this;
+    }
 
     operator bool() const
     {
       return data() != nullptr;
     }
 
-    const float& operator [](size_t i) const { return buffer[i]; }
-    float& operator [](size_t i) { return buffer[i]; }
+    template<typename T = float>
+    T get(size_t i) const;
 
-    const float* data() const { return buffer.data(); }
-    float* data() { return buffer.data(); }
+    // Float
+    __forceinline void set(size_t i, float x)
+    {
+      switch (dataType)
+      {
+      case Format::Float:
+        ((float*)bufferPtr)[i] = x;
+        break;
+
+      case Format::Half:
+        ((int16_t*)bufferPtr)[i] = float_to_half(x);
+        break;
+
+      default:
+        assert(0);
+      }
+    }
+
+    // Half
+    __forceinline void set(size_t i, int16_t x)
+    {
+      switch (dataType)
+      {
+      case Format::Float:
+        ((float*)bufferPtr)[i] = half_to_float(x);
+        break;
+
+      case Format::Half:
+        ((int16_t*)bufferPtr)[i] = x;
+        break;
+
+      default:
+        assert(0);
+      }
+    }
+
+    const void* data() const { return bufferPtr; }
+    void* data() { return bufferPtr; }
   
-    size_t size() const { return buffer.size(); }
+    __forceinline size_t size() const { return numValues; }
     std::array<int, 3> dims() const { return {width, height, numChannels}; }
+
+    Format format() const
+    {
+      if (dataType == Format::Undefined)
+        return Format::Undefined;
+      return Format(int(dataType) + numChannels - 1);
+    }
+
+  private:
+    void copy(const ImageBuffer& other)
+    {
+      const size_t bufferSize = other.buffer.getSize();
+
+      device      = other.device;
+      buffer      = device.newBuffer(bufferSize);
+      bufferPtr   = (char*)buffer.getData();
+      numValues   = other.numValues;
+      width       = other.width;
+      height      = other.height;
+      numChannels = other.numChannels;
+      dataType    = other.dataType;
+
+      memcpy(bufferPtr, other.bufferPtr, bufferSize);
+    }
   };
+
+  // Float
+  template<>
+  __forceinline float ImageBuffer::get(size_t i) const
+  {
+    switch (dataType)
+    {
+    case Format::Float:
+      return ((float*)bufferPtr)[i];
+
+    case Format::Half:
+      return half_to_float(((int16_t*)bufferPtr)[i]);
+
+    default:
+      assert(0);
+      return 0;
+    }
+  }
+
+  // Half
+  template<>
+  __forceinline int16_t ImageBuffer::get(size_t i) const
+  {
+    switch (dataType)
+    {
+    case Format::Float:
+      return float_to_half(((float*)bufferPtr)[i]);
+
+    case Format::Half:
+      return ((int16_t*)bufferPtr)[i];
+
+    default:
+      assert(0);
+      return 0;
+    }
+  }
 
   // Loads an image with an optionally specified number of channels (loads all
   // channels by default)
-  std::shared_ptr<ImageBuffer> loadImage(const std::string& filename, int numChannels = 0);
+  std::shared_ptr<ImageBuffer> loadImage(DeviceRef& device, const std::string& filename, int numChannels = 0);
 
   // Loads an image with/without sRGB to linear conversion
-  std::shared_ptr<ImageBuffer> loadImage(const std::string& filename, int numChannels, bool srgb);
+  std::shared_ptr<ImageBuffer> loadImage(DeviceRef& device, const std::string& filename, int numChannels, bool srgb);
 
   // Saves an image
   void saveImage(const std::string& filename, const ImageBuffer& image);

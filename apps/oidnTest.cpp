@@ -32,19 +32,22 @@ void setFilterImage(FilterRef& filter, const char* name, ImageBuffer& image)
   filter.setImage(name, image.data(), format, image.width, image.height);
 }
 
-ImageBuffer makeConstImage(int W, int H, int C = 3, float value = 0.5f)
+ImageBuffer makeConstImage(DeviceRef& device, int W, int H, int C = 3, float value = 0.5f)
 {
-  ImageBuffer image(W, H, C);
+  ImageBuffer image(device, W, H, C);
   for (size_t i = 0; i < image.size(); ++i)
-    image[i] = value;
+    image.set(i, value);
   return image;
 }
 
 bool isBetween(const ImageBuffer& image, float a, float b)
 {
   for (size_t i = 0; i < image.size(); ++i)
-    if (!std::isfinite(image[i]) || image[i] < a || image[i] > b)
+  {
+    const float x = image.get(i);
+    if (!std::isfinite(x) || x < a || x > b)
       return false;
+  }
   return true;
 }
 
@@ -63,7 +66,7 @@ TEST_CASE("single filter", "[single_filter]")
   FilterRef filter = device.newFilter("RT");
   REQUIRE(filter);
 
-  ImageBuffer image = makeConstImage(W, H);
+  ImageBuffer image = makeConstImage(device, W, H);
   setFilterImage(filter, "color",  image);
   setFilterImage(filter, "output", image);
 
@@ -95,7 +98,7 @@ void multiFilter1PerDeviceTest(DeviceRef& device, const std::vector<int>& sizes)
     FilterRef filter = device.newFilter("RT");
     REQUIRE(filter);
 
-    ImageBuffer image = makeConstImage(sizes[i], sizes[i]);
+    ImageBuffer image = makeConstImage(device, sizes[i], sizes[i]);
     setFilterImage(filter, "color",  image);
     setFilterImage(filter, "output", image);
 
@@ -117,7 +120,7 @@ void multiFilterNPerDeviceTest(DeviceRef& device, const std::vector<int>& sizes)
     filters.push_back(device.newFilter("RT"));
     REQUIRE(filters[i]);
 
-    images.push_back(makeConstImage(sizes[i], sizes[i]));
+    images.push_back(makeConstImage(device, sizes[i], sizes[i]));
     setFilterImage(filters[i], "color",  images[i]);
     setFilterImage(filters[i], "output", images[i]);
 
@@ -180,7 +183,7 @@ TEST_CASE("multiple devices", "[multi_device]")
     filters.push_back(devices[i].newFilter("RT"));
     REQUIRE(filters[i]);
 
-    images.push_back(makeConstImage(sizes[i], sizes[i]));
+    images.push_back(makeConstImage(devices[i], sizes[i], sizes[i]));
     setFilterImage(filters[i], "color",  images[i]);
     setFilterImage(filters[i], "output", images[i]);
 
@@ -210,9 +213,9 @@ TEST_CASE("filter update", "[filter_update]")
   FilterRef filter = device.newFilter("RT");
   REQUIRE(filter);
 
-  ImageBuffer color  = makeConstImage(W, H);
-  ImageBuffer albedo = makeConstImage(W, H);
-  ImageBuffer output = makeConstImage(W, H);
+  ImageBuffer color  = makeConstImage(device, W, H);
+  ImageBuffer albedo = makeConstImage(device, W, H);
+  ImageBuffer output = makeConstImage(device, W, H);
   setFilterImage(filter, "color",  color);
   setFilterImage(filter, "albedo", albedo);
   setFilterImage(filter, "output", output);
@@ -232,15 +235,15 @@ TEST_CASE("filter update", "[filter_update]")
 
   SECTION("filter update: same image size")
   {
-    color = makeConstImage(W, H);
+    color = makeConstImage(device, W, H);
     setFilterImage(filter, "color", color);
   }
 
   SECTION("filter update: different image size")
   {
-    color  = makeConstImage(W*2, H*2);
-    albedo = makeConstImage(W*2, H*2);
-    output = makeConstImage(W*2, H*2);
+    color  = makeConstImage(device, W*2, H*2);
+    albedo = makeConstImage(device, W*2, H*2);
+    output = makeConstImage(device, W*2, H*2);
     setFilterImage(filter, "color",  color);
     setFilterImage(filter, "albedo", albedo);
     setFilterImage(filter, "output", output);
@@ -326,8 +329,8 @@ void sanitizationTest(DeviceRef& device, bool hdr, float value)
   FilterRef filter = device.newFilter("RT");
   REQUIRE(filter);
 
-  ImageBuffer input = makeConstImage(W, H, 3, value);
-  ImageBuffer output(W, H, 3);
+  ImageBuffer input = makeConstImage(device, W, H, 3, value);
+  ImageBuffer output(device, W, H, 3);
   setFilterImage(filter, "color",  input);
   setFilterImage(filter, "albedo", input);
   setFilterImage(filter, "normal", input);
@@ -398,7 +401,7 @@ void progressTest(DeviceRef& device, double nMax = 1000)
   FilterRef filter = device.newFilter("RT");
   REQUIRE(filter);
 
-  ImageBuffer image = makeConstImage(W, H);
+  ImageBuffer image = makeConstImage(device, W, H);
   setFilterImage(filter, "color",  image);
   setFilterImage(filter, "output", image); // in-place
 

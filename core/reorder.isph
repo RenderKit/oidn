@@ -1,0 +1,12 @@
+// Copyright 2009-2021 Intel Corporation
+// SPDX-License-Identifier: Apache-2.0
+
+struct ReorderTile
+{
+  uniform int hSrcBegin;
+  uniform int wSrcBegin;
+  uniform int hDstBegin;
+  uniform int wDstBegin;
+  uniform int H;
+  uniform int W;
+};

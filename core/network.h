@@ -29,12 +29,14 @@ namespace oidn {
 
     TensorDesc getInputReorderDesc(const TensorDims& srcDims, int alignment);
 
-    std::shared_ptr<InputReorderNode> addInputReorder(const std::shared_ptr<Tensor>& dst,
+    std::shared_ptr<InputReorderNode> addInputReorder(const std::string& name,
+                                                      const std::shared_ptr<Tensor>& dst,
                                                       const std::shared_ptr<TransferFunction>& transferFunc,
                                                       bool hdr,
                                                       bool snorm);
 
-    std::shared_ptr<OutputReorderNode> addOutputReorder(const std::shared_ptr<Tensor>& src,
+    std::shared_ptr<OutputReorderNode> addOutputReorder(const std::string& name,
+                                                        const std::shared_ptr<Tensor>& src,
                                                         const std::shared_ptr<TransferFunction>& transferFunc,
                                                         bool hdr,
                                                         bool snorm);
@@ -46,11 +48,13 @@ namespace oidn {
                                   bool relu = true);
 
     TensorDesc getPoolDesc(const TensorDesc& srcDesc);
-    std::shared_ptr<Node> addPool(const std::shared_ptr<Tensor>& src,
+    std::shared_ptr<Node> addPool(const std::string& name,
+                                  const std::shared_ptr<Tensor>& src,
                                   const std::shared_ptr<Tensor>& dst);
 
     TensorDesc getUpsampleDesc(const TensorDesc& srcDesc);
-    std::shared_ptr<Node> addUpsample(const std::shared_ptr<Tensor>& src,
+    std::shared_ptr<Node> addUpsample(const std::string& name,
+                                      const std::shared_ptr<Tensor>& src,
                                       const std::shared_ptr<Tensor>& dst);
 
     TensorDesc getConcatDesc(const std::vector<TensorDesc>& srcDescs);

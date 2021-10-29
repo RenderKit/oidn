@@ -28,13 +28,6 @@ static void TransferFunction_initNormalization(uniform TransferFunction* uniform
   self->rcpNormScale = xMax;
 }
 
-// Sets the input and output scales
-export void TransferFunction_setInputScale(uniform TransferFunction* uniform self, uniform float inputScale)
-{
-  self->inputScale  = inputScale;
-  self->outputScale = (inputScale != 0.f) ? (1.f / inputScale) : 0.f;
-}
-
 // -----------------------------------------------------------------------------
 // Transfer function: Linear
 // -----------------------------------------------------------------------------
@@ -184,7 +177,7 @@ export void LogTransferFunction_Constructor(uniform TransferFunction* uniform se
 // -----------------------------------------------------------------------------
 
 // Returns the average luminance of the specified image tile
-export uniform float getAvgLuminance(const uniform Image& color,
+export uniform float getAvgLuminance(const uniform ImageAccessor& color,
                                      uniform int beginH, uniform int endH,
                                      uniform int beginW, uniform int endW)
 {
