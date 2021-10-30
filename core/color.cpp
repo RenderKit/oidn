@@ -32,8 +32,6 @@ namespace oidn {
 
   float getAutoexposure(const Image& color)
   {
-    assert(color.format == Format::Float3);
-
     constexpr float key = 0.18f;
     constexpr float eps = 1e-8f;
     constexpr int K = 16; // downsampling amount
