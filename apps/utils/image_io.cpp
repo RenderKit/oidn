@@ -122,13 +122,21 @@ namespace oidn {
       const int W = image.width;
       const int C = image.numChannels;
 
+      std::string id;
+      if (C == 3)
+        id = "PF";
+      else if (C == 1)
+        id = "Pf";
+      else
+        throw std::runtime_error("unsupported number of channels");
+
       // Open the file
       std::ofstream file(filename, std::ios::binary);
       if (file.fail())
         throw std::runtime_error("cannot open image file: " + filename);
 
       // Write the header
-      file << "PF" << std::endl;
+      file << id << std::endl;
       file << W << " " << H << std::endl;
       file << "-1.0" << std::endl;
 
@@ -137,7 +145,7 @@ namespace oidn {
       {
         for (int w = 0; w < W; ++w)
         {
-          for (int c = 0; c < 3; ++c)
+          for (int c = 0; c < C; ++c)
           {
             const float x = image.get((size_t(H-1-h)*W + w) * C + c);
             file.write((char*)&x, sizeof(float));
