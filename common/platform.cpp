@@ -1,8 +1,11 @@
 // Copyright 2009-2021 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "mkl-dnn/src/cpu/x64/xbyak/xbyak_util.h"
 #include "platform.h"
+
+#if defined(OIDN_X64)
+  #include "mkl-dnn/src/cpu/x64/xbyak/xbyak_util.h"
+#endif
 
 namespace oidn {
 
@@ -140,18 +143,23 @@ namespace oidn {
 
   float half_to_float(int16_t x)
   {
-    return half_to_float({.u = static_cast<unsigned short>(x)}).f;
+    FP16 fp16;
+    fp16.u = (unsigned short)x;
+    return half_to_float(fp16).f;
   }
 
   int16_t float_to_half(float x)
   {
-    return static_cast<int16_t>(float_to_half({.f = x}).u);
+    FP32 fp32;
+    fp32.f = x;
+    return (int16_t)float_to_half(fp32).u;
   }
 
   // ---------------------------------------------------------------------------
   // System information
   // ---------------------------------------------------------------------------
 
+#if defined(OIDN_X64)
   bool isISASupported(ISA isa)
   {
     using Xbyak::util::Cpu;
@@ -170,6 +178,7 @@ namespace oidn {
       return false;
     }
   }
+#endif
 
   std::string getPlatformName()
   {

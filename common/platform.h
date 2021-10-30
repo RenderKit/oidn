@@ -176,6 +176,7 @@ namespace oidn {
   // System information
   // ---------------------------------------------------------------------------
 
+#if defined(OIDN_X64)
   enum class ISA
   {
     SSE41,
@@ -184,6 +185,7 @@ namespace oidn {
   };
 
   bool isISASupported(ISA isa);
+#endif
 
   std::string getPlatformName();
   std::string getCompilerName();

@@ -106,12 +106,13 @@ namespace oidn {
 
   public:
     ConvNode(const Ref<Device>& device,
+             const std::string& name,
              const std::shared_ptr<Tensor>& src,
              const std::shared_ptr<Tensor>& weights,
              const std::shared_ptr<Tensor>& bias,
              const std::shared_ptr<Tensor>& dst,
              bool relu)
-      : BNNSNode(device),
+      : BNNSNode(device, name),
         src(src), weights(weights), bias(bias), dst(dst)
     {
       BNNSLayerParametersConvolution params = {
