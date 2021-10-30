@@ -107,14 +107,14 @@ OIDN_NAMESPACE_BEGIN
 
     // Maps a region of the buffer to host memory.
     // If byteSize is 0, the maximum available amount of memory will be mapped.
-    void* map(Access access = Access::ReadWrite, size_t byteOffset = 0, size_t byteSize = 0)
+    void* map(Access access = Access::ReadWrite, size_t byteOffset = 0, size_t byteSize = 0) const
     {
       return oidnMapBuffer(handle, (OIDNAccess)access, byteOffset, byteSize);
     }
 
     // Unmaps a region of the buffer.
     // mappedPtr must be a pointer returned by a previous call to map.
-    void unmap(void* mappedPtr)
+    void unmap(void* mappedPtr) const
     {
       oidnUnmapBuffer(handle, mappedPtr);
     }
@@ -458,19 +458,19 @@ OIDN_NAMESPACE_BEGIN
     }
 
     // Creates a new buffer (data allocated and owned by the device).
-    BufferRef newBuffer(size_t byteSize)
+    BufferRef newBuffer(size_t byteSize) const
     {
       return oidnNewBuffer(handle, byteSize);
     }
 
     // Creates a new shared buffer (data allocated and owned by the user).
-    BufferRef newBuffer(void* ptr, size_t byteSize)
+    BufferRef newBuffer(void* ptr, size_t byteSize) const
     {
       return oidnNewSharedBuffer(handle, ptr, byteSize);
     }
 
     // Creates a new filter of the specified type (e.g. "RT").
-    FilterRef newFilter(const char* type)
+    FilterRef newFilter(const char* type) const
     {
       return oidnNewFilter(handle, type);
     }
