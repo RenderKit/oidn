@@ -278,9 +278,9 @@ namespace oidn {
   {
     if (!srgb && isSrgbImage(filename))
     {
-      ImageBuffer newImage = image;
-      srgbForward(newImage);
-      saveImage(filename, newImage);
+      std::shared_ptr<ImageBuffer> newImage = image.clone();
+      srgbForward(*newImage);
+      saveImage(filename, *newImage);
     }
     else
     {
