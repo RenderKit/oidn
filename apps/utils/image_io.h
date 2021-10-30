@@ -153,12 +153,18 @@ namespace oidn {
     }
   }
 
-  // Loads an image with an optionally specified number of channels (loads all
-  // channels by default)
-  std::shared_ptr<ImageBuffer> loadImage(DeviceRef& device, const std::string& filename, int numChannels = 0);
+  // Loads an image with optionally specified number of channels and data type
+  std::shared_ptr<ImageBuffer> loadImage(const DeviceRef& device,
+                                         const std::string& filename,
+                                         int numChannels = 0,
+                                         Format dataType = Format::Undefined);
 
   // Loads an image with/without sRGB to linear conversion
-  std::shared_ptr<ImageBuffer> loadImage(DeviceRef& device, const std::string& filename, int numChannels, bool srgb);
+  std::shared_ptr<ImageBuffer> loadImage(const DeviceRef& device,
+                                         const std::string& filename,
+                                         int numChannels,
+                                         bool srgb,
+                                         Format dataType = Format::Undefined);
 
   // Saves an image
   void saveImage(const std::string& filename, const ImageBuffer& image);

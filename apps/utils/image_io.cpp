@@ -49,7 +49,10 @@ namespace oidn {
       }
     }
 
-    std::shared_ptr<ImageBuffer> loadImagePFM(DeviceRef& device, const std::string& filename, int numChannels)
+    std::shared_ptr<ImageBuffer> loadImagePFM(const DeviceRef& device,
+                                              const std::string& filename,
+                                              int numChannels,
+                                              Format dataType)
     {
       // Open the file
       std::ifstream file(filename, std::ios::binary);
@@ -72,6 +75,9 @@ namespace oidn {
       else if (C < numChannels)
         throw std::runtime_error("not enough image channnels");
 
+      if (dataType == Format::Undefined)
+        dataType = Format::Float;
+
       int H, W;
       file >> W >> H;
 
@@ -88,7 +94,7 @@ namespace oidn {
       scale = fabs(scale);
 
       // Read the pixels
-      auto image = std::make_shared<ImageBuffer>(device, W, H, numChannels);
+      auto image = std::make_shared<ImageBuffer>(device, W, H, numChannels, dataType);
 
       for (int h = 0; h < H; ++h)
       {
@@ -172,7 +178,10 @@ namespace oidn {
   }
 
 #ifdef OIDN_USE_OPENIMAGEIO
-  std::shared_ptr<ImageBuffer> loadImageOIIO(DeviceRef& device, const std::string& filename, int numChannels)
+  std::shared_ptr<ImageBuffer> loadImageOIIO(const DeviceRef& device,
+                                             const std::string& filename,
+                                             int numChannels,
+                                             Format dataType)
   {
     auto in = OIIO::ImageInput::open(filename);
     if (!in)
@@ -184,10 +193,11 @@ namespace oidn {
     else if (spec.nchannels < numChannels)
       throw std::runtime_error("not enough image channels");
 
-    const bool isFP16 = spec.channelformat(0) == OIIO::TypeDesc::HALF;
-    auto image = std::make_shared<ImageBuffer>(device, spec.width, spec.height, numChannels,
-                                               isFP16 ? Format::Half : Format::Float);
-    if (!in->read_image(0, 0, 0, numChannels, isFP16 ? OIIO::TypeDesc::HALF : OIIO::TypeDesc::FLOAT, image->data()))
+    if (dataType == Format::Undefined)
+      dataType = (spec.channelformat(0) == OIIO::TypeDesc::HALF) ? Format::Half : Format::Float;
+    
+    auto image = std::make_shared<ImageBuffer>(device, spec.width, spec.height, numChannels, dataType);
+    if (!in->read_image(0, 0, 0, numChannels, dataType == Format::Half ? OIIO::TypeDesc::HALF : OIIO::TypeDesc::FLOAT, image->data()))
       throw std::runtime_error("failed to read image data");
     in->close();
 
@@ -228,16 +238,19 @@ namespace oidn {
   }
 #endif
 
-  std::shared_ptr<ImageBuffer> loadImage(DeviceRef& device, const std::string& filename, int numChannels)
+  std::shared_ptr<ImageBuffer> loadImage(const DeviceRef& device,
+                                         const std::string& filename,
+                                         int numChannels,
+                                         Format dataType)
   {
     const std::string ext = getExtension(filename);
     std::shared_ptr<ImageBuffer> image;
 
     if (ext == "pfm")
-      image = loadImagePFM(device, filename, numChannels);
+      image = loadImagePFM(device, filename, numChannels, dataType);
     else
 #if OIDN_USE_OPENIMAGEIO
-      image = loadImageOIIO(device, filename, numChannels);
+      image = loadImageOIIO(device, filename, numChannels, dataType);
 #else
       throw std::runtime_error("cannot load unsupported image file format: " + filename);
 #endif
@@ -266,9 +279,13 @@ namespace oidn {
     return ext != "pfm" && ext != "exr" && ext != "hdr";
   }
 
-  std::shared_ptr<ImageBuffer> loadImage(DeviceRef& device, const std::string& filename, int numChannels, bool srgb)
+  std::shared_ptr<ImageBuffer> loadImage(const DeviceRef& device,
+                                         const std::string& filename,
+                                         int numChannels,
+                                         bool srgb,
+                                         Format dataType)
   {
-    auto image = loadImage(device, filename, numChannels);
+    auto image = loadImage(device, filename, numChannels, dataType);
     if (!srgb && isSrgbImage(filename))
       srgbInverse(*image);
     return image;
