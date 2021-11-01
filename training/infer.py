@@ -132,7 +132,7 @@ def main():
     image_srgb = tensor_to_image(image_srgb)
     filename_prefix = path + '.' + feature_ext + '.'
     for format in cfg.format:
-      if format in {'exr', 'pfm', 'hdr'}:
+      if format in {'exr', 'pfm', 'phm', 'hdr'}:
         # Transform to original range
         if infer.main_feature in {'sh1', 'nrm'}:
           image = image * 2. - 1. # [0..1] -> [-1..1]

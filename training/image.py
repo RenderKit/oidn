@@ -75,6 +75,8 @@ def save_image(filename, image):
   ext = get_path_ext(filename).lower()
   if ext == 'pfm':
     save_pfm(filename, image)
+  elif ext == 'phm':
+    save_phm(filename, image)
   else:
     output = oiio.ImageOutput.create(filename)
     if not output:
@@ -103,6 +105,22 @@ def save_pfm(filename, image):
       f.write('Pf\n')
       data = image[..., 0]
     data = np.flip(data, 0).astype(np.float32)
+
+    f.write('%d %d\n' % (image.shape[1], image.shape[0]))
+    f.write('-1.0\n')
+    data.tofile(f)
+
+# Saves a float NumPy image in PHM format
+def save_phm(filename, image):
+  with open(filename, 'w') as f:
+    num_channels = image.shape[-1]
+    if num_channels >= 3:
+      f.write('PH\n')
+      data = image[..., 0:3]
+    else:
+      f.write('Ph\n')
+      data = image[..., 0]
+    data = np.flip(data, 0).astype(np.float16)
 
     f.write('%d %d\n' % (image.shape[1], image.shape[0]))
     f.write('-1.0\n')
