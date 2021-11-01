@@ -359,9 +359,10 @@ int main(int argc, char* argv[])
       // Verify the output values
       std::cout << "Verifying output" << std::endl;
 
+      const float threshold = (output->dataType == Format::Float) ? 1e-4f : 1e-2f;
       size_t numErrors;
       float maxError;
-      std::tie(numErrors, maxError) = compareImage(*output, *ref, 1e-4);
+      std::tie(numErrors, maxError) = compareImage(*output, *ref, threshold);
 
       std::cout << "  values=" << output->size() << ", errors=" << numErrors << ", maxerror=" << maxError << std::endl;
 
