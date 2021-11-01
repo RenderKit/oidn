@@ -1,6 +1,6 @@
 # Intel® Open Image Denoise
 
-This is release v1.4.1 of Intel Open Image Denoise. For changes and new
+This is release v1.4.2 of Intel Open Image Denoise. For changes and new
 features see the [changelog](CHANGELOG.md). Visit
 https://www.openimagedenoise.org for more information.
 
@@ -454,10 +454,10 @@ for the parameters supported by devices.
 
 Parameters supported by all devices.
 
-| Type   | Name          | Default | Description                                                                                                     |
-| :----- | :------------ | ------: | :-------------------------------------------------------------------------------------------------------------- |
-| `int`  | `numThreads`  |       0 | maximum number of threads which the library should use; 0 will set it automatically to get the best performance |
-| `bool` | `setAffinity` |    true | bind software threads to hardware threads if set to true (improves performance); false disables binding         |
+| Type   | Name          | Default | Description                                                                                                                       |
+| :----- | :------------ | ------: | :-------------------------------------------------------------------------------------------------------------------------------- |
+| `int`  | `numThreads`  |       0 | maximum number of threads which the library should use; 0 will set it automatically to get the best performance                   |
+| `bool` | `setAffinity` |    true | enables thread affinitization (pinning software threads to hardware threads) if it is necessary for achieving optimal performance |
 
 Additional parameters supported only by CPU devices.
 
@@ -602,6 +602,12 @@ void oidnRetainBuffer(OIDNBuffer buffer);
 void oidnReleaseBuffer(OIDNBuffer buffer);
 ```
 
+The size of the buffer in bytes can be queried using
+
+``` cpp
+size_t oidnGetBufferSize(OIDNBuffer buffer);
+```
+
 Accessing the data stored in a buffer object is possible by mapping it
 into the address space of the application using
 
@@ -638,6 +644,13 @@ where `mappedPtr` must be a pointer returned by a call to
 `oidnMapBuffer` for the specified buffer. Any change to the mapped data
 is guaranteed to take effect only after unmapping the memory region.
 
+It is also possible to get a pointer directly to the buffer data but
+this might be valid only on the device the buffer was created on:
+
+``` cpp
+void* oidnGetBufferData(OIDNBuffer buffer);
+```
+
 ### Data Format
 
 Buffers store opaque data and thus have no information about the type
@@ -648,8 +661,10 @@ pointers. This can be done using the `OIDNFormat` enumeration type:
 | Name                     | Description                                  |
 | :----------------------- | :------------------------------------------- |
 | `OIDN_FORMAT_UNDEFINED`  | undefined format                             |
-| `OIDN_FORMAT_FLOAT`      | 32-bit floating point scalar                 |
-| `OIDN_FORMAT_FLOAT[234]` | 32-bit floating point \[234\]-element vector |
+| `OIDN_FORMAT_FLOAT`      | 32-bit floating-point scalar                 |
+| `OIDN_FORMAT_FLOAT[234]` | 32-bit floating-point \[234\]-element vector |
+| `OIDN_FORMAT_HALF`       | 16-bit floating-point scalar                 |
+| `OIDN_FORMAT_HALF[234]`  | 16-bit floating-point \[234\]-element vector |
 
 Supported data formats, i.e., valid constants of type `OIDNFormat`.
 
@@ -712,11 +727,11 @@ pixels and/or rows are stored contiguously (tightly packed without any
 gaps), you can set `bytePixelStride` and/or `byteRowStride` to 0 to let
 the library compute the actual strides automatically, as a convenience.
 
-Images support only the `OIDN_FORMAT_FLOAT3` pixel format. Custom image
-layouts with extra channels (e.g. alpha channel) or other data are
-supported as well by specifying a non-zero pixel stride. This way,
-expensive image layout conversion and copying can be avoided but the
-extra data will be ignored by the filter.
+Images support only the `OIDN_FORMAT_FLOAT3` and `OIDN_FORMAT_HALF3`
+pixel formats. Custom image layouts with extra channels (e.g. alpha
+channel) or other data are supported as well by specifying a non-zero
+pixel stride. This way, expensive image layout conversion and copying
+can be avoided but the extra data will be ignored by the filter.
 
 To unbind a previously set image from the filter, call
 
