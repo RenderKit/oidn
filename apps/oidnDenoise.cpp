@@ -149,12 +149,12 @@ int main(int argc, char* argv[])
         inputScale = args.getNextValueFloat();
       else if (opt == "clean_aux" || opt == "cleanAux")
         cleanAux = true;
-      else if (opt == "t" || opt == "type" || opt == "dtype")
+      else if (opt == "t" || opt == "type")
       {
         const auto val = args.getNextValue();
-        if (val == "float" || val == "Float" || val == "fp32" || val == "f32" || val == "f")
+        if (val == "f" || val == "float" || val == "Float" || val == "fp32")
           dataType = Format::Float;
-        else if (val == "half" || val == "Half" || val == "fp16" || val == "f16" || val == "h")
+        else if (val == "h" || val == "half" || val == "Half" || val == "fp16")
           dataType = Format::Half;
         else
           throw std::runtime_error("invalid data type");
