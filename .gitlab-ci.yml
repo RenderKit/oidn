@@ -480,6 +480,42 @@ package-windows:
 ## Scans
 ## -----------------------------------------------------------------------------
 
+av:
+  stage: scan
+  tags: [docker]
+  image: $DOCKER_REGISTRY/clamav:ubuntu20.04
+  only:
+    - schedules
+    - web
+  needs:
+    - package-linux
+    - package-macos
+    - package-windows
+  script:
+    - freshclam | tee -a /tmp/av_scan.log
+    - clamscan -va --max-filesize=512M --max-scansize=2048M --alert-broken --alert-exceeds-max build/oidn-* | tee -a /tmp/av_scan.log
+    - $CI_TOOLS_PATH/bin/store-files.sh $CI_PROJECT_NAME $CI_PIPELINE_ID av /tmp/av_scan.log
+    
+bdba:
+  stage: scan
+  tags: [docker]
+  image: $DOCKER_REGISTRY/oidn-build:centos7
+  only:
+    - schedules
+    - web
+  needs:
+    - package-linux
+    - package-macos
+    - package-windows
+  script:
+    - $CI_TOOLS_PATH/bin/bdba.sh "build/oidn-*"
+    - $CI_TOOLS_PATH/bin/store-files.sh $CI_PROJECT_NAME $CI_PIPELINE_ID bdba "oidn-*.pdf"
+    - $CI_TOOLS_PATH/bin/store-files.sh $CI_PROJECT_NAME $CI_PIPELINE_ID bdba "oidn-*.csv"
+  artifacts:
+    paths:
+      - oidn-*.pdf
+      - oidn-*.csv
+
 kw-build-scan:
   stage: scan
   tags: [docker]
