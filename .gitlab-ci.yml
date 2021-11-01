@@ -542,6 +542,13 @@ protex-scan:
     when: always
     expire_in: 1 week
 
+snyk-scan:
+  stage: scan
+  tags: [ snyk ]
+  needs: []
+  script:
+    - $CI_TOOLS_PATH/bin/snyk.sh
+
 kw-check-issues:
   stage: report-scan
   tags: [docker]
