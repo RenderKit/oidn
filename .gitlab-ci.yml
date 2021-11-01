@@ -44,7 +44,7 @@ variables:
   only:
     - schedules
     - web
-  dependencies: []
+  needs: []
   artifacts:
     name: "$CI_JOB_NAME"
     paths:
