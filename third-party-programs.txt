@@ -15,7 +15,7 @@ terms are listed below.
 --------------------------------------------------------------------------------
 
 1.  Intel(R) oneAPI Deep Neural Network Library (oneDNN)
-    Copyright 2016-2020 Intel Corporation
+    Copyright 2016-2021 Intel Corporation
 
     Intel(R) oneAPI Threading Building Blocks (oneTBB)
     Copyright 2005-2021 Intel Corporation
