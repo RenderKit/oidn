@@ -135,7 +135,7 @@ namespace oidn {
     {
       if (!isEnvVar("OIDN_SET_AFFINITY"))
         setAffinity = value;
-      else if (setAffinity != value)
+      else if (setAffinity != bool(value))
         warning("OIDN_SET_AFFINITY environment variable overrides device parameter");
     }
     else if (name == "verbose")
