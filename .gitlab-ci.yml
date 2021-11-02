@@ -61,7 +61,7 @@ build-centos7-icc:
   tags:
     - docker
   image: $DOCKER_REGISTRY/oidn-build:centos7
-  script: scripts/build.py install --compiler icc
+  script: scripts/build.py install --compiler icc -D OIDN_WARN_AS_ERRORS=ON
 
 test-centos7-icc-avx512:
   extends: .test
@@ -120,7 +120,7 @@ build-ubuntu18.04-gcc:
   tags:
     - docker
   image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
-  script: scripts/build.py install --compiler gcc
+  script: scripts/build.py install --compiler gcc -D OIDN_WARN_AS_ERRORS=ON
 
 test-ubuntu18.04-gcc-avx512:
   extends: .test
@@ -160,7 +160,7 @@ build-ubuntu18.04-gcc-debug:
   tags:
     - docker
   image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
-  script: scripts/build.py install --compiler gcc --config Debug
+  script: scripts/build.py install --compiler gcc --config Debug -D OIDN_WARN_AS_ERRORS=ON
 
 test-ubuntu18.04-gcc-debug-avx512:
   extends: .test
@@ -245,14 +245,14 @@ build-macos-icc:
   tags:
     - osx
     - sign # build might fail on other machines
-  script: scripts/build.py install --compiler icc
+  script: scripts/build.py install --compiler icc -D OIDN_WARN_AS_ERRORS=ON
 
 build-macos-icc-debug:
   extends: .build
   tags:
     - osx
     - sign # build might fail on other machines
-  script: scripts/build.py install --compiler icc --config Debug
+  script: scripts/build.py install --compiler icc --config Debug -D OIDN_WARN_AS_ERRORS=ON
 
 test-macos-icc-avx512:
   extends: .test
@@ -280,14 +280,14 @@ build-macos-clang:
   tags:
     - osx
     - avx2 # exclude slower machines
-  script: scripts/build.py install --compiler clang
+  script: scripts/build.py install --compiler clang -D OIDN_WARN_AS_ERRORS=ON
 
 build-macos-clang-debug:
   extends: .build
   tags:
     - osx
     - avx2 # exclude slower machines
-  script: scripts/build.py install --compiler clang --config Debug
+  script: scripts/build.py install --compiler clang --config Debug -D OIDN_WARN_AS_ERRORS=ON
 
 test-macos-clang-avx512:
   extends: .test
@@ -337,7 +337,7 @@ build-macos-clang-arm:
   extends: .build
   tags:
     - mac-arm
-  script: scripts/build.py install --compiler clang
+  script: scripts/build.py install --compiler clang -D OIDN_WARN_AS_ERRORS=ON
 
 test-macos-clang-arm:
   extends: .test
@@ -352,7 +352,7 @@ build-macos-clang-debug-arm:
   extends: .build
   tags:
     - mac-arm
-  script: scripts/build.py install --compiler clang --config Debug
+  script: scripts/build.py install --compiler clang --config Debug -D OIDN_WARN_AS_ERRORS=ON
 
 test-macos-clang-debug-arm:
   extends: .test
@@ -385,7 +385,7 @@ build-windows-icc:
     - win10
     - msvc15
     - icc19
-  script: python scripts/build.py install --compiler msvc15-icc19
+  script: python scripts/build.py install --compiler msvc15-icc19 -D OIDN_WARN_AS_ERRORS=ON
 
 test-windows-icc-avx512:
   extends: .test
@@ -444,7 +444,7 @@ build-windows-msvc16:
   tags:
     - win10
     - msvc16
-  script: python scripts/build.py install --compiler msvc16
+  script: python scripts/build.py install --compiler msvc16 -D OIDN_WARN_AS_ERRORS=ON
 
 test-windows-msvc16-avx512:
   extends: .test
