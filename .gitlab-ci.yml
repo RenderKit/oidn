@@ -198,6 +198,17 @@ build-ubuntu18.04-gcc-namespace:
   image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
   script: scripts/build.py --compiler gcc -D OIDN_API_NAMESPACE=myoidn
 
+build-ubuntu18.04-gcc-tbb2007:
+  extends: .build
+  tags:
+    - docker
+  image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
+  script:
+    - mkdir build
+    - cd build
+    - cmake .. -D OIDN_WARN_AS_ERRORS=ON
+    - make -j VERBOSE=1
+
 build-ubuntu18.04-clang:
   extends: .build
   tags:
@@ -207,7 +218,7 @@ build-ubuntu18.04-clang:
 
 ## -----------------------------------------------------------------------------
 
-build-ubuntu20.04-gcc-oiio:
+build-ubuntu20.04-gcc-oiio2.1:
   extends: .build
   tags:
     - docker
@@ -215,7 +226,7 @@ build-ubuntu20.04-gcc-oiio:
   script:
     - mkdir build
     - cd build
-    - cmake .. -D OIDN_APPS_OPENIMAGEIO=ON
+    - cmake .. -D OIDN_APPS_OPENIMAGEIO=ON -D OIDN_WARN_AS_ERRORS=ON
     - make -j VERBOSE=1
 
 build-ubuntu20.04-gcc-minimal:
@@ -227,14 +238,16 @@ build-ubuntu20.04-gcc-minimal:
 
 ## -----------------------------------------------------------------------------
 
-#build-arch-gcc:
-#  extends: .build
-#  tags:
-#    - docker
-#  image: $DOCKER_REGISTRY/oidn-build:arch
-#  script:
-#    - cmake -B build -G Ninja
-#    - ninja -C build -v
+build-arch-gcc-oiio2.3:
+  extends: .build
+  tags:
+    - docker
+  image: $DOCKER_REGISTRY/oidn-build:arch
+  script:
+    - mkdir build
+    - cd build
+    - cmake .. -D OIDN_APPS_OPENIMAGEIO=ON
+    - make -j VERBOSE=1
 
 ## -----------------------------------------------------------------------------
 ## macOS
