@@ -59,12 +59,12 @@ TEST_CASE("single filter", "[single_filter]")
   const int H = 89;
 
   DeviceRef device = newDevice();
-  REQUIRE(device);
+  REQUIRE(bool(device));
   device.commit();
   REQUIRE(device.getError() == Error::None);
 
   FilterRef filter = device.newFilter("RT");
-  REQUIRE(filter);
+  REQUIRE(bool(filter));
 
   std::shared_ptr<ImageBuffer> image = makeConstImage(device, W, H);
   setFilterImage(filter, "color",  *image);
@@ -96,7 +96,7 @@ void multiFilter1PerDeviceTest(DeviceRef& device, const std::vector<int>& sizes)
   for (size_t i = 0; i < sizes.size(); ++i)
   {
     FilterRef filter = device.newFilter("RT");
-    REQUIRE(filter);
+    REQUIRE(bool(filter));
 
     std::shared_ptr<ImageBuffer> image = makeConstImage(device, sizes[i], sizes[i]);
     setFilterImage(filter, "color",  *image);
@@ -118,7 +118,7 @@ void multiFilterNPerDeviceTest(DeviceRef& device, const std::vector<int>& sizes)
   for (size_t i = 0; i < sizes.size(); ++i)
   {
     filters.push_back(device.newFilter("RT"));
-    REQUIRE(filters[i]);
+    REQUIRE(bool(filters[i]));
 
     images.push_back(makeConstImage(device, sizes[i], sizes[i]));
     setFilterImage(filters[i], "color",  *images[i]);
@@ -138,7 +138,7 @@ void multiFilterNPerDeviceTest(DeviceRef& device, const std::vector<int>& sizes)
 TEST_CASE("multiple filters", "[multi_filter]")
 {
   DeviceRef device = newDevice();
-  REQUIRE(device);
+  REQUIRE(bool(device));
   device.commit();
   REQUIRE(device.getError() == Error::None);
 
@@ -181,7 +181,7 @@ TEST_CASE("multiple devices", "[multi_device]")
     REQUIRE(devices[i].getError() == Error::None);
 
     filters.push_back(devices[i].newFilter("RT"));
-    REQUIRE(filters[i]);
+    REQUIRE(bool(filters[i]));
 
     images.push_back(makeConstImage(devices[i], sizes[i], sizes[i]));
     setFilterImage(filters[i], "color",  *images[i]);
@@ -206,12 +206,12 @@ TEST_CASE("filter update", "[filter_update]")
   const int H = 599;
 
   DeviceRef device = newDevice();
-  REQUIRE(device);
+  REQUIRE(bool(device));
   device.commit();
   REQUIRE(device.getError() == Error::None);
 
   FilterRef filter = device.newFilter("RT");
-  REQUIRE(filter);
+  REQUIRE(bool(filter));
 
   std::shared_ptr<ImageBuffer> color  = makeConstImage(device, W, H);
   std::shared_ptr<ImageBuffer> albedo = makeConstImage(device, W, H);
@@ -276,7 +276,7 @@ TEST_CASE("filter update", "[filter_update]")
 void imageSizeTest(DeviceRef& device, int W, int H)
 {
   FilterRef filter = device.newFilter("RT");
-  REQUIRE(filter);
+  REQUIRE(bool(filter));
 
   const int N = std::max(W * H * 3, 1); // make sure the buffers are never null
   std::vector<float> input(N, 0.5f);
@@ -295,7 +295,7 @@ void imageSizeTest(DeviceRef& device, int W, int H)
 TEST_CASE("image size", "[size]")
 {
   DeviceRef device = newDevice();
-  REQUIRE(device);
+  REQUIRE(bool(device));
   device.commit();
   REQUIRE(device.getError() == Error::None);
 
@@ -327,7 +327,7 @@ void sanitizationTest(DeviceRef& device, bool hdr, float value)
   const int H = 347;
 
   FilterRef filter = device.newFilter("RT");
-  REQUIRE(filter);
+  REQUIRE(bool(filter));
 
   std::shared_ptr<ImageBuffer> input = makeConstImage(device, W, H, 3, value);
   ImageBuffer output(device, W, H, 3);
@@ -352,7 +352,7 @@ void sanitizationTest(DeviceRef& device, bool hdr, float value)
 TEST_CASE("image sanitization", "[sanitization]")
 {
   DeviceRef device = newDevice();
-  REQUIRE(device);
+  REQUIRE(bool(device));
   device.commit();
   REQUIRE(device.getError() == Error::None);
 
@@ -399,7 +399,7 @@ void progressTest(DeviceRef& device, double nMax = 1000)
   const int H = 727;
 
   FilterRef filter = device.newFilter("RT");
-  REQUIRE(filter);
+  REQUIRE(bool(filter));
 
   std::shared_ptr<ImageBuffer> image = makeConstImage(device, W, H);
   setFilterImage(filter, "color",  *image);
@@ -432,7 +432,7 @@ void progressTest(DeviceRef& device, double nMax = 1000)
 TEST_CASE("progress monitor", "[progress]")
 {
   DeviceRef device = newDevice();
-  REQUIRE(device);
+  REQUIRE(bool(device));
   device.commit();
   REQUIRE(device.getError() == Error::None);
 
