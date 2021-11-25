@@ -26,6 +26,7 @@
 
 #define TBB_USE_CAPTURED_EXCEPTION 0
 #define TBB_PREVIEW_LOCAL_OBSERVER 1
+#define TBB_PREVIEW_TASK_ARENA_CONSTRAINTS_EXTENSION 1
 
 #include "tbb/task_scheduler_observer.h"
 #include "tbb/task_arena.h"

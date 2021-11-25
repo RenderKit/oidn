@@ -1,7 +1,13 @@
 Version History
 ---------------
 
--   Added oidnGetBufferData and oidnGetBufferSize functions
+### Changes in v1.4.2:
+
+-   Added support for 16-bit half-precision floating-point images
+-   Added `oidnGetBufferData` and `oidnGetBufferSize` functions
+-   Fixed performance issue on x86 hybrid architecture CPUs (e.g. Alder Lake)
+-   Fixed build error when using OpenImageIO 2.3 or later
+-   Upgraded to oneTBB 2021.4.0 in the official binaries
 
 ### Changes in v1.4.1:
 

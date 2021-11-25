@@ -24,22 +24,18 @@ namespace oidn {
 
   void CPUDevice::printInfo()
   {
-    std::cout << "  Targets :";
+    std::cout << "  ISA     : ";
   #if defined(OIDN_X64)
-    if (isISASupported(ISA::SSE41))       std::cout << " SSE4.1";
-    if (isISASupported(ISA::AVX2))        std::cout << " AVX2";
-    if (isISASupported(ISA::AVX512_CORE)) std::cout << " AVX512";
-  #elif defined(OIDN_ARM64)
-    std::cout << " NEON";
-  #endif
-    std::cout << " (supported)" << std::endl;
-    std::cout << "            ";
-  #if defined(OIDN_X64)
-    std::cout << "SSE4.1 AVX2 AVX512";
+    if (isISASupported(ISA::AVX512_CORE))
+      std::cout << "AVX512";
+    else if (isISASupported(ISA::AVX2))
+      std::cout << "AVX2";
+    else if (isISASupported(ISA::SSE41))
+      std::cout << "SSE4.1";
   #elif defined(OIDN_ARM64)
     std::cout << "NEON";
   #endif
-    std::cout << " (compile time enabled)" << std::endl;
+    std::cout << std::endl;
     
     std::cout << "  Neural  : ";
   #if defined(OIDN_DNNL)
@@ -49,16 +45,6 @@ namespace oidn {
   #elif defined(OIDN_BNNS)
     std::cout << "BNNS";
   #endif
-    std::cout << std::endl;
-
-    std::cout << "  Tasking :";
-    std::cout << " TBB" << TBB_VERSION_MAJOR << "." << TBB_VERSION_MINOR;
-  #if TBB_INTERFACE_VERSION >= 12002
-    std::cout << " TBB_header_interface_" << TBB_INTERFACE_VERSION << " TBB_lib_interface_" << TBB_runtime_interface_version();
-  #else
-    std::cout << " TBB_header_interface_" << TBB_INTERFACE_VERSION << " TBB_lib_interface_" << tbb::TBB_runtime_interface_version();
-  #endif
-
     std::cout << std::endl;
   }
 

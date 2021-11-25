@@ -30,6 +30,7 @@ void printUsage()
             << "                   [--alb albedo.pfm] [--nrm normal.pfm] [--clean_aux]" << std::endl
             << "                   [--is/--input_scale value]" << std::endl
             << "                   [-o/--output output.pfm] [-r/--ref reference_output.pfm]" << std::endl
+            << "                   [-t/--type float|half]" << std::endl
             << "                   [-w/--weights weights.tza]" << std::endl
             << "                   [--threads n] [--affinity 0|1] [--maxmem MB] [--inplace]" << std::endl
             << "                   [--bench ntimes] [-v/--verbose 0-3]" << std::endl
@@ -86,6 +87,7 @@ int main(int argc, char* argv[])
   bool directional = false;
   float inputScale = std::numeric_limits<float>::quiet_NaN();
   bool cleanAux = false;
+  Format dataType = Format::Undefined;
   int numBenchmarkRuns = 0;
   int numThreads = -1;
   int setAffinity = -1;
@@ -149,6 +151,16 @@ int main(int argc, char* argv[])
         inputScale = args.getNextValueFloat();
       else if (opt == "clean_aux" || opt == "cleanAux")
         cleanAux = true;
+      else if (opt == "t" || opt == "type")
+      {
+        const auto val = args.getNextValue();
+        if (val == "f" || val == "float" || val == "Float" || val == "fp32")
+          dataType = Format::Float;
+        else if (val == "h" || val == "half" || val == "Half" || val == "fp16")
+          dataType = Format::Half;
+        else
+          throw std::runtime_error("invalid data type");
+      }
       else if (opt == "w" || opt == "weights")
         weightsFilename = args.getNextValue();
       else if (opt == "bench" || opt == "benchmark")
@@ -227,20 +239,20 @@ int main(int argc, char* argv[])
     std::cout << "Loading input" << std::endl;
 
     if (!albedoFilename.empty())
-      input = albedo = loadImage(device, albedoFilename, 3, false);
+      input = albedo = loadImage(device, albedoFilename, 3, false, dataType);
 
     if (!normalFilename.empty())
-      input = normal = loadImage(device, normalFilename, 3);
+      input = normal = loadImage(device, normalFilename, 3, dataType);
 
     if (!colorFilename.empty())
-      input = color = loadImage(device, colorFilename, 3, srgb);
+      input = color = loadImage(device, colorFilename, 3, srgb, dataType);
 
     if (!input)
       throw std::runtime_error("no input image specified");
 
     if (!refFilename.empty())
     {
-      ref = loadImage(device, refFilename, 3, srgb);
+      ref = loadImage(device, refFilename, 3, srgb, dataType);
       if (ref->dims() != input->dims())
         throw std::runtime_error("invalid reference output image");
     }
@@ -349,9 +361,10 @@ int main(int argc, char* argv[])
       // Verify the output values
       std::cout << "Verifying output" << std::endl;
 
+      const float threshold = (output->dataType == Format::Float) ? 1e-4f : 1e-2f;
       size_t numErrors;
       float maxError;
-      std::tie(numErrors, maxError) = compareImage(*output, *ref, 1e-4);
+      std::tie(numErrors, maxError) = compareImage(*output, *ref, threshold);
 
       std::cout << "  values=" << output->size() << ", errors=" << numErrors << ", maxerror=" << maxError << std::endl;
 

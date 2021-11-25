@@ -50,7 +50,7 @@ def generate(in_path, cpp_path, hpp_path, namespace):
     write_prologue(cpp_file, in_name)
     write_namespace_begin(cpp_file, scopes)
 
-    cpp_file.write('unsigned char %s[%d] = {' % (var_name, in_size))
+    cpp_file.write('extern const unsigned char %s[%d] = {' % (var_name, in_size))
     for i in range(in_size):
       c = in_data[i]
       if i > 0:
@@ -67,7 +67,7 @@ def generate(in_path, cpp_path, hpp_path, namespace):
     with open(hpp_path, 'w') as hpp_file:
       write_prologue(hpp_file, in_name)
       write_namespace_begin(hpp_file, scopes)
-      hpp_file.write('extern unsigned char %s[%d];\n' % (var_name, in_size))
+      hpp_file.write('extern const unsigned char %s[%d];\n' % (var_name, in_size))
       write_namespace_end(hpp_file, scopes)
 
 if __name__ == '__main__':

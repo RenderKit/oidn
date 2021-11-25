@@ -148,37 +148,42 @@ def test_regression(filter, feature_sets, dataset):
       for arch in cfg.arch:
         # Iterate over images
         for image_name in image_names:
-          # Iterate over in-place mode
-          for inplace in ([False, True] if full_test else [False]):
-            # Run test
-            test_name = f'{filter}.{features_str}.{arch}.{image_name}'
-            if inplace:
-              test_name += '.inplace'
-            print_test(test_name)
+          # Iterate over precision
+          for precision in ['fp32', 'fp16']:
+            # Iterate over in-place mode
+            for inplace in ([False, True] if full_test else [False]):
+              # Run test
+              test_name = f'{filter}.{features_str}.{arch}.{image_name}.{precision}'
+              if inplace:
+                test_name += '.inplace'
+              print_test(test_name)
 
-            denoise_cmd = os.path.join(bin_dir, 'oidnDenoise')
-            if cfg.device != 'default':
-              denoise_cmd += f' -d {cfg.device}'
+              denoise_cmd = os.path.join(bin_dir, 'oidnDenoise')
+              if cfg.device != 'default':
+                denoise_cmd += f' -d {cfg.device}'
 
-            ref_filename = os.path.join(cfg.baseline_dir, dataset, f'{image_name}.{result}.{main_feature_ext}.pfm')
-            if not os.path.isfile(ref_filename):
-              print('Error: baseline output image missing (run with "baseline" first)')
-              exit(1)
-            denoise_cmd += f' -f {filter} -v 2 --ref "{ref_filename}"'
+              ref_filename = os.path.join(cfg.baseline_dir, dataset, f'{image_name}.{result}.{main_feature_ext}.pfm')
+              if not os.path.isfile(ref_filename):
+                print('Error: baseline output image missing (run with "baseline" first)')
+                exit(1)
+              denoise_cmd += f' -f {filter} -v 2 --ref "{ref_filename}"'
 
-            for feature in features:
-              feature_opt = get_feature_opt(feature)
-              feature_ext = get_feature_ext(feature)
-              feature_filename = os.path.join(dataset_dir, image_name) + f'.{feature_ext}.pfm'
-              denoise_cmd += f' --{feature_opt} "{feature_filename}"'
+              for feature in features:
+                feature_opt = get_feature_opt(feature)
+                feature_ext = get_feature_ext(feature)
+                feature_filename = os.path.join(dataset_dir, image_name) + f'.{feature_ext}.pfm'
+                denoise_cmd += f' --{feature_opt} "{feature_filename}"'
 
-            if set(features) & {'calb', 'cnrm'}:
-              denoise_cmd += ' --clean_aux'
+              if set(features) & {'calb', 'cnrm'}:
+                denoise_cmd += ' --clean_aux'
 
-            if inplace:
-              denoise_cmd += ' --inplace'
+              if precision == 'fp16':
+                denoise_cmd += ' -t half'
 
-            run_test(denoise_cmd, arch)
+              if inplace:
+                denoise_cmd += ' --inplace'
+
+              run_test(denoise_cmd, arch)
 
 # Main tests
 test()

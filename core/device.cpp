@@ -124,14 +124,29 @@ namespace oidn {
 
   void Device::set1i(const std::string& name, int value)
   {
-    if (name == "numThreads" && !isEnvVar("OIDN_NUM_THREADS"))
-      numThreads = value;
-    else if (name == "setAffinity" && !isEnvVar("OIDN_SET_AFFINITY"))
-      setAffinity = value;
-    else if (name == "verbose" && !isEnvVar("OIDN_VERBOSE"))
+    if (name == "numThreads")
     {
-      verbose = value;
-      error.verbose = value;
+      if (!isEnvVar("OIDN_NUM_THREADS"))
+        numThreads = value;
+      else if (numThreads != value)
+        warning("OIDN_NUM_THREADS environment variable overrides device parameter");
+    }
+    else if (name == "setAffinity")
+    {
+      if (!isEnvVar("OIDN_SET_AFFINITY"))
+        setAffinity = value;
+      else if (setAffinity != bool(value))
+        warning("OIDN_SET_AFFINITY environment variable overrides device parameter");
+    }
+    else if (name == "verbose")
+    {
+      if (!isEnvVar("OIDN_VERBOSE"))
+      {
+        verbose = value;
+        error.verbose = value;
+      }
+      else if (verbose != value || error.verbose != value)
+        warning("OIDN_VERBOSE environment variable overrides device parameter");
     }
     else
       warning("unknown device parameter");
@@ -157,9 +172,18 @@ namespace oidn {
       std::cout << "  Compiler: " << getCompilerName() << std::endl;
       std::cout << "  Build   : " << getBuildName() << std::endl;
       std::cout << "  Platform: " << getPlatformName() << std::endl;
+      std::cout << "  Tasking :";
+      std::cout << " TBB" << TBB_VERSION_MAJOR << "." << TBB_VERSION_MINOR;
+    #if TBB_INTERFACE_VERSION >= 12002
+      std::cout << " TBB_header_interface_" << TBB_INTERFACE_VERSION << " TBB_lib_interface_" << TBB_runtime_interface_version();
+    #else
+      std::cout << " TBB_header_interface_" << TBB_INTERFACE_VERSION << " TBB_lib_interface_" << tbb::TBB_runtime_interface_version();
+    #endif
+      std::cout << std::endl;
+      std::cout << "  Threads : " << numThreads << " (" << (affinity ? "affinitized" : "non-affinitized") << ")" << std::endl;
 
       printInfo();
-
+      
       std::cout << std::endl;
     }
   }
@@ -197,13 +221,19 @@ namespace oidn {
 
   void Device::initTasking()
   {
-    // Get the optimal thread affinities (except on Apple Silicon)
+    // Get the thread affinities for one thread per core on non-hybrid CPUs with SMT
   #if !(defined(__APPLE__) && defined(OIDN_ARM64))
-    if (setAffinity)
+    if (setAffinity
+      #if TBB_INTERFACE_VERSION >= 12020 // oneTBB 2021.2 or later
+        && tbb::info::core_types().size() <= 1 // non-hybrid cores
+      #endif
+       )
     {
-      affinity = std::make_shared<ThreadAffinity>(1, verbose); // one thread per core
-      if (affinity->getNumThreads() == 0)
-        affinity.reset();
+      affinity = std::make_shared<ThreadAffinity>(1, verbose);
+      if (affinity->getNumThreads() == 0 ||                                           // detection failed
+          tbb::this_task_arena::max_concurrency() == affinity->getNumThreads() ||     // no SMT
+          (tbb::this_task_arena::max_concurrency() % affinity->getNumThreads()) != 0) // hybrid SMT
+        affinity.reset(); // disable affinitization
     }
   #endif
 

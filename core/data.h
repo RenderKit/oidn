@@ -14,7 +14,9 @@ namespace oidn {
     size_t size;
 
     Data() : ptr(nullptr), size(0) {}
-    Data(void* ptr, size_t size) : ptr((char*)ptr), size(size) {}
+
+    template<typename T>
+    Data(T* ptr, size_t size) : ptr((char*)ptr), size(size) {}
 
     template<typename T, size_t N>
     Data(T (&array)[N]) : ptr((char*)array), size(sizeof(array)) {}

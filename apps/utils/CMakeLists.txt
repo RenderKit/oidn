@@ -13,9 +13,13 @@ add_library(utils STATIC
 target_link_libraries(utils PUBLIC common ${PROJECT_NAME})
 
 # OpenImageIO
-find_package(OpenImageIO)
-CMAKE_DEPENDENT_OPTION(OIDN_APPS_OPENIMAGEIO "Enable OpenImageIO support in example and test apps" OFF "OpenImageIO_FOUND" OFF)
+option(OIDN_APPS_OPENIMAGEIO "Enable OpenImageIO support in example and test apps" OFF)
 if(OIDN_APPS_OPENIMAGEIO)
+  find_package(OpenImageIO REQUIRED)
+  if(OPENIMAGEIO_VERSION VERSION_GREATER_EQUAL "2.3")
+    # OpenImageIO 2.3+ requires C++14
+    set_property(TARGET utils PROPERTY CXX_STANDARD 14)
+  endif()
   target_compile_definitions(utils PRIVATE OIDN_USE_OPENIMAGEIO)
   target_link_libraries(utils PRIVATE OpenImageIO::OpenImageIO)
 endif()

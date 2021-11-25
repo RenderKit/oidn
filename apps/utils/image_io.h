@@ -33,7 +33,7 @@ namespace oidn {
         numChannels(0),
         dataType(Format::Undefined) {}
 
-    ImageBuffer(DeviceRef& device, int width, int height, int numChannels, Format dataType = Format::Float)
+    ImageBuffer(const DeviceRef& device, int width, int height, int numChannels, Format dataType = Format::Float)
       : device(device),
         numValues(size_t(width) * height * numChannels),
         width(width),
@@ -53,17 +53,6 @@ namespace oidn {
       bufferPtr = (char*)buffer.getData();
     }
 
-    ImageBuffer(const ImageBuffer& other)
-    {
-      copy(other);
-    }
-
-    ImageBuffer& operator =(const ImageBuffer& other)
-    {
-      copy(other);
-      return *this;
-    }
-
     operator bool() const
     {
       return data() != nullptr;
@@ -80,11 +69,9 @@ namespace oidn {
       case Format::Float:
         ((float*)bufferPtr)[i] = x;
         break;
-
       case Format::Half:
         ((int16_t*)bufferPtr)[i] = float_to_half(x);
         break;
-
       default:
         assert(0);
       }
@@ -98,21 +85,20 @@ namespace oidn {
       case Format::Float:
         ((float*)bufferPtr)[i] = half_to_float(x);
         break;
-
       case Format::Half:
         ((int16_t*)bufferPtr)[i] = x;
         break;
-
       default:
         assert(0);
       }
     }
 
-    const void* data() const { return bufferPtr; }
-    void* data() { return bufferPtr; }
+    __forceinline const void* data() const { return bufferPtr; }
+    __forceinline void* data() { return bufferPtr; }
   
     __forceinline size_t size() const { return numValues; }
     std::array<int, 3> dims() const { return {width, height, numChannels}; }
+    size_t byteSize() const { return buffer.getSize(); }
 
     Format format() const
     {
@@ -121,22 +107,18 @@ namespace oidn {
       return Format(int(dataType) + numChannels - 1);
     }
 
-  private:
-    void copy(const ImageBuffer& other)
+    // Returns a copy of the image buffer
+    std::shared_ptr<ImageBuffer> clone() const
     {
-      const size_t bufferSize = other.buffer.getSize();
-
-      device      = other.device;
-      buffer      = device.newBuffer(bufferSize);
-      bufferPtr   = (char*)buffer.getData();
-      numValues   = other.numValues;
-      width       = other.width;
-      height      = other.height;
-      numChannels = other.numChannels;
-      dataType    = other.dataType;
-
-      memcpy(bufferPtr, other.bufferPtr, bufferSize);
+      auto result = std::make_shared<ImageBuffer>(device, width, height, numChannels, dataType);
+      memcpy(result->bufferPtr, bufferPtr, byteSize());
+      return result;
     }
+
+  private:
+    // Disable copying
+    ImageBuffer(const ImageBuffer&) = delete;
+    ImageBuffer& operator =(const ImageBuffer&) = delete;
   };
 
   // Float
@@ -147,10 +129,8 @@ namespace oidn {
     {
     case Format::Float:
       return ((float*)bufferPtr)[i];
-
     case Format::Half:
       return half_to_float(((int16_t*)bufferPtr)[i]);
-
     default:
       assert(0);
       return 0;
@@ -165,22 +145,26 @@ namespace oidn {
     {
     case Format::Float:
       return float_to_half(((float*)bufferPtr)[i]);
-
     case Format::Half:
       return ((int16_t*)bufferPtr)[i];
-
     default:
       assert(0);
       return 0;
     }
   }
 
-  // Loads an image with an optionally specified number of channels (loads all
-  // channels by default)
-  std::shared_ptr<ImageBuffer> loadImage(DeviceRef& device, const std::string& filename, int numChannels = 0);
+  // Loads an image with optionally specified number of channels and data type
+  std::shared_ptr<ImageBuffer> loadImage(const DeviceRef& device,
+                                         const std::string& filename,
+                                         int numChannels = 0,
+                                         Format dataType = Format::Undefined);
 
   // Loads an image with/without sRGB to linear conversion
-  std::shared_ptr<ImageBuffer> loadImage(DeviceRef& device, const std::string& filename, int numChannels, bool srgb);
+  std::shared_ptr<ImageBuffer> loadImage(const DeviceRef& device,
+                                         const std::string& filename,
+                                         int numChannels,
+                                         bool srgb,
+                                         Format dataType = Format::Undefined);
 
   // Saves an image
   void saveImage(const std::string& filename, const ImageBuffer& image);

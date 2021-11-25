@@ -88,13 +88,13 @@ typedef enum
 {
   OIDN_FORMAT_UNDEFINED = 0,
 
-  // 32-bit single-precision floating point scalar and vector formats
+  // 32-bit single-precision floating-point scalar and vector formats
   OIDN_FORMAT_FLOAT  = 1,
   OIDN_FORMAT_FLOAT2,
   OIDN_FORMAT_FLOAT3,
   OIDN_FORMAT_FLOAT4,
 
-  // 16-bit half-precision floating point scalar and vector formats
+  // 16-bit half-precision floating-point scalar and vector formats
   OIDN_FORMAT_HALF  = 257,
   OIDN_FORMAT_HALF2,
   OIDN_FORMAT_HALF3,

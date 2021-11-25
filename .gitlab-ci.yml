@@ -44,7 +44,7 @@ variables:
   only:
     - schedules
     - web
-  dependencies: []
+  needs: []
   artifacts:
     name: "$CI_JOB_NAME"
     paths:
@@ -61,7 +61,7 @@ build-centos7-icc:
   tags:
     - docker
   image: $DOCKER_REGISTRY/oidn-build:centos7
-  script: scripts/build.py install --compiler icc
+  script: scripts/build.py install --compiler icc -D OIDN_WARN_AS_ERRORS=ON
 
 test-centos7-icc-avx512:
   extends: .test
@@ -120,7 +120,7 @@ build-ubuntu18.04-gcc:
   tags:
     - docker
   image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
-  script: scripts/build.py install --compiler gcc
+  script: scripts/build.py install --compiler gcc -D OIDN_WARN_AS_ERRORS=ON
 
 test-ubuntu18.04-gcc-avx512:
   extends: .test
@@ -160,7 +160,7 @@ build-ubuntu18.04-gcc-debug:
   tags:
     - docker
   image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
-  script: scripts/build.py install --compiler gcc --config Debug
+  script: scripts/build.py install --compiler gcc --config Debug -D OIDN_WARN_AS_ERRORS=ON
 
 test-ubuntu18.04-gcc-debug-avx512:
   extends: .test
@@ -198,6 +198,17 @@ build-ubuntu18.04-gcc-namespace:
   image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
   script: scripts/build.py --compiler gcc -D OIDN_API_NAMESPACE=myoidn
 
+build-ubuntu18.04-gcc-tbb2007:
+  extends: .build
+  tags:
+    - docker
+  image: $DOCKER_REGISTRY/oidn-build:ubuntu18.04
+  script:
+    - mkdir build
+    - cd build
+    - cmake -D OIDN_WARN_AS_ERRORS=ON ..
+    - make -j VERBOSE=1
+
 build-ubuntu18.04-clang:
   extends: .build
   tags:
@@ -207,7 +218,7 @@ build-ubuntu18.04-clang:
 
 ## -----------------------------------------------------------------------------
 
-build-ubuntu20.04-gcc-oiio:
+build-ubuntu20.04-gcc-oiio2.1:
   extends: .build
   tags:
     - docker
@@ -215,7 +226,7 @@ build-ubuntu20.04-gcc-oiio:
   script:
     - mkdir build
     - cd build
-    - cmake .. -D OIDN_APPS_OPENIMAGEIO=ON
+    - cmake -D OIDN_APPS_OPENIMAGEIO=ON -D OIDN_WARN_AS_ERRORS=ON ..
     - make -j VERBOSE=1
 
 build-ubuntu20.04-gcc-minimal:
@@ -227,14 +238,16 @@ build-ubuntu20.04-gcc-minimal:
 
 ## -----------------------------------------------------------------------------
 
-#build-arch-gcc:
-#  extends: .build
-#  tags:
-#    - docker
-#  image: $DOCKER_REGISTRY/oidn-build:arch
-#  script:
-#    - cmake -B build -G Ninja
-#    - ninja -C build -v
+build-arch-gcc-oiio2.3:
+  extends: .build
+  tags:
+    - docker
+  image: $DOCKER_REGISTRY/oidn-build:arch
+  script:
+    - mkdir build
+    - cd build
+    - cmake -D OIDN_APPS_OPENIMAGEIO=ON ..
+    - make -j VERBOSE=1
 
 ## -----------------------------------------------------------------------------
 ## macOS
@@ -245,14 +258,14 @@ build-macos-icc:
   tags:
     - osx
     - sign # build might fail on other machines
-  script: scripts/build.py install --compiler icc
+  script: scripts/build.py install --compiler icc -D OIDN_WARN_AS_ERRORS=ON
 
 build-macos-icc-debug:
   extends: .build
   tags:
     - osx
     - sign # build might fail on other machines
-  script: scripts/build.py install --compiler icc --config Debug
+  script: scripts/build.py install --compiler icc --config Debug -D OIDN_WARN_AS_ERRORS=ON
 
 test-macos-icc-avx512:
   extends: .test
@@ -280,14 +293,14 @@ build-macos-clang:
   tags:
     - osx
     - avx2 # exclude slower machines
-  script: scripts/build.py install --compiler clang
+  script: scripts/build.py install --compiler clang -D OIDN_WARN_AS_ERRORS=ON
 
 build-macos-clang-debug:
   extends: .build
   tags:
     - osx
     - avx2 # exclude slower machines
-  script: scripts/build.py install --compiler clang --config Debug
+  script: scripts/build.py install --compiler clang --config Debug -D OIDN_WARN_AS_ERRORS=ON
 
 test-macos-clang-avx512:
   extends: .test
@@ -337,7 +350,7 @@ build-macos-clang-arm:
   extends: .build
   tags:
     - mac-arm
-  script: scripts/build.py install --compiler clang
+  script: scripts/build.py install --compiler clang -D OIDN_WARN_AS_ERRORS=ON
 
 test-macos-clang-arm:
   extends: .test
@@ -352,7 +365,7 @@ build-macos-clang-debug-arm:
   extends: .build
   tags:
     - mac-arm
-  script: scripts/build.py install --compiler clang --config Debug
+  script: scripts/build.py install --compiler clang --config Debug -D OIDN_WARN_AS_ERRORS=ON
 
 test-macos-clang-debug-arm:
   extends: .test
@@ -385,7 +398,7 @@ build-windows-icc:
     - win10
     - msvc15
     - icc19
-  script: python scripts/build.py install --compiler msvc15-icc19
+  script: python scripts/build.py install --compiler msvc15-icc19 -D OIDN_WARN_AS_ERRORS=ON
 
 test-windows-icc-avx512:
   extends: .test
@@ -444,7 +457,7 @@ build-windows-msvc16:
   tags:
     - win10
     - msvc16
-  script: python scripts/build.py install --compiler msvc16
+  script: python scripts/build.py install --compiler msvc16 -D OIDN_WARN_AS_ERRORS=ON
 
 test-windows-msvc16-avx512:
   extends: .test
@@ -480,6 +493,42 @@ package-windows:
 ## Scans
 ## -----------------------------------------------------------------------------
 
+av:
+  stage: scan
+  tags: [docker]
+  image: $DOCKER_REGISTRY/clamav:ubuntu20.04
+  only:
+    - schedules
+    - web
+  needs:
+    - package-linux
+    - package-macos
+    - package-windows
+  script:
+    - freshclam | tee -a /tmp/av_scan.log
+    - clamscan -va --max-filesize=512M --max-scansize=2048M --alert-broken --alert-exceeds-max build/oidn-* | tee -a /tmp/av_scan.log
+    - $CI_TOOLS_PATH/bin/store-files.sh $CI_PROJECT_NAME $CI_PIPELINE_ID av /tmp/av_scan.log
+    
+bdba:
+  stage: scan
+  tags: [docker]
+  image: $DOCKER_REGISTRY/oidn-build:centos7
+  only:
+    - schedules
+    - web
+  needs:
+    - package-linux
+    - package-macos
+    - package-windows
+  script:
+    - $CI_TOOLS_PATH/bin/bdba.sh "build/oidn-*"
+    - $CI_TOOLS_PATH/bin/store-files.sh $CI_PROJECT_NAME $CI_PIPELINE_ID bdba "oidn-*.pdf"
+    - $CI_TOOLS_PATH/bin/store-files.sh $CI_PROJECT_NAME $CI_PIPELINE_ID bdba "oidn-*.csv"
+  artifacts:
+    paths:
+      - oidn-*.pdf
+      - oidn-*.csv
+
 kw-build-scan:
   stage: scan
   tags: [docker]
@@ -505,6 +554,13 @@ protex-scan:
       - ip_protex.log
     when: always
     expire_in: 1 week
+
+snyk-scan:
+  stage: scan
+  tags: [ snyk ]
+  needs: []
+  script:
+    - $CI_TOOLS_PATH/bin/snyk.sh
 
 kw-check-issues:
   stage: report-scan

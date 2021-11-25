@@ -70,7 +70,7 @@ def get_image_feature(filename):
     return 'srgb' # no extension, assume sRGB
   else:
     ext = filename_split[-1].lower()
-    if ext in {'exr', 'pfm', 'hdr'}:
+    if ext in {'exr', 'pfm', 'phm', 'hdr'}:
       if len(filename_split) == 3:
         feature = filename_split[-2]
         if feature in {'sh1x', 'sh1y', 'sh1z'}:

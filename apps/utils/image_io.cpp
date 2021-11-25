@@ -49,7 +49,10 @@ namespace oidn {
       }
     }
 
-    std::shared_ptr<ImageBuffer> loadImagePFM(DeviceRef& device, const std::string& filename, int numChannels)
+    std::shared_ptr<ImageBuffer> loadImagePFM(const DeviceRef& device,
+                                              const std::string& filename,
+                                              int numChannels,
+                                              Format dataType)
     {
       // Open the file
       std::ifstream file(filename, std::ios::binary);
@@ -72,6 +75,9 @@ namespace oidn {
       else if (C < numChannels)
         throw std::runtime_error("not enough image channnels");
 
+      if (dataType == Format::Undefined)
+        dataType = Format::Float;
+
       int H, W;
       file >> W >> H;
 
@@ -88,7 +94,7 @@ namespace oidn {
       scale = fabs(scale);
 
       // Read the pixels
-      auto image = std::make_shared<ImageBuffer>(device, W, H, numChannels);
+      auto image = std::make_shared<ImageBuffer>(device, W, H, numChannels, dataType);
 
       for (int h = 0; h < H; ++h)
       {
@@ -116,13 +122,21 @@ namespace oidn {
       const int W = image.width;
       const int C = image.numChannels;
 
+      std::string id;
+      if (C == 3)
+        id = "PF";
+      else if (C == 1)
+        id = "Pf";
+      else
+        throw std::runtime_error("unsupported number of channels");
+
       // Open the file
       std::ofstream file(filename, std::ios::binary);
       if (file.fail())
         throw std::runtime_error("cannot open image file: " + filename);
 
       // Write the header
-      file << "PF" << std::endl;
+      file << id << std::endl;
       file << W << " " << H << std::endl;
       file << "-1.0" << std::endl;
 
@@ -131,10 +145,125 @@ namespace oidn {
       {
         for (int w = 0; w < W; ++w)
         {
-          for (int c = 0; c < 3; ++c)
+          for (int c = 0; c < C; ++c)
           {
             const float x = image.get((size_t(H-1-h)*W + w) * C + c);
-            file.write((char*)&x, sizeof(float));
+            file.write((char*)&x, sizeof(x));
+          }
+        }
+      }
+    }
+
+    std::shared_ptr<ImageBuffer> loadImagePHM(const DeviceRef& device,
+                                              const std::string& filename,
+                                              int numChannels,
+                                              Format dataType)
+    {
+      // Open the file
+      std::ifstream file(filename, std::ios::binary);
+      if (file.fail())
+        throw std::runtime_error("cannot open image file: " + filename);
+
+      // Read the header
+      std::string id;
+      file >> id;
+      int C;
+      if (id == "PH")
+        C = 3;
+      else if (id == "Ph")
+        C = 1;
+      else
+        throw std::runtime_error("invalid PHM image");
+
+      if (numChannels == 0)
+        numChannels = C;
+      else if (C < numChannels)
+        throw std::runtime_error("not enough image channnels");
+
+      if (dataType == Format::Undefined)
+        dataType = Format::Half;
+
+      int H, W;
+      file >> W >> H;
+
+      float scale;
+      file >> scale;
+
+      file.get(); // skip newline
+
+      if (file.fail())
+        throw std::runtime_error("invalid PHM image");
+
+      if (scale >= 0.f)
+        throw std::runtime_error("big-endian PHM images are not supported");
+      scale = fabs(scale);
+
+      // Read the pixels
+      auto image = std::make_shared<ImageBuffer>(device, W, H, numChannels, dataType);
+
+      for (int h = 0; h < H; ++h)
+      {
+        for (int w = 0; w < W; ++w)
+        {
+          for (int c = 0; c < C; ++c)
+          {
+            int16_t x;
+            file.read((char*)&x, sizeof(x));
+            if (c < numChannels)
+            {
+              if (scale == 1.f)
+              {
+                image->set((size_t(H-1-h)*W + w) * numChannels + c, x);
+              }
+              else
+              {
+                const float xs = half_to_float(x) * scale;
+                image->set((size_t(H-1-h)*W + w) * numChannels + c, xs);
+              }
+            }
+          }
+        }
+      }
+
+      if (file.fail())
+        throw std::runtime_error("invalid PHM image");
+
+      return image;
+    }
+
+    void saveImagePHM(const std::string& filename, const ImageBuffer& image)
+    {
+      const int H = image.height;
+      const int W = image.width;
+      const int C = image.numChannels;
+
+      std::string id;
+      if (C == 3)
+        id = "PH";
+      else if (C == 1)
+        id = "Ph";
+      else
+        throw std::runtime_error("unsupported number of channels");
+
+      // Open the file
+      std::ofstream file(filename, std::ios::binary);
+      if (file.fail())
+        throw std::runtime_error("cannot open image file: " + filename);
+
+      // Write the header
+      file << id << std::endl;
+      file << W << " " << H << std::endl;
+      file << "-1.0" << std::endl;
+
+      // Write the pixels
+      for (int h = 0; h < H; ++h)
+      {
+        for (int w = 0; w < W; ++w)
+        {
+          for (int c = 0; c < C; ++c)
+          {
+            const int16_t x = image.get<int16_t>((size_t(H-1-h)*W + w) * C + c);
+            file.write((char*)&x, sizeof(x));
           }
         }
       }
@@ -172,7 +301,10 @@ namespace oidn {
   }
 
 #ifdef OIDN_USE_OPENIMAGEIO
-  std::shared_ptr<ImageBuffer> loadImageOIIO(DeviceRef& device, const std::string& filename, int numChannels)
+  std::shared_ptr<ImageBuffer> loadImageOIIO(const DeviceRef& device,
+                                             const std::string& filename,
+                                             int numChannels,
+                                             Format dataType)
   {
     auto in = OIIO::ImageInput::open(filename);
     if (!in)
@@ -184,10 +316,11 @@ namespace oidn {
     else if (spec.nchannels < numChannels)
       throw std::runtime_error("not enough image channels");
 
-    const bool isFP16 = spec.channelformat(0) == OIIO::TypeDesc::HALF;
-    auto image = std::make_shared<ImageBuffer>(device, spec.width, spec.height, numChannels,
-                                               isFP16 ? Format::Half : Format::Float);
-    if (!in->read_image(0, 0, 0, numChannels, isFP16 ? OIIO::TypeDesc::HALF : OIIO::TypeDesc::FLOAT, image->data()))
+    if (dataType == Format::Undefined)
+      dataType = (spec.channelformat(0) == OIIO::TypeDesc::HALF) ? Format::Half : Format::Float;
+    
+    auto image = std::make_shared<ImageBuffer>(device, spec.width, spec.height, numChannels, dataType);
+    if (!in->read_image(0, 0, 0, numChannels, dataType == Format::Half ? OIIO::TypeDesc::HALF : OIIO::TypeDesc::FLOAT, image->data()))
       throw std::runtime_error("failed to read image data");
     in->close();
 
@@ -228,16 +361,21 @@ namespace oidn {
   }
 #endif
 
-  std::shared_ptr<ImageBuffer> loadImage(DeviceRef& device, const std::string& filename, int numChannels)
+  std::shared_ptr<ImageBuffer> loadImage(const DeviceRef& device,
+                                         const std::string& filename,
+                                         int numChannels,
+                                         Format dataType)
   {
     const std::string ext = getExtension(filename);
     std::shared_ptr<ImageBuffer> image;
 
     if (ext == "pfm")
-      image = loadImagePFM(device, filename, numChannels);
+      image = loadImagePFM(device, filename, numChannels, dataType);
+    else if (ext == "phm")
+      image = loadImagePHM(device, filename, numChannels, dataType);
     else
 #if OIDN_USE_OPENIMAGEIO
-      image = loadImageOIIO(device, filename, numChannels);
+      image = loadImageOIIO(device, filename, numChannels, dataType);
 #else
       throw std::runtime_error("cannot load unsupported image file format: " + filename);
 #endif
@@ -250,6 +388,8 @@ namespace oidn {
     const std::string ext = getExtension(filename);
     if (ext == "pfm")
       saveImagePFM(filename, image);
+    else if (ext == "phm")
+      saveImagePHM(filename, image);
     else if (ext == "ppm")
       saveImagePPM(filename, image);
     else
@@ -263,12 +403,16 @@ namespace oidn {
   bool isSrgbImage(const std::string& filename)
   {
     const std::string ext = getExtension(filename);
-    return ext != "pfm" && ext != "exr" && ext != "hdr";
+    return ext != "pfm" && ext != "phm" && ext != "exr" && ext != "hdr";
   }
 
-  std::shared_ptr<ImageBuffer> loadImage(DeviceRef& device, const std::string& filename, int numChannels, bool srgb)
+  std::shared_ptr<ImageBuffer> loadImage(const DeviceRef& device,
+                                         const std::string& filename,
+                                         int numChannels,
+                                         bool srgb,
+                                         Format dataType)
   {
-    auto image = loadImage(device, filename, numChannels);
+    auto image = loadImage(device, filename, numChannels, dataType);
     if (!srgb && isSrgbImage(filename))
       srgbInverse(*image);
     return image;
@@ -278,9 +422,9 @@ namespace oidn {
   {
     if (!srgb && isSrgbImage(filename))
     {
-      ImageBuffer newImage = image;
-      srgbForward(newImage);
-      saveImage(filename, newImage);
+      std::shared_ptr<ImageBuffer> newImage = image.clone();
+      srgbForward(*newImage);
+      saveImage(filename, *newImage);
     }
     else
     {
