@@ -36,7 +36,7 @@
   }
 
 #include "cpu_device.h"
-#if defined(OIDN_DEVICE_GPU)
+#if defined(OIDN_DEVICE_SYCL)
   #include "sycl_device.h"
 #endif
 #include "filter.h"
@@ -102,7 +102,7 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_TRY
       if (type == OIDN_DEVICE_TYPE_CPU || type == OIDN_DEVICE_TYPE_DEFAULT)
         device = makeRef<CPUDevice>();
-    #if defined(OIDN_DEVICE_GPU)
+    #if defined(OIDN_DEVICE_SYCL)
       else if (type == OIDN_DEVICE_TYPE_GPU)
         device = makeRef<SYCLDevice>();
     #endif
@@ -116,7 +116,7 @@ OIDN_API_NAMESPACE_BEGIN
   {
     Ref<Device> device = nullptr;
     OIDN_TRY
-    #if defined(OIDN_DEVICE_GPU)
+    #if defined(OIDN_DEVICE_SYCL)
       device = makeRef<SYCLDevice>(*((sycl::queue*)syclQueue));
     #else
       throw Exception(Error::InvalidArgument, "unsupported device type");

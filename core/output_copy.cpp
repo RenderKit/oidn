@@ -1,7 +1,7 @@
 // Copyright 2009-2021 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#if defined(OIDN_DEVICE_GPU)
+#if defined(OIDN_DEVICE_SYCL)
   #include "sycl_device.h"
 #endif
 
@@ -30,7 +30,7 @@ namespace oidn {
       });
     }
 
-  #if defined(OIDN_DEVICE_GPU)
+  #if defined(OIDN_DEVICE_SYCL)
 
     template<typename T>
     struct OutputCopy
@@ -76,7 +76,7 @@ namespace oidn {
     assert(dst.height >= src.height);
     assert(dst.width  >= src.width);
 
-  #if defined(OIDN_DEVICE_GPU)
+  #if defined(OIDN_DEVICE_SYCL)
     if (auto syclDevice = dynamicRefCast<SYCLDevice>(device))
     {
       switch (getDataType(src.format))

@@ -46,7 +46,7 @@ namespace oidn {
     void execute() override;
   };
 
-#if defined(OIDN_DEVICE_GPU)
+#if defined(OIDN_DEVICE_SYCL)
 
   class SYCLDevice;
 

@@ -1,7 +1,7 @@
 // Copyright 2009-2021 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#if defined(OIDN_DEVICE_GPU)
+#if defined(OIDN_DEVICE_SYCL)
   #include "sycl_device.h"
 #endif
 
@@ -81,7 +81,7 @@ namespace oidn {
                                                              bool snorm)
   {
     std::shared_ptr<InputReorderNode> node;
-  #if defined(OIDN_DEVICE_GPU)
+  #if defined(OIDN_DEVICE_SYCL)
     if (auto syclDevice = dynamicRefCast<SYCLDevice>(device))
       node = std::make_shared<SYCLInputReorderNode>(syclDevice, name, dst, transferFunc, hdr, snorm);
     else
@@ -99,7 +99,7 @@ namespace oidn {
                                                                bool snorm)
   {
     std::shared_ptr<OutputReorderNode> node;
-  #if defined(OIDN_DEVICE_GPU)
+  #if defined(OIDN_DEVICE_SYCL)
     if (auto syclDevice = dynamicRefCast<SYCLDevice>(device))
       node = std::make_shared<SYCLOutputReorderNode>(syclDevice, name, src, transferFunc, hdr, snorm);
     else
@@ -164,7 +164,7 @@ namespace oidn {
     assert(dst->desc() == getPoolDesc(src->desc()));
 
     std::shared_ptr<Node> node;
-  #if defined(OIDN_DEVICE_GPU)
+  #if defined(OIDN_DEVICE_SYCL)
     if (auto syclDevice = dynamicRefCast<SYCLDevice>(device))
       node = std::make_shared<SYCLPoolNode>(syclDevice, name, src, dst);
     else
@@ -192,7 +192,7 @@ namespace oidn {
     assert(dst->desc() == getUpsampleDesc(src->desc()));
 
     std::shared_ptr<Node> node;
-  #if defined(OIDN_DEVICE_GPU)
+  #if defined(OIDN_DEVICE_SYCL)
     if (auto syclDevice = dynamicRefCast<SYCLDevice>(device))
       node = std::make_shared<SYCLUpsampleNode>(syclDevice, name, src, dst);
     else

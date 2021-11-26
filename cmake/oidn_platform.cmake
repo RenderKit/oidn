@@ -145,7 +145,7 @@ endif()
 ## SYCL
 ## -----------------------------------------------------------------------------
 
-if(OIDN_DEVICE_GPU)
+if(OIDN_DEVICE_SYCL)
   append(OIDN_CXX_FLAGS_SYCL "-fsycl -fsycl-unnamed-lambda")
 endif()
 

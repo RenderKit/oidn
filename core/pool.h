@@ -89,7 +89,7 @@ namespace oidn {
 
 #endif
 
-#if defined(OIDN_DEVICE_GPU)
+#if defined(OIDN_DEVICE_SYCL)
   class SYCLDevice;
 
   class SYCLPoolNode : public Node

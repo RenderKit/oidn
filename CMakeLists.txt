@@ -95,7 +95,7 @@ set(OIDN_NEURAL_RUNTIME ${OIDN_NEURAL_RUNTIME_DEFAULT} CACHE STRING "Neural netw
 set_property(CACHE OIDN_NEURAL_RUNTIME PROPERTY STRINGS ${OIDN_NEURAL_RUNTIMES})
 
 if(OIDN_NEURAL_RUNTIME STREQUAL "DNNL")
-  option(OIDN_DEVICE_GPU "Enable GPU device." ON)
+  option(OIDN_DEVICE_SYCL "Enable SYCL device." ON)
   include(oidn_dnnl)
 elseif(OIDN_NEURAL_RUNTIME STREQUAL "BNNS")
   include(oidn_bnns)
@@ -224,8 +224,8 @@ elseif(OIDN_NEURAL_RUNTIME STREQUAL "BNNS")
   target_link_libraries(${PROJECT_NAME} PRIVATE "-framework Accelerate")
 endif()
 
-if(OIDN_DEVICE_GPU)
-  target_compile_definitions(${PROJECT_NAME} PUBLIC OIDN_DEVICE_GPU)
+if(OIDN_DEVICE_SYCL)
+  target_compile_definitions(${PROJECT_NAME} PUBLIC OIDN_DEVICE_SYCL)
   target_link_options(${PROJECT_NAME} PUBLIC "-fsycl")
 endif()
 
