@@ -82,6 +82,9 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 find_package(Threads REQUIRED)
 find_package(TBB 2017.0 REQUIRED tbb)
 
+# Packaging
+include(oidn_package)
+
 # Neural network runtime
 set(OIDN_NEURAL_RUNTIMES)
 if(OIDN_ARCH STREQUAL "X64")
@@ -94,10 +97,17 @@ list(GET OIDN_NEURAL_RUNTIMES 0 OIDN_NEURAL_RUNTIME_DEFAULT)
 set(OIDN_NEURAL_RUNTIME ${OIDN_NEURAL_RUNTIME_DEFAULT} CACHE STRING "Neural network runtime to use.")
 set_property(CACHE OIDN_NEURAL_RUNTIME PROPERTY STRINGS ${OIDN_NEURAL_RUNTIMES})
 
+# DNNL
 if(OIDN_NEURAL_RUNTIME STREQUAL "DNNL")
   option(OIDN_DEVICE_SYCL "Enable SYCL device." OFF)
   include(oidn_dnnl)
-elseif(OIDN_NEURAL_RUNTIME STREQUAL "BNNS")
+endif()
+
+# Platform-specific settings
+include(oidn_platform)
+
+# BNNS
+if(OIDN_NEURAL_RUNTIME STREQUAL "BNNS")
   include(oidn_bnns)
 endif()
 
@@ -109,12 +119,6 @@ elseif(OIDN_ARCH STREQUAL "ARM64")
 endif()
 set(OIDN_ISPC_ADDRESSING 64)
 include(oidn_ispc)
-
-# Packaging
-include(oidn_package)
-
-# Platform-specific settings
-include(oidn_platform)
 
 ## -----------------------------------------------------------------------------
 ## Library
@@ -188,7 +192,7 @@ set(CORE_SOURCES
   core/sycl_device.cpp
 )
 
-set_source_files_properties(${CORE_SOURCES} PROPERTIES COMPILE_FLAGS ${OIDN_CXX_FLAGS_SYCL})
+set_source_files_properties(${CORE_SOURCES} PROPERTIES COMPILE_FLAGS "${OIDN_CXX_FLAGS_SYCL}")
 
 set(CORE_SOURCES_ISPC
   core/image.isph
