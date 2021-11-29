@@ -187,12 +187,17 @@ set(CORE_SOURCES
   core/upsample.h
   core/upsample.cpp
   core/vec.h
-  core/sycl_buffer.h
-  core/sycl_device.h
-  core/sycl_device.cpp
 )
 
-set_source_files_properties(${CORE_SOURCES} PROPERTIES COMPILE_FLAGS "${OIDN_CXX_FLAGS_SYCL}")
+if(OIDN_DEVICE_SYCL)
+  list(APPEND CORE_SOURCES
+    core/sycl_buffer.h
+    core/sycl_device.h
+    core/sycl_device.cpp
+  )
+
+  set_source_files_properties(${CORE_SOURCES} PROPERTIES COMPILE_FLAGS "${OIDN_CXX_FLAGS_SYCL}")
+endif()
 
 set(CORE_SOURCES_ISPC
   core/image.isph
