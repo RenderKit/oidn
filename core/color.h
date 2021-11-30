@@ -126,6 +126,7 @@ namespace oidn {
 
       default:
         assert(0);
+        return 0;
       }
     }
 
@@ -147,6 +148,7 @@ namespace oidn {
       
       default:
         assert(0);
+        return 0;
       }
     }
 

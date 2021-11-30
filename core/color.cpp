@@ -5,6 +5,8 @@
 
 namespace oidn {
 
+  constexpr float TransferFunction::yMax;
+
   TransferFunction::TransferFunction(Type type)
     : type(type)
   {
