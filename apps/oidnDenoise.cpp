@@ -24,7 +24,7 @@ using namespace oidn;
 void printUsage()
 {
   std::cout << "Intel(R) Open Image Denoise" << std::endl;
-  std::cout << "usage: oidnDenoise [-d/--device default|cpu|gpu]" << std::endl
+  std::cout << "usage: oidnDenoise [-d/--device default|cpu|sycl]" << std::endl
             << "                   [-f/--filter RT|RTLightmap]" << std::endl
             << "                   [--hdr color.pfm] [--ldr color.pfm] [--srgb] [--dir directional.pfm]" << std::endl
             << "                   [--alb albedo.pfm] [--nrm normal.pfm] [--clean_aux]" << std::endl
@@ -115,8 +115,8 @@ int main(int argc, char* argv[])
           deviceType = DeviceType::Default;
         else if (val == "cpu" || val == "CPU")
           deviceType = DeviceType::CPU;
-        else if (val == "gpu" || val == "GPU")
-          deviceType = DeviceType::GPU;
+        else if (val == "sycl" || val == "SYCL")
+          deviceType = DeviceType::SYCL;
         else
           throw std::invalid_argument("invalid device");
       }
@@ -228,7 +228,7 @@ int main(int argc, char* argv[])
     const int versionMinor = device.get<int>("versionMinor");
     const int versionPatch = device.get<int>("versionPatch");
 
-    std::cout << "  device=" << (deviceType == DeviceType::Default ? "default" : (deviceType == DeviceType::GPU ? "GPU" : "CPU"))
+    std::cout << "  device=" << (deviceType == DeviceType::Default ? "default" : (deviceType == DeviceType::SYCL ? "SYCL" : "CPU"))
               << ", version=" << versionMajor << "." << versionMinor << "." << versionPatch
               << ", msec=" << (1000. * deviceInitTime) << std::endl;
 

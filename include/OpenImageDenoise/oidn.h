@@ -20,8 +20,8 @@ typedef enum
 {
   OIDN_DEVICE_TYPE_DEFAULT = 0, // select device automatically
 
-  OIDN_DEVICE_TYPE_CPU = 1, // CPU device
-  OIDN_DEVICE_TYPE_GPU = 2, // GPU device
+  OIDN_DEVICE_TYPE_CPU  = 1, // CPU device
+  OIDN_DEVICE_TYPE_SYCL = 2, // SYCL device
 } OIDNDeviceType;
 
 // Error codes

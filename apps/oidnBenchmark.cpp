@@ -33,7 +33,7 @@ bool inplace = false;
 void printUsage()
 {
   std::cout << "Intel(R) Open Image Denoise - Benchmark" << std::endl;
-  std::cout << "usage: oidnBenchmark [-d/--device default|cpu|gpu]" << std::endl
+  std::cout << "usage: oidnBenchmark [-d/--device default|cpu|sycl]" << std::endl
             << "                     [-r/--run regex] [-n times]" << std::endl
             << "                     [-s/--size width height]" << std::endl
             << "                     [-t/--type float|half]" << std::endl
@@ -230,8 +230,8 @@ int main(int argc, char* argv[])
           deviceType = DeviceType::Default;
         else if (val == "cpu" || val == "CPU")
           deviceType = DeviceType::CPU;
-        else if (val == "gpu" || val == "GPU")
-          deviceType = DeviceType::GPU;
+        else if (val == "sycl" || val == "SYCL")
+          deviceType = DeviceType::SYCL;
         else
           throw std::invalid_argument("invalid device");
       }

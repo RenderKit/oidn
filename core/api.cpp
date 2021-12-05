@@ -103,7 +103,7 @@ OIDN_API_NAMESPACE_BEGIN
       if (type == OIDN_DEVICE_TYPE_CPU || type == OIDN_DEVICE_TYPE_DEFAULT)
         device = makeRef<CPUDevice>();
     #if defined(OIDN_DEVICE_SYCL)
-      else if (type == OIDN_DEVICE_TYPE_GPU)
+      else if (type == OIDN_DEVICE_TYPE_SYCL)
         device = makeRef<SYCLDevice>();
     #endif
       else
