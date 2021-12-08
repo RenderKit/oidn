@@ -37,6 +37,74 @@ namespace oidn {
     virtual Device* getDevice() = 0;
   };
 
+  // Unified shared memory based buffer object
+  template<typename DeviceT, typename BufferAllocatorT>
+  class USMBuffer : public Buffer
+  {
+  protected:
+    char* ptr;
+    size_t byteSize;
+    bool shared;
+    Kind kind;
+    Ref<DeviceT> device;
+    BufferAllocatorT allocator;
+
+  public:
+    USMBuffer(const Ref<DeviceT>& device, size_t byteSize, Kind kind)
+      : ptr(nullptr),
+        byteSize(byteSize),
+        shared(false),
+        kind(kind),
+        device(device)
+    {
+      ptr = (char*)allocator.allocate(device, byteSize, kind);
+    }
+
+    USMBuffer(const Ref<DeviceT>& device, void* data, size_t byteSize)
+      : ptr((char*)data),
+        byteSize(byteSize),
+        shared(true),
+        kind(Buffer::Kind::Unknown),
+        device(device)
+    {
+      if (ptr == nullptr)
+        throw Exception(Error::InvalidArgument, "buffer pointer null");
+    }
+
+    ~USMBuffer()
+    {
+      if (!shared)
+        allocator.deallocate(device, ptr, kind);
+    }
+
+    char* data() override { return ptr; }
+    const char* data() const override { return ptr; }
+    size_t size() const override { return byteSize; }
+
+    void* map(size_t offset, size_t size) override
+    {
+      if (offset + size > byteSize)
+        throw Exception(Error::InvalidArgument, "buffer region out of range");
+
+      return ptr + offset;
+    }
+
+    void unmap(void* mappedPtr) override {}
+
+    // Resizes the buffer discarding its current contents
+    void resize(size_t newSize) override
+    {
+      if (shared)
+        throw std::logic_error("shared buffers cannot be resized");
+
+      allocator.deallocate(device, ptr, kind);
+      ptr = (char*)allocator.allocate(device, newSize, kind);
+      byteSize = newSize;
+    }
+
+    Device* getDevice() override { return device.get(); }
+  };
+
   // Memory object backed by a buffer
   struct Memory
   {

@@ -50,7 +50,7 @@ namespace oidn {
 
   Ref<Buffer> CPUDevice::newBuffer(size_t byteSize, Buffer::Kind kind)
   {
-    return makeRef<CPUBuffer>(Ref<Device>(this), byteSize);
+    return makeRef<CPUBuffer>(Ref<Device>(this), byteSize, kind);
   }
 
   Ref<Buffer> CPUDevice::newBuffer(void* ptr, size_t byteSize)
