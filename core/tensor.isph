@@ -16,7 +16,7 @@ struct TensorAccessor
   uniform int W;
 };
 
-inline size_t getIndex(uniform TensorAccessor& tz, uniform int h, int w, uniform int c)
+inline size_t getIndex(uniform TensorAccessor& tz, uniform int c, uniform int h, int w)
 {
 #if defined(OIDN_DNNL)
   // ChwKc layout (blocked)
@@ -27,26 +27,26 @@ inline size_t getIndex(uniform TensorAccessor& tz, uniform int h, int w, uniform
 #endif
 }
 
-inline float get1f(uniform TensorAccessor& tz, uniform int h, int w, uniform int c)
+inline float get1f(uniform TensorAccessor& tz, uniform int c, uniform int h, int w)
 {
-  return tz.ptr[getIndex(tz, h, w, c)];
+  return tz.ptr[getIndex(tz, c, h, w)];
 }
 
-inline void set1f(uniform TensorAccessor& tz, uniform int h, int w, uniform int c, float value)
+inline void set1f(uniform TensorAccessor& tz, uniform int c, uniform int h, int w, float value)
 {
-  tz.ptr[getIndex(tz, h, w, c)] = value;
+  tz.ptr[getIndex(tz, c, h, w)] = value;
 }
 
-inline vec3f get3f(uniform TensorAccessor& tz, uniform int h, int w, uniform int c)
+inline vec3f get3f(uniform TensorAccessor& tz, uniform int c, uniform int h, int w)
 {
-  return make_vec3f(get1f(tz, h, w, c),
-                    get1f(tz, h, w, c+1),
-                    get1f(tz, h, w, c+2));
+  return make_vec3f(get1f(tz, c,   h, w),
+                    get1f(tz, c+1, h, w),
+                    get1f(tz, c+2, h, w));
 }
 
-inline void set3f(uniform TensorAccessor& tz, uniform int h, int w, uniform int c, const vec3f& value)
+inline void set3f(uniform TensorAccessor& tz, uniform int c, uniform int h, int w, const vec3f& value)
 {
-  set1f(tz, h, w, c,   value.x);
-  set1f(tz, h, w, c+1, value.y);
-  set1f(tz, h, w, c+2, value.z);
+  set1f(tz, c,   h, w, value.x);
+  set1f(tz, c+1, h, w, value.y);
+  set1f(tz, c+2, h, w, value.z);
 }

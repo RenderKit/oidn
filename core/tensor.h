@@ -216,7 +216,7 @@ namespace oidn {
     int H;
     int W;
 
-    __forceinline size_t getOffset(int h, int w, int c) const
+    __forceinline size_t getOffset(int c, int h, int w) const
     {
     #if defined(OIDN_DNNL)
       // ChwKc layout (blocked)
@@ -227,28 +227,28 @@ namespace oidn {
     #endif
     }
 
-    __forceinline T get(int h, int w, int c) const
+    __forceinline T get(int c, int h, int w) const
     {
-      return *(T*)(ptr + getOffset(h, w, c));
+      return *(T*)(ptr + getOffset(c, h, w));
     }
 
-    __forceinline void set(int h, int w, int c, T value) const
+    __forceinline void set(int c, int h, int w, T value) const
     {
-      *(T*)(ptr + getOffset(h, w, c)) = value;
+      *(T*)(ptr + getOffset(c, h, w)) = value;
     }
 
-    __forceinline vec3<T> get3(int h, int w, int c) const
+    __forceinline vec3<T> get3(int c, int h, int w) const
     {
-      return vec3<T>(get(h, w, c),
-                     get(h, w, c+1),
-                     get(h, w, c+2));
+      return vec3<T>(get(c,   h, w),
+                     get(c+1, h, w),
+                     get(c+2, h, w));
     }
 
-    __forceinline void set3(int h, int w, int c, const vec3<T>& value) const
+    __forceinline void set3(int c, int h, int w, const vec3<T>& value) const
     {
-      set(h, w, c,   value.x);
-      set(h, w, c+1, value.y);
-      set(h, w, c+2, value.z);
+      set(c,   h, w, value.x);
+      set(c+1, h, w, value.y);
+      set(c+2, h, w, value.z);
     }
   };
 
@@ -427,7 +427,7 @@ namespace oidn {
     #if defined(OIDN_DNNL)
       mem = dnnl::memory(*this, device->getDNNLEngine());
     #else
-      buffer = device->newBuffer(byteSize());
+      buffer = device->newBuffer(byteSize(), Buffer::Kind::Device);
       ptr = buffer->data();
     #endif
     }

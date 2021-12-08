@@ -105,13 +105,13 @@ namespace oidn {
     bool hdr;
     bool snorm; // signed normalized ([-1..1])
 
-    __forceinline void storeZero(int h, int w, int c) const
+    __forceinline void storeZero(int c, int h, int w) const
     {
-      dst.set(h, w, c, 0.f);
+      dst.set(c, h, w, 0.f);
     }
 
     // Stores a color value
-    __forceinline void storeColor(int h, int w, int c, vec3f value) const
+    __forceinline void storeColor(int c, int h, int w, vec3f value) const
     {
       // Scale
       value = value * transferFunc.getInputScale();
@@ -129,11 +129,11 @@ namespace oidn {
       value = transferFunc.forward(value);
 
       // Store
-      dst.set3(h, w, c, value);
+      dst.set3(c, h, w, value);
     }
 
     // Stores an albedo value
-    __forceinline void storeAlbedo(int h, int w, int c, vec3f value) const
+    __forceinline void storeAlbedo(int c, int h, int w, vec3f value) const
     {
       // Scale
       if (!color.ptr)
@@ -147,11 +147,11 @@ namespace oidn {
         value = transferFunc.forward(value);
 
       // Store
-      dst.set3(h, w, c, value);
+      dst.set3(c, h, w, value);
     }
 
     // Stores a normal value
-    __forceinline void storeNormal(int h, int w, int c, vec3f value) const
+    __forceinline void storeNormal(int c, int h, int w, vec3f value) const
     {
       // Scale
       if (!color.ptr)
@@ -164,7 +164,7 @@ namespace oidn {
       value = value * 0.5f + 0.5f;
 
       // Store
-      dst.set3(h, w, c, value);
+      dst.set3(c, h, w, value);
     }
 
     __forceinline void operator()(int hDst, int wDst) const
@@ -182,30 +182,30 @@ namespace oidn {
 
         if (color.ptr)
         {
-          storeColor(hDst, wDst, c, color.get3(hSrc, wSrc));
+          storeColor(c, hDst, wDst, color.get3(hSrc, wSrc));
           c += 3;
         }
 
         if (albedo.ptr)
         {
-          storeAlbedo(hDst, wDst, c, albedo.get3(hSrc, wSrc));
+          storeAlbedo(c, hDst, wDst, albedo.get3(hSrc, wSrc));
           c += 3;
         }
 
         if (normal.ptr)
         {
-          storeNormal(hDst, wDst, c, normal.get3(hSrc, wSrc));
+          storeNormal(c, hDst, wDst, normal.get3(hSrc, wSrc));
           c += 3;
         }
 
         for (; c < dst.C; ++c)
-          storeZero(hDst, wDst, c);
+          storeZero(c, hDst, wDst);
       }
       else
       {
         // Zero pad
         for (int c = 0; c < dst.C; ++c)
-          storeZero(hDst, wDst, c);
+          storeZero(c, hDst, wDst);
       }
     }
   };

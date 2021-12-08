@@ -34,7 +34,7 @@ export void OutputReorder_kernel(uniform OutputReorder* uniform self, uniform in
     const int wDst = w + self->tile.wDstBegin;
 
     // Load
-    vec3f value = get3f(self->src, hSrc, wSrc, 0);
+    vec3f value = get3f(self->src, 0, hSrc, wSrc);
 
     // The CNN output may contain negative values or even NaNs, so it must be sanitized
     value = clamp(nan_to_zero(value), 0.f, pos_max);

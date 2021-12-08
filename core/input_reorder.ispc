@@ -25,13 +25,13 @@ struct InputReorder
   uniform bool snorm; // signed normalized ([-1..1])
 };
 
-inline void storeZero(uniform InputReorder* uniform self, uniform int h, int w, uniform int c)
+inline void storeZero(uniform InputReorder* uniform self, uniform int c, uniform int h, int w)
 {
-  set1f(self->dst, h, w, c, 0.f);
+  set1f(self->dst, c, h, w, 0.f);
 }
 
 // Stores a color value
-inline void storeColor(uniform InputReorder* uniform self, uniform int h, int w, uniform int c, vec3f value)
+inline void storeColor(uniform InputReorder* uniform self, uniform int c, uniform int h, int w, vec3f value)
 {
   // Scale
   value = value * self->transferFunc.inputScale;
@@ -49,11 +49,11 @@ inline void storeColor(uniform InputReorder* uniform self, uniform int h, int w,
   value = self->transferFunc.forward(&self->transferFunc, value);
 
   // Store
-  set3f(self->dst, h, w, c, value);
+  set3f(self->dst, c, h, w, value);
 }
 
 // Stores an albedo value
-inline void storeAlbedo(uniform InputReorder* uniform self, uniform int h, int w, uniform int c, vec3f value)
+inline void storeAlbedo(uniform InputReorder* uniform self, uniform int c, uniform int h, int w, vec3f value)
 {
   // Scale
   if (!self->color.ptr)
@@ -67,11 +67,11 @@ inline void storeAlbedo(uniform InputReorder* uniform self, uniform int h, int w
     value = self->transferFunc.forward(&self->transferFunc, value);
 
   // Store
-  set3f(self->dst, h, w, c, value);
+  set3f(self->dst, c, h, w, value);
 }
 
 // Stores a normal value
-inline void storeNormal(uniform InputReorder* uniform self, uniform int h, int w, uniform int c, vec3f value)
+inline void storeNormal(uniform InputReorder* uniform self, uniform int c, uniform int h, int w, vec3f value)
 {
   // Scale
   if (!self->color.ptr)
@@ -84,7 +84,7 @@ inline void storeNormal(uniform InputReorder* uniform self, uniform int h, int w
   value = value * 0.5f + 0.5f;
 
   // Store
-  set3f(self->dst, h, w, c, value);
+  set3f(self->dst, c, h, w, value);
 }
 
 export void InputReorder_kernel(uniform InputReorder* uniform self, uniform int hDst)
@@ -99,7 +99,7 @@ export void InputReorder_kernel(uniform InputReorder* uniform self, uniform int 
     foreach (wDst = 0 ... self->tile.wDstBegin)
     {
       for (uniform int c = 0; c < self->dst.C; ++c)
-        storeZero(self, hDst, wDst, c);
+        storeZero(self, c, hDst, wDst);
     }
 
     // Reorder
@@ -112,31 +112,31 @@ export void InputReorder_kernel(uniform InputReorder* uniform self, uniform int 
 
       if (self->color.ptr)
       {
-        storeColor(self, hDst, wDst, c, get3f(self->color, hSrc, wSrc));
+        storeColor(self, c, hDst, wDst, get3f(self->color, hSrc, wSrc));
         c += 3;
       }
 
       if (self->albedo.ptr)
       {
-        storeAlbedo(self, hDst, wDst, c, get3f(self->albedo, hSrc, wSrc));
+        storeAlbedo(self, c, hDst, wDst, get3f(self->albedo, hSrc, wSrc));
         c += 3;
       }
 
       if (self->normal.ptr)
       {
-        storeNormal(self, hDst, wDst, c, get3f(self->normal, hSrc, wSrc));
+        storeNormal(self, c, hDst, wDst, get3f(self->normal, hSrc, wSrc));
         c += 3;
       }
 
       for (; c < self->dst.C; ++c)
-        storeZero(self, hDst, wDst, c);
+        storeZero(self, c, hDst, wDst);
     }
 
     // Zero pad
     foreach (wDst = self->tile.W + self->tile.wDstBegin ... self->dst.W)
     {
       for (uniform int c = 0; c < self->dst.C; ++c)
-        storeZero(self, hDst, wDst, c);
+        storeZero(self, c, hDst, wDst);
     }
   }
   else
@@ -145,7 +145,7 @@ export void InputReorder_kernel(uniform InputReorder* uniform self, uniform int 
     foreach (wDst = 0 ... self->dst.W)
     {
       for (uniform int c = 0; c < self->dst.C; ++c)
-        storeZero(self, hDst, wDst, c);
+        storeZero(self, c, hDst, wDst);
     }
   }
 }

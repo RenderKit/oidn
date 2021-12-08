@@ -107,7 +107,7 @@ namespace oidn {
       const int wDst = w + tile.wDstBegin;
 
       // Load
-      vec3f value = src.get3(hSrc, wSrc, 0);
+      vec3f value = src.get3(0, hSrc, wSrc);
 
       // The CNN output may contain negative values or even NaNs, so it must be sanitized
       value = clamp(nan_to_zero(value), 0.f, std::numeric_limits<float>::max());
