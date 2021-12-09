@@ -22,16 +22,16 @@ namespace oidn {
     { 
       using namespace sycl::ext::intel::experimental::esimd;
 
-      const size_t hDstOffset = hDst * dst.rowStride;
-      const size_t wDstOffset = wDst * dst.itemStride;
+      const size_t hDstOffset = hDst * dst.hStride;
+      const size_t wDstOffset = wDst * dst.wStride;
       
       const size_t dstOffset = hDstOffset     + wDstOffset;
       const size_t srcOffset = hDstOffset * 4 + wDstOffset * 2;
 
       char* srcPtr0 = src.ptr + srcOffset;
-      char* srcPtr1 = srcPtr0 + src.itemStride;
-      char* srcPtr2 = srcPtr0 + src.rowStride;
-      char* srcPtr3 = srcPtr2 + src.itemStride;
+      char* srcPtr1 = srcPtr0 + src.wStride;
+      char* srcPtr2 = srcPtr0 + src.hStride;
+      char* srcPtr3 = srcPtr2 + src.wStride;
       char* dstPtr  = dst.ptr + dstOffset;
 
       simd<int16_t, K> v0, v1, v2, v3;

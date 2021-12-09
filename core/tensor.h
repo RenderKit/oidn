@@ -206,11 +206,11 @@ namespace oidn {
   struct TensorAccessor
   {
     static constexpr int K = 16; // FIXME
-    static constexpr size_t itemStride = K * sizeof(T);
+    static constexpr size_t wStride = K * sizeof(T);
 
     char* ptr;
-    size_t rowStride;
-    size_t planeStride;
+    size_t hStride;
+    size_t cStride;
 
     int C;
     int H;
@@ -220,10 +220,10 @@ namespace oidn {
     {
     #if defined(OIDN_DNNL)
       // ChwKc layout (blocked)
-      return size_t(c/K) * planeStride + size_t(h) * rowStride + size_t(w) * itemStride + size_t(c%K) * sizeof(T);
+      return size_t(c/K) * cStride + size_t(h) * hStride + size_t(w) * wStride + size_t(c%K) * sizeof(T);
     #else
       // chw layout
-      return size_t(c) * planeStride + size_t(h) * rowStride + size_t(w) * itemStride;
+      return size_t(c) * cStride + size_t(h) * hStride + size_t(w) * wStride;
     #endif
     }
 
@@ -350,8 +350,8 @@ namespace oidn {
       result.C = numChannels();
       result.H = height();
       result.W = width();
-      result.rowStride   = size_t(result.W) * result.itemStride;
-      result.planeStride = size_t(result.H) * result.rowStride;
+      result.hStride = size_t(result.W) * result.wStride;
+      result.cStride = size_t(result.H) * result.hStride;
       return result;
     }
 

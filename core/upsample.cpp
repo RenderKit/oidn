@@ -91,15 +91,15 @@ namespace oidn {
     { 
       using namespace sycl::ext::intel::experimental::esimd;
 
-      const size_t hSrcOffset = hSrc * src.rowStride;
-      const size_t wSrcOffset = wSrc * src.itemStride;
+      const size_t hSrcOffset = hSrc * src.hStride;
+      const size_t wSrcOffset = wSrc * src.wStride;
       
       const size_t srcOffset = hSrcOffset     + wSrcOffset;
       const size_t dstOffset = hSrcOffset * 4 + wSrcOffset * 2;
 
       char* srcPtr  = src.ptr + srcOffset;
       char* dstPtr0 = dst.ptr + dstOffset;
-      char* dstPtr2 = dstPtr0 + dst.rowStride;
+      char* dstPtr2 = dstPtr0 + dst.hStride;
 
       simd<int16_t, K> v;
       v.copy_from((int16_t*)srcPtr);
