@@ -13,7 +13,7 @@ namespace oidn {
 
   struct Pool
   {
-    static constexpr int K = TensorAccessor<half>::K;
+    static constexpr int B = TensorAccessor<half>::B;
 
     TensorAccessor<half> src;
     TensorAccessor<half> dst;
@@ -34,14 +34,14 @@ namespace oidn {
       char* srcPtr3 = srcPtr2 + src.wStride;
       char* dstPtr  = dst.ptr + dstOffset;
 
-      simd<int16_t, K> v0, v1, v2, v3;
+      simd<int16_t, B> v0, v1, v2, v3;
       v0.copy_from((int16_t*)srcPtr0);
       v1.copy_from((int16_t*)srcPtr1);
       v2.copy_from((int16_t*)srcPtr2);
       v3.copy_from((int16_t*)srcPtr3);
 
       // FIXME: use half
-      simd<int16_t, K> v = esimd_max(esimd_max(v0, v1), esimd_max(v2, v3));
+      simd<int16_t, B> v = esimd_max(esimd_max(v0, v1), esimd_max(v2, v3));
       v.copy_to((int16_t*)dstPtr);
     }
   };

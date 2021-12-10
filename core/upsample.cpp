@@ -25,13 +25,13 @@ namespace oidn {
 
   void CPUUpsampleNode::execute()
   {
-    const int K = device->getTensorBlockSize();
+    const int B = device->getTensorBlockSize();
 
     ispc::Upsample impl;
     impl.src = *src;
     impl.dst = *dst;
 
-    parallel_nd(impl.src.C / K, impl.src.H, [&](int ck, int h)
+    parallel_nd(impl.src.C / B, impl.src.H, [&](int ck, int h)
     {
       ispc::Upsample_kernel(&impl, ck, h);
     });
@@ -82,7 +82,7 @@ namespace oidn {
 
   struct Upsample
   {
-    static constexpr int K = TensorAccessor<half>::K;
+    static constexpr int B = TensorAccessor<half>::B;
 
     TensorAccessor<half> src;
     TensorAccessor<half> dst;
@@ -101,10 +101,10 @@ namespace oidn {
       char* dstPtr0 = dst.ptr + dstOffset;
       char* dstPtr2 = dstPtr0 + dst.hStride;
 
-      simd<int16_t, K> v;
+      simd<int16_t, B> v;
       v.copy_from((int16_t*)srcPtr);
 
-      simd<int16_t, K*2> v2 = v.replicate<2, 0, K, 1>(0);
+      simd<int16_t, B*2> v2 = v.replicate<2, 0, B, 1>(0);
       v2.copy_to((int16_t*)dstPtr0);
       v2.copy_to((int16_t*)dstPtr2);
     }

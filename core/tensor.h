@@ -205,8 +205,8 @@ namespace oidn {
   template<typename T>
   struct TensorAccessor
   {
-    static constexpr int K = 16; // FIXME
-    static constexpr size_t wStride = K * sizeof(T);
+    static constexpr int B = 16; // FIXME
+    static constexpr size_t wStride = B * sizeof(T);
 
     char* ptr;
     size_t hStride;
@@ -220,7 +220,7 @@ namespace oidn {
     {
     #if defined(OIDN_DNNL)
       // ChwKc layout (blocked)
-      return size_t(c/K) * cStride + size_t(h) * hStride + size_t(w) * wStride + size_t(c%K) * sizeof(T);
+      return size_t(c/B) * cStride + size_t(h) * hStride + size_t(w) * wStride + size_t(c%B) * sizeof(T);
     #else
       // chw layout
       return size_t(c) * cStride + size_t(h) * hStride + size_t(w) * wStride;
@@ -488,7 +488,7 @@ namespace oidn {
       const int C = dims[0];
       const int H = dims[1];
       const int W = dims[2];
-      const int K = blockSize();
+      const int B = blockSize();
 
       const float* ptr = (const float*)data();
 
@@ -510,7 +510,7 @@ namespace oidn {
         {
           for (int w = 0; w < W; ++w)
           {
-            const float x = ptr[((size_t)H * (c/K) + h) * ((size_t)W*K) + (size_t)w*K + (c%K)];
+            const float x = ptr[((size_t)H * (c/B) + h) * ((size_t)W*B) + (size_t)w*B + (c%B)];
             file.write((char*)&x, sizeof(float));
           }
         }
