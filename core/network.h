@@ -63,7 +63,7 @@ namespace oidn {
 
   private:
     Ref<Device> device;
-    int K; // block size of blocked tensor layouts
+    int blockSize; // block size of blocked tensor layouts
 
     std::vector<std::shared_ptr<Node>> nodes;
     std::map<std::string, std::shared_ptr<Tensor>> weightsMap;

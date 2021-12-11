@@ -155,6 +155,7 @@ set(CORE_SOURCES
   core/device.cpp
   core/filter.h
   core/filter.cpp
+  core/image_accessor.h
   core/image.h
   core/input_reorder.h
   core/input_reorder.cpp
@@ -171,6 +172,8 @@ set(CORE_SOURCES
   core/reorder.h
   core/scratch.h
   core/scratch.cpp
+  core/tensor_accessor.h
+  core/tensor_layout.h
   core/tensor.h
   core/tza.h
   core/tza.cpp
@@ -182,7 +185,7 @@ set(CORE_SOURCES
 )
 
 if(OIDN_DEVICE_SYCL)
-  set(CMAKE_CXX_STANDARD 20)
+  set(CMAKE_CXX_STANDARD 17)
 
   list(APPEND CORE_SOURCES
     core/sycl_buffer.h
@@ -194,7 +197,7 @@ if(OIDN_DEVICE_SYCL)
 endif()
 
 set(CORE_SOURCES_ISPC
-  core/image.isph
+  core/image_accessor.isph
   core/input_reorder.ispc
   core/color.isph
   core/color.ispc
@@ -203,7 +206,7 @@ set(CORE_SOURCES_ISPC
   core/output_copy.ispc
   core/output_reorder.ispc
   core/reorder.isph
-  core/tensor.isph
+  core/tensor_accessor.isph
   core/vec.isph
 )
 

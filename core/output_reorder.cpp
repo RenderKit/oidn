@@ -82,11 +82,11 @@ namespace oidn {
 
 #if defined(OIDN_DEVICE_SYCL)
 
-  template<typename T>
+  template<typename T, TensorLayout layout>
   struct OutputReorder
   {
     // Source
-    TensorAccessor<half> src;
+    TensorAccessor3D<half, layout> src;
 
     // Destination
     ImageAccessor<T> output;
@@ -159,7 +159,7 @@ namespace oidn {
     //assert(tile.hDstBegin + tile.H <= output->height);
     //assert(tile.wDstBegin + tile.W <= output->width);
 
-    OutputReorder<T> kernel;
+    OutputReorder<T, TensorLayout::Chw16c> kernel;
     kernel.src = *src;
     kernel.output = *output;
     kernel.tile = tile;

@@ -86,7 +86,7 @@ namespace oidn {
 
 #if defined(OIDN_DEVICE_SYCL)
 
-  template<typename T>
+  template<typename T, TensorLayout layout>
   struct InputReorder
   {
     // Source
@@ -95,7 +95,7 @@ namespace oidn {
     ImageAccessor<T> normal;
 
     // Destination
-    TensorAccessor<half> dst;
+    TensorAccessor3D<half, layout> dst;
 
     // Tile
     ReorderTile tile;
@@ -107,7 +107,7 @@ namespace oidn {
 
     __forceinline void storeZero(int c, int h, int w) const
     {
-      dst.set(c, h, w, 0.f);
+      dst(c, h, w) = 0.f;
     }
 
     // Stores a color value
@@ -236,7 +236,7 @@ namespace oidn {
     assert(tile.H + tile.hDstBegin <= dst->height());
     assert(tile.W + tile.wDstBegin <= dst->width());
     
-    InputReorder<T> kernel;
+    InputReorder<T, TensorLayout::Chw16c> kernel;
     kernel.color  = color  ? *color  : Image();
     kernel.albedo = albedo ? *albedo : Image();
     kernel.normal = normal ? *normal : Image();

@@ -1,15 +1,15 @@
 // Copyright 2009-2021 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "tensor.isph"
-#include "image.isph"
+#include "tensor_accessor.isph"
+#include "image_accessor.isph"
 #include "color.isph"
 #include "reorder.isph"
 
 struct OutputReorder
 {
   // Source
-  uniform TensorAccessor src;
+  uniform TensorAccessor3D src;
 
   // Destination
   uniform ImageAccessor output;

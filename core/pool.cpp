@@ -13,10 +13,10 @@ namespace oidn {
 
   struct Pool
   {
-    static constexpr int B = TensorAccessor<half>::B;
+    static constexpr int B = TensorAccessor3D<half, TensorLayout::Chw16c>::B;
 
-    TensorAccessor<half> src;
-    TensorAccessor<half> dst;
+    TensorAccessor3D<half, TensorLayout::Chw16c> src;
+    TensorAccessor3D<half, TensorLayout::Chw16c> dst;
 
     __forceinline void operator ()(size_t hDst, size_t wDst) const SYCL_ESIMD_KERNEL
     { 

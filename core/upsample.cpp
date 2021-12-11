@@ -82,10 +82,10 @@ namespace oidn {
 
   struct Upsample
   {
-    static constexpr int B = TensorAccessor<half>::B;
+    static constexpr int B = TensorAccessor3D<half, TensorLayout::Chw16c>::B;
 
-    TensorAccessor<half> src;
-    TensorAccessor<half> dst;
+    TensorAccessor3D<half, TensorLayout::Chw16c> src;
+    TensorAccessor3D<half, TensorLayout::Chw16c> dst;
 
     __forceinline void operator ()(size_t hSrc, size_t wSrc) const SYCL_ESIMD_KERNEL
     { 

@@ -5,6 +5,7 @@
 
 #include "device.h"
 #include "buffer.h"
+#include "tensor_accessor.h"
 #include <vector>
 #include <fstream>
 
@@ -43,16 +44,6 @@ namespace oidn {
 
     return result;
   }
-
-  // Tensor memory layout
-  enum class TensorLayout
-  {
-    x,
-    chw,
-    Chw8c,  // blocked
-    Chw16c, // blocked
-    oihw,
-  };
 
   // Tensor descriptor
   struct TensorDesc
@@ -201,57 +192,6 @@ namespace oidn {
   #endif
   };
 
-  // Tensor in CHW layout
-  template<typename T>
-  struct TensorAccessor
-  {
-    static constexpr int B = 16; // FIXME
-    static constexpr size_t wStride = B * sizeof(T);
-
-    char* ptr;
-    size_t hStride;
-    size_t cStride;
-
-    int C;
-    int H;
-    int W;
-
-    __forceinline size_t getOffset(int c, int h, int w) const
-    {
-    #if defined(OIDN_DNNL)
-      // ChwKc layout (blocked)
-      return size_t(c/B) * cStride + size_t(h) * hStride + size_t(w) * wStride + size_t(c%B) * sizeof(T);
-    #else
-      // chw layout
-      return size_t(c) * cStride + size_t(h) * hStride + size_t(w) * wStride;
-    #endif
-    }
-
-    __forceinline T get(int c, int h, int w) const
-    {
-      return *(T*)(ptr + getOffset(c, h, w));
-    }
-
-    __forceinline void set(int c, int h, int w, T value) const
-    {
-      *(T*)(ptr + getOffset(c, h, w)) = value;
-    }
-
-    __forceinline vec3<T> get3(int c, int h, int w) const
-    {
-      return vec3<T>(get(c,   h, w),
-                     get(c+1, h, w),
-                     get(c+2, h, w));
-    }
-
-    __forceinline void set3(int c, int h, int w, const vec3<T>& value) const
-    {
-      set(c,   h, w, value.x);
-      set(c+1, h, w, value.y);
-      set(c+2, h, w, value.z);
-    }
-  };
-
   // Tensor
   class Tensor : public Memory, public TensorDesc
   {
@@ -324,48 +264,40 @@ namespace oidn {
 
     __forceinline const TensorDesc& desc() const { return *this; }
 
-    template <typename T> __forceinline T& get(int64_t i0)
-    { return ((T*)data())[getIndex(i0)]; }
-    template <typename T> __forceinline const T& get(int64_t i0) const
-    { return ((T*)data())[getIndex(i0)]; }
-
-    template <typename T> __forceinline T& get(int64_t i0, int64_t i1, int64_t i2)
-    { return ((T*)data())[getIndex(i0, i1, i2)]; }
-    template <typename T> __forceinline const T& get(int64_t i0, int64_t i1, int64_t i2) const
-    { return ((T*)data())[getIndex(i0, i1, i2)]; }
-
-    template <typename T> __forceinline T& get(int64_t i0, int64_t i1, int64_t i2, int64_t i3)
-    { return ((T*)data())[getIndex(i0, i1, i2, i3)]; }
-    template <typename T> __forceinline const T& get(int64_t i0, int64_t i1, int64_t i2, int64_t i3) const
-    { return ((T*)data())[getIndex(i0, i1, i2, i3)]; }
-
     template<typename T>
-    operator TensorAccessor<T>() const
+    operator TensorAccessor1D<T>() const
     {
-      assert(ndims() == 3);
-      //assert(dataType == DataType::Float32);
-
-      TensorAccessor<T> result;
-      result.ptr = (char*)data();
-      result.C = numChannels();
-      result.H = height();
-      result.W = width();
-      result.hStride = size_t(result.W) * result.wStride;
-      result.cStride = size_t(result.H) * result.hStride;
-      return result;
+      if (this->layout != TensorLayout::x || this->dataType != DataTypeOf<T>::value)
+        throw Exception(Error::Unknown, "incompatible tensor accessor");
+      return TensorAccessor1D<T>(data(), dims[0]);
     }
 
-    // Converts to ISPC equivalent
-    operator ispc::TensorAccessor() const
+    template<typename T, TensorLayout layout>
+    operator TensorAccessor3D<T, layout>() const
     {
-      assert(ndims() == 3);
-      assert(dataType == DataType::Float32);
+      if (this->layout != layout || this->dataType != DataTypeOf<T>::value)
+        throw Exception(Error::Unknown, "incompatible tensor accessor");
+      return TensorAccessor3D<T, layout>(data(), dims[0], dims[1], dims[2]);
+    }
 
-      ispc::TensorAccessor result;
+    template<typename T, TensorLayout layout>
+    operator TensorAccessor4D<T, layout>() const
+    {
+      if (this->layout != layout || this->dataType != DataTypeOf<T>::value)
+        throw Exception(Error::Unknown, "incompatible tensor accessor");
+      return TensorAccessor4D<T, layout>(data(), dims[0], dims[1], dims[2], dims[3]);
+    }
+
+    operator ispc::TensorAccessor3D() const
+    {
+      if (ndims() != 3 || dataType != DataType::Float32)
+        throw Exception(Error::Unknown, "incompatible tensor accessor");
+
+      ispc::TensorAccessor3D result;
       result.ptr = (float*)data();
-      result.C = numChannels();
-      result.H = height();
-      result.W = width();
+      result.C = dims[0];
+      result.H = dims[1];
+      result.W = dims[2];
       return result;
     }
 
@@ -439,29 +371,6 @@ namespace oidn {
     #else
       ptr = data;
     #endif
-    }
-
-    __forceinline int64_t getIndex(int64_t i0) const
-    {
-      assert(ndims() == 1);
-      assert(i0 < dims[0]);
-      return i0;
-    }
-
-    __forceinline int64_t getIndex(int64_t i0, int64_t i1, int64_t i2) const
-    {
-      assert(ndims() == 3);
-      assert(layout == TensorLayout::chw);
-      assert(i0 < dims[0] && i1 < dims[1] && i2 < dims[2]);
-      return (i0 * dims[1] + i1) * dims[2] + i2;
-    }
-
-    __forceinline int64_t getIndex(int64_t i0, int64_t i1, int64_t i2, int64_t i3) const
-    {
-      assert(ndims() == 4);
-      assert(layout == TensorLayout::oihw);
-      assert(i0 < dims[0] && i1 < dims[1] && i2 < dims[2] && i3 < dims[3]);
-      return ((i0 * dims[1] + i1) * dims[2] + i2) * dims[3] + i3;
     }
 
     void updatePtr() override

@@ -95,7 +95,7 @@ namespace oidn {
     #endif
     }
 
-    virtual Ref<Buffer> newBuffer(size_t byteSize, Buffer::Kind kind = Buffer::Kind::Shared) = 0;
+    virtual Ref<Buffer> newBuffer(size_t byteSize, Buffer::Kind kind) = 0;
     virtual Ref<Buffer> newBuffer(void* ptr, size_t byteSize) = 0;
 
     Ref<ScratchBuffer> newScratchBuffer(size_t byteSize);

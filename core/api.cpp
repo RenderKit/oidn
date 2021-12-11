@@ -216,7 +216,7 @@ OIDN_API_NAMESPACE_BEGIN
       checkHandle(hDevice);
       OIDN_LOCK(device);
       device->checkCommitted();
-      Ref<Buffer> buffer = device->newBuffer(byteSize);
+      Ref<Buffer> buffer = device->newBuffer(byteSize, Buffer::Kind::Shared);
       return (OIDNBuffer)buffer.detach();
     OIDN_CATCH(device)
     return nullptr;

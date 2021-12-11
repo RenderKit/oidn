@@ -15,7 +15,7 @@ namespace oidn {
 
   Network::Network(const Ref<Device>& device, const std::map<std::string, std::shared_ptr<Tensor>>& weightsMap)
     : device(device),
-      K(device->getTensorBlockSize()),
+      blockSize(device->getTensorBlockSize()),
       weightsMap(weightsMap)
   {
   }
@@ -66,11 +66,11 @@ namespace oidn {
     assert(srcDims.size() == 3); // CHW
 
     TensorDims dstDims = srcDims;
-    dstDims[0] = round_up(srcDims[0], K); // round up C
+    dstDims[0] = round_up(srcDims[0], blockSize); // round up C
     dstDims[1] = round_up(srcDims[1], int64_t(alignment)); // round up H
     dstDims[2] = round_up(srcDims[2], int64_t(alignment)); // round up W
 
-    TensorLayout layout = K == 16 ? TensorLayout::Chw16c : (K == 8 ? TensorLayout::Chw8c : TensorLayout::chw);
+    TensorLayout layout = blockSize == 16 ? TensorLayout::Chw16c : (blockSize == 8 ? TensorLayout::Chw8c : TensorLayout::chw);
     return TensorDesc(dstDims, layout, device->getTensorDataType());
   }
 
@@ -116,7 +116,7 @@ namespace oidn {
 
     const auto& bias = weightsMap[name + ".bias"];
     TensorDims dstDims = srcDesc.dims;
-    dstDims[0] = round_up(bias->dims[0], K); // dstDims[C] = round_up(OC, K)
+    dstDims[0] = round_up(bias->dims[0], blockSize); // dstDims[C] = round_up(OC, blockSize)
     return TensorDesc(dstDims, srcDesc.layout, srcDesc.dataType);
   }
 
@@ -131,14 +131,14 @@ namespace oidn {
     auto weights = weightsMap[name + ".weight"];
     if (weights->ndims() != 4 || weights->layout != TensorLayout::oihw)
       throw Exception(Error::InvalidOperation, "invalid convolution weights");  
-    if (K > 1)
+    if (blockSize > 1)
       weights = padWeights(weights);
 
     // Get and pad the biases
     auto bias = weightsMap[name + ".bias"];
     if (bias->ndims() != 1)
       throw Exception(Error::InvalidOperation, "invalid convolution biases");
-    if (K > 1)
+    if (blockSize > 1)
       bias = padBias(bias);
 
     // Create the convolution node
@@ -252,36 +252,37 @@ namespace oidn {
 
   std::shared_ptr<Tensor> Network::padWeights(const std::shared_ptr<Tensor>& src)
   {
-    assert(src->layout == TensorLayout::oihw);
+    TensorAccessor4D<float, TensorLayout::oihw> srcAcc = *src;
 
-    const int64_t O1 = src->dims[0];
-    const int64_t I1 = src->dims[1];
-    const int64_t O2 = round_up(O1, K);
-    const int64_t I2 = round_up(I1, K);
-    const int64_t H = src->dims[2];
-    const int64_t W = src->dims[3];
+    const int O1 = srcAcc.O;
+    const int I1 = srcAcc.I;
+    const int O2 = round_up(O1, blockSize);
+    const int I2 = round_up(I1, blockSize);
+    const int H = srcAcc.H;
+    const int W = srcAcc.W;
 
     TensorDims dstDims = {O2, I2, H, W};
     //if (dstDims == src->dims)
     //  return src;
 
     auto dst = std::make_shared<Tensor>(device, dstDims, TensorLayout::oihw, DataType::Float32);
+    TensorAccessor4D<float, TensorLayout::oihw> dstAcc = *dst;
 
-    for (int64_t o = 0; o < O2; ++o)
+    for (int o = 0; o < O2; ++o)
     {
-      for (int64_t i = 0; i < I2; ++i)
+      for (int i = 0; i < I2; ++i)
       {
-        for (int64_t h = 0; h < H; ++h)
+        for (int h = 0; h < H; ++h)
         {
-          for (int64_t w = 0; w < W; ++w)
+          for (int w = 0; w < W; ++w)
           {
             float value;
             if (o < O1 && i < I1)
-              value = src->get<float>(o, i, h, w);
+              value = srcAcc(o, i, h, w);
             else
               value = 0; // padding
 
-            dst->get<float>(o, i, h, w) = value;
+            dstAcc(o, i, h, w) = value;
           }
         }
       }
@@ -292,21 +293,22 @@ namespace oidn {
 
   std::shared_ptr<Tensor> Network::padBias(const std::shared_ptr<Tensor>& src)
   {
-    assert(src->layout == TensorLayout::x);
+    TensorAccessor1D<float> srcAcc = *src;
 
-    const int64_t X1 = src->dims[0];
-    const int64_t X2 = round_up(X1, K);
+    const int X1 = srcAcc.X;
+    const int X2 = round_up(X1, blockSize);
 
     //if (X2 == X1)
     //  return src;
 
     auto dst = std::make_shared<Tensor>(device, TensorDims({X2}), TensorLayout::x, DataType::Float32);
+    TensorAccessor1D<float> dstAcc = *dst;
 
-    for (int64_t x = 0; x < X1; ++x)
-      dst->get<float>(x) = src->get<float>(x);
+    for (int x = 0; x < X1; ++x)
+      dstAcc(x) = srcAcc(x);
 
-    for (int64_t x = X1; x < X2; ++x)
-      dst->get<float>(x) = 0; // padding
+    for (int x = X1; x < X2; ++x)
+      dstAcc(x) = 0; // padding
 
     return dst;
   }

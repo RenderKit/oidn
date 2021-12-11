@@ -17,7 +17,7 @@
   #include <Accelerate/Accelerate.h>
 #endif
 
-#include "input_reorder_ispc.h" // ispc::TensorAccessor, ispc::ImageAccessor, ispc::ReorderTile
+#include "input_reorder_ispc.h" // ispc::TensorAccessor3D, ispc::ImageAccessor, ispc::ReorderTile
 
 namespace oidn {
 
