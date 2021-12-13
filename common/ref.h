@@ -17,7 +17,7 @@ namespace oidn {
   
     __forceinline size_t incRef() noexcept
     {
-      return count.fetch_add(1) + 1;
+      return ++count;
     }
 
     __forceinline size_t decRef()
@@ -30,7 +30,7 @@ namespace oidn {
 
     __forceinline size_t decRefKeep() noexcept
     {
-      return count.fetch_add(-1) - 1;
+      return --count;
     }
 
     __forceinline void destroy()
