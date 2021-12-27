@@ -1,9 +1,15 @@
 // Copyright 2009-2021 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
+#include "mkl-dnn/include/dnnl_sycl.hpp"
+#include "../input_reorder.h"
+#include "../output_reorder.h"
+#include "../image_copy.h"
 #include "sycl_device.h"
 #include "sycl_buffer.h"
-#include "mkl-dnn/include/dnnl_sycl.hpp"
+#include "sycl_node.h"
+#include "sycl_pool.h"
+#include "sycl_upsample.h"
 
 namespace oidn {
 
@@ -14,9 +20,6 @@ namespace oidn {
 
   void SYCLDevice::init()
   {
-    // Initialize TBB (FIXME: remove)
-    initTasking();
-
     // Initialize the neural network runtime
     dnnl_set_verbose(clamp(verbose - 2, 0, 2)); // unfortunately this is not per-device but global
 
@@ -62,6 +65,31 @@ namespace oidn {
   Ref<Buffer> SYCLDevice::newBuffer(void* ptr, size_t byteSize)
   {
     return makeRef<SYCLBuffer>(Ref<SYCLDevice>(this), ptr, byteSize);
+  }
+
+  std::shared_ptr<PoolNode> SYCLDevice::newPoolNode(const PoolDesc& desc)
+  {
+    return std::make_shared<SYCLPoolNode>(Ref<SYCLDevice>(this), desc);
+  }
+
+  std::shared_ptr<UpsampleNode> SYCLDevice::newUpsampleNode(const UpsampleDesc& desc)
+  {
+    return std::make_shared<SYCLUpsampleNode>(Ref<SYCLDevice>(this), desc);
+  }
+
+  std::shared_ptr<InputReorderNode> SYCLDevice::newInputReorderNode(const InputReorderDesc& desc)
+  {
+    return std::make_shared<XPUInputReorderNode<SYCLNode, half, TensorLayout::Chw16c>>(Ref<SYCLDevice>(this), desc);
+  }
+
+  std::shared_ptr<OutputReorderNode> SYCLDevice::newOutputReorderNode(const OutputReorderDesc& desc)
+  {
+    return std::make_shared<XPUOutputReorderNode<SYCLNode, half, TensorLayout::Chw16c>>(Ref<SYCLDevice>(this), desc);
+  }
+
+  void SYCLDevice::imageCopy(const Image& src, const Image& dst)
+  {
+    xpuImageCopy(Ref<SYCLDevice>(this), src, dst);
   }
 
 } // namespace oidn

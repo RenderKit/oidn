@@ -3,7 +3,7 @@
 
 #include "image_accessor.isph"
 
-struct OutputCopy
+struct ImageCopy
 {
   // Source
   uniform ImageAccessor src;
@@ -16,7 +16,7 @@ struct OutputCopy
   uniform int W;
 };
 
-export void OutputCopy_kernel(uniform OutputCopy* uniform self, uniform int h)
+export void ImageCopy_kernel(uniform ImageCopy* uniform self, uniform int h)
 {
   foreach (w = 0 ... self->W)
   {

@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "tza.h"
-#include "output_copy.h"
 #include "unet.h"
 
 // Default weights
@@ -186,7 +185,7 @@ namespace oidn {
 
       // Copy the output image to the final buffer if filtering in-place
       if (outputTemp)
-        outputCopy(device, *outputTemp, *output);
+        device->imageCopy(*outputTemp, *output);
 
       // Finished
       progress.finish();

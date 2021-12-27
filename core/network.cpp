@@ -1,10 +1,6 @@
 // Copyright 2009-2021 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#if defined(OIDN_DEVICE_SYCL)
-  #include "sycl_device.h"
-#endif
-
 #include "conv.h"
 #include "pool.h"
 #include "upsample.h"
@@ -80,14 +76,7 @@ namespace oidn {
                                                              bool hdr,
                                                              bool snorm)
   {
-    std::shared_ptr<InputReorderNode> node;
-  #if defined(OIDN_DEVICE_SYCL)
-    if (auto syclDevice = dynamicRefCast<SYCLDevice>(device))
-      node = std::make_shared<SYCLInputReorderNode>(syclDevice, name, dst, transferFunc, hdr, snorm);
-    else
-  #endif
-      node = std::make_shared<CPUInputReorderNode>(device, name, dst, transferFunc, hdr, snorm);
-    
+    auto node = device->newInputReorderNode({name, dst, transferFunc, hdr, snorm});
     nodes.push_back(node);
     return node;
   }
@@ -98,14 +87,7 @@ namespace oidn {
                                                                bool hdr,
                                                                bool snorm)
   {
-    std::shared_ptr<OutputReorderNode> node;
-  #if defined(OIDN_DEVICE_SYCL)
-    if (auto syclDevice = dynamicRefCast<SYCLDevice>(device))
-      node = std::make_shared<SYCLOutputReorderNode>(syclDevice, name, src, transferFunc, hdr, snorm);
-    else
-  #endif
-      node = std::make_shared<CPUOutputReorderNode>(device, name, src, transferFunc, hdr, snorm);
-    
+    auto node = device->newOutputReorderNode({name, src, transferFunc, hdr, snorm});
     nodes.push_back(node);
     return node;
   }
@@ -120,10 +102,10 @@ namespace oidn {
     return TensorDesc(dstDims, srcDesc.layout, srcDesc.dataType);
   }
 
-  std::shared_ptr<Node> Network::addConv(const std::string& name,
-                                         const std::shared_ptr<Tensor>& src,
-                                         const std::shared_ptr<Tensor>& dst,
-                                         bool relu)
+  std::shared_ptr<ConvNode> Network::addConv(const std::string& name,
+                                             const std::shared_ptr<Tensor>& src,
+                                             const std::shared_ptr<Tensor>& dst,
+                                             bool relu)
   {
     assert(dst->desc() == getConvDesc(name, src->desc()));
 
@@ -142,7 +124,7 @@ namespace oidn {
       bias = padBias(bias);
 
     // Create the convolution node
-    auto node = std::make_shared<ConvNode>(device, name, src, weights, bias, dst, relu);
+    auto node = device->newConvNode({name, src, weights, bias, dst, relu});
     nodes.push_back(node);
     return node;
   }
@@ -157,20 +139,13 @@ namespace oidn {
     return TensorDesc(dstDims, srcDesc.layout, srcDesc.dataType);
   }
 
-  std::shared_ptr<Node> Network::addPool(const std::string& name,
-                                         const std::shared_ptr<Tensor>& src,
-                                         const std::shared_ptr<Tensor>& dst)
+  std::shared_ptr<PoolNode> Network::addPool(const std::string& name,
+                                             const std::shared_ptr<Tensor>& src,
+                                             const std::shared_ptr<Tensor>& dst)
   {
     assert(dst->desc() == getPoolDesc(src->desc()));
 
-    std::shared_ptr<Node> node;
-  #if defined(OIDN_DEVICE_SYCL)
-    if (auto syclDevice = dynamicRefCast<SYCLDevice>(device))
-      node = std::make_shared<SYCLPoolNode>(syclDevice, name, src, dst);
-    else
-  #endif
-      node = std::make_shared<PoolNode>(device, name, src, dst);
-
+    auto node = device->newPoolNode({name, src, dst});
     nodes.push_back(node);
     return node;
   }
@@ -185,20 +160,13 @@ namespace oidn {
     return TensorDesc(dstDims, srcDesc.layout, srcDesc.dataType);
   }
 
-  std::shared_ptr<Node> Network::addUpsample(const std::string& name,
-                                             const std::shared_ptr<Tensor>& src,
-                                             const std::shared_ptr<Tensor>& dst)
+  std::shared_ptr<UpsampleNode> Network::addUpsample(const std::string& name,
+                                                     const std::shared_ptr<Tensor>& src,
+                                                     const std::shared_ptr<Tensor>& dst)
   {
     assert(dst->desc() == getUpsampleDesc(src->desc()));
 
-    std::shared_ptr<Node> node;
-  #if defined(OIDN_DEVICE_SYCL)
-    if (auto syclDevice = dynamicRefCast<SYCLDevice>(device))
-      node = std::make_shared<SYCLUpsampleNode>(syclDevice, name, src, dst);
-    else
-  #endif
-      node = std::make_shared<CPUUpsampleNode>(device, name, src, dst);
-
+    auto node = device->newUpsampleNode({name, src, dst});
     nodes.push_back(node);
     return node;
   }
@@ -230,7 +198,7 @@ namespace oidn {
 
     // Allocate the scratch memory for the nodes
     TensorDims nodeScratchDims = { int64_t(nodeScratchSize) };
-    auto nodeScratch = std::make_shared<Tensor>(device, nodeScratchDims, TensorLayout::x, DataType::UInt8);
+    auto nodeScratch = device->newTensor({nodeScratchDims, TensorLayout::x, DataType::UInt8});
 
     // Set the scratch memory for the nodes
     for (auto& node : nodes)
@@ -265,7 +233,7 @@ namespace oidn {
     //if (dstDims == src->dims)
     //  return src;
 
-    auto dst = std::make_shared<Tensor>(device, dstDims, TensorLayout::oihw, DataType::Float32);
+    auto dst = device->newTensor({dstDims, TensorLayout::oihw, DataType::Float32});
     TensorAccessor4D<float, TensorLayout::oihw> dstAcc = *dst;
 
     for (int o = 0; o < O2; ++o)
@@ -301,7 +269,7 @@ namespace oidn {
     //if (X2 == X1)
     //  return src;
 
-    auto dst = std::make_shared<Tensor>(device, TensorDims({X2}), TensorLayout::x, DataType::Float32);
+    auto dst = device->newTensor({TensorDims({X2}), TensorLayout::x, DataType::Float32});
     TensorAccessor1D<float> dstAcc = *dst;
 
     for (int x = 0; x < X1; ++x)

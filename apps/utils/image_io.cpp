@@ -207,7 +207,7 @@ namespace oidn {
         {
           for (int c = 0; c < C; ++c)
           {
-            int16_t x;
+            half x;
             file.read((char*)&x, sizeof(x));
             if (c < numChannels)
             {
@@ -217,7 +217,7 @@ namespace oidn {
               }
               else
               {
-                const float xs = half_to_float(x) * scale;
+                const float xs = float(x) * scale;
                 image->set((size_t(H-1-h)*W + w) * numChannels + c, xs);
               }
             }
@@ -262,7 +262,7 @@ namespace oidn {
         {
           for (int c = 0; c < C; ++c)
           {
-            const int16_t x = image.get<int16_t>((size_t(H-1-h)*W + w) * C + c);
+            const half x = image.get<half>((size_t(H-1-h)*W + w) * C + c);
             file.write((char*)&x, sizeof(x));
           }
         }

@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "buffer.h"
+#include "../buffer.h"
 
 namespace oidn {
 

@@ -62,7 +62,7 @@ namespace oidn {
     T get(size_t i) const;
 
     // Float
-    __forceinline void set(size_t i, float x)
+    OIDN_INLINE void set(size_t i, float x)
     {
       switch (dataType)
       {
@@ -70,7 +70,7 @@ namespace oidn {
         ((float*)bufferPtr)[i] = x;
         break;
       case Format::Half:
-        ((int16_t*)bufferPtr)[i] = float_to_half(x);
+        ((half*)bufferPtr)[i] = half(x);
         break;
       default:
         assert(0);
@@ -78,25 +78,25 @@ namespace oidn {
     }
 
     // Half
-    __forceinline void set(size_t i, int16_t x)
+    OIDN_INLINE void set(size_t i, half x)
     {
       switch (dataType)
       {
       case Format::Float:
-        ((float*)bufferPtr)[i] = half_to_float(x);
+        ((float*)bufferPtr)[i] = float(x);
         break;
       case Format::Half:
-        ((int16_t*)bufferPtr)[i] = x;
+        ((half*)bufferPtr)[i] = x;
         break;
       default:
         assert(0);
       }
     }
 
-    __forceinline const void* data() const { return bufferPtr; }
-    __forceinline void* data() { return bufferPtr; }
+    OIDN_INLINE const void* data() const { return bufferPtr; }
+    OIDN_INLINE void* data() { return bufferPtr; }
   
-    __forceinline size_t size() const { return numValues; }
+    OIDN_INLINE size_t size() const { return numValues; }
     std::array<int, 3> dims() const { return {width, height, numChannels}; }
     size_t byteSize() const { return buffer.getSize(); }
 
@@ -123,14 +123,14 @@ namespace oidn {
 
   // Float
   template<>
-  __forceinline float ImageBuffer::get(size_t i) const
+  OIDN_INLINE float ImageBuffer::get(size_t i) const
   {
     switch (dataType)
     {
     case Format::Float:
       return ((float*)bufferPtr)[i];
     case Format::Half:
-      return half_to_float(((int16_t*)bufferPtr)[i]);
+      return float(((half*)bufferPtr)[i]);
     default:
       assert(0);
       return 0;
@@ -139,14 +139,14 @@ namespace oidn {
 
   // Half
   template<>
-  __forceinline int16_t ImageBuffer::get(size_t i) const
+  OIDN_INLINE half ImageBuffer::get(size_t i) const
   {
     switch (dataType)
     {
     case Format::Float:
-      return float_to_half(((float*)bufferPtr)[i]);
+      return half(((float*)bufferPtr)[i]);
     case Format::Half:
-      return ((int16_t*)bufferPtr)[i];
+      return ((half*)bufferPtr)[i];
     default:
       assert(0);
       return 0;

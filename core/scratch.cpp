@@ -67,7 +67,7 @@ namespace oidn {
   std::shared_ptr<Tensor> ScratchBuffer::newTensor(const TensorDesc& desc, ptrdiff_t offset)
   {
     size_t absOffset = offset >= 0 ? offset : localSize + offset;
-    auto result = std::make_shared<Tensor>(this, desc, absOffset);
+    auto result = getDevice()->newTensor(this, desc, absOffset);
     memWps.push_back(result);
     return result;
   }

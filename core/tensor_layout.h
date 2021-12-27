@@ -30,15 +30,15 @@ namespace oidn {
       size_t hStride;
       size_t cStride;
 
-      Addressing() {}
+      Addressing() = default;
 
-      Addressing(int C, int H, int W)
+      OIDN_HOST_DEVICE_INLINE Addressing(int C, int H, int W)
       {
         hStride = size_t(W) * wStride;
         cStride = size_t(H) * hStride;
       }
 
-      __forceinline size_t getOffset(int c, int h, int w) const
+      OIDN_HOST_DEVICE_INLINE size_t getOffset(int c, int h, int w) const
       {
         return size_t(c) * cStride + size_t(h) * hStride + size_t(w) * wStride;
       }
@@ -50,19 +50,19 @@ namespace oidn {
   {
     static constexpr int B = blockSize;
 
-    static constexpr size_t wStride = sizeof(T);
+    static constexpr size_t wStride = B * sizeof(T);
     size_t hStride;
     size_t cStride;
 
-    TensorAddressingChwBc() {}
+    TensorAddressingChwBc() = default;
 
-    TensorAddressingChwBc(int C, int H, int W)
+    OIDN_HOST_DEVICE_INLINE TensorAddressingChwBc(int C, int H, int W)
     {
       hStride = size_t(W) * wStride;
       cStride = size_t(H) * hStride;
     }
 
-    __forceinline size_t getOffset(int c, int h, int w) const
+    OIDN_HOST_DEVICE_INLINE size_t getOffset(int c, int h, int w) const
     {
       return size_t(c/B) * cStride + size_t(h) * hStride + size_t(w) * wStride + size_t(c%B) * sizeof(T);
     }
@@ -93,16 +93,16 @@ namespace oidn {
       size_t iStride;
       size_t oStride;
 
-      Addressing() {}
+      Addressing() = default;
 
-      Addressing(int O, int I, int H, int W)
+      OIDN_HOST_DEVICE_INLINE Addressing(int O, int I, int H, int W)
       {
         hStride = size_t(W) * wStride;
         iStride = size_t(H) * hStride;
         oStride = size_t(I) * iStride;
       }
 
-      __forceinline size_t getOffset(int o, int i, int h, int w) const
+      OIDN_HOST_DEVICE_INLINE size_t getOffset(int o, int i, int h, int w) const
       {
         return size_t(o) * oStride + size_t(i) * iStride + size_t(h) * hStride + size_t(w) * wStride;
       }

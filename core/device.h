@@ -8,10 +8,28 @@
 
 namespace oidn {
 
+  struct TensorDesc;
+  class Tensor;
+
+  class Image;
   class Filter;
 
   class ScratchBuffer;
   class ScratchBufferManager;
+
+  class TransferFunction;
+
+  struct ConvDesc;
+  struct PoolDesc;
+  struct UpsampleDesc;
+  struct InputReorderDesc;
+  struct OutputReorderDesc;
+
+  class ConvNode;
+  class PoolNode;
+  class UpsampleNode;
+  class InputReorderNode;
+  class OutputReorderNode;
 
   class Device : public RefCount, public Verbose
   {
@@ -31,20 +49,14 @@ namespace oidn {
     ErrorFunction errorFunc = nullptr;
     void* errorUserPtr = nullptr;
 
-    // Tasking
-    std::shared_ptr<tbb::task_arena> arena;
-    std::shared_ptr<PinningObserver> observer;
-    std::shared_ptr<ThreadAffinity> affinity;
-
     // Memory
     std::weak_ptr<ScratchBufferManager> scratchManagerWp;
 
   protected:
-    // Neural network runtime
-  #if defined(OIDN_DNNL)
-    dnnl::engine dnnlEngine;
-    dnnl::stream dnnlStream;
-  #endif
+    // Tasking
+    std::shared_ptr<tbb::task_arena> arena;
+
+    // Native tensor layout
     DataType tensorDataType = DataType::Float32;
     int tensorBlockSize = 1;
 
@@ -57,7 +69,6 @@ namespace oidn {
 
   public:
     Device();
-    ~Device();
 
     static void setError(Device* device, Error code, const std::string& message);
     static Error getError(Device* device, const char** outMessage);
@@ -68,32 +79,20 @@ namespace oidn {
     virtual int get1i(const std::string& name);
     virtual void set1i(const std::string& name, int value);
 
+    bool isCommitted() const { return committed; }
+    void checkCommitted();
     void commit();
 
-    template<typename F>
-    void executeTask(F& f)
-    {
-      if (arena)
-        arena->execute(f);
-      else
-        f();
-    }
+    OIDN_INLINE Device* getDevice() { return this; }
+    OIDN_INLINE std::mutex& getMutex() { return mutex; }
 
-    template<typename F>
-    void executeTask(const F& f)
-    {
-      if (arena)
-        arena->execute(f);
-      else
-        f();
-    }
+    // Returns the native tensor data type
+    OIDN_INLINE DataType getTensorDataType() const { return tensorDataType; }
 
-    void wait()
-    {
-    #if defined(OIDN_DNNL)
-      dnnlStream.wait();
-    #endif
-    }
+    // Returns the native tensor layout block size
+    OIDN_INLINE int getTensorBlockSize() const { return tensorBlockSize; }
+
+    virtual void wait() {}
 
     virtual Ref<Buffer> newBuffer(size_t byteSize, Buffer::Kind kind) = 0;
     virtual Ref<Buffer> newBuffer(void* ptr, size_t byteSize) = 0;
@@ -102,27 +101,33 @@ namespace oidn {
 
     Ref<Filter> newFilter(const std::string& type);
 
-    __forceinline Device* getDevice() { return this; }
-    __forceinline std::mutex& getMutex() { return mutex; }
+    virtual std::shared_ptr<Tensor> newTensor(const TensorDesc& desc);
+    virtual std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, void* data);
+    virtual std::shared_ptr<Tensor> newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset);
 
-  #if defined(OIDN_DNNL)
-    __forceinline dnnl::engine& getDNNLEngine() { return dnnlEngine; }
-    __forceinline dnnl::stream& getDNNLStream() { return dnnlStream; }
-  #endif
+    // Nodes
+    virtual std::shared_ptr<ConvNode> newConvNode(const ConvDesc& desc) = 0;
+    virtual std::shared_ptr<PoolNode> newPoolNode(const PoolDesc& desc) = 0;
+    virtual std::shared_ptr<UpsampleNode> newUpsampleNode(const UpsampleDesc& desc) = 0;
+    virtual std::shared_ptr<InputReorderNode> newInputReorderNode(const InputReorderDesc& desc) = 0;
+    virtual std::shared_ptr<OutputReorderNode> newOutputReorderNode(const OutputReorderDesc& desc) = 0;
 
-    // Returns the native tensor data type
-    __forceinline DataType getTensorDataType() const { return tensorDataType; }
+    // Kernels
+    virtual void imageCopy(const Image& src, const Image& dst) = 0;
 
-    // Returns the native tensor layout block size
-    __forceinline int getTensorBlockSize() const { return tensorBlockSize; }
-
-    bool isCommitted() const { return committed; }
-    void checkCommitted();
-
+    // Executes task in the arena (if it exists)
+    template<typename F>
+    void executeTask(const F& f)
+    {
+      if (arena)
+        arena->execute(f);
+      else
+        f();
+    }
+   
   protected:
     virtual void init() = 0;
     virtual void printInfo() = 0;
-    void initTasking();
   };
 
 } // namespace oidn

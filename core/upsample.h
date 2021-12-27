@@ -7,21 +7,24 @@
 
 namespace oidn {
 
-  // 2x2 nearest-neighbor upsampling node (blocked layout)
-  class UpsampleNode : public Node
+  struct UpsampleDesc
+  {
+    std::string name;
+    std::shared_ptr<Tensor> src;
+    std::shared_ptr<Tensor> dst;
+  };
+
+  // 2x2 nearest-neighbor upsampling node
+  class UpsampleNode : public virtual Node
   {
   protected:
     std::shared_ptr<Tensor> src;
     std::shared_ptr<Tensor> dst;
 
   public:
-    UpsampleNode(const Ref<Device>& device,
-                 const std::string& name,
-                 const std::shared_ptr<Tensor>& src,
-                 const std::shared_ptr<Tensor>& dst)
-      : Node(device, name),
-        src(src),
-        dst(dst)
+    UpsampleNode(const UpsampleDesc& desc)
+      : src(desc.src),
+        dst(desc.dst)
     {
       assert(src->ndims() == 3);
       assert(dst->ndims() == 3);
@@ -31,33 +34,7 @@ namespace oidn {
       assert(dst->dims[2] == src->dims[2] * 2); // W
     }
 
-    std::shared_ptr<Tensor> getDst() const override { return dst; }
+    std::shared_ptr<Tensor> getDst() const { return dst; }
   };
-
-  class CPUUpsampleNode : public UpsampleNode
-  {
-  public:
-    CPUUpsampleNode(const Ref<Device>& device,
-                    const std::string& name,
-                    const std::shared_ptr<Tensor>& src,
-                    const std::shared_ptr<Tensor>& dst);
-
-    void execute() override;
-  };
-
-#if defined(OIDN_DEVICE_SYCL)
-  class SYCLDevice;
-
-  class SYCLUpsampleNode : public UpsampleNode
-  {
-  public:
-    SYCLUpsampleNode(const Ref<SYCLDevice>& device,
-                     const std::string& name,
-                     const std::shared_ptr<Tensor>& src,
-                     const std::shared_ptr<Tensor>& dst);
-
-    void execute() override;
-  };
-#endif
 
 } // namespace oidn

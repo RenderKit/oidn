@@ -141,33 +141,43 @@ set(CORE_SOURCES
   include/OpenImageDenoise/oidn.hpp
   include/OpenImageDenoise/config.h
   ${OIDN_RESOURCE}
+  core/cpu/cpu_buffer.h
+  core/cpu/cpu_device.h
+  core/cpu/cpu_device.cpp
+  core/cpu/cpu_image_copy.h
+  core/cpu/cpu_image_copy.cpp
+  core/cpu/cpu_input_reorder.h
+  core/cpu/cpu_input_reorder.cpp
+  core/cpu/cpu_node.h
+  core/cpu/cpu_output_reorder.h
+  core/cpu/cpu_output_reorder.cpp
+  core/cpu/cpu_upsample.h
+  core/cpu/cpu_upsample.cpp
   core/api.cpp
   core/buffer.h
   core/color.h
   core/color.cpp
   core/common.h
   core/conv.h
-  core/cpu_buffer.h
-  core/cpu_device.h
-  core/cpu_device.cpp
   core/data.h
   core/device.h
   core/device.cpp
   core/filter.h
   core/filter.cpp
   core/image_accessor.h
+  core/image_copy_kernel.h
+  core/image_copy.h
   core/image.h
+  core/input_reorder_kernel.h
   core/input_reorder.h
   core/input_reorder.cpp
   core/network.h
   core/network.cpp
   core/node.h
-  core/output_copy.h
-  core/output_copy.cpp
+  core/output_reorder_kernel.h
   core/output_reorder.h
   core/output_reorder.cpp
   core/pool.h
-  core/pool.cpp
   core/progress.h
   core/reorder.h
   core/scratch.h
@@ -175,38 +185,71 @@ set(CORE_SOURCES
   core/tensor_accessor.h
   core/tensor_layout.h
   core/tensor.h
+  core/tensor.cpp
   core/tza.h
   core/tza.cpp
   core/unet.h
   core/unet.cpp
   core/upsample.h
-  core/upsample.cpp
   core/vec.h
 )
+
+if(OIDN_NEURAL_RUNTIME STREQUAL "DNNL")
+  list(APPEND CORE_SOURCES
+    core/dnnl/dnnl_conv.h
+    core/dnnl/dnnl_conv.cpp
+    core/dnnl/dnnl_device.h
+    core/dnnl/dnnl_device.cpp
+    core/dnnl/dnnl_node.h
+    core/dnnl/dnnl_node.cpp
+    core/dnnl/dnnl_pool.h
+    core/dnnl/dnnl_pool.cpp
+    core/dnnl/dnnl_reorder.h
+    core/dnnl/dnnl_tensor.h
+    core/dnnl/dnnl_tensor.cpp
+  )
+elseif(OIDN_NEURAL_RUNTIME STREQUAL "BNNS")
+  list(APPEND CORE_SOURCES
+    core/bnns/bnns_conv.h
+    core/bnns/bnns_conv.cpp
+    core/bnns/bnns_device.h
+    core/bnns/bnns_device.cpp
+    core/bnns/bnns_node.h
+    core/bnns/bnns_node.cpp
+    core/bnns/bnns_pool.h
+    core/bnns/bnns_pool.cpp
+  )
+endif()
 
 if(OIDN_DEVICE_SYCL)
   set(CMAKE_CXX_STANDARD 17)
 
   list(APPEND CORE_SOURCES
-    core/sycl_buffer.h
-    core/sycl_device.h
-    core/sycl_device.cpp
+    core/sycl/sycl_buffer.h
+    core/sycl/sycl_buffer.cpp
+    core/sycl/sycl_device.h
+    core/sycl/sycl_device.cpp
+    core/sycl/sycl_node.h
+    core/sycl/sycl_pool.h
+    core/sycl/sycl_pool.cpp
+    core/sycl/sycl_upsample.h
+    core/sycl/sycl_upsample.cpp
   )
 
   set_source_files_properties(${CORE_SOURCES} PROPERTIES COMPILE_FLAGS "${OIDN_CXX_FLAGS_SYCL}")
 endif()
 
 set(CORE_SOURCES_ISPC
-  core/image_accessor.isph
-  core/input_reorder.ispc
   core/color.isph
   core/color.ispc
+  core/image_accessor.isph
+  core/input_reorder_kernel.ispc
   core/math.isph
-  core/upsample.ispc
-  core/output_copy.ispc
-  core/output_reorder.ispc
+  core/image_copy_kernel.ispc
+  core/output_reorder_kernel.ispc
   core/reorder.isph
   core/tensor_accessor.isph
+  core/upsample_kernel.ispc
   core/vec.isph
 )
 

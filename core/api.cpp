@@ -35,9 +35,9 @@
     Device::setError(obj ? obj->getDevice() : nullptr, Error::Unknown, "unknown exception caught"); \
   }
 
-#include "cpu_device.h"
+#include "cpu/cpu_device.h"
 #if defined(OIDN_DEVICE_SYCL)
-  #include "sycl_device.h"
+  #include "sycl/sycl_device.h"
 #endif
 #include "filter.h"
 #include <mutex>
@@ -48,14 +48,14 @@ OIDN_API_NAMESPACE_BEGIN
 
   namespace
   {
-    __forceinline void checkHandle(void* handle)
+    OIDN_INLINE void checkHandle(void* handle)
     {
       if (handle == nullptr)
         throw Exception(Error::InvalidArgument, "invalid handle");
     }
 
     template<typename T>
-    __forceinline void retainObject(T* obj)
+    OIDN_INLINE void retainObject(T* obj)
     {
       if (obj)
       {
@@ -70,7 +70,7 @@ OIDN_API_NAMESPACE_BEGIN
     }
 
     template<typename T>
-    __forceinline void releaseObject(T* obj)
+    OIDN_INLINE void releaseObject(T* obj)
     {
       if (obj == nullptr || obj->decRefKeep() == 0)
       {
@@ -83,7 +83,7 @@ OIDN_API_NAMESPACE_BEGIN
     }
 
     template<>
-    __forceinline void releaseObject(Device* obj)
+    OIDN_INLINE void releaseObject(Device* obj)
     {
       if (obj == nullptr || obj->decRefKeep() == 0)
       {

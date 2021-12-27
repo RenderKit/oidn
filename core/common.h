@@ -11,13 +11,7 @@
 #include "common/math.h"
 #include "vec.h"
 
-#if defined(OIDN_DNNL)
-  #include "mkl-dnn/include/dnnl.hpp"
-#elif defined(OIDN_BNNS)
-  #include <Accelerate/Accelerate.h>
-#endif
-
-#include "input_reorder_ispc.h" // ispc::TensorAccessor3D, ispc::ImageAccessor, ispc::ReorderTile
+#include "input_reorder_kernel_ispc.h" // ispc::TensorAccessor3D, ispc::ImageAccessor, ispc::ReorderTile
 
 namespace oidn {
 
@@ -32,18 +26,16 @@ namespace oidn {
   struct DataTypeOf;
 
   template<> struct DataTypeOf<float>   { static constexpr DataType value = DataType::Float32; };
-  template<> struct DataTypeOf<uint8_t> { static constexpr DataType value = DataType::UInt8;   };
-#if defined(OIDN_SYCL)
   template<> struct DataTypeOf<half>    { static constexpr DataType value = DataType::Float16; };
-#endif
+  template<> struct DataTypeOf<uint8_t> { static constexpr DataType value = DataType::UInt8;   };
 
   // Returns the size of a data type in bytes
-  __forceinline size_t getByteSize(DataType dataType)
+  OIDN_INLINE size_t getByteSize(DataType dataType)
   {
     switch (dataType)
     {
-    case DataType::Float32: return 4;
-    case DataType::Float16: return 2;
+    case DataType::Float32: return sizeof(float);
+    case DataType::Float16: return sizeof(int16_t);
     case DataType::UInt8:   return 1;
     default:
       throw Exception(Error::Unknown, "invalid data type");
@@ -51,7 +43,7 @@ namespace oidn {
   }
 
   // Returns the size of a format in bytes
-  __forceinline size_t getByteSize(Format format)
+  OIDN_INLINE size_t getByteSize(Format format)
   {
     switch (format)
     {
@@ -70,7 +62,7 @@ namespace oidn {
   }
 
   // Returns the data type of a format
-  __forceinline DataType getDataType(Format format)
+  OIDN_INLINE DataType getDataType(Format format)
   {
     switch (format)
     {
@@ -107,7 +99,7 @@ namespace oidn {
   }
 
   template <typename T0, typename F>
-  __forceinline void parallel_nd(const T0& D0, F f)
+  OIDN_INLINE void parallel_nd(const T0& D0, const F& f)
   {
     tbb::parallel_for(tbb::blocked_range<T0>(0, D0), [&](const tbb::blocked_range<T0>& r)
     {
@@ -117,7 +109,7 @@ namespace oidn {
   }
 
   template <typename T0, typename T1, typename F>
-  __forceinline void parallel_nd(const T0& D0, const T1& D1, F f)
+  OIDN_INLINE void parallel_nd(const T0& D0, const T1& D1, const F& f)
   {
     tbb::parallel_for(tbb::blocked_range2d<T0, T1>(0, D0, 0, D1), [&](const tbb::blocked_range2d<T0, T1>& r)
     {

@@ -5,6 +5,9 @@
 #include "tensor.h"
 #include "image.h"
 #include "node.h"
+#include "conv.h"
+#include "pool.h"
+#include "upsample.h"
 #include "input_reorder.h"
 #include "output_reorder.h"
 #include "progress.h"
@@ -42,20 +45,20 @@ namespace oidn {
                                                         bool snorm);
 
     TensorDesc getConvDesc(const std::string& name, const TensorDesc& srcDesc);
-    std::shared_ptr<Node> addConv(const std::string& name,
-                                  const std::shared_ptr<Tensor>& src,
-                                  const std::shared_ptr<Tensor>& dst,
-                                  bool relu = true);
+    std::shared_ptr<ConvNode> addConv(const std::string& name,
+                                      const std::shared_ptr<Tensor>& src,
+                                      const std::shared_ptr<Tensor>& dst,
+                                      bool relu = true);
 
     TensorDesc getPoolDesc(const TensorDesc& srcDesc);
-    std::shared_ptr<Node> addPool(const std::string& name,
-                                  const std::shared_ptr<Tensor>& src,
-                                  const std::shared_ptr<Tensor>& dst);
-
-    TensorDesc getUpsampleDesc(const TensorDesc& srcDesc);
-    std::shared_ptr<Node> addUpsample(const std::string& name,
+    std::shared_ptr<PoolNode> addPool(const std::string& name,
                                       const std::shared_ptr<Tensor>& src,
                                       const std::shared_ptr<Tensor>& dst);
+
+    TensorDesc getUpsampleDesc(const TensorDesc& srcDesc);
+    std::shared_ptr<UpsampleNode> addUpsample(const std::string& name,
+                                              const std::shared_ptr<Tensor>& src,
+                                              const std::shared_ptr<Tensor>& dst);
 
     TensorDesc getConcatDesc(const std::vector<TensorDesc>& srcDescs);
 

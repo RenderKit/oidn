@@ -1,24 +1,18 @@
 // Copyright 2009-2021 Intel Corporation
-// SPDX-License-Identifier: Apache-2.0
+// SPDX-License-Identifier: Apache-2.0#if defined(OIDN_DEVICE_SYCL)
 
-#if defined(OIDN_DEVICE_SYCL)
-  #include "sycl_device.h"
-#endif
-
-#include "pool.h"
+#include "sycl_pool.h"
 
 namespace oidn {
 
-#if defined(OIDN_DEVICE_SYCL)
-
-  struct Pool
+  struct SYCLPool
   {
     static constexpr int B = TensorAccessor3D<half, TensorLayout::Chw16c>::B;
 
     TensorAccessor3D<half, TensorLayout::Chw16c> src;
     TensorAccessor3D<half, TensorLayout::Chw16c> dst;
 
-    __forceinline void operator ()(size_t hDst, size_t wDst) const SYCL_ESIMD_KERNEL
+    OIDN_INLINE void operator ()(size_t hDst, size_t wDst) const SYCL_ESIMD_KERNEL
     { 
       using namespace sycl::ext::intel::experimental::esimd;
 
@@ -46,13 +40,9 @@ namespace oidn {
     }
   };
 
-  SYCLPoolNode::SYCLPoolNode(const Ref<SYCLDevice>& device,
-                             const std::string& name,
-                             const std::shared_ptr<Tensor>& src,
-                             const std::shared_ptr<Tensor>& dst)
-    : Node(device, name),
-      src(src),
-      dst(dst)
+  SYCLPoolNode::SYCLPoolNode(const Ref<SYCLDevice>& device, const PoolDesc& desc)
+    : SYCLNode(device, desc.name),
+      PoolNode(desc)
   {
     assert(src->layout == TensorLayout::Chw16c);
     assert(src->blockSize() == device->getTensorBlockSize());
@@ -60,17 +50,11 @@ namespace oidn {
 
   void SYCLPoolNode::execute()
   {
-    Pool kernel;
+    SYCLPool kernel;
     kernel.src = *src;
     kernel.dst = *dst;
 
-    auto& queue = ((SYCLDevice*)getDevice())->getSYCLQueue();
-    queue.parallel_for(sycl::range<2>(dst->height() * dst->numChannelBlocks(), dst->width()), [=](sycl::id<2> idx) SYCL_ESIMD_KERNEL
-    {
-      kernel(idx[0], idx[1]);
-    });
+    device->executeESIMDKernel(dst->height() * dst->numChannelBlocks(), dst->width(), kernel);
   }
-
-#endif
 
 } // namespace oidn

@@ -7,7 +7,7 @@
 namespace oidn {
 
   // Checks for buffer overrun
-  __forceinline void checkBounds(char* ptr, char* end, size_t size)
+  OIDN_INLINE void checkBounds(char* ptr, char* end, size_t size)
   {
     if (end - ptr < (ptrdiff_t)size)
       throw Exception(Error::InvalidOperation, "invalid or corrupted weights blob");
@@ -15,7 +15,7 @@ namespace oidn {
 
   // Reads a value from a buffer (with bounds checking) and advances the pointer
   template<typename T>
-  __forceinline T read(char*& ptr, char* end)
+  OIDN_INLINE T read(char*& ptr, char* end)
   {
     checkBounds(ptr, end, sizeof(T));
     T value;
@@ -92,7 +92,7 @@ namespace oidn {
       checkBounds(tensorData, bufferEnd, tensorDesc.byteSize());
 
       // Add the tensor to the map
-      auto tensor = std::make_shared<Tensor>(device, tensorDesc, tensorData);
+      auto tensor = device->newTensor(tensorDesc, tensorData);
       tensorMap.emplace(name, tensor);
     }
 

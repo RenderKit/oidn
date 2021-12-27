@@ -7,80 +7,38 @@
 
 namespace oidn {
 
-  // Node base class
+  // Abstract node class
   class Node
   {
-  protected:
-    Ref<Device> device;
-    std::string name;
-
   public:
-    Node(const Ref<Device>& device, const std::string& name) : device(device), name(name) {}
     virtual ~Node() = default;
 
     virtual void execute() = 0;
 
-    virtual std::shared_ptr<Tensor> getDst() const { return nullptr; }
-
     virtual size_t getScratchSize() const { return 0; }
     virtual void setScratch(const std::shared_ptr<Tensor>& scratch) {}
 
-    __forceinline Device* getDevice() { return device.get(); }
-    __forceinline const std::string& getName() const { return name; }
+    virtual Device* getDevice() = 0;
+    virtual std::string getName() const = 0;
   };
 
-#if defined(OIDN_DNNL)
-
-  // DNNL node base class
-  class DNNLNode : public Node
+  // Node base class
+  template<typename DeviceT>
+  class BaseNode : public virtual Node
   {
   protected:
-    dnnl::primitive prim;
-    std::unordered_map<int, dnnl::memory> args;
-    std::shared_ptr<Tensor> scratch;
+    Ref<DeviceT> device;
+    std::string name;
 
   public:
-    DNNLNode(const Ref<Device>& device, const std::string& name) : Node(device, name) {}
+    using DeviceType = DeviceT;
 
-    size_t getScratchSize() const override
-    {
-      const auto primDesc = prim.get_primitive_desc();
-      const dnnl_memory_desc_t* scratchpadDesc = dnnl_primitive_desc_query_md(primDesc, dnnl_query_scratchpad_md, 0);
-      if (scratchpadDesc == nullptr)
-        return 0;
-      return dnnl_memory_desc_get_size(scratchpadDesc);
-    }
+    BaseNode(const Ref<DeviceT>& device, const std::string& name)
+      : device(device),
+        name(name) {}
 
-    void setScratch(const std::shared_ptr<Tensor>& scratch) override
-    {
-      this->scratch = scratch;
-      args.insert(std::make_pair(DNNL_ARG_SCRATCHPAD, scratch->mem));
-    }
-
-    void execute() override
-    {
-      prim.execute(device->getDNNLStream(), args);
-    }
+    Device* getDevice() override { return device.get(); }
+    std::string getName() const override { return name; }
   };
-
-#elif defined(OIDN_BNNS)
-
-  // BNNS node base class
-  class BNNSNode : public Node
-  {
-  protected:
-    BNNSFilter filter = nullptr;
-
-  public:
-    BNNSNode(const Ref<Device>& device, const std::string& name) : Node(device, name) {}
-
-    ~BNNSNode()
-    {
-      if (filter)
-        BNNSFilterDestroy(filter);
-    }
-  };
-
-#endif
 
 } // namespace oidn

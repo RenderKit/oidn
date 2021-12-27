@@ -7,107 +7,35 @@
 
 namespace oidn {
 
-#if defined(OIDN_DNNL)
-
-  // DNNL 2x2 max pooling node
-  class PoolNode : public DNNLNode
+  // 2x2 max pooling descriptor
+  struct PoolDesc
   {
-  private:
+    std::string name;
+    std::shared_ptr<Tensor> src;
+    std::shared_ptr<Tensor> dst;
+  };
+
+  // 2x2 max pooling node
+  class PoolNode : public virtual Node
+  {
+  protected:
     std::shared_ptr<Tensor> src;
     std::shared_ptr<Tensor> dst;
 
   public:
-    PoolNode(const Ref<Device>& device,
-             const std::string& name,
-             const std::shared_ptr<Tensor>& src,
-             const std::shared_ptr<Tensor>& dst)
-      : DNNLNode(device, name),
-        src(src), dst(dst)
+    PoolNode(const PoolDesc& desc)
+      : src(desc.src),
+        dst(desc.dst)
     {
-      const dnnl::memory::dims kernel  = {2, 2};
-      const dnnl::memory::dims strides = {2, 2};
-      const dnnl::memory::dims padding = {0, 0};
-
-      auto poolDesc = dnnl::pooling_forward::desc(
-        dnnl::prop_kind::forward_inference, dnnl::algorithm::pooling_max,
-        src->mem.get_desc(),
-        dst->mem.get_desc(),
-        strides, kernel, padding, padding);
-
-      dnnl::primitive_attr poolAttr;
-      poolAttr.set_scratchpad_mode(dnnl::scratchpad_mode::user);
-
-      auto poolPrimDesc = dnnl::pooling_forward::primitive_desc(poolDesc, poolAttr, device->getDNNLEngine());
-
-      prim = dnnl::pooling_forward(poolPrimDesc);
-      args = {{DNNL_ARG_SRC, src->mem},
-              {DNNL_ARG_DST, dst->mem}};
+      assert(src->ndims() == 3);
+      assert(dst->ndims() == 3);
+      assert(dst->layout == src->layout);
+      assert(src->dims[0] == dst->dims[0]);     // C
+      assert(src->dims[1] == dst->dims[1] * 2); // H
+      assert(src->dims[2] == dst->dims[2] * 2); // W
     }
 
-    std::shared_ptr<Tensor> getDst() const override { return dst; }
+    std::shared_ptr<Tensor> getDst() const { return dst; }
   };
-
-#else
-
-  // BNNS 2x2 max pooling node
-  class PoolNode : public BNNSNode
-  {
-  private:
-    std::shared_ptr<Tensor> src;
-    std::shared_ptr<Tensor> dst;
-
-  public:
-    PoolNode(const Ref<Device>& device,
-             const std::string& name,
-             const std::shared_ptr<Tensor>& src,
-             const std::shared_ptr<Tensor>& dst)
-      : BNNSNode(device, name),
-        src(src), dst(dst)
-    {
-      BNNSLayerParametersPooling params = {
-        .i_desc = *src,
-        .o_desc = *dst,
-        .pooling_function = BNNSPoolingFunctionMax,
-        .k_width  = 2,
-        .k_height = 2,
-        .x_stride = 2,
-        .y_stride = 2
-      };
-
-      filter = BNNSFilterCreateLayerPooling(&params, nullptr);
-      if (!filter)
-        throw Exception(Error::Unknown, "BNNSFilterCreateLayerPooling failed");
-    }
-
-    void execute() override
-    {
-      BNNSFilterApply(filter, src->data(), dst->data());
-    }
-
-    std::shared_ptr<Tensor> getDst() const override { return dst; }
-  };
-
-#endif
-
-#if defined(OIDN_DEVICE_SYCL)
-  class SYCLDevice;
-
-  class SYCLPoolNode : public Node
-  {
-  private:
-    std::shared_ptr<Tensor> src;
-    std::shared_ptr<Tensor> dst;
-
-  public:
-    SYCLPoolNode(const Ref<SYCLDevice>& device,
-                 const std::string& name,
-                 const std::shared_ptr<Tensor>& src,
-                 const std::shared_ptr<Tensor>& dst);
-
-    void execute() override;
-
-    std::shared_ptr<Tensor> getDst() const override { return dst; }
-  };
-#endif
 
 } // namespace oidn

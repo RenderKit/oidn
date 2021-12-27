@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "common.h"
 #include "device.h"
 #include "buffer.h"
 #include "image_accessor.h"
@@ -20,7 +19,7 @@ namespace oidn {
     size_t rowStride;       // row stride in number of *pixel strides*
     Format format;          // pixel format
 
-    __forceinline ImageDesc() = default;
+    OIDN_INLINE ImageDesc() = default;
 
     ImageDesc(Format format, size_t width, size_t height, size_t inBytePixelStride = 0, size_t inByteRowStride = 0)
     {
@@ -68,7 +67,7 @@ namespace oidn {
     }
 
     // Returns the number of channels
-    __forceinline int numChannels() const
+    OIDN_INLINE int numChannels() const
     {
       switch (format)
       {
@@ -92,25 +91,25 @@ namespace oidn {
     }
 
     // Returns the number of pixels in the image
-    __forceinline size_t numElements() const
+    OIDN_INLINE size_t numElements() const
     {
       return size_t(width) * size_t(height);
     }
 
     // Returns the size in bytes of a pixel in the image
-    __forceinline size_t elementByteSize() const
+    OIDN_INLINE size_t elementByteSize() const
     {
       return getByteSize(format);
     }
 
     // Returns the size in bytes of the image
-    __forceinline size_t byteSize() const
+    OIDN_INLINE size_t byteSize() const
     {
       return size_t(height) * rowStride * bytePixelStride;
     }
 
     // Returns the aligned size in bytes of the image
-    __forceinline size_t alignedByteSize() const
+    OIDN_INLINE size_t alignedByteSize() const
     {
       return round_up(byteSize(), memoryAlignment);
     }
@@ -161,28 +160,28 @@ namespace oidn {
       this->ptr = buffer->data();
     }
 
-    __forceinline char* get(int h, int w)
+    OIDN_INLINE char* get(int h, int w)
     {
       return ptr + ((size_t(h) * rowStride + size_t(w)) * bytePixelStride);
     }
 
-    __forceinline const char* get(int h, int w) const
+    OIDN_INLINE const char* get(int h, int w) const
     {
       return ptr + ((size_t(h) * rowStride + size_t(w)) * bytePixelStride);
     }
 
-    __forceinline       char* begin()       { return ptr; }
-    __forceinline const char* begin() const { return ptr; }
+    OIDN_INLINE       char* begin()       { return ptr; }
+    OIDN_INLINE const char* begin() const { return ptr; }
 
-    __forceinline       char* end()       { return get(height, 0); }
-    __forceinline const char* end() const { return get(height, 0); }
+    OIDN_INLINE       char* end()       { return get(height, 0); }
+    OIDN_INLINE const char* end() const { return get(height, 0); }
 
-    __forceinline operator bool() const
+    OIDN_INLINE operator bool() const
     {
       return ptr != nullptr;
     }
 
-    __forceinline const ImageDesc& desc() const { return *this; }
+    OIDN_INLINE const ImageDesc& desc() const { return *this; }
 
     // Determines whether two images overlap in memory
     bool overlaps(const Image& other) const

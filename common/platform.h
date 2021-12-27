@@ -19,17 +19,12 @@
 
 #if defined(_WIN32)
   // Windows
-  #if !defined(__noinline)
-    #define __noinline __declspec(noinline)
-  #endif
+  #define OIDN_INLINE OIDN_INLINE
+  #define OIDN_NOINLINE __declspec(noinline)
 #else
   // Unix
-  #if !defined(__forceinline)
-    #define __forceinline inline __attribute__((always_inline))
-  #endif
-  #if !defined(__noinline)
-    #define __noinline __attribute__((noinline))
-  #endif
+  #define OIDN_INLINE inline __attribute__((always_inline))
+  #define OIDN_NOINLINE __attribute__((noinline))
 #endif
 
 #ifndef UNUSED
@@ -38,6 +33,11 @@
 #ifndef MAYBE_UNUSED
   #define MAYBE_UNUSED(x) UNUSED(x)
 #endif
+
+#define OIDN_DEVICE
+#define OIDN_DEVICE_INLINE OIDN_INLINE
+#define OIDN_HOST_DEVICE
+#define OIDN_HOST_DEVICE_INLINE OIDN_INLINE
 
 // ---------------------------------------------------------------------------
 // Includes
@@ -70,6 +70,7 @@
 #include <algorithm>
 #include <memory>
 #include <cmath>
+#include <cfloat>
 #include <string>
 #include <sstream>
 #include <iostream>
@@ -96,7 +97,7 @@ namespace oidn {
     int verbose;
 
     Verbose(int v = 0) : verbose(v) {}
-    __forceinline bool isVerbose(int v = 1) const { return v <= verbose; }
+    OIDN_INLINE bool isVerbose(int v = 1) const { return v <= verbose; }
   };
 
   #define OIDN_WARNING(message) { if (isVerbose()) std::cerr << "Warning: " << message << std::endl; }
@@ -110,7 +111,7 @@ namespace oidn {
   using std::max;
 
   template<typename T>
-  __forceinline T clamp(const T& x, const T& minVal, const T& maxVal)
+  OIDN_DEVICE_INLINE T clamp(const T& x, const T& minVal, const T& maxVal)
   {
     return min(max(x, minVal), maxVal);
   }
@@ -180,6 +181,25 @@ namespace oidn {
 
   float half_to_float(int16_t x);
   int16_t float_to_half(float x);
+
+  #if !defined(OIDN_SYCL)
+    // Minimal half data type
+    class half
+    {
+    private:
+      int16_t x;
+
+    public:
+      half() = default;
+      half(const half& h) : x(h.x) {}
+      half(float f) : x(float_to_half(f)) {}
+
+      half& operator =(const half& h) { x = h.x; return *this; }
+      half& operator =(float f) { x = float_to_half(f); return *this; }
+      
+      operator float() const { return half_to_float(x); }
+    };
+  #endif
 
   // ---------------------------------------------------------------------------
   // System information

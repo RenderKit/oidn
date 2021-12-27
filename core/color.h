@@ -37,7 +37,7 @@ namespace oidn {
       static constexpr float y0 =  0.0031308f;
       static constexpr float x0 =  0.04045f;
 
-      static __forceinline float forward(float y)
+      static OIDN_DEVICE_INLINE float forward(float y)
       {
         if (y <= y0)
           return a * y;
@@ -45,7 +45,7 @@ namespace oidn {
           return b * pow(y, c) + d;
       }
 
-      static __forceinline float inverse(float x)
+      static OIDN_DEVICE_INLINE float inverse(float x)
       {
         if (x <= x0)
           return x / a;
@@ -68,7 +68,7 @@ namespace oidn {
       static constexpr float x0 =  2.23151711e-03f;
       static constexpr float x1 =  3.70974749e-01f;
 
-      static __forceinline float forward(float y)
+      static OIDN_DEVICE_INLINE float forward(float y)
       {
         if (y <= y0)
           return a * y;
@@ -78,7 +78,7 @@ namespace oidn {
           return e * log(y + f) + g;
       }
 
-      static __forceinline float inverse(float x)
+      static OIDN_DEVICE_INLINE float inverse(float x)
       {
         if (x <= x0)
           return x / a;
@@ -98,17 +98,17 @@ namespace oidn {
       this->outputScale = (inputScale != 0.f) ? (1.f / inputScale) : 0.f;
     }
 
-    __forceinline float getInputScale() const
+    OIDN_DEVICE_INLINE float getInputScale() const
     {
       return inputScale;
     }
 
-    __forceinline float getOutputScale() const
+    OIDN_DEVICE_INLINE float getOutputScale() const
     {
       return outputScale;
     }
 
-    __forceinline vec3f forward(vec3f y) const
+    OIDN_DEVICE_INLINE vec3f forward(vec3f y) const
     {
       switch (type)
       {
@@ -130,7 +130,7 @@ namespace oidn {
       }
     }
 
-    __forceinline vec3f inverse(vec3f x) const
+    OIDN_DEVICE_INLINE vec3f inverse(vec3f x) const
     {
       switch (type)
       { 

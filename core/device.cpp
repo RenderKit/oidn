@@ -23,11 +23,6 @@ namespace oidn {
     getEnvVar("OIDN_SET_AFFINITY", setAffinity);
   }
 
-  Device::~Device()
-  {
-    observer.reset();
-  }
-
   void Device::setError(Device* device, Error code, const std::string& message)
   {
     // Update the stored error only if the previous error was queried
@@ -172,15 +167,6 @@ namespace oidn {
       std::cout << "  Compiler: " << getCompilerName() << std::endl;
       std::cout << "  Build   : " << getBuildName() << std::endl;
       std::cout << "  Platform: " << getPlatformName() << std::endl;
-      std::cout << "  Tasking :";
-      std::cout << " TBB" << TBB_VERSION_MAJOR << "." << TBB_VERSION_MINOR;
-    #if TBB_INTERFACE_VERSION >= 12002
-      std::cout << " TBB_header_interface_" << TBB_INTERFACE_VERSION << " TBB_lib_interface_" << TBB_runtime_interface_version();
-    #else
-      std::cout << " TBB_header_interface_" << TBB_INTERFACE_VERSION << " TBB_lib_interface_" << tbb::TBB_runtime_interface_version();
-    #endif
-      std::cout << std::endl;
-      std::cout << "  Threads : " << numThreads << " (" << (affinity ? "affinitized" : "non-affinitized") << ")" << std::endl;
 
       printInfo();
       
@@ -219,32 +205,20 @@ namespace oidn {
     return makeRef<ScratchBuffer>(scratchManager, byteSize);
   }
 
-  void Device::initTasking()
+  std::shared_ptr<Tensor> Device::newTensor(const TensorDesc& desc)
   {
-    // Get the thread affinities for one thread per core on non-hybrid CPUs with SMT
-  #if !(defined(__APPLE__) && defined(OIDN_ARM64))
-    if (setAffinity
-      #if TBB_INTERFACE_VERSION >= 12020 // oneTBB 2021.2 or later
-        && tbb::info::core_types().size() <= 1 // non-hybrid cores
-      #endif
-       )
-    {
-      affinity = std::make_shared<ThreadAffinity>(1, verbose);
-      if (affinity->getNumThreads() == 0 ||                                           // detection failed
-          tbb::this_task_arena::max_concurrency() == affinity->getNumThreads() ||     // no SMT
-          (tbb::this_task_arena::max_concurrency() % affinity->getNumThreads()) != 0) // hybrid SMT
-        affinity.reset(); // disable affinitization
-    }
-  #endif
+    return std::make_shared<GenericTensor>(Ref<Device>(this), desc);
+  }
 
-    // Create the task arena
-    const int maxNumThreads = affinity ? affinity->getNumThreads() : tbb::this_task_arena::max_concurrency();
-    numThreads = (numThreads > 0) ? min(numThreads, maxNumThreads) : maxNumThreads;
-    arena = std::make_shared<tbb::task_arena>(numThreads);
+  std::shared_ptr<Tensor> Device::newTensor(const TensorDesc& desc, void* data)
+  {
+    return std::make_shared<GenericTensor>(Ref<Device>(this), desc, data);
+  }
 
-    // Automatically set the thread affinities
-    if (affinity)
-      observer = std::make_shared<PinningObserver>(affinity, *arena);
+  std::shared_ptr<Tensor> Device::newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
+  {
+    assert(buffer->getDevice() == this);
+    return std::make_shared<GenericTensor>(buffer, desc, byteOffset);
   }
 
 } // namespace oidn
