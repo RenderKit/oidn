@@ -4,8 +4,8 @@
 #include "cpu_device.h"
 #include "cpu_buffer.h"
 #include "cpu_upsample.h"
-#include "cpu_input_reorder.h"
-#include "cpu_output_reorder.h"
+#include "cpu_input_process.h"
+#include "cpu_output_process.h"
 #include "cpu_image_copy.h"
 
 namespace oidn {
@@ -29,6 +29,8 @@ namespace oidn {
   #else
     tensorBlockSize = 1;
   #endif
+    tensorLayout = tensorBlockSize == 16 ? TensorLayout::Chw16c : (tensorBlockSize == 8 ? TensorLayout::Chw8c : TensorLayout::chw);
+    tensorDataType = DataType::Float32;
   }
 
   void CPUDevice::initTasking()
@@ -95,7 +97,7 @@ namespace oidn {
     std::cout << std::endl;
   }
 
-  Ref<Buffer> CPUDevice::newBuffer(size_t byteSize, Buffer::Kind kind)
+  Ref<Buffer> CPUDevice::newBuffer(size_t byteSize, MemoryKind kind)
   {
     return makeRef<CPUBuffer>(Ref<Device>(this), byteSize, kind);
   }
@@ -105,21 +107,19 @@ namespace oidn {
     return makeRef<CPUBuffer>(Ref<Device>(this), ptr, byteSize);
   }
 
-  std::shared_ptr<UpsampleNode> CPUDevice::newUpsampleNode(const UpsampleDesc& desc)
+  std::shared_ptr<Upsample> CPUDevice::newUpsample(const UpsampleDesc& desc)
   {
-    return std::make_shared<CPUUpsampleNode>(Ref<CPUDevice>(this), desc);
+    return std::make_shared<CPUUpsample>(Ref<CPUDevice>(this), desc);
   }
 
-  std::shared_ptr<InputReorderNode> CPUDevice::newInputReorderNode(const InputReorderDesc& desc)
+  std::shared_ptr<InputProcess> CPUDevice::newInputProcess(const InputProcessDesc& desc)
   {
-    return std::make_shared<CPUInputReorderNode>(Ref<CPUDevice>(this), desc);
-    //return std::make_shared<XPUInputReorderNode<CPUNode, float, TensorLayout::Chw16c>>(Ref<CPUDevice>(this), desc);
+    return std::make_shared<CPUInputProcess>(Ref<CPUDevice>(this), desc);
   }
 
-  std::shared_ptr<OutputReorderNode> CPUDevice::newOutputReorderNode(const OutputReorderDesc& desc)
+  std::shared_ptr<OutputProcess> CPUDevice::newOutputProcess(const OutputProcessDesc& desc)
   {
-    return std::make_shared<CPUOutputReorderNode>(Ref<CPUDevice>(this), desc);
-    //return std::make_shared<XPUOutputReorderNode<CPUNode, float, TensorLayout::Chw16c>>(Ref<CPUDevice>(this), desc);
+    return std::make_shared<CPUOutputProcess>(Ref<CPUDevice>(this), desc);
   }
 
   void CPUDevice::imageCopy(const Image& src, const Image& dst)

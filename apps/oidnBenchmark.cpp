@@ -33,7 +33,7 @@ bool inplace = false;
 void printUsage()
 {
   std::cout << "Intel(R) Open Image Denoise - Benchmark" << std::endl;
-  std::cout << "usage: oidnBenchmark [-d/--device default|cpu|sycl]" << std::endl
+  std::cout << "usage: oidnBenchmark [-d/--device default|cpu|sycl|cuda]" << std::endl
             << "                     [-r/--run regex] [-n times]" << std::endl
             << "                     [-s/--size width height]" << std::endl
             << "                     [-t/--type float|half]" << std::endl
@@ -89,7 +89,7 @@ void addBenchmark(const std::string& filter, const std::vector<std::string>& inp
 // Initializes an image with random values
 void initImage(ImageBuffer& image, Random& rng, float minValue, float maxValue)
 {
-  for (size_t i = 0; i < image.size(); ++i)
+  for (size_t i = 0; i < image.getSize(); ++i)
     image.set(i, minValue + rng.get1f() * (maxValue - minValue));
 }
 
@@ -109,7 +109,7 @@ void runBenchmark(DeviceRef& device, const Benchmark& bench)
   {
     input = albedo = std::make_shared<ImageBuffer>(device, bench.width, bench.height, 3, dataType);
     initImage(*albedo, rng, 0.f, 1.f);
-    filter.setImage("albedo", albedo->data(), albedo->format(), bench.width, bench.height);
+    filter.setImage("albedo", albedo->getData(), albedo->getFormat(), bench.width, bench.height);
   }
 
   std::shared_ptr<ImageBuffer> normal;
@@ -117,7 +117,7 @@ void runBenchmark(DeviceRef& device, const Benchmark& bench)
   {
     input = normal = std::make_shared<ImageBuffer>(device, bench.width, bench.height, 3, dataType);
     initImage(*normal, rng, -1.f, 1.f);
-    filter.setImage("normal", normal->data(), normal->format(), bench.width, bench.height);
+    filter.setImage("normal", normal->getData(), normal->getFormat(), bench.width, bench.height);
   }
 
   std::shared_ptr<ImageBuffer> color;
@@ -125,14 +125,14 @@ void runBenchmark(DeviceRef& device, const Benchmark& bench)
   {
     input = color = std::make_shared<ImageBuffer>(device, bench.width, bench.height, 3, dataType);
     initImage(*color, rng, 0.f, 100.f);
-    filter.setImage("color", color->data(), color->format(), bench.width, bench.height);
+    filter.setImage("color", color->getData(), color->getFormat(), bench.width, bench.height);
     filter.set("hdr", true);
   }
   else if (bench.hasInput("ldr"))
   {
     input = color = std::make_shared<ImageBuffer>(device, bench.width, bench.height, 3, dataType);
     initImage(*color, rng, 0.f, 1.f);
-    filter.setImage("color", color->data(), color->format(), bench.width, bench.height);
+    filter.setImage("color", color->getData(), color->getFormat(), bench.width, bench.height);
     filter.set("hdr", false);
   }
 
@@ -141,7 +141,7 @@ void runBenchmark(DeviceRef& device, const Benchmark& bench)
     output = input;
   else
     output = std::make_shared<ImageBuffer>(device, bench.width, bench.height, 3, dataType);
-  filter.setImage("output", output->data(), output->format(), bench.width, bench.height);
+  filter.setImage("output", output->getData(), output->getFormat(), bench.width, bench.height);
 
   if (maxMemoryMB >= 0)
     filter.set("maxMemoryMB", maxMemoryMB);
@@ -232,6 +232,8 @@ int main(int argc, char* argv[])
           deviceType = DeviceType::CPU;
         else if (val == "sycl" || val == "SYCL")
           deviceType = DeviceType::SYCL;
+        else if (val == "cuda" || val == "CUDA")
+          deviceType = DeviceType::CUDA;
         else
           throw std::invalid_argument("invalid device");
       }

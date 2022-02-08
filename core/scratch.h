@@ -46,9 +46,9 @@ namespace oidn {
     ScratchBuffer(const std::shared_ptr<ScratchBufferManager>& manager, size_t size);
     ~ScratchBuffer();
 
-    char* data() override { return manager->buffer->data(); }
-    const char* data() const override { return manager->buffer->data(); };
-    size_t size() const override { return localSize; }
+    char* getData() override { return manager->buffer->getData(); }
+    const char* getData() const override { return manager->buffer->getData(); };
+    size_t getByteSize() const override { return localSize; }
 
     void* map(size_t offset, size_t size) override { return manager->buffer->map(offset, size); }
     void unmap(void* mappedPtr) override { return manager->buffer->unmap(mappedPtr); }

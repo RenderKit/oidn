@@ -407,10 +407,9 @@ argument), the width and height of the image in number of pixels (`width` and
 argument), the pixel stride (`bytePixelStride` argument) and the row stride
 (`byteRowStride` argument), in number of bytes.
 
-The row stride must be an integer multiple of the pixel stride. If the pixels
-and/or rows are stored contiguously (tightly packed without any gaps), you can
-set `bytePixelStride` and/or `byteRowStride` to 0 to let the library compute
-the actual strides automatically, as a convenience.
+If the pixels and/or rows are stored contiguously (tightly packed without any
+gaps), you can set `bytePixelStride` and/or `byteRowStride` to 0 to let the
+library compute the actual strides automatically, as a convenience.
 
 Images support only the `OIDN_FORMAT_FLOAT3` and `OIDN_FORMAT_HALF3` pixel
 formats. Custom image layouts with extra channels (e.g. alpha channel) or other

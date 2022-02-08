@@ -10,49 +10,47 @@ namespace oidn {
 
 #if defined(OIDN_DNNL)
 
-  CPUUpsampleNode::CPUUpsampleNode(const Ref<CPUDevice>& device, const UpsampleDesc& desc)
-    : CPUNode(device, desc.name),
-      UpsampleNode(desc)
+  CPUUpsample::CPUUpsample(const Ref<CPUDevice>& device, const UpsampleDesc& desc)
+    : CPUOp(device),
+      Upsample(desc)
   {
-    assert(src->layout == TensorLayout::Chw8c ||
-           src->layout == TensorLayout::Chw16c);
-    assert(src->blockSize() == device->getTensorBlockSize());
+    assert(src->getLayout() == TensorLayout::Chw8c ||
+           src->getLayout() == TensorLayout::Chw16c);
+    assert(src->getBlockSize() == device->getTensorBlockSize());
   }
 
-  void CPUUpsampleNode::execute()
+  void CPUUpsample::run()
   {
-    const int B = device->getTensorBlockSize();
-
-    ispc::Upsample kernel;
+    ispc::UpsampleKernel kernel;
     kernel.src = *src;
     kernel.dst = *dst;
 
-    parallel_nd(kernel.src.C / B, kernel.src.H, [&](int ck, int h)
+    parallel_nd(src->getCB(), src->getH(), [&](int cb, int h)
     {
-      ispc::Upsample_kernel(&kernel, ck, h);
+      ispc::UpsampleKernel_run(&kernel, cb, h);
     });
   }
 
 #else
 
-  CPUUpsampleNode::CPUUpsampleNode(const Ref<CPUDevice>& device, const UpsampleDesc& desc)
-    : CPUNode(device, desc.name),
-      UpsampleNode(desc)
+  CPUUpsample::CPUUpsample(const Ref<CPUDevice>& device, const UpsampleDesc& desc)
+    : CPUOp(device),
+      Upsample(desc)
   {
-    assert(src->layout == TensorLayout::chw);
+    assert(src->getLayout() == TensorLayout::chw);
   }
 
-  void CPUUpsampleNode::execute()
+  void CPUUpsample::run()
   {
-    const size_t C = src->dims[0];
-    const size_t H = src->dims[1];
-    const size_t W = src->dims[2];
+    const size_t C = src->getC();
+    const size_t H = src->getH();
+    const size_t W = src->getW();
 
     parallel_nd(C, H, [&](int c, int h)
     {
       const size_t offset = (c*H + h) * W;
-      const float* srcPtr_line = (float*)src->data() + offset;
-      float* dstPtr_line0 = (float*)dst->data() + offset * 4;
+      const float* srcPtr_line = (float*)src->getData() + offset;
+      float* dstPtr_line0 = (float*)dst->getData() + offset * 4;
       float* dstPtr_line1 = dstPtr_line0 + W*2; // next line
 
       #pragma unroll(16)

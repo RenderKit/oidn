@@ -5,6 +5,7 @@
 
 #include "common.h"
 #include "buffer.h"
+#include "tensor_layout.h"
 
 namespace oidn {
 
@@ -22,14 +23,17 @@ namespace oidn {
   struct ConvDesc;
   struct PoolDesc;
   struct UpsampleDesc;
-  struct InputReorderDesc;
-  struct OutputReorderDesc;
+  struct InputProcessDesc;
+  struct OutputProcessDesc;
 
-  class ConvNode;
-  class PoolNode;
-  class UpsampleNode;
-  class InputReorderNode;
-  class OutputReorderNode;
+  class Conv;
+  class Pool;
+  class Upsample;
+  class InputProcess;
+  class OutputProcess;
+
+  struct ConcatConvDesc;
+  class ConcatConv;
 
   class Device : public RefCount, public Verbose
   {
@@ -58,6 +62,8 @@ namespace oidn {
 
     // Native tensor layout
     DataType tensorDataType = DataType::Float32;
+    TensorLayout tensorLayout = TensorLayout::chw;
+    TensorLayout weightsLayout = TensorLayout::oihw;
     int tensorBlockSize = 1;
 
     // Parameters
@@ -86,15 +92,15 @@ namespace oidn {
     OIDN_INLINE Device* getDevice() { return this; }
     OIDN_INLINE std::mutex& getMutex() { return mutex; }
 
-    // Returns the native tensor data type
-    OIDN_INLINE DataType getTensorDataType() const { return tensorDataType; }
-
-    // Returns the native tensor layout block size
-    OIDN_INLINE int getTensorBlockSize() const { return tensorBlockSize; }
+    // Native tensor layout
+    DataType getTensorDataType() const { return tensorDataType; }
+    TensorLayout getTensorLayout() const { return tensorLayout; }
+    TensorLayout getWeightsLayout() const { return weightsLayout; }
+    int getTensorBlockSize() const { return tensorBlockSize; }
 
     virtual void wait() {}
 
-    virtual Ref<Buffer> newBuffer(size_t byteSize, Buffer::Kind kind) = 0;
+    virtual Ref<Buffer> newBuffer(size_t byteSize, MemoryKind kind) = 0;
     virtual Ref<Buffer> newBuffer(void* ptr, size_t byteSize) = 0;
 
     Ref<ScratchBuffer> newScratchBuffer(size_t byteSize);
@@ -105,19 +111,20 @@ namespace oidn {
     virtual std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, void* data);
     virtual std::shared_ptr<Tensor> newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset);
 
-    // Nodes
-    virtual std::shared_ptr<ConvNode> newConvNode(const ConvDesc& desc) = 0;
-    virtual std::shared_ptr<PoolNode> newPoolNode(const PoolDesc& desc) = 0;
-    virtual std::shared_ptr<UpsampleNode> newUpsampleNode(const UpsampleDesc& desc) = 0;
-    virtual std::shared_ptr<InputReorderNode> newInputReorderNode(const InputReorderDesc& desc) = 0;
-    virtual std::shared_ptr<OutputReorderNode> newOutputReorderNode(const OutputReorderDesc& desc) = 0;
+    // Ops
+    virtual std::shared_ptr<Conv> newConv(const ConvDesc& desc) = 0;
+    virtual std::shared_ptr<ConcatConv> newConcatConv(const ConcatConvDesc& desc) { return nullptr; }
+    virtual std::shared_ptr<Pool> newPool(const PoolDesc& desc) = 0;
+    virtual std::shared_ptr<Upsample> newUpsample(const UpsampleDesc& desc) = 0;
+    virtual std::shared_ptr<InputProcess> newInputProcess(const InputProcessDesc& desc) = 0;
+    virtual std::shared_ptr<OutputProcess> newOutputProcess(const OutputProcessDesc& desc) = 0;
 
     // Kernels
     virtual void imageCopy(const Image& src, const Image& dst) = 0;
 
-    // Executes task in the arena (if it exists)
+    // Runs task in the arena (if it exists)
     template<typename F>
-    void executeTask(const F& f)
+    void runTask(const F& f)
     {
       if (arena)
         arena->execute(f);

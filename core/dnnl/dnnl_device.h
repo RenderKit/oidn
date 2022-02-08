@@ -4,7 +4,7 @@
 #pragma once
 
 #include "../device.h"
-#include "mkl-dnn/include/dnnl.hpp"
+#include "dnnl_common.h"
 
 namespace oidn {
 
@@ -24,9 +24,9 @@ namespace oidn {
     std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, void* data) override;
     std::shared_ptr<Tensor> newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset) override;
 
-    // Nodes
-    std::shared_ptr<ConvNode> newConvNode(const ConvDesc& desc) override;
-    std::shared_ptr<PoolNode> newPoolNode(const PoolDesc& desc) override;
+    // Ops
+    std::shared_ptr<Conv> newConv(const ConvDesc& desc) override;
+    std::shared_ptr<Pool> newPool(const PoolDesc& desc) override;
   };
 
 } // namespace oidn

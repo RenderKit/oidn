@@ -4,14 +4,14 @@
 #pragma once
 
 #include "../pool.h"
-#include "dnnl_node.h"
+#include "dnnl_op.h"
 
 namespace oidn {
 
-  class DNNLPoolNode : public DNNLNode, public PoolNode
+  class DNNLPool : public DNNLOp, public Pool
   {
   public:
-    DNNLPoolNode(const Ref<DNNLDevice>& device, const PoolDesc& desc);
+    DNNLPool(const Ref<DNNLDevice>& device, const PoolDesc& desc);
   };
 
 } // namespace oidn

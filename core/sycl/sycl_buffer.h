@@ -10,8 +10,8 @@ namespace oidn {
 
   struct SYCLBufferAllocator
   {
-    static void* allocate(const Ref<SYCLDevice>& device, size_t size, Buffer::Kind kind);
-    static void deallocate(const Ref<SYCLDevice>& device, void* ptr, Buffer::Kind kind);
+    static void* allocate(const Ref<SYCLDevice>& device, size_t size, MemoryKind kind);
+    static void deallocate(const Ref<SYCLDevice>& device, void* ptr, MemoryKind kind);
   };
 
   using SYCLBuffer = USMBuffer<SYCLDevice, SYCLBufferAllocator>;

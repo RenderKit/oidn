@@ -8,30 +8,30 @@
 
 namespace oidn {
 
-  DNNLConvNode::DNNLConvNode(const Ref<DNNLDevice>& device, const ConvDesc& desc)
-    : DNNLNode(device, desc.name),
-      ConvNode(desc)
+  DNNLConv::DNNLConv(const Ref<DNNLDevice>& device, const ConvDesc& desc)
+    : DNNLOp(device),
+      Conv(desc)
   {
     const dnnl::memory::dims strides = {1, 1};
     const dnnl::memory::dims padding = {1, 1};
 
-    const dnnl::memory& srcMem = DNNLTensor::getMemory(*src);
-    const dnnl::memory& dstMem = DNNLTensor::getMemory(*dst);
+    const dnnl::memory& srcMem = getDNNL(*src);
+    const dnnl::memory& dstMem = getDNNL(*dst);
 
-    // Let the convolution primitive choose the weights format
-    auto weightsDesc = dnnl::memory::desc({ weights->dims },
+    // Let the convolution primitive choose the weight format
+    auto weightDesc = dnnl::memory::desc({ weight->getDims() },
                                           srcMem.get_desc().data_type(),
                                           dnnl::memory::format_tag::any);
 
     // Let the convolution primitive choose the bias format
-    auto biasDesc = dnnl::memory::desc({ bias->dims },
+    auto biasDesc = dnnl::memory::desc({ bias->getDims() },
                                         srcMem.get_desc().data_type(),
                                         dnnl::memory::format_tag::any);
 
     auto convDesc = dnnl::convolution_forward::desc(
       dnnl::prop_kind::forward_inference, dnnl::algorithm::convolution_direct,
       srcMem.get_desc(),
-      weightsDesc,
+      weightDesc,
       biasDesc,
       dstMem.get_desc(),
       strides, padding, padding);
@@ -53,26 +53,26 @@ namespace oidn {
 
     auto convPrimDesc = dnnl::convolution_forward::primitive_desc(convDesc, convAttr, device->getDNNLEngine());
 
-    // Reorder the weights to the final format, if necessary
-    if (convPrimDesc.weights_desc() != DNNLTensor::getMemory(*weights).get_desc())
+    // Reorder the weight tensor to the final format, if necessary
+    if (convPrimDesc.weights_desc() != getDNNL(*weight).get_desc())
     {
-      weights = std::make_shared<DNNLTensor>(device, convPrimDesc.weights_desc());
-      DNNLReorderNode(device, {"weightsReorder", desc.weights, weights}).execute();
+      weight = std::make_shared<DNNLTensor>(device, convPrimDesc.weights_desc());
+      DNNLReorder(device, {desc.weight, weight}).run();
       device->wait();
     }
 
-    // Reorder the bias to the final format, if necessary
-    if (convPrimDesc.bias_desc() != DNNLTensor::getMemory(*bias).get_desc())
+    // Reorder the bias tensor to the final format, if necessary
+    if (convPrimDesc.bias_desc() != getDNNL(*bias).get_desc())
     {
       bias = std::make_shared<DNNLTensor>(device, convPrimDesc.bias_desc());
-      DNNLReorderNode(device, {"biasReorder", desc.bias, bias}).execute();
+      DNNLReorder(device, {desc.bias, bias}).run();
       device->wait();
     }
 
     prim = dnnl::convolution_forward(convPrimDesc);
     args = {{DNNL_ARG_SRC,     srcMem},
-            {DNNL_ARG_WEIGHTS, DNNLTensor::getMemory(*weights)},
-            {DNNL_ARG_BIAS,    DNNLTensor::getMemory(*bias)},
+            {DNNL_ARG_WEIGHTS, getDNNL(*weight)},
+            {DNNL_ARG_BIAS,    getDNNL(*bias)},
             {DNNL_ARG_DST,     dstMem}};
   }
 

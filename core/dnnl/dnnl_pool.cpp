@@ -5,16 +5,16 @@
 
 namespace oidn {
 
-  DNNLPoolNode::DNNLPoolNode(const Ref<DNNLDevice>& device, const PoolDesc& desc)
-    : DNNLNode(device, desc.name),
-      PoolNode(desc)
+  DNNLPool::DNNLPool(const Ref<DNNLDevice>& device, const PoolDesc& desc)
+    : DNNLOp(device),
+      Pool(desc)
   {
     const dnnl::memory::dims kernel  = {2, 2};
     const dnnl::memory::dims strides = {2, 2};
     const dnnl::memory::dims padding = {0, 0};
 
-    const dnnl::memory& srcMem = DNNLTensor::getMemory(*src);
-    const dnnl::memory& dstMem = DNNLTensor::getMemory(*dst);
+    const dnnl::memory& srcMem = getDNNL(*src);
+    const dnnl::memory& dstMem = getDNNL(*dst);
 
     auto poolDesc = dnnl::pooling_forward::desc(
       dnnl::prop_kind::forward_inference, dnnl::algorithm::pooling_max,

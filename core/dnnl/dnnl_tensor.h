@@ -20,18 +20,15 @@ namespace oidn {
     DNNLTensor(const Ref<DNNLDevice>& device, const dnnl::memory::desc& desc);
     DNNLTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset);
 
-    void* data() override { return mem.get_data_handle(); }
-    const void* data() const override { return mem.get_data_handle(); }
+    void* getData() override { return mem.get_data_handle(); }
+    const void* getData() const override { return mem.get_data_handle(); }
 
-    // Returns the internal DNNL memory structure of a tensor
-    static const dnnl::memory& getMemory(const Tensor& tz);
+    const dnnl::memory& getDNNLMemory() const { return mem; }
 
   private:
     void init(const Ref<DNNLDevice>& device);
     void init(const Ref<DNNLDevice>& device, void* data);
     void updatePtr() override;
-
-    static dnnl::memory::desc toMemoryDesc(const TensorDesc& tz);
   };
 
 } // namespace oidn

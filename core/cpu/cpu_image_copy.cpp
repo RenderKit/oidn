@@ -9,20 +9,16 @@ namespace oidn {
   void cpuImageCopy(const Image& src,
                     const Image& dst)
   {
-    assert(dst.height >= src.height);
-    assert(dst.width  >= src.width);
+    assert(dst.getH() >= src.getH());
+    assert(dst.getW() >= src.getW());
 
-    ispc::ImageCopy kernel;
-
+    ispc::ImageCopyKernel kernel;
     kernel.src = src;
     kernel.dst = dst;
 
-    kernel.H = dst.height;
-    kernel.W = dst.width;
-
-    parallel_nd(kernel.H, [&](int h)
+    parallel_nd(dst.getH(), [&](int h)
     {
-      ispc::ImageCopy_kernel(&kernel, h);
+      ispc::ImageCopyKernel_run(&kernel, h);
     });
   }
 

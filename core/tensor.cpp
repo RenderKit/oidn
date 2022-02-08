@@ -2,73 +2,56 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "tensor.h"
+#include "tensor_accessor.h"
 
 namespace oidn {
 
-  // Returns the number of elements in the tensor
-  size_t getNumElements(const TensorDims& dims)
+  std::ostream& operator <<(std::ostream& sm, const TensorDims& dims)
   {
-    if (dims.empty())
-      return 0;
-
-    size_t num = 1;
+    sm << "[";
     for (size_t i = 0; i < dims.size(); ++i)
-      num *= dims[i];
-    return num;
-  }
-
-  // Returns the maximum tensor dimensions from a list
-  TensorDims getMaxDims(const std::vector<TensorDims>& dims)
-  {
-    TensorDims result;
-    size_t maxSize = 0;
-
-    for (const TensorDims& d : dims)
     {
-      const size_t size = getNumElements(d);
-      if (size > maxSize)
-      {
-        result = d;
-        maxSize = size;
-      }
+      if (i > 0)
+        sm << ", ";
+      sm << dims[i];
     }
-
-    return result;
+    sm << "]";
+    return sm;
   }
 
   Tensor::Tensor(const Ref<Device>& device, const TensorDesc& desc)
-    : TensorDesc(desc),
+    : desc(desc),
       device(device) {}
 
   Tensor::Tensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
     : Memory(buffer, byteOffset),
-      TensorDesc(desc),
+      desc(desc),
       device(buffer->getDevice()) {}
 
   Tensor::operator ispc::TensorAccessor3D() const
   {
-    if (ndims() != 3 || dataType != DataType::Float32)
+    if (desc.getRank() != 3 || desc.dataType != DataType::Float32)
       throw Exception(Error::Unknown, "incompatible tensor accessor");
 
     ispc::TensorAccessor3D result;
-    result.ptr = (float*)data();
-    result.C = dims[0];
-    result.H = dims[1];
-    result.W = dims[2];
+    result.ptr = (float*)getData();
+    result.C = getC();
+    result.H = getH();
+    result.W = getW();
     return result;
   }
 
   void Tensor::dump(const std::string& filenamePrefix) const
   {
-    assert(ndims() == 3);
+    assert(getRank() == 3);
     assert(dataType == DataType::Float32);
 
-    const int C = dims[0];
-    const int H = dims[1];
-    const int W = dims[2];
-    const int B = blockSize();
+    const int C = getC();
+    const int H = getH();
+    const int W = getW();
+    const int B = getBlockSize();
 
-    const float* ptr = (const float*)data();
+    const float* ptr = (const float*)getData();
 
     for (int c = 0; c < C; ++c)
     {
@@ -110,16 +93,16 @@ namespace oidn {
   GenericTensor::GenericTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
     : Tensor(buffer, desc, byteOffset)
   {
-    if (byteOffset + byteSize() > buffer->size())
+    if (byteOffset + getByteSize() > buffer->getByteSize())
       throw Exception(Error::InvalidArgument, "buffer region out of range");
 
-    init(device, buffer->data() + byteOffset);
+    init(device, buffer->getData() + byteOffset);
   }
 
   void GenericTensor::init(const Ref<Device>& device)
   {
-    buffer = device->newBuffer(byteSize(), Buffer::Kind::Device);
-    ptr = buffer->data();
+    buffer = device->newBuffer(getByteSize(), MemoryKind::Shared);
+    ptr = buffer->getData();
   }
 
   void GenericTensor::init(const Ref<Device>& device, void* data)
@@ -131,11 +114,87 @@ namespace oidn {
   {
     if (buffer)
     {
-      if (bufferOffset + byteSize() > buffer->size())
+      if (bufferOffset + getByteSize() > buffer->getByteSize())
         throw Exception(Error::Unknown, "buffer region out of range");
 
-      ptr = buffer->data() + bufferOffset;
+      ptr = buffer->getData() + bufferOffset;
     }
+  }
+
+  namespace
+  {
+    template<typename SrcT, typename DstT, TensorLayout srcLayout, TensorLayout dstLayout>
+    struct Reorder
+    {
+      void operator ()(const Tensor& src, Tensor& dst)
+      {
+        TensorAccessor4D<SrcT, srcLayout> srcAcc = src;
+        TensorAccessor4D<DstT, dstLayout> dstAcc = dst;
+
+        for (int o = 0; o < dstAcc.O; ++o)
+        {
+          for (int i = 0; i < dstAcc.I; ++i)
+          {
+            for (int h = 0; h < dstAcc.H; ++h)
+            {
+              for (int w = 0; w < dstAcc.W; ++w)
+              {
+                SrcT value;
+                if (o < srcAcc.O && i < srcAcc.I)
+                  value = srcAcc(o, i, h, w);
+                else
+                  value = 0; // padding
+
+                dstAcc(o, i, h, w) = DstT(value);
+              }
+            }
+          }
+        }
+      }
+    };
+
+    template<typename SrcT, typename DstT>
+    struct Reorder<SrcT, DstT, TensorLayout::x, TensorLayout::x>
+    {
+      void operator ()(const Tensor& src, Tensor& dst)
+      {
+        TensorAccessor1D<SrcT> srcAcc = src;
+        TensorAccessor1D<DstT> dstAcc = dst;
+
+        for (int x = 0; x < srcAcc.X; ++x)
+          dstAcc(x) = srcAcc(x);
+
+        for (int x = srcAcc.X; x < dstAcc.X; ++x)
+          dstAcc(x) = 0; // padding
+      }
+    };
+
+    template<typename SrcT, typename DstT, TensorLayout srcLayout, TensorLayout dstLayout>
+    bool tryReorder(const Tensor& src, Tensor& dst)
+    {
+      if (src.getDataType() == DataTypeOf<SrcT>::value && src.getLayout() == srcLayout &&
+          dst.getDataType() == DataTypeOf<DstT>::value && dst.getLayout() == dstLayout)
+      {
+        Reorder<SrcT, DstT, srcLayout, dstLayout>()(src, dst);
+        return true;
+      }
+
+      return false;
+    }
+  }
+
+  void reorder(const Tensor& src, Tensor& dst)
+  {
+    bool ok =
+      tryReorder<float, float, TensorLayout::x,    TensorLayout::x>(src, dst) ||
+      tryReorder<float, half,  TensorLayout::x,    TensorLayout::x>(src, dst) ||
+      tryReorder<float, float, TensorLayout::oihw, TensorLayout::oihw>(src, dst) ||
+      tryReorder<float, half,  TensorLayout::oihw, TensorLayout::oihw>(src, dst) ||
+      tryReorder<float, float, TensorLayout::oihw, TensorLayout::ohwi>(src, dst) ||
+      tryReorder<float, half,  TensorLayout::oihw, TensorLayout::ohwi>(src, dst);
+
+    if (!ok)
+      throw Exception(Error::Unknown, "unsupported reorder");
   }
 
 } // namespace oidn

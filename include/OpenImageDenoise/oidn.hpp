@@ -342,6 +342,7 @@ OIDN_NAMESPACE_BEGIN
 
     CPU  = OIDN_DEVICE_TYPE_CPU,  // CPU device
     SYCL = OIDN_DEVICE_TYPE_SYCL, // SYCL device
+    CUDA = OIDN_DEVICE_TYPE_CUDA, // CUDA device
   };
 
   // Error codes

@@ -4,14 +4,14 @@
 #pragma once
 
 #include "../conv.h"
-#include "dnnl_node.h"
+#include "dnnl_op.h"
 
 namespace oidn {
 
-  class DNNLConvNode : public DNNLNode, public ConvNode
+  class DNNLConv : public DNNLOp, public Conv
   {
   public:
-    DNNLConvNode(const Ref<DNNLDevice>& device, const ConvDesc& desc);
+    DNNLConv(const Ref<DNNLDevice>& device, const ConvDesc& desc);
   };
 
 } // namespace oidn

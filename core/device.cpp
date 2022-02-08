@@ -3,7 +3,8 @@
 
 #include "device.h"
 #include "scratch.h"
-#include "unet.h"
+#include "rt_filter.h"
+#include "rtlightmap_filter.h"
 
 namespace oidn {
 

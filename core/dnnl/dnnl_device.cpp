@@ -29,14 +29,14 @@ namespace oidn {
     return std::make_shared<DNNLTensor>(buffer, desc, byteOffset);
   }
 
-  std::shared_ptr<ConvNode> DNNLDevice::newConvNode(const ConvDesc& desc)
+  std::shared_ptr<Conv> DNNLDevice::newConv(const ConvDesc& desc)
   {
-    return std::make_shared<DNNLConvNode>(Ref<DNNLDevice>(this), desc);
+    return std::make_shared<DNNLConv>(Ref<DNNLDevice>(this), desc);
   }
 
-  std::shared_ptr<PoolNode> DNNLDevice::newPoolNode(const PoolDesc& desc)
+  std::shared_ptr<Pool> DNNLDevice::newPool(const PoolDesc& desc)
   {
-    return std::make_shared<DNNLPoolNode>(Ref<DNNLDevice>(this), desc);
+    return std::make_shared<DNNLPool>(Ref<DNNLDevice>(this), desc);
   }
 
 } // namespace oidn

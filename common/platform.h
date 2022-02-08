@@ -17,6 +17,10 @@
   #define OIDN_SYCL
 #endif
 
+#if defined(__CUDACC__)
+  #define OIDN_CUDA
+#endif
+
 #if defined(_WIN32)
   // Windows
   #define OIDN_INLINE OIDN_INLINE
@@ -34,10 +38,17 @@
   #define MAYBE_UNUSED(x) UNUSED(x)
 #endif
 
-#define OIDN_DEVICE
-#define OIDN_DEVICE_INLINE OIDN_INLINE
-#define OIDN_HOST_DEVICE
-#define OIDN_HOST_DEVICE_INLINE OIDN_INLINE
+#if defined(OIDN_CUDA)
+  #define OIDN_DEVICE __device__
+  #define OIDN_DEVICE_INLINE __device__ OIDN_INLINE
+  #define OIDN_HOST_DEVICE __host__ __device__
+  #define OIDN_HOST_DEVICE_INLINE __host__ __device__ OIDN_INLINE
+#else
+  #define OIDN_DEVICE
+  #define OIDN_DEVICE_INLINE OIDN_INLINE
+  #define OIDN_HOST_DEVICE
+  #define OIDN_HOST_DEVICE_INLINE OIDN_INLINE
+#endif
 
 // ---------------------------------------------------------------------------
 // Includes
@@ -81,6 +92,10 @@
   #include <sycl/ext/intel/experimental/esimd.hpp>
 #endif
 
+#if defined(OIDN_CUDA)
+  #include <cuda_fp16.h>
+#endif
+
 #include "include/OpenImageDenoise/oidn.hpp"
 
 namespace oidn {
@@ -107,8 +122,13 @@ namespace oidn {
   // Common functions
   // ---------------------------------------------------------------------------
 
+#if !defined(__CUDA_ARCH__)
   using std::min;
   using std::max;
+#else
+  using ::min;
+  using ::max;
+#endif
 
   template<typename T>
   OIDN_DEVICE_INLINE T clamp(const T& x, const T& minVal, const T& maxVal)
@@ -182,7 +202,7 @@ namespace oidn {
   float half_to_float(int16_t x);
   int16_t float_to_half(float x);
 
-  #if !defined(OIDN_SYCL)
+  #if !defined(OIDN_SYCL) && !defined(OIDN_CUDA)
     // Minimal half data type
     class half
     {

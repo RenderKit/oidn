@@ -1,4 +1,4 @@
-## Copyright 2009-2021 Intel Corporation
+## Copyright 2009-2022 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 cmake_minimum_required(VERSION 3.1)
@@ -112,6 +112,13 @@ endif()
 set(OIDN_ISPC_ADDRESSING 64)
 include(oidn_ispc)
 
+# CUDA
+option(OIDN_DEVICE_CUDA "Enable CUDA device." OFF)
+if(OIDN_DEVICE_CUDA)
+  enable_language(CUDA)
+  #find_package(cuDNN REQUIRED)
+endif()
+
 ## -----------------------------------------------------------------------------
 ## Library
 ## -----------------------------------------------------------------------------
@@ -146,18 +153,23 @@ set(CORE_SOURCES
   core/cpu/cpu_device.cpp
   core/cpu/cpu_image_copy.h
   core/cpu/cpu_image_copy.cpp
-  core/cpu/cpu_input_reorder.h
-  core/cpu/cpu_input_reorder.cpp
-  core/cpu/cpu_node.h
-  core/cpu/cpu_output_reorder.h
-  core/cpu/cpu_output_reorder.cpp
+  core/cpu/cpu_input_process.h
+  core/cpu/cpu_input_process.cpp
+  core/cpu/cpu_op.h
+  core/cpu/cpu_output_process.h
+  core/cpu/cpu_output_process.cpp
   core/cpu/cpu_upsample.h
   core/cpu/cpu_upsample.cpp
+  core/xpu/xpu_image_copy.h
+  core/xpu/xpu_input_process.h
+  core/xpu/xpu_output_process.h
+  core/xpu/xpu_upsample.h
   core/api.cpp
   core/buffer.h
   core/color.h
   core/color.cpp
   core/common.h
+  core/common.cpp
   core/conv.h
   core/data.h
   core/device.h
@@ -166,30 +178,36 @@ set(CORE_SOURCES
   core/filter.cpp
   core/image_accessor.h
   core/image_copy_kernel.h
-  core/image_copy.h
   core/image.h
-  core/input_reorder_kernel.h
-  core/input_reorder.h
-  core/input_reorder.cpp
+  core/image.cpp
+  core/input_process.h
+  core/input_process.cpp
+  core/input_process_kernel.h
   core/network.h
   core/network.cpp
-  core/node.h
-  core/output_reorder_kernel.h
-  core/output_reorder.h
-  core/output_reorder.cpp
+  core/op.h
+  core/output_process.h
+  core/output_process.cpp
+  core/output_process_kernel.h
   core/pool.h
   core/progress.h
   core/reorder.h
+  core/rt_filter.h
+  core/rt_filter.cpp
+  core/rtlightmap_filter.h
+  core/rtlightmap_filter.cpp
   core/scratch.h
   core/scratch.cpp
-  core/tensor_accessor.h
-  core/tensor_layout.h
   core/tensor.h
   core/tensor.cpp
+  core/tensor_accessor.h
+  core/tensor_layout.h
+  core/tile.h
   core/tza.h
   core/tza.cpp
-  core/unet.h
-  core/unet.cpp
+  core/unet_filter.h
+  core/unet_filter.cpp
+  core/upsample_kernel.h
   core/upsample.h
   core/vec.h
 )
@@ -198,10 +216,12 @@ if(OIDN_NEURAL_RUNTIME STREQUAL "DNNL")
   list(APPEND CORE_SOURCES
     core/dnnl/dnnl_conv.h
     core/dnnl/dnnl_conv.cpp
+    core/dnnl/dnnl_common.h
+    core/dnnl/dnnl_common.cpp
     core/dnnl/dnnl_device.h
     core/dnnl/dnnl_device.cpp
-    core/dnnl/dnnl_node.h
-    core/dnnl/dnnl_node.cpp
+    core/dnnl/dnnl_op.h
+    core/dnnl/dnnl_op.cpp
     core/dnnl/dnnl_pool.h
     core/dnnl/dnnl_pool.cpp
     core/dnnl/dnnl_reorder.h
@@ -210,12 +230,14 @@ if(OIDN_NEURAL_RUNTIME STREQUAL "DNNL")
   )
 elseif(OIDN_NEURAL_RUNTIME STREQUAL "BNNS")
   list(APPEND CORE_SOURCES
+    core/bnns/bnns_common.h
+    core/bnns/bnns_common.cpp
     core/bnns/bnns_conv.h
     core/bnns/bnns_conv.cpp
     core/bnns/bnns_device.h
     core/bnns/bnns_device.cpp
-    core/bnns/bnns_node.h
-    core/bnns/bnns_node.cpp
+    core/bnns/bnns_op.h
+    core/bnns/bnns_op.cpp
     core/bnns/bnns_pool.h
     core/bnns/bnns_pool.cpp
   )
@@ -229,7 +251,7 @@ if(OIDN_DEVICE_SYCL)
     core/sycl/sycl_buffer.cpp
     core/sycl/sycl_device.h
     core/sycl/sycl_device.cpp
-    core/sycl/sycl_node.h
+    core/sycl/sycl_op.h
     core/sycl/sycl_pool.h
     core/sycl/sycl_pool.cpp
     core/sycl/sycl_upsample.h
@@ -239,17 +261,34 @@ if(OIDN_DEVICE_SYCL)
   set_source_files_properties(${CORE_SOURCES} PROPERTIES COMPILE_FLAGS "${OIDN_CXX_FLAGS_SYCL}")
 endif()
 
+if(OIDN_DEVICE_CUDA)
+  list(APPEND CORE_SOURCES
+    core/cuda/cuda_buffer.h
+    core/cuda/cuda_buffer.cu
+    core/cuda/cuda_common.h
+    core/cuda/cuda_common.cu
+    core/cuda/cuda_conv.h
+    core/cuda/cuda_conv.cu
+    core/cuda/cuda_concat_conv.h
+    core/cuda/cuda_concat_conv.cu
+    core/cuda/cuda_device.h
+    core/cuda/cuda_device.cu
+    core/cuda/cuda_pool.h
+    core/cuda/cuda_pool.cu
+  )
+endif()
+
 set(CORE_SOURCES_ISPC
   core/color.isph
   core/color.ispc
   core/image_accessor.isph
-  core/input_reorder_kernel.ispc
+  core/input_process_kernel.ispc
   core/math.isph
   core/image_copy_kernel.ispc
-  core/output_reorder_kernel.ispc
-  core/reorder.isph
+  core/output_process_kernel.ispc
   core/tensor_accessor.isph
   core/upsample_kernel.ispc
+  core/tile.isph
   core/vec.isph
 )
 
@@ -276,6 +315,11 @@ endif()
 if(OIDN_DEVICE_SYCL)
   target_compile_definitions(${PROJECT_NAME} PUBLIC OIDN_DEVICE_SYCL)
   target_link_options(${PROJECT_NAME} PUBLIC "-fsycl")
+endif()
+
+if(OIDN_DEVICE_CUDA)
+  target_compile_definitions(${PROJECT_NAME} PUBLIC OIDN_DEVICE_CUDA)
+  target_link_libraries(${PROJECT_NAME} PRIVATE cudnn)
 endif()
 
 # Include weights

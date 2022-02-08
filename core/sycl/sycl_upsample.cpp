@@ -5,7 +5,7 @@
 
 namespace oidn {
 
-  struct SYCLUpsample
+  struct SYCLUpsampleKernel
   {
     static constexpr int B = TensorAccessor3D<half, TensorLayout::Chw16c>::B;
 
@@ -35,21 +35,21 @@ namespace oidn {
     }
   };
 
-  SYCLUpsampleNode::SYCLUpsampleNode(const Ref<SYCLDevice>& device, const UpsampleDesc& desc)
-    : SYCLNode(device, desc.name),
-      UpsampleNode(desc)
+  SYCLUpsample::SYCLUpsample(const Ref<SYCLDevice>& device, const UpsampleDesc& desc)
+    : SYCLOp(device),
+      Upsample(desc)
   {
-    assert(src->layout == TensorLayout::Chw16c);
-    assert(src->blockSize() == device->getTensorBlockSize());
+    assert(src->getLayout() == TensorLayout::Chw16c);
+    assert(src->getBlockSize() == device->getTensorBlockSize());
   }
 
-  void SYCLUpsampleNode::execute()
+  void SYCLUpsample::run()
   {
-    SYCLUpsample kernel;
+    SYCLUpsampleKernel kernel;
     kernel.src = *src;
     kernel.dst = *dst;
 
-    device->executeESIMDKernel(src->height() * src->numChannelBlocks(), src->width(), kernel);
+    device->runESIMDKernel(src->getH() * src->getCB(), src->getW(), kernel);
   }
 
 } // namespace oidn

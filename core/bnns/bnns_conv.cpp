@@ -5,15 +5,15 @@
 
 namespace oidn {
 
-  BNNSConvNode::BNNSConvNode(const Ref<BNNSDevice>& device, const ConvDesc& desc)
-    : BNNSNode(device, desc.name),
-      ConvNode(desc)
+  BNNSConv::BNNSConv(const Ref<BNNSDevice>& device, const ConvDesc& desc)
+    : BNNSOp(device),
+      Conv(desc)
   {
     BNNSLayerParametersConvolution params = {
-      .i_desc = toNDArrayDesc(*src),
-      .w_desc = toNDArrayDesc(*weights),
-      .o_desc = toNDArrayDesc(*dst),
-      .bias   = toNDArrayDesc(*bias),
+      .i_desc = toBNNS(*src),
+      .w_desc = toBNNS(*weight),
+      .o_desc = toBNNS(*dst),
+      .bias   = toBNNS(*bias),
       .x_stride = 1,
       .y_stride = 1,
       .x_dilation_stride = 1,
@@ -32,9 +32,9 @@ namespace oidn {
       throw Exception(Error::Unknown, "BNNSFilterCreateLayerConvolution failed");
   }
 
-  void BNNSConvNode::execute()
+  void BNNSConv::run()
   {
-    BNNSFilterApply(filter, src->data(), dst->data());
+    BNNSFilterApply(filter, src->getData(), dst->getData());
   }
 
 } // namespace oidn

@@ -16,18 +16,18 @@ namespace oidn {
   {
   }
 
-  void Network::execute(Progress& progress)
+  void Network::run(Progress& progress)
   {
-    for (size_t i = 0; i < nodes.size(); ++i)
+    for (size_t i = 0; i < ops.size(); ++i)
     {
-      nodes[i]->execute();
+      ops[i]->run();
       
       // Dump
       /*
       //device->wait();
-      auto dst = nodes[i]->getDst();
+      auto dst = ops[i]->getDst();
       if (dst)
-        dst->dump("gpu/" + nodes[i]->getName() + "_");
+        dst->dump("gpu/" + ops[i]->getName() + "_");
       */
 
       progress.update(1);
@@ -36,7 +36,7 @@ namespace oidn {
 
   double Network::getWorkAmount() const
   {
-    return double(nodes.size());
+    return double(ops.size());
   }
 
   void Network::allocScratch(size_t size)
@@ -57,7 +57,7 @@ namespace oidn {
     return scratch->newImage(desc, offset);
   }
 
-  TensorDesc Network::getInputReorderDesc(const TensorDims& srcDims, int alignment)
+  TensorDesc Network::getInputDesc(const TensorDims& srcDims, int alignment)
   {
     assert(srcDims.size() == 3); // CHW
 
@@ -66,72 +66,95 @@ namespace oidn {
     dstDims[1] = round_up(srcDims[1], int64_t(alignment)); // round up H
     dstDims[2] = round_up(srcDims[2], int64_t(alignment)); // round up W
 
-    TensorLayout layout = blockSize == 16 ? TensorLayout::Chw16c : (blockSize == 8 ? TensorLayout::Chw8c : TensorLayout::chw);
-    return TensorDesc(dstDims, layout, device->getTensorDataType());
+    return TensorDesc(dstDims, device->getTensorLayout(), device->getTensorDataType());
   }
 
-  std::shared_ptr<InputReorderNode> Network::addInputReorder(const std::string& name,
-                                                             const std::shared_ptr<Tensor>& dst,
-                                                             const std::shared_ptr<TransferFunction>& transferFunc,
-                                                             bool hdr,
-                                                             bool snorm)
+  std::shared_ptr<InputProcess> Network::addInputProcess(const std::string& name,
+                                                         const std::shared_ptr<Tensor>& dst,
+                                                         const std::shared_ptr<TransferFunction>& transferFunc,
+                                                         bool hdr,
+                                                         bool snorm)
   {
-    auto node = device->newInputReorderNode({name, dst, transferFunc, hdr, snorm});
-    nodes.push_back(node);
-    return node;
+    auto op = device->newInputProcess({dst, transferFunc, hdr, snorm});
+    op->setName(name);
+    ops.push_back(op);
+    return op;
   }
 
-  std::shared_ptr<OutputReorderNode> Network::addOutputReorder(const std::string& name,
-                                                               const std::shared_ptr<Tensor>& src,
-                                                               const std::shared_ptr<TransferFunction>& transferFunc,
-                                                               bool hdr,
-                                                               bool snorm)
+  std::shared_ptr<OutputProcess> Network::addOutputProcess(const std::string& name,
+                                                           const std::shared_ptr<Tensor>& src,
+                                                           const std::shared_ptr<TransferFunction>& transferFunc,
+                                                           bool hdr,
+                                                           bool snorm)
   {
-    auto node = device->newOutputReorderNode({name, src, transferFunc, hdr, snorm});
-    nodes.push_back(node);
-    return node;
+    auto op = device->newOutputProcess({src, transferFunc, hdr, snorm});
+    op->setName(name);
+    ops.push_back(op);
+    return op;
   }
 
   TensorDesc Network::getConvDesc(const std::string& name, const TensorDesc& srcDesc)
   {
-    assert(srcDesc.ndims() == 3); // CHW
+    assert(srcDesc.getRank() == 3); // CHW
 
     const auto& bias = weightsMap[name + ".bias"];
     TensorDims dstDims = srcDesc.dims;
-    dstDims[0] = round_up(bias->dims[0], blockSize); // dstDims[C] = round_up(OC, blockSize)
+    dstDims[0] = round_up(bias->getX(), blockSize); // dstDims[C] = round_up(OC, blockSize)
     return TensorDesc(dstDims, srcDesc.layout, srcDesc.dataType);
   }
 
-  std::shared_ptr<ConvNode> Network::addConv(const std::string& name,
-                                             const std::shared_ptr<Tensor>& src,
-                                             const std::shared_ptr<Tensor>& dst,
-                                             bool relu)
+  std::shared_ptr<Conv> Network::addConv(const std::string& name,
+                                           const std::shared_ptr<Tensor>& src,
+                                           const std::shared_ptr<Tensor>& dst,
+                                           bool relu)
   {
-    assert(dst->desc() == getConvDesc(name, src->desc()));
+    assert(dst->getDesc() == getConvDesc(name, src->getDesc()));
 
-    // Get and pad the weights
-    auto weights = weightsMap[name + ".weight"];
-    if (weights->ndims() != 4 || weights->layout != TensorLayout::oihw)
-      throw Exception(Error::InvalidOperation, "invalid convolution weights");  
-    if (blockSize > 1)
-      weights = padWeights(weights);
+    // Get and reorder/pad the weight and bias tensors
+    auto weight = reorderWeight(weightsMap[name + ".weight"]);
+    auto bias = reorderBias(weightsMap[name + ".bias"]);
 
-    // Get and pad the biases
-    auto bias = weightsMap[name + ".bias"];
-    if (bias->ndims() != 1)
-      throw Exception(Error::InvalidOperation, "invalid convolution biases");
-    if (blockSize > 1)
-      bias = padBias(bias);
+    // Create the convolution op
+    auto op = device->newConv({src, weight, bias, dst, relu});
+    op->setName(name);
+    ops.push_back(op);
+    return op;
+  }
 
-    // Create the convolution node
-    auto node = device->newConvNode({name, src, weights, bias, dst, relu});
-    nodes.push_back(node);
-    return node;
+   std::shared_ptr<Op> Network::addConcatConv(const std::string& name,
+                                              const std::shared_ptr<Tensor>& src1,
+                                              const std::shared_ptr<Tensor>& src2,
+                                              const std::shared_ptr<Tensor>& dst,
+                                              bool relu)
+  {
+    // Get and reorder/pad the weight and bias tensors
+    auto weight = reorderWeight(weightsMap[name + ".weight"]);
+    auto bias = reorderBias(weightsMap[name + ".bias"]);
+
+    std::shared_ptr<Op> op;
+    if (device->getTensorLayout() == TensorLayout::hwc)
+    {
+      // Concatenation is non-trivial -> create fused concatenation + convolution op
+      op = device->newConcatConv({src1, src2, weight, bias, dst, relu});
+    }
+    else
+    {
+      // Concatenation is trivial (no-op) -> create convolution op
+      if (src1->getBuffer() != src2->getBuffer() || (src1->getBufferOffset() + src1->getByteSize()) != src2->getBufferOffset())
+        throw std::logic_error("concatenation is non-trivial");
+      TensorDesc srcDesc = getConcatDesc({src1->getDesc(), src2->getDesc()});
+      auto src = newTensor(srcDesc, src1->getBufferOffset());
+      op = device->newConv({src, weight, bias, dst, relu});
+    }
+
+    op->setName(name);
+    ops.push_back(op);
+    return op;
   }
 
   TensorDesc Network::getPoolDesc(const TensorDesc& srcDesc)
   {
-    assert(srcDesc.ndims() == 3); // CHW
+    assert(srcDesc.getRank() == 3); // CHW
 
     TensorDims dstDims = srcDesc.dims;
     dstDims[1] /= 2; // H/2
@@ -139,20 +162,21 @@ namespace oidn {
     return TensorDesc(dstDims, srcDesc.layout, srcDesc.dataType);
   }
 
-  std::shared_ptr<PoolNode> Network::addPool(const std::string& name,
-                                             const std::shared_ptr<Tensor>& src,
-                                             const std::shared_ptr<Tensor>& dst)
+  std::shared_ptr<Pool> Network::addPool(const std::string& name,
+                                         const std::shared_ptr<Tensor>& src,
+                                         const std::shared_ptr<Tensor>& dst)
   {
-    assert(dst->desc() == getPoolDesc(src->desc()));
+    assert(dst->getDesc() == getPoolDesc(src->getDesc()));
 
-    auto node = device->newPoolNode({name, src, dst});
-    nodes.push_back(node);
-    return node;
+    auto op = device->newPool({src, dst});
+    op->setName(name);
+    ops.push_back(op);
+    return op;
   }
 
   TensorDesc Network::getUpsampleDesc(const TensorDesc& srcDesc)
   {
-    assert(srcDesc.ndims() == 3); // CHW
+    assert(srcDesc.getRank() == 3); // CHW
 
     TensorDims dstDims = srcDesc.dims;
     dstDims[1] *= 2; // H*2
@@ -160,26 +184,27 @@ namespace oidn {
     return TensorDesc(dstDims, srcDesc.layout, srcDesc.dataType);
   }
 
-  std::shared_ptr<UpsampleNode> Network::addUpsample(const std::string& name,
-                                                     const std::shared_ptr<Tensor>& src,
-                                                     const std::shared_ptr<Tensor>& dst)
+  std::shared_ptr<Upsample> Network::addUpsample(const std::string& name,
+                                                 const std::shared_ptr<Tensor>& src,
+                                                 const std::shared_ptr<Tensor>& dst)
   {
-    assert(dst->desc() == getUpsampleDesc(src->desc()));
+    assert(dst->getDesc() == getUpsampleDesc(src->getDesc()));
 
-    auto node = device->newUpsampleNode({name, src, dst});
-    nodes.push_back(node);
-    return node;
+    auto op = device->newUpsample({src, dst});
+    op->setName(name);
+    ops.push_back(op);
+    return op;
   }
 
   TensorDesc Network::getConcatDesc(const std::vector<TensorDesc>& srcDescs)
   {
     assert(!srcDescs.empty());
-    assert(srcDescs[0].ndims() == 3); // CHW
+    assert(srcDescs[0].getRank() == 3); // CHW
 
     TensorDims dstDims = srcDescs[0].dims;
     for (size_t i = 1; i < srcDescs.size(); ++i)
     {
-      assert(srcDescs[i].ndims() == 3); // CHW
+      assert(srcDescs[i].getRank() == 3); // CHW
       assert(srcDescs[i].dims[1] == srcDescs[0].dims[1]); // H
       assert(srcDescs[i].dims[2] == srcDescs[0].dims[2]); // W
       assert(srcDescs[i].layout == srcDescs[0].layout);
@@ -191,18 +216,18 @@ namespace oidn {
 
   void Network::finalize()
   {
-    // Compute the size of the scratch memory for the nodes
-    size_t nodeScratchSize = 0;
-    for (const auto& node : nodes)
-      nodeScratchSize = max(nodeScratchSize, node->getScratchSize());
+    // Compute the size of the scratch memory for the ops
+    size_t opScratchSize = 0;
+    for (const auto& op : ops)
+      opScratchSize = max(opScratchSize, op->getScratchSize());
 
-    // Allocate the scratch memory for the nodes
-    TensorDims nodeScratchDims = { int64_t(nodeScratchSize) };
-    auto nodeScratch = device->newTensor({nodeScratchDims, TensorLayout::x, DataType::UInt8});
+    // Allocate the scratch memory for the ops
+    TensorDims opScratchDims = { int64_t(opScratchSize) };
+    auto opScratch = device->newTensor({opScratchDims, TensorLayout::x, DataType::UInt8});
 
-    // Set the scratch memory for the nodes
-    for (auto& node : nodes)
-      node->setScratch(nodeScratch);
+    // Set the scratch memory for the ops
+    for (auto& op : ops)
+      op->setScratch(opScratch);
 
     // Free the weights
     weightsMap.clear();
@@ -210,74 +235,38 @@ namespace oidn {
     // Print statistics
     if (device->isVerbose(2))
     {
-      const size_t scratchSize = scratch ? scratch->size() : 0;
-      const size_t totalScratchSize = scratchSize + nodeScratchSize;
-      std::cout << "Tensor scratch bytes: " << scratchSize << std::endl;
-      std::cout << "Node scratch bytes  : " << nodeScratchSize << std::endl;
-      std::cout << "Total scratch bytes : " << totalScratchSize << std::endl;
+      const size_t scratchSize = scratch ? scratch->getByteSize() : 0;
+      const size_t totalScratchSize = scratchSize + opScratchSize;
+      std::cout << "Tensor scratch bytes   : " << scratchSize << std::endl;
+      std::cout << "Operation scratch bytes: " << opScratchSize << std::endl;
+      std::cout << "Total scratch bytes    : " << totalScratchSize << std::endl;
     }
   }
 
-  std::shared_ptr<Tensor> Network::padWeights(const std::shared_ptr<Tensor>& src)
+  std::shared_ptr<Tensor> Network::reorderWeight(const std::shared_ptr<Tensor>& src)
   {
-    TensorAccessor4D<float, TensorLayout::oihw> srcAcc = *src;
+    if (src->getRank() != 4)
+      throw Exception(Error::InvalidOperation, "invalid convolution weight");  
 
-    const int O1 = srcAcc.O;
-    const int I1 = srcAcc.I;
-    const int O2 = round_up(O1, blockSize);
-    const int I2 = round_up(I1, blockSize);
-    const int H = srcAcc.H;
-    const int W = srcAcc.W;
+    const int O = round_up(src->getO(), blockSize);
+    const int I = round_up(src->getI(), blockSize);
+    const int H = src->getH();
+    const int W = src->getW();
 
-    TensorDims dstDims = {O2, I2, H, W};
-    //if (dstDims == src->dims)
-    //  return src;
-
-    auto dst = device->newTensor({dstDims, TensorLayout::oihw, DataType::Float32});
-    TensorAccessor4D<float, TensorLayout::oihw> dstAcc = *dst;
-
-    for (int o = 0; o < O2; ++o)
-    {
-      for (int i = 0; i < I2; ++i)
-      {
-        for (int h = 0; h < H; ++h)
-        {
-          for (int w = 0; w < W; ++w)
-          {
-            float value;
-            if (o < O1 && i < I1)
-              value = srcAcc(o, i, h, w);
-            else
-              value = 0; // padding
-
-            dstAcc(o, i, h, w) = value;
-          }
-        }
-      }
-    }
-
+    auto dst = device->newTensor({{O, I, H, W}, device->getWeightsLayout(), device->getTensorDataType()});
+    reorder(*src, *dst);
     return dst;
   }
 
-  std::shared_ptr<Tensor> Network::padBias(const std::shared_ptr<Tensor>& src)
+  std::shared_ptr<Tensor> Network::reorderBias(const std::shared_ptr<Tensor>& src)
   {
-    TensorAccessor1D<float> srcAcc = *src;
+    if (src->getRank() != 1)
+      throw Exception(Error::InvalidOperation, "invalid convolution biases");
 
-    const int X1 = srcAcc.X;
-    const int X2 = round_up(X1, blockSize);
+    const int X = round_up(src->getX(), blockSize);
 
-    //if (X2 == X1)
-    //  return src;
-
-    auto dst = device->newTensor({TensorDims({X2}), TensorLayout::x, DataType::Float32});
-    TensorAccessor1D<float> dstAcc = *dst;
-
-    for (int x = 0; x < X1; ++x)
-      dstAcc(x) = srcAcc(x);
-
-    for (int x = X1; x < X2; ++x)
-      dstAcc(x) = 0; // padding
-
+    auto dst = device->newTensor({{X}, TensorLayout::x, device->getTensorDataType()});
+    reorder(*src, *dst);
     return dst;
   }
 

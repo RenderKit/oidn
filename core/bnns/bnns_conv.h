@@ -4,16 +4,16 @@
 #pragma once
 
 #include "../conv.h"
-#include "bnns_node.h"
+#include "bnns_op.h"
 
 namespace oidn {
 
-  class BNNSConvNode : public BNNSNode, public ConvNode
+  class BNNSConv : public BNNSOp, public Conv
   {
   public:
-    BNNSConvNode(const Ref<BNNSDevice>& device, const ConvDesc& desc);
+    BNNSConv(const Ref<BNNSDevice>& device, const ConvDesc& desc);
 
-    void execute() override;
+    void run() override;
   };
 
 } // namespace oidn

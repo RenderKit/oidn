@@ -9,21 +9,22 @@ namespace oidn {
 
   class Device;
 
+  // Memory allocation kind
+  enum class MemoryKind
+  {
+    Host,
+    Device,
+    Shared,
+    Unknown
+  };
+
   // Generic buffer object
   class Buffer : public RefCount
   {
   public:
-    enum class Kind
-    {
-      Host,
-      Device,
-      Shared,
-      Unknown
-    };
-
-    virtual char* data() = 0;
-    virtual const char* data() const = 0;
-    virtual size_t size() const = 0;
+    virtual char* getData() = 0;
+    virtual const char* getData() const = 0;
+    virtual size_t getByteSize() const = 0;
 
     virtual void* map(size_t offset, size_t size) = 0;
     virtual void unmap(void* mappedPtr) = 0;
@@ -45,12 +46,12 @@ namespace oidn {
     char* ptr;
     size_t byteSize;
     bool shared;
-    Kind kind;
+    MemoryKind kind;
     Ref<DeviceT> device;
     BufferAllocatorT allocator;
 
   public:
-    USMBuffer(const Ref<DeviceT>& device, size_t byteSize, Kind kind)
+    USMBuffer(const Ref<DeviceT>& device, size_t byteSize, MemoryKind kind)
       : ptr(nullptr),
         byteSize(byteSize),
         shared(false),
@@ -64,7 +65,7 @@ namespace oidn {
       : ptr((char*)data),
         byteSize(byteSize),
         shared(true),
-        kind(Buffer::Kind::Unknown),
+        kind(MemoryKind::Unknown),
         device(device)
     {
       if (ptr == nullptr)
@@ -77,9 +78,9 @@ namespace oidn {
         allocator.deallocate(device, ptr, kind);
     }
 
-    char* data() override { return ptr; }
-    const char* data() const override { return ptr; }
-    size_t size() const override { return byteSize; }
+    char* getData() override { return ptr; }
+    const char* getData() const override { return ptr; }
+    size_t getByteSize() const override { return byteSize; }
 
     void* map(size_t offset, size_t size) override
     {
@@ -106,17 +107,22 @@ namespace oidn {
   };
 
   // Memory object backed by a buffer
-  struct Memory
+  class Memory
   {
+  protected:
     Ref<Buffer> buffer;  // buffer containing the data
     size_t bufferOffset; // offset in the buffer
 
+  public:
     Memory() : bufferOffset(0) {}
     virtual ~Memory() = default;
 
     Memory(const Ref<Buffer>& buffer, size_t bufferOffset = 0)
       : buffer(buffer),
         bufferOffset(bufferOffset) {}
+
+    Buffer* getBuffer() const { return buffer.get(); }
+    size_t getBufferOffset() const { return bufferOffset; }
 
     // If the buffer gets reallocated, this must be called to update the internal pointer
     virtual void updatePtr() = 0;

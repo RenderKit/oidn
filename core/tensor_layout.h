@@ -11,10 +11,14 @@ namespace oidn {
   enum class TensorLayout
   {
     x,
+    
     chw,
     Chw8c,  // blocked
     Chw16c, // blocked
     oihw,
+
+    hwc,
+    ohwi,
   };
 
   template<TensorLayout layout>
@@ -36,6 +40,31 @@ namespace oidn {
       {
         hStride = size_t(W) * wStride;
         cStride = size_t(H) * hStride;
+      }
+
+      OIDN_HOST_DEVICE_INLINE size_t getOffset(int c, int h, int w) const
+      {
+        return size_t(c) * cStride + size_t(h) * hStride + size_t(w) * wStride;
+      }
+    };
+  };
+
+  template<>
+  struct TensorLayoutTraits<TensorLayout::hwc>
+  {
+    template<typename T>
+    struct Addressing
+    {
+      static constexpr size_t cStride = sizeof(T);
+      size_t wStride;
+      size_t hStride;
+
+      Addressing() = default;
+
+      OIDN_HOST_DEVICE_INLINE Addressing(int C, int H, int W)
+      {
+        wStride = size_t(C) * cStride;
+        hStride = size_t(W) * wStride;
       }
 
       OIDN_HOST_DEVICE_INLINE size_t getOffset(int c, int h, int w) const
@@ -100,6 +129,33 @@ namespace oidn {
         hStride = size_t(W) * wStride;
         iStride = size_t(H) * hStride;
         oStride = size_t(I) * iStride;
+      }
+
+      OIDN_HOST_DEVICE_INLINE size_t getOffset(int o, int i, int h, int w) const
+      {
+        return size_t(o) * oStride + size_t(i) * iStride + size_t(h) * hStride + size_t(w) * wStride;
+      }
+    };
+  };
+
+   template<>
+  struct TensorLayoutTraits<TensorLayout::ohwi>
+  {
+    template<typename T>
+    struct Addressing
+    {
+      static constexpr size_t iStride = sizeof(T);
+      size_t wStride;
+      size_t hStride;
+      size_t oStride;
+
+      Addressing() = default;
+
+      OIDN_HOST_DEVICE_INLINE Addressing(int O, int I, int H, int W)
+      {
+        wStride = size_t(I) * iStride;
+        hStride = size_t(W) * wStride;
+        oStride = size_t(H) * hStride;
       }
 
       OIDN_HOST_DEVICE_INLINE size_t getOffset(int o, int i, int h, int w) const

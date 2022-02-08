@@ -3,27 +3,17 @@
 
 #include "image_accessor.isph"
 
-struct ImageCopy
+struct ImageCopyKernel
 {
-  // Source
   uniform ImageAccessor src;
-
-  // Destination
   uniform ImageAccessor dst;
-
-  // Size
-  uniform int H;
-  uniform int W;
 };
 
-export void ImageCopy_kernel(uniform ImageCopy* uniform self, uniform int h)
+export void ImageCopyKernel_run(uniform ImageCopyKernel* uniform self, uniform int h)
 {
-  foreach (w = 0 ... self->W)
+  foreach (w = 0 ... self->dst.W)
   {
-    // Load
     vec3f value = get3f(self->src, h, w);
-
-    // Store
     set3f(self->dst, h, w, value);
   }
 }

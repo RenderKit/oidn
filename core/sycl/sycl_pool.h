@@ -4,16 +4,16 @@
 #pragma once
 
 #include "../pool.h"
-#include "sycl_node.h"
+#include "sycl_op.h"
 
 namespace oidn {
 
-  class SYCLPoolNode : public SYCLNode, public PoolNode
+  class SYCLPool : public SYCLOp, public Pool
   {
   public:
-    SYCLPoolNode(const Ref<SYCLDevice>& device, const PoolDesc& desc);
+    SYCLPool(const Ref<SYCLDevice>& device, const PoolDesc& desc);
 
-    void execute() override;
+    void run() override;
   };
 
 } // namespace oidn

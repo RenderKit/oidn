@@ -89,7 +89,7 @@ namespace oidn {
       // Parse the offset to the tensor data
       const uint64_t tensorOffset = read<uint64_t>(input, bufferEnd);
       char* tensorData = (char*)buffer + tensorOffset;
-      checkBounds(tensorData, bufferEnd, tensorDesc.byteSize());
+      checkBounds(tensorData, bufferEnd, tensorDesc.getByteSize());
 
       // Add the tensor to the map
       auto tensor = device->newTensor(tensorDesc, tensorData);

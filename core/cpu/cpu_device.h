@@ -30,22 +30,22 @@ namespace oidn {
   public:
     ~CPUDevice();
 
-    Ref<Buffer> newBuffer(size_t byteSize, Buffer::Kind kind) override;
+    Ref<Buffer> newBuffer(size_t byteSize, MemoryKind kind) override;
     Ref<Buffer> newBuffer(void* ptr, size_t byteSize) override;
 
-    // Nodes
-    std::shared_ptr<UpsampleNode> newUpsampleNode(const UpsampleDesc& desc) override;
-    std::shared_ptr<InputReorderNode> newInputReorderNode(const InputReorderDesc& desc) override;
-    std::shared_ptr<OutputReorderNode> newOutputReorderNode(const OutputReorderDesc& desc) override;
+    // Ops
+    std::shared_ptr<Upsample> newUpsample(const UpsampleDesc& desc) override;
+    std::shared_ptr<InputProcess> newInputProcess(const InputProcessDesc& desc) override;
+    std::shared_ptr<OutputProcess> newOutputProcess(const OutputProcessDesc& desc) override;
 
     // Kernels
     void imageCopy(const Image& src, const Image& dst) override;
 
-    // Executes a kernel on the device
-    template <typename T0, typename T1, typename F>
-    OIDN_INLINE void executeKernel(const T0& D0, const T1& D1, const F& f)
+    // Runs a kernel on the device
+    template<typename Ty, typename Tx, typename F>
+    OIDN_INLINE void runKernel(const Ty& Dy, const Tx& Dx, const F& f)
     {
-      parallel_nd(D0, D1, f);
+      parallel_nd(Dy, Dx, f);
     }
 
   protected:

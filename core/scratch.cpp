@@ -6,7 +6,7 @@
 namespace oidn {
 
   ScratchBufferManager::ScratchBufferManager(const Ref<Device>& device)
-    : buffer(device->newBuffer(0, Buffer::Kind::Device))
+    : buffer(device->newBuffer(0, MemoryKind::Device))
   {
   }
 
@@ -14,7 +14,7 @@ namespace oidn {
   {
     scratches.insert(scratch);
 
-    if (scratch->localSize > buffer->size())
+    if (scratch->localSize > buffer->getByteSize())
     {
       buffer->resize(scratch->localSize);
       updatePtrs();
@@ -25,13 +25,13 @@ namespace oidn {
   {
     scratches.erase(scratch);
 
-    if (scratch->localSize == buffer->size())
+    if (scratch->localSize == buffer->getByteSize())
     {
       size_t newGlobalSize = 0;
       for (auto scratch : scratches)
-        newGlobalSize = max(newGlobalSize, scratch->size());
+        newGlobalSize = max(newGlobalSize, scratch->getByteSize());
 
-      if (newGlobalSize < buffer->size())
+      if (newGlobalSize < buffer->getByteSize())
       {
         buffer->resize(newGlobalSize);
         updatePtrs();

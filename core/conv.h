@@ -3,38 +3,37 @@
 
 #pragma once
 
-#include "node.h"
+#include "op.h"
 
 namespace oidn {
 
   // 3x3 convolution descriptor
   struct ConvDesc
   {
-    std::string name;
     std::shared_ptr<Tensor> src;
-    std::shared_ptr<Tensor> weights;
+    std::shared_ptr<Tensor> weight;
     std::shared_ptr<Tensor> bias;
     std::shared_ptr<Tensor> dst;
     bool relu;
   };
 
-  // 3x3 convolution node
-  class ConvNode : public virtual Node
+  // 3x3 convolution
+  class Conv : public virtual Op
   {
   protected:
     std::shared_ptr<Tensor> src;
-    std::shared_ptr<Tensor> weights;
+    std::shared_ptr<Tensor> weight;
     std::shared_ptr<Tensor> bias;
     std::shared_ptr<Tensor> dst;
 
   public:
-    ConvNode(const ConvDesc& desc)
+    Conv(const ConvDesc& desc)
       : src(desc.src),
-        weights(desc.weights),
+        weight(desc.weight),
         bias(desc.bias),
         dst(desc.dst) {}
 
-    std::shared_ptr<Tensor> getDst() const { return dst; }
+    std::shared_ptr<Tensor> getDst() const override { return dst; }
   };
 
 } // namespace oidn

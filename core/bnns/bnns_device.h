@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <Accelerate/Accelerate.h>
+#include "bnns_common.h"
 #include "../device.h"
 
 namespace oidn {
@@ -11,9 +11,9 @@ namespace oidn {
   class BNNSDevice : public Device
   {
   public:
-    // Nodes
-    std::shared_ptr<ConvNode> newConvNode(const ConvDesc& desc) override;
-    std::shared_ptr<PoolNode> newPoolNode(const PoolDesc& desc) override;
+    // Ops
+    std::shared_ptr<Conv> newConv(const ConvDesc& desc) override;
+    std::shared_ptr<Pool> newPool(const PoolDesc& desc) override;
   };
 
 } // namespace oidn

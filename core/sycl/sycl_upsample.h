@@ -4,16 +4,16 @@
 #pragma once
 
 #include "../upsample.h"
-#include "sycl_node.h"
+#include "sycl_op.h"
 
 namespace oidn {
 
-  class SYCLUpsampleNode : public SYCLNode, public UpsampleNode
+  class SYCLUpsample : public SYCLOp, public Upsample
   {
   public:
-    SYCLUpsampleNode(const Ref<SYCLDevice>& device, const UpsampleDesc& desc);
+    SYCLUpsample(const Ref<SYCLDevice>& device, const UpsampleDesc& desc);
 
-    void execute() override;
+    void run() override;
   };
 
 } // namespace oidn

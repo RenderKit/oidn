@@ -28,8 +28,8 @@ namespace oidn {
     // The image parameter is *not* dirty if only the pointer changes (except to/from nullptr)
     dirtyParam |= (!dst && src && *src) || (dst && (!src || !(*src))) ||
                   (dst && src && *src &&
-                   ((dst->width != src->width) || (dst->height != src->height) ||
-                    (dst->format != src->format)));
+                   ((dst->getW() != src->getW()) || (dst->getH() != src->getH()) ||
+                    (dst->getFormat() != src->getFormat())));
 
     if (src && *src)
       dst = src;

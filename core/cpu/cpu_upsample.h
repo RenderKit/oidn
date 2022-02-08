@@ -4,16 +4,16 @@
 #pragma once
 
 #include "../upsample.h"
-#include "cpu_node.h"
+#include "cpu_op.h"
 
 namespace oidn {
 
-  class CPUUpsampleNode : public CPUNode, public UpsampleNode
+  class CPUUpsample : public CPUOp, public Upsample
   {
   public:
-    CPUUpsampleNode(const Ref<CPUDevice>& device, const UpsampleDesc& desc);
+    CPUUpsample(const Ref<CPUDevice>& device, const UpsampleDesc& desc);
 
-    void execute() override;
+    void run() override;
   };
 
 } // namespace oidn

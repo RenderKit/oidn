@@ -3,39 +3,38 @@
 
 #pragma once
 
-#include "node.h"
+#include "op.h"
 
 namespace oidn {
 
   // 2x2 max pooling descriptor
   struct PoolDesc
   {
-    std::string name;
     std::shared_ptr<Tensor> src;
     std::shared_ptr<Tensor> dst;
   };
 
-  // 2x2 max pooling node
-  class PoolNode : public virtual Node
+  // 2x2 max pooling
+  class Pool : public virtual Op
   {
   protected:
     std::shared_ptr<Tensor> src;
     std::shared_ptr<Tensor> dst;
 
   public:
-    PoolNode(const PoolDesc& desc)
+    Pool(const PoolDesc& desc)
       : src(desc.src),
         dst(desc.dst)
     {
-      assert(src->ndims() == 3);
-      assert(dst->ndims() == 3);
-      assert(dst->layout == src->layout);
-      assert(src->dims[0] == dst->dims[0]);     // C
-      assert(src->dims[1] == dst->dims[1] * 2); // H
-      assert(src->dims[2] == dst->dims[2] * 2); // W
+      assert(src->getRank() == 3);
+      assert(dst->getRank() == 3);
+      assert(dst->getLayout() == src->getLayout());
+      assert(src->getC() == dst->getC());
+      assert(src->getH() == dst->getH() * 2);
+      assert(src->getW() == dst->getW() * 2);
     }
 
-    std::shared_ptr<Tensor> getDst() const { return dst; }
+    std::shared_ptr<Tensor> getDst() const override { return dst; }
   };
 
 } // namespace oidn

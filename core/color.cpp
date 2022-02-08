@@ -42,8 +42,8 @@ namespace oidn {
     constexpr int K = 16; // downsampling amount
 
     // Downsample the image to minimize sensitivity to noise
-    const int H  = color.height;  // original height
-    const int W  = color.width;   // original width
+    const int H  = color.getH();     // original height
+    const int W  = color.getW();     // original width
     const int HK = (H + K/2) / K; // downsampled height
     const int WK = (W + K/2) / K; // downsampled width
 

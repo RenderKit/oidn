@@ -5,13 +5,13 @@
 
 namespace oidn {
 
-  BNNSPoolNode::BNNSPoolNode(const Ref<BNNSDevice>& device, const PoolDesc& desc)
-    : BNNSNode(device, desc.name),
-      PoolNode(desc)
+  BNNSPool::BNNSPool(const Ref<BNNSDevice>& device, const PoolDesc& desc)
+    : BNNSOp(device),
+      Pool(desc)
   {
     BNNSLayerParametersPooling params = {
-      .i_desc = toNDArrayDesc(*src),
-      .o_desc = toNDArrayDesc(*dst),
+      .i_desc = toBNNS(*src),
+      .o_desc = toBNNS(*dst),
       .pooling_function = BNNSPoolingFunctionMax,
       .k_width  = 2,
       .k_height = 2,
@@ -24,9 +24,9 @@ namespace oidn {
       throw Exception(Error::Unknown, "BNNSFilterCreateLayerPooling failed");
   }
 
-  void BNNSPoolNode::execute()
+  void BNNSPool::run()
   {
-    BNNSFilterApply(filter, src->data(), dst->data());
+    BNNSFilterApply(filter, src->getData(), dst->getData());
   }
 
 } // namespace oidn

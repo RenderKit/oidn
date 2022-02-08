@@ -2,12 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "mkl-dnn/include/dnnl_sycl.hpp"
-#include "../input_reorder.h"
-#include "../output_reorder.h"
-#include "../image_copy.h"
+#include "../xpu/xpu_input_process.h"
+#include "../xpu/xpu_output_process.h"
+#include "../xpu/xpu_image_copy.h"
 #include "sycl_device.h"
 #include "sycl_buffer.h"
-#include "sycl_node.h"
+#include "sycl_op.h"
 #include "sycl_pool.h"
 #include "sycl_upsample.h"
 
@@ -43,6 +43,7 @@ namespace oidn {
     }
 
     tensorDataType = DataType::Float16;
+    tensorLayout = TensorLayout::Chw16c;
     tensorBlockSize = 16;
   }
 
@@ -57,7 +58,7 @@ namespace oidn {
     std::cout << std::endl;
   }
 
-  Ref<Buffer> SYCLDevice::newBuffer(size_t byteSize, Buffer::Kind kind)
+  Ref<Buffer> SYCLDevice::newBuffer(size_t byteSize, MemoryKind kind)
   {
     return makeRef<SYCLBuffer>(Ref<SYCLDevice>(this), byteSize, kind);
   }
@@ -67,24 +68,24 @@ namespace oidn {
     return makeRef<SYCLBuffer>(Ref<SYCLDevice>(this), ptr, byteSize);
   }
 
-  std::shared_ptr<PoolNode> SYCLDevice::newPoolNode(const PoolDesc& desc)
+  std::shared_ptr<Pool> SYCLDevice::newPool(const PoolDesc& desc)
   {
-    return std::make_shared<SYCLPoolNode>(Ref<SYCLDevice>(this), desc);
+    return std::make_shared<SYCLPool>(Ref<SYCLDevice>(this), desc);
   }
 
-  std::shared_ptr<UpsampleNode> SYCLDevice::newUpsampleNode(const UpsampleDesc& desc)
+  std::shared_ptr<Upsample> SYCLDevice::newUpsample(const UpsampleDesc& desc)
   {
-    return std::make_shared<SYCLUpsampleNode>(Ref<SYCLDevice>(this), desc);
+    return std::make_shared<SYCLUpsample>(Ref<SYCLDevice>(this), desc);
   }
 
-  std::shared_ptr<InputReorderNode> SYCLDevice::newInputReorderNode(const InputReorderDesc& desc)
+  std::shared_ptr<InputProcess> SYCLDevice::newInputProcess(const InputProcessDesc& desc)
   {
-    return std::make_shared<XPUInputReorderNode<SYCLNode, half, TensorLayout::Chw16c>>(Ref<SYCLDevice>(this), desc);
+    return std::make_shared<XPUInputProcess<SYCLOp, half, TensorLayout::Chw16c>>(Ref<SYCLDevice>(this), desc);
   }
 
-  std::shared_ptr<OutputReorderNode> SYCLDevice::newOutputReorderNode(const OutputReorderDesc& desc)
+  std::shared_ptr<OutputProcess> SYCLDevice::newOutputProcess(const OutputProcessDesc& desc)
   {
-    return std::make_shared<XPUOutputReorderNode<SYCLNode, half, TensorLayout::Chw16c>>(Ref<SYCLDevice>(this), desc);
+    return std::make_shared<XPUOutputProcess<SYCLOp, half, TensorLayout::Chw16c>>(Ref<SYCLDevice>(this), desc);
   }
 
   void SYCLDevice::imageCopy(const Image& src, const Image& dst)

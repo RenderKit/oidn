@@ -5,7 +5,7 @@
 
 namespace oidn {
 
-  struct SYCLPool
+  struct SYCLPoolKernel
   {
     static constexpr int B = TensorAccessor3D<half, TensorLayout::Chw16c>::B;
 
@@ -40,21 +40,21 @@ namespace oidn {
     }
   };
 
-  SYCLPoolNode::SYCLPoolNode(const Ref<SYCLDevice>& device, const PoolDesc& desc)
-    : SYCLNode(device, desc.name),
-      PoolNode(desc)
+  SYCLPool::SYCLPool(const Ref<SYCLDevice>& device, const PoolDesc& desc)
+    : SYCLOp(device),
+      Pool(desc)
   {
-    assert(src->layout == TensorLayout::Chw16c);
-    assert(src->blockSize() == device->getTensorBlockSize());
+    assert(src->getLayout() == TensorLayout::Chw16c);
+    assert(src->getBlockSize() == device->getTensorBlockSize());
   }
 
-  void SYCLPoolNode::execute()
+  void SYCLPool::run()
   {
-    SYCLPool kernel;
+    SYCLPoolKernel kernel;
     kernel.src = *src;
     kernel.dst = *dst;
 
-    device->executeESIMDKernel(dst->height() * dst->numChannelBlocks(), dst->width(), kernel);
+    device->runESIMDKernel(dst->getH() * dst->getCB(), dst->getW(), kernel);
   }
 
 } // namespace oidn
