@@ -16,8 +16,8 @@ namespace oidn {
     hdr = true;
 
   #if defined(OIDN_FILTER_RTLIGHTMAP)
-    defaultWeights.hdr = blobs::weights::rtlightmap_hdr;
-    defaultWeights.dir = blobs::weights::rtlightmap_dir;
+    weightsBlobs.hdr = blobs::weights::rtlightmap_hdr;
+    weightsBlobs.dir = blobs::weights::rtlightmap_dir;
   #endif
   }
 

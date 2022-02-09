@@ -9,10 +9,10 @@
 
 namespace oidn {
 
-  Network::Network(const Ref<Device>& device, const std::map<std::string, std::shared_ptr<Tensor>>& weightsMap)
+  Network::Network(const Ref<Device>& device, const std::shared_ptr<Weights>& weights)
     : device(device),
       blockSize(device->getTensorBlockSize()),
-      weightsMap(weightsMap)
+      weights(weights)
   {
   }
 
@@ -97,22 +97,22 @@ namespace oidn {
   {
     assert(srcDesc.getRank() == 3); // CHW
 
-    const auto& bias = weightsMap[name + ".bias"];
+    const auto& bias = weights->get(name + ".bias");
     TensorDims dstDims = srcDesc.dims;
     dstDims[0] = round_up(bias->getX(), blockSize); // dstDims[C] = round_up(OC, blockSize)
     return TensorDesc(dstDims, srcDesc.layout, srcDesc.dataType);
   }
 
   std::shared_ptr<Conv> Network::addConv(const std::string& name,
-                                           const std::shared_ptr<Tensor>& src,
-                                           const std::shared_ptr<Tensor>& dst,
-                                           bool relu)
+                                         const std::shared_ptr<Tensor>& src,
+                                         const std::shared_ptr<Tensor>& dst,
+                                         bool relu)
   {
     assert(dst->getDesc() == getConvDesc(name, src->getDesc()));
 
-    // Get and reorder/pad the weight and bias tensors
-    auto weight = reorderWeight(weightsMap[name + ".weight"]);
-    auto bias = reorderBias(weightsMap[name + ".bias"]);
+    // Get the weight and bias tensors
+    auto weight = weights->get(name + ".weight");
+    auto bias = weights->get(name + ".bias");
 
     // Create the convolution op
     auto op = device->newConv({src, weight, bias, dst, relu});
@@ -127,9 +127,9 @@ namespace oidn {
                                               const std::shared_ptr<Tensor>& dst,
                                               bool relu)
   {
-    // Get and reorder/pad the weight and bias tensors
-    auto weight = reorderWeight(weightsMap[name + ".weight"]);
-    auto bias = reorderBias(weightsMap[name + ".bias"]);
+    // Get the weight and bias tensors
+    auto weight = weights->get(name + ".weight");
+    auto bias = weights->get(name + ".bias");
 
     std::shared_ptr<Op> op;
     if (device->getTensorLayout() == TensorLayout::hwc)
@@ -230,7 +230,7 @@ namespace oidn {
       op->setScratch(opScratch);
 
     // Free the weights
-    weightsMap.clear();
+    weights.reset();
 
     // Print statistics
     if (device->isVerbose(2))
@@ -241,33 +241,6 @@ namespace oidn {
       std::cout << "Operation scratch bytes: " << opScratchSize << std::endl;
       std::cout << "Total scratch bytes    : " << totalScratchSize << std::endl;
     }
-  }
-
-  std::shared_ptr<Tensor> Network::reorderWeight(const std::shared_ptr<Tensor>& src)
-  {
-    if (src->getRank() != 4)
-      throw Exception(Error::InvalidOperation, "invalid convolution weight");  
-
-    const int O = round_up(src->getO(), blockSize);
-    const int I = round_up(src->getI(), blockSize);
-    const int H = src->getH();
-    const int W = src->getW();
-
-    auto dst = device->newTensor({{O, I, H, W}, device->getWeightsLayout(), device->getTensorDataType()});
-    reorder(*src, *dst);
-    return dst;
-  }
-
-  std::shared_ptr<Tensor> Network::reorderBias(const std::shared_ptr<Tensor>& src)
-  {
-    if (src->getRank() != 1)
-      throw Exception(Error::InvalidOperation, "invalid convolution biases");
-
-    const int X = round_up(src->getX(), blockSize);
-
-    auto dst = device->newTensor({{X}, TensorLayout::x, device->getTensorDataType()});
-    reorder(*src, *dst);
-    return dst;
   }
 
 } // namespace oidn

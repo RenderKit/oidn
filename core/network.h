@@ -13,6 +13,7 @@
 #include "output_process.h"
 #include "progress.h"
 #include "scratch.h"
+#include "weights.h"
 
 #pragma once
 
@@ -21,7 +22,7 @@ namespace oidn {
   class Network
   {
   public:
-    Network(const Ref<Device>& device, const std::map<std::string, std::shared_ptr<Tensor>>& weightsMap);
+    Network(const Ref<Device>& device, const std::shared_ptr<Weights>& weights);
 
     void run(Progress& progress);
     double getWorkAmount() const;
@@ -76,11 +77,8 @@ namespace oidn {
     int blockSize; // block size of blocked tensor layouts
 
     std::vector<std::shared_ptr<Op>> ops;
-    std::map<std::string, std::shared_ptr<Tensor>> weightsMap;
+    std::shared_ptr<Weights> weights;
     Ref<ScratchBuffer> scratch;
-
-    std::shared_ptr<Tensor> reorderWeight(const std::shared_ptr<Tensor>& src);
-    std::shared_ptr<Tensor> reorderBias(const std::shared_ptr<Tensor>& src);
   };
 
 } // namespace oidn

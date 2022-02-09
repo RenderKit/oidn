@@ -1,7 +1,6 @@
 // Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "tza.h"
 #include "unet_filter.h"
 
 namespace oidn {
@@ -14,7 +13,7 @@ namespace oidn {
   void UNetFilter::setData(const std::string& name, const Data& data)
   {
     if (name == "weights")
-      setParam(userWeights, data);
+      setParam(userWeightsBlob, data);
     else
       device->warning("unknown filter parameter");
 
@@ -24,7 +23,7 @@ namespace oidn {
   void UNetFilter::updateData(const std::string& name)
   {
     if (name == "weights")
-      dirtyParam |= userWeights;
+      dirtyParam |= userWeightsBlob;
     else
       device->warning("unknown filter parameter");
 
@@ -34,7 +33,7 @@ namespace oidn {
   void UNetFilter::removeData(const std::string& name)
   {
     if (name == "weights")
-      removeParam(userWeights);
+      removeParam(userWeightsBlob);
     else
       device->warning("unknown filter parameter");
 
@@ -142,13 +141,13 @@ namespace oidn {
 
           // Set the input tile
           inputProcess->setTile(h, w,
-                           alignOffsetH, alignOffsetW,
-                           tileH1, tileW1);
+                                alignOffsetH, alignOffsetW,
+                                tileH1, tileW1);
 
           // Set the output tile
           outputProcess->setTile(alignOffsetH + overlapBeginH, alignOffsetW + overlapBeginW,
-                            h + overlapBeginH, w + overlapBeginW,
-                            tileH2, tileW2);
+                                 h + overlapBeginH, w + overlapBeginW,
+                                 tileH2, tileW2);
 
           //printf("Tile: %d %d -> %d %d\n", w+overlapBeginW, h+overlapBeginH, w+overlapBeginW+tileW2, h+overlapBeginH+tileH2);
 
@@ -264,24 +263,24 @@ namespace oidn {
     }
 
     // Select the weights to use
-    Data weights;
+    Data weightsBlob;
 
     if (color)
     {
       if (!albedo && !normal)
       {
-        weights = directional ? defaultWeights.dir : (hdr ? defaultWeights.hdr : defaultWeights.ldr);
+        weightsBlob = directional ? weightsBlobs.dir : (hdr ? weightsBlobs.hdr : weightsBlobs.ldr);
       }
       else if (albedo && !normal)
       {
-        weights = hdr ? defaultWeights.hdr_alb : defaultWeights.ldr_alb;
+        weightsBlob = hdr ? weightsBlobs.hdr_alb : weightsBlobs.ldr_alb;
       }
       else if (albedo && normal)
       {
         if (cleanAux)
-          weights = hdr ? defaultWeights.hdr_calb_cnrm : defaultWeights.ldr_calb_cnrm;
+          weightsBlob = hdr ? weightsBlobs.hdr_calb_cnrm : weightsBlobs.ldr_calb_cnrm;
         else
-          weights = hdr ? defaultWeights.hdr_alb_nrm : defaultWeights.ldr_alb_nrm;
+          weightsBlob = hdr ? weightsBlobs.hdr_alb_nrm : weightsBlobs.ldr_alb_nrm;
       }
     }
     else
@@ -291,13 +290,13 @@ namespace oidn {
       {
         if (hdr)
           throw Exception(Error::InvalidOperation, "hdr mode is not supported for albedo filtering");
-        weights = defaultWeights.alb;
+        weightsBlob = weightsBlobs.alb;
       }
       else if (!albedo && normal)
       {
         if (hdr || srgb)
           throw Exception(Error::InvalidOperation, "hdr and srgb modes are not supported for normal filtering");
-        weights = defaultWeights.nrm;
+        weightsBlob = weightsBlobs.nrm;
       }
       else
       {
@@ -305,17 +304,17 @@ namespace oidn {
       }
     }
 
-    if (userWeights)
-      weights = userWeights;
+    if (userWeightsBlob)
+      weightsBlob = userWeightsBlob;
 
-    if (!weights)
+    if (!weightsBlob)
       throw Exception(Error::InvalidOperation, "unsupported combination of input features");
 
     // Parse the weights blob
-    const auto weightsMap = parseTZA(device, weights.ptr, weights.size);
+    const auto weights = std::make_shared<Weights>(device, weightsBlob);
 
     // Create the network
-    net.reset(new Network(device, weightsMap));
+    net.reset(new Network(device, weights));
 
     // Compute the tile size
     computeTileSize();

@@ -63,8 +63,8 @@ namespace oidn {
       Data dir;
       Data alb;
       Data nrm;
-    } defaultWeights;
-    Data userWeights;
+    } weightsBlobs;
+    Data userWeightsBlob;
 
     explicit UNetFilter(const Ref<Device>& device);
     virtual std::shared_ptr<TransferFunction> getTransferFunc() = 0;

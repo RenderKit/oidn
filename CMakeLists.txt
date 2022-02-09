@@ -210,6 +210,8 @@ set(CORE_SOURCES
   core/upsample_kernel.h
   core/upsample.h
   core/vec.h
+  core/weights.h
+  core/weights.cpp
 )
 
 if(OIDN_NEURAL_RUNTIME STREQUAL "DNNL")

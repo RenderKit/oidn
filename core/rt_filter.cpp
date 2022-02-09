@@ -23,16 +23,16 @@ namespace oidn {
     : UNetFilter(device)
   {
   #if defined(OIDN_FILTER_RT)
-    defaultWeights.hdr           = blobs::weights::rt_hdr;
-    defaultWeights.hdr_alb       = blobs::weights::rt_hdr_alb;
-    defaultWeights.hdr_alb_nrm   = blobs::weights::rt_hdr_alb_nrm;
-    defaultWeights.hdr_calb_cnrm = blobs::weights::rt_hdr_calb_cnrm;
-    defaultWeights.ldr           = blobs::weights::rt_ldr;
-    defaultWeights.ldr_alb       = blobs::weights::rt_ldr_alb;
-    defaultWeights.ldr_alb_nrm   = blobs::weights::rt_ldr_alb_nrm;
-    defaultWeights.ldr_calb_cnrm = blobs::weights::rt_ldr_calb_cnrm;
-    defaultWeights.alb           = blobs::weights::rt_alb;
-    defaultWeights.nrm           = blobs::weights::rt_nrm;
+    weightsBlobs.hdr           = blobs::weights::rt_hdr;
+    weightsBlobs.hdr_alb       = blobs::weights::rt_hdr_alb;
+    weightsBlobs.hdr_alb_nrm   = blobs::weights::rt_hdr_alb_nrm;
+    weightsBlobs.hdr_calb_cnrm = blobs::weights::rt_hdr_calb_cnrm;
+    weightsBlobs.ldr           = blobs::weights::rt_ldr;
+    weightsBlobs.ldr_alb       = blobs::weights::rt_ldr_alb;
+    weightsBlobs.ldr_alb_nrm   = blobs::weights::rt_ldr_alb_nrm;
+    weightsBlobs.ldr_calb_cnrm = blobs::weights::rt_ldr_calb_cnrm;
+    weightsBlobs.alb           = blobs::weights::rt_alb;
+    weightsBlobs.nrm           = blobs::weights::rt_nrm;
   #endif
   }
 
