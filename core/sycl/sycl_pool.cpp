@@ -5,12 +5,13 @@
 
 namespace oidn {
 
+  template<typename T, TensorLayout layout>
   struct SYCLPool
   {
-    static constexpr int B = TensorAccessor3D<half, TensorLayout::Chw16c>::B;
+    static constexpr int B = TensorAccessor3D<T, layout>::B;
 
-    TensorAccessor3D<half, TensorLayout::Chw16c> src;
-    TensorAccessor3D<half, TensorLayout::Chw16c> dst;
+    TensorAccessor3D<T, layout> src;
+    TensorAccessor3D<T, layout> dst;
 
     OIDN_INLINE void operator ()(size_t hDst, size_t wDst) const SYCL_ESIMD_FUNCTION
     { 
@@ -28,13 +29,13 @@ namespace oidn {
       char* srcPtr3 = srcPtr2 + src.wStride;
       char* dstPtr  = dst.ptr + dstOffset;
 
-      const simd<int16_t, B> v0 = block_load<int16_t, B, vector_aligned_tag>((int16_t*)srcPtr0);
-      const simd<int16_t, B> v1 = block_load<int16_t, B, vector_aligned_tag>((int16_t*)srcPtr1);
-      const simd<int16_t, B> v2 = block_load<int16_t, B, vector_aligned_tag>((int16_t*)srcPtr2);
-      const simd<int16_t, B> v3 = block_load<int16_t, B, vector_aligned_tag>((int16_t*)srcPtr3);
+      const simd<T, B> v0 = block_load<T, B, vector_aligned_tag>((T*)srcPtr0);
+      const simd<T, B> v1 = block_load<T, B, vector_aligned_tag>((T*)srcPtr1);
+      const simd<T, B> v2 = block_load<T, B, vector_aligned_tag>((T*)srcPtr2);
+      const simd<T, B> v3 = block_load<T, B, vector_aligned_tag>((T*)srcPtr3);
 
-      const simd<int16_t, B> v = max(max(v0, v1), max(v2, v3));
-      block_store((int16_t*)dstPtr, v);
+      const simd<T, B> v = max(max(v0, v1), max(v2, v3));
+      block_store((T*)dstPtr, v);
     }
   };
 
@@ -48,7 +49,7 @@ namespace oidn {
 
   void SYCLPoolNode::execute()
   {
-    SYCLPool kernel;
+    SYCLPool<half, TensorLayout::Chw16c> kernel;
     kernel.src = *src;
     kernel.dst = *dst;
 
