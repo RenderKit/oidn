@@ -1,6 +1,10 @@
 Version History
 ---------------
 
+### Changes in v1.4.3:
+
+-   Upgraded to oneTBB 2021.5.0 in the official binaries
+
 ### Changes in v1.4.2:
 
 -   Added support for 16-bit half-precision floating-point images
