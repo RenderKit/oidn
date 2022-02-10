@@ -182,7 +182,9 @@ namespace oidn {
   float half_to_float(int16_t x);
   int16_t float_to_half(float x);
 
-  #if !defined(OIDN_SYCL)
+  #if defined(OIDN_SYCL)
+    using sycl::half;
+  #else
     // Minimal half data type
     class half
     {

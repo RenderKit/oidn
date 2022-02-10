@@ -12,8 +12,8 @@ namespace oidn {
     TensorAccessor3D<half, TensorLayout::Chw16c> src;
     TensorAccessor3D<half, TensorLayout::Chw16c> dst;
 
-    OIDN_INLINE void operator ()(size_t hSrc, size_t wSrc) const SYCL_ESIMD_KERNEL
-    { 
+    OIDN_INLINE void operator ()(size_t hSrc, size_t wSrc) const SYCL_ESIMD_FUNCTION
+    {
       using namespace sycl::ext::intel::experimental::esimd;
 
       const size_t hSrcOffset = hSrc * src.hStride;
@@ -26,12 +26,11 @@ namespace oidn {
       char* dstPtr0 = dst.ptr + dstOffset;
       char* dstPtr2 = dstPtr0 + dst.hStride;
 
-      simd<int16_t, B> v;
-      v.copy_from((int16_t*)srcPtr);
+      simd<int16_t, B> v = block_load<int16_t, B, vector_aligned_tag>((int16_t*)srcPtr);
 
-      simd<int16_t, B*2> v2 = v.replicate<2, 0, B, 1>(0);
-      v2.copy_to((int16_t*)dstPtr0);
-      v2.copy_to((int16_t*)dstPtr2);
+      simd<int16_t, B*2> v2 = v.replicate<2>();
+      block_store((int16_t*)dstPtr0, v2);
+      block_store((int16_t*)dstPtr2, v2);
     }
   };
 
