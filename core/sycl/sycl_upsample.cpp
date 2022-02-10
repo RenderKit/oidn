@@ -26,9 +26,9 @@ namespace oidn {
       char* dstPtr0 = dst.ptr + dstOffset;
       char* dstPtr2 = dstPtr0 + dst.hStride;
 
-      simd<int16_t, B> v = block_load<int16_t, B, vector_aligned_tag>((int16_t*)srcPtr);
+      const simd<int16_t, B> v = block_load<int16_t, B, vector_aligned_tag>((int16_t*)srcPtr);
 
-      simd<int16_t, B*2> v2 = v.replicate<2>();
+      const simd<int16_t, B*2> v2 = v.replicate<2>();
       block_store((int16_t*)dstPtr0, v2);
       block_store((int16_t*)dstPtr2, v2);
     }

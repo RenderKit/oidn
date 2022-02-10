@@ -28,12 +28,12 @@ namespace oidn {
       char* srcPtr3 = srcPtr2 + src.wStride;
       char* dstPtr  = dst.ptr + dstOffset;
 
-      simd<int16_t, B> v0 = block_load<int16_t, B, vector_aligned_tag>((int16_t*)srcPtr0);
-      simd<int16_t, B> v1 = block_load<int16_t, B, vector_aligned_tag>((int16_t*)srcPtr1);
-      simd<int16_t, B> v2 = block_load<int16_t, B, vector_aligned_tag>((int16_t*)srcPtr2);
-      simd<int16_t, B> v3 = block_load<int16_t, B, vector_aligned_tag>((int16_t*)srcPtr3);
+      const simd<int16_t, B> v0 = block_load<int16_t, B, vector_aligned_tag>((int16_t*)srcPtr0);
+      const simd<int16_t, B> v1 = block_load<int16_t, B, vector_aligned_tag>((int16_t*)srcPtr1);
+      const simd<int16_t, B> v2 = block_load<int16_t, B, vector_aligned_tag>((int16_t*)srcPtr2);
+      const simd<int16_t, B> v3 = block_load<int16_t, B, vector_aligned_tag>((int16_t*)srcPtr3);
 
-      simd<int16_t, B> v = max(max(v0, v1), max(v2, v3));
+      const simd<int16_t, B> v = max(max(v0, v1), max(v2, v3));
       block_store((int16_t*)dstPtr, v);
     }
   };
