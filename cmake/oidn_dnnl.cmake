@@ -1,4 +1,4 @@
-## Copyright 2009-2021 Intel Corporation
+## Copyright 2009-2022 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 set(DNNL_VERSION_MAJOR 2)
@@ -9,6 +9,20 @@ set(DNNL_VERSION_HASH  "N/A")
 set(DNNL_CPU_RUNTIME "TBB")
 set(DNNL_CPU_THREADING_RUNTIME "TBB")
 set(DNNL_GPU_RUNTIME "NONE")
+
+option(DNNL_ENABLE_JIT_PROFILING
+  "Enable registration of oneDNN kernels that are generated at runtime with
+  VTune Amplifier. Without the registrations, VTune Amplifier would report
+  data collected inside the kernels as `outside any known module`."
+  OFF)
+mark_as_advanced(DNNL_ENABLE_JIT_PROFILING)
+
+option(DNNL_ENABLE_ITT_TASKS
+  "Enable ITT Tasks tagging feature and tag all primitive execution. VTune
+  Amplifier can group profiling results based on those ITT tasks and show
+  corresponding timeline information."
+  OFF)
+mark_as_advanced(DNNL_ENABLE_ITT_TASKS)
 
 configure_file(
   "${PROJECT_SOURCE_DIR}/mkl-dnn/include/oneapi/dnnl/dnnl_config.h.in"
@@ -22,7 +36,6 @@ configure_file(
 file(GLOB DNNL_SOURCES
   mkl-dnn/src/common/*.[ch]
   mkl-dnn/src/common/*.[ch]pp
-  mkl-dnn/src/common/ittnotify/*.[ch]
   mkl-dnn/src/cpu/bfloat16.cpp
   mkl-dnn/src/cpu/binary_injector_utils.[ch]pp
   mkl-dnn/src/cpu/cpu_concat.cpp
@@ -39,7 +52,6 @@ file(GLOB DNNL_SOURCES
   mkl-dnn/src/cpu/platform.[ch]pp
   mkl-dnn/src/cpu/simple_q10n.hpp
   mkl-dnn/src/cpu/jit_utils/*.[ch]pp
-  mkl-dnn/src/cpu/jit_utils/linux_perf/*.[ch]pp
   mkl-dnn/src/cpu/reorder/cpu_reorder.[ch]pp
   mkl-dnn/src/cpu/reorder/cpu_reorder_regular_f32_f32.cpp
   mkl-dnn/src/cpu/reorder/simple_reorder.hpp
@@ -65,6 +77,17 @@ file(GLOB DNNL_SOURCES
   mkl-dnn/src/cpu/x64/xbyak/*.h
 )
 
+if(DNNL_ENABLE_JIT_PROFILING OR DNNL_ENABLE_ITT_TASKS)
+  file(GLOB ITT_SOURCES mkl-dnn/src/common/ittnotify/*.[ch])
+  list(APPEND DNNL_SOURCES ${ITT_SOURCES})
+endif()
+if(DNNL_ENABLE_JIT_PROFILING)
+  list(APPEND DNNL_SOURCES
+    mkl-dnn/src/cpu/jit_utils/linux_perf/linux_perf.cpp
+    mkl-dnn/src/cpu/jit_utils/linux_perf/linux_perf.hpp
+  )
+endif()
+
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   file(GLOB DNNL_SOURCES_BIGOBJ
     mkl-dnn/src/cpu/cpu_engine.cpp
@@ -89,7 +112,6 @@ target_include_directories(dnnl
 target_compile_definitions(dnnl
   PUBLIC
     -DDNNL_ENABLE_CONCURRENT_EXEC
-    -DDNNL_ENABLE_ITT_TASKS
 )
 
 set(DNNL_COMPILE_OPTIONS "")
@@ -104,9 +126,18 @@ target_link_libraries(dnnl
     ${CMAKE_THREAD_LIBS_INIT}
     TBB
 )
-if(UNIX AND NOT APPLE)
-  # Not every compiler adds -ldl automatically
-  target_link_libraries(dnnl PUBLIC ${CMAKE_DL_LIBS})
+
+if(DNNL_ENABLE_JIT_PROFILING OR DNNL_ENABLE_ITT_TASKS)
+  if(UNIX AND NOT APPLE)
+    # Not every compiler adds -ldl automatically
+    target_link_libraries(dnnl PUBLIC ${CMAKE_DL_LIBS})
+  endif()
+endif()
+if(DNNL_ENABLE_ITT_TASKS)
+  target_compile_definitions(dnnl PUBLIC -DDNNL_ENABLE_ITT_TASKS)
+endif()
+if(NOT DNNL_ENABLE_JIT_PROFILING)
+  target_compile_definitions(dnnl PUBLIC -DDNNL_ENABLE_JIT_PROFILING=0)
 endif()
 
 if(OIDN_STATIC_LIB)
