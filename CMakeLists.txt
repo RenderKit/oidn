@@ -72,11 +72,11 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 find_package(Threads REQUIRED)
 find_package(TBB 2017.0 REQUIRED tbb)
 
-# Packaging
-include(oidn_package)
-
 # Platform-specific settings
 include(oidn_platform)
+
+# Packaging
+include(oidn_package)
 
 # Neural network runtime
 set(OIDN_NEURAL_RUNTIMES)

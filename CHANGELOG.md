@@ -3,6 +3,7 @@ Version History
 
 ### Changes in v1.4.3:
 
+-   Fixed hardcoded library paths in installed macOS binaries
 -   Disabled VTune profiling support of oneDNN kernels by default, can be
     enabled using CMake options if required (`DNNL_ENABLE_JIT_PROFILING` and
     `DNNL_ENABLE_ITT_TASKS`)
