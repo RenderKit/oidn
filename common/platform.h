@@ -202,7 +202,9 @@ namespace oidn {
   float half_to_float(int16_t x);
   int16_t float_to_half(float x);
 
-  #if !defined(OIDN_SYCL) && !defined(OIDN_CUDA)
+  #if defined(OIDN_SYCL)
+    using sycl::half;
+  #elif !defined(OIDN_CUDA)
     // Minimal half data type
     class half
     {

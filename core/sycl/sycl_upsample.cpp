@@ -5,15 +5,16 @@
 
 namespace oidn {
 
+  template<typename T, TensorLayout layout>
   struct SYCLUpsampleKernel
   {
-    static constexpr int B = TensorAccessor3D<half, TensorLayout::Chw16c>::B;
+    static constexpr int B = TensorAccessor3D<T, layout>::B;
 
-    TensorAccessor3D<half, TensorLayout::Chw16c> src;
-    TensorAccessor3D<half, TensorLayout::Chw16c> dst;
+    TensorAccessor3D<T, layout> src;
+    TensorAccessor3D<T, layout> dst;
 
-    OIDN_INLINE void operator ()(size_t hSrc, size_t wSrc) const SYCL_ESIMD_KERNEL
-    { 
+    OIDN_INLINE void operator ()(size_t hSrc, size_t wSrc) const SYCL_ESIMD_FUNCTION
+    {
       using namespace sycl::ext::intel::experimental::esimd;
 
       const size_t hSrcOffset = hSrc * src.hStride;
@@ -26,12 +27,11 @@ namespace oidn {
       char* dstPtr0 = dst.ptr + dstOffset;
       char* dstPtr2 = dstPtr0 + dst.hStride;
 
-      simd<int16_t, B> v;
-      v.copy_from((int16_t*)srcPtr);
+      const simd<T, B> v = block_load<T, B, vector_aligned_tag>((T*)srcPtr);
 
-      simd<int16_t, B*2> v2 = v.replicate<2, 0, B, 1>(0);
-      v2.copy_to((int16_t*)dstPtr0);
-      v2.copy_to((int16_t*)dstPtr2);
+      const simd<T, B*2> v2 = v.template replicate<2>();
+      block_store((T*)dstPtr0, v2);
+      block_store((T*)dstPtr2, v2);
     }
   };
 
@@ -45,7 +45,7 @@ namespace oidn {
 
   void SYCLUpsample::run()
   {
-    SYCLUpsampleKernel kernel;
+    SYCLUpsampleKernel<half, TensorLayout::Chw16c> kernel;
     kernel.src = *src;
     kernel.dst = *dst;
 

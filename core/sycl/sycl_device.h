@@ -53,7 +53,8 @@ namespace oidn {
     template<typename Ty, typename Tx, typename F>
     OIDN_INLINE void runESIMDKernel(const Ty& Dy, const Tx& Dx, const F& f)
     {
-      sycl->queue.parallel_for(sycl::range<2>(Dy, Dx), [=](sycl::id<2> idx) SYCL_ESIMD_KERNEL
+      // FIXME: Named kernel is necessary due to an ESIMD bug
+      sycl->queue.parallel_for<class ESIMDKernel>(sycl::range<2>(Dy, Dx), [=](sycl::id<2> idx) SYCL_ESIMD_KERNEL
       {
         f(Ty(idx[0]), Tx(idx[1]));
       });
