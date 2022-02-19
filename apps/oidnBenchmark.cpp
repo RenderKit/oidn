@@ -93,8 +93,8 @@ void initImage(ImageBuffer& image, Random& rng, float minValue, float maxValue)
     image.set(i, minValue + rng.get1f() * (maxValue - minValue));
 }
 
-// Runs a benchmark
-void runBenchmark(DeviceRef& device, const Benchmark& bench)
+// Runs a benchmark and returns the total runtime
+double runBenchmark(DeviceRef& device, const Benchmark& bench)
 {
   std::cout << bench.name << " ..." << std::flush;
 
@@ -173,9 +173,7 @@ void runBenchmark(DeviceRef& device, const Benchmark& bench)
   const double avgTime = totalTime / numBenchmarkRuns;
   std::cout << " " << avgTime * 1000. << " msec/image" << std::endl;
 
-  // Cooldown
-  const int sleepTime = int(std::ceil(totalTime / 2.));
-  std::this_thread::sleep_for(std::chrono::seconds(sleepTime));
+  return totalTime;
 }
 
 // Adds all benchmarks to the list
@@ -320,10 +318,21 @@ int main(int argc, char* argv[])
 
     // Run the benchmarks
     const auto runExpr = std::regex(run);
+    double prevBenchTime = 0;
+
     for (const auto& bench : benchmarks)
     {
       if (std::regex_match(bench.name, runExpr))
-        runBenchmark(device, bench);
+      {
+        // Cooldown
+        if (prevBenchTime > 0)
+        {
+          const int sleepTime = int(std::ceil(prevBenchTime / 2.));
+          std::this_thread::sleep_for(std::chrono::seconds(sleepTime));
+        }
+
+        prevBenchTime = runBenchmark(device, bench);
+      }
     }
   }
   catch (std::exception& e)
