@@ -230,7 +230,23 @@ int main(int argc, char* argv[])
     const int versionMinor = device.get<int>("versionMinor");
     const int versionPatch = device.get<int>("versionPatch");
 
-    std::cout << "  device=" << (deviceType == DeviceType::Default ? "default" : (deviceType == DeviceType::SYCL ? "SYCL" : "CPU"))
+    const char* deviceName;
+    switch (deviceType)
+    {
+    case DeviceType::CPU:
+      deviceName = "cpu";
+      break;
+    case DeviceType::SYCL:
+      deviceName = "sycl";
+      break;
+    case DeviceType::CUDA:
+      deviceName = "cuda";
+      break;
+    default:
+      deviceName = "default";
+    }
+
+    std::cout << "  device=" << deviceName
               << ", version=" << versionMajor << "." << versionMinor << "." << versionPatch
               << ", msec=" << (1000. * deviceInitTime) << std::endl;
 
