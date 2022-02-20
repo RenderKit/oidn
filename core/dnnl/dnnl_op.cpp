@@ -20,7 +20,7 @@ namespace oidn {
   void DNNLOp::setScratch(const std::shared_ptr<Tensor>& scratch)
   {
     this->scratch = scratch;
-    args.insert(std::make_pair(DNNL_ARG_SCRATCHPAD, getDNNL(*scratch)));
+    args.insert(std::make_pair(DNNL_ARG_SCRATCHPAD, getDNNL(scratch)));
   }
 
   void DNNLOp::run()

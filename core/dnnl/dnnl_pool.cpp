@@ -13,8 +13,8 @@ namespace oidn {
     const dnnl::memory::dims strides = {2, 2};
     const dnnl::memory::dims padding = {0, 0};
 
-    const dnnl::memory& srcMem = getDNNL(*src);
-    const dnnl::memory& dstMem = getDNNL(*dst);
+    const dnnl::memory& srcMem = getDNNL(src);
+    const dnnl::memory& dstMem = getDNNL(dst);
 
     auto poolDesc = dnnl::pooling_forward::desc(
       dnnl::prop_kind::forward_inference, dnnl::algorithm::pooling_max,

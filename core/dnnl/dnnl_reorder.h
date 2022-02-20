@@ -20,8 +20,8 @@ namespace oidn {
         src(desc.src),
         dst(desc.dst)
     {
-      const dnnl::memory& srcMem = getDNNL(*src);
-      const dnnl::memory& dstMem = getDNNL(*dst);
+      const dnnl::memory& srcMem = getDNNL(src);
+      const dnnl::memory& dstMem = getDNNL(dst);
 
       prim = dnnl::reorder(dnnl::reorder::primitive_desc(srcMem, dstMem));
       args = {{DNNL_ARG_SRC, srcMem},

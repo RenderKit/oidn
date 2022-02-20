@@ -6,6 +6,21 @@
 
 namespace oidn {
 
+  dnnl::memory::data_type toDNNL(DataType dt)
+  {
+    switch (dt)
+    {
+    case DataType::Float32:
+      return dnnl::memory::data_type::f32;
+    case DataType::Float16:
+      return dnnl::memory::data_type::f16;
+    case DataType::UInt8:
+      return dnnl::memory::data_type::u8;
+    default:
+      throw Exception(Error::Unknown, "unsupported data type");
+    }
+  }
+
   dnnl::memory::desc toDNNL(const TensorDesc& td)
   {
     dnnl::memory::dims dnnlDims;
@@ -41,28 +56,12 @@ namespace oidn {
       throw Exception(Error::Unknown, "unsupported tensor layout");
     }
 
-    dnnl::memory::data_type dnnlType;
-    switch (td.dataType)
-    {
-    case DataType::Float32:
-      dnnlType = dnnl::memory::data_type::f32;
-      break;
-    case DataType::Float16:
-      dnnlType = dnnl::memory::data_type::f16;
-      break;
-    case DataType::UInt8:
-      dnnlType = dnnl::memory::data_type::u8;
-      break;
-    default:
-      throw Exception(Error::Unknown, "unsupported data type");
-    }
-
-    return dnnl::memory::desc(dnnlDims, dnnlType, dnnlFormat);
+    return dnnl::memory::desc(dnnlDims, toDNNL(td.dataType), dnnlFormat);
   }
 
-  const dnnl::memory& getDNNL(const Tensor& tensor)
+  const dnnl::memory& getDNNL(const std::shared_ptr<Tensor>& tensor)
   {
-    if (auto dnnlTensor = dynamic_cast<const DNNLTensor*>(&tensor))
+    if (auto dnnlTensor = dynamic_cast<const DNNLTensor*>(tensor.get()))
       return dnnlTensor->getDNNLMemory();
     else
       throw Exception(Error::Unknown, "not DNNLTensor");
