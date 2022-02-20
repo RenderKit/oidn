@@ -12,8 +12,8 @@ namespace oidn {
 
   void CPUInputProcess::run()
   {
-    assert(tile.H + tile.hSrcBegin <= getInput()->height);
-    assert(tile.W + tile.wSrcBegin <= getInput()->width);
+    assert(tile.H + tile.hSrcBegin <= getInput()->getH());
+    assert(tile.W + tile.wSrcBegin <= getInput()->getW());
     assert(tile.H + tile.hDstBegin <= dst->getH());
     assert(tile.W + tile.wDstBegin <= dst->getW());
 
