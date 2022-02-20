@@ -20,17 +20,17 @@ namespace oidn {
   }
 
   Tensor::Tensor(const Ref<Device>& device, const TensorDesc& desc)
-    : desc(desc),
+    : TensorDesc(desc),
       device(device) {}
 
   Tensor::Tensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
     : Memory(buffer, byteOffset),
-      desc(desc),
+      TensorDesc(desc),
       device(buffer->getDevice()) {}
 
   Tensor::operator ispc::TensorAccessor3D() const
   {
-    if (desc.getRank() != 3 || desc.dataType != DataType::Float32)
+    if (getRank() != 3 || dataType != DataType::Float32)
       throw Exception(Error::Unknown, "incompatible tensor accessor");
 
     ispc::TensorAccessor3D result;

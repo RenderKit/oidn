@@ -70,10 +70,9 @@ namespace oidn {
     }
   };
 
-  class Image : public Memory
+  class Image final : public Memory, private ImageDesc
   {
   private:
-    ImageDesc desc;
     char* ptr; // pointer to the first pixel
 
   public:
@@ -85,15 +84,16 @@ namespace oidn {
 
     void updatePtr() override;
 
-    OIDN_INLINE const ImageDesc& getDesc() const { return desc; }
-    OIDN_INLINE Format getFormat() const { return desc.format; }
-    OIDN_INLINE int getC() const { return desc.getC(); }
-    OIDN_INLINE int getH() const { return desc.getH(); }
-    OIDN_INLINE int getW() const { return desc.getW(); }
-    OIDN_INLINE size_t getNumElements() const { return desc.getNumElements(); }
-    OIDN_INLINE size_t getByteSize() const { return desc.getByteSize(); }
-    OIDN_INLINE size_t getAlignedSize() const { return desc.getAlignedSize(); }
-    OIDN_INLINE DataType getDataType() const { return desc.getDataType(); }
+    OIDN_INLINE const ImageDesc& getDesc() const { return *this; }
+    OIDN_INLINE Format getFormat() const { return format; }
+
+    using ImageDesc::getC;
+    using ImageDesc::getH;
+    using ImageDesc::getW;
+    using ImageDesc::getNumElements;
+    using ImageDesc::getByteSize;
+    using ImageDesc::getAlignedSize;
+    using ImageDesc::getDataType;
 
     OIDN_INLINE       char* begin()       { return ptr; }
     OIDN_INLINE const char* begin() const { return ptr; }
@@ -106,15 +106,15 @@ namespace oidn {
     template<typename T>
     operator ImageAccessor<T>() const
     {
-      if (desc.format != Format::Undefined && getDataType() != DataTypeOf<T>::value)
+      if (format != Format::Undefined && getDataType() != DataTypeOf<T>::value)
         throw Exception(Error::Unknown, "incompatible image accessor");
 
       ImageAccessor<T> acc;
       acc.ptr = (uint8_t*)ptr;
-      acc.hStride = desc.hStride;
-      acc.wStride = desc.wStride;
-      acc.W = desc.width;
-      acc.H = desc.height;
+      acc.hStride = hStride;
+      acc.wStride = wStride;
+      acc.W = width;
+      acc.H = height;
       return acc;
     }
 

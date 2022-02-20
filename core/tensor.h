@@ -131,10 +131,9 @@ namespace oidn {
   };
 
   // Tensor
-  class Tensor : public Memory
+  class Tensor : public Memory, protected TensorDesc
   {
   protected:
-    TensorDesc desc;
     Ref<Device> device;
     
     Tensor(const Ref<Device>& device, const TensorDesc& desc);
@@ -144,37 +143,38 @@ namespace oidn {
     virtual void* getData() = 0;
     virtual const void* getData() const = 0;
 
-    OIDN_INLINE const TensorDesc& getDesc() const { return desc; }
-    OIDN_INLINE const TensorDims& getDims() const { return desc.dims; }
-    OIDN_INLINE TensorLayout getLayout() const { return desc.layout; }
-    OIDN_INLINE DataType getDataType() const { return desc.dataType; }
-    OIDN_INLINE int getRank() const { return desc.getRank(); }
-    OIDN_INLINE int getX() const { return desc.getX(); }
-    OIDN_INLINE int getO() const { return desc.getO(); }
-    OIDN_INLINE int getI() const { return desc.getI(); }
-    OIDN_INLINE int getC() const { return desc.getC(); }
-    OIDN_INLINE int getCB() const { return desc.getCB(); }
-    OIDN_INLINE int getH() const { return desc.getH(); }
-    OIDN_INLINE int getW() const { return desc.getW(); }
-    OIDN_INLINE int getBlockSize() const { return desc.getBlockSize(); }
-    OIDN_INLINE size_t getNumElements() const { return desc.getNumElements(); }
-    OIDN_INLINE size_t getByteSize() const { return desc.getByteSize(); }
-    OIDN_INLINE size_t getAlignedSize() const { return desc.getAlignedSize(); }
+    OIDN_INLINE const TensorDesc& getDesc() const { return *this; }
+    OIDN_INLINE const TensorDims& getDims() const { return dims; }
+    OIDN_INLINE TensorLayout getLayout() const { return layout; }
+    OIDN_INLINE DataType getDataType() const { return dataType; }
+
+    using TensorDesc::getRank;
+    using TensorDesc::getX;
+    using TensorDesc::getO;
+    using TensorDesc::getI;
+    using TensorDesc::getC;
+    using TensorDesc::getCB;
+    using TensorDesc::getH;
+    using TensorDesc::getW;
+    using TensorDesc::getBlockSize;
+    using TensorDesc::getNumElements;
+    using TensorDesc::getByteSize;
+    using TensorDesc::getAlignedSize;
 
     OIDN_INLINE operator bool() const { return getData() != nullptr; }
 
     template<typename T>
     operator TensorAccessor1D<T>() const
     {
-      if (desc.layout != TensorLayout::x || desc.dataType != DataTypeOf<T>::value)
+      if (layout != TensorLayout::x || dataType != DataTypeOf<T>::value)
         throw Exception(Error::Unknown, "incompatible tensor accessor");
-      return TensorAccessor1D<T>(getData(), desc.dims[0]);
+      return TensorAccessor1D<T>(getData(), dims[0]);
     }
 
     template<typename T, TensorLayout layout>
     operator TensorAccessor3D<T, layout>() const
     {
-      if (desc.layout != layout || desc.dataType != DataTypeOf<T>::value)
+      if (this->layout != layout || dataType != DataTypeOf<T>::value)
         throw Exception(Error::Unknown, "incompatible tensor accessor");
       return TensorAccessor3D<T, layout>(getData(), getC(), getH(), getW());
     }
@@ -182,7 +182,7 @@ namespace oidn {
     template<typename T, TensorLayout layout>
     operator TensorAccessor4D<T, layout>() const
     {
-      if (desc.layout != layout || desc.dataType != DataTypeOf<T>::value)
+      if (this->layout != layout || dataType != DataTypeOf<T>::value)
         throw Exception(Error::Unknown, "incompatible tensor accessor");
       return TensorAccessor4D<T, layout>(getData(), getO(), getI(), getH(), getW());
     }
@@ -192,7 +192,7 @@ namespace oidn {
     void dump(const std::string& filenamePrefix) const;
   };
 
-  class GenericTensor : public Tensor
+  class GenericTensor final : public Tensor
   {
   private:
     void* ptr;

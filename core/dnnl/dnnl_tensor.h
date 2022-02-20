@@ -9,7 +9,7 @@
 namespace oidn {
   
   // Native DNNL tensor
-  class DNNLTensor : public Tensor
+  class DNNLTensor final : public Tensor
   {
   private:
     dnnl::memory mem;

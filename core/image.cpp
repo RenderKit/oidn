@@ -36,11 +36,11 @@ namespace oidn {
   }
 
   Image::Image() :
-    desc(Format::Undefined, 0, 0),
+    ImageDesc(Format::Undefined, 0, 0),
     ptr(nullptr) {}
 
   Image::Image(void* ptr, Format format, size_t width, size_t height, size_t byteOffset, size_t bytePixelStride, size_t byteRowStride)
-    : desc(format, width, height, bytePixelStride, byteRowStride)
+    : ImageDesc(format, width, height, bytePixelStride, byteRowStride)
   {
     if ((ptr == nullptr) && (byteOffset + getByteSize() > 0))
       throw Exception(Error::InvalidArgument, "buffer region out of range");
@@ -50,7 +50,7 @@ namespace oidn {
 
   Image::Image(const Ref<Buffer>& buffer, const ImageDesc& desc, size_t byteOffset)
     : Memory(buffer, byteOffset),
-      desc(desc)
+      ImageDesc(desc)
   {
     if (byteOffset + getByteSize() > buffer->getByteSize())
       throw Exception(Error::InvalidArgument, "buffer region out of range");
@@ -60,7 +60,7 @@ namespace oidn {
 
   Image::Image(const Ref<Buffer>& buffer, Format format, size_t width, size_t height, size_t byteOffset, size_t bytePixelStride, size_t byteRowStride)
     : Memory(buffer, byteOffset),
-      desc(format, width, height, bytePixelStride, byteRowStride)
+      ImageDesc(format, width, height, bytePixelStride, byteRowStride)
   {
     if (byteOffset + getByteSize() > buffer->getByteSize())
       throw Exception(Error::InvalidArgument, "buffer region out of range");
@@ -70,7 +70,7 @@ namespace oidn {
 
   Image::Image(const Ref<Device>& device, Format format, size_t width, size_t height)
     : Memory(device->newBuffer(width * height * getFormatSize(format), MemoryKind::Device)),
-      desc(format, width, height)
+      ImageDesc(format, width, height)
   {
     this->ptr = buffer->getData();
   }
@@ -79,10 +79,10 @@ namespace oidn {
   {
     ispc::ImageAccessor acc;
     acc.ptr = (uint8_t*)ptr;
-    acc.hStride = desc.hStride;
-    acc.wStride = desc.wStride;
+    acc.hStride = hStride;
+    acc.wStride = wStride;
 
-    if (desc.format != Format::Undefined)
+    if (format != Format::Undefined)
     {
       switch (getDataType())
       {
@@ -102,8 +102,8 @@ namespace oidn {
     else
       acc.dataType = ispc::DataType_Float32;
 
-    acc.W = desc.width;
-    acc.H = desc.height;
+    acc.W = width;
+    acc.H = height;
 
     return acc;
   }
