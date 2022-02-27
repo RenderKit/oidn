@@ -3,7 +3,8 @@
 
 #pragma once
 
-#include <map>
+#include <unordered_map>
+#include <unordered_set>
 #include "data.h"
 #include "tensor.h"
 
@@ -13,7 +14,8 @@ namespace oidn {
   class Weights
   {
   private:
-    std::map<std::string, std::shared_ptr<Tensor>> tensors;
+    std::unordered_map<std::string, std::shared_ptr<Tensor>> tensors;
+    std::unordered_set<std::string> reordered;
     Ref<Device> device;
 
   public:

@@ -14,10 +14,8 @@ namespace oidn {
   {
     std::shared_ptr<Tensor>& tensor = tensors[name];
 
-    // If the tensor is not backed by a buffer, it has not been reordered yet.
-    // Reordering is necessary even if the tensor has the right shape and layout
-    // because it may not be USM allocated.
-    if (!tensor->getBuffer())
+    // Check whether the tensor has been already reordered
+    if (reordered.find(name) == reordered.end())
     {
       switch (tensor->getRank())
       {
@@ -30,6 +28,8 @@ namespace oidn {
       default:
         throw Exception(Error::InvalidOperation, "invalid weight or bias tensor");
       }
+
+      reordered.insert(name);
     }
 
     return tensor;
