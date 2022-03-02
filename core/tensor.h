@@ -133,12 +133,6 @@ namespace oidn {
   // Tensor
   class Tensor : public Memory, protected TensorDesc
   {
-  protected:
-    Ref<Device> device;
-    
-    Tensor(const Ref<Device>& device, const TensorDesc& desc);
-    Tensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset);
-
   public:
     virtual void* getData() = 0;
     virtual const void* getData() const = 0;
@@ -190,13 +184,16 @@ namespace oidn {
     operator ispc::TensorAccessor3D() const;
 
     void dump(const std::string& filenamePrefix) const;
+
+  protected:
+    Tensor(const Ref<Device>& device, const TensorDesc& desc);
+    Tensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset);
+
+    Ref<Device> device;
   };
 
   class GenericTensor final : public Tensor
   {
-  private:
-    void* ptr;
-
   public:
     GenericTensor(const Ref<Device>& device, const TensorDesc& desc);
     GenericTensor(const Ref<Device>& device, const TensorDesc& desc, void* data);
@@ -209,6 +206,8 @@ namespace oidn {
     void init(const Ref<Device>& device);
     void init(const Ref<Device>& device, void* data);
     void updatePtr() override;
+
+    void* ptr;
   };
 
   // Reorder with zero padding

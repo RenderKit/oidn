@@ -22,11 +22,6 @@ namespace oidn {
     : public Device
   #endif
   { 
-  private:
-    // Tasking
-    std::shared_ptr<PinningObserver> observer;
-    std::shared_ptr<ThreadAffinity> affinity;
-
   public:
     ~CPUDevice();
 
@@ -52,6 +47,11 @@ namespace oidn {
     void init() override;
     void printInfo() override;
     void initTasking();
+
+  private:
+    // Tasking
+    std::shared_ptr<PinningObserver> observer;
+    std::shared_ptr<ThreadAffinity> affinity;
   };
 
 } // namespace oidn

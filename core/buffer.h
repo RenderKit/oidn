@@ -42,14 +42,6 @@ namespace oidn {
   template<typename DeviceT, typename BufferAllocatorT>
   class USMBuffer : public Buffer
   {
-  protected:
-    char* ptr;
-    size_t byteSize;
-    bool shared;
-    MemoryKind kind;
-    Ref<DeviceT> device;
-    BufferAllocatorT allocator;
-
   public:
     USMBuffer(const Ref<DeviceT>& device, size_t byteSize, MemoryKind kind)
       : ptr(nullptr),
@@ -104,15 +96,19 @@ namespace oidn {
     }
 
     Device* getDevice() override { return device.get(); }
+
+  protected:
+    char* ptr;
+    size_t byteSize;
+    bool shared;
+    MemoryKind kind;
+    Ref<DeviceT> device;
+    BufferAllocatorT allocator;
   };
 
   // Memory object backed by a buffer
   class Memory
   {
-  protected:
-    Ref<Buffer> buffer;  // buffer containing the data
-    size_t bufferOffset; // offset in the buffer
-
   public:
     Memory() : bufferOffset(0) {}
     virtual ~Memory() = default;
@@ -126,6 +122,10 @@ namespace oidn {
 
     // If the buffer gets reallocated, this must be called to update the internal pointer
     virtual void updatePtr() = 0;
+
+  protected:
+    Ref<Buffer> buffer;  // buffer containing the data
+    size_t bufferOffset; // offset in the buffer
   };
 
 } // namespace oidn

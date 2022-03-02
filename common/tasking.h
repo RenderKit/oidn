@@ -43,9 +43,6 @@ namespace oidn {
 
   class PinningObserver : public tbb::task_scheduler_observer
   {
-  private:
-    std::shared_ptr<ThreadAffinity> affinity;
-
   public:
     explicit PinningObserver(const std::shared_ptr<ThreadAffinity>& affinity);
     PinningObserver(const std::shared_ptr<ThreadAffinity>& affinity, tbb::task_arena& arena);
@@ -53,6 +50,9 @@ namespace oidn {
 
     void on_scheduler_entry(bool isWorker) override;
     void on_scheduler_exit(bool isWorker) override;
+
+  private:
+    std::shared_ptr<ThreadAffinity> affinity;
   };
 
 } // namespace oidn

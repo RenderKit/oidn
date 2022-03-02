@@ -208,9 +208,6 @@ namespace oidn {
     // Minimal half data type
     class half
     {
-    private:
-      int16_t x;
-
     public:
       half() = default;
       half(const half& h) : x(h.x) {}
@@ -220,6 +217,9 @@ namespace oidn {
       half& operator =(float f) { x = float_to_half(f); return *this; }
       
       operator float() const { return half_to_float(x); }
+
+    private:
+      int16_t x;
     };
   #endif
 

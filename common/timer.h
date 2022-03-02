@@ -10,11 +10,6 @@ namespace oidn {
 
   class Timer
   {
-  private:
-    using clock = std::chrono::high_resolution_clock;
-
-    std::chrono::time_point<clock> start;
-
   public:
     Timer()
     {
@@ -31,6 +26,11 @@ namespace oidn {
       auto end = clock::now();
       return std::chrono::duration_cast<std::chrono::duration<double>>(end - start).count();
     }
+
+  private:
+    using clock = std::chrono::high_resolution_clock;
+
+    std::chrono::time_point<clock> start;
   };
 
 } // namespace oidn

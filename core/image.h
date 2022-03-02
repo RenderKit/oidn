@@ -72,9 +72,6 @@ namespace oidn {
 
   class Image final : public Memory, private ImageDesc
   {
-  private:
-    char* ptr; // pointer to the first pixel
-
   public:
     Image();
     Image(void* ptr, Format format, size_t width, size_t height, size_t byteOffset, size_t bytePixelStride, size_t byteRowStride);
@@ -122,6 +119,9 @@ namespace oidn {
 
     // Determines whether two images overlap in memory
     bool overlaps(const Image& other) const;
+
+  private:
+    char* ptr; // pointer to the first pixel
   };
 
 } // namespace oidn
