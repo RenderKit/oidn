@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -41,11 +41,8 @@ namespace oidn {
   }
 #endif
 
-  class CUDADevice : public Device
+  class CUDADevice final : public Device
   { 
-  private:
-    cudnnHandle_t cudnnHandle;
-
   public:
     CUDADevice();
     ~CUDADevice();
@@ -59,14 +56,12 @@ namespace oidn {
 
     // Ops
     std::shared_ptr<Conv> newConv(const ConvDesc& desc) override;
+    std::shared_ptr<ConcatConv> newConcatConv(const ConcatConvDesc& desc) override;
     std::shared_ptr<Pool> newPool(const PoolDesc& desc) override;
     std::shared_ptr<Upsample> newUpsample(const UpsampleDesc& desc) override;
     std::shared_ptr<InputProcess> newInputProcess(const InputProcessDesc& desc) override;
     std::shared_ptr<OutputProcess> newOutputProcess(const OutputProcessDesc& desc) override;
 
-    std::shared_ptr<ConcatConv> newConcatConv(const ConcatConvDesc& desc) override;
-
-    // Kernels
     void imageCopy(const Image& src, const Image& dst) override;
 
   #if defined(OIDN_CUDA)
@@ -95,6 +90,9 @@ namespace oidn {
   protected:
     void init() override;
     void printInfo() override;
+
+  private:
+    cudnnHandle_t cudnnHandle;
   };
 
 } // namespace oidn

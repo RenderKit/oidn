@@ -99,27 +99,27 @@ namespace oidn {
 
   Ref<Buffer> CPUDevice::newBuffer(size_t byteSize, MemoryKind kind)
   {
-    return makeRef<CPUBuffer>(Ref<Device>(this), byteSize, kind);
+    return makeRef<CPUBuffer>(this, byteSize, kind);
   }
 
   Ref<Buffer> CPUDevice::newBuffer(void* ptr, size_t byteSize)
   {
-    return makeRef<CPUBuffer>(Ref<Device>(this), ptr, byteSize);
+    return makeRef<CPUBuffer>(this, ptr, byteSize);
   }
 
   std::shared_ptr<Upsample> CPUDevice::newUpsample(const UpsampleDesc& desc)
   {
-    return std::make_shared<CPUUpsample>(Ref<CPUDevice>(this), desc);
+    return std::make_shared<CPUUpsample>(this, desc);
   }
 
   std::shared_ptr<InputProcess> CPUDevice::newInputProcess(const InputProcessDesc& desc)
   {
-    return std::make_shared<CPUInputProcess>(Ref<CPUDevice>(this), desc);
+    return std::make_shared<CPUInputProcess>(this, desc);
   }
 
   std::shared_ptr<OutputProcess> CPUDevice::newOutputProcess(const OutputProcessDesc& desc)
   {
-    return std::make_shared<CPUOutputProcess>(Ref<CPUDevice>(this), desc);
+    return std::make_shared<CPUOutputProcess>(this, desc);
   }
 
   void CPUDevice::imageCopy(const Image& src, const Image& dst)

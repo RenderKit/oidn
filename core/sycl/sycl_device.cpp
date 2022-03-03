@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "mkl-dnn/include/dnnl_sycl.hpp"
@@ -60,37 +60,37 @@ namespace oidn {
 
   Ref<Buffer> SYCLDevice::newBuffer(size_t byteSize, MemoryKind kind)
   {
-    return makeRef<SYCLBuffer>(Ref<SYCLDevice>(this), byteSize, kind);
+    return makeRef<SYCLBuffer>(this, byteSize, kind);
   }
 
   Ref<Buffer> SYCLDevice::newBuffer(void* ptr, size_t byteSize)
   {
-    return makeRef<SYCLBuffer>(Ref<SYCLDevice>(this), ptr, byteSize);
+    return makeRef<SYCLBuffer>(this, ptr, byteSize);
   }
 
   std::shared_ptr<Pool> SYCLDevice::newPool(const PoolDesc& desc)
   {
-    return std::make_shared<SYCLPool>(Ref<SYCLDevice>(this), desc);
+    return std::make_shared<SYCLPool>(this, desc);
   }
 
   std::shared_ptr<Upsample> SYCLDevice::newUpsample(const UpsampleDesc& desc)
   {
-    return std::make_shared<SYCLUpsample>(Ref<SYCLDevice>(this), desc);
+    return std::make_shared<SYCLUpsample>(this, desc);
   }
 
   std::shared_ptr<InputProcess> SYCLDevice::newInputProcess(const InputProcessDesc& desc)
   {
-    return std::make_shared<XPUInputProcess<SYCLOp, half, TensorLayout::Chw16c>>(Ref<SYCLDevice>(this), desc);
+    return std::make_shared<XPUInputProcess<SYCLOp, half, TensorLayout::Chw16c>>(this, desc);
   }
 
   std::shared_ptr<OutputProcess> SYCLDevice::newOutputProcess(const OutputProcessDesc& desc)
   {
-    return std::make_shared<XPUOutputProcess<SYCLOp, half, TensorLayout::Chw16c>>(Ref<SYCLDevice>(this), desc);
+    return std::make_shared<XPUOutputProcess<SYCLOp, half, TensorLayout::Chw16c>>(this, desc);
   }
 
   void SYCLDevice::imageCopy(const Image& src, const Image& dst)
   {
-    xpuImageCopy(Ref<SYCLDevice>(this), src, dst);
+    xpuImageCopy<SYCLDevice>(this, src, dst);
   }
 
 } // namespace oidn

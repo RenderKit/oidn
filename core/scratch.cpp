@@ -67,17 +67,17 @@ namespace oidn {
   std::shared_ptr<Tensor> ScratchBuffer::newTensor(const TensorDesc& desc, ptrdiff_t offset)
   {
     size_t absOffset = offset >= 0 ? offset : localSize + offset;
-    auto result = getDevice()->newTensor(this, desc, absOffset);
-    memWps.push_back(result);
-    return result;
+    auto tensor = getDevice()->newTensor(this, desc, absOffset);
+    memWps.push_back(tensor);
+    return tensor;
   }
 
   std::shared_ptr<Image> ScratchBuffer::newImage(const ImageDesc& desc, ptrdiff_t offset)
   {
     size_t absOffset = offset >= 0 ? offset : localSize + offset;
-    auto result = std::make_shared<Image>(this, desc, absOffset);
-    memWps.push_back(result);
-    return result;
+    auto image = std::make_shared<Image>(this, desc, absOffset);
+    memWps.push_back(image);
+    return image;
   }
 
 } // namespace oidn

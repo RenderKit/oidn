@@ -10,7 +10,7 @@
 
 namespace oidn {
 
-  // Parses and reorders weights and biases from a blob
+  // Parses, reorders and caches network weights and biases from a blob
   class Weights
   {
   private:

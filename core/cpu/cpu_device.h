@@ -13,7 +13,7 @@
 
 namespace oidn {
 
-  class CPUDevice
+  class CPUDevice final
   #if defined(OIDN_DNNL)
     : public DNNLDevice
   #elif defined(OIDN_BNNS)

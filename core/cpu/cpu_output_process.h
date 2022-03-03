@@ -8,7 +8,7 @@
 
 namespace oidn {
 
-  class CPUOutputProcess : public CPUOp, public OutputProcess
+  class CPUOutputProcess final : public CPUOp, public OutputProcess
   {
   public:
     CPUOutputProcess(const Ref<CPUDevice>& device, const OutputProcessDesc& desc);

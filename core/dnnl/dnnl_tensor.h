@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -11,9 +11,6 @@ namespace oidn {
   // Native DNNL tensor
   class DNNLTensor final : public Tensor
   {
-  private:
-    dnnl::memory mem;
-
   public:
     DNNLTensor(const Ref<DNNLDevice>& device, const TensorDesc& desc);
     DNNLTensor(const Ref<DNNLDevice>& device, const TensorDesc& desc, void* data);
@@ -29,6 +26,8 @@ namespace oidn {
     void init(const Ref<DNNLDevice>& device);
     void init(const Ref<DNNLDevice>& device, void* data);
     void updatePtr() override;
+
+    dnnl::memory mem;
   };
 
 } // namespace oidn

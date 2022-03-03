@@ -8,7 +8,7 @@
 
 namespace oidn {
 
-  class CPUUpsample : public CPUOp, public Upsample
+  class CPUUpsample final : public CPUOp, public Upsample
   {
   public:
     CPUUpsample(const Ref<CPUDevice>& device, const UpsampleDesc& desc);

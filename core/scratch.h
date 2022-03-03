@@ -37,11 +37,6 @@ namespace oidn {
   {
     friend class ScratchBufferManager;
 
-  private:
-    std::shared_ptr<ScratchBufferManager> manager;
-    std::vector<std::weak_ptr<Memory>> memWps; // allocated memory objects
-    size_t localSize;                          // size of this buffer
-
   public:
     ScratchBuffer(const std::shared_ptr<ScratchBufferManager>& manager, size_t size);
     ~ScratchBuffer();
@@ -57,6 +52,11 @@ namespace oidn {
 
     std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, ptrdiff_t offset);
     std::shared_ptr<Image> newImage(const ImageDesc& desc, ptrdiff_t offset);
+
+  private:
+    std::shared_ptr<ScratchBufferManager> manager;
+    std::vector<std::weak_ptr<Memory>> memWps; // allocated memory objects
+    size_t localSize;                          // size of this buffer
   };
 
 } // namespace oidn
