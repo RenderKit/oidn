@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -15,25 +15,8 @@ namespace oidn {
 
   class ImageBuffer
   {
-  private:
-    DeviceRef device;
-    BufferRef buffer;
-    char* bufferPtr;
-    size_t numValues;
-    int width;
-    int height;
-    int numChannels;
-    Format dataType;
-
   public:
-    ImageBuffer()
-      : bufferPtr(nullptr),
-        numValues(0),
-        width(0),
-        height(0),
-        numChannels(0),
-        dataType(Format::Undefined) {}
-
+    ImageBuffer();
     ImageBuffer(const DeviceRef& device, int width, int height, int numChannels, Format dataType = Format::Float);
 
     OIDN_INLINE int getW() const { return width; }
@@ -98,6 +81,15 @@ namespace oidn {
     // Disable copying
     ImageBuffer(const ImageBuffer&) = delete;
     ImageBuffer& operator =(const ImageBuffer&) = delete;
+
+    DeviceRef device;
+    BufferRef buffer;
+    char* bufferPtr;
+    size_t numValues;
+    int width;
+    int height;
+    int numChannels;
+    Format dataType;
   };
 
   template<>

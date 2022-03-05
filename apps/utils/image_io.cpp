@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include <cmath>
@@ -11,6 +11,14 @@
 #endif
 
 namespace oidn {
+
+  ImageBuffer::ImageBuffer()
+    : bufferPtr(nullptr),
+      numValues(0),
+      width(0),
+      height(0),
+      numChannels(0),
+      dataType(Format::Undefined) {}
 
   ImageBuffer::ImageBuffer(const DeviceRef& device, int width, int height, int numChannels, Format dataType)
     : device(device),

@@ -16,10 +16,10 @@ using namespace oidn;
 
 #if defined(OIDN_FILTER_RT)
 
-void setFilterImage(FilterRef& filter, const char* name, ImageBuffer& image)
+void setFilterImage(FilterRef& filter, const char* name, const std::shared_ptr<ImageBuffer>& image)
 {
   Format format = Format::Undefined;
-  switch (image.getC())
+  switch (image->getC())
   {
   case 1: format = Format::Float;  break;
   case 2: format = Format::Float2; break;
@@ -29,7 +29,12 @@ void setFilterImage(FilterRef& filter, const char* name, ImageBuffer& image)
     assert(0);
   }
 
-  filter.setImage(name, image.getData(), format, image.getW(), image.getH());
+  filter.setImage(name, image->getData(), format, image->getW(), image->getH());
+}
+
+std::shared_ptr<ImageBuffer> makeImage(DeviceRef& device, int W, int H, int C = 3)
+{
+  return std::make_shared<ImageBuffer>(device, W, H, C);
 }
 
 std::shared_ptr<ImageBuffer> makeConstImage(DeviceRef& device, int W, int H, int C = 3, float value = 0.5f)
@@ -40,11 +45,11 @@ std::shared_ptr<ImageBuffer> makeConstImage(DeviceRef& device, int W, int H, int
   return image;
 }
 
-bool isBetween(const ImageBuffer& image, float a, float b)
+bool isBetween(const std::shared_ptr<ImageBuffer>& image, float a, float b)
 {
-  for (size_t i = 0; i < image.getSize(); ++i)
+  for (size_t i = 0; i < image->getSize(); ++i)
   {
-    const float x = image.get(i);
+    const float x = image->get(i);
     if (!std::isfinite(x) || x < a || x > b)
       return false;
   }
@@ -66,9 +71,9 @@ TEST_CASE("single filter", "[single_filter]")
   FilterRef filter = device.newFilter("RT");
   REQUIRE(bool(filter));
 
-  std::shared_ptr<ImageBuffer> image = makeConstImage(device, W, H);
-  setFilterImage(filter, "color",  *image);
-  setFilterImage(filter, "output", *image);
+  auto image = makeConstImage(device, W, H);
+  setFilterImage(filter, "color",  image);
+  setFilterImage(filter, "output", image);
 
   filter.commit();
   REQUIRE(device.getError() == Error::None);
@@ -98,9 +103,9 @@ void multiFilter1PerDeviceTest(DeviceRef& device, const std::vector<int>& sizes)
     FilterRef filter = device.newFilter("RT");
     REQUIRE(bool(filter));
 
-    std::shared_ptr<ImageBuffer> image = makeConstImage(device, sizes[i], sizes[i]);
-    setFilterImage(filter, "color",  *image);
-    setFilterImage(filter, "output", *image);
+    auto image = makeConstImage(device, sizes[i], sizes[i]);
+    setFilterImage(filter, "color",  image);
+    setFilterImage(filter, "output", image);
 
     filter.commit();
     REQUIRE(device.getError() == Error::None);
@@ -121,8 +126,8 @@ void multiFilterNPerDeviceTest(DeviceRef& device, const std::vector<int>& sizes)
     REQUIRE(bool(filters[i]));
 
     images.push_back(makeConstImage(device, sizes[i], sizes[i]));
-    setFilterImage(filters[i], "color",  *images[i]);
-    setFilterImage(filters[i], "output", *images[i]);
+    setFilterImage(filters[i], "color",  images[i]);
+    setFilterImage(filters[i], "output", images[i]);
 
     filters[i].commit();
     REQUIRE(device.getError() == Error::None);
@@ -184,8 +189,8 @@ TEST_CASE("multiple devices", "[multi_device]")
     REQUIRE(bool(filters[i]));
 
     images.push_back(makeConstImage(devices[i], sizes[i], sizes[i]));
-    setFilterImage(filters[i], "color",  *images[i]);
-    setFilterImage(filters[i], "output", *images[i]);
+    setFilterImage(filters[i], "color",  images[i]);
+    setFilterImage(filters[i], "output", images[i]);
 
     filters[i].commit();
     REQUIRE(devices[i].getError() == Error::None);
@@ -213,12 +218,12 @@ TEST_CASE("filter update", "[filter_update]")
   FilterRef filter = device.newFilter("RT");
   REQUIRE(bool(filter));
 
-  std::shared_ptr<ImageBuffer> color  = makeConstImage(device, W, H);
-  std::shared_ptr<ImageBuffer> albedo = makeConstImage(device, W, H);
-  std::shared_ptr<ImageBuffer> output = makeConstImage(device, W, H);
-  setFilterImage(filter, "color",  *color);
-  setFilterImage(filter, "albedo", *albedo);
-  setFilterImage(filter, "output", *output);
+  auto color  = makeConstImage(device, W, H);
+  auto albedo = makeConstImage(device, W, H);
+  auto output = makeConstImage(device, W, H);
+  setFilterImage(filter, "color",  color);
+  setFilterImage(filter, "albedo", albedo);
+  setFilterImage(filter, "output", output);
 
   filter.set("hdr", true);
 
@@ -236,7 +241,7 @@ TEST_CASE("filter update", "[filter_update]")
   SECTION("filter update: same image size")
   {
     color = makeConstImage(device, W, H);
-    setFilterImage(filter, "color", *color);
+    setFilterImage(filter, "color", color);
   }
 
   SECTION("filter update: different image size")
@@ -244,9 +249,9 @@ TEST_CASE("filter update", "[filter_update]")
     color  = makeConstImage(device, W*2, H*2);
     albedo = makeConstImage(device, W*2, H*2);
     output = makeConstImage(device, W*2, H*2);
-    setFilterImage(filter, "color",  *color);
-    setFilterImage(filter, "albedo", *albedo);
-    setFilterImage(filter, "output", *output);
+    setFilterImage(filter, "color",  color);
+    setFilterImage(filter, "albedo", albedo);
+    setFilterImage(filter, "output", output);
   }
 
   SECTION("filter update: remove image")
@@ -279,9 +284,9 @@ void imageSizeTest(DeviceRef& device, int W, int H)
   REQUIRE(bool(filter));
 
   auto color  = makeConstImage(device, W, H);
-  auto output = makeConstImage(device, W, H);
-  setFilterImage(filter, "color",  *color);
-  setFilterImage(filter, "output", *output);
+  auto output = makeImage(device, W, H);
+  setFilterImage(filter, "color",  color);
+  setFilterImage(filter, "output", output);
 
   filter.commit();
   REQUIRE(device.getError() == Error::None);
@@ -327,11 +332,11 @@ void sanitizationTest(DeviceRef& device, bool hdr, float value)
   FilterRef filter = device.newFilter("RT");
   REQUIRE(bool(filter));
 
-  std::shared_ptr<ImageBuffer> input = makeConstImage(device, W, H, 3, value);
-  ImageBuffer output(device, W, H, 3);
-  setFilterImage(filter, "color",  *input);
-  setFilterImage(filter, "albedo", *input);
-  setFilterImage(filter, "normal", *input);
+  auto input  = makeConstImage(device, W, H, 3, value);
+  auto output = makeImage(device, W, H, 3);
+  setFilterImage(filter, "color",  input);
+  setFilterImage(filter, "albedo", input);
+  setFilterImage(filter, "normal", input);
   setFilterImage(filter, "output", output);
   filter.set("hdr", hdr);
 
@@ -399,9 +404,9 @@ void progressTest(DeviceRef& device, double nMax = 1000)
   FilterRef filter = device.newFilter("RT");
   REQUIRE(bool(filter));
 
-  std::shared_ptr<ImageBuffer> image = makeConstImage(device, W, H);
-  setFilterImage(filter, "color",  *image);
-  setFilterImage(filter, "output", *image); // in-place
+  auto image = makeConstImage(device, W, H);
+  setFilterImage(filter, "color",  image);
+  setFilterImage(filter, "output", image); // in-place
 
   Progress progress(nMax);
   filter.setProgressMonitorFunction(progressCallback, &progress);
