@@ -278,12 +278,10 @@ void imageSizeTest(DeviceRef& device, int W, int H)
   FilterRef filter = device.newFilter("RT");
   REQUIRE(bool(filter));
 
-  const int N = std::max(W * H * 3, 1); // make sure the buffers are never null
-  std::vector<float> input(N, 0.5f);
-  std::vector<float> output(N);
-
-  filter.setImage("color",  input.data(),  Format::Float3, W, H);
-  filter.setImage("output", output.data(), Format::Float3, W, H);
+  auto color  = makeConstImage(device, W, H);
+  auto output = makeConstImage(device, W, H);
+  setFilterImage(filter, "color",  *color);
+  setFilterImage(filter, "output", *output);
 
   filter.commit();
   REQUIRE(device.getError() == Error::None);

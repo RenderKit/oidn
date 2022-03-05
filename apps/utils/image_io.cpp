@@ -33,7 +33,7 @@ namespace oidn {
       assert(0);
     }
   
-    buffer = device.newBuffer(numValues * valueSize);
+    buffer = device.newBuffer(std::max(numValues * valueSize, size_t(1))); // avoid zero-sized buffer
     bufferPtr = (char*)buffer.getData();
   }
 
