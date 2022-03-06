@@ -109,19 +109,7 @@ int main(int argc, char* argv[])
     {
       std::string opt = args.getNextOpt();
       if (opt == "d" || opt == "dev" || opt == "device")
-      {
-        const auto val = args.getNextValue();
-        if (val == "default" || val == "Default")
-          deviceType = DeviceType::Default;
-        else if (val == "cpu" || val == "CPU")
-          deviceType = DeviceType::CPU;
-        else if (val == "sycl" || val == "SYCL")
-          deviceType = DeviceType::SYCL;
-        else if (val == "cuda" || val == "CUDA")
-          deviceType = DeviceType::CUDA;
-        else
-          throw std::invalid_argument("invalid device");
-      }
+        deviceType = args.getNextValue<DeviceType>();
       else if (opt == "f" || opt == "filter")
         filterType = args.getNextValue();
       else if (opt == "hdr")
@@ -150,7 +138,7 @@ int main(int argc, char* argv[])
       else if (opt == "r" || opt == "ref" || opt == "reference")
         refFilename = args.getNextValue();
       else if (opt == "is" || opt == "input_scale" || opt == "inputScale" || opt == "inputscale")
-        inputScale = args.getNextValueFloat();
+        inputScale = args.getNextValue<float>();
       else if (opt == "clean_aux" || opt == "cleanAux")
         cleanAux = true;
       else if (opt == "t" || opt == "type")
@@ -166,17 +154,17 @@ int main(int argc, char* argv[])
       else if (opt == "w" || opt == "weights")
         weightsFilename = args.getNextValue();
       else if (opt == "bench" || opt == "benchmark")
-        numBenchmarkRuns = std::max(args.getNextValueInt(), 0);
+        numBenchmarkRuns = std::max(args.getNextValue<int>(), 0);
       else if (opt == "threads")
-        numThreads = args.getNextValueInt();
+        numThreads = args.getNextValue<int>();
       else if (opt == "affinity")
-        setAffinity = args.getNextValueInt();
+        setAffinity = args.getNextValue<int>();
       else if (opt == "maxmem" || opt == "maxMemoryMB")
-        maxMemoryMB = args.getNextValueInt();
+        maxMemoryMB = args.getNextValue<int>();
       else if (opt == "inplace")
         inplace = true;
       else if (opt == "v" || opt == "verbose")
-        verbose = args.getNextValueInt();
+        verbose = args.getNextValue<int>();
       else if (opt == "h" || opt == "help")
       {
         printUsage();
@@ -230,23 +218,7 @@ int main(int argc, char* argv[])
     const int versionMinor = device.get<int>("versionMinor");
     const int versionPatch = device.get<int>("versionPatch");
 
-    const char* deviceName;
-    switch (deviceType)
-    {
-    case DeviceType::CPU:
-      deviceName = "cpu";
-      break;
-    case DeviceType::SYCL:
-      deviceName = "sycl";
-      break;
-    case DeviceType::CUDA:
-      deviceName = "cuda";
-      break;
-    default:
-      deviceName = "default";
-    }
-
-    std::cout << "  device=" << deviceName
+    std::cout << "  device=" << deviceType
               << ", version=" << versionMajor << "." << versionMinor << "." << versionPatch
               << ", msec=" << (1000. * deviceInitTime) << std::endl;
 

@@ -222,31 +222,19 @@ int main(int argc, char* argv[])
     {
       std::string opt = args.getNextOpt();
       if (opt == "d" || opt == "dev" || opt == "device")
-      {
-        const auto val = args.getNextValue();
-        if (val == "default" || val == "Default")
-          deviceType = DeviceType::Default;
-        else if (val == "cpu" || val == "CPU")
-          deviceType = DeviceType::CPU;
-        else if (val == "sycl" || val == "SYCL")
-          deviceType = DeviceType::SYCL;
-        else if (val == "cuda" || val == "CUDA")
-          deviceType = DeviceType::CUDA;
-        else
-          throw std::invalid_argument("invalid device");
-      }
+        deviceType = args.getNextValue<DeviceType>();
       else if (opt == "r" || opt == "run")
         run = args.getNextValue();
       else if (opt == "n")
       {
-        numRuns = args.getNextValueInt();
+        numRuns = args.getNextValue<int>();
         if (numRuns <= 0)
           throw std::runtime_error("invalid number of runs");
       }
       else if (opt == "s" || opt == "size")
       {
-        width  = args.getNextValueInt();
-        height = args.getNextValueInt();
+        width  = args.getNextValue<int>();
+        height = args.getNextValue<int>();
         if (width < 1 || height < 1)
           throw std::runtime_error("invalid image size");
       }
@@ -261,15 +249,15 @@ int main(int argc, char* argv[])
           throw std::runtime_error("invalid data type");
       }
       else if (opt == "threads")
-        numThreads = args.getNextValueInt();
+        numThreads = args.getNextValue<int>();
       else if (opt == "affinity")
-        setAffinity = args.getNextValueInt();
+        setAffinity = args.getNextValue<int>();
       else if (opt == "maxmem" || opt == "maxMemoryMB")
-        maxMemoryMB = args.getNextValueInt();
+        maxMemoryMB = args.getNextValue<int>();
       else if (opt == "inplace")
         inplace = true;
       else if (opt == "v" || opt == "verbose")
-        verbose = args.getNextValueInt();
+        verbose = args.getNextValue<int>();
       else if (opt == "l" || opt == "list")
         run = "";
       else if (opt == "h" || opt == "help")

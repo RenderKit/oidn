@@ -141,6 +141,10 @@ namespace oidn {
   void* alignedMalloc(size_t size, size_t alignment = memoryAlignment);
   void alignedFree(void* ptr);
 
+  // ---------------------------------------------------------------------------
+  // String functions
+  // ---------------------------------------------------------------------------
+
   template<typename T>
   inline std::string toString(const T& a)
   {
@@ -163,6 +167,9 @@ namespace oidn {
   {
     return str;
   }
+
+  std::ostream& operator <<(std::ostream& sm, DeviceType deviceType);
+  std::istream& operator >>(std::istream& sm, DeviceType& deviceType);
 
 #if defined(__APPLE__)
   template<typename T>
