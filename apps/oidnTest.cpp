@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include <cassert>
@@ -7,12 +7,14 @@
 #include <OpenImageDenoise/oidn.hpp>
 #include "apps/utils/image_io.h"
 
-#define CATCH_CONFIG_MAIN
+#define CATCH_CONFIG_RUNNER
 #define CATCH_CONFIG_FAST_COMPILE
 #include "catch.hpp"
 
 OIDN_NAMESPACE_USING
 using namespace oidn;
+
+DeviceType deviceType = DeviceType::Default;
 
 #if defined(OIDN_FILTER_RT)
 
@@ -63,7 +65,7 @@ TEST_CASE("single filter", "[single_filter]")
   const int W = 257;
   const int H = 89;
 
-  DeviceRef device = newDevice();
+  DeviceRef device = newDevice(deviceType);
   REQUIRE(bool(device));
   device.commit();
   REQUIRE(device.getError() == Error::None);
@@ -142,7 +144,7 @@ void multiFilterNPerDeviceTest(DeviceRef& device, const std::vector<int>& sizes)
 
 TEST_CASE("multiple filters", "[multi_filter]")
 {
-  DeviceRef device = newDevice();
+  DeviceRef device = newDevice(deviceType);
   REQUIRE(bool(device));
   device.commit();
   REQUIRE(device.getError() == Error::None);
@@ -180,7 +182,7 @@ TEST_CASE("multiple devices", "[multi_device]")
 
   for (size_t i = 0; i < sizes.size(); ++i)
   {
-    devices.push_back(newDevice());
+    devices.push_back(newDevice(deviceType));
     REQUIRE(devices[i]);
     devices[i].commit();
     REQUIRE(devices[i].getError() == Error::None);
@@ -210,7 +212,7 @@ TEST_CASE("filter update", "[filter_update]")
   const int W = 211;
   const int H = 599;
 
-  DeviceRef device = newDevice();
+  DeviceRef device = newDevice(deviceType);
   REQUIRE(bool(device));
   device.commit();
   REQUIRE(device.getError() == Error::None);
@@ -297,7 +299,7 @@ void imageSizeTest(DeviceRef& device, int W, int H)
 
 TEST_CASE("image size", "[size]")
 {
-  DeviceRef device = newDevice();
+  DeviceRef device = newDevice(deviceType);
   REQUIRE(bool(device));
   device.commit();
   REQUIRE(device.getError() == Error::None);
@@ -354,7 +356,7 @@ void sanitizationTest(DeviceRef& device, bool hdr, float value)
 
 TEST_CASE("image sanitization", "[sanitization]")
 {
-  DeviceRef device = newDevice();
+  DeviceRef device = newDevice(deviceType);
   REQUIRE(bool(device));
   device.commit();
   REQUIRE(device.getError() == Error::None);
@@ -434,7 +436,7 @@ void progressTest(DeviceRef& device, double nMax = 1000)
 
 TEST_CASE("progress monitor", "[progress]")
 {
-  DeviceRef device = newDevice();
+  DeviceRef device = newDevice(deviceType);
   REQUIRE(bool(device));
   device.commit();
   REQUIRE(device.getError() == Error::None);
@@ -461,3 +463,35 @@ TEST_CASE("progress monitor", "[progress]")
 }
 
 #endif // defined(OIDN_FILTER_RT)
+
+int main(int argc, char* argv[])
+{
+  Catch::Session session;
+
+  std::string deviceTypeStr = "default";
+
+  using namespace Catch::clara;
+  auto cli
+    = session.cli()
+    | Opt(deviceTypeStr, "default|cpu|sycl|cuda")
+        ["--device"]
+        ("Open Image Denoise device to use");
+
+  session.cli(cli);
+
+  int returnCode = session.applyCommandLine(argc, argv);
+  if (returnCode != 0)
+    return returnCode;
+
+  try
+  {
+    deviceType = fromString<DeviceType>(deviceTypeStr);
+  }
+  catch (std::exception& e)
+  {
+    std::cerr << "Error: " << e.what() << std::endl;
+    return 1;
+  }
+
+  return session.run();
+}
