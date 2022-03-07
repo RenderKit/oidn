@@ -280,7 +280,7 @@ TEST_CASE("filter update", "[filter_update]")
 
 // -----------------------------------------------------------------------------
 
-void imageSizeTest(DeviceRef& device, int W, int H)
+void imageSizeTest(DeviceRef& device, int W, int H, bool execute = true)
 {
   FilterRef filter = device.newFilter("RT");
   REQUIRE(bool(filter));
@@ -293,8 +293,11 @@ void imageSizeTest(DeviceRef& device, int W, int H)
   filter.commit();
   REQUIRE(device.getError() == Error::None);
 
-  filter.execute();
-  REQUIRE(device.getError() == Error::None);
+  if (execute)
+  {
+    filter.execute();
+    REQUIRE(device.getError() == Error::None);
+  }
 }
 
 TEST_CASE("image size", "[size]")
@@ -321,6 +324,11 @@ TEST_CASE("image size", "[size]")
     imageSizeTest(device, 1, 2);
     imageSizeTest(device, 2, 1);
     imageSizeTest(device, 2, 2);
+  }
+
+  SECTION("image size: 8192x4320")
+  {
+    imageSizeTest(device, 8192, 4320, false);
   }
 }
 
