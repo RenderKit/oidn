@@ -1,42 +1,58 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
 
-#include "op.h"
+#include "conv.h"
 
 namespace oidn {
 
   // Concatenation + 3x3 convolution descriptor
   struct ConcatConvDesc
   {
-    std::shared_ptr<Tensor> src1;
-    std::shared_ptr<Tensor> src2;
+    TensorDesc src1Desc;
+    TensorDesc src2Desc;
     std::shared_ptr<Tensor> weight;
     std::shared_ptr<Tensor> bias;
-    std::shared_ptr<Tensor> dst;
     bool relu;
   };
 
-  // Concatenation + 3x3 convolution
-  class ConcatConv : public virtual Op
+  class ConcatConv : public virtual Op, protected ConcatConvDesc
   {
+  public:    
+    ConcatConv(const ConcatConvDesc& desc);
+
+    TensorDesc getDstDesc() const { return dstDesc; }
+    virtual void setSrc(const std::shared_ptr<Tensor>& src1, const std::shared_ptr<Tensor>& src2);
+    virtual void setDst(const std::shared_ptr<Tensor>& dst);
+    std::shared_ptr<Tensor> getDst() const { return dst; }
+
   protected:
+    TensorDesc dstDesc;
     std::shared_ptr<Tensor> src1;
     std::shared_ptr<Tensor> src2;
-    std::shared_ptr<Tensor> weight1;
-    std::shared_ptr<Tensor> weight2;
-    std::shared_ptr<Tensor> bias;
     std::shared_ptr<Tensor> dst;
+  };
 
+  // Concatenation + 3x3 convolution for CHW tensors (including blocked) stored consecutively in memory
+  // Since the tensors are pre-concatenated in memory, only the convolution needs to be executed
+  class CHWConcatConv final : public BaseOp<>, public ConcatConv
+  {
   public:
-    ConcatConv(const ConcatConvDesc& desc)
-      : src1(desc.src1),
-        src2(desc.src2),
-        bias(desc.bias),
-        dst(desc.dst) {}
+    CHWConcatConv(const Ref<Device>& device, const ConcatConvDesc& desc);
 
-    std::shared_ptr<Tensor> getDst() const override { return dst; }
+    size_t getScratchByteSize() const override { return conv->getScratchByteSize(); }
+    void setScratch(const std::shared_ptr<Tensor>& scratch) override { conv->setScratch(scratch); }
+
+    void setSrc(const std::shared_ptr<Tensor>& src1, const std::shared_ptr<Tensor>& src2) override;
+    void setDst(const std::shared_ptr<Tensor>& dst) override;
+
+    void finalize() override { conv->finalize(); }
+    void run() override { conv->run(); }
+
+  private:
+    TensorDesc srcDesc; // concatenated source
+    std::shared_ptr<Conv> conv;
   };
 
 } // namespace oidn

@@ -21,58 +21,21 @@ namespace oidn {
   class TransferFunction;
 
   struct ConvDesc;
+  struct ConcatConvDesc;
   struct PoolDesc;
   struct UpsampleDesc;
   struct InputProcessDesc;
   struct OutputProcessDesc;
 
   class Conv;
+  class ConcatConv;
   class Pool;
   class Upsample;
   class InputProcess;
   class OutputProcess;
 
-  struct ConcatConvDesc;
-  class ConcatConv;
-
   class Device : public RefCount, public Verbose
   {
-  private:
-    // Thread-safety
-    std::mutex mutex;
-
-    // Error handling
-    struct ErrorState
-    {
-      Error code = Error::None;
-      std::string message;
-    };
-
-    static thread_local ErrorState globalError;
-    ThreadLocal<ErrorState> error;
-    ErrorFunction errorFunc = nullptr;
-    void* errorUserPtr = nullptr;
-
-    // Memory
-    std::weak_ptr<ScratchBufferManager> scratchManagerWp;
-
-  protected:
-    // Tasking
-    std::shared_ptr<tbb::task_arena> arena;
-
-    // Native tensor layout
-    DataType tensorDataType = DataType::Float32;
-    TensorLayout tensorLayout = TensorLayout::chw;
-    TensorLayout weightsLayout = TensorLayout::oihw;
-    int tensorBlockSize = 1;
-
-    // Parameters
-    int numThreads = 0; // autodetect by default
-    bool setAffinity = true;
-
-    bool dirty = true;
-    bool committed = false;
-
   public:
     Device();
 
@@ -113,7 +76,7 @@ namespace oidn {
 
     // Ops
     virtual std::shared_ptr<Conv> newConv(const ConvDesc& desc) = 0;
-    virtual std::shared_ptr<ConcatConv> newConcatConv(const ConcatConvDesc& desc) { return nullptr; }
+    virtual std::shared_ptr<ConcatConv> newConcatConv(const ConcatConvDesc& desc);
     virtual std::shared_ptr<Pool> newPool(const PoolDesc& desc) = 0;
     virtual std::shared_ptr<Upsample> newUpsample(const UpsampleDesc& desc) = 0;
     virtual std::shared_ptr<InputProcess> newInputProcess(const InputProcessDesc& desc) = 0;
@@ -135,6 +98,41 @@ namespace oidn {
   protected:
     virtual void init() = 0;
     virtual void printInfo() = 0;
+
+    // Tasking
+    std::shared_ptr<tbb::task_arena> arena;
+
+    // Native tensor layout
+    DataType tensorDataType = DataType::Float32;
+    TensorLayout tensorLayout = TensorLayout::chw;
+    TensorLayout weightsLayout = TensorLayout::oihw;
+    int tensorBlockSize = 1;
+
+    // Parameters
+    int numThreads = 0; // autodetect by default
+    bool setAffinity = true;
+
+    bool dirty = true;
+    bool committed = false;
+
+  private:
+    // Thread-safety
+    std::mutex mutex;
+
+    // Error handling
+    struct ErrorState
+    {
+      Error code = Error::None;
+      std::string message;
+    };
+
+    static thread_local ErrorState globalError;
+    ThreadLocal<ErrorState> error;
+    ErrorFunction errorFunc = nullptr;
+    void* errorUserPtr = nullptr;
+
+    // Memory
+    std::weak_ptr<ScratchBufferManager> scratchManagerWp;
   };
 
 } // namespace oidn

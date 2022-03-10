@@ -13,7 +13,7 @@ namespace oidn {
     case DataType::Float16: return sizeof(int16_t);
     case DataType::UInt8:   return 1;
     default:
-      throw Exception(Error::Unknown, "invalid data type");
+      throw std::invalid_argument("invalid data type");
     }
   }
 
@@ -31,7 +31,7 @@ namespace oidn {
     case Format::Half3:     return sizeof(int16_t)*3;
     case Format::Half4:     return sizeof(int16_t)*4;
     default:
-      throw Exception(Error::Unknown, "invalid format");
+      throw std::invalid_argument("invalid format");
     }
   }
 
@@ -50,7 +50,7 @@ namespace oidn {
     case Format::Half4:
       return DataType::Float16;
     default:
-      throw Exception(Error::Unknown, "invalid format");
+      throw std::invalid_argument("invalid format");
     }
   }
 

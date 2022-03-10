@@ -17,7 +17,7 @@ namespace oidn {
     TensorAccessor3D<TensorT, tensorLayout> src;
 
     // Destination
-    ImageAccessor<ImageT> output;
+    ImageAccessor<ImageT> dst;
 
     // Tile
     Tile tile;
@@ -57,7 +57,7 @@ namespace oidn {
       value = value * transferFunc.getOutputScale();
 
       // Store
-      output.set3(hDst, wDst, value);
+      dst.set3(hDst, wDst, value);
     }
   };
 

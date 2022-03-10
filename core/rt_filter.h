@@ -8,7 +8,7 @@
 namespace oidn {
 
   // RT: Generic ray tracing denoiser
-  class RTFilter : public UNetFilter
+  class RTFilter final : public UNetFilter
   {
   public:
     explicit RTFilter(const Ref<Device>& device);
@@ -19,7 +19,7 @@ namespace oidn {
     int get1i(const std::string& name) override;
   
   protected:
-    std::shared_ptr<TransferFunction> getTransferFunc() override;
+    std::shared_ptr<TransferFunction> newTransferFunc() override;
   };
 
 } // namespace oidn

@@ -6,9 +6,9 @@
 
 namespace oidn {
 
-  dnnl::memory::data_type toDNNL(DataType dt)
+  dnnl::memory::data_type toDNNL(DataType dataType)
   {
-    switch (dt)
+    switch (dataType)
     {
     case DataType::Float32:
       return dnnl::memory::data_type::f32;
@@ -17,7 +17,7 @@ namespace oidn {
     case DataType::UInt8:
       return dnnl::memory::data_type::u8;
     default:
-      throw Exception(Error::Unknown, "unsupported data type");
+      throw std::invalid_argument("unsupported data type");
     }
   }
 
@@ -53,7 +53,7 @@ namespace oidn {
       dnnlFormat = dnnl::memory::format_tag::oihw;
       break;
     default:
-      throw Exception(Error::Unknown, "unsupported tensor layout");
+      throw std::invalid_argument("unsupported tensor layout");
     }
 
     return dnnl::memory::desc(dnnlDims, toDNNL(td.dataType), dnnlFormat);
@@ -64,7 +64,7 @@ namespace oidn {
     if (auto dnnlTensor = dynamic_cast<const DNNLTensor*>(tensor.get()))
       return dnnlTensor->getDNNLMemory();
     else
-      throw Exception(Error::Unknown, "not DNNLTensor");
+      throw std::invalid_argument("not DNNLTensor");
   }
 
 } // namespace oidn

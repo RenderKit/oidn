@@ -13,7 +13,20 @@ namespace oidn {
   // U-Net based denoising filter
   class UNetFilter : public Filter
   {
+  public:
+    void setData(const std::string& name, const Data& data) override;
+    void updateData(const std::string& name) override;
+    void removeData(const std::string& name) override;
+    void set1f(const std::string& name, float value) override;
+    float get1f(const std::string& name) override;
+
+    void commit() override;
+    void execute(bool sync) override;
+
   protected:
+    explicit UNetFilter(const Ref<Device>& device);
+    virtual std::shared_ptr<TransferFunction> newTransferFunc() = 0;
+
     // Network constants
     static constexpr int alignment       = 16;  // required spatial alignment in pixels (padding may be necessary)
     static constexpr int receptiveField  = 174; // receptive field in pixels
@@ -34,21 +47,6 @@ namespace oidn {
     bool cleanAux = false;
     int maxMemoryMB = 3000; // approximate maximum memory usage in MBs
 
-    // Image dimensions
-    int H = 0;            // image height
-    int W = 0;            // image width
-    int tileH = 0;        // tile height
-    int tileW = 0;        // tile width
-    int tileCountH = 1;   // number of tiles in H dimension
-    int tileCountW = 1;   // number of tiles in W dimension
-    bool inplace = false; // indicates whether input and output buffers overlap
-
-    // Network
-    std::unique_ptr<Network> net;
-    std::shared_ptr<InputProcess> inputProcess;
-    std::shared_ptr<OutputProcess> outputProcess;
-    std::shared_ptr<TransferFunction> transferFunc;
-
     // Weights
     struct
     {
@@ -66,23 +64,27 @@ namespace oidn {
     } weightsBlobs;
     Data userWeightsBlob;
 
-    explicit UNetFilter(const Ref<Device>& device);
-    virtual std::shared_ptr<TransferFunction> getTransferFunc() = 0;
-
-  public:
-    void setData(const std::string& name, const Data& data) override;
-    void updateData(const std::string& name) override;
-    void removeData(const std::string& name) override;
-    void set1f(const std::string& name, float value) override;
-    float get1f(const std::string& name) override;
-
-    void commit() override;
-    void execute(bool sync) override;
-
   private:
     void init();
-    void computeTileSize();
-    size_t buildNet(bool getScratchSizeOnly = false);
+    void cleanup();
+    void checkParams();
+    std::shared_ptr<Weights> parseWeights();
+    bool buildNet(size_t maxScratchByteSize = std::numeric_limits<size_t>::max());
+
+    // Image dimensions
+    int H = 0;            // image height
+    int W = 0;            // image width
+    int tileH = 0;        // tile height
+    int tileW = 0;        // tile width
+    int tileCountH = 1;   // number of tiles in H dimension
+    int tileCountW = 1;   // number of tiles in W dimension
+    bool inplace = false; // indicates whether input and output buffers overlap
+
+    // Network
+    std::unique_ptr<Network> net;
+    std::shared_ptr<InputProcess> inputProcess;
+    std::shared_ptr<OutputProcess> outputProcess;
+    std::shared_ptr<TransferFunction> transferFunc;
   };
 
 } // namespace oidn

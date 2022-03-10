@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -8,25 +8,29 @@
 
 namespace oidn {
 
-  class CUDAConv : public CUDAOp, public Conv
+  class CUDAConv final : public CUDAOp, public Conv
   {
-  private:
-    cudnnConvolutionDescriptor_t convDesc;
-    cudnnConvolutionFwdAlgo_t convAlgo;
-    cudnnActivationDescriptor_t activationDesc;
-    cudnnTensorDescriptor_t srcDesc;
-    cudnnFilterDescriptor_t weightDesc;
-    cudnnTensorDescriptor_t biasDesc;
-    cudnnTensorDescriptor_t dstDesc;
-    std::shared_ptr<Tensor> scratch;
-
   public:
     CUDAConv(const Ref<CUDADevice>& device, const ConvDesc& desc);
     ~CUDAConv();
 
-    void run() override;
-    size_t getScratchSize() const override;
+    bool isSupported() const override;
+
+    size_t getScratchByteSize() const override;
     void setScratch(const std::shared_ptr<Tensor>& scratch) override;
+
+    void run() override;
+
+  private:
+    cudnnConvolutionDescriptor_t convDesc;
+    cudnnConvolutionFwdAlgo_t algo;
+    cudnnActivationDescriptor_t activationDesc;
+    cudnnTensorDescriptor_t xDesc;
+    cudnnFilterDescriptor_t wDesc;
+    cudnnTensorDescriptor_t biasDesc;
+    cudnnTensorDescriptor_t yDesc;
+
+    std::shared_ptr<Tensor> scratch;
   };
 
 } // namespace oidn

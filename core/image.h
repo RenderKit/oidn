@@ -104,7 +104,7 @@ namespace oidn {
     operator ImageAccessor<T>() const
     {
       if (format != Format::Undefined && getDataType() != DataTypeOf<T>::value)
-        throw Exception(Error::Unknown, "incompatible image accessor");
+        throw std::logic_error("incompatible image accessor");
 
       ImageAccessor<T> acc;
       acc.ptr = (uint8_t*)ptr;

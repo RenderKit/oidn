@@ -3,6 +3,7 @@
 
 #include "weights.h"
 #include "tza.h"
+#include "reorder.h"
 
 namespace oidn {
 
@@ -60,6 +61,14 @@ namespace oidn {
     auto dst = device->newTensor({{O, I, H, W}, device->getWeightsLayout(), device->getTensorDataType()});
     reorder(*src, *dst);
     return dst;
+  }
+
+  size_t Weights::getScratchByteSize() const
+  {
+    size_t scratchByteSize = 0;
+    for (const auto& name : reordered)
+      scratchByteSize += tensors.find(name)->second->getByteSize();
+    return scratchByteSize;
   }
 
 } // namespace oidn

@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "cuda_concat_conv.h"
@@ -9,10 +9,95 @@ namespace oidn {
     : CUDAOp(device),
       ConcatConv(desc)
   {
-    weight1 = device->newTensor({{desc.weight->getO(), src1->getC(), desc.weight->getH(), desc.weight->getW()}, desc.weight->getLayout(), desc.weight->getDataType()});
-    weight2 = device->newTensor({{desc.weight->getO(), src2->getC(), desc.weight->getH(), desc.weight->getW()}, desc.weight->getLayout(), desc.weight->getDataType()});
+    // Split the convolution into two smaller convolutions
+    weight1Desc = {{weight->getO(), src1Desc.getC(), weight->getH(), weight->getW()}, weight->getLayout(), weight->getDataType()};
+    weight2Desc = {{weight->getO(), src2Desc.getC(), weight->getH(), weight->getW()}, weight->getLayout(), weight->getDataType()};
 
-    TensorAccessor4D<half, TensorLayout::ohwi> weightAcc = *desc.weight;
+    checkError(cudnnCreateConvolutionDescriptor(&convDesc));
+    checkError(cudnnSetConvolution2dDescriptor(convDesc,
+                                               1,
+                                               1,
+                                               1,
+                                               1,
+                                               1,
+                                               1,
+                                               CUDNN_CONVOLUTION,
+                                               toCuDNN(dstDesc.dataType)));
+
+    // Enable Tensor Core operations
+    checkError(cudnnSetConvolutionMathType(convDesc,
+                                           CUDNN_TENSOR_OP_MATH));
+
+    algo = CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_PRECOMP_GEMM;
+
+    checkError(cudnnCreateActivationDescriptor(&activationDesc));
+    checkError(cudnnSetActivationDescriptor(activationDesc,
+                                            relu ? CUDNN_ACTIVATION_RELU : CUDNN_ACTIVATION_IDENTITY,
+                                            CUDNN_PROPAGATE_NAN,
+                                            0));
+
+    x1Desc   = toCuDNNTensor(src1Desc);
+    x2Desc   = toCuDNNTensor(src2Desc);
+    w1Desc   = toCuDNNFilter(weight1Desc);
+    w2Desc   = toCuDNNFilter(weight2Desc);
+    biasDesc = toCuDNNTensor(bias->getDesc());
+    yDesc    = toCuDNNTensor(dstDesc);
+  }
+
+  CUDAConcatConv::~CUDAConcatConv()
+  {
+    checkError(cudnnDestroyConvolutionDescriptor(convDesc));
+    checkError(cudnnDestroyActivationDescriptor(activationDesc));
+    checkError(cudnnDestroyTensorDescriptor(x1Desc));
+    checkError(cudnnDestroyTensorDescriptor(x2Desc));
+    checkError(cudnnDestroyFilterDescriptor(w1Desc));
+    checkError(cudnnDestroyFilterDescriptor(w2Desc));
+    checkError(cudnnDestroyTensorDescriptor(biasDesc));
+    checkError(cudnnDestroyTensorDescriptor(yDesc));
+  }
+
+  bool CUDAConcatConv::isSupported() const
+  {
+    return x1Desc && x2Desc && w1Desc && w2Desc && biasDesc && yDesc;
+  }
+
+  size_t CUDAConcatConv::getScratchByteSize() const
+  {
+    assert(isSupported());
+
+    size_t scratchByteSize1;
+    checkError(cudnnGetConvolutionForwardWorkspaceSize(device->getCuDNNHandle(),
+                                                       x1Desc,
+                                                       w1Desc,
+                                                       convDesc,
+                                                       yDesc,
+                                                       algo,
+                                                       &scratchByteSize1));
+
+    size_t scratchByteSize2;
+    checkError(cudnnGetConvolutionForwardWorkspaceSize(device->getCuDNNHandle(),
+                                                       x2Desc,
+                                                       w2Desc,
+                                                       convDesc,
+                                                       yDesc,
+                                                       algo,
+                                                       &scratchByteSize2));
+                                                  
+    return max(scratchByteSize1, scratchByteSize2);
+  }
+
+  void CUDAConcatConv::setScratch(const std::shared_ptr<Tensor>& scratch)
+  {
+    this->scratch = scratch;
+  }
+
+  void CUDAConcatConv::finalize()
+  {
+    // Split weight into weight1 and weight2
+    weight1 = device->newTensor(weight1Desc);
+    weight2 = device->newTensor(weight2Desc);
+
+    TensorAccessor4D<half, TensorLayout::ohwi> weightAcc  = *weight;
     TensorAccessor4D<half, TensorLayout::ohwi> weight1Acc = *weight1;
     TensorAccessor4D<half, TensorLayout::ohwi> weight2Acc = *weight2;
 
@@ -31,115 +116,51 @@ namespace oidn {
       }
     }
 
-    checkError(cudnnCreateConvolutionDescriptor(&convDesc));
-    checkError(cudnnSetConvolution2dDescriptor(convDesc,
-                                               1,
-                                               1,
-                                               1,
-                                               1,
-                                               1,
-                                               1,
-                                               CUDNN_CONVOLUTION,
-                                               CUDNN_DATA_HALF));
-
-    // Enable Tensor Core operations
-    checkError(cudnnSetConvolutionMathType(convDesc,
-                                           CUDNN_TENSOR_OP_MATH));
-
-    convAlgo = CUDNN_CONVOLUTION_FWD_ALGO_IMPLICIT_PRECOMP_GEMM;
-
-    checkError(cudnnCreateActivationDescriptor(&activationDesc));
-    checkError(cudnnSetActivationDescriptor(activationDesc,
-                                            desc.relu ? CUDNN_ACTIVATION_RELU : CUDNN_ACTIVATION_IDENTITY,
-                                            CUDNN_PROPAGATE_NAN,
-                                            0.));
-
-    src1Desc    = toCuDNNTensor(src1->getDesc());
-    src2Desc    = toCuDNNTensor(src2->getDesc());
-    weight1Desc = toCuDNNFilter(weight1->getDesc());
-    weight2Desc = toCuDNNFilter(weight2->getDesc());
-    biasDesc    = toCuDNNTensor(bias->getDesc());
-    dstDesc     = toCuDNNTensor(dst->getDesc());
-  }
-
-  CUDAConcatConv::~CUDAConcatConv()
-  {
-    checkError(cudnnDestroyConvolutionDescriptor(convDesc));
-    checkError(cudnnDestroyActivationDescriptor(activationDesc));
-    checkError(cudnnDestroyTensorDescriptor(src1Desc));
-    checkError(cudnnDestroyTensorDescriptor(src2Desc));
-    checkError(cudnnDestroyFilterDescriptor(weight1Desc));
-    checkError(cudnnDestroyFilterDescriptor(weight2Desc));
-    checkError(cudnnDestroyTensorDescriptor(biasDesc));
-    checkError(cudnnDestroyTensorDescriptor(dstDesc));
+    weight.reset();
   }
 
   void CUDAConcatConv::run()
   {
+    assert(isSupported());
+
     const float alpha1 = 1;
     const float alpha2 = 0;
 
+    // Convolution 1
     checkError(cudnnConvolutionForward(
       device->getCuDNNHandle(),
       &alpha1,
-      src1Desc,
+      x1Desc,
       src1->getData(),
-      weight1Desc,
+      w1Desc,
       weight1->getData(),
       convDesc,
-      convAlgo,
+      algo,
       scratch ? scratch->getData() : nullptr,
       scratch ? scratch->getByteSize() : 0,
       &alpha2,
-      dstDesc,
+      yDesc,
       dst->getData()));
 
+    // Convolution 2, accumulation, bias, activation
     checkError(cudnnConvolutionBiasActivationForward(device->getCuDNNHandle(),
                                                      &alpha1,
-                                                     src2Desc,
+                                                     x2Desc,
                                                      src2->getData(),
-                                                     weight2Desc,
+                                                     w2Desc,
                                                      weight2->getData(),
                                                      convDesc,
-                                                     convAlgo,
+                                                     algo,
                                                      scratch ? scratch->getData() : nullptr,
                                                      scratch ? scratch->getByteSize() : 0,
                                                      &alpha1,
-                                                     dstDesc,
+                                                     yDesc,
                                                      dst->getData(),
                                                      biasDesc,
                                                      bias->getData(),
                                                      activationDesc,
-                                                     dstDesc,
+                                                     yDesc,
                                                      dst->getData()));
-  }
-
-  size_t CUDAConcatConv::getScratchSize() const
-  {
-    size_t scratchSize1;
-    checkError(cudnnGetConvolutionForwardWorkspaceSize(device->getCuDNNHandle(),
-                                                       src1Desc,
-                                                       weight1Desc,
-                                                       convDesc,
-                                                       dstDesc,
-                                                       convAlgo,
-                                                       &scratchSize1));
-
-    size_t scratchSize2;
-    checkError(cudnnGetConvolutionForwardWorkspaceSize(device->getCuDNNHandle(),
-                                                      src2Desc,
-                                                      weight2Desc,
-                                                      convDesc,
-                                                      dstDesc,
-                                                      convAlgo,
-                                                      &scratchSize2));
-                                                  
-    return max(scratchSize1, scratchSize2);
-  }
-
-  void CUDAConcatConv::setScratch(const std::shared_ptr<Tensor>& scratch)
-  {
-    this->scratch = scratch;
   }
 
 } // namespace oidn

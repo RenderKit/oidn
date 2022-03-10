@@ -18,7 +18,7 @@ namespace oidn {
 
     void run() override
     {
-      switch (output->getDataType())
+      switch (dst->getDataType())
       {
       case DataType::Float32:
         runKernel<float>();
@@ -37,12 +37,12 @@ namespace oidn {
     {
       assert(tile.hSrcBegin + tile.H <= src->getH());
       assert(tile.wSrcBegin + tile.W <= src->getW());
-      //assert(tile.hDstBegin + tile.H <= output->getH());
-      //assert(tile.wDstBegin + tile.W <= output->getW());
+      //assert(tile.hDstBegin + tile.H <= dst->getH());
+      //assert(tile.wDstBegin + tile.W <= dst->getW());
 
       OutputProcessKernel<ImageT, TensorT, tensorLayout> kernel;
       kernel.src = *src;
-      kernel.output = *output;
+      kernel.dst = *dst;
       kernel.tile = tile;
       kernel.transferFunc = *transferFunc;
       kernel.hdr = hdr;

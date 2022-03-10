@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -10,31 +10,24 @@ namespace oidn {
   // 2x2 max pooling descriptor
   struct PoolDesc
   {
-    std::shared_ptr<Tensor> src;
-    std::shared_ptr<Tensor> dst;
+    TensorDesc srcDesc;
   };
 
   // 2x2 max pooling
-  class Pool : public virtual Op
+  class Pool : public virtual Op, protected PoolDesc
   {
+  public:
+    Pool(const PoolDesc& desc);
+    
+    TensorDesc getDstDesc() const { return dstDesc; }
+    virtual void setSrc(const std::shared_ptr<Tensor>& src);
+    virtual void setDst(const std::shared_ptr<Tensor>& dst);
+    std::shared_ptr<Tensor> getDst() const { return dst; }
+
   protected:
+    TensorDesc dstDesc;
     std::shared_ptr<Tensor> src;
     std::shared_ptr<Tensor> dst;
-
-  public:
-    Pool(const PoolDesc& desc)
-      : src(desc.src),
-        dst(desc.dst)
-    {
-      assert(src->getRank() == 3);
-      assert(dst->getRank() == 3);
-      assert(dst->getLayout() == src->getLayout());
-      assert(src->getC() == dst->getC());
-      assert(src->getH() == dst->getH() * 2);
-      assert(src->getW() == dst->getW() * 2);
-    }
-
-    std::shared_ptr<Tensor> getDst() const override { return dst; }
   };
 
 } // namespace oidn

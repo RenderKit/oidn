@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -161,7 +161,7 @@ namespace oidn {
     operator TensorAccessor1D<T>() const
     {
       if (layout != TensorLayout::x || dataType != DataTypeOf<T>::value)
-        throw Exception(Error::Unknown, "incompatible tensor accessor");
+        throw std::logic_error("incompatible tensor accessor");
       return TensorAccessor1D<T>(getData(), dims[0]);
     }
 
@@ -169,7 +169,7 @@ namespace oidn {
     operator TensorAccessor3D<T, layout>() const
     {
       if (this->layout != layout || dataType != DataTypeOf<T>::value)
-        throw Exception(Error::Unknown, "incompatible tensor accessor");
+        throw std::logic_error("incompatible tensor accessor");
       return TensorAccessor3D<T, layout>(getData(), getC(), getH(), getW());
     }
 
@@ -177,7 +177,7 @@ namespace oidn {
     operator TensorAccessor4D<T, layout>() const
     {
       if (this->layout != layout || dataType != DataTypeOf<T>::value)
-        throw Exception(Error::Unknown, "incompatible tensor accessor");
+        throw std::logic_error("incompatible tensor accessor");
       return TensorAccessor4D<T, layout>(getData(), getO(), getI(), getH(), getW());
     }
 
@@ -209,8 +209,5 @@ namespace oidn {
 
     void* ptr;
   };
-
-  // Reorder with zero padding
-  void reorder(const Tensor& src, Tensor& dst);
 
 } // namespace oidn

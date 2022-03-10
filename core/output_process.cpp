@@ -6,24 +6,23 @@
 namespace oidn {
   
   OutputProcess::OutputProcess(const OutputProcessDesc& desc)
-    : src(desc.src),
-      transferFunc(desc.transferFunc),
-      hdr(desc.hdr),
-      snorm(desc.snorm)
+    : OutputProcessDesc(desc)
   {
-    assert(src->getRank() == 3);
-    assert(src->getBlockSize() == device->getTensorBlockSize());
-
+    assert(srcDesc.getRank() == 3);
     setTile(0, 0, 0, 0, 0, 0);
   }
 
-  void OutputProcess::setDst(const std::shared_ptr<Image>& output)
+  void OutputProcess::setSrc(const std::shared_ptr<Tensor>& src)
   {
-    assert(output);
-    assert(src->getC() >= output->getC());
-    assert(output->getC() == 3);
+    assert(src->getDesc() == srcDesc);
+    this->src = src;
+  }
 
-    this->output = output;
+  void OutputProcess::setDst(const std::shared_ptr<Image>& dst)
+  {
+    assert(srcDesc.getC() >= dst->getC());
+    assert(dst->getC() == 3);
+    this->dst = dst;
   }
 
   void OutputProcess::setTile(int hSrc, int wSrc, int hDst, int wDst, int H, int W)

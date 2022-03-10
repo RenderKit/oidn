@@ -15,7 +15,7 @@ namespace oidn {
 
     OIDN_INLINE void operator ()(size_t hDst, size_t wDst) const SYCL_ESIMD_FUNCTION
     { 
-      using namespace sycl::ext::intel::experimental::esimd;
+      using namespace sycl::ext::intel::esimd;
 
       const size_t hDstOffset = hDst * dst.hStride;
       const size_t wDstOffset = wDst * dst.wStride;

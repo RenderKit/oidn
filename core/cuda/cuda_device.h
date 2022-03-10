@@ -34,17 +34,12 @@ namespace oidn {
     }
   }
 
-  inline void checkError(cudaError_t error)
-  {
-    if (error != cudaSuccess)
-      throw Exception(Error::Unknown, cudaGetErrorString(error));
-  }
+  void checkError(cudaError_t error);
 #endif
 
   class CUDADevice final : public Device
   { 
   public:
-    CUDADevice();
     ~CUDADevice();
 
     OIDN_INLINE cudnnHandle_t getCuDNNHandle() const { return cudnnHandle; }

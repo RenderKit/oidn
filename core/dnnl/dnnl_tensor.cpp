@@ -44,10 +44,10 @@ namespace oidn {
   {
     if (buffer)
     {
-      if (bufferOffset + getByteSize() > buffer->getByteSize())
-        throw Exception(Error::Unknown, "buffer region out of range");
+      if (byteOffset + getByteSize() > buffer->getByteSize())
+        throw std::range_error("buffer region out of range");
 
-      mem.set_data_handle(buffer->getData() + bufferOffset);
+      mem.set_data_handle(buffer->getData() + byteOffset);
     }
   }
 

@@ -9,31 +9,24 @@ namespace oidn {
 
   struct UpsampleDesc
   {
-    std::shared_ptr<Tensor> src;
-    std::shared_ptr<Tensor> dst;
+    TensorDesc srcDesc;
   };
 
   // 2x2 nearest-neighbor upsampling
-  class Upsample : public virtual Op
+  class Upsample : public virtual Op, protected UpsampleDesc
   {
+  public:
+    Upsample(const UpsampleDesc& desc);
+    
+    TensorDesc getDstDesc() const { return dstDesc; }
+    virtual void setSrc(const std::shared_ptr<Tensor>& src);
+    virtual void setDst(const std::shared_ptr<Tensor>& dst);
+    std::shared_ptr<Tensor> getDst() const { return dst; }
+
   protected:
+    TensorDesc dstDesc;
     std::shared_ptr<Tensor> src;
     std::shared_ptr<Tensor> dst;
-
-  public:
-    Upsample(const UpsampleDesc& desc)
-      : src(desc.src),
-        dst(desc.dst)
-    {
-      assert(src->getRank() == 3);
-      assert(dst->getRank() == 3);
-      assert(dst->getLayout() == src->getLayout());
-      assert(dst->getC() == src->getC());
-      assert(dst->getH() == src->getH() * 2);
-      assert(dst->getW() == src->getW() * 2);
-    }
-
-    std::shared_ptr<Tensor> getDst() const override { return dst; }
   };
 
 } // namespace oidn

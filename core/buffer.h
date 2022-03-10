@@ -7,7 +7,13 @@
 
 namespace oidn {
 
+  struct TensorDesc;
+  struct ImageDesc;
+
   class Device;
+  class Memory;
+  class Tensor;
+  class Image;
 
   // Memory allocation kind
   enum class MemoryKind
@@ -21,7 +27,11 @@ namespace oidn {
   // Generic buffer object
   class Buffer : public RefCount
   {
+    friend class Memory;
+
   public:
+    virtual Device* getDevice() = 0;
+
     virtual char* getData() = 0;
     virtual const char* getData() const = 0;
     virtual size_t getByteSize() const = 0;
@@ -32,10 +42,16 @@ namespace oidn {
     // Resizes the buffer discarding its current contents
     virtual void resize(size_t newSize)
     {
-      throw std::logic_error("resizing is not supported");
+      throw std::logic_error("resizing the buffer is not supported");
     }
 
-    virtual Device* getDevice() = 0;
+    std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, ptrdiff_t relByteOffset);
+    std::shared_ptr<Image> newImage(const ImageDesc& desc, ptrdiff_t relByteOffset);
+
+  private:
+    // Memory objects backed by the buffer must attach themselves
+    virtual void attach(Memory* mem) {}
+    virtual void detach(Memory* mem) {}
   };
 
   // Unified shared memory based buffer object
@@ -70,6 +86,8 @@ namespace oidn {
         allocator.deallocate(device, ptr, kind);
     }
 
+    Device* getDevice() override { return device.get(); }
+
     char* getData() override { return ptr; }
     const char* getData() const override { return ptr; }
     size_t getByteSize() const override { return byteSize; }
@@ -95,8 +113,6 @@ namespace oidn {
       byteSize = newSize;
     }
 
-    Device* getDevice() override { return device.get(); }
-
   protected:
     char* ptr;
     size_t byteSize;
@@ -106,26 +122,34 @@ namespace oidn {
     BufferAllocatorT allocator;
   };
 
-  // Memory object backed by a buffer
+  // Memory object optionally backed by a buffer
   class Memory
   {
   public:
-    Memory() : bufferOffset(0) {}
-    virtual ~Memory() = default;
+    Memory() : byteOffset(0) {}
 
-    Memory(const Ref<Buffer>& buffer, size_t bufferOffset = 0)
+    Memory(const Ref<Buffer>& buffer, size_t byteOffset = 0)
       : buffer(buffer),
-        bufferOffset(bufferOffset) {}
+        byteOffset(byteOffset)
+    {
+      buffer->attach(this);
+    }
+
+    virtual ~Memory()
+    {
+      if (buffer)
+        buffer->detach(this);
+    }
 
     Buffer* getBuffer() const { return buffer.get(); }
-    size_t getBufferOffset() const { return bufferOffset; }
+    size_t getByteOffset() const { return byteOffset; }
 
     // If the buffer gets reallocated, this must be called to update the internal pointer
     virtual void updatePtr() = 0;
 
   protected:
-    Ref<Buffer> buffer;  // buffer containing the data
-    size_t bufferOffset; // offset in the buffer
+    Ref<Buffer> buffer; // buffer containing the data
+    size_t byteOffset;  // offset in the buffer
   };
 
 } // namespace oidn

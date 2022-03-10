@@ -4,9 +4,11 @@
 #pragma once
 
 #include <Accelerate/Accelerate.h>
+#include "../tensor.h"
 
 namespace oidn {
 
-  BNNSNDArrayDescriptor toBNNS(const Tensor& t);
+  BNNSNDArrayDescriptor toBNNS(const TensorDesc& td);
+  BNNSNDArrayDescriptor toBNNS(const std::shared_ptr<Tensor>& t);
 
 } // namespace oidn

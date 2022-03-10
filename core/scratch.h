@@ -15,31 +15,35 @@ namespace oidn {
   class ScratchBuffer;
 
   // Manages scratch buffers sharing the same memory
-  class ScratchBufferManager
+  class ScratchBufferManager final
   {
     friend class ScratchBuffer;
-
-  private:
-    Ref<Buffer> buffer;                           // global shared buffer
-    std::unordered_set<ScratchBuffer*> scratches; // attached scratch buffers
 
   public:
     ScratchBufferManager(const Ref<Device>& device);
 
   private:
+    // Scratch buffers must attach themselves
     void attach(ScratchBuffer* scratch);
     void detach(ScratchBuffer* scratch);
+
+    // Updates the pointers of all attached memory objects
     void updatePtrs();
+
+    Ref<Buffer> buffer; // global shared buffer
+    std::unordered_set<ScratchBuffer*> scratches; // attached scratch buffers
   };
 
   // Scratch buffer that shares memory with other scratch buffers
-  class ScratchBuffer : public Buffer
+  class ScratchBuffer final : public Buffer
   {
     friend class ScratchBufferManager;
 
   public:
     ScratchBuffer(const std::shared_ptr<ScratchBufferManager>& manager, size_t size);
     ~ScratchBuffer();
+
+    Device* getDevice() override { return manager->buffer->getDevice(); }
 
     char* getData() override { return manager->buffer->getData(); }
     const char* getData() const override { return manager->buffer->getData(); };
@@ -48,15 +52,13 @@ namespace oidn {
     void* map(size_t offset, size_t size) override { return manager->buffer->map(offset, size); }
     void unmap(void* mappedPtr) override { return manager->buffer->unmap(mappedPtr); }
 
-    Device* getDevice() override { return manager->buffer->getDevice(); }
-
-    std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, ptrdiff_t offset);
-    std::shared_ptr<Image> newImage(const ImageDesc& desc, ptrdiff_t offset);
-
   private:
+    void attach(Memory* mem) override;
+    void detach(Memory* mem) override;
+
     std::shared_ptr<ScratchBufferManager> manager;
-    std::vector<std::weak_ptr<Memory>> memWps; // allocated memory objects
-    size_t localSize;                          // size of this buffer
+    std::unordered_set<Memory*> mems; // attached memory objects
+    size_t localSize; // size of this buffer
   };
 
 } // namespace oidn

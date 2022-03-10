@@ -1,8 +1,7 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "tensor.h"
-#include "tensor_accessor.h"
 
 namespace oidn {
 
@@ -31,7 +30,7 @@ namespace oidn {
   Tensor::operator ispc::TensorAccessor3D() const
   {
     if (getRank() != 3 || dataType != DataType::Float32)
-      throw Exception(Error::Unknown, "incompatible tensor accessor");
+      throw std::logic_error("incompatible tensor accessor");
 
     ispc::TensorAccessor3D result;
     result.ptr = (float*)getData();
@@ -114,87 +113,11 @@ namespace oidn {
   {
     if (buffer)
     {
-      if (bufferOffset + getByteSize() > buffer->getByteSize())
-        throw Exception(Error::Unknown, "buffer region out of range");
+      if (byteOffset + getByteSize() > buffer->getByteSize())
+        throw std::range_error("buffer region out of range");
 
-      ptr = buffer->getData() + bufferOffset;
+      ptr = buffer->getData() + byteOffset;
     }
-  }
-
-  namespace
-  {
-    template<typename SrcT, typename DstT, TensorLayout srcLayout, TensorLayout dstLayout>
-    struct Reorder
-    {
-      void operator ()(const Tensor& src, Tensor& dst)
-      {
-        TensorAccessor4D<SrcT, srcLayout> srcAcc = src;
-        TensorAccessor4D<DstT, dstLayout> dstAcc = dst;
-
-        for (int o = 0; o < dstAcc.O; ++o)
-        {
-          for (int i = 0; i < dstAcc.I; ++i)
-          {
-            for (int h = 0; h < dstAcc.H; ++h)
-            {
-              for (int w = 0; w < dstAcc.W; ++w)
-              {
-                SrcT value;
-                if (o < srcAcc.O && i < srcAcc.I)
-                  value = srcAcc(o, i, h, w);
-                else
-                  value = 0; // padding
-
-                dstAcc(o, i, h, w) = DstT(value);
-              }
-            }
-          }
-        }
-      }
-    };
-
-    template<typename SrcT, typename DstT>
-    struct Reorder<SrcT, DstT, TensorLayout::x, TensorLayout::x>
-    {
-      void operator ()(const Tensor& src, Tensor& dst)
-      {
-        TensorAccessor1D<SrcT> srcAcc = src;
-        TensorAccessor1D<DstT> dstAcc = dst;
-
-        for (int x = 0; x < srcAcc.X; ++x)
-          dstAcc(x) = srcAcc(x);
-
-        for (int x = srcAcc.X; x < dstAcc.X; ++x)
-          dstAcc(x) = 0; // padding
-      }
-    };
-
-    template<typename SrcT, typename DstT, TensorLayout srcLayout, TensorLayout dstLayout>
-    bool tryReorder(const Tensor& src, Tensor& dst)
-    {
-      if (src.getDataType() == DataTypeOf<SrcT>::value && src.getLayout() == srcLayout &&
-          dst.getDataType() == DataTypeOf<DstT>::value && dst.getLayout() == dstLayout)
-      {
-        Reorder<SrcT, DstT, srcLayout, dstLayout>()(src, dst);
-        return true;
-      }
-
-      return false;
-    }
-  }
-
-  void reorder(const Tensor& src, Tensor& dst)
-  {
-    bool ok =
-      tryReorder<float, float, TensorLayout::x,    TensorLayout::x>(src, dst) ||
-      tryReorder<float, half,  TensorLayout::x,    TensorLayout::x>(src, dst) ||
-      tryReorder<float, float, TensorLayout::oihw, TensorLayout::oihw>(src, dst) ||
-      tryReorder<float, half,  TensorLayout::oihw, TensorLayout::oihw>(src, dst) ||
-      tryReorder<float, float, TensorLayout::oihw, TensorLayout::ohwi>(src, dst) ||
-      tryReorder<float, half,  TensorLayout::oihw, TensorLayout::ohwi>(src, dst);
-
-    if (!ok)
-      throw Exception(Error::Unknown, "unsupported reorder");
   }
 
 } // namespace oidn

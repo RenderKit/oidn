@@ -21,7 +21,7 @@ namespace oidn {
   #endif
   }
 
-  std::shared_ptr<TransferFunction> RTLightmapFilter::getTransferFunc()
+  std::shared_ptr<TransferFunction> RTLightmapFilter::newTransferFunc()
   {
     if (hdr)
       return std::make_shared<TransferFunction>(TransferFunction::Type::Log);

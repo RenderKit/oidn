@@ -13,37 +13,43 @@ namespace oidn {
   public:
     virtual ~Op() = default;
 
-    virtual void run() = 0;
-    virtual std::shared_ptr<Tensor> getDst() const { return nullptr; }
+    virtual Device* getDevice() const = 0;
 
-    virtual size_t getScratchSize() const { return 0; }
+    // Support must be checked before getting the scratch size or running
+    virtual bool isSupported() const { return true; }
+
+    // Scratch memory
+    virtual size_t getScratchByteSize() const { return 0; }
     virtual void setScratch(const std::shared_ptr<Tensor>& scratch) {}
 
     // Name for debugging purposes
     virtual std::string getName() const = 0;
     virtual void setName(const std::string& name) = 0;
 
-    virtual Device* getDevice() = 0;
+    // Finalization is required before running
+    virtual void finalize() {}
+
+    virtual void run() = 0;
   };
 
   // Operation base class
-  template<typename DeviceT>
+  template<typename DeviceT = Device>
   class BaseOp : public virtual Op
   {
-  protected:
-    Ref<DeviceT> device;
-    std::string name;
-
   public:
     using DeviceType = DeviceT;
 
     BaseOp(const Ref<DeviceT>& device)
       : device(device) {}
 
+    Device* getDevice() const override { return device.get(); }
+
     std::string getName() const override { return name; }
     void setName(const std::string& name) override { this->name = name; }
 
-    Device* getDevice() override { return device.get(); }
+  protected:
+    Ref<DeviceT> device;
+    std::string name;
   };
 
 } // namespace oidn

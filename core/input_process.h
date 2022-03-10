@@ -12,37 +12,35 @@ namespace oidn {
 
   struct InputProcessDesc
   {
-    std::shared_ptr<Tensor> dst;
+    TensorDims srcDims;
+    int alignment;
     std::shared_ptr<TransferFunction> transferFunc;
     bool hdr;
     bool snorm;
   };
 
-  class InputProcess : public virtual Op
+  class InputProcess : public virtual Op, protected InputProcessDesc
   {
-  protected:
-    std::shared_ptr<Image> color;
-    std::shared_ptr<Image> albedo;
-    std::shared_ptr<Image> normal;
-    std::shared_ptr<Tensor> dst;
-    std::shared_ptr<TransferFunction> transferFunc;
-    Tile tile;
-    bool hdr;
-    bool snorm;
-
   public:
     InputProcess(const InputProcessDesc& desc);
-
+    
+    TensorDesc getDstDesc() const;
     void setSrc(const std::shared_ptr<Image>& color, const std::shared_ptr<Image>& albedo, const std::shared_ptr<Image>& normal);
+    void setDst(const std::shared_ptr<Tensor>& dst);
+    std::shared_ptr<Tensor> getDst() const { return dst; }
     void setTile(int hSrc, int wSrc, int hDst, int wDst, int H, int W);
-
-    std::shared_ptr<Tensor> getDst() const override { return dst; }
 
   protected:
     Image* getInput()
     {
       return color ? color.get() : (albedo ? albedo.get() : normal.get());
     }
+
+    std::shared_ptr<Image> color;
+    std::shared_ptr<Image> albedo;
+    std::shared_ptr<Image> normal;
+    std::shared_ptr<Tensor> dst;
+    Tile tile;
   };
 
 } // namespace oidn

@@ -8,10 +8,10 @@ if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
 endif()
 
-set(OIDN_VERSION_MAJOR 1)
-set(OIDN_VERSION_MINOR 5)
+set(OIDN_VERSION_MAJOR 2)
+set(OIDN_VERSION_MINOR 0)
 set(OIDN_VERSION_PATCH 0)
-set(OIDN_VERSION_NOTE "")
+set(OIDN_VERSION_NOTE "-alpha")
 
 set(OIDN_VERSION ${OIDN_VERSION_MAJOR}.${OIDN_VERSION_MINOR}.${OIDN_VERSION_PATCH})
 math(EXPR OIDN_VERSION_NUMBER "10000*${OIDN_VERSION_MAJOR} + 100*${OIDN_VERSION_MINOR} + ${OIDN_VERSION_PATCH}")
@@ -166,11 +166,16 @@ set(CORE_SOURCES
   core/xpu/xpu_upsample.h
   core/api.cpp
   core/buffer.h
+  core/buffer.cpp
   core/color.h
   core/color.cpp
   core/common.h
   core/common.cpp
+  core/concat_conv.h
+  core/concat_conv.cpp
+  core/conv.cpp
   core/conv.h
+  core/conv.cpp
   core/data.h
   core/device.h
   core/device.cpp
@@ -190,8 +195,10 @@ set(CORE_SOURCES
   core/output_process.cpp
   core/output_process_kernel.h
   core/pool.h
+  core/pool.cpp
   core/progress.h
   core/reorder.h
+  core/reorder.cpp
   core/rt_filter.h
   core/rt_filter.cpp
   core/rtlightmap_filter.h
@@ -209,6 +216,7 @@ set(CORE_SOURCES
   core/unet_filter.cpp
   core/upsample_kernel.h
   core/upsample.h
+  core/upsample.cpp
   core/vec.h
   core/weights.h
   core/weights.cpp

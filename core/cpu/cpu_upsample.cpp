@@ -12,15 +12,14 @@ namespace oidn {
 
   CPUUpsample::CPUUpsample(const Ref<CPUDevice>& device, const UpsampleDesc& desc)
     : CPUOp(device),
-      Upsample(desc)
+      Upsample(desc) {}
+
+  void CPUUpsample::run()
   {
     assert(src->getLayout() == TensorLayout::Chw8c ||
            src->getLayout() == TensorLayout::Chw16c);
     assert(src->getBlockSize() == device->getTensorBlockSize());
-  }
 
-  void CPUUpsample::run()
-  {
     ispc::UpsampleKernel kernel;
     kernel.src = *src;
     kernel.dst = *dst;
@@ -35,13 +34,12 @@ namespace oidn {
 
   CPUUpsample::CPUUpsample(const Ref<CPUDevice>& device, const UpsampleDesc& desc)
     : CPUOp(device),
-      Upsample(desc)
-  {
-    assert(src->getLayout() == TensorLayout::chw);
-  }
+      Upsample(desc) {}
 
   void CPUUpsample::run()
   {
+    assert(src->getLayout() == TensorLayout::chw);
+
     const size_t C = src->getC();
     const size_t H = src->getH();
     const size_t W = src->getW();

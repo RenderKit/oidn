@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -10,10 +10,6 @@ namespace oidn {
 
   class DNNLDevice : public Device
   {
-  protected:
-    dnnl::engine dnnlEngine;
-    dnnl::stream dnnlStream;
-
   public:
     OIDN_INLINE dnnl::engine& getDNNLEngine() { return dnnlEngine; }
     OIDN_INLINE dnnl::stream& getDNNLStream() { return dnnlStream; }
@@ -27,6 +23,10 @@ namespace oidn {
     // Ops
     std::shared_ptr<Conv> newConv(const ConvDesc& desc) override;
     std::shared_ptr<Pool> newPool(const PoolDesc& desc) override;
+
+  protected:
+    dnnl::engine dnnlEngine;
+    dnnl::stream dnnlStream;
   };
 
 } // namespace oidn

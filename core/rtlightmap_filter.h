@@ -8,7 +8,7 @@
 namespace oidn {
 
   // RTLightmap: Ray traced lightmap denoiser
-  class RTLightmapFilter : public UNetFilter
+  class RTLightmapFilter final : public UNetFilter
   {
   public:
     explicit RTLightmapFilter(const Ref<Device>& device);
@@ -19,7 +19,7 @@ namespace oidn {
     int get1i(const std::string& name) override;
 
   protected:
-    std::shared_ptr<TransferFunction> getTransferFunc() override;
+    std::shared_ptr<TransferFunction> newTransferFunc() override;
   };
 
 } // namespace oidn

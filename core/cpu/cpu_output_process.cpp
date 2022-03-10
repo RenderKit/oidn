@@ -20,7 +20,7 @@ namespace oidn {
     ispc::OutputProcessKernel kernel;
 
     kernel.src = *src;
-    kernel.output = *output;
+    kernel.dst = *dst;
     kernel.tile = tile;
     kernel.transferFunc = *transferFunc;
     kernel.hdr = hdr;

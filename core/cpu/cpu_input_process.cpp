@@ -1,8 +1,8 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "cpu_input_process.h"
-#include "input_kernel_ispc.h"
+#include "input_process_kernel_ispc.h"
 
 namespace oidn {
 

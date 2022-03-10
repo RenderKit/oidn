@@ -6,26 +6,35 @@
 namespace oidn {
 
   InputProcess::InputProcess(const InputProcessDesc& desc)
-    : dst(desc.dst),
-      transferFunc(desc.transferFunc),
-      hdr(desc.hdr),
-      snorm(desc.snorm)
+    : InputProcessDesc(desc)
   {
-    assert(dst->getRank() == 3);
-    assert(dst->getBlockSize() == device->getTensorBlockSize());
-
+    assert(srcDims.size() == 3);
     setTile(0, 0, 0, 0, 0, 0);
+  }
+
+  TensorDesc InputProcess::getDstDesc() const
+  {
+    TensorDims dstDims {
+      round_up(srcDims[0], getDevice()->getTensorBlockSize()), // round up C
+      round_up(srcDims[1], int64_t(alignment)), // round up H
+      round_up(srcDims[2], int64_t(alignment))  // round up W
+    };
+
+    return TensorDesc(dstDims, getDevice()->getTensorLayout(), getDevice()->getTensorDataType());
   }
 
   void InputProcess::setSrc(const std::shared_ptr<Image>& color, const std::shared_ptr<Image>& albedo, const std::shared_ptr<Image>& normal)
   {
-    assert(dst->getC() >= (color  ? color->getC()  : 0) +
-                          (albedo ? albedo->getC() : 0) +
-                          (normal ? normal->getC() : 0));
-
+    // FIXME: add checks
     this->color  = color;
     this->albedo = albedo;
     this->normal = normal;
+  }
+
+  void InputProcess::setDst(const std::shared_ptr<Tensor>& dst)
+  {
+    assert(dst->getDesc() == getDstDesc());
+    this->dst = dst;
   }
 
   void InputProcess::setTile(int hSrc, int wSrc, int hDst, int wDst, int H, int W)

@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -12,5 +12,8 @@ namespace oidn {
     std::shared_ptr<Tensor> src;
     std::shared_ptr<Tensor> dst;
   };
+
+  // Reorder with zero padding
+  void reorder(const Tensor& src, Tensor& dst);
 
 } // namespace oidn

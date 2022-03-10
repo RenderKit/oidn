@@ -12,7 +12,7 @@ struct OutputProcessKernel
   uniform TensorAccessor3D src;
 
   // Destination
-  uniform ImageAccessor output;
+  uniform ImageAccessor dst;
 
   // Tile
   uniform Tile tile;
@@ -56,6 +56,6 @@ export void OutputProcessKernel_run(uniform OutputProcessKernel* uniform self, u
     value = value * self->transferFunc.outputScale;
 
     // Store
-    set3f(self->output, hDst, wDst, value);
+    set3f(self->dst, hDst, wDst, value);
   }
 }

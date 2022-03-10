@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -8,18 +8,20 @@
 
 namespace oidn {
 
-  class CUDAPool : public CUDAOp, public Pool
+  class CUDAPool final : public CUDAOp, public Pool
   {
-  private:
-    cudnnPoolingDescriptor_t poolDesc;
-    cudnnTensorDescriptor_t srcDesc;
-    cudnnTensorDescriptor_t dstDesc;
-
   public:
     CUDAPool(const Ref<CUDADevice>& device, const PoolDesc& desc);
     ~CUDAPool();
 
+    bool isSupported() const override;
+
     void run() override;
+
+  private:
+    cudnnPoolingDescriptor_t poolDesc;
+    cudnnTensorDescriptor_t xDesc;
+    cudnnTensorDescriptor_t yDesc;
   };
 
 } // namespace oidn

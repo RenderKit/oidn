@@ -96,7 +96,7 @@ namespace oidn {
         acc.dataType = ispc::DataType_UInt8;
         break;
       default:
-        throw Exception(Error::Unknown, "unsupported data type");
+        throw std::logic_error("unsupported data type");
       }
     }
     else
@@ -112,10 +112,10 @@ namespace oidn {
   {
     if (buffer)
     {
-      if (bufferOffset + getByteSize() > buffer->getByteSize())
-        throw Exception(Error::Unknown, "buffer region out of range");
+      if (byteOffset + getByteSize() > buffer->getByteSize())
+        throw std::range_error("buffer region out of range");
 
-      ptr = buffer->getData() + bufferOffset;
+      ptr = buffer->getData() + byteOffset;
     }
   }
 

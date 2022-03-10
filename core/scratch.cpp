@@ -39,17 +39,11 @@ namespace oidn {
     }
   }
 
-  // Updates the pointers of all allocated memory objects
   void ScratchBufferManager::updatePtrs()
   {
     for (auto scratch : scratches)
-    {
-      for (auto& memWp : scratch->memWps)
-      {
-        if (auto mem = memWp.lock())
-          mem->updatePtr();
-      }
-    }
+      for (auto mem : scratch->mems)
+        mem->updatePtr();
   }
 
   ScratchBuffer::ScratchBuffer(const std::shared_ptr<ScratchBufferManager>& manager, size_t size)
@@ -64,20 +58,14 @@ namespace oidn {
     manager->detach(this);
   }
 
-  std::shared_ptr<Tensor> ScratchBuffer::newTensor(const TensorDesc& desc, ptrdiff_t offset)
+  void ScratchBuffer::attach(Memory* mem)
   {
-    size_t absOffset = offset >= 0 ? offset : localSize + offset;
-    auto tensor = getDevice()->newTensor(this, desc, absOffset);
-    memWps.push_back(tensor);
-    return tensor;
+    mems.insert(mem);
   }
 
-  std::shared_ptr<Image> ScratchBuffer::newImage(const ImageDesc& desc, ptrdiff_t offset)
+  void ScratchBuffer::detach(Memory* mem)
   {
-    size_t absOffset = offset >= 0 ? offset : localSize + offset;
-    auto image = std::make_shared<Image>(this, desc, absOffset);
-    memWps.push_back(image);
-    return image;
+    mems.erase(mem);
   }
 
 } // namespace oidn

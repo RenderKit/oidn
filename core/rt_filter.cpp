@@ -36,7 +36,7 @@ namespace oidn {
   #endif
   }
 
-  std::shared_ptr<TransferFunction> RTFilter::getTransferFunc()
+  std::shared_ptr<TransferFunction> RTFilter::newTransferFunc()
   {
     if (srgb || (!color && normal))
       return std::make_shared<TransferFunction>(TransferFunction::Type::Linear);

@@ -8,7 +8,7 @@
 
 namespace oidn {
 
-  dnnl::memory::data_type toDNNL(DataType dt);
+  dnnl::memory::data_type toDNNL(DataType dataType);
   dnnl::memory::desc toDNNL(const TensorDesc& td);
 
   // Returns the internal DNNL memory structure of a DNNLTensor
