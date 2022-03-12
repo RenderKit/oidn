@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -6,6 +6,13 @@
 #include "common.h"
 #include "buffer.h"
 #include "tensor_layout.h"
+
+#if defined(OIDN_CUDA)
+  // Workaround for NVCC bug
+  namespace tbb { class task_arena; }
+#else
+  #include "common/tasking.h"
+#endif
 
 namespace oidn {
 
@@ -85,6 +92,7 @@ namespace oidn {
     // Kernels
     virtual void imageCopy(const Image& src, const Image& dst) = 0;
 
+  #if !defined(OIDN_CUDA)
     // Runs task in the arena (if it exists)
     template<typename F>
     void runTask(const F& f)
@@ -94,6 +102,7 @@ namespace oidn {
       else
         f();
     }
+  #endif
    
   protected:
     virtual void init() = 0;
