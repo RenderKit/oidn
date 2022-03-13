@@ -1,39 +1,21 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "tensor.h"
 
 namespace oidn {
 
-  // Returns the number of elements in the tensor
-  size_t getNumElements(const TensorDims& dims)
+  std::ostream& operator <<(std::ostream& sm, const TensorDims& dims)
   {
-    if (dims.empty())
-      return 0;
-
-    size_t num = 1;
+    sm << "[";
     for (size_t i = 0; i < dims.size(); ++i)
-      num *= dims[i];
-    return num;
-  }
-
-  // Returns the maximum tensor dimensions from a list
-  TensorDims getMaxDims(const std::vector<TensorDims>& dims)
-  {
-    TensorDims result;
-    size_t maxSize = 0;
-
-    for (const TensorDims& d : dims)
     {
-      const size_t size = getNumElements(d);
-      if (size > maxSize)
-      {
-        result = d;
-        maxSize = size;
-      }
+      if (i > 0)
+        sm << ", ";
+      sm << dims[i];
     }
-
-    return result;
+    sm << "]";
+    return sm;
   }
 
   Tensor::Tensor(const Ref<Device>& device, const TensorDesc& desc)
@@ -47,28 +29,28 @@ namespace oidn {
 
   Tensor::operator ispc::TensorAccessor3D() const
   {
-    if (ndims() != 3 || dataType != DataType::Float32)
-      throw Exception(Error::Unknown, "incompatible tensor accessor");
+    if (getRank() != 3 || dataType != DataType::Float32)
+      throw std::logic_error("incompatible tensor accessor");
 
     ispc::TensorAccessor3D result;
-    result.ptr = (float*)data();
-    result.C = dims[0];
-    result.H = dims[1];
-    result.W = dims[2];
+    result.ptr = (float*)getData();
+    result.C = getC();
+    result.H = getH();
+    result.W = getW();
     return result;
   }
 
   void Tensor::dump(const std::string& filenamePrefix) const
   {
-    assert(ndims() == 3);
+    assert(getRank() == 3);
     assert(dataType == DataType::Float32);
 
-    const int C = dims[0];
-    const int H = dims[1];
-    const int W = dims[2];
-    const int B = blockSize();
+    const int C = getC();
+    const int H = getH();
+    const int W = getW();
+    const int B = getBlockSize();
 
-    const float* ptr = (const float*)data();
+    const float* ptr = (const float*)getData();
 
     for (int c = 0; c < C; ++c)
     {
@@ -110,16 +92,16 @@ namespace oidn {
   GenericTensor::GenericTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
     : Tensor(buffer, desc, byteOffset)
   {
-    if (byteOffset + byteSize() > buffer->size())
+    if (byteOffset + getByteSize() > buffer->getByteSize())
       throw Exception(Error::InvalidArgument, "buffer region out of range");
 
-    init(device, buffer->data() + byteOffset);
+    init(device, buffer->getData() + byteOffset);
   }
 
   void GenericTensor::init(const Ref<Device>& device)
   {
-    buffer = device->newBuffer(byteSize(), Buffer::Kind::Device);
-    ptr = buffer->data();
+    buffer = device->newBuffer(getByteSize(), MemoryKind::Shared);
+    ptr = buffer->getData();
   }
 
   void GenericTensor::init(const Ref<Device>& device, void* data)
@@ -131,10 +113,10 @@ namespace oidn {
   {
     if (buffer)
     {
-      if (bufferOffset + byteSize() > buffer->size())
-        throw Exception(Error::Unknown, "buffer region out of range");
+      if (byteOffset + getByteSize() > buffer->getByteSize())
+        throw std::range_error("buffer region out of range");
 
-      ptr = buffer->data() + bufferOffset;
+      ptr = buffer->getData() + byteOffset;
     }
   }
 

@@ -5,6 +5,7 @@ include(CMakeDependentOption)
 
 add_library(utils STATIC
   arg_parser.h
+  arg_parser.cpp
   image_io.h
   image_io.cpp
   random.h

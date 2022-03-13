@@ -24,7 +24,7 @@ namespace oidn {
     return value;
   }
 
-  std::map<std::string, std::shared_ptr<Tensor>> parseTZA(const Ref<Device>& device, void* buffer, size_t size)
+  std::unordered_map<std::string, std::shared_ptr<Tensor>> parseTZA(const Ref<Device>& device, void* buffer, size_t size)
   {
     char* input = (char*)buffer;
     char* const bufferEnd = input + size;
@@ -49,7 +49,7 @@ namespace oidn {
     const size_t numTensors = read<uint32_t>(input, bufferEnd);
 
     // Parse the tensors
-    std::map<std::string, std::shared_ptr<Tensor>> tensorMap;
+    std::unordered_map<std::string, std::shared_ptr<Tensor>> tensorMap;
     for (size_t i = 0; i < numTensors; ++i)
     {
       TensorDesc tensorDesc;
@@ -89,7 +89,7 @@ namespace oidn {
       // Parse the offset to the tensor data
       const uint64_t tensorOffset = read<uint64_t>(input, bufferEnd);
       char* tensorData = (char*)buffer + tensorOffset;
-      checkBounds(tensorData, bufferEnd, tensorDesc.byteSize());
+      checkBounds(tensorData, bufferEnd, tensorDesc.getByteSize());
 
       // Add the tensor to the map
       auto tensor = device->newTensor(tensorDesc, tensorData);

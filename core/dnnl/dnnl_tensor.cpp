@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "dnnl_tensor.h"
@@ -24,93 +24,31 @@ namespace oidn {
   DNNLTensor::DNNLTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
     : Tensor(buffer, desc, byteOffset)
   {
-    if (byteOffset + byteSize() > buffer->size())
+    if (byteOffset + getByteSize() > buffer->getByteSize())
       throw Exception(Error::InvalidArgument, "buffer region out of range");
 
-    init(dynamicRefCast<DNNLDevice>(device), buffer->data() + byteOffset);
+    init(dynamicRefCast<DNNLDevice>(device), buffer->getData() + byteOffset);
   }
 
   void DNNLTensor::init(const Ref<DNNLDevice>& device)
   {
-    mem = dnnl::memory(toMemoryDesc(*this), device->getDNNLEngine());
+    mem = dnnl::memory(toDNNL(getDesc()), device->getDNNLEngine());
   }
 
   void DNNLTensor::init(const Ref<DNNLDevice>& device, void* data)
   {
-    mem = dnnl::memory(toMemoryDesc(*this), device->getDNNLEngine(), data);
+    mem = dnnl::memory(toDNNL(getDesc()), device->getDNNLEngine(), data);
   }
 
   void DNNLTensor::updatePtr()
   {
     if (buffer)
     {
-      if (bufferOffset + byteSize() > buffer->size())
-        throw Exception(Error::Unknown, "buffer region out of range");
+      if (byteOffset + getByteSize() > buffer->getByteSize())
+        throw std::range_error("buffer region out of range");
 
-      mem.set_data_handle(buffer->data() + bufferOffset);
+      mem.set_data_handle(buffer->getData() + byteOffset);
     }
-  }
-
-  const dnnl::memory& DNNLTensor::getMemory(const Tensor& tz)
-  {
-    if (auto dnnlTensor = dynamic_cast<const DNNLTensor*>(&tz))
-      return dnnlTensor->mem;
-    else
-      throw Exception(Error::Unknown, "not DNNL tensor");
-  }
-
-  dnnl::memory::desc DNNLTensor::toMemoryDesc(const TensorDesc& tz)
-  {
-    dnnl::memory::dims dnnlDims;
-    dnnl::memory::format_tag dnnlFormat;
-    switch (tz.layout)
-    {
-    case TensorLayout::x:
-      assert(ndims() == 1);
-      dnnlDims   = {tz.dims[0]};
-      dnnlFormat = dnnl::memory::format_tag::x;
-      break;
-    case TensorLayout::chw:
-      assert(ndims() == 3);
-      dnnlDims   = {1, tz.dims[0], tz.dims[1], tz.dims[2]};
-      dnnlFormat = dnnl::memory::format_tag::nchw;
-      break;
-    case TensorLayout::Chw8c:
-      assert(ndims() == 3);
-      dnnlDims   = {1, tz.dims[0], tz.dims[1], tz.dims[2]};
-      dnnlFormat = dnnl::memory::format_tag::nChw8c;
-      break;
-    case TensorLayout::Chw16c:
-      assert(ndims() == 3);
-      dnnlDims   = {1, tz.dims[0], tz.dims[1], tz.dims[2]};
-      dnnlFormat = dnnl::memory::format_tag::nChw16c;
-      break;
-    case TensorLayout::oihw:
-      assert(ndims() == 4);
-      dnnlDims   = {tz.dims[0], tz.dims[1], tz.dims[2], tz.dims[3]};
-      dnnlFormat = dnnl::memory::format_tag::oihw;
-      break;
-    default:
-      throw Exception(Error::Unknown, "invalid tensor layout");
-    }
-
-    dnnl::memory::data_type dnnlType;
-    switch (tz.dataType)
-    {
-    case DataType::Float32:
-      dnnlType = dnnl::memory::data_type::f32;
-      break;
-    case DataType::Float16:
-      dnnlType = dnnl::memory::data_type::f16;
-      break;
-    case DataType::UInt8:
-      dnnlType = dnnl::memory::data_type::u8;
-      break;
-    default:
-      throw Exception(Error::Unknown, "invalid tensor data type");
-    }
-
-    return dnnl::memory::desc(dnnlDims, dnnlType, dnnlFormat);
   }
 
 } // namespace oidn

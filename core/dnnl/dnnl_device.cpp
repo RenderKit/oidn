@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "dnnl_device.h"
@@ -15,12 +15,12 @@ namespace oidn {
 
   std::shared_ptr<Tensor> DNNLDevice::newTensor(const TensorDesc& desc)
   {
-    return std::make_shared<DNNLTensor>(Ref<DNNLDevice>(this), desc);
+    return std::make_shared<DNNLTensor>(this, desc);
   }
 
   std::shared_ptr<Tensor> DNNLDevice::newTensor(const TensorDesc& desc, void* data)
   {
-    return std::make_shared<DNNLTensor>(Ref<DNNLDevice>(this), desc, data);
+    return std::make_shared<DNNLTensor>(this, desc, data);
   }
 
   std::shared_ptr<Tensor> DNNLDevice::newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
@@ -29,14 +29,14 @@ namespace oidn {
     return std::make_shared<DNNLTensor>(buffer, desc, byteOffset);
   }
 
-  std::shared_ptr<ConvNode> DNNLDevice::newConvNode(const ConvDesc& desc)
+  std::shared_ptr<Conv> DNNLDevice::newConv(const ConvDesc& desc)
   {
-    return std::make_shared<DNNLConvNode>(Ref<DNNLDevice>(this), desc);
+    return std::make_shared<DNNLConv>(this, desc);
   }
 
-  std::shared_ptr<PoolNode> DNNLDevice::newPoolNode(const PoolDesc& desc)
+  std::shared_ptr<Pool> DNNLDevice::newPool(const PoolDesc& desc)
   {
-    return std::make_shared<DNNLPoolNode>(Ref<DNNLDevice>(this), desc);
+    return std::make_shared<DNNLPool>(this, desc);
   }
 
 } // namespace oidn

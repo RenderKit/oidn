@@ -17,6 +17,10 @@
   #define OIDN_SYCL
 #endif
 
+#if defined(__CUDACC__)
+  #define OIDN_CUDA
+#endif
+
 #if defined(_WIN32)
   // Windows
   #define OIDN_INLINE OIDN_INLINE
@@ -34,10 +38,17 @@
   #define MAYBE_UNUSED(x) UNUSED(x)
 #endif
 
-#define OIDN_DEVICE
-#define OIDN_DEVICE_INLINE OIDN_INLINE
-#define OIDN_HOST_DEVICE
-#define OIDN_HOST_DEVICE_INLINE OIDN_INLINE
+#if defined(OIDN_CUDA)
+  #define OIDN_DEVICE __device__
+  #define OIDN_DEVICE_INLINE __device__ OIDN_INLINE
+  #define OIDN_HOST_DEVICE __host__ __device__
+  #define OIDN_HOST_DEVICE_INLINE __host__ __device__ OIDN_INLINE
+#else
+  #define OIDN_DEVICE
+  #define OIDN_DEVICE_INLINE OIDN_INLINE
+  #define OIDN_HOST_DEVICE
+  #define OIDN_HOST_DEVICE_INLINE OIDN_INLINE
+#endif
 
 // ---------------------------------------------------------------------------
 // Includes
@@ -81,6 +92,10 @@
   #include <sycl/ext/intel/esimd.hpp>
 #endif
 
+#if defined(OIDN_CUDA)
+  #include <cuda_fp16.h>
+#endif
+
 #include "include/OpenImageDenoise/oidn.hpp"
 
 namespace oidn {
@@ -107,8 +122,13 @@ namespace oidn {
   // Common functions
   // ---------------------------------------------------------------------------
 
+#if !defined(__CUDA_ARCH__)
   using std::min;
   using std::max;
+#else
+  using ::min;
+  using ::max;
+#endif
 
   template<typename T>
   OIDN_DEVICE_INLINE T clamp(const T& x, const T& minVal, const T& maxVal)
@@ -120,6 +140,10 @@ namespace oidn {
 
   void* alignedMalloc(size_t size, size_t alignment = memoryAlignment);
   void alignedFree(void* ptr);
+
+  // ---------------------------------------------------------------------------
+  // String functions
+  // ---------------------------------------------------------------------------
 
   template<typename T>
   inline std::string toString(const T& a)
@@ -143,6 +167,9 @@ namespace oidn {
   {
     return str;
   }
+
+  std::ostream& operator <<(std::ostream& sm, DeviceType deviceType);
+  std::istream& operator >>(std::istream& sm, DeviceType& deviceType);
 
 #if defined(__APPLE__)
   template<typename T>
@@ -184,13 +211,10 @@ namespace oidn {
 
   #if defined(OIDN_SYCL)
     using sycl::half;
-  #else
+  #elif !defined(OIDN_CUDA)
     // Minimal half data type
     class half
     {
-    private:
-      int16_t x;
-
     public:
       half() = default;
       half(const half& h) : x(h.x) {}
@@ -200,6 +224,9 @@ namespace oidn {
       half& operator =(float f) { x = float_to_half(f); return *this; }
       
       operator float() const { return half_to_float(x); }
+
+    private:
+      int16_t x;
     };
   #endif
 

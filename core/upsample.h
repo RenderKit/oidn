@@ -1,40 +1,32 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
 
-#include "node.h"
+#include "op.h"
 
 namespace oidn {
 
   struct UpsampleDesc
   {
-    std::string name;
-    std::shared_ptr<Tensor> src;
-    std::shared_ptr<Tensor> dst;
+    TensorDesc srcDesc;
   };
 
-  // 2x2 nearest-neighbor upsampling node
-  class UpsampleNode : public virtual Node
+  // 2x2 nearest-neighbor upsampling
+  class Upsample : public virtual Op, protected UpsampleDesc
   {
+  public:
+    Upsample(const UpsampleDesc& desc);
+    
+    TensorDesc getDstDesc() const { return dstDesc; }
+    virtual void setSrc(const std::shared_ptr<Tensor>& src);
+    virtual void setDst(const std::shared_ptr<Tensor>& dst);
+    std::shared_ptr<Tensor> getDst() const { return dst; }
+
   protected:
+    TensorDesc dstDesc;
     std::shared_ptr<Tensor> src;
     std::shared_ptr<Tensor> dst;
-
-  public:
-    UpsampleNode(const UpsampleDesc& desc)
-      : src(desc.src),
-        dst(desc.dst)
-    {
-      assert(src->ndims() == 3);
-      assert(dst->ndims() == 3);
-      assert(dst->layout == src->layout);
-      assert(dst->dims[0] == src->dims[0]);     // C
-      assert(dst->dims[1] == src->dims[1] * 2); // H
-      assert(dst->dims[2] == src->dims[2] * 2); // W
-    }
-
-    std::shared_ptr<Tensor> getDst() const { return dst; }
   };
 
 } // namespace oidn

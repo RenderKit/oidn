@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -43,9 +43,6 @@ namespace oidn {
 
   class PinningObserver : public tbb::task_scheduler_observer
   {
-  private:
-    std::shared_ptr<ThreadAffinity> affinity;
-
   public:
     explicit PinningObserver(const std::shared_ptr<ThreadAffinity>& affinity);
     PinningObserver(const std::shared_ptr<ThreadAffinity>& affinity, tbb::task_arena& arena);
@@ -53,6 +50,36 @@ namespace oidn {
 
     void on_scheduler_entry(bool isWorker) override;
     void on_scheduler_exit(bool isWorker) override;
+
+  private:
+    std::shared_ptr<ThreadAffinity> affinity;
   };
+
+  // ---------------------------------------------------------------------------
+  // parallel_nd
+  // ---------------------------------------------------------------------------
+
+  template<typename T0, typename F>
+  OIDN_INLINE void parallel_nd(const T0& D0, const F& f)
+  {
+    tbb::parallel_for(tbb::blocked_range<T0>(0, D0), [&](const tbb::blocked_range<T0>& r)
+    {
+      for (T0 i = r.begin(); i != r.end(); ++i)
+        f(i);
+    });
+  }
+
+  template<typename T0, typename T1, typename F>
+  OIDN_INLINE void parallel_nd(const T0& D0, const T1& D1, const F& f)
+  {
+    tbb::parallel_for(tbb::blocked_range2d<T0, T1>(0, D0, 0, D1), [&](const tbb::blocked_range2d<T0, T1>& r)
+    {
+      for (T0 i = r.rows().begin(); i != r.rows().end(); ++i)
+      {
+        for (T1 j = r.cols().begin(); j != r.cols().end(); ++j)
+          f(i, j);
+      }
+    });
+  }
 
 } // namespace oidn

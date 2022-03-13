@@ -2,8 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "device.h"
+#include "concat_conv.h"
 #include "scratch.h"
-#include "unet.h"
+#include "rt_filter.h"
+#include "rtlightmap_filter.h"
 
 namespace oidn {
 
@@ -188,9 +190,9 @@ namespace oidn {
     Ref<Filter> filter;
 
     if (type == "RT")
-      filter = makeRef<RTFilter>(Ref<Device>(this));
+      filter = makeRef<RTFilter>(this);
     else if (type == "RTLightmap")
-      filter = makeRef<RTLightmapFilter>(Ref<Device>(this));
+      filter = makeRef<RTLightmapFilter>(this);
     else
       throw Exception(Error::InvalidArgument, "unknown filter type");
 
@@ -207,18 +209,23 @@ namespace oidn {
 
   std::shared_ptr<Tensor> Device::newTensor(const TensorDesc& desc)
   {
-    return std::make_shared<GenericTensor>(Ref<Device>(this), desc);
+    return std::make_shared<GenericTensor>(this, desc);
   }
 
   std::shared_ptr<Tensor> Device::newTensor(const TensorDesc& desc, void* data)
   {
-    return std::make_shared<GenericTensor>(Ref<Device>(this), desc, data);
+    return std::make_shared<GenericTensor>(this, desc, data);
   }
 
   std::shared_ptr<Tensor> Device::newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
   {
     assert(buffer->getDevice() == this);
     return std::make_shared<GenericTensor>(buffer, desc, byteOffset);
+  }
+
+  std::shared_ptr<ConcatConv> Device::newConcatConv(const ConcatConvDesc& desc)
+  {
+    return std::make_shared<CHWConcatConv>(this, desc);
   }
 
 } // namespace oidn

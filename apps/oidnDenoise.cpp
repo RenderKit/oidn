@@ -24,7 +24,7 @@ using namespace oidn;
 void printUsage()
 {
   std::cout << "Intel(R) Open Image Denoise" << std::endl;
-  std::cout << "usage: oidnDenoise [-d/--device default|cpu|sycl]" << std::endl
+  std::cout << "usage: oidnDenoise [-d/--device default|cpu|sycl|cuda]" << std::endl
             << "                   [-f/--filter RT|RTLightmap]" << std::endl
             << "                   [--hdr color.pfm] [--ldr color.pfm] [--srgb] [--dir directional.pfm]" << std::endl
             << "                   [--alb albedo.pfm] [--nrm normal.pfm] [--clean_aux]" << std::endl
@@ -109,17 +109,7 @@ int main(int argc, char* argv[])
     {
       std::string opt = args.getNextOpt();
       if (opt == "d" || opt == "dev" || opt == "device")
-      {
-        const auto val = args.getNextValue();
-        if (val == "default" || val == "Default")
-          deviceType = DeviceType::Default;
-        else if (val == "cpu" || val == "CPU")
-          deviceType = DeviceType::CPU;
-        else if (val == "sycl" || val == "SYCL")
-          deviceType = DeviceType::SYCL;
-        else
-          throw std::invalid_argument("invalid device");
-      }
+        deviceType = args.getNextValue<DeviceType>();
       else if (opt == "f" || opt == "filter")
         filterType = args.getNextValue();
       else if (opt == "hdr")
@@ -148,7 +138,7 @@ int main(int argc, char* argv[])
       else if (opt == "r" || opt == "ref" || opt == "reference")
         refFilename = args.getNextValue();
       else if (opt == "is" || opt == "input_scale" || opt == "inputScale" || opt == "inputscale")
-        inputScale = args.getNextValueFloat();
+        inputScale = args.getNextValue<float>();
       else if (opt == "clean_aux" || opt == "cleanAux")
         cleanAux = true;
       else if (opt == "t" || opt == "type")
@@ -164,17 +154,17 @@ int main(int argc, char* argv[])
       else if (opt == "w" || opt == "weights")
         weightsFilename = args.getNextValue();
       else if (opt == "bench" || opt == "benchmark")
-        numBenchmarkRuns = std::max(args.getNextValueInt(), 0);
+        numBenchmarkRuns = std::max(args.getNextValue<int>(), 0);
       else if (opt == "threads")
-        numThreads = args.getNextValueInt();
+        numThreads = args.getNextValue<int>();
       else if (opt == "affinity")
-        setAffinity = args.getNextValueInt();
+        setAffinity = args.getNextValue<int>();
       else if (opt == "maxmem" || opt == "maxMemoryMB")
-        maxMemoryMB = args.getNextValueInt();
+        maxMemoryMB = args.getNextValue<int>();
       else if (opt == "inplace")
         inplace = true;
       else if (opt == "v" || opt == "verbose")
-        verbose = args.getNextValueInt();
+        verbose = args.getNextValue<int>();
       else if (opt == "h" || opt == "help")
       {
         printUsage();
@@ -228,7 +218,7 @@ int main(int argc, char* argv[])
     const int versionMinor = device.get<int>("versionMinor");
     const int versionPatch = device.get<int>("versionPatch");
 
-    std::cout << "  device=" << (deviceType == DeviceType::Default ? "default" : (deviceType == DeviceType::SYCL ? "SYCL" : "CPU"))
+    std::cout << "  device=" << deviceType
               << ", version=" << versionMajor << "." << versionMinor << "." << versionPatch
               << ", msec=" << (1000. * deviceInitTime) << std::endl;
 
@@ -253,12 +243,12 @@ int main(int argc, char* argv[])
     if (!refFilename.empty())
     {
       ref = loadImage(device, refFilename, 3, srgb, dataType);
-      if (ref->dims() != input->dims())
+      if (ref->getDims() != input->getDims())
         throw std::runtime_error("invalid reference output image");
     }
 
-    const int width  = input->width;
-    const int height = input->height;
+    const int width  = input->getW();
+    const int height = input->getH();
     std::cout << "Resolution: " << width << "x" << height << std::endl;
 
     // Initialize the output image
@@ -266,7 +256,7 @@ int main(int argc, char* argv[])
     if (inplace)
       output = input;
     else
-      output = std::make_shared<ImageBuffer>(device, width, height, 3, input->dataType);
+      output = std::make_shared<ImageBuffer>(device, width, height, 3, input->getDataType());
 
     // Load the filter weights if specified
     std::vector<char> weights;
@@ -283,13 +273,13 @@ int main(int argc, char* argv[])
     FilterRef filter = device.newFilter(filterType.c_str());
 
     if (color)
-      filter.setImage("color", color->data(), color->format(), color->width, color->height);
+      filter.setImage("color", color->getData(), color->getFormat(), color->getW(), color->getH());
     if (albedo)
-      filter.setImage("albedo", albedo->data(), albedo->format(), albedo->width, albedo->height);
+      filter.setImage("albedo", albedo->getData(), albedo->getFormat(), albedo->getW(), albedo->getH());
     if (normal)
-      filter.setImage("normal", normal->data(), normal->format(), normal->width, normal->height);
+      filter.setImage("normal", normal->getData(), normal->getFormat(), normal->getW(), normal->getH());
 
-    filter.setImage("output", output->data(), output->format(), output->width, output->height);
+    filter.setImage("output", output->getData(), output->getFormat(), output->getW(), output->getH());
 
     if (filterType == "RT")
     {
@@ -361,12 +351,12 @@ int main(int argc, char* argv[])
       // Verify the output values
       std::cout << "Verifying output" << std::endl;
 
-      const float threshold = (output->dataType == Format::Float) ? 1e-4f : 1e-2f;
+      const float threshold = (output->getDataType() == Format::Float) ? 1e-4f : 1e-2f;
       size_t numErrors;
       float maxError;
       std::tie(numErrors, maxError) = compareImage(*output, *ref, threshold);
 
-      std::cout << "  values=" << output->size() << ", errors=" << numErrors << ", maxerror=" << maxError << std::endl;
+      std::cout << "  values=" << output->getSize() << ", errors=" << numErrors << ", maxerror=" << maxError << std::endl;
 
       if (numErrors > 0)
       {

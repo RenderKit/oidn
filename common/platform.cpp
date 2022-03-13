@@ -44,6 +44,44 @@ namespace oidn {
   }
 
   // ---------------------------------------------------------------------------
+  // String functions
+  // ---------------------------------------------------------------------------
+
+  std::ostream& operator <<(std::ostream& sm, DeviceType deviceType)
+  {
+    switch (deviceType)
+    {
+    case DeviceType::Default: sm << "default"; break;
+    case DeviceType::CPU:     sm << "cpu";     break;
+    case DeviceType::SYCL:    sm << "sycl";    break;
+    case DeviceType::CUDA:    sm << "cuda";    break;
+    default:
+      throw std::invalid_argument("invalid device type");
+    }
+    
+    return sm;
+  }
+
+  std::istream& operator >>(std::istream& sm, DeviceType& deviceType)
+  {
+    std::string str;
+    sm >> str;
+
+    if (str == "default" || str == "Default")
+      deviceType = DeviceType::Default;
+    else if (str == "cpu" || str == "CPU")
+      deviceType = DeviceType::CPU;
+    else if (str == "sycl" || str == "SYCL")
+      deviceType = DeviceType::SYCL;
+    else if (str == "cuda" || str == "CUDA")
+      deviceType = DeviceType::CUDA;
+    else
+      throw std::invalid_argument("invalid device type");
+
+    return sm;
+  }
+
+  // ---------------------------------------------------------------------------
   // FP16
   // ---------------------------------------------------------------------------
 

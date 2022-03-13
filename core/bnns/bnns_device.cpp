@@ -7,14 +7,14 @@
 
 namespace oidn {
 
-  std::shared_ptr<ConvNode> BNNSDevice::newConvNode(const ConvDesc& desc)
+  std::shared_ptr<Conv> BNNSDevice::newConv(const ConvDesc& desc)
   {
-    return std::make_shared<BNNSConvNode>(Ref<BNNSDevice>(this), desc);
+    return std::make_shared<BNNSConv>(this, desc);
   }
 
-  std::shared_ptr<PoolNode> BNNSDevice::newPoolNode(const PoolDesc& desc)
+  std::shared_ptr<Pool> BNNSDevice::newPool(const PoolDesc& desc)
   {
-    return std::make_shared<BNNSPoolNode>(Ref<BNNSDevice>(this), desc);
+    return std::make_shared<BNNSPool>(this, desc);
   }
 
 } // namespace oidn

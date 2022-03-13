@@ -1,17 +1,19 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "bnns_pool.h"
 
 namespace oidn {
 
-  BNNSPoolNode::BNNSPoolNode(const Ref<BNNSDevice>& device, const PoolDesc& desc)
-    : BNNSNode(device, desc.name),
-      PoolNode(desc)
+  BNNSPool::BNNSPool(const Ref<BNNSDevice>& device, const PoolDesc& desc)
+    : BNNSOp(device),
+      Pool(desc) {}
+
+  void BNNSPool::finalize()
   {
     BNNSLayerParametersPooling params = {
-      .i_desc = toNDArrayDesc(*src),
-      .o_desc = toNDArrayDesc(*dst),
+      .i_desc = toBNNS(srcDesc),
+      .o_desc = toBNNS(dstDesc),
       .pooling_function = BNNSPoolingFunctionMax,
       .k_width  = 2,
       .k_height = 2,
@@ -21,12 +23,12 @@ namespace oidn {
 
     filter = BNNSFilterCreateLayerPooling(&params, nullptr);
     if (!filter)
-      throw Exception(Error::Unknown, "BNNSFilterCreateLayerPooling failed");
+      throw std::runtime_error("BNNSFilterCreateLayerPooling failed");
   }
 
-  void BNNSPoolNode::execute()
+  void BNNSPool::run()
   {
-    BNNSFilterApply(filter, src->data(), dst->data());
+    BNNSFilterApply(filter, src->getData(), dst->getData());
   }
 
 } // namespace oidn

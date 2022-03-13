@@ -9,12 +9,12 @@ namespace oidn {
 
   struct CPUBufferAllocator
   {
-    static void* allocate(const Ref<Device>& device, size_t size, Buffer::Kind kind)
+    static void* allocate(const Ref<Device>& device, size_t size, MemoryKind kind)
     {
       return alignedMalloc(size);
     }
 
-    static void deallocate(const Ref<Device>& device, void* ptr, Buffer::Kind kind)
+    static void deallocate(const Ref<Device>& device, void* ptr, MemoryKind kind)
     {
       alignedFree(ptr);
     }

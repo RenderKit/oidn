@@ -22,6 +22,7 @@ typedef enum
 
   OIDN_DEVICE_TYPE_CPU  = 1, // CPU device
   OIDN_DEVICE_TYPE_SYCL = 2, // SYCL device
+  OIDN_DEVICE_TYPE_CUDA = 3, // CUDA device
 } OIDNDeviceType;
 
 // Error codes

@@ -12,15 +12,6 @@ namespace oidn {
 
   class Filter : public RefCount
   {
-  protected:
-    Ref<Device> device;
-
-    ProgressMonitorFunction progressFunc = nullptr;
-    void* progressUserPtr = nullptr;
-
-    bool dirty = true;
-    bool dirtyParam = true;
-
   public:
     explicit Filter(const Ref<Device>& device) : device(device) {}
 
@@ -48,6 +39,14 @@ namespace oidn {
     void removeParam(std::shared_ptr<Image>& dst);
     void setParam(Data& dst, const Data& src);
     void removeParam(Data& dst);
+
+    Ref<Device> device;
+
+    ProgressMonitorFunction progressFunc = nullptr;
+    void* progressUserPtr = nullptr;
+
+    bool dirty = true;
+    bool dirtyParam = true;
   };
 
 } // namespace oidn

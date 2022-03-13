@@ -5,22 +5,22 @@
 
 namespace oidn {
 
-  void* SYCLBufferAllocator::allocate(const Ref<SYCLDevice>& device, size_t size, Buffer::Kind kind)
+  void* SYCLBufferAllocator::allocate(const Ref<SYCLDevice>& device, size_t size, MemoryKind kind)
   {
     switch (kind)
     {
-    case Buffer::Kind::Host:
+    case MemoryKind::Host:
       return sycl::aligned_alloc_host(memoryAlignment,
                                       size,
                                       device->getSYCLContext());
 
-    case Buffer::Kind::Device:
+    case MemoryKind::Device:
       return sycl::aligned_alloc_device(memoryAlignment,
                                         size,
                                         device->getSYCLDevice(),
                                         device->getSYCLContext());
 
-    case Buffer::Kind::Shared:
+    case MemoryKind::Shared:
       return sycl::aligned_alloc_shared(memoryAlignment,
                                         size,
                                         device->getSYCLDevice(),
@@ -31,7 +31,7 @@ namespace oidn {
     }
   }
 
-  void SYCLBufferAllocator::deallocate(const Ref<SYCLDevice>& device, void* ptr, Buffer::Kind kind)
+  void SYCLBufferAllocator::deallocate(const Ref<SYCLDevice>& device, void* ptr, MemoryKind kind)
   {
     sycl::free(ptr, device->getSYCLContext());
   }

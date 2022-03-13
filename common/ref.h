@@ -9,9 +9,6 @@ namespace oidn {
 
   class RefCount
   {
-  private:
-    std::atomic<size_t> count;
-
   public:
     OIDN_INLINE RefCount(size_t count = 0) noexcept : count(count) {}
   
@@ -44,14 +41,14 @@ namespace oidn {
     RefCount& operator =(const RefCount&) = delete;
 
     virtual ~RefCount() noexcept = default;
+
+  private:
+    std::atomic<size_t> count;
   };
 
   template<typename T>
   class Ref
   {
-  private:
-    T* ptr;
-
   public:
     OIDN_INLINE Ref() noexcept : ptr(nullptr) {}
     OIDN_INLINE Ref(std::nullptr_t) noexcept : ptr(nullptr) {}
@@ -127,6 +124,9 @@ namespace oidn {
     friend OIDN_INLINE bool operator !=(const Ref<T>& a, std::nullptr_t)  noexcept { return a.ptr   != nullptr; }
     friend OIDN_INLINE bool operator !=(std::nullptr_t,  const Ref<T>& b) noexcept { return nullptr != b.ptr;   }
     friend OIDN_INLINE bool operator !=(const Ref<T>& a, const Ref<T>& b) noexcept { return a.ptr   != b.ptr;   }
+
+  private:
+    T* ptr;
   };
 
   template<typename T, typename... Args>

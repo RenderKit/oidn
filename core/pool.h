@@ -1,41 +1,33 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
 
-#include "node.h"
+#include "op.h"
 
 namespace oidn {
 
   // 2x2 max pooling descriptor
   struct PoolDesc
   {
-    std::string name;
-    std::shared_ptr<Tensor> src;
-    std::shared_ptr<Tensor> dst;
+    TensorDesc srcDesc;
   };
 
-  // 2x2 max pooling node
-  class PoolNode : public virtual Node
+  // 2x2 max pooling
+  class Pool : public virtual Op, protected PoolDesc
   {
+  public:
+    Pool(const PoolDesc& desc);
+    
+    TensorDesc getDstDesc() const { return dstDesc; }
+    virtual void setSrc(const std::shared_ptr<Tensor>& src);
+    virtual void setDst(const std::shared_ptr<Tensor>& dst);
+    std::shared_ptr<Tensor> getDst() const { return dst; }
+
   protected:
+    TensorDesc dstDesc;
     std::shared_ptr<Tensor> src;
     std::shared_ptr<Tensor> dst;
-
-  public:
-    PoolNode(const PoolDesc& desc)
-      : src(desc.src),
-        dst(desc.dst)
-    {
-      assert(src->ndims() == 3);
-      assert(dst->ndims() == 3);
-      assert(dst->layout == src->layout);
-      assert(src->dims[0] == dst->dims[0]);     // C
-      assert(src->dims[1] == dst->dims[1] * 2); // H
-      assert(src->dims[2] == dst->dims[2] * 2); // W
-    }
-
-    std::shared_ptr<Tensor> getDst() const { return dst; }
   };
 
 } // namespace oidn

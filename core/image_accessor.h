@@ -11,12 +11,13 @@ namespace oidn {
   struct ImageAccessor
   {
     uint8_t* ptr;
-    size_t bytePixelStride; // pixel stride in number of *bytes*
-    size_t rowStride;       // row stride in number of *pixel strides*
+    size_t wStride; // pixel stride in number of bytes
+    size_t hStride; // row stride in number of bytes
+    int W, H;       // width, height
 
     OIDN_HOST_DEVICE_INLINE size_t getOffset(int h, int w) const
     {
-      return (((size_t)h * rowStride + (size_t)w) * bytePixelStride);
+      return (size_t)h * hStride + (size_t)w * wStride;
     }
 
     OIDN_HOST_DEVICE_INLINE vec3<T> get3(int h, int w) const

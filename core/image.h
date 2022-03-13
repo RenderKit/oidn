@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -11,63 +11,19 @@ namespace oidn {
 
   struct ImageDesc
   {
-    static constexpr int maxSize = 65536;
+    static constexpr size_t maxDim = 65536;
 
-    int width;              // width in number of pixels
-    int height;             // height in number of pixels
-    size_t bytePixelStride; // pixel stride in number of *bytes*
-    size_t rowStride;       // row stride in number of *pixel strides*
-    Format format;          // pixel format
+    size_t width;   // width in number of pixels
+    size_t height;  // height in number of pixels
+    size_t wStride; // pixel stride in number of bytes
+    size_t hStride; // row stride in number of bytes
+    Format format;  // pixel format
 
-    OIDN_INLINE ImageDesc() = default;
-
-    ImageDesc(Format format, size_t width, size_t height, size_t inBytePixelStride = 0, size_t inByteRowStride = 0)
-    {
-      if (width > maxSize || height > maxSize)
-        throw Exception(Error::InvalidArgument, "image size too large");
-
-      this->width  = int(width);
-      this->height = int(height);
-
-      const size_t pixelSize = getByteSize(format);
-      if (inBytePixelStride != 0)
-      {
-        if (inBytePixelStride < pixelSize)
-          throw Exception(Error::InvalidArgument, "pixel stride smaller than pixel size");
-
-        this->bytePixelStride = inBytePixelStride;
-      }
-      else
-      {
-        this->bytePixelStride = pixelSize;
-      }
-
-      if (inByteRowStride != 0)
-      {
-        if (this->bytePixelStride != 0)
-        {
-          if (inByteRowStride < width * this->bytePixelStride)
-            throw Exception(Error::InvalidArgument, "row stride smaller than width * pixel stride");
-          if (inByteRowStride % this->bytePixelStride != 0)
-            throw Exception(Error::InvalidArgument, "row stride not integer multiple of pixel stride");
-
-          this->rowStride = inByteRowStride / this->bytePixelStride;
-        }
-        else
-        {
-          this->rowStride = inByteRowStride;
-        }
-      }
-      else
-      {
-        this->rowStride = width;
-      }
-
-      this->format = format;
-    }
+    ImageDesc() = default;
+    ImageDesc(Format format, size_t width, size_t height, size_t bytePixelStride = 0, size_t byteRowStride = 0);
 
     // Returns the number of channels
-    OIDN_INLINE int numChannels() const
+    OIDN_INLINE int getC() const
     {
       switch (format)
       {
@@ -90,165 +46,82 @@ namespace oidn {
       }
     }
 
-    // Returns the number of pixels in the image
-    OIDN_INLINE size_t numElements() const
-    {
-      return size_t(width) * size_t(height);
-    }
+    // Returns the height of the image
+    OIDN_INLINE int getH() const { return int(height); }
 
-    // Returns the size in bytes of a pixel in the image
-    OIDN_INLINE size_t elementByteSize() const
-    {
-      return getByteSize(format);
-    }
+    // Returns the width of the image
+    OIDN_INLINE int getW() const { return int(width); }
+
+    // Returns the number of pixels in the image
+    OIDN_INLINE size_t getNumElements() const { return width * height; }
 
     // Returns the size in bytes of the image
-    OIDN_INLINE size_t byteSize() const
-    {
-      return size_t(height) * rowStride * bytePixelStride;
-    }
+    OIDN_INLINE size_t getByteSize() const { return height * hStride; }
 
     // Returns the aligned size in bytes of the image
-    OIDN_INLINE size_t alignedByteSize() const
+    OIDN_INLINE size_t getAlignedSize() const
     {
-      return round_up(byteSize(), memoryAlignment);
+      return round_up(getByteSize(), memoryAlignment);
+    }
+
+    OIDN_INLINE DataType getDataType() const
+    {
+      return getFormatDataType(format);
     }
   };
 
-  class Image : public Memory, public ImageDesc
+  class Image final : public Memory, private ImageDesc
   {
   public:
-    char* ptr; // pointer to the first pixel
+    Image();
+    Image(void* ptr, Format format, size_t width, size_t height, size_t byteOffset, size_t bytePixelStride, size_t byteRowStride);
+    Image(const Ref<Buffer>& buffer, const ImageDesc& desc, size_t byteOffset);
+    Image(const Ref<Buffer>& buffer, Format format, size_t width, size_t height, size_t byteOffset, size_t bytePixelStride, size_t byteRowStride);
+    Image(const Ref<Device>& device, Format format, size_t width, size_t height);
 
-    Image() :
-      ImageDesc(Format::Undefined, 0, 0),
-      ptr(nullptr) {}
+    void updatePtr() override;
 
-    Image(void* ptr, Format format, size_t width, size_t height, size_t byteOffset, size_t inBytePixelStride, size_t inByteRowStride)
-      : ImageDesc(format, width, height, inBytePixelStride, inByteRowStride)
-    {
-      if ((ptr == nullptr) && (byteOffset + byteSize() > 0))
-        throw Exception(Error::InvalidArgument, "buffer region out of range");
+    OIDN_INLINE const ImageDesc& getDesc() const { return *this; }
+    OIDN_INLINE Format getFormat() const { return format; }
 
-      this->ptr = (char*)ptr + byteOffset;
-    }
-
-    Image(const Ref<Buffer>& buffer, const ImageDesc& desc, size_t byteOffset)
-      : Memory(buffer, byteOffset),
-        ImageDesc(desc)
-    {
-      if (byteOffset + byteSize() > buffer->size())
-        throw Exception(Error::InvalidArgument, "buffer region out of range");
-
-      this->ptr = buffer->data() + byteOffset;
-    }
-
-    Image(const Ref<Buffer>& buffer, Format format, size_t width, size_t height, size_t byteOffset, size_t inBytePixelStride, size_t inByteRowStride)
-      : Memory(buffer, byteOffset),
-        ImageDesc(format, width, height, inBytePixelStride, inByteRowStride)
-    {
-      if (byteOffset + byteSize() > buffer->size())
-        throw Exception(Error::InvalidArgument, "buffer region out of range");
-
-      this->ptr = buffer->data() + byteOffset;
-    }
-
-    Image(const Ref<Device>& device, Format format, size_t width, size_t height)
-      : Memory(device->newBuffer(width * height * getByteSize(format), Buffer::Kind::Device)),
-        ImageDesc(format, width, height)
-    {
-      this->ptr = buffer->data();
-    }
-
-    OIDN_INLINE char* get(int h, int w)
-    {
-      return ptr + ((size_t(h) * rowStride + size_t(w)) * bytePixelStride);
-    }
-
-    OIDN_INLINE const char* get(int h, int w) const
-    {
-      return ptr + ((size_t(h) * rowStride + size_t(w)) * bytePixelStride);
-    }
+    using ImageDesc::getC;
+    using ImageDesc::getH;
+    using ImageDesc::getW;
+    using ImageDesc::getNumElements;
+    using ImageDesc::getByteSize;
+    using ImageDesc::getAlignedSize;
+    using ImageDesc::getDataType;
 
     OIDN_INLINE       char* begin()       { return ptr; }
     OIDN_INLINE const char* begin() const { return ptr; }
 
-    OIDN_INLINE       char* end()       { return get(height, 0); }
-    OIDN_INLINE const char* end() const { return get(height, 0); }
+    OIDN_INLINE       char* end()       { return ptr + getByteSize(); }
+    OIDN_INLINE const char* end() const { return ptr + getByteSize(); }
 
-    OIDN_INLINE operator bool() const
-    {
-      return ptr != nullptr;
-    }
-
-    OIDN_INLINE const ImageDesc& desc() const { return *this; }
-
-    // Determines whether two images overlap in memory
-    bool overlaps(const Image& other) const
-    {
-      if (!ptr || !other.ptr)
-        return false;
-
-      // If the images are backed by different buffers, they cannot overlap
-      if (buffer != other.buffer)
-        return false;
-
-      // Check whether the pointer intervals overlap
-      const char* begin1 = begin();
-      const char* end1   = end();
-      const char* begin2 = other.begin();
-      const char* end2   = other.end();
-
-      return begin1 < end2 && begin2 < end1;
-    }
+    OIDN_INLINE operator bool() const { return ptr != nullptr; }
 
     template<typename T>
     operator ImageAccessor<T>() const
     {
-      if (format != Format::Undefined && getDataType(format) != DataTypeOf<T>::value)
-        throw Exception(Error::Unknown, "incompatible image accessor");
+      if (format != Format::Undefined && getDataType() != DataTypeOf<T>::value)
+        throw std::logic_error("incompatible image accessor");
 
-      ImageAccessor<T> result;
-      result.ptr = (uint8_t*)ptr;
-      result.rowStride = rowStride;
-      result.bytePixelStride = bytePixelStride;
-      return result;
+      ImageAccessor<T> acc;
+      acc.ptr = (uint8_t*)ptr;
+      acc.hStride = hStride;
+      acc.wStride = wStride;
+      acc.W = width;
+      acc.H = height;
+      return acc;
     }
 
-    // Converts to ISPC equivalent
-    operator ispc::ImageAccessor() const
-    {
-      ispc::ImageAccessor result;
-      result.ptr = (uint8_t*)ptr;
-      result.rowStride = rowStride;
-      result.bytePixelStride = bytePixelStride;
+    operator ispc::ImageAccessor() const;
 
-      if (format != Format::Undefined)
-      {
-        switch (getDataType(format))
-        {
-        case DataType::Float32: result.dataType = ispc::DataType_Float32; break;
-        case DataType::Float16: result.dataType = ispc::DataType_Float16; break;
-        case DataType::UInt8:   result.dataType = ispc::DataType_UInt8;   break;
-        default:                assert(0);
-        }
-      }
-      else
-        result.dataType = ispc::DataType_Float32;
+    // Determines whether two images overlap in memory
+    bool overlaps(const Image& other) const;
 
-      return result;
-    }
-
-    void updatePtr() override
-    {
-      if (buffer)
-      {
-        if (bufferOffset + byteSize() > buffer->size())
-          throw Exception(Error::Unknown, "buffer region out of range");
-
-        ptr = buffer->data() + bufferOffset;
-      }
-    }
+  private:
+    char* ptr; // pointer to the first pixel
   };
 
 } // namespace oidn

@@ -11,11 +11,6 @@ namespace oidn {
 
   class Barrier
   {
-  private:
-    std::mutex m;
-    std::condition_variable cv;
-    volatile int count;
-
   public:
     Barrier(int count) : count(count) {}
 
@@ -34,6 +29,11 @@ namespace oidn {
         cv.wait(lk, [&]{ return count == 0; });
       }
     }
+
+  private:
+    std::mutex m;
+    std::condition_variable cv;
+    volatile int count;
   };
 
 } // namespace oidn

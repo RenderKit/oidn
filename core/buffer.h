@@ -7,23 +7,34 @@
 
 namespace oidn {
 
+  struct TensorDesc;
+  struct ImageDesc;
+
   class Device;
+  class Memory;
+  class Tensor;
+  class Image;
+
+  // Memory allocation kind
+  enum class MemoryKind
+  {
+    Host,
+    Device,
+    Shared,
+    Unknown
+  };
 
   // Generic buffer object
   class Buffer : public RefCount
   {
-  public:
-    enum class Kind
-    {
-      Host,
-      Device,
-      Shared,
-      Unknown
-    };
+    friend class Memory;
 
-    virtual char* data() = 0;
-    virtual const char* data() const = 0;
-    virtual size_t size() const = 0;
+  public:
+    virtual Device* getDevice() = 0;
+
+    virtual char* getData() = 0;
+    virtual const char* getData() const = 0;
+    virtual size_t getByteSize() const = 0;
 
     virtual void* map(size_t offset, size_t size) = 0;
     virtual void unmap(void* mappedPtr) = 0;
@@ -31,26 +42,24 @@ namespace oidn {
     // Resizes the buffer discarding its current contents
     virtual void resize(size_t newSize)
     {
-      throw std::logic_error("resizing is not supported");
+      throw std::logic_error("resizing the buffer is not supported");
     }
 
-    virtual Device* getDevice() = 0;
+    std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, ptrdiff_t relByteOffset);
+    std::shared_ptr<Image> newImage(const ImageDesc& desc, ptrdiff_t relByteOffset);
+
+  private:
+    // Memory objects backed by the buffer must attach themselves
+    virtual void attach(Memory* mem) {}
+    virtual void detach(Memory* mem) {}
   };
 
   // Unified shared memory based buffer object
   template<typename DeviceT, typename BufferAllocatorT>
   class USMBuffer : public Buffer
   {
-  protected:
-    char* ptr;
-    size_t byteSize;
-    bool shared;
-    Kind kind;
-    Ref<DeviceT> device;
-    BufferAllocatorT allocator;
-
   public:
-    USMBuffer(const Ref<DeviceT>& device, size_t byteSize, Kind kind)
+    USMBuffer(const Ref<DeviceT>& device, size_t byteSize, MemoryKind kind)
       : ptr(nullptr),
         byteSize(byteSize),
         shared(false),
@@ -64,7 +73,7 @@ namespace oidn {
       : ptr((char*)data),
         byteSize(byteSize),
         shared(true),
-        kind(Buffer::Kind::Unknown),
+        kind(MemoryKind::Unknown),
         device(device)
     {
       if (ptr == nullptr)
@@ -77,9 +86,11 @@ namespace oidn {
         allocator.deallocate(device, ptr, kind);
     }
 
-    char* data() override { return ptr; }
-    const char* data() const override { return ptr; }
-    size_t size() const override { return byteSize; }
+    Device* getDevice() override { return device.get(); }
+
+    char* getData() override { return ptr; }
+    const char* getData() const override { return ptr; }
+    size_t getByteSize() const override { return byteSize; }
 
     void* map(size_t offset, size_t size) override
     {
@@ -102,24 +113,43 @@ namespace oidn {
       byteSize = newSize;
     }
 
-    Device* getDevice() override { return device.get(); }
+  protected:
+    char* ptr;
+    size_t byteSize;
+    bool shared;
+    MemoryKind kind;
+    Ref<DeviceT> device;
+    BufferAllocatorT allocator;
   };
 
-  // Memory object backed by a buffer
-  struct Memory
+  // Memory object optionally backed by a buffer
+  class Memory
   {
-    Ref<Buffer> buffer;  // buffer containing the data
-    size_t bufferOffset; // offset in the buffer
+  public:
+    Memory() : byteOffset(0) {}
 
-    Memory() : bufferOffset(0) {}
-    virtual ~Memory() = default;
-
-    Memory(const Ref<Buffer>& buffer, size_t bufferOffset = 0)
+    Memory(const Ref<Buffer>& buffer, size_t byteOffset = 0)
       : buffer(buffer),
-        bufferOffset(bufferOffset) {}
+        byteOffset(byteOffset)
+    {
+      buffer->attach(this);
+    }
+
+    virtual ~Memory()
+    {
+      if (buffer)
+        buffer->detach(this);
+    }
+
+    Buffer* getBuffer() const { return buffer.get(); }
+    size_t getByteOffset() const { return byteOffset; }
 
     // If the buffer gets reallocated, this must be called to update the internal pointer
     virtual void updatePtr() = 0;
+
+  protected:
+    Ref<Buffer> buffer; // buffer containing the data
+    size_t byteOffset;  // offset in the buffer
   };
 
 } // namespace oidn

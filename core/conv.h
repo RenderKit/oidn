@@ -1,40 +1,36 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
 
-#include "node.h"
+#include "op.h"
 
 namespace oidn {
 
   // 3x3 convolution descriptor
   struct ConvDesc
   {
-    std::string name;
-    std::shared_ptr<Tensor> src;
-    std::shared_ptr<Tensor> weights;
+    TensorDesc srcDesc;
+    std::shared_ptr<Tensor> weight;
     std::shared_ptr<Tensor> bias;
-    std::shared_ptr<Tensor> dst;
     bool relu;
   };
 
-  // 3x3 convolution node
-  class ConvNode : public virtual Node
+  // 3x3 convolution
+  class Conv : public virtual Op, protected ConvDesc
   {
-  protected:
-    std::shared_ptr<Tensor> src;
-    std::shared_ptr<Tensor> weights;
-    std::shared_ptr<Tensor> bias;
-    std::shared_ptr<Tensor> dst;
-
   public:
-    ConvNode(const ConvDesc& desc)
-      : src(desc.src),
-        weights(desc.weights),
-        bias(desc.bias),
-        dst(desc.dst) {}
-
+    Conv(const ConvDesc& desc);
+    
+    TensorDesc getDstDesc() const { return dstDesc; }
+    virtual void setSrc(const std::shared_ptr<Tensor>& src);
+    virtual void setDst(const std::shared_ptr<Tensor>& dst);
     std::shared_ptr<Tensor> getDst() const { return dst; }
+
+  protected:
+    TensorDesc dstDesc;
+    std::shared_ptr<Tensor> src;
+    std::shared_ptr<Tensor> dst;
   };
 
 } // namespace oidn

@@ -10,10 +10,6 @@ namespace oidn {
 
   class Exception : public std::exception
   {
-  private:
-    Error error;
-    const char* message;
-
   public:
     Exception(Error error, const char* message)
       : error(error), message(message) {}
@@ -27,6 +23,10 @@ namespace oidn {
     {
       return message;
     }
+
+  private:
+    Error error;
+    const char* message;
   };
 
 } // namespace oidn

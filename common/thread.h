@@ -26,16 +26,6 @@ namespace oidn {
   template<typename T>
   class ThreadLocal : public Verbose
   {
-  private:
-  #if defined(_WIN32)
-    DWORD key;
-  #else
-    pthread_key_t key;
-  #endif
-
-    std::vector<T*> instances;
-    std::mutex mutex;
-
   public:
     ThreadLocal(int verbose = 0)
       : Verbose(verbose)
@@ -90,6 +80,16 @@ namespace oidn {
 
       return *ptr;
     }
+
+  private:
+  #if defined(_WIN32)
+    DWORD key;
+  #else
+    pthread_key_t key;
+  #endif
+
+    std::vector<T*> instances;
+    std::mutex mutex;
   };
 
 #if defined(_WIN32)
@@ -100,6 +100,20 @@ namespace oidn {
 
   class ThreadAffinity : public Verbose
   {
+  public:
+    ThreadAffinity(int numThreadsPerCore = INT_MAX, int verbose = 0);
+
+    int getNumThreads() const
+    {
+      return (int)affinities.size();
+    }
+
+    // Sets the affinity (0..numThreads-1) of the thread after saving the current affinity
+    void set(int threadIndex);
+
+    // Restores the affinity of the thread
+    void restore(int threadIndex);
+
   private:
     typedef BOOL (WINAPI *GetLogicalProcessorInformationExFunc)(LOGICAL_PROCESSOR_RELATIONSHIP,
                                                                 PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX,
@@ -114,20 +128,6 @@ namespace oidn {
 
     std::vector<GROUP_AFFINITY> affinities;    // thread affinities
     std::vector<GROUP_AFFINITY> oldAffinities; // original thread affinities
-
-  public:
-    ThreadAffinity(int numThreadsPerCore = INT_MAX, int verbose = 0);
-
-    int getNumThreads() const
-    {
-      return (int)affinities.size();
-    }
-
-    // Sets the affinity (0..numThreads-1) of the thread after saving the current affinity
-    void set(int threadIndex);
-
-    // Restores the affinity of the thread
-    void restore(int threadIndex);
   };
 
 #elif defined(__linux__)
@@ -138,10 +138,6 @@ namespace oidn {
 
   class ThreadAffinity : public Verbose
   {
-  private:
-    std::vector<cpu_set_t> affinities;    // thread affinities
-    std::vector<cpu_set_t> oldAffinities; // original thread affinities
-
   public:
     ThreadAffinity(int numThreadsPerCore = INT_MAX, int verbose = 0);
 
@@ -155,6 +151,10 @@ namespace oidn {
 
     // Restores the affinity of the thread
     void restore(int threadIndex);
+
+  private:
+    std::vector<cpu_set_t> affinities;    // thread affinities
+    std::vector<cpu_set_t> oldAffinities; // original thread affinities
   };
 
 #elif defined(__APPLE__)
@@ -165,10 +165,6 @@ namespace oidn {
 
   class ThreadAffinity : public Verbose
   {
-  private:
-    std::vector<thread_affinity_policy> affinities;    // thread affinities
-    std::vector<thread_affinity_policy> oldAffinities; // original thread affinities
-
   public:
     ThreadAffinity(int numThreadsPerCore = INT_MAX, int verbose = 0);
 
@@ -182,6 +178,10 @@ namespace oidn {
 
     // Restores the affinity of the thread
     void restore(int threadIndex);
+
+  private:
+    std::vector<thread_affinity_policy> affinities;    // thread affinities
+    std::vector<thread_affinity_policy> oldAffinities; // original thread affinities
   };
 
 #endif

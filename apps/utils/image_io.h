@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -16,52 +16,34 @@ namespace oidn {
   class ImageBuffer
   {
   public:
-    DeviceRef device;
-    BufferRef buffer;
-    char* bufferPtr;
-    size_t numValues;
-    int width;
-    int height;
-    int numChannels;
-    Format dataType;
+    ImageBuffer();
+    ImageBuffer(const DeviceRef& device, int width, int height, int numChannels, Format dataType = Format::Float);
 
-    ImageBuffer()
-      : bufferPtr(nullptr),
-        numValues(0),
-        width(0),
-        height(0),
-        numChannels(0),
-        dataType(Format::Undefined) {}
+    OIDN_INLINE int getW() const { return width; }
+    OIDN_INLINE int getH() const { return height; }
+    OIDN_INLINE int getC() const { return numChannels; }
+    std::array<int, 3> getDims() const { return {width, height, numChannels}; }
 
-    ImageBuffer(const DeviceRef& device, int width, int height, int numChannels, Format dataType = Format::Float)
-      : device(device),
-        numValues(size_t(width) * height * numChannels),
-        width(width),
-        height(height),
-        numChannels(numChannels),
-        dataType(dataType)
+    OIDN_INLINE Format getDataType() const { return dataType; }
+
+    Format getFormat() const
     {
-      size_t valueSize = 0;
-      switch (dataType)
-      {
-      case Format::Float: valueSize = sizeof(float);   break;
-      case Format::Half:  valueSize = sizeof(int16_t); break;
-      default:            assert(0);
-      }
+      if (dataType == Format::Undefined)
+        return Format::Undefined;
+      return Format(int(dataType) + numChannels - 1);
+    }
+
+    OIDN_INLINE size_t getSize() const { return numValues; }
+    OIDN_INLINE size_t getByteSize() const { return buffer.getSize(); }
     
-      buffer = device.newBuffer(numValues * valueSize);
-      bufferPtr = (char*)buffer.getData();
-    }
+    OIDN_INLINE const void* getData() const { return bufferPtr; }
+    OIDN_INLINE void* getData() { return bufferPtr; }
 
-    operator bool() const
-    {
-      return data() != nullptr;
-    }
+    OIDN_INLINE operator bool() const { return getData() != nullptr; }
 
     template<typename T = float>
     T get(size_t i) const;
 
-    // Float
     OIDN_INLINE void set(size_t i, float x)
     {
       switch (dataType)
@@ -77,7 +59,6 @@ namespace oidn {
       }
     }
 
-    // Half
     OIDN_INLINE void set(size_t i, half x)
     {
       switch (dataType)
@@ -93,35 +74,24 @@ namespace oidn {
       }
     }
 
-    OIDN_INLINE const void* data() const { return bufferPtr; }
-    OIDN_INLINE void* data() { return bufferPtr; }
-  
-    OIDN_INLINE size_t size() const { return numValues; }
-    std::array<int, 3> dims() const { return {width, height, numChannels}; }
-    size_t byteSize() const { return buffer.getSize(); }
-
-    Format format() const
-    {
-      if (dataType == Format::Undefined)
-        return Format::Undefined;
-      return Format(int(dataType) + numChannels - 1);
-    }
-
     // Returns a copy of the image buffer
-    std::shared_ptr<ImageBuffer> clone() const
-    {
-      auto result = std::make_shared<ImageBuffer>(device, width, height, numChannels, dataType);
-      memcpy(result->bufferPtr, bufferPtr, byteSize());
-      return result;
-    }
+    std::shared_ptr<ImageBuffer> clone() const;
 
   private:
     // Disable copying
     ImageBuffer(const ImageBuffer&) = delete;
     ImageBuffer& operator =(const ImageBuffer&) = delete;
+
+    DeviceRef device;
+    BufferRef buffer;
+    char* bufferPtr;
+    size_t numValues;
+    int width;
+    int height;
+    int numChannels;
+    Format dataType;
   };
 
-  // Float
   template<>
   OIDN_INLINE float ImageBuffer::get(size_t i) const
   {
@@ -137,7 +107,6 @@ namespace oidn {
     }
   }
 
-  // Half
   template<>
   OIDN_INLINE half ImageBuffer::get(size_t i) const
   {

@@ -39,6 +39,9 @@
 #if defined(OIDN_DEVICE_SYCL)
   #include "sycl/sycl_device.h"
 #endif
+#if defined(OIDN_DEVICE_CUDA)
+  #include "cuda/cuda_device.h"
+#endif
 #include "filter.h"
 #include <mutex>
 
@@ -105,6 +108,10 @@ OIDN_API_NAMESPACE_BEGIN
     #if defined(OIDN_DEVICE_SYCL)
       else if (type == OIDN_DEVICE_TYPE_SYCL)
         device = makeRef<SYCLDevice>();
+    #endif
+    #if defined(OIDN_DEVICE_CUDA)
+      else if (type == OIDN_DEVICE_TYPE_CUDA)
+        device = makeRef<CUDADevice>();
     #endif
       else
         throw Exception(Error::InvalidArgument, "unsupported device type");
@@ -216,7 +223,7 @@ OIDN_API_NAMESPACE_BEGIN
       checkHandle(hDevice);
       OIDN_LOCK(device);
       device->checkCommitted();
-      Ref<Buffer> buffer = device->newBuffer(byteSize, Buffer::Kind::Shared);
+      Ref<Buffer> buffer = device->newBuffer(byteSize, MemoryKind::Shared);
       return (OIDNBuffer)buffer.detach();
     OIDN_CATCH(device)
     return nullptr;
@@ -274,7 +281,7 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_TRY
       checkHandle(hBuffer);
       OIDN_LOCK(buffer);
-      return buffer->data();
+      return buffer->getData();
     OIDN_CATCH(buffer)
     return nullptr;
   }
@@ -285,7 +292,7 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_TRY
       checkHandle(hBuffer);
       OIDN_LOCK(buffer);
-      return buffer->size();
+      return buffer->getByteSize();
     OIDN_CATCH(buffer)
     return 0;
   }
