@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-## Copyright 2009-2021 Intel Corporation
+## Copyright 2009-2022 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 import re
@@ -15,8 +15,8 @@ import argparse
 
 from common import *
 
-ISPC_VERSION = '1.16.1'
-TBB_VERSION  = '2021.4.0'
+ISPC_VERSION = '1.17.0'
+TBB_VERSION  = '2021.5.0'
 
 def download_file(url, output_dir):
   print('Downloading file:', url)
@@ -72,7 +72,7 @@ def check_symbols_linux(filename):
   check_symbols(filename, 'CXXABI',  (1, 3, 7))
 
 # Parse the arguments
-compilers = {'windows' : ['msvc15', 'msvc15-icc18', 'msvc15-icc19', 'msvc15-icc20', 'msvc16', 'msvc16-icc19', 'msvc16-icc20', 'msvc16-icc21'],
+compilers = {'windows' : ['msvc15', 'msvc15-icc18', 'msvc15-icc19', 'msvc15-icc20', 'msvc16', 'msvc16-icc19', 'msvc16-icc20', 'msvc16-icc21', 'msvc17'],
              'linux'   : ['gcc', 'clang', 'icc'],
              'macos'   : ['clang', 'icc']}
 
@@ -139,7 +139,8 @@ if cfg.target == 'all' or not os.path.isdir(build_dir):
     for compiler in cfg.compiler.split('-'):
       if compiler.startswith('msvc'):
         config_cmd += {'msvc15' : ' -G "Visual Studio 15 2017 Win64"',
-                       'msvc16' : ' -G "Visual Studio 16 2019" -A x64'}[compiler]
+                       'msvc16' : ' -G "Visual Studio 16 2019" -A x64',
+                       'msvc17' : ' -G "Visual Studio 17 2022" -A x64'}[compiler]
       elif compiler.startswith('icc'):
         icc_version = {'18' : '18.0', '19' : '19.0', '20' : '19.1', '21' : '19.2'}[compiler[3:]]
         config_cmd += f' -T "Intel C++ Compiler {icc_version}"'

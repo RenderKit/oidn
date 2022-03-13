@@ -1,4 +1,4 @@
-## Copyright 2009-2021 Intel Corporation
+## Copyright 2009-2022 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 option(OIDN_ZIP_MODE off)
@@ -21,23 +21,15 @@ endif()
 ## -----------------------------------------------------------------------------
 
 if(OIDN_ZIP_MODE)
-  # In tgz / zip let's have relative rpath
   set(CMAKE_SKIP_INSTALL_RPATH OFF)
   if(APPLE)
     set(CMAKE_MACOSX_RPATH ON)
-    set(CMAKE_INSTALL_RPATH "@executable_path/" "@executable_path/../lib")
+    set(CMAKE_INSTALL_RPATH "@loader_path/../${CMAKE_INSTALL_LIBDIR}")
   else()
-    set(CMAKE_INSTALL_RPATH "\$ORIGIN:\$ORIGIN/../lib")
+    set(CMAKE_INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}")
   endif()
 else()
-  set(CMAKE_INSTALL_NAME_DIR ${CMAKE_INSTALL_FULL_LIBDIR})
-  if(APPLE)
-    # Use rpath on macOS
-    set(CMAKE_SKIP_INSTALL_RPATH OFF)
-  else()
-    # We do not want any rpath for installed binaries
-    set(CMAKE_SKIP_INSTALL_RPATH ON)
-  endif()
+  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
 endif()
 
 ## -----------------------------------------------------------------------------
@@ -56,41 +48,43 @@ set(CPACK_PACKAGE_FILE_NAME oidn-${CPACK_PACKAGE_VERSION}${OIDN_VERSION_NOTE})
 set(CPACK_VERBATIM_VARIABLES YES)
 
 if(WIN32)
-
   # Windows specific settings
-  if(CMAKE_SIZEOF_VOID_P EQUAL 8)
-    set(ARCH x64)
+  if(OIDN_ARCH STREQUAL "X64")
+    set(ARCH "x64")
     set(CPACK_PACKAGE_NAME "${CPACK_PACKAGE_NAME} x64")
-  else()
-    set(ARCH win32)
-    set(CPACK_PACKAGE_NAME "${CPACK_PACKAGE_NAME} Win32")
+  elseif(OIDN_ARCH STREQUAL "ARM64")
+    set(ARCH "arm64")
+    set(CPACK_PACKAGE_NAME "${CPACK_PACKAGE_NAME} ARM64")
   endif()
 
   if(MSVC12)
-    set(VCVER vc12)
+    set(VCVER "vc12")
   elseif(MSVC14) # also for VC15, which is toolset v141
-    set(VCVER vc14)
+    set(VCVER "vc14")
   endif()
 
   set(CPACK_GENERATOR ZIP)
   set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}.${ARCH}.${VCVER}.windows")
   set(CPACK_MONOLITHIC_INSTALL 1)
-
-elseif(APPLE)
-
-  # macOS specific settings
-  set(CPACK_GENERATOR TGZ)
-  set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}.x86_64.macos")
-  set(CPACK_MONOLITHIC_INSTALL 1)
-
 else()
+  if(OIDN_ARCH STREQUAL "X64")
+    set(ARCH "x86_64")
+  elseif(OIDN_ARCH STREQUAL "ARM64")
+    set(ARCH "arm64")
+  endif()
 
-  # Linux specific settings
-  #set(CPACK_GENERATOR RPM)
-  #set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}.x86_64.linux")
-  #set(CPACK_MONOLITHIC_INSTALL 1)
-  set(CPACK_GENERATOR TGZ)
-  set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}.x86_64.linux")
-  set(CPACK_MONOLITHIC_INSTALL 1)
-
+  if(APPLE)
+    # macOS specific settings
+    set(CPACK_GENERATOR TGZ)
+    set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}.${ARCH}.macos")
+    set(CPACK_MONOLITHIC_INSTALL 1)
+  else()
+    # Linux specific settings
+    #set(CPACK_GENERATOR RPM)
+    #set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}.${ARCH}.linux")
+    #set(CPACK_MONOLITHIC_INSTALL 1)
+    set(CPACK_GENERATOR TGZ)
+    set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}.${ARCH}.linux")
+    set(CPACK_MONOLITHIC_INSTALL 1)
+  endif()
 endif()
