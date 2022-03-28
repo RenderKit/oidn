@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -49,6 +49,9 @@ namespace oidn {
   template<typename T>
   class Ref
   {
+    template<typename Y>
+    using Convertible = typename std::enable_if<std::is_convertible<Y*, T*>::value>::type;
+
   public:
     OIDN_INLINE Ref() noexcept : ptr(nullptr) {}
     OIDN_INLINE Ref(std::nullptr_t) noexcept : ptr(nullptr) {}
@@ -56,10 +59,10 @@ namespace oidn {
     OIDN_INLINE Ref(Ref&& other) noexcept : ptr(other.ptr) { other.ptr = nullptr; }
     OIDN_INLINE Ref(T* ptr) noexcept : ptr(ptr) { if (ptr) ptr->incRef(); }
 
-    template<typename Y>
+    template<typename Y, typename = Convertible<Y>>
     OIDN_INLINE Ref(const Ref<Y>& other) noexcept : ptr(other.get()) { if (ptr) ptr->incRef(); }
 
-    template<typename Y>
+    template<typename Y, typename = Convertible<Y>>
     OIDN_INLINE explicit Ref(Y* ptr) noexcept : ptr(ptr) { if (ptr) ptr->incRef(); }
 
     OIDN_INLINE ~Ref() { if (ptr) ptr->decRef(); }
