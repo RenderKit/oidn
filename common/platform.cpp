@@ -55,6 +55,7 @@ namespace oidn {
     case DeviceType::CPU:     sm << "cpu";     break;
     case DeviceType::SYCL:    sm << "sycl";    break;
     case DeviceType::CUDA:    sm << "cuda";    break;
+    case DeviceType::HIP:     sm << "hip";     break;
     default:
       throw std::invalid_argument("invalid device type");
     }
@@ -75,6 +76,8 @@ namespace oidn {
       deviceType = DeviceType::SYCL;
     else if (str == "cuda" || str == "CUDA")
       deviceType = DeviceType::CUDA;
+    else if (str == "hip" || str == "HIP")
+      deviceType = DeviceType::HIP;
     else
       throw std::invalid_argument("invalid device type");
 

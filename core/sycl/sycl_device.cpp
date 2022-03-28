@@ -6,7 +6,6 @@
 #include "../xpu/xpu_output_process.h"
 #include "../xpu/xpu_image_copy.h"
 #include "sycl_device.h"
-#include "sycl_buffer.h"
 #include "sycl_op.h"
 #include "sycl_pool.h"
 #include "sycl_upsample.h"
@@ -58,16 +57,6 @@ namespace oidn {
     std::cout << std::endl;
   }
 
-  Ref<Buffer> SYCLDevice::newBuffer(size_t byteSize, MemoryKind kind)
-  {
-    return makeRef<SYCLBuffer>(this, byteSize, kind);
-  }
-
-  Ref<Buffer> SYCLDevice::newBuffer(void* ptr, size_t byteSize)
-  {
-    return makeRef<SYCLBuffer>(this, ptr, byteSize);
-  }
-
   std::shared_ptr<Pool> SYCLDevice::newPool(const PoolDesc& desc)
   {
     return std::make_shared<SYCLPool>(this, desc);
@@ -91,6 +80,43 @@ namespace oidn {
   void SYCLDevice::imageCopy(const Image& src, const Image& dst)
   {
     xpuImageCopy<SYCLDevice>(this, src, dst);
+  }
+
+  void* SYCLDevice::malloc(size_t byteSize, Storage storage)
+  {
+    switch (storage)
+    {
+    case Storage::Undefined:
+    case Storage::Host:
+      return sycl::aligned_alloc_host(memoryAlignment,
+                                      byteSize,
+                                      sycl->context);
+
+    case Storage::Device:
+      return sycl::aligned_alloc_device(memoryAlignment,
+                                        byteSize,
+                                        sycl->device,
+                                        sycl->context);
+
+    case Storage::Managed:
+      return sycl::aligned_alloc_shared(memoryAlignment,
+                                        byteSize,
+                                        sycl->device,
+                                        sycl->context);
+
+    default:
+      throw Exception(Error::InvalidArgument, "invalid storage mode");
+    }
+  }
+
+  void SYCLDevice::free(void* ptr, Storage storage)
+  {
+    sycl::free(ptr, sycl->context);
+  }
+
+  void SYCLDevice::memcpy(void* dstPtr, const void* srcPtr, size_t byteSize)
+  {
+    sycl->queue.memcpy(dstPtr, srcPtr, byteSize).wait();
   }
 
 } // namespace oidn

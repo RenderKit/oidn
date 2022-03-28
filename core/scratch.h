@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -7,7 +7,6 @@
 #include "buffer.h"
 #include "tensor.h"
 #include "image.h"
-#include <vector>
 #include <unordered_set>
 
 namespace oidn {
@@ -48,9 +47,7 @@ namespace oidn {
     char* getData() override { return manager->buffer->getData(); }
     const char* getData() const override { return manager->buffer->getData(); };
     size_t getByteSize() const override { return localSize; }
-
-    void* map(size_t offset, size_t size) override { return manager->buffer->map(offset, size); }
-    void unmap(void* mappedPtr) override { return manager->buffer->unmap(mappedPtr); }
+    Storage getStorage() const override { return manager->buffer->getStorage(); }
 
   private:
     void attach(Memory* mem) override;

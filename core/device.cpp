@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "device.h"
@@ -199,6 +199,16 @@ namespace oidn {
     return filter;
   }
 
+  Ref<Buffer> Device::newBuffer(size_t byteSize, Storage storage)
+  {
+    return makeRef<USMBuffer>(this, byteSize, storage);
+  }
+
+  Ref<Buffer> Device::newBuffer(void* ptr, size_t byteSize)
+  {
+    return makeRef<USMBuffer>(this, ptr, byteSize);
+  }
+
   Ref<ScratchBuffer> Device::newScratchBuffer(size_t byteSize)
   {
     auto scratchManager = scratchManagerWp.lock();
@@ -207,9 +217,9 @@ namespace oidn {
     return makeRef<ScratchBuffer>(scratchManager, byteSize);
   }
 
-  std::shared_ptr<Tensor> Device::newTensor(const TensorDesc& desc)
+  std::shared_ptr<Tensor> Device::newTensor(const TensorDesc& desc, Storage storage)
   {
-    return std::make_shared<GenericTensor>(this, desc);
+    return std::make_shared<GenericTensor>(this, desc, storage);
   }
 
   std::shared_ptr<Tensor> Device::newTensor(const TensorDesc& desc, void* data)
@@ -226,6 +236,21 @@ namespace oidn {
   std::shared_ptr<ConcatConv> Device::newConcatConv(const ConcatConvDesc& desc)
   {
     return std::make_shared<CHWConcatConv>(this, desc);
+  }
+
+  void* Device::malloc(size_t byteSize, Storage storage)
+  {
+    return alignedMalloc(byteSize);
+  }
+
+  void Device::free(void* ptr, Storage storage)
+  {
+    alignedFree(ptr);
+  }
+
+  void Device::memcpy(void* dstPtr, const void* srcPtr, size_t byteSize)
+  {
+    std::memcpy(dstPtr, srcPtr, byteSize);
   }
 
 } // namespace oidn

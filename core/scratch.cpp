@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "scratch.h"
@@ -6,7 +6,7 @@
 namespace oidn {
 
   ScratchBufferManager::ScratchBufferManager(const Ref<Device>& device)
-    : buffer(device->newBuffer(0, MemoryKind::Device))
+    : buffer(device->newBuffer(0, Storage::Device))
   {
   }
 
@@ -16,7 +16,7 @@ namespace oidn {
 
     if (scratch->localSize > buffer->getByteSize())
     {
-      buffer->resize(scratch->localSize);
+      buffer->realloc(scratch->localSize);
       updatePtrs();
     }
   }
@@ -33,7 +33,7 @@ namespace oidn {
 
       if (newGlobalSize < buffer->getByteSize())
       {
-        buffer->resize(newGlobalSize);
+        buffer->realloc(newGlobalSize);
         updatePtrs();
       }
     }

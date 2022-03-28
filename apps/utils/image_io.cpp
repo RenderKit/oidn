@@ -13,14 +13,15 @@
 namespace oidn {
 
   ImageBuffer::ImageBuffer()
-    : bufferPtr(nullptr),
+    : devPtr(nullptr),
+      hostPtr(nullptr),
       numValues(0),
       width(0),
       height(0),
       numChannels(0),
       dataType(Format::Undefined) {}
 
-  ImageBuffer::ImageBuffer(const DeviceRef& device, int width, int height, int numChannels, Format dataType)
+  ImageBuffer::ImageBuffer(const DeviceRef& device, int width, int height, int numChannels, Format dataType, Storage storage)
     : device(device),
       numValues(size_t(width) * height * numChannels),
       width(width),
@@ -28,27 +29,43 @@ namespace oidn {
       numChannels(numChannels),
       dataType(dataType)
   {
-    size_t valueSize = 0;
+    size_t valueByteSize = 0;
     switch (dataType)
     {
     case Format::Float:
-      valueSize = sizeof(float);
+      valueByteSize = sizeof(float);
       break;
     case Format::Half:
-      valueSize = sizeof(int16_t);
+      valueByteSize = sizeof(int16_t);
       break;
     default:
       assert(0);
     }
   
-    buffer = device.newBuffer(std::max(numValues * valueSize, size_t(1))); // avoid zero-sized buffer
-    bufferPtr = (char*)buffer.getData();
+    size_t byteSize = std::max(numValues * valueByteSize, size_t(1)); // avoid zero-sized buffer
+    buffer = (storage == Storage::Undefined) ? device.newBuffer(byteSize) : device.newBuffer(byteSize, storage);
+    devPtr = (char*)buffer.getData();
+    hostPtr = (storage != Storage::Device) ? devPtr : nullptr;
+  }
+
+  void ImageBuffer::map(Access access)
+  {
+    assert(hostPtr == nullptr);
+    hostPtr = (char*)buffer.map(access);
+  }
+
+  void ImageBuffer::unmap()
+  {
+    assert(hostPtr);
+    buffer.unmap(hostPtr);
+    hostPtr = nullptr;
   }
 
   std::shared_ptr<ImageBuffer> ImageBuffer::clone() const
   {
+    assert(hostPtr);
     auto result = std::make_shared<ImageBuffer>(device, width, height, numChannels, dataType);
-    memcpy(result->bufferPtr, bufferPtr, getByteSize());
+    memcpy(result->hostPtr, hostPtr, getByteSize());
     return result;
   }
 
@@ -359,13 +376,16 @@ namespace oidn {
         dataType = (spec.channelformat(0) == OIIO::TypeDesc::HALF) ? Format::Half : Format::Float;
       
       auto image = std::make_shared<ImageBuffer>(device, spec.width, spec.height, numChannels, dataType);
-      if (!in->read_image(0, 0, 0, numChannels, dataType == Format::Half ? OIIO::TypeDesc::HALF : OIIO::TypeDesc::FLOAT, image->getData()))
-        throw std::runtime_error("failed to read image data");
+      bool success = in->read_image(0, 0, 0, numChannels, dataType == Format::Half ? OIIO::TypeDesc::HALF : OIIO::TypeDesc::FLOAT, image->getData());
       in->close();
 
   #if OIIO_VERSION < 10903
       OIIO::ImageInput::destroy(in);
   #endif
+
+      if (!success)
+        throw std::runtime_error("failed to read image data");
+
       return image;
     }
 
@@ -395,13 +415,15 @@ namespace oidn {
 
       if (!out->open(filename, spec))
         throw std::runtime_error("cannot create image file: " + filename);
-      if (!out->write_image(format, image.getData()))
-        throw std::runtime_error("failed to write image data");
+      bool success = out->write_image(format, image.getData());
       out->close();
 
   #if OIIO_VERSION < 10903
       OIIO::ImageOutput::destroy(out);
   #endif
+
+      if (!success)
+        throw std::runtime_error("failed to write image data");
     }
   #endif
   } // namespace
@@ -481,7 +503,7 @@ namespace oidn {
                                          const ImageBuffer& ref,
                                          float threshold)
   {
-    assert(ref.getDims() == image.getDims());
+    assert(ref.getDims() == image.getDims());    
 
     size_t numErrors = 0;
     float maxError = 0;

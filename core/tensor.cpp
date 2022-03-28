@@ -40,6 +40,13 @@ namespace oidn {
     return result;
   }
 
+  std::shared_ptr<Tensor> Tensor::map(Access access)
+  {
+    if (!buffer)
+      throw std::logic_error("tensor not backed by a buffer cannot be mapped");
+    return device->newTensor(makeRef<MappedBuffer>(buffer, byteOffset, getByteSize(), access), getDesc());
+  }
+
   void Tensor::dump(const std::string& filenamePrefix) const
   {
     assert(getRank() == 3);
@@ -77,10 +84,10 @@ namespace oidn {
     }
   }
 
-  GenericTensor::GenericTensor(const Ref<Device>& device, const TensorDesc& desc)
+  GenericTensor::GenericTensor(const Ref<Device>& device, const TensorDesc& desc, Storage storage)
     : Tensor(device, desc)
   {
-    init(device);
+    init(device, storage);
   }
 
   GenericTensor::GenericTensor(const Ref<Device>& device, const TensorDesc& desc, void* data)
@@ -98,9 +105,9 @@ namespace oidn {
     init(device, buffer->getData() + byteOffset);
   }
 
-  void GenericTensor::init(const Ref<Device>& device)
+  void GenericTensor::init(const Ref<Device>& device, Storage storage)
   {
-    buffer = device->newBuffer(getByteSize(), MemoryKind::Shared);
+    buffer = device->newBuffer(getByteSize(), storage);
     ptr = buffer->getData();
   }
 

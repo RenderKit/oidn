@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -24,9 +24,6 @@ namespace oidn {
   { 
   public:
     ~CPUDevice();
-
-    Ref<Buffer> newBuffer(size_t byteSize, MemoryKind kind) override;
-    Ref<Buffer> newBuffer(void* ptr, size_t byteSize) override;
 
     // Ops
     std::shared_ptr<Upsample> newUpsample(const UpsampleDesc& desc) override;

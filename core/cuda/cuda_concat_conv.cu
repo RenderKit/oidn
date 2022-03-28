@@ -97,9 +97,13 @@ namespace oidn {
     weight1 = device->newTensor(weight1Desc);
     weight2 = device->newTensor(weight2Desc);
 
-    TensorAccessor4D<half, TensorLayout::ohwi> weightAcc  = *weight;
-    TensorAccessor4D<half, TensorLayout::ohwi> weight1Acc = *weight1;
-    TensorAccessor4D<half, TensorLayout::ohwi> weight2Acc = *weight2;
+    auto weightHost  = weight->map(Access::Read);
+    auto weight1Host = weight1->map(Access::WriteDiscard);
+    auto weight2Host = weight2->map(Access::WriteDiscard);
+
+    TensorAccessor4D<half, TensorLayout::ohwi> weightAcc  = *weightHost;
+    TensorAccessor4D<half, TensorLayout::ohwi> weight1Acc = *weight1Host;
+    TensorAccessor4D<half, TensorLayout::ohwi> weight2Acc = *weight2Host;
 
     for (int o = 0; o < weightAcc.O; ++o)
     {

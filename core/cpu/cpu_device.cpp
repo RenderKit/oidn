@@ -1,8 +1,7 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "cpu_device.h"
-#include "cpu_buffer.h"
 #include "cpu_upsample.h"
 #include "cpu_input_process.h"
 #include "cpu_output_process.h"
@@ -95,16 +94,6 @@ namespace oidn {
     std::cout << "BNNS";
   #endif
     std::cout << std::endl;
-  }
-
-  Ref<Buffer> CPUDevice::newBuffer(size_t byteSize, MemoryKind kind)
-  {
-    return makeRef<CPUBuffer>(this, byteSize, kind);
-  }
-
-  Ref<Buffer> CPUDevice::newBuffer(void* ptr, size_t byteSize)
-  {
-    return makeRef<CPUBuffer>(this, ptr, byteSize);
   }
 
   std::shared_ptr<Upsample> CPUDevice::newUpsample(const UpsampleDesc& desc)

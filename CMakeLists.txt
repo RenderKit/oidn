@@ -119,6 +119,27 @@ if(OIDN_DEVICE_CUDA)
   #find_package(cuDNN REQUIRED)
 endif()
 
+# HIP
+option(OIDN_DEVICE_HIP "Enable HIP device." OFF)
+if(OIDN_DEVICE_HIP)
+  if(NOT DEFINED ROCM_PATH)
+    set(ROCM_PATH "/opt/rocm" CACHE STRING "Default ROCM installation directory.")
+  endif()
+
+  # Search for rocm in common locations
+  list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/hip ${ROCM_PATH})
+
+  # Find hip
+  find_package(hip)
+
+  # Set compiler and linker
+  set(CMAKE_CXX_COMPILER ${HIP_HIPCC_EXECUTABLE})
+  set(CMAKE_CXX_LINKER   ${HIP_HIPCC_EXECUTABLE})
+
+  # Find MIOpen
+  find_package(miopen)
+endif()
+
 ## -----------------------------------------------------------------------------
 ## Library
 ## -----------------------------------------------------------------------------
@@ -148,7 +169,6 @@ set(CORE_SOURCES
   include/OpenImageDenoise/oidn.hpp
   include/OpenImageDenoise/config.h
   ${OIDN_RESOURCE}
-  core/cpu/cpu_buffer.h
   core/cpu/cpu_device.h
   core/cpu/cpu_device.cpp
   core/cpu/cpu_image_copy.h
@@ -257,8 +277,6 @@ if(OIDN_DEVICE_SYCL)
   set(CMAKE_CXX_STANDARD 17)
 
   list(APPEND CORE_SOURCES
-    core/sycl/sycl_buffer.h
-    core/sycl/sycl_buffer.cpp
     core/sycl/sycl_device.h
     core/sycl/sycl_device.cpp
     core/sycl/sycl_op.h
@@ -273,8 +291,6 @@ endif()
 
 if(OIDN_DEVICE_CUDA)
   list(APPEND CORE_SOURCES
-    core/cuda/cuda_buffer.h
-    core/cuda/cuda_buffer.cu
     core/cuda/cuda_common.h
     core/cuda/cuda_common.cu
     core/cuda/cuda_conv.h
@@ -285,6 +301,19 @@ if(OIDN_DEVICE_CUDA)
     core/cuda/cuda_device.cu
     core/cuda/cuda_pool.h
     core/cuda/cuda_pool.cu
+  )
+endif()
+
+if(OIDN_DEVICE_HIP)
+  list(APPEND CORE_SOURCES
+    core/hip/hip_common.h
+    core/hip/hip_common.cpp
+    core/hip/hip_conv.h
+    core/hip/hip_conv.cpp
+    core/hip/hip_device.h
+    core/hip/hip_device.cpp
+    core/hip/hip_pool.h
+    core/hip/hip_pool.cpp
   )
 endif()
 
@@ -330,6 +359,11 @@ endif()
 if(OIDN_DEVICE_CUDA)
   target_compile_definitions(${PROJECT_NAME} PUBLIC OIDN_DEVICE_CUDA)
   target_link_libraries(${PROJECT_NAME} PRIVATE cudnn)
+endif()
+
+if(OIDN_DEVICE_HIP)
+  target_compile_definitions(${PROJECT_NAME} PUBLIC OIDN_DEVICE_HIP)
+  target_link_libraries(${PROJECT_NAME} PRIVATE hip::device MIOpen)
 endif()
 
 # Include weights

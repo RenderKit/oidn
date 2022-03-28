@@ -70,16 +70,16 @@ namespace oidn {
 
     virtual void wait() {}
 
-    virtual Ref<Buffer> newBuffer(size_t byteSize, MemoryKind kind) = 0;
-    virtual Ref<Buffer> newBuffer(void* ptr, size_t byteSize) = 0;
+    virtual Ref<Buffer> newBuffer(size_t byteSize, Storage storage);
+    virtual Ref<Buffer> newBuffer(void* ptr, size_t byteSize);
 
     Ref<ScratchBuffer> newScratchBuffer(size_t byteSize);
 
     Ref<Filter> newFilter(const std::string& type);
 
-    virtual std::shared_ptr<Tensor> newTensor(const TensorDesc& desc);
+    virtual std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, Storage storage = Storage::Device);
     virtual std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, void* data);
-    virtual std::shared_ptr<Tensor> newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset);
+    virtual std::shared_ptr<Tensor> newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset = 0);
 
     // Ops
     virtual std::shared_ptr<Conv> newConv(const ConvDesc& desc) = 0;
@@ -91,6 +91,11 @@ namespace oidn {
 
     // Kernels
     virtual void imageCopy(const Image& src, const Image& dst) = 0;
+
+    // Memory
+    virtual void* malloc(size_t byteSize, Storage storage);
+    virtual void free(void* ptr, Storage storage);
+    virtual void memcpy(void* dstPtr, const void* srcPtr, size_t byteSize);
 
   #if !defined(OIDN_CUDA)
     // Runs task in the arena (if it exists)

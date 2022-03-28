@@ -23,9 +23,6 @@ namespace oidn {
     SYCLDevice();
     SYCLDevice(const sycl::queue& syclQueue);
 
-    Ref<Buffer> newBuffer(size_t byteSize, MemoryKind kind) override;
-    Ref<Buffer> newBuffer(void* ptr, size_t byteSize) override;
-
     OIDN_INLINE sycl::device&  getSYCLDevice()  { return sycl->device; }
     OIDN_INLINE sycl::context& getSYCLContext() { return sycl->context; }
     OIDN_INLINE sycl::queue&   getSYCLQueue()   { return sycl->queue; }
@@ -38,6 +35,11 @@ namespace oidn {
 
     // Kernels
     void imageCopy(const Image& src, const Image& dst) override;
+
+    // Memory
+    void* malloc(size_t byteSize, Storage storage) override;
+    void free(void* ptr, Storage storage) override;
+    void memcpy(void* dstPtr, const void* srcPtr, size_t byteSize) override;
 
     // Runs a kernel on the device
     template<typename Ty, typename Tx, typename F>

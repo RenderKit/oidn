@@ -1,8 +1,9 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
 
+#include <unordered_map>
 #include "common.h"
 
 namespace oidn {
@@ -15,15 +16,6 @@ namespace oidn {
   class Tensor;
   class Image;
 
-  // Memory allocation kind
-  enum class MemoryKind
-  {
-    Host,
-    Device,
-    Shared,
-    Unknown
-  };
-
   // Generic buffer object
   class Buffer : public RefCount
   {
@@ -35,15 +27,16 @@ namespace oidn {
     virtual char* getData() = 0;
     virtual const char* getData() const = 0;
     virtual size_t getByteSize() const = 0;
+    virtual Storage getStorage() const = 0;
 
-    virtual void* map(size_t offset, size_t size) = 0;
-    virtual void unmap(void* mappedPtr) = 0;
+    virtual void* map(size_t byteOffset, size_t byteSize, Access access);
+    virtual void unmap(void* hostPtr);
 
-    // Resizes the buffer discarding its current contents
-    virtual void resize(size_t newSize)
-    {
-      throw std::logic_error("resizing the buffer is not supported");
-    }
+    virtual void read(size_t byteOffset, size_t byteSize, void* dstHostPtr);
+    virtual void write(size_t byteOffset, size_t byteSize, const void* srcHostPtr);
+
+    // Reallocates the buffer with a new size discarding its current contents
+    virtual void realloc(size_t newByteSize);
 
     std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, ptrdiff_t relByteOffset);
     std::shared_ptr<Image> newImage(const ImageDesc& desc, ptrdiff_t relByteOffset);
@@ -54,72 +47,63 @@ namespace oidn {
     virtual void detach(Memory* mem) {}
   };
 
-  // Unified shared memory based buffer object
-  template<typename DeviceT, typename BufferAllocatorT>
-  class USMBuffer : public Buffer
+  // Memory mapped version of a buffer
+  class MappedBuffer final : public Buffer
   {
   public:
-    USMBuffer(const Ref<DeviceT>& device, size_t byteSize, MemoryKind kind)
-      : ptr(nullptr),
-        byteSize(byteSize),
-        shared(false),
-        kind(kind),
-        device(device)
-    {
-      ptr = (char*)allocator.allocate(device, byteSize, kind);
-    }
+    MappedBuffer(const Ref<Buffer>& buffer, size_t byteOffset, size_t byteSize, Access access);
+    ~MappedBuffer();
 
-    USMBuffer(const Ref<DeviceT>& device, void* data, size_t byteSize)
-      : ptr((char*)data),
-        byteSize(byteSize),
-        shared(true),
-        kind(MemoryKind::Unknown),
-        device(device)
-    {
-      if (ptr == nullptr)
-        throw Exception(Error::InvalidArgument, "buffer pointer null");
-    }
+    Device* getDevice() override { return buffer->getDevice(); }
 
-    ~USMBuffer()
-    {
-      if (!shared)
-        allocator.deallocate(device, ptr, kind);
-    }
+    char* getData() override { return ptr; }
+    const char* getData() const override { return ptr; }
+    size_t getByteSize() const override { return byteSize; }
+    Storage getStorage() const override { return Storage::Host; }
+
+  private:
+    char* ptr;
+    size_t byteSize;
+    Ref<Buffer> buffer;
+  };
+
+  // Unified shared memory based buffer object
+  class USMBuffer final : public Buffer
+  {
+  public:
+    USMBuffer(const Ref<Device>& device, size_t byteSize, Storage storage);
+    USMBuffer(const Ref<Device>& device, void* data, size_t byteSize);
+    ~USMBuffer();
 
     Device* getDevice() override { return device.get(); }
 
     char* getData() override { return ptr; }
     const char* getData() const override { return ptr; }
     size_t getByteSize() const override { return byteSize; }
+    Storage getStorage() const override { return storage; }
 
-    void* map(size_t offset, size_t size) override
+    void* map(size_t byteOffset, size_t byteSize, Access access) override;
+    void unmap(void* hostPtr) override;
+
+    void read(size_t byteOffset, size_t byteSize, void* dstHostPtr) override;
+    void write(size_t byteOffset, size_t byteSize, const void* srcHostPtr) override;
+
+    void realloc(size_t newByteSize) override;
+
+  private:
+    struct MappedRegion
     {
-      if (offset + size > byteSize)
-        throw Exception(Error::InvalidArgument, "buffer region out of range");
+      void* devPtr;
+      size_t byteSize;
+      Access access;
+    };
 
-      return ptr + offset;
-    }
-
-    void unmap(void* mappedPtr) override {}
-
-    // Resizes the buffer discarding its current contents
-    void resize(size_t newSize) override
-    {
-      if (shared)
-        throw std::logic_error("shared buffers cannot be resized");
-
-      allocator.deallocate(device, ptr, kind);
-      ptr = (char*)allocator.allocate(device, newSize, kind);
-      byteSize = newSize;
-    }
-
-  protected:
     char* ptr;
     size_t byteSize;
     bool shared;
-    MemoryKind kind;
-    Ref<DeviceT> device;
-    BufferAllocatorT allocator;
+    Storage storage;
+    std::unordered_map<void*, MappedRegion> mappedRegions;
+    Ref<Device> device;
   };
 
   // Memory object optionally backed by a buffer

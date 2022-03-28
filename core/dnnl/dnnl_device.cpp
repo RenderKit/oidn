@@ -13,9 +13,9 @@ namespace oidn {
     dnnlStream.wait();
   }
 
-  std::shared_ptr<Tensor> DNNLDevice::newTensor(const TensorDesc& desc)
+  std::shared_ptr<Tensor> DNNLDevice::newTensor(const TensorDesc& desc, Storage storage)
   {
-    return std::make_shared<DNNLTensor>(this, desc);
+    return std::make_shared<DNNLTensor>(this, desc, storage);
   }
 
   std::shared_ptr<Tensor> DNNLDevice::newTensor(const TensorDesc& desc, void* data)

@@ -6,7 +6,6 @@
 #include "../xpu/xpu_upsample.h"
 #include "../xpu/xpu_image_copy.h"
 #include "cuda_device.h"
-#include "cuda_buffer.h"
 #include "cuda_common.h"
 #include "cuda_conv.h"
 #include "cuda_concat_conv.h"
@@ -61,16 +60,6 @@ namespace oidn {
     std::cout << "  Device  : " << prop.name << std::endl;
   }
 
-  Ref<Buffer> CUDADevice::newBuffer(size_t byteSize, MemoryKind kind)
-  {
-    return makeRef<CUDABuffer>(this, byteSize, kind);
-  }
-
-  Ref<Buffer> CUDADevice::newBuffer(void* ptr, size_t byteSize)
-  {
-    return makeRef<CUDABuffer>(this, ptr, byteSize);
-  }
-
   std::shared_ptr<Conv> CUDADevice::newConv(const ConvDesc& desc)
   {
     return std::make_shared<CUDAConv>(this, desc);
@@ -107,5 +96,42 @@ namespace oidn {
   void CUDADevice::imageCopy(const Image& src, const Image& dst)
   {
     xpuImageCopy<CUDADevice>(this, src, dst);
+  }
+
+  void* CUDADevice::malloc(size_t byteSize, Storage storage)
+  {
+    void* ptr;
+
+    switch (storage)
+    {
+    case Storage::Undefined:
+    case Storage::Host:
+      checkError(cudaMallocHost(&ptr, byteSize));
+      return ptr;
+
+    case Storage::Device:
+      checkError(cudaMalloc(&ptr, byteSize));
+      return ptr;
+
+    case Storage::Managed:
+      checkError(cudaMallocManaged(&ptr, byteSize));
+      return ptr;
+
+    default:
+      throw Exception(Error::InvalidArgument, "invalid storage mode");
+    }
+  }
+
+  void CUDADevice::free(void* ptr, Storage storage)
+  {
+    if (storage == Storage::Host)
+      checkError(cudaFreeHost(ptr));
+    else
+      checkError(cudaFree(ptr));
+  }
+
+  void CUDADevice::memcpy(void* dstPtr, const void* srcPtr, size_t byteSize)
+  {
+    checkError(cudaMemcpy(dstPtr, srcPtr, byteSize, cudaMemcpyDefault));
   }
 }

@@ -16,7 +16,7 @@ namespace oidn {
 
     void wait() override;
 
-    std::shared_ptr<Tensor> newTensor(const TensorDesc& desc) override;
+    std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, Storage storage) override;
     std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, void* data) override;
     std::shared_ptr<Tensor> newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset) override;
 

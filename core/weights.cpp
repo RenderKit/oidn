@@ -44,7 +44,7 @@ namespace oidn {
     const int X = round_up(src->getX(), B);
 
     auto dst = device->newTensor({{X}, TensorLayout::x, device->getTensorDataType()});
-    reorder(*src, *dst);
+    reorder(*src, *dst->map(Access::WriteDiscard));
     return dst;
   }
 
@@ -59,7 +59,7 @@ namespace oidn {
     const int W = src->getW();
 
     auto dst = device->newTensor({{O, I, H, W}, device->getWeightsLayout(), device->getTensorDataType()});
-    reorder(*src, *dst);
+    reorder(*src, *dst->map(Access::WriteDiscard));
     return dst;
   }
 

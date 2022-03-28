@@ -17,7 +17,7 @@ namespace oidn {
   {
   public:
     ImageBuffer();
-    ImageBuffer(const DeviceRef& device, int width, int height, int numChannels, Format dataType = Format::Float);
+    ImageBuffer(const DeviceRef& device, int width, int height, int numChannels, Format dataType = Format::Float, Storage storage = Storage::Undefined);
 
     OIDN_INLINE int getW() const { return width; }
     OIDN_INLINE int getH() const { return height; }
@@ -36,23 +36,28 @@ namespace oidn {
     OIDN_INLINE size_t getSize() const { return numValues; }
     OIDN_INLINE size_t getByteSize() const { return buffer.getSize(); }
     
-    OIDN_INLINE const void* getData() const { return bufferPtr; }
-    OIDN_INLINE void* getData() { return bufferPtr; }
+    OIDN_INLINE const void* getData() const { return hostPtr ? hostPtr : devPtr; }
+    OIDN_INLINE void* getData() { return hostPtr ? hostPtr : devPtr; }
 
-    OIDN_INLINE operator bool() const { return getData() != nullptr; }
+    OIDN_INLINE operator bool() const { return devPtr != nullptr; }
+
+    void map(Access access);
+    void unmap();
 
     template<typename T = float>
     T get(size_t i) const;
 
     OIDN_INLINE void set(size_t i, float x)
     {
+      assert(hostPtr);
+
       switch (dataType)
       {
       case Format::Float:
-        ((float*)bufferPtr)[i] = x;
+        ((float*)hostPtr)[i] = x;
         break;
       case Format::Half:
-        ((half*)bufferPtr)[i] = half(x);
+        ((half*)hostPtr)[i] = half(x);
         break;
       default:
         assert(0);
@@ -61,13 +66,15 @@ namespace oidn {
 
     OIDN_INLINE void set(size_t i, half x)
     {
+      assert(hostPtr);
+
       switch (dataType)
       {
       case Format::Float:
-        ((float*)bufferPtr)[i] = float(x);
+        ((float*)hostPtr)[i] = float(x);
         break;
       case Format::Half:
-        ((half*)bufferPtr)[i] = x;
+        ((half*)hostPtr)[i] = x;
         break;
       default:
         assert(0);
@@ -84,7 +91,8 @@ namespace oidn {
 
     DeviceRef device;
     BufferRef buffer;
-    char* bufferPtr;
+    char* devPtr;
+    char* hostPtr;
     size_t numValues;
     int width;
     int height;
@@ -95,12 +103,14 @@ namespace oidn {
   template<>
   OIDN_INLINE float ImageBuffer::get(size_t i) const
   {
+    assert(hostPtr);
+
     switch (dataType)
     {
     case Format::Float:
-      return ((float*)bufferPtr)[i];
+      return ((float*)hostPtr)[i];
     case Format::Half:
-      return float(((half*)bufferPtr)[i]);
+      return float(((half*)hostPtr)[i]);
     default:
       assert(0);
       return 0;
@@ -110,12 +120,14 @@ namespace oidn {
   template<>
   OIDN_INLINE half ImageBuffer::get(size_t i) const
   {
+    assert(hostPtr);
+
     switch (dataType)
     {
     case Format::Float:
-      return half(((float*)bufferPtr)[i]);
+      return half(((float*)hostPtr)[i]);
     case Format::Half:
-      return ((half*)bufferPtr)[i];
+      return ((half*)hostPtr)[i];
     default:
       assert(0);
       return 0;

@@ -12,7 +12,7 @@ namespace oidn {
   class DNNLTensor final : public Tensor
   {
   public:
-    DNNLTensor(const Ref<DNNLDevice>& device, const TensorDesc& desc);
+    DNNLTensor(const Ref<DNNLDevice>& device, const TensorDesc& desc, Storage storage);
     DNNLTensor(const Ref<DNNLDevice>& device, const TensorDesc& desc, void* data);
     DNNLTensor(const Ref<DNNLDevice>& device, const dnnl::memory::desc& desc);
     DNNLTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset);
@@ -23,7 +23,6 @@ namespace oidn {
     const dnnl::memory& getDNNLMemory() const { return mem; }
 
   private:
-    void init(const Ref<DNNLDevice>& device);
     void init(const Ref<DNNLDevice>& device, void* data);
     void updatePtr() override;
 

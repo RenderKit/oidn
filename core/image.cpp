@@ -69,7 +69,7 @@ namespace oidn {
   }
 
   Image::Image(const Ref<Device>& device, Format format, size_t width, size_t height)
-    : Memory(device->newBuffer(width * height * getFormatSize(format), MemoryKind::Device)),
+    : Memory(device->newBuffer(width * height * getFormatSize(format), Storage::Device)),
       ImageDesc(format, width, height)
   {
     this->ptr = buffer->getData();

@@ -5,10 +5,10 @@
 
 namespace oidn {
 
-  DNNLTensor::DNNLTensor(const Ref<DNNLDevice>& device, const TensorDesc& desc)
-    : Tensor(device, desc)
+  DNNLTensor::DNNLTensor(const Ref<DNNLDevice>& device, const TensorDesc& desc, Storage storage)
+    : Tensor(device->newBuffer(desc.getByteSize(), storage), desc)
   {
-    init(device);
+    init(device, buffer->getData());
   }
 
   DNNLTensor::DNNLTensor(const Ref<DNNLDevice>& device, const TensorDesc& desc, void* data)
@@ -28,11 +28,6 @@ namespace oidn {
       throw Exception(Error::InvalidArgument, "buffer region out of range");
 
     init(dynamicRefCast<DNNLDevice>(device), buffer->getData() + byteOffset);
-  }
-
-  void DNNLTensor::init(const Ref<DNNLDevice>& device)
-  {
-    mem = dnnl::memory(toDNNL(getDesc()), device->getDNNLEngine());
   }
 
   void DNNLTensor::init(const Ref<DNNLDevice>& device, void* data)

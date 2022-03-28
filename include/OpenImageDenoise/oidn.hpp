@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -32,6 +32,15 @@ OIDN_NAMESPACE_BEGIN
     Half2 = OIDN_FORMAT_HALF2,
     Half3 = OIDN_FORMAT_HALF3,
     Half4 = OIDN_FORMAT_HALF4,
+  };
+
+  // Storage modes for buffers
+  enum class Storage
+  {
+    Undefined = OIDN_STORAGE_UNDEFINED,
+    Host      = OIDN_STORAGE_HOST,      // stored on the host, accessible to both the host and device
+    Device    = OIDN_STORAGE_DEVICE,    // stored on the device, *not* accessible to the host
+    Managed   = OIDN_STORAGE_MANAGED,   // automatically migrated between the host and device, accessible to both
   };
 
   // Access modes for mapping buffers
@@ -109,7 +118,7 @@ OIDN_NAMESPACE_BEGIN
       return handle != nullptr;
     }
 
-    // Maps a region of the buffer to host memory.
+    // Maps a region of the buffer to the host memory.
     // If byteSize is 0, the maximum available amount of memory will be mapped.
     void* map(Access access = Access::ReadWrite, size_t byteOffset = 0, size_t byteSize = 0) const
     {
@@ -123,7 +132,19 @@ OIDN_NAMESPACE_BEGIN
       oidnUnmapBuffer(handle, mappedPtr);
     }
 
-    // Gets a pointer to the buffer data.
+    // Reads data from a region of the buffer to host memory.
+    void read(size_t byteOffset, size_t byteSize, void* dstHostPtr)
+    {
+      oidnReadBuffer(handle, byteOffset, byteSize, dstHostPtr);
+    }
+
+    // Writes data to a region of the buffer from host memory.
+    void write(size_t byteOffset, size_t byteSize, const void* srcHostPtr)
+    {
+      oidnWriteBuffer(handle, byteOffset, byteSize, srcHostPtr);
+    }
+
+    // Gets a pointer to the buffer data, which is accessible to the device but not necessarily to the host as well.
     void* getData() const
     {
       return oidnGetBufferData(handle);
@@ -209,7 +230,7 @@ OIDN_NAMESPACE_BEGIN
       return handle != nullptr;
     }
 
-    // Sets an image parameter of the filter (stored in a buffer).
+    // Sets an image parameter of the filter with data stored in a buffer.
     void setImage(const char* name,
                   const BufferRef& buffer, Format format,
                   size_t width, size_t height,
@@ -223,15 +244,15 @@ OIDN_NAMESPACE_BEGIN
                          bytePixelStride, byteRowStride);
     }
 
-    // Sets an image parameter of the filter (owned by the user).
+    // Sets an image parameter of the filter with data owned by the user and accessible to the device.
     void setImage(const char* name,
-                  void* ptr, Format format,
+                  void* devPtr, Format format,
                   size_t width, size_t height,
                   size_t byteOffset = 0,
                   size_t bytePixelStride = 0, size_t byteRowStride = 0)
     {
       oidnSetSharedFilterImage(handle, name,
-                               ptr, (OIDNFormat)format,
+                               devPtr, (OIDNFormat)format,
                                width, height,
                                byteOffset,
                                bytePixelStride, byteRowStride);
@@ -243,12 +264,12 @@ OIDN_NAMESPACE_BEGIN
       oidnRemoveFilterImage(handle, name);
     }
 
-    // Sets an opaque data parameter of the filter (owned by the user).
+    // Sets an opaque data parameter of the filter owned by the user and accessible to the host.
     void setData(const char* name,
-                 void* ptr, size_t byteSize)
+                 void* hostPtr, size_t byteSize)
     {
       oidnSetSharedFilterData(handle, name,
-                              ptr, byteSize);
+                              hostPtr, byteSize);
     }
 
     // Notifies the filter that the contents of an opaque data parameter has been changed.
@@ -343,6 +364,7 @@ OIDN_NAMESPACE_BEGIN
     CPU  = OIDN_DEVICE_TYPE_CPU,  // CPU device
     SYCL = OIDN_DEVICE_TYPE_SYCL, // SYCL device
     CUDA = OIDN_DEVICE_TYPE_CUDA, // CUDA device
+    HIP  = OIDN_DEVICE_TYPE_HIP,  // HIP device
   };
 
   // Error codes
@@ -469,13 +491,19 @@ OIDN_NAMESPACE_BEGIN
       oidnCommitDevice(handle);
     }
 
-    // Creates a new buffer (data allocated and owned by the device).
+    // Creates a new buffer accessible to both the host and device.
     BufferRef newBuffer(size_t byteSize) const
     {
       return oidnNewBuffer(handle, byteSize);
     }
 
-    // Creates a new shared buffer (data allocated and owned by the user).
+    // Creates a new buffer with the specified storage mode.
+    BufferRef newBuffer(size_t byteSize, Storage storage) const
+    {
+      return oidnNewBufferWithStorage(handle, byteSize, (OIDNStorage)storage);
+    }
+
+    // Creates a new shared buffer allocated and owned by the user.
     BufferRef newBuffer(void* ptr, size_t byteSize) const
     {
       return oidnNewSharedBuffer(handle, ptr, byteSize);

@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #define OIDN_EXPORT_API
@@ -41,6 +41,9 @@
 #endif
 #if defined(OIDN_DEVICE_CUDA)
   #include "cuda/cuda_device.h"
+#endif
+#if defined(OIDN_DEVICE_HIP)
+  #include "hip/hip_device.h"
 #endif
 #include "filter.h"
 #include <mutex>
@@ -112,6 +115,10 @@ OIDN_API_NAMESPACE_BEGIN
     #if defined(OIDN_DEVICE_CUDA)
       else if (type == OIDN_DEVICE_TYPE_CUDA)
         device = makeRef<CUDADevice>();
+    #endif
+    #if defined(OIDN_DEVICE_HIP)
+      else if (type == OIDN_DEVICE_TYPE_HIP)
+        device = makeRef<HIPDevice>();
     #endif
       else
         throw Exception(Error::InvalidArgument, "unsupported device type");
@@ -223,20 +230,33 @@ OIDN_API_NAMESPACE_BEGIN
       checkHandle(hDevice);
       OIDN_LOCK(device);
       device->checkCommitted();
-      Ref<Buffer> buffer = device->newBuffer(byteSize, MemoryKind::Shared);
+      Ref<Buffer> buffer = device->newBuffer(byteSize, Storage::Host);
       return (OIDNBuffer)buffer.detach();
     OIDN_CATCH(device)
     return nullptr;
   }
 
-  OIDN_API OIDNBuffer oidnNewSharedBuffer(OIDNDevice hDevice, void* ptr, size_t byteSize)
+  OIDN_API OIDNBuffer oidnNewBufferWithStorage(OIDNDevice hDevice, size_t byteSize, OIDNStorage storage)
   {
     Device* device = (Device*)hDevice;
     OIDN_TRY
       checkHandle(hDevice);
       OIDN_LOCK(device);
       device->checkCommitted();
-      Ref<Buffer> buffer = device->newBuffer(ptr, byteSize);
+      Ref<Buffer> buffer = device->newBuffer(byteSize, (Storage)storage);
+      return (OIDNBuffer)buffer.detach();
+    OIDN_CATCH(device)
+    return nullptr;
+  }
+
+  OIDN_API OIDNBuffer oidnNewSharedBuffer(OIDNDevice hDevice, void* devPtr, size_t byteSize)
+  {
+    Device* device = (Device*)hDevice;
+    OIDN_TRY
+      checkHandle(hDevice);
+      OIDN_LOCK(device);
+      device->checkCommitted();
+      Ref<Buffer> buffer = device->newBuffer(devPtr, byteSize);
       return (OIDNBuffer)buffer.detach();
     OIDN_CATCH(device)
     return nullptr;
@@ -260,7 +280,7 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_TRY
       checkHandle(hBuffer);
       OIDN_LOCK(buffer);
-      return buffer->map(byteOffset, byteSize);
+      return buffer->map(byteOffset, byteSize, (Access)access);
     OIDN_CATCH(buffer)
     return nullptr;
   }
@@ -273,6 +293,26 @@ OIDN_API_NAMESPACE_BEGIN
       OIDN_LOCK(buffer);
       return buffer->unmap(mappedPtr);
     OIDN_CATCH(buffer)
+  }
+
+  OIDN_API void oidnReadBuffer(OIDNBuffer hBuffer, size_t byteOffset, size_t byteSize, void* dstHostPtr)
+  {
+    Buffer* buffer = (Buffer*)hBuffer;
+    OIDN_TRY
+      checkHandle(hBuffer);
+      OIDN_LOCK(buffer);
+      buffer->read(byteOffset, byteSize, dstHostPtr);
+    OIDN_CATCH(buffer);
+  }
+
+  OIDN_API void oidnWriteBuffer(OIDNBuffer hBuffer, size_t byteOffset, size_t byteSize, const void* srcHostPtr)
+  {
+    Buffer* buffer = (Buffer*)hBuffer;
+    OIDN_TRY
+      checkHandle(hBuffer);
+      OIDN_LOCK(buffer);
+      buffer->write(byteOffset, byteSize, srcHostPtr);
+    OIDN_CATCH(buffer);
   }
 
   OIDN_API void* oidnGetBufferData(OIDNBuffer hBuffer)
@@ -342,7 +382,7 @@ OIDN_API_NAMESPACE_BEGIN
   }
 
   OIDN_API void oidnSetSharedFilterImage(OIDNFilter hFilter, const char* name,
-                                         void* ptr, OIDNFormat format,
+                                         void* devPtr, OIDNFormat format,
                                          size_t width, size_t height,
                                          size_t byteOffset,
                                          size_t bytePixelStride, size_t byteRowStride)
@@ -351,7 +391,7 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_TRY
       checkHandle(hFilter);
       OIDN_LOCK(filter);
-      auto image = std::make_shared<Image>(ptr, (Format)format, (int)width, (int)height, byteOffset, bytePixelStride, byteRowStride);
+      auto image = std::make_shared<Image>(devPtr, (Format)format, (int)width, (int)height, byteOffset, bytePixelStride, byteRowStride);
       filter->setImage(name, image);
     OIDN_CATCH(filter)
   }
@@ -367,13 +407,13 @@ OIDN_API_NAMESPACE_BEGIN
   }
 
   OIDN_API void oidnSetSharedFilterData(OIDNFilter hFilter, const char* name,
-                                        void* ptr, size_t byteSize)
+                                        void* hostPtr, size_t byteSize)
   {
     Filter* filter = (Filter*)hFilter;
     OIDN_TRY
       checkHandle(hFilter);
       OIDN_LOCK(filter);
-      Data data(ptr, byteSize);
+      Data data(hostPtr, byteSize);
       filter->setData(name, data);
     OIDN_CATCH(filter)
   }

@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include <iostream>
@@ -86,11 +86,19 @@ void addBenchmark(const std::string& filter, const std::vector<std::string>& inp
   benchmarks.push_back(bench);
 }
 
+std::shared_ptr<ImageBuffer> newImage(DeviceRef& device, int width, int height)
+{
+  // Create a buffer stored on the device to avoid potential performance issues
+  return std::make_shared<ImageBuffer>(device, width, height, 3, dataType, Storage::Device);
+}
+
 // Initializes an image with random values
 void initImage(ImageBuffer& image, Random& rng, float minValue, float maxValue)
 {
+  image.map(Access::WriteDiscard);
   for (size_t i = 0; i < image.getSize(); ++i)
     image.set(i, minValue + rng.get1f() * (maxValue - minValue));
+  image.unmap();
 }
 
 // Runs a benchmark and returns the total runtime
@@ -107,7 +115,7 @@ double runBenchmark(DeviceRef& device, const Benchmark& bench)
   std::shared_ptr<ImageBuffer> albedo;
   if (bench.hasInput("alb"))
   {
-    input = albedo = std::make_shared<ImageBuffer>(device, bench.width, bench.height, 3, dataType);
+    input = albedo = newImage(device, bench.width, bench.height);
     initImage(*albedo, rng, 0.f, 1.f);
     filter.setImage("albedo", albedo->getData(), albedo->getFormat(), bench.width, bench.height);
   }
@@ -115,7 +123,7 @@ double runBenchmark(DeviceRef& device, const Benchmark& bench)
   std::shared_ptr<ImageBuffer> normal;
   if (bench.hasInput("nrm"))
   {
-    input = normal = std::make_shared<ImageBuffer>(device, bench.width, bench.height, 3, dataType);
+    input = normal = newImage(device, bench.width, bench.height);
     initImage(*normal, rng, -1.f, 1.f);
     filter.setImage("normal", normal->getData(), normal->getFormat(), bench.width, bench.height);
   }
@@ -123,14 +131,14 @@ double runBenchmark(DeviceRef& device, const Benchmark& bench)
   std::shared_ptr<ImageBuffer> color;
   if (bench.hasInput("hdr"))
   {
-    input = color = std::make_shared<ImageBuffer>(device, bench.width, bench.height, 3, dataType);
+    input = color = newImage(device, bench.width, bench.height);
     initImage(*color, rng, 0.f, 100.f);
     filter.setImage("color", color->getData(), color->getFormat(), bench.width, bench.height);
     filter.set("hdr", true);
   }
   else if (bench.hasInput("ldr"))
   {
-    input = color = std::make_shared<ImageBuffer>(device, bench.width, bench.height, 3, dataType);
+    input = color = newImage(device, bench.width, bench.height);
     initImage(*color, rng, 0.f, 1.f);
     filter.setImage("color", color->getData(), color->getFormat(), bench.width, bench.height);
     filter.set("hdr", false);
@@ -140,7 +148,7 @@ double runBenchmark(DeviceRef& device, const Benchmark& bench)
   if (inplace)
     output = input;
   else
-    output = std::make_shared<ImageBuffer>(device, bench.width, bench.height, 3, dataType);
+    output = newImage(device, bench.width, bench.height);
   filter.setImage("output", output->getData(), output->getFormat(), bench.width, bench.height);
 
   if (maxMemoryMB >= 0)

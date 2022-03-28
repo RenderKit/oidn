@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -23,6 +23,7 @@ typedef enum
   OIDN_DEVICE_TYPE_CPU  = 1, // CPU device
   OIDN_DEVICE_TYPE_SYCL = 2, // SYCL device
   OIDN_DEVICE_TYPE_CUDA = 3, // CUDA device
+  OIDN_DEVICE_TYPE_HIP  = 4, // HIP device
 } OIDNDeviceType;
 
 // Error codes
@@ -102,6 +103,15 @@ typedef enum
   OIDN_FORMAT_HALF4,
 } OIDNFormat;
 
+// Storage modes for buffers
+typedef enum
+{
+  OIDN_STORAGE_UNDEFINED = 0,
+  OIDN_STORAGE_HOST      = 1, // stored on the host, accessible to both the host and device
+  OIDN_STORAGE_DEVICE    = 2, // stored on the device, *not* accessible to the host
+  OIDN_STORAGE_MANAGED   = 3, // automatically migrated between the host and device, accessible to both
+} OIDNStorage;
+
 // Access modes for mapping buffers
 typedef enum
 {
@@ -114,13 +124,16 @@ typedef enum
 // Buffer handle
 typedef struct OIDNBufferImpl* OIDNBuffer;
 
-// Creates a new buffer (data allocated and owned by the device).
+// Creates a new buffer accessible to both the host and device.
 OIDN_API OIDNBuffer oidnNewBuffer(OIDNDevice device, size_t byteSize);
 
-// Creates a new shared buffer (data allocated and owned by the user).
-OIDN_API OIDNBuffer oidnNewSharedBuffer(OIDNDevice device, void* ptr, size_t byteSize);
+// Creates a new buffer with the specified storage mode.
+OIDN_API OIDNBuffer oidnNewBufferWithStorage(OIDNDevice device, size_t byteSize, OIDNStorage storage);
 
-// Maps a region of the buffer to host memory.
+// Creates a new shared buffer allocated and owned by the user and accessible to the device.
+OIDN_API OIDNBuffer oidnNewSharedBuffer(OIDNDevice device, void* devPtr, size_t byteSize);
+
+// Maps a region of the buffer to the host memory.
 // If byteSize is 0, the maximum available amount of memory will be mapped.
 OIDN_API void* oidnMapBuffer(OIDNBuffer buffer, OIDNAccess access, size_t byteOffset, size_t byteSize);
 
@@ -128,7 +141,13 @@ OIDN_API void* oidnMapBuffer(OIDNBuffer buffer, OIDNAccess access, size_t byteOf
 // mappedPtr must be a pointer returned by a previous call to oidnMapBuffer.
 OIDN_API void oidnUnmapBuffer(OIDNBuffer buffer, void* mappedPtr);
 
-// Gets a pointer to the buffer data.
+// Reads data from a region of the buffer to host memory.
+OIDN_API void oidnReadBuffer(OIDNBuffer buffer, size_t byteOffset, size_t byteSize, void* dstHostPtr);
+
+// Writes data to a region of the buffer from host memory.
+OIDN_API void oidnWriteBuffer(OIDNBuffer buffer, size_t byteOffset, size_t byteSize, const void* srcHostPtr);
+
+// Gets a pointer to the buffer data, which is accessible to the device but not necessarily to the host as well.
 OIDN_API void* oidnGetBufferData(OIDNBuffer buffer);
 
 // Gets the size of the buffer in bytes.
@@ -159,7 +178,7 @@ OIDN_API void oidnRetainFilter(OIDNFilter filter);
 // Releases the filter (decrements the reference count).
 OIDN_API void oidnReleaseFilter(OIDNFilter filter);
 
-// Sets an image parameter of the filter (stored in a buffer).
+// Sets an image parameter of the filter with data stored in a buffer.
 // If bytePixelStride and/or byteRowStride are zero, these will be computed automatically.
 OIDN_API void oidnSetFilterImage(OIDNFilter filter, const char* name,
                                  OIDNBuffer buffer, OIDNFormat format,
@@ -167,10 +186,10 @@ OIDN_API void oidnSetFilterImage(OIDNFilter filter, const char* name,
                                  size_t byteOffset,
                                  size_t bytePixelStride, size_t byteRowStride);
 
-// Sets an image parameter of the filter (owned by the user).
+// Sets an image parameter of the filter with data owned by the user and accessible to the device.
 // If bytePixelStride and/or byteRowStride are zero, these will be computed automatically.
 OIDN_API void oidnSetSharedFilterImage(OIDNFilter filter, const char* name,
-                                       void* ptr, OIDNFormat format,
+                                       void* devPtr, OIDNFormat format,
                                        size_t width, size_t height,
                                        size_t byteOffset,
                                        size_t bytePixelStride, size_t byteRowStride);
@@ -178,9 +197,9 @@ OIDN_API void oidnSetSharedFilterImage(OIDNFilter filter, const char* name,
 // Removes an image parameter of the filter that was previously set.
 OIDN_API void oidnRemoveFilterImage(OIDNFilter filter, const char* name);
 
-// Sets an opaque data parameter of the filter (owned by the user).
+// Sets an opaque data parameter of the filter owned by the user and accessible to the host.
 OIDN_API void oidnSetSharedFilterData(OIDNFilter filter, const char* name,
-                                      void* ptr, size_t byteSize);
+                                      void* hostPtr, size_t byteSize);
 
 // Notifies the filter that the contents of an opaque data parameter has been changed.
 OIDN_API void oidnUpdateFilterData(OIDNFilter filter, const char* name);

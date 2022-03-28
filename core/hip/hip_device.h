@@ -3,19 +3,22 @@
 
 #pragma once
 
+#if defined(OIDN_HIP)
+  #include <hip/hip_runtime.h>
+#endif
 #include "../device.h"
 
-struct cudnnContext;
-typedef struct cudnnContext* cudnnHandle_t;
+struct miopenHandle;
+typedef struct miopenHandle* miopenHandle_t;
 
 namespace oidn {
 
-#if defined(OIDN_CUDA)
+#if defined(OIDN_HIP)
   namespace
   {
     // Helper functions for kernel execution
     template<typename Ty, typename Tx, typename F>
-    __global__ void runCUDAKernel(Ty Dy, Tx Dx, const F f)
+    __global__ void runHIPKernel(Ty Dy, Tx Dx, const F f)
     {
       const Tx x = Tx(blockDim.x * blockIdx.x + threadIdx.x);
       const Ty y = Ty(blockDim.y * blockIdx.y + threadIdx.y);
@@ -24,7 +27,7 @@ namespace oidn {
     }
 
     template<typename Tz, typename Ty, typename Tx, typename F>
-    __global__ void runCUDAKernel(Tz Dz, Ty Dy, Tx Dx, const F f)
+    __global__ void runHIPKernel(Tz Dz, Ty Dy, Tx Dx, const F f)
     {
       const Tx x = Tx(blockDim.x * blockIdx.x + threadIdx.x);
       const Ty y = Ty(blockDim.y * blockIdx.y + threadIdx.y);
@@ -34,21 +37,20 @@ namespace oidn {
     }
   }
 
-  void checkError(cudaError_t error);
+  void checkError(hipError_t error);
 #endif
 
-  class CUDADevice final : public Device
+  class HIPDevice final : public Device
   { 
   public:
-    ~CUDADevice();
+    ~HIPDevice();
 
-    OIDN_INLINE cudnnHandle_t getCuDNNHandle() const { return cudnnHandle; }
+    OIDN_INLINE miopenHandle_t getMIOpenHandle() const { return miopenHandle; }
 
     void wait() override;
 
     // Ops
     std::shared_ptr<Conv> newConv(const ConvDesc& desc) override;
-    std::shared_ptr<ConcatConv> newConcatConv(const ConcatConvDesc& desc) override;
     std::shared_ptr<Pool> newPool(const PoolDesc& desc) override;
     std::shared_ptr<Upsample> newUpsample(const UpsampleDesc& desc) override;
     std::shared_ptr<InputProcess> newInputProcess(const InputProcessDesc& desc) override;
@@ -61,26 +63,26 @@ namespace oidn {
     void free(void* ptr, Storage storage) override;
     void memcpy(void* dstPtr, const void* srcPtr, size_t byteSize) override;
 
-  #if defined(OIDN_CUDA)
+  #if defined(OIDN_HIP)
     // Runs a kernel on the device
     template<typename Ty, typename Tx, typename F>
     OIDN_INLINE void runKernel(const Ty& Dy, const Tx& Dx, const F& f)
     {
-      const dim3 blockDim(16, 16);
+      const dim3 blockDim(32, 32);
       const dim3 gridDim(ceil_div(Dx, blockDim.x), ceil_div(Dy, blockDim.y));
 
-      runCUDAKernel<<<gridDim, blockDim>>>(Dy, Dx, f);
-      checkError(cudaGetLastError());
+      runHIPKernel<<<gridDim, blockDim>>>(Dy, Dx, f);
+      checkError(hipGetLastError());
     }
 
     template<typename Tz, typename Ty, typename Tx, typename F>
     OIDN_INLINE void runKernel(const Tz& Dz, const Ty& Dy, const Tx& Dx, const F& f)
     {
-      const dim3 blockDim(16, 16, 1);
+      const dim3 blockDim(32, 32, 1);
       const dim3 gridDim(ceil_div(Dx, blockDim.x), ceil_div(Dy, blockDim.y), ceil_div(Dz, blockDim.z));
 
-      runCUDAKernel<<<gridDim, blockDim>>>(Dz, Dy, Dx, f);
-      checkError(cudaGetLastError());
+      runHIPKernel<<<gridDim, blockDim>>>(Dz, Dy, Dx, f);
+      checkError(hipGetLastError());
     }
   #endif
 
@@ -89,7 +91,7 @@ namespace oidn {
     void printInfo() override;
 
   private:
-    cudnnHandle_t cudnnHandle;
+    miopenHandle_t miopenHandle;
   };
 
 } // namespace oidn

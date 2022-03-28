@@ -183,11 +183,13 @@ namespace oidn {
 
     operator ispc::TensorAccessor3D() const;
 
+    std::shared_ptr<Tensor> map(Access access);
+
     void dump(const std::string& filenamePrefix) const;
 
   protected:
     Tensor(const Ref<Device>& device, const TensorDesc& desc);
-    Tensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset);
+    Tensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset = 0);
 
     Ref<Device> device;
   };
@@ -195,15 +197,15 @@ namespace oidn {
   class GenericTensor final : public Tensor
   {
   public:
-    GenericTensor(const Ref<Device>& device, const TensorDesc& desc);
+    GenericTensor(const Ref<Device>& device, const TensorDesc& desc, Storage storage);
     GenericTensor(const Ref<Device>& device, const TensorDesc& desc, void* data);
-    GenericTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset);
+    GenericTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset = 0);
 
     void* getData() override { return ptr; }
     const void* getData() const override { return ptr; }
 
   private:
-    void init(const Ref<Device>& device);
+    void init(const Ref<Device>& device, Storage storage);
     void init(const Ref<Device>& device, void* data);
     void updatePtr() override;
 
