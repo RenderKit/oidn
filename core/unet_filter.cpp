@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "unet_filter.h"
+#include "autoexposure.h"
 
 namespace oidn {
 
@@ -97,26 +98,35 @@ namespace oidn {
     {
       // Initialize the progress state
       double workAmount = tileCountH * tileCountW * net->getWorkAmount();
+      if (hdr && isnan(inputScale))
+        workAmount += 1;
       if (outputTemp)
         workAmount += 1;
       Progress progress(progressFunc, progressUserPtr, workAmount);
-
-      // Set the input and output
-      inputProcess->setSrc(color, albedo, normal);
-      outputProcess->setDst(outputTemp ? outputTemp : output);
 
       // Set the input scale
       if (isnan(inputScale))
       {
         if (hdr)
-          transferFunc->setInputScale(getAutoexposure(*color));
+        {
+          autoexposure->setSrc(color);
+          autoexposure->run();
+          progress.update(1);
+          transferFunc->setInputScale(autoexposure->getResult());
+        }
         else
-          transferFunc->setInputScale(1.f);
+        {
+          transferFunc->setInputScale(1);
+        }
       }
       else
       {
         transferFunc->setInputScale(inputScale);
       }
+
+      // Set the input and output
+      inputProcess->setSrc(color, albedo, normal);
+      outputProcess->setDst(outputTemp ? outputTemp : output);
 
       // Iterate over the tiles
       int tileIndex = 0;
@@ -228,6 +238,7 @@ namespace oidn {
   void UNetFilter::cleanup()
   {
     net = nullptr;
+    autoexposure.reset();
     inputProcess.reset();
     outputProcess.reset();
     transferFunc.reset();
@@ -340,6 +351,10 @@ namespace oidn {
     if (normal) inputC += 3;
 
     // Create the ops
+    std::shared_ptr<Autoexposure> autoexposure;
+    if (hdr)
+      autoexposure = device->newAutoexposure(color->getDesc());
+
     const bool snorm = directional || (!color && normal);
     TensorDims inputDims {inputC, tileH, tileW};
     auto inputProcess = net->addInputProcess("input", inputDims, alignment, transferFunc, hdr, snorm);
@@ -549,7 +564,8 @@ namespace oidn {
 
     // Finalize the network
     net->finalize();
-    this->inputProcess  = inputProcess;
+    this->autoexposure = autoexposure;
+    this->inputProcess = inputProcess;
     this->outputProcess = outputProcess;
 
     // Print statistics

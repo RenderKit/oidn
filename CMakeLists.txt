@@ -169,6 +169,8 @@ set(CORE_SOURCES
   include/OpenImageDenoise/oidn.hpp
   include/OpenImageDenoise/config.h
   ${OIDN_RESOURCE}
+  core/cpu/cpu_autoexposure.h
+  core/cpu/cpu_autoexposure.cpp
   core/cpu/cpu_device.h
   core/cpu/cpu_device.cpp
   core/cpu/cpu_image_copy.h
@@ -185,6 +187,7 @@ set(CORE_SOURCES
   core/xpu/xpu_output_process.h
   core/xpu/xpu_upsample.h
   core/api.cpp
+  core/autoexposure.h
   core/buffer.h
   core/buffer.cpp
   core/color.h

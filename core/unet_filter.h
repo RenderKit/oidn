@@ -82,6 +82,7 @@ namespace oidn {
 
     // Network
     std::unique_ptr<Network> net;
+    std::shared_ptr<Autoexposure> autoexposure;
     std::shared_ptr<InputProcess> inputProcess;
     std::shared_ptr<OutputProcess> outputProcess;
     std::shared_ptr<TransferFunction> transferFunc;

@@ -155,6 +155,4 @@ namespace oidn {
     operator ispc::TransferFunction() const;
   };
 
-  float getAutoexposure(const Image& color);
-
 } // namespace oidn
