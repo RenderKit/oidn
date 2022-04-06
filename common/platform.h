@@ -27,7 +27,7 @@
 
 #if defined(_WIN32)
   // Windows
-  #define OIDN_INLINE OIDN_INLINE
+  #define OIDN_INLINE __forceinline
   #define OIDN_NOINLINE __declspec(noinline)
 #else
   // Unix
