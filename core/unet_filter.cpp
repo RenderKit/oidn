@@ -112,6 +112,7 @@ namespace oidn {
           autoexposure->setSrc(color);
           autoexposure->run();
           progress.update(1);
+          std::cout << "Autoexposure: " << autoexposure->getResult() << std::endl;
           transferFunc->setInputScale(autoexposure->getResult());
         }
         else
@@ -454,7 +455,9 @@ namespace oidn {
     }
 
     // Allocate scratch space for the operations
-    const size_t opScratchByteSize = net->getScratchByteSize();
+    size_t opScratchByteSize = net->getScratchByteSize();
+    if (hdr)
+      opScratchByteSize = max(opScratchByteSize, autoexposure->getScratchByteSize());
     ptrdiff_t opScratchOfs = minOfs - opScratchByteSize;
     minOfs = opScratchOfs;
 
@@ -560,10 +563,14 @@ namespace oidn {
       TensorDesc opScratchDesc {{int64_t(opScratchByteSize)}, TensorLayout::x, DataType::UInt8};
       auto opScratch = scratch->newTensor(opScratchDesc, opScratchOfs);
       net->setScratch(opScratch);
+      if (hdr)
+        autoexposure->setScratch(opScratch);
     }
 
     // Finalize the network
     net->finalize();
+    if (hdr)
+      autoexposure->finalize();
     this->autoexposure = autoexposure;
     this->inputProcess = inputProcess;
     this->outputProcess = outputProcess;

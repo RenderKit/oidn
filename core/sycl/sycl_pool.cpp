@@ -53,7 +53,7 @@ namespace oidn {
     kernel.src = *src;
     kernel.dst = *dst;
 
-    device->runESIMDKernel(dst->getH() * dst->getCB(), dst->getW(), kernel);
+    device->parallelForESIMD(dst->getH() * dst->getCB(), dst->getW(), kernel);
   }
 
 } // namespace oidn

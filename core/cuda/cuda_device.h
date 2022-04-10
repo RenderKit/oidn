@@ -14,8 +14,14 @@ namespace oidn {
   namespace
   {
     // Helper functions for kernel execution
+    template<typename F>
+    __global__ void runCUDAKernel(const F f)
+    {
+      f();
+    }
+
     template<typename Ty, typename Tx, typename F>
-    __global__ void runCUDAKernel(Ty Dy, Tx Dx, const F f)
+    __global__ void runCUDAParallelFor(Ty Dy, Tx Dx, const F f)
     {
       const Tx x = Tx(blockDim.x * blockIdx.x + threadIdx.x);
       const Ty y = Ty(blockDim.y * blockIdx.y + threadIdx.y);
@@ -24,7 +30,7 @@ namespace oidn {
     }
 
     template<typename Tz, typename Ty, typename Tx, typename F>
-    __global__ void runCUDAKernel(Tz Dz, Ty Dy, Tx Dx, const F f)
+    __global__ void runCUDAParallelFor(Tz Dz, Ty Dy, Tx Dx, const F f)
     {
       const Tx x = Tx(blockDim.x * blockIdx.x + threadIdx.x);
       const Ty y = Ty(blockDim.y * blockIdx.y + threadIdx.y);
@@ -51,6 +57,7 @@ namespace oidn {
     std::shared_ptr<ConcatConv> newConcatConv(const ConcatConvDesc& desc) override;
     std::shared_ptr<Pool> newPool(const PoolDesc& desc) override;
     std::shared_ptr<Upsample> newUpsample(const UpsampleDesc& desc) override;
+    std::shared_ptr<Autoexposure> newAutoexposure(const ImageDesc& srcDesc) override;
     std::shared_ptr<InputProcess> newInputProcess(const InputProcessDesc& desc) override;
     std::shared_ptr<OutputProcess> newOutputProcess(const OutputProcessDesc& desc) override;
 
@@ -62,24 +69,38 @@ namespace oidn {
     void memcpy(void* dstPtr, const void* srcPtr, size_t byteSize) override;
 
   #if defined(OIDN_CUDA)
-    // Runs a kernel on the device
+    template<typename F>
+    OIDN_INLINE void runKernel(int groupRange, int groupSize, const F& f)
+    {
+      runCUDAKernel<<<groupRange, groupSize>>>(f);
+      checkError(cudaGetLastError());
+    }
+
+    template<typename F>
+    OIDN_INLINE void runKernel(const std::array<int, 2>& groupRange, const std::array<int, 2>& groupSize, const F& f)
+    {
+      runCUDAKernel<<<dim3(groupRange[1], groupRange[0]), dim3(groupSize[1], groupSize[0])>>>(f);
+      checkError(cudaGetLastError());
+    }
+
+    // Runs a parallel for kernel on the device
     template<typename Ty, typename Tx, typename F>
-    OIDN_INLINE void runKernel(const Ty& Dy, const Tx& Dx, const F& f)
+    OIDN_INLINE void parallelFor(const Ty& Dy, const Tx& Dx, const F& f)
     {
       const dim3 blockDim(16, 16);
       const dim3 gridDim(ceil_div(Dx, blockDim.x), ceil_div(Dy, blockDim.y));
 
-      runCUDAKernel<<<gridDim, blockDim>>>(Dy, Dx, f);
+      runCUDAParallelFor<<<gridDim, blockDim>>>(Dy, Dx, f);
       checkError(cudaGetLastError());
     }
 
     template<typename Tz, typename Ty, typename Tx, typename F>
-    OIDN_INLINE void runKernel(const Tz& Dz, const Ty& Dy, const Tx& Dx, const F& f)
+    OIDN_INLINE void parallelFor(const Tz& Dz, const Ty& Dy, const Tx& Dx, const F& f)
     {
       const dim3 blockDim(16, 16, 1);
       const dim3 gridDim(ceil_div(Dx, blockDim.x), ceil_div(Dy, blockDim.y), ceil_div(Dz, blockDim.z));
 
-      runCUDAKernel<<<gridDim, blockDim>>>(Dz, Dy, Dx, f);
+      runCUDAParallelFor<<<gridDim, blockDim>>>(Dz, Dy, Dx, f);
       checkError(cudaGetLastError());
     }
   #endif

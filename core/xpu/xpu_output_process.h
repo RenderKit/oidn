@@ -48,7 +48,7 @@ namespace oidn {
       kernel.hdr = hdr;
       kernel.snorm = snorm;
 
-      this->device->runKernel(tile.H, tile.W, kernel);
+      this->device->parallelFor(tile.H, tile.W, kernel);
     }
   };
 

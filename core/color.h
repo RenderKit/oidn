@@ -155,4 +155,10 @@ namespace oidn {
     operator ispc::TransferFunction() const;
   };
 
+  // Computes the luminance of an RGB color
+  OIDN_HOST_DEVICE_INLINE float luminance(vec3f c)
+  {
+    return 0.212671f * c.x + 0.715160f * c.y + 0.072169f * c.z;
+  }
+
 } // namespace oidn

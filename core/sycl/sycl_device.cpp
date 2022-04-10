@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "mkl-dnn/include/dnnl_sycl.hpp"
+#include "../gpu/gpu_autoexposure.h"
 #include "../xpu/xpu_input_process.h"
 #include "../xpu/xpu_output_process.h"
 #include "../xpu/xpu_image_copy.h"
@@ -65,6 +66,11 @@ namespace oidn {
   std::shared_ptr<Upsample> SYCLDevice::newUpsample(const UpsampleDesc& desc)
   {
     return std::make_shared<SYCLUpsample>(this, desc);
+  }
+
+  std::shared_ptr<Autoexposure> SYCLDevice::newAutoexposure(const ImageDesc& srcDesc)
+  {
+    return std::make_shared<GPUAutoexposure<SYCLOp>>(this, srcDesc);
   }
 
   std::shared_ptr<InputProcess> SYCLDevice::newInputProcess(const InputProcessDesc& desc)

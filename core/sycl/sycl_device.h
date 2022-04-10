@@ -30,6 +30,7 @@ namespace oidn {
     // Ops
     std::shared_ptr<Pool> newPool(const PoolDesc& desc) override;
     std::shared_ptr<Upsample> newUpsample(const UpsampleDesc& desc) override;
+    std::shared_ptr<Autoexposure> newAutoexposure(const ImageDesc& srcDesc) override;
     std::shared_ptr<InputProcess> newInputProcess(const InputProcessDesc& desc) override;
     std::shared_ptr<OutputProcess> newOutputProcess(const OutputProcessDesc& desc) override;
 
@@ -41,9 +42,27 @@ namespace oidn {
     void free(void* ptr, Storage storage) override;
     void memcpy(void* dstPtr, const void* srcPtr, size_t byteSize) override;
 
+    template<typename F>
+    OIDN_INLINE void runKernel(int groupRange, int groupSize, const F& f)
+    {
+      sycl->queue.parallel_for(
+        sycl::nd_range<1>(sycl::range<1>(groupRange * groupSize),
+                          sycl::range<1>(groupSize)),
+        [=](sycl::nd_item<1> it) { f(); });
+    }
+
+    template<typename F>
+    OIDN_INLINE void runKernel(const std::array<int, 2>& groupRange, const std::array<int, 2>& groupSize, const F& f)
+    {
+      sycl->queue.parallel_for(
+        sycl::nd_range<2>(sycl::range<2>(groupRange[0] * groupSize[0], groupRange[1] * groupSize[1]),
+                          sycl::range<2>(groupSize[0], groupSize[1])),
+        [=](sycl::nd_item<2> it) { f(); });
+    }
+
     // Runs a kernel on the device
     template<typename Ty, typename Tx, typename F>
-    OIDN_INLINE void runKernel(const Ty& Dy, const Tx& Dx, const F& f)
+    OIDN_INLINE void parallelFor(const Ty& Dy, const Tx& Dx, const F& f)
     {
       sycl->queue.parallel_for(sycl::range<2>(Dy, Dx), [=](sycl::id<2> idx)
       {
@@ -53,7 +72,7 @@ namespace oidn {
 
     // Runs an ESIMD kernel on the device
     template<typename Ty, typename Tx, typename F>
-    OIDN_INLINE void runESIMDKernel(const Ty& Dy, const Tx& Dx, const F& f)
+    OIDN_INLINE void parallelForESIMD(const Ty& Dy, const Tx& Dx, const F& f)
     {
       // FIXME: Named kernel is necessary due to an ESIMD bug
       sycl->queue.parallel_for<class ESIMDKernel>(sycl::range<2>(Dy, Dx), [=](sycl::id<2> idx) SYCL_ESIMD_KERNEL

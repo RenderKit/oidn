@@ -11,7 +11,9 @@ namespace oidn {
   using std::isnan;
   using std::pow;
   using std::log;
+  using std::log2;
   using std::exp;
+  using std::exp2;
 
   // Returns ceil(a / b) for non-negative integers
   template<typename Int, typename IntB>

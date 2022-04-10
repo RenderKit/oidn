@@ -13,7 +13,7 @@ namespace oidn {
   {
   public:
     XPUUpsample(const Ref<typename OpT::DeviceType>& device,
-                    const UpsampleDesc& desc)
+                const UpsampleDesc& desc)
       : OpT(device),
         Upsample(desc) {}
 
@@ -24,9 +24,9 @@ namespace oidn {
       kernel.dst = *dst;
 
       if (tensorLayout == TensorLayout::hwc)
-        this->device->runKernel(src->getH(), src->getW(), src->getC(), kernel);
+        this->device->parallelFor(src->getH(), src->getW(), src->getC(), kernel);
       else
-        this->device->runKernel(src->getC(), src->getH(), src->getW(), kernel);
+        this->device->parallelFor(src->getC(), src->getH(), src->getW(), kernel);
     }
   };
 

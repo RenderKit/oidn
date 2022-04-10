@@ -33,9 +33,9 @@ namespace oidn {
     // Kernels
     void imageCopy(const Image& src, const Image& dst) override;
 
-    // Runs a kernel on the device
+    // Runs a parallel for kernel on the device
     template<typename Ty, typename Tx, typename F>
-    OIDN_INLINE void runKernel(const Ty& Dy, const Tx& Dx, const F& f)
+    OIDN_INLINE void parallelFor(const Ty& Dy, const Tx& Dx, const F& f)
     {
       parallel_nd(Dy, Dx, f);
     }

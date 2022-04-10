@@ -47,11 +47,13 @@
   #define OIDN_DEVICE_INLINE __device__ OIDN_INLINE
   #define OIDN_HOST_DEVICE __host__ __device__
   #define OIDN_HOST_DEVICE_INLINE __host__ __device__ OIDN_INLINE
+  #define OIDN_SHARED __shared__
 #else
   #define OIDN_DEVICE
   #define OIDN_DEVICE_INLINE OIDN_INLINE
   #define OIDN_HOST_DEVICE
   #define OIDN_HOST_DEVICE_INLINE OIDN_INLINE
+  #define OIDN_SHARED
 #endif
 
 // ---------------------------------------------------------------------------
@@ -80,6 +82,7 @@
 #include <cstdlib>
 #include <climits>
 #include <cstring>
+#include <array>
 #include <limits>
 #include <atomic>
 #include <algorithm>

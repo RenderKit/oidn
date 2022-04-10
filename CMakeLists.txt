@@ -182,6 +182,7 @@ set(CORE_SOURCES
   core/cpu/cpu_output_process.cpp
   core/cpu/cpu_upsample.h
   core/cpu/cpu_upsample.cpp
+  core/gpu/gpu_autoexposure.h
   core/xpu/xpu_image_copy.h
   core/xpu/xpu_input_process.h
   core/xpu/xpu_output_process.h

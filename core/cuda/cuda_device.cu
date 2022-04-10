@@ -1,6 +1,7 @@
 // Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
+#include "../gpu/gpu_autoexposure.h"
 #include "../xpu/xpu_input_process.h"
 #include "../xpu/xpu_output_process.h"
 #include "../xpu/xpu_upsample.h"
@@ -81,6 +82,11 @@ namespace oidn {
   std::shared_ptr<Upsample> CUDADevice::newUpsample(const UpsampleDesc& desc)
   {
     return std::make_shared<XPUUpsample<CUDAOp, half, TensorLayout::hwc>>(this, desc);
+  }
+
+  std::shared_ptr<Autoexposure> CUDADevice::newAutoexposure(const ImageDesc& srcDesc)
+  {
+    return std::make_shared<GPUAutoexposure<CUDAOp>>(this, srcDesc);
   }
 
   std::shared_ptr<InputProcess> CUDADevice::newInputProcess(const InputProcessDesc& desc)

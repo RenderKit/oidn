@@ -149,8 +149,8 @@ def autoexposure(image):
   # Downsample the image to minimize sensitivity to noise
   H = L.shape[0] # original height
   W = L.shape[1] # original width
-  HK = (H + K//2) // K # downsampled height
-  WK = (W + K//2) // K # downsampled width
+  HK = (H + K - 1) // K # downsampled height
+  WK = (W + K - 1) // K # downsampled width
 
   LK = np.zeros((HK, WK), dtype=L.dtype)
   for i in range(HK):
