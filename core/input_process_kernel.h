@@ -91,8 +91,11 @@ namespace oidn {
       dst.set3(c, h, w, value);
     }
 
-    OIDN_DEVICE_INLINE void operator ()(int hDst, int wDst) const
+    OIDN_DEVICE_INLINE void operator ()(const WorkItem<2>& it) const
     {
+      const int hDst = it.getId<0>();
+      const int wDst = it.getId<1>();
+      
       const int h = hDst - tile.hDstBegin;
       const int w = wDst - tile.wDstBegin;
 

@@ -112,7 +112,7 @@ namespace oidn {
           autoexposure->setSrc(color);
           autoexposure->run();
           progress.update(1);
-          std::cout << "Autoexposure: " << autoexposure->getResult() << std::endl;
+          //std::cout << "Autoexposure: " << autoexposure->getResult() << std::endl;
           transferFunc->setInputScale(autoexposure->getResult());
         }
         else

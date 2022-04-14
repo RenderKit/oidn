@@ -4,6 +4,7 @@
 #pragma once
 
 #include "common.h"
+#include "kernel.h"
 #include "buffer.h"
 #include "tensor_layout.h"
 

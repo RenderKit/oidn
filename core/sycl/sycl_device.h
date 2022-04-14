@@ -43,42 +43,37 @@ namespace oidn {
     void memcpy(void* dstPtr, const void* srcPtr, size_t byteSize) override;
 
     template<typename F>
-    OIDN_INLINE void runKernel(int groupRange, int groupSize, const F& f)
+    OIDN_INLINE void runKernel(const WorkRange<2>& range, const F& f)
     {
       sycl->queue.parallel_for(
-        sycl::nd_range<1>(sycl::range<1>(groupRange * groupSize),
-                          sycl::range<1>(groupSize)),
-        [=](sycl::nd_item<1> it) { f(); });
+        sycl::range<2>(range[0], range[1]),
+        [=](sycl::item<2> it) { f(it); });
     }
 
     template<typename F>
-    OIDN_INLINE void runKernel(const std::array<int, 2>& groupRange, const std::array<int, 2>& groupSize, const F& f)
+    OIDN_INLINE void runKernel(const WorkRange<1>& groupRange, const WorkRange<1>& localRange, const F& f)
     {
       sycl->queue.parallel_for(
-        sycl::nd_range<2>(sycl::range<2>(groupRange[0] * groupSize[0], groupRange[1] * groupSize[1]),
-                          sycl::range<2>(groupSize[0], groupSize[1])),
-        [=](sycl::nd_item<2> it) { f(); });
+        sycl::nd_range<1>(groupRange[0] * localRange[0], localRange[0]),
+        [=](sycl::nd_item<1> it) { f(it); });
     }
 
-    // Runs a kernel on the device
-    template<typename Ty, typename Tx, typename F>
-    OIDN_INLINE void parallelFor(const Ty& Dy, const Tx& Dx, const F& f)
+    template<typename F>
+    OIDN_INLINE void runKernel(const WorkRange<2>& groupRange, const WorkRange<2>& localRange, const F& f)
     {
-      sycl->queue.parallel_for(sycl::range<2>(Dy, Dx), [=](sycl::id<2> idx)
-      {
-        f(Ty(idx[0]), Tx(idx[1]));
-      });
+      sycl->queue.parallel_for(
+        sycl::nd_range<2>(sycl::range<2>(groupRange[0] * localRange[0], groupRange[1] * localRange[1]),
+                          sycl::range<2>(localRange[0], localRange[1])),
+        [=](sycl::nd_item<2> it) { f(it); });
     }
 
-    // Runs an ESIMD kernel on the device
-    template<typename Ty, typename Tx, typename F>
-    OIDN_INLINE void parallelForESIMD(const Ty& Dy, const Tx& Dx, const F& f)
+    template<typename F>
+    OIDN_INLINE void runESIMDKernel(const WorkRange<2>& range, const F& f)
     {
       // FIXME: Named kernel is necessary due to an ESIMD bug
-      sycl->queue.parallel_for<class ESIMDKernel>(sycl::range<2>(Dy, Dx), [=](sycl::id<2> idx) SYCL_ESIMD_KERNEL
-      {
-        f(Ty(idx[0]), Tx(idx[1]));
-      });
+      sycl->queue.parallel_for<class ESIMDKernel>(
+        sycl::range<2>(range[0], range[1]),
+        [=](sycl::item<2> it) SYCL_ESIMD_KERNEL { f(it); });
     }
 
   protected:

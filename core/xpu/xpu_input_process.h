@@ -51,7 +51,7 @@ namespace oidn {
       kernel.hdr = hdr;
       kernel.snorm = snorm;
 
-      this->device->parallelFor(dst->getH(), dst->getW(), kernel);
+      this->device->runKernel({dst->getH(), dst->getW()}, kernel);
     }
   };
 

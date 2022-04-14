@@ -19,7 +19,7 @@ namespace oidn {
       kernel.src = src;
       kernel.dst = dst;
 
-      device->parallelFor(dst.getH(), dst.getW(), kernel);
+      device->runKernel({dst.getH(), dst.getW()}, kernel);
     }
   }
 

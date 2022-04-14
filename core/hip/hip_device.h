@@ -4,7 +4,6 @@
 #pragma once
 
 #include "../device.h"
-#include "../kernel.h"
 
 struct miopenHandle;
 typedef struct miopenHandle* miopenHandle_t;
@@ -15,29 +14,29 @@ namespace oidn {
   namespace
   {
     // Helper functions for kernel execution
-    template<typename F>
+    template<int dims, typename F>
     __global__ void runHIPKernel(const F f)
     {
-      f();
+      f(WorkGroupItem<dims>());
     }
 
-    template<typename Ty, typename Tx, typename F>
-    __global__ void runHIPParallelFor(Ty Dy, Tx Dx, const F f)
+    template<typename F>
+    __global__ void runHIPKernel(int range0, int range1, const F f)
     {
-      const Tx x = Tx(blockDim.x * blockIdx.x + threadIdx.x);
-      const Ty y = Ty(blockDim.y * blockIdx.y + threadIdx.y);
-      if (y < Dy && x < Dx)
-        f(y, x);
+      WorkItem<2> it(range0, range1);
+      if (it.getId<0>() < it.getRange<0>() &&
+          it.getId<1>() < it.getRange<1>())
+        f(it);
     }
 
-    template<typename Tz, typename Ty, typename Tx, typename F>
-    __global__ void runHIPParallelFor(Tz Dz, Ty Dy, Tx Dx, const F f)
+    template<typename F>
+    __global__ void runHIPKernel(int range0, int range1, int range2, const F f)
     {
-      const Tx x = Tx(blockDim.x * blockIdx.x + threadIdx.x);
-      const Ty y = Ty(blockDim.y * blockIdx.y + threadIdx.y);
-      const Tz z = Tz(blockDim.z * blockIdx.z + threadIdx.z);
-      if (z < Dz && y < Dy && x < Dx)
-        f(z, y, x);
+      WorkItem<3> it(range0, range1, range2);
+      if (it.getId<0>() < it.getRange<0>() &&
+          it.getId<1>() < it.getRange<1>() &&
+          it.getId<2>() < it.getRange<2>())
+        f(it);
     }
   }
 
@@ -70,37 +69,36 @@ namespace oidn {
 
   #if defined(OIDN_HIP)
     template<typename F>
-    OIDN_INLINE void runKernel(int groupRange, int groupSize, const F& f)
+    OIDN_INLINE void runKernel(const WorkRange<2>& range, const F& f)
     {
-      runHIPKernel<<<groupRange, groupSize>>>(f);
+      const dim3 blockDim(32, 32);
+      const dim3 gridDim(ceil_div(range[1], blockDim.x), ceil_div(range[0], blockDim.y));
+
+      runHIPKernel<<<gridDim, blockDim>>>(range[0], range[1], f);
       checkError(hipGetLastError());
     }
 
     template<typename F>
-    OIDN_INLINE void runKernel(const std::array<int, 2>& groupRange, const std::array<int, 2>& groupSize, const F& f)
-    {
-      runHIPKernel<<<dim3(groupRange[1], groupRange[0]), dim3(groupSize[1], groupSize[0])>>>(f);
-      checkError(hipGetLastError());
-    }
-
-    // Runs a parallel for kernel on the device
-    template<typename Ty, typename Tx, typename F>
-    OIDN_INLINE void parallelFor(const Ty& Dy, const Tx& Dx, const F& f)
-    {
-      const dim3 blockDim(32, 32);
-      const dim3 gridDim(ceil_div(Dx, blockDim.x), ceil_div(Dy, blockDim.y));
-
-      runHIPParallelFor<<<gridDim, blockDim>>>(Dy, Dx, f);
-      checkError(hipGetLastError());
-    }
-
-    template<typename Tz, typename Ty, typename Tx, typename F>
-    OIDN_INLINE void parallelFor(const Tz& Dz, const Ty& Dy, const Tx& Dx, const F& f)
+    OIDN_INLINE void runKernel(const WorkRange<3>& range, const F& f)
     {
       const dim3 blockDim(32, 32, 1);
-      const dim3 gridDim(ceil_div(Dx, blockDim.x), ceil_div(Dy, blockDim.y), ceil_div(Dz, blockDim.z));
+      const dim3 gridDim(ceil_div(range[2], blockDim.x), ceil_div(range[1], blockDim.y), ceil_div(range[0], blockDim.z));
 
-      runHIPParallelFor<<<gridDim, blockDim>>>(Dz, Dy, Dx, f);
+      runHIPKernel<<<gridDim, blockDim>>>(range[0], range[1], range[2], f);
+      checkError(hipGetLastError());
+    }
+
+    template<typename F>
+    OIDN_INLINE void runKernel(const WorkRange<1>& groupRange, const WorkRange<1>& localRange, const F& f)
+    {
+      runHIPKernel<1><<<groupRange[0], localRange[0]>>>(f);
+      checkError(hipGetLastError());
+    }
+
+    template<typename F>
+    OIDN_INLINE void runKernel(const WorkRange<2>& groupRange, const WorkRange<2>& localRange, const F& f)
+    {
+      runHIPKernel<2><<<dim3(groupRange[1], groupRange[0]), dim3(localRange[1], localRange[0])>>>(f);
       checkError(hipGetLastError());
     }
   #endif

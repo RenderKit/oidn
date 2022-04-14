@@ -10,23 +10,23 @@
 namespace oidn {
 
   template<typename ImageT, int maxBinSize>
-  struct GPUAutoexposureDownsampleKernel : Kernel<2>
+  struct GPUAutoexposureDownsampleKernel : WorkGroup<2>
   {
     ImageAccessor<ImageT> src;
     float* bins;
 
-    OIDN_DEVICE_INLINE void operator ()() const
+    OIDN_DEVICE_INLINE void operator ()(const WorkGroupItem<2>& it) const
     {
       constexpr int groupSize = maxBinSize * maxBinSize;
       OIDN_SHARED LocalArray<float, groupSize> localSums;
 
-      const int beginH = getGroupId<0>() * src.H / getGroupRange<0>();
-      const int beginW = getGroupId<1>() * src.W / getGroupRange<1>();
-      const int endH = (getGroupId<0>()+1) * src.H / getGroupRange<0>();
-      const int endW = (getGroupId<1>()+1) * src.W / getGroupRange<1>();
+      const int beginH = it.getGroupId<0>() * src.H / it.getGroupRange<0>();
+      const int beginW = it.getGroupId<1>() * src.W / it.getGroupRange<1>();
+      const int endH = (it.getGroupId<0>()+1) * src.H / it.getGroupRange<0>();
+      const int endW = (it.getGroupId<1>()+1) * src.W / it.getGroupRange<1>();
 
-      const int h = beginH + getLocalId<0>();
-      const int w = beginW + getLocalId<1>();
+      const int h = beginH + it.getLocalId<0>();
+      const int w = beginW + it.getLocalId<1>();
 
       float L;
       if (h < endH && w < endW)
@@ -40,12 +40,12 @@ namespace oidn {
         L = 0;
       }
 
-      const int localId = getLocalLinearId();
+      const int localId = it.getLocalLinearId();
       localSums[localId] = L;
 
       for (int i = groupSize / 2; i > 0; i >>= 1)
       {
-        syncGroup();
+        it.syncGroup();
         if (localId < i)
           localSums[localId] += localSums[localId + i];
       }
@@ -53,20 +53,20 @@ namespace oidn {
       if (localId == 0)
       {
         const float avgL = localSums[0] / float((endH - beginH) * (endW - beginW));
-        bins[getGroupLinearId()] = avgL;
+        bins[it.getGroupLinearId()] = avgL;
       }
     }
   };
 
   template<int groupSize>
-  struct GPUAutoexposureReduceKernel : Kernel<1>
+  struct GPUAutoexposureReduceKernel : WorkGroup<1>
   {
     const float* bins;
     int size;
     float* sums;
     int* counts;
   
-    OIDN_DEVICE_INLINE void operator ()() const
+    OIDN_DEVICE_INLINE void operator ()(const WorkGroupItem<1>& it) const
     {
       constexpr float eps = 1e-8f;
 
@@ -75,7 +75,7 @@ namespace oidn {
 
       float sum = 0;
       int count = 0;
-      for (int i = getGlobalId(); i < size; i += getGlobalRange())
+      for (int i = it.getGlobalId(); i < size; i += it.getGlobalRange())
       {
         const float L = bins[i];
         if (L > eps)
@@ -85,13 +85,13 @@ namespace oidn {
         }
       }
 
-      const int localId = getLocalId();
+      const int localId = it.getLocalId();
       localSums[localId] = sum;
       localCounts[localId] = count;
 
       for (int i = groupSize / 2; i > 0; i >>= 1)
       {
-        syncGroup();
+        it.syncGroup();
         if (localId < i)
         {
           localSums[localId] += localSums[localId + i];
@@ -101,26 +101,26 @@ namespace oidn {
 
       if (localId == 0)
       {
-        sums[getGroupId()] = localSums[0];
-        counts[getGroupId()] = localCounts[0];
+        sums[it.getGroupId()] = localSums[0];
+        counts[it.getGroupId()] = localCounts[0];
       }
     }
   };
 
   template<int groupSize>
-  struct GPUAutoexposureReduceFinalKernel : Kernel<1>
+  struct GPUAutoexposureReduceFinalKernel : WorkGroup<1>
   {
     const float* sums;
     const int* counts;
     int size;
     float* dst;
     
-    OIDN_DEVICE_INLINE void operator ()() const
+    OIDN_DEVICE_INLINE void operator ()(const WorkGroupItem<1>& it) const
     {
       OIDN_SHARED LocalArray<float, groupSize> localSums;
       OIDN_SHARED LocalArray<int, groupSize> localCounts;
 
-      const int localId = getLocalId();
+      const int localId = it.getLocalId();
 
       if (localId < size)
       {
@@ -135,7 +135,7 @@ namespace oidn {
 
       for (int i = groupSize / 2; i > 0; i >>= 1)
       {
-        syncGroup();
+        it.syncGroup();
         if (localId < i)
         {
           localSums[localId] += localSums[localId + i];

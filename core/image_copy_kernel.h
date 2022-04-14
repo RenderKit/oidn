@@ -13,9 +13,11 @@ namespace oidn {
     ImageAccessor<T> src;
     ImageAccessor<T> dst;
 
-    OIDN_DEVICE_INLINE void operator ()(int h, int w) const
+    OIDN_DEVICE_INLINE void operator ()(const WorkItem<2>& it) const
     {
-      vec3<T> value = src.get3(h, w);
+      const int h = it.getId<0>();
+      const int w = it.getId<1>();
+      const vec3<T> value = src.get3(h, w);
       dst.set3(h, w, value);
     }
   };

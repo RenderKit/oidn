@@ -13,9 +13,12 @@ namespace oidn {
     TensorAccessor3D<T, layout> src;
     TensorAccessor3D<T, layout> dst;
 
-    OIDN_INLINE void operator ()(size_t hSrc, size_t wSrc) const SYCL_ESIMD_FUNCTION
+    OIDN_INLINE void operator ()(const WorkItem<2>& it) const SYCL_ESIMD_FUNCTION
     {
       using namespace sycl::ext::intel::esimd;
+
+      const size_t hSrc = it.getId<0>();
+      const size_t wSrc = it.getId<1>();
 
       const size_t hSrcOffset = hSrc * src.hStride;
       const size_t wSrcOffset = wSrc * src.wStride;
@@ -49,7 +52,7 @@ namespace oidn {
     kernel.src = *src;
     kernel.dst = *dst;
 
-    device->parallelForESIMD(src->getH() * src->getCB(), src->getW(), kernel);
+    device->runESIMDKernel({src->getH() * src->getCB(), src->getW()}, kernel);
   }
 
 } // namespace oidn

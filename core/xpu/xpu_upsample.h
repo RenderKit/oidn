@@ -24,9 +24,9 @@ namespace oidn {
       kernel.dst = *dst;
 
       if (tensorLayout == TensorLayout::hwc)
-        this->device->parallelFor(src->getH(), src->getW(), src->getC(), kernel);
+        this->device->runKernel({src->getH(), src->getW(), src->getC()}, kernel);
       else
-        this->device->parallelFor(src->getC(), src->getH(), src->getW(), kernel);
+        this->device->runKernel({src->getC(), src->getH(), src->getW()}, kernel);
     }
   };
 

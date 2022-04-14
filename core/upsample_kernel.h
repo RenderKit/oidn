@@ -13,8 +13,12 @@ namespace oidn {
     TensorAccessor3D<TensorT, tensorLayout> src;
     TensorAccessor3D<TensorT, tensorLayout> dst;
 
-    OIDN_DEVICE_INLINE void operator ()(int c, int h, int w) const
+    OIDN_DEVICE_INLINE void operator ()(const WorkItem<3>& it) const
     {
+      const int c = it.getId<0>();
+      const int h = it.getId<1>();
+      const int w = it.getId<2>();
+
       const TensorT x = src(c, h, w);
 
       dst(c, h*2,   w*2)   = x;
@@ -31,8 +35,12 @@ namespace oidn {
     TensorAccessor3D<TensorT, TensorLayout::hwc> src;
     TensorAccessor3D<TensorT, TensorLayout::hwc> dst;
 
-    OIDN_DEVICE_INLINE void operator ()(int h, int w, int c) const
+    OIDN_DEVICE_INLINE void operator ()(const WorkItem<3>& it) const
     {
+      const int h = it.getId<0>();
+      const int w = it.getId<1>();
+      const int c = it.getId<2>();
+
       const TensorT x = src(c, h, w);
 
       dst(c, h*2,   w*2)   = x;

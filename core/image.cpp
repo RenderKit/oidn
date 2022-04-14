@@ -6,12 +6,12 @@
 namespace oidn {
 
   ImageDesc::ImageDesc(Format format, size_t width, size_t height, size_t bytePixelStride, size_t byteRowStride)
+    : width(width),
+      height(height),
+      format(format)
   {
-    if (width > maxDim || height > maxDim)
+    if (width > maxDim || height > maxDim || width * height * getC() > std::numeric_limits<int>::max())
       throw Exception(Error::InvalidArgument, "image size too large");
-
-    this->width  = width;
-    this->height = height;
 
     const size_t pixelSize = getFormatSize(format);
     if (bytePixelStride != 0)
@@ -31,8 +31,6 @@ namespace oidn {
     }
     else
       hStride = width * wStride;
-
-    this->format = format;
   }
 
   Image::Image() :
