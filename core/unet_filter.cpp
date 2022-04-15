@@ -112,7 +112,11 @@ namespace oidn {
           autoexposure->setSrc(color);
           autoexposure->run();
           progress.update(1);
-          //std::cout << "Autoexposure: " << autoexposure->getResult() << std::endl;
+          /*
+          float autoexpResult;
+          device->memcpy(&autoexpResult, autoexposure->getResult(), sizeof(float));
+          std::cout << "Autoexposure: " << autoexpResult << std::endl;
+          */
           transferFunc->setInputScale(autoexposure->getResult());
         }
         else

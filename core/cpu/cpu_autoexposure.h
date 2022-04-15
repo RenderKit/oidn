@@ -13,6 +13,10 @@ namespace oidn {
   public:
     CPUAutoexposure(const Ref<Device>& device, const ImageDesc& srcDesc);
     void run() override;
+    const float* getResult() const override { return &result; }
+
+  private:
+    float result;
   };
 
 } // namespace oidn

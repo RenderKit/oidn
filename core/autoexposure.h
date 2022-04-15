@@ -12,8 +12,7 @@ namespace oidn {
   {
   public:
     Autoexposure(const ImageDesc& srcDesc)
-      : srcDesc(srcDesc),
-        result(0)
+      : srcDesc(srcDesc)
     {
       numBinsH = ceil_div(srcDesc.getH(), maxBinSize);
       numBinsW = ceil_div(srcDesc.getW(), maxBinSize);
@@ -26,15 +25,14 @@ namespace oidn {
       this->src = src;
     }
     
-    float getResult() const { return result; }
+    // Returns pointer to the result in device memory
+    virtual const float* getResult() const = 0;
 
   protected:
     static constexpr int maxBinSize = 16;
 
     ImageDesc srcDesc;
     std::shared_ptr<Image> src;
-
-    float result;
 
     int numBinsH;
     int numBinsW;

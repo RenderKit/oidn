@@ -113,7 +113,7 @@ namespace oidn {
     const float* sums;
     const int* counts;
     int size;
-    float* dst;
+    float* result;
     
     OIDN_DEVICE_INLINE void operator ()(const WorkGroupItem<1>& it) const
     {
@@ -146,7 +146,7 @@ namespace oidn {
       if (localId == 0)
       {
         constexpr float key = 0.18f;
-        *dst = (localCounts[0] > 0) ? (key / exp2(localSums[0] / float(localCounts[0]))) : 1.f;
+        *result = (localCounts[0] > 0) ? (key / exp2(localSums[0] / float(localCounts[0]))) : 1.f;
       }
     }
   };
@@ -161,6 +161,7 @@ namespace oidn {
     {
       numGroups = min(ceil_div(numBins, groupSize), groupSize);
       scratchSize = numBins * sizeof(float) + numGroups * (sizeof(float) + sizeof(int));
+      resultBuffer = device->newBuffer(sizeof(float), Storage::Device);
     }
 
     size_t getScratchByteSize() const override
@@ -189,6 +190,8 @@ namespace oidn {
       }
     }
 
+    const float* getResult() const override { return (float*)resultBuffer->getData(); }
+
   private:
     template<typename T>
     void runKernel()
@@ -213,16 +216,13 @@ namespace oidn {
       reduceFinal.sums   = sums;
       reduceFinal.counts = counts;
       reduceFinal.size   = numGroups;
-      reduceFinal.dst    = sums;
+      reduceFinal.result = (float*)resultBuffer->getData();
       this->device->runKernel(1, groupSize, reduceFinal);
-
-      this->device->memcpy(&result, sums, sizeof(float));
     }
 
     static constexpr int groupSize = 1024;
-
     int numGroups;
-    
+    Ref<Buffer> resultBuffer;
     size_t scratchSize;
     std::shared_ptr<Tensor> scratch;
   };

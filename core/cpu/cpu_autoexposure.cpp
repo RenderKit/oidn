@@ -8,7 +8,8 @@ namespace oidn {
 
   CPUAutoexposure::CPUAutoexposure(const Ref<Device>& device, const ImageDesc& srcDesc)
     : BaseOp(device),
-      Autoexposure(srcDesc) {}
+      Autoexposure(srcDesc),
+      result(0) {}
 
   void CPUAutoexposure::run()
   {

@@ -23,10 +23,11 @@ namespace oidn {
 
   private:
     Type type;
-    float inputScale   = 1.f;
-    float outputScale  = 1.f;
-    float normScale    = 1.f;
-    float rcpNormScale = 1.f;
+    const float* inputScalePtr = nullptr;
+    float inputScale   = 1;
+    float outputScale  = 1;
+    float normScale    = 1;
+    float rcpNormScale = 1;
 
     struct SRGB
     {
@@ -94,17 +95,30 @@ namespace oidn {
 
     void setInputScale(float inputScale)
     {
+      this->inputScalePtr = nullptr;
       this->inputScale  = inputScale;
       this->outputScale = (inputScale != 0.f) ? (1.f / inputScale) : 0.f;
     }
 
+    void setInputScale(const float* inputScalePtr)
+    {
+      this->inputScalePtr = inputScalePtr;
+      this->inputScale = 1;
+      this->outputScale = 1;
+    }
+
     OIDN_HOST_DEVICE_INLINE float getInputScale() const
     {
-      return inputScale;
+      return inputScalePtr ? *inputScalePtr : inputScale;
     }
 
     OIDN_HOST_DEVICE_INLINE float getOutputScale() const
     {
+      if (inputScalePtr)
+      {
+        const float inputScale = *inputScalePtr;
+        return (inputScale != 0.f) ? (1.f / inputScale) : 0.f;
+      }
       return outputScale;
     }
 
