@@ -1,12 +1,12 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "tensor_accessor.isph"
-#include "image_accessor.isph"
-#include "color.isph"
-#include "tile.isph"
+#include "../tensor_accessor.isph"
+#include "../image_accessor.isph"
+#include "../color.isph"
+#include "../tile.isph"
 
-struct OutputProcessKernel
+struct CPUOutputProcessKernel
 {
   // Source
   uniform TensorAccessor3D src;
@@ -23,7 +23,7 @@ struct OutputProcessKernel
   uniform bool snorm; // signed normalized ([-1..1])
 };
 
-export void OutputProcessKernel_run(uniform OutputProcessKernel* uniform self, uniform int h)
+export void CPUOutputProcessKernel_run(uniform CPUOutputProcessKernel* uniform self, uniform int h)
 {
   const uniform int hSrc = h + self->tile.hSrcBegin;
   const uniform int hDst = h + self->tile.hDstBegin;

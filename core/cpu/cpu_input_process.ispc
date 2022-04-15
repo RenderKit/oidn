@@ -1,12 +1,12 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "tensor_accessor.isph"
-#include "image_accessor.isph"
-#include "color.isph"
-#include "tile.isph"
+#include "../tensor_accessor.isph"
+#include "../image_accessor.isph"
+#include "../color.isph"
+#include "../tile.isph"
 
-struct InputProcessKernel
+struct CPUInputProcessKernel
 {
   // Source
   uniform ImageAccessor color;
@@ -25,13 +25,13 @@ struct InputProcessKernel
   uniform bool snorm; // signed normalized ([-1..1])
 };
 
-inline void storeZero(uniform InputProcessKernel* uniform self, uniform int c, uniform int h, int w)
+inline void storeZero(uniform CPUInputProcessKernel* uniform self, uniform int c, uniform int h, int w)
 {
   set1f(self->dst, c, h, w, 0.f);
 }
 
 // Stores a color value
-inline void storeColor(uniform InputProcessKernel* uniform self, uniform int c, uniform int h, int w, vec3f value)
+inline void storeColor(uniform CPUInputProcessKernel* uniform self, uniform int c, uniform int h, int w, vec3f value)
 {
   // Scale
   value = value * self->transferFunc.inputScale;
@@ -53,7 +53,7 @@ inline void storeColor(uniform InputProcessKernel* uniform self, uniform int c, 
 }
 
 // Stores an albedo value
-inline void storeAlbedo(uniform InputProcessKernel* uniform self, uniform int c, uniform int h, int w, vec3f value)
+inline void storeAlbedo(uniform CPUInputProcessKernel* uniform self, uniform int c, uniform int h, int w, vec3f value)
 {
   // Scale
   if (!self->color.ptr)
@@ -71,7 +71,7 @@ inline void storeAlbedo(uniform InputProcessKernel* uniform self, uniform int c,
 }
 
 // Stores a normal value
-inline void storeNormal(uniform InputProcessKernel* uniform self, uniform int c, uniform int h, int w, vec3f value)
+inline void storeNormal(uniform CPUInputProcessKernel* uniform self, uniform int c, uniform int h, int w, vec3f value)
 {
   // Scale
   if (!self->color.ptr)
@@ -87,7 +87,7 @@ inline void storeNormal(uniform InputProcessKernel* uniform self, uniform int c,
   set3f(self->dst, c, h, w, value);
 }
 
-export void InputProcessKernel_run(uniform InputProcessKernel* uniform self, uniform int hDst)
+export void CPUInputProcessKernel_run(uniform CPUInputProcessKernel* uniform self, uniform int hDst)
 {
   const uniform int h = hDst - self->tile.hDstBegin;
 

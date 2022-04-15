@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "../gpu/gpu_autoexposure.h"
-#include "../xpu/xpu_input_process.h"
-#include "../xpu/xpu_output_process.h"
-#include "../xpu/xpu_upsample.h"
-#include "../xpu/xpu_image_copy.h"
+#include "../gpu/gpu_input_process.h"
+#include "../gpu/gpu_output_process.h"
+#include "../gpu/gpu_upsample.h"
+#include "../gpu/gpu_image_copy.h"
 #include "hip_device.h"
 #include "hip_common.h"
 #include "hip_conv.h"
@@ -83,7 +83,7 @@ namespace oidn {
 
   std::shared_ptr<Upsample> HIPDevice::newUpsample(const UpsampleDesc& desc)
   {
-    return std::make_shared<XPUUpsample<HIPOp, half, TensorLayout::chw>>(this, desc);
+    return std::make_shared<GPUUpsample<HIPOp, half, TensorLayout::chw>>(this, desc);
   }
 
   std::shared_ptr<Autoexposure> HIPDevice::newAutoexposure(const ImageDesc& srcDesc)
@@ -93,17 +93,17 @@ namespace oidn {
 
   std::shared_ptr<InputProcess> HIPDevice::newInputProcess(const InputProcessDesc& desc)
   {
-    return std::make_shared<XPUInputProcess<HIPOp, half, TensorLayout::chw>>(this, desc);
+    return std::make_shared<GPUInputProcess<HIPOp, half, TensorLayout::chw>>(this, desc);
   }
 
   std::shared_ptr<OutputProcess> HIPDevice::newOutputProcess(const OutputProcessDesc& desc)
   {
-    return std::make_shared<XPUOutputProcess<HIPOp, half, TensorLayout::chw>>(this, desc);
+    return std::make_shared<GPUOutputProcess<HIPOp, half, TensorLayout::chw>>(this, desc);
   }
 
   void HIPDevice::imageCopy(const Image& src, const Image& dst)
   {
-    //xpuImageCopy<HIPDevice>(this, src, dst);
+    //gpuImageCopy<HIPDevice>(this, src, dst);
   }
 
   void* HIPDevice::malloc(size_t byteSize, Storage storage)

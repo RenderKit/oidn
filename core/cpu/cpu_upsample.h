@@ -12,7 +12,6 @@ namespace oidn {
   {
   public:
     CPUUpsample(const Ref<CPUDevice>& device, const UpsampleDesc& desc);
-
     void run() override;
   };
 

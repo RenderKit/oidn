@@ -3,23 +3,24 @@
 
 #pragma once
 
-#include "tensor_accessor.h"
-#include "image_accessor.h"
-#include "color.h"
-#include "tile.h"
+#include "../input_process.h"
+#include "../tensor_accessor.h"
+#include "../image_accessor.h"
+#include "../color.h"
+#include "../tile.h"
 
 namespace oidn {
 
-  template<typename ImageT, typename TensorT, TensorLayout tensorLayout>
-  struct InputProcessKernel
+  template<typename ImageDataType, typename TensorDataType, TensorLayout tensorLayout>
+  struct GPUInputProcessKernel
   {
     // Source
-    ImageAccessor<ImageT> color;
-    ImageAccessor<ImageT> albedo;
-    ImageAccessor<ImageT> normal;
+    ImageAccessor<ImageDataType> color;
+    ImageAccessor<ImageDataType> albedo;
+    ImageAccessor<ImageDataType> normal;
 
     // Destination
-    TensorAccessor3D<TensorT, tensorLayout> dst;
+    TensorAccessor3D<TensorDataType, tensorLayout> dst;
 
     // Tile
     Tile tile;
@@ -134,6 +135,53 @@ namespace oidn {
         for (int c = 0; c < dst.C; ++c)
           storeZero(c, hDst, wDst);
       }
+    }
+  };
+
+  template<typename OpType, typename TensorDataType, TensorLayout tensorLayout>
+  class GPUInputProcess : public OpType, public InputProcess
+  {
+  public:
+    GPUInputProcess(const Ref<typename OpType::DeviceType>& device,
+                    const InputProcessDesc& desc)
+      : OpType(device),
+        InputProcess(desc) {}
+
+    void run() override
+    {
+      switch (getInput()->getDataType())
+      {
+      case DataType::Float32:
+        runKernel<float>();
+        break;
+      case DataType::Float16:
+        runKernel<half>();
+        break;
+      default:
+        assert(0);
+      }
+    }
+
+  private:
+    template<typename ImageDataType>
+    void runKernel()
+    {
+      assert(tile.H + tile.hSrcBegin <= getInput()->getH());
+      assert(tile.W + tile.wSrcBegin <= getInput()->getW());
+      assert(tile.H + tile.hDstBegin <= dst->getH());
+      assert(tile.W + tile.wDstBegin <= dst->getW());
+      
+      GPUInputProcessKernel<ImageDataType, TensorDataType, tensorLayout> kernel;
+      kernel.color  = color  ? *color  : Image();
+      kernel.albedo = albedo ? *albedo : Image();
+      kernel.normal = normal ? *normal : Image();
+      kernel.dst = *dst;
+      kernel.tile = tile;
+      kernel.transferFunc = *transferFunc;
+      kernel.hdr = hdr;
+      kernel.snorm = snorm;
+
+      this->device->runKernel({dst->getH(), dst->getW()}, kernel);
     }
   };
 

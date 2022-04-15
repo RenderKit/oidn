@@ -11,6 +11,10 @@ namespace oidn {
   class Autoexposure : public virtual Op
   {
   public:
+    static constexpr int maxBinSize = 16;
+    static constexpr float key = 0.18f;
+    static constexpr float eps = 1e-8f;
+
     Autoexposure(const ImageDesc& srcDesc)
       : srcDesc(srcDesc)
     {
@@ -29,8 +33,6 @@ namespace oidn {
     virtual const float* getResult() const = 0;
 
   protected:
-    static constexpr int maxBinSize = 16;
-
     ImageDesc srcDesc;
     std::shared_ptr<Image> src;
 

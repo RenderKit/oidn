@@ -3,9 +3,9 @@
 
 #include "mkl-dnn/include/dnnl_sycl.hpp"
 #include "../gpu/gpu_autoexposure.h"
-#include "../xpu/xpu_input_process.h"
-#include "../xpu/xpu_output_process.h"
-#include "../xpu/xpu_image_copy.h"
+#include "../gpu/gpu_input_process.h"
+#include "../gpu/gpu_output_process.h"
+#include "../gpu/gpu_image_copy.h"
 #include "sycl_device.h"
 #include "sycl_op.h"
 #include "sycl_pool.h"
@@ -75,17 +75,17 @@ namespace oidn {
 
   std::shared_ptr<InputProcess> SYCLDevice::newInputProcess(const InputProcessDesc& desc)
   {
-    return std::make_shared<XPUInputProcess<SYCLOp, half, TensorLayout::Chw16c>>(this, desc);
+    return std::make_shared<GPUInputProcess<SYCLOp, half, TensorLayout::Chw16c>>(this, desc);
   }
 
   std::shared_ptr<OutputProcess> SYCLDevice::newOutputProcess(const OutputProcessDesc& desc)
   {
-    return std::make_shared<XPUOutputProcess<SYCLOp, half, TensorLayout::Chw16c>>(this, desc);
+    return std::make_shared<GPUOutputProcess<SYCLOp, half, TensorLayout::Chw16c>>(this, desc);
   }
 
   void SYCLDevice::imageCopy(const Image& src, const Image& dst)
   {
-    xpuImageCopy<SYCLDevice>(this, src, dst);
+    gpuImageCopy<SYCLDevice>(this, src, dst);
   }
 
   void* SYCLDevice::malloc(size_t byteSize, Storage storage)

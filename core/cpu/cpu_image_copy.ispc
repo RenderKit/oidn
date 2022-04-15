@@ -1,15 +1,15 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "image_accessor.isph"
+#include "../image_accessor.isph"
 
-struct ImageCopyKernel
+struct CPUImageCopyKernel
 {
   uniform ImageAccessor src;
   uniform ImageAccessor dst;
 };
 
-export void ImageCopyKernel_run(uniform ImageCopyKernel* uniform self, uniform int h)
+export void CPUImageCopyKernel_run(uniform CPUImageCopyKernel* uniform self, uniform int h)
 {
   foreach (w = 0 ... self->dst.W)
   {

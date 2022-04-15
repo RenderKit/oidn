@@ -4,18 +4,32 @@
 #pragma once
 
 #include "../image.h"
-#include "../image_copy_kernel.h"
 
 namespace oidn {
+
+  template<typename T>
+  struct GPUImageCopyKernel
+  {
+    ImageAccessor<T> src;
+    ImageAccessor<T> dst;
+
+    OIDN_DEVICE_INLINE void operator ()(const WorkItem<2>& it) const
+    {
+      const int h = it.getId<0>();
+      const int w = it.getId<1>();
+      const vec3<T> value = src.get3(h, w);
+      dst.set3(h, w, value);
+    }
+  };
 
   namespace
   {
     template<typename ImageT, typename DeviceT>
-    void xpuImageCopyKernel(const Ref<DeviceT>& device,
+    void gpuImageCopyKernel(const Ref<DeviceT>& device,
                             const Image& src,
                             const Image& dst)
     {
-      ImageCopyKernel<ImageT> kernel;
+      GPUImageCopyKernel<ImageT> kernel;
       kernel.src = src;
       kernel.dst = dst;
 
@@ -24,7 +38,7 @@ namespace oidn {
   }
 
   template<typename DeviceT>
-  void xpuImageCopy(const Ref<DeviceT>& device,
+  void gpuImageCopy(const Ref<DeviceT>& device,
                     const Image& src,
                     const Image& dst)
   {
@@ -34,10 +48,10 @@ namespace oidn {
     switch (src.getDataType())
     {
     case DataType::Float32:
-      xpuImageCopyKernel<float>(device, src, dst);
+      gpuImageCopyKernel<float>(device, src, dst);
       break;
     case DataType::Float16:
-      xpuImageCopyKernel<half>(device, src, dst);
+      gpuImageCopyKernel<half>(device, src, dst);
       break;
     default:
       assert(0);

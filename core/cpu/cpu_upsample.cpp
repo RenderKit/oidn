@@ -3,7 +3,7 @@
 
 #include "cpu_upsample.h"
 #if defined(OIDN_DNNL)
-  #include "upsample_kernel_ispc.h"
+  #include "cpu_upsample_ispc.h"
 #endif
 
 namespace oidn {
@@ -20,13 +20,13 @@ namespace oidn {
            src->getLayout() == TensorLayout::Chw16c);
     assert(src->getBlockSize() == device->getTensorBlockSize());
 
-    ispc::UpsampleKernel kernel;
+    ispc::CPUUpsampleKernel kernel;
     kernel.src = *src;
     kernel.dst = *dst;
 
     parallel_nd(src->getCB(), src->getH(), [&](int cb, int h)
     {
-      ispc::UpsampleKernel_run(&kernel, cb, h);
+      ispc::CPUUpsampleKernel_run(&kernel, cb, h);
     });
   }
 

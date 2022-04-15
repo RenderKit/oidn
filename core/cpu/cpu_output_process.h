@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -12,7 +12,6 @@ namespace oidn {
   {
   public:
     CPUOutputProcess(const Ref<CPUDevice>& device, const OutputProcessDesc& desc);
-
     void run() override;
   };
 

@@ -1,8 +1,8 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "cpu_output_process.h"
-#include "output_process_kernel_ispc.h"
+#include "cpu_output_process_ispc.h"
 
 namespace oidn {
 
@@ -17,7 +17,7 @@ namespace oidn {
     //assert(tile.hDstBegin + tile.H <= output->getH());
     //assert(tile.wDstBegin + tile.W <= output->getW());
 
-    ispc::OutputProcessKernel kernel;
+    ispc::CPUOutputProcessKernel kernel;
 
     kernel.src = *src;
     kernel.dst = *dst;
@@ -28,7 +28,7 @@ namespace oidn {
 
     parallel_nd(kernel.tile.H, [&](int h)
     {
-      ispc::OutputProcessKernel_run(&kernel, h);
+      ispc::CPUOutputProcessKernel_run(&kernel, h);
     });
   }
 

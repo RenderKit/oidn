@@ -9,10 +9,10 @@
 
 namespace oidn {
 
-  template<typename ImageT, int maxBinSize>
+  template<typename ImageDataType, int maxBinSize>
   struct GPUAutoexposureDownsampleKernel : WorkGroup<2>
   {
-    ImageAccessor<ImageT> src;
+    ImageAccessor<ImageDataType> src;
     float* bins;
 
     OIDN_DEVICE_INLINE void operator ()(const WorkGroupItem<2>& it) const
@@ -68,8 +68,6 @@ namespace oidn {
   
     OIDN_DEVICE_INLINE void operator ()(const WorkGroupItem<1>& it) const
     {
-      constexpr float eps = 1e-8f;
-
       OIDN_SHARED LocalArray<float, groupSize> localSums;
       OIDN_SHARED LocalArray<int, groupSize> localCounts;
 
@@ -78,7 +76,7 @@ namespace oidn {
       for (int i = it.getGlobalId(); i < size; i += it.getGlobalRange())
       {
         const float L = bins[i];
-        if (L > eps)
+        if (L > Autoexposure::eps)
         {
           sum += log2(L);
           ++count;
@@ -144,19 +142,16 @@ namespace oidn {
       }
 
       if (localId == 0)
-      {
-        constexpr float key = 0.18f;
-        *result = (localCounts[0] > 0) ? (key / exp2(localSums[0] / float(localCounts[0]))) : 1.f;
-      }
+        *result = (localCounts[0] > 0) ? (Autoexposure::key / exp2(localSums[0] / float(localCounts[0]))) : 1.f;
     }
   };
 
-  template<typename OpT>
-  class GPUAutoexposure final : public OpT, public Autoexposure
+  template<typename OpType>
+  class GPUAutoexposure final : public OpType, public Autoexposure
   {
   public:
-    GPUAutoexposure(const Ref<typename OpT::DeviceType>& device, const ImageDesc& srcDesc)
-      : OpT(device),
+    GPUAutoexposure(const Ref<typename OpType::DeviceType>& device, const ImageDesc& srcDesc)
+      : OpType(device),
         Autoexposure(srcDesc)
     {
       numGroups = min(ceil_div(numBins, groupSize), groupSize);
@@ -193,14 +188,14 @@ namespace oidn {
     const float* getResult() const override { return (float*)resultBuffer->getData(); }
 
   private:
-    template<typename T>
+    template<typename ImageDataType>
     void runKernel()
     {
       float* bins = (float*)scratch->getData();
       float* sums = (float*)((char*)bins + numBins * sizeof(float));
       int* counts = (int*)((char*)sums + numGroups * sizeof(float));
 
-      GPUAutoexposureDownsampleKernel<T, maxBinSize> downsample;
+      GPUAutoexposureDownsampleKernel<ImageDataType, maxBinSize> downsample;
       downsample.src = *src;
       downsample.bins = bins;
       this->device->runKernel({numBinsH, numBinsW}, {maxBinSize, maxBinSize}, downsample);

@@ -13,9 +13,6 @@ namespace oidn {
 
   void CPUAutoexposure::run()
   {
-    constexpr float key = 0.18f;
-    constexpr float eps = 1e-8f;
-
     // Downsample the image to minimize sensitivity to noise
     ispc::ImageAccessor srcAcc = *src;
 

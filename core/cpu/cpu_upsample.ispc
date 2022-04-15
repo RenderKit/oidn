@@ -1,15 +1,15 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "tensor_accessor.isph"
+#include "../tensor_accessor.isph"
 
-struct UpsampleKernel
+struct CPUUpsampleKernel
 {
   uniform TensorAccessor3D src;
   uniform TensorAccessor3D dst;
 };
 
-export void UpsampleKernel_run(uniform UpsampleKernel* uniform self, uniform int cb, uniform int h)
+export void CPUUpsampleKernel_run(uniform CPUUpsampleKernel* uniform self, uniform int cb, uniform int h)
 {
   const uniform size_t H = (size_t)self->src.H;
   const uniform size_t W = (size_t)self->src.W;

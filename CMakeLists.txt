@@ -183,10 +183,10 @@ set(CORE_SOURCES
   core/cpu/cpu_upsample.h
   core/cpu/cpu_upsample.cpp
   core/gpu/gpu_autoexposure.h
-  core/xpu/xpu_image_copy.h
-  core/xpu/xpu_input_process.h
-  core/xpu/xpu_output_process.h
-  core/xpu/xpu_upsample.h
+  core/gpu/gpu_image_copy.h
+  core/gpu/gpu_input_process.h
+  core/gpu/gpu_output_process.h
+  core/gpu/gpu_upsample.h
   core/api.cpp
   core/autoexposure.h
   core/buffer.h
@@ -206,18 +206,15 @@ set(CORE_SOURCES
   core/filter.h
   core/filter.cpp
   core/image_accessor.h
-  core/image_copy_kernel.h
   core/image.h
   core/image.cpp
   core/input_process.h
   core/input_process.cpp
-  core/input_process_kernel.h
   core/network.h
   core/network.cpp
   core/op.h
   core/output_process.h
   core/output_process.cpp
-  core/output_process_kernel.h
   core/pool.h
   core/pool.cpp
   core/progress.h
@@ -238,7 +235,6 @@ set(CORE_SOURCES
   core/tza.cpp
   core/unet_filter.h
   core/unet_filter.cpp
-  core/upsample_kernel.h
   core/upsample.h
   core/upsample.cpp
   core/vec.h
@@ -322,15 +318,15 @@ if(OIDN_DEVICE_HIP)
 endif()
 
 set(CORE_SOURCES_ISPC
+  core/cpu/cpu_image_copy.ispc
+  core/cpu/cpu_input_process.ispc
+  core/cpu/cpu_output_process.ispc
+  core/cpu/cpu_upsample.ispc
   core/color.isph
   core/color.ispc
   core/image_accessor.isph
-  core/input_process_kernel.ispc
   core/math.isph
-  core/image_copy_kernel.ispc
-  core/output_process_kernel.ispc
   core/tensor_accessor.isph
-  core/upsample_kernel.ispc
   core/tile.isph
   core/vec.isph
 )

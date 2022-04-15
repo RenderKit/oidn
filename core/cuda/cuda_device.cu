@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "../gpu/gpu_autoexposure.h"
-#include "../xpu/xpu_input_process.h"
-#include "../xpu/xpu_output_process.h"
-#include "../xpu/xpu_upsample.h"
-#include "../xpu/xpu_image_copy.h"
+#include "../gpu/gpu_input_process.h"
+#include "../gpu/gpu_output_process.h"
+#include "../gpu/gpu_upsample.h"
+#include "../gpu/gpu_image_copy.h"
 #include "cuda_device.h"
 #include "cuda_common.h"
 #include "cuda_conv.h"
@@ -81,7 +81,7 @@ namespace oidn {
 
   std::shared_ptr<Upsample> CUDADevice::newUpsample(const UpsampleDesc& desc)
   {
-    return std::make_shared<XPUUpsample<CUDAOp, half, TensorLayout::hwc>>(this, desc);
+    return std::make_shared<GPUUpsample<CUDAOp, half, TensorLayout::hwc>>(this, desc);
   }
 
   std::shared_ptr<Autoexposure> CUDADevice::newAutoexposure(const ImageDesc& srcDesc)
@@ -91,17 +91,17 @@ namespace oidn {
 
   std::shared_ptr<InputProcess> CUDADevice::newInputProcess(const InputProcessDesc& desc)
   {
-    return std::make_shared<XPUInputProcess<CUDAOp, half, TensorLayout::hwc>>(this, desc);
+    return std::make_shared<GPUInputProcess<CUDAOp, half, TensorLayout::hwc>>(this, desc);
   }
 
   std::shared_ptr<OutputProcess> CUDADevice::newOutputProcess(const OutputProcessDesc& desc)
   {
-    return std::make_shared<XPUOutputProcess<CUDAOp, half, TensorLayout::hwc>>(this, desc);
+    return std::make_shared<GPUOutputProcess<CUDAOp, half, TensorLayout::hwc>>(this, desc);
   }
 
   void CUDADevice::imageCopy(const Image& src, const Image& dst)
   {
-    xpuImageCopy<CUDADevice>(this, src, dst);
+    gpuImageCopy<CUDADevice>(this, src, dst);
   }
 
   void* CUDADevice::malloc(size_t byteSize, Storage storage)

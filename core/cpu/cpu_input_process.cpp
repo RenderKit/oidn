@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "cpu_input_process.h"
-#include "input_process_kernel_ispc.h"
+#include "cpu_input_process_ispc.h"
 
 namespace oidn {
 
@@ -17,7 +17,7 @@ namespace oidn {
     assert(tile.H + tile.hDstBegin <= dst->getH());
     assert(tile.W + tile.wDstBegin <= dst->getW());
 
-    ispc::InputProcessKernel kernel;
+    ispc::CPUInputProcessKernel kernel;
 
     kernel.color  = color  ? *color  : Image();
     kernel.albedo = albedo ? *albedo : Image();
@@ -30,7 +30,7 @@ namespace oidn {
 
     parallel_nd(kernel.dst.H, [&](int hDst)
     {
-      ispc::InputProcessKernel_run(&kernel, hDst);
+      ispc::CPUInputProcessKernel_run(&kernel, hDst);
     });
   }
 
