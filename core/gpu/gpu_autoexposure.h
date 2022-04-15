@@ -146,7 +146,7 @@ namespace oidn {
       if (localId == 0)
       {
         constexpr float key = 0.18f;
-        *dst = key / exp2(localSums[0] / float(localCounts[0]));
+        *dst = (localCounts[0] > 0) ? (key / exp2(localSums[0] / float(localCounts[0]))) : 1.f;
       }
     }
   };
