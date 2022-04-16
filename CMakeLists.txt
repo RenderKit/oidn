@@ -319,6 +319,7 @@ if(OIDN_DEVICE_HIP)
 endif()
 
 set(CORE_SOURCES_ISPC
+  core/cpu/cpu_autoexposure.ispc
   core/cpu/cpu_image_copy.ispc
   core/cpu/cpu_input_process.ispc
   core/cpu/cpu_output_process.ispc

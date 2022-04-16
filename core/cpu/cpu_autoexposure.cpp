@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "cpu_autoexposure.h"
+#include "cpu_autoexposure_ispc.h"
 #include "../color.h"
 
 namespace oidn {
@@ -36,7 +37,7 @@ namespace oidn {
               const int endH   = int(ptrdiff_t(i+1) * src->getH() / numBinsH);
               const int endW   = int(ptrdiff_t(j+1) * src->getW() / numBinsW);
 
-              const float L = ispc::getAvgLuminance(srcAcc, beginH, endH, beginW, endW);
+              const float L = ispc::autoexposureDownsample(srcAcc, beginH, endH, beginW, endW);
 
               // Accumulate the log luminance
               if (L > eps)
