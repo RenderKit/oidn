@@ -11,7 +11,7 @@ import argparse
 
 from common import *
 
-MODEL_VERSION='v1.4.0'
+MODEL_VERSION='v2.0.0'
 
 # Parse the command-line arguments
 parser = argparse.ArgumentParser(description='Runs all tests, including comparing images produced by the library with generated baseline images.')
