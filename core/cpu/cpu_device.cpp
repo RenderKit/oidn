@@ -111,9 +111,9 @@ namespace oidn {
     return std::make_shared<CPUOutputProcess>(this, desc);
   }
 
-  void CPUDevice::imageCopy(const Image& src, const Image& dst)
+  std::shared_ptr<ImageCopy> CPUDevice::newImageCopy()
   {
-    cpuImageCopy(src, dst);
+    return std::make_shared<CPUImageCopy>(this);
   }
 
 } // namespace oidn

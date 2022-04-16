@@ -29,9 +29,7 @@ namespace oidn {
     std::shared_ptr<Upsample> newUpsample(const UpsampleDesc& desc) override;
     std::shared_ptr<InputProcess> newInputProcess(const InputProcessDesc& desc) override;
     std::shared_ptr<OutputProcess> newOutputProcess(const OutputProcessDesc& desc) override;
-
-    // Kernels
-    void imageCopy(const Image& src, const Image& dst) override;
+    std::shared_ptr<ImageCopy> newImageCopy() override;
 
   protected:
     void init() override;

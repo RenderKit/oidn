@@ -176,7 +176,10 @@ namespace oidn {
 
       // Copy the output image to the final buffer if filtering in-place
       if (outputTemp)
-        device->imageCopy(*outputTemp, *output);
+      {
+        imageCopy->setDst(output);
+        imageCopy->run();
+      }
 
       // Finished
       progress.finish();
@@ -246,6 +249,7 @@ namespace oidn {
     autoexposure.reset();
     inputProcess.reset();
     outputProcess.reset();
+    imageCopy.reset();
     transferFunc.reset();
     outputTemp.reset();
   }
@@ -578,6 +582,12 @@ namespace oidn {
     this->autoexposure = autoexposure;
     this->inputProcess = inputProcess;
     this->outputProcess = outputProcess;
+    if (outputTemp)
+    {
+      imageCopy = device->newImageCopy();
+      imageCopy->finalize();
+      imageCopy->setSrc(outputTemp);
+    }
 
     // Print statistics
     if (device->isVerbose(2))

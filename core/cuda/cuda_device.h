@@ -60,8 +60,7 @@ namespace oidn {
     std::shared_ptr<Autoexposure> newAutoexposure(const ImageDesc& srcDesc) override;
     std::shared_ptr<InputProcess> newInputProcess(const InputProcessDesc& desc) override;
     std::shared_ptr<OutputProcess> newOutputProcess(const OutputProcessDesc& desc) override;
-
-    void imageCopy(const Image& src, const Image& dst) override;
+    std::shared_ptr<ImageCopy> newImageCopy() override;
 
     // Memory
     void* malloc(size_t byteSize, Storage storage) override;

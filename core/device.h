@@ -44,6 +44,7 @@ namespace oidn {
   class Autoexposure;
   class InputProcess;
   class OutputProcess;
+  class ImageCopy;
 
   class Device : public RefCount, public Verbose
   {
@@ -93,9 +94,7 @@ namespace oidn {
     virtual std::shared_ptr<Autoexposure> newAutoexposure(const ImageDesc& srcDesc);
     virtual std::shared_ptr<InputProcess> newInputProcess(const InputProcessDesc& desc) = 0;
     virtual std::shared_ptr<OutputProcess> newOutputProcess(const OutputProcessDesc& desc) = 0;
-
-    // Kernels
-    virtual void imageCopy(const Image& src, const Image& dst) = 0;
+    virtual std::shared_ptr<ImageCopy> newImageCopy() = 0;
 
     // Memory
     virtual void* malloc(size_t byteSize, Storage storage);

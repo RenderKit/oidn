@@ -85,6 +85,7 @@ namespace oidn {
     std::shared_ptr<Autoexposure> autoexposure;
     std::shared_ptr<InputProcess> inputProcess;
     std::shared_ptr<OutputProcess> outputProcess;
+    std::shared_ptr<ImageCopy> imageCopy;
     std::shared_ptr<TransferFunction> transferFunc;
   };
 

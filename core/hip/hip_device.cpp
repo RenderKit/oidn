@@ -101,9 +101,9 @@ namespace oidn {
     return std::make_shared<GPUOutputProcess<HIPOp, half, TensorLayout::chw>>(this, desc);
   }
 
-  void HIPDevice::imageCopy(const Image& src, const Image& dst)
+  std::shared_ptr<ImageCopy> HIPDevice::newImageCopy()
   {
-    //gpuImageCopy<HIPDevice>(this, src, dst);
+    return std::make_shared<GPUImageCopy<HIPOp>>(this);
   }
 
   void* HIPDevice::malloc(size_t byteSize, Storage storage)

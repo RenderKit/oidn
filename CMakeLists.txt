@@ -206,6 +206,7 @@ set(CORE_SOURCES
   core/filter.h
   core/filter.cpp
   core/image_accessor.h
+  core/image_copy.h
   core/image.h
   core/image.cpp
   core/input_process.h

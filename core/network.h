@@ -7,6 +7,7 @@
 #include "concat_conv.h"
 #include "pool.h"
 #include "upsample.h"
+#include "image_copy.h"
 #include "progress.h"
 #include "weights.h"
 #include "scratch.h"

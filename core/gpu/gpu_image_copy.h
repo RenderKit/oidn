@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "../image.h"
+#include "../image_copy.h"
 
 namespace oidn {
 
@@ -22,40 +22,41 @@ namespace oidn {
     }
   };
 
-  namespace
+  template<typename OpType>
+  class GPUImageCopy final : public OpType, public ImageCopy
   {
-    template<typename ImageT, typename DeviceT>
-    void gpuImageCopyKernel(const Ref<DeviceT>& device,
-                            const Image& src,
-                            const Image& dst)
+  public:
+    explicit GPUImageCopy(const Ref<typename OpType::DeviceType>& device) : OpType(device) {}
+
+    void run() override
     {
-      GPUImageCopyKernel<ImageT> kernel;
-      kernel.src = src;
-      kernel.dst = dst;
+      assert(dst->getH() >= src->getH());
+      assert(dst->getW() >= src->getW());
+      assert(dst->getDataType() == src->getDataType());
 
-      device->runKernel({dst.getH(), dst.getW()}, kernel);
+      switch (src->getDataType())
+      {
+      case DataType::Float32:
+        runKernel<float>();
+        break;
+      case DataType::Float16:
+        runKernel<half>();
+        break;
+      default:
+        assert(0);
+      }
     }
-  }
 
-  template<typename DeviceT>
-  void gpuImageCopy(const Ref<DeviceT>& device,
-                    const Image& src,
-                    const Image& dst)
-  {
-    assert(dst.getH() >= src.getH());
-    assert(dst.getW() >= src.getW());
-
-    switch (src.getDataType())
+  private:
+    template<typename ImageDataType>
+    void runKernel()
     {
-    case DataType::Float32:
-      gpuImageCopyKernel<float>(device, src, dst);
-      break;
-    case DataType::Float16:
-      gpuImageCopyKernel<half>(device, src, dst);
-      break;
-    default:
-      assert(0);
+      GPUImageCopyKernel<ImageDataType> kernel;
+      kernel.src = *src;
+      kernel.dst = *dst;
+
+      this->device->runKernel({dst->getH(), dst->getW()}, kernel);
     }
-  }
+  };
 
 } // namespace oidn

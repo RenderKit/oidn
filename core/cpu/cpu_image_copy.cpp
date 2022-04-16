@@ -6,17 +6,18 @@
 
 namespace oidn {
 
-  void cpuImageCopy(const Image& src,
-                    const Image& dst)
+  CPUImageCopy::CPUImageCopy(const Ref<CPUDevice>& device) : CPUOp(device) {}
+
+  void CPUImageCopy::run()
   {
-    assert(dst.getH() >= src.getH());
-    assert(dst.getW() >= src.getW());
+    assert(dst->getH() >= src->getH());
+    assert(dst->getW() >= src->getW());
 
     ispc::CPUImageCopyKernel kernel;
-    kernel.src = src;
-    kernel.dst = dst;
+    kernel.src = *src;
+    kernel.dst = *dst;
 
-    parallel_nd(dst.getH(), [&](int h)
+    parallel_nd(dst->getH(), [&](int h)
     {
       ispc::CPUImageCopyKernel_run(&kernel, h);
     });

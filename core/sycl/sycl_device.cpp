@@ -83,9 +83,9 @@ namespace oidn {
     return std::make_shared<GPUOutputProcess<SYCLOp, half, TensorLayout::Chw16c>>(this, desc);
   }
 
-  void SYCLDevice::imageCopy(const Image& src, const Image& dst)
+  std::shared_ptr<ImageCopy> SYCLDevice::newImageCopy()
   {
-    gpuImageCopy<SYCLDevice>(this, src, dst);
+    return std::make_shared<GPUImageCopy<SYCLOp>>(this);
   }
 
   void* SYCLDevice::malloc(size_t byteSize, Storage storage)

@@ -99,9 +99,9 @@ namespace oidn {
     return std::make_shared<GPUOutputProcess<CUDAOp, half, TensorLayout::hwc>>(this, desc);
   }
 
-  void CUDADevice::imageCopy(const Image& src, const Image& dst)
+  std::shared_ptr<ImageCopy> CUDADevice::newImageCopy()
   {
-    gpuImageCopy<CUDADevice>(this, src, dst);
+    return std::make_shared<GPUImageCopy<CUDAOp>>(this);
   }
 
   void* CUDADevice::malloc(size_t byteSize, Storage storage)
