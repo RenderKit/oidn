@@ -136,9 +136,9 @@ class LogTransferFunction(TransferFunction):
 
 # Computes an autoexposure value for a NumPy image
 def autoexposure(image):
+  maxBinSize = 16 # downsampling amount
   key = 0.18
   eps = 1e-8
-  K = 16 # downsampling amount
 
   # Compute the luminance of each pixel
   r = image[..., 0]
@@ -149,20 +149,20 @@ def autoexposure(image):
   # Downsample the image to minimize sensitivity to noise
   H = L.shape[0] # original height
   W = L.shape[1] # original width
-  HK = (H + K - 1) // K # downsampled height
-  WK = (W + K - 1) // K # downsampled width
+  numBinsH = (H + maxBinSize - 1) // maxBinSize # downsampled height
+  numBinsW = (W + maxBinSize - 1) // maxBinSize # downsampled width
 
-  LK = np.zeros((HK, WK), dtype=L.dtype)
-  for i in range(HK):
-    for j in range(WK):
-      beginH = i     * H // HK
-      beginW = j     * W // WK
-      endH   = (i+1) * H // HK
-      endW   = (j+1) * W // WK
+  bins = np.zeros((numBinsH, numBinsW), dtype=L.dtype)
+  for i in range(numBinsH):
+    for j in range(numBinsW):
+      beginH = i     * H // numBinsH
+      beginW = j     * W // numBinsW
+      endH   = (i+1) * H // numBinsH
+      endW   = (j+1) * W // numBinsW
 
-      LK[i, j] = L[beginH:endH, beginW:endW].mean()
+      bins[i, j] = L[beginH:endH, beginW:endW].mean()
 
-  L = LK
+  L = bins
 
   # Keep only values greater than epsilon
   L = L[L > eps]
