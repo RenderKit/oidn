@@ -29,8 +29,8 @@ namespace oidn {
       assert(0);
     }
 
-    res.inputScale  = inputScale;
-    res.outputScale = outputScale;
+    res.inputScale  = getInputScale();
+    res.outputScale = getOutputScale();
     
     return res;
   }
