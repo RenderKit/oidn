@@ -21,18 +21,18 @@ namespace oidn {
     }
 
     template<typename F>
-    __global__ void runCUDAKernel(int range0, int range1, const F f)
+    __global__ void runCUDAKernel(WorkDim<2> range, const F f)
     {
-      WorkItem<2> it(range0, range1);
+      WorkItem<2> it(range);
       if (it.getId<0>() < it.getRange<0>() &&
           it.getId<1>() < it.getRange<1>())
         f(it);
     }
 
     template<typename F>
-    __global__ void runCUDAKernel(int range0, int range1, int range2, const F f)
+    __global__ void runCUDAKernel(WorkDim<3> range, const F f)
     {
-      WorkItem<3> it(range0, range1, range2);
+      WorkItem<3> it(range);
       if (it.getId<0>() < it.getRange<0>() &&
           it.getId<1>() < it.getRange<1>() &&
           it.getId<2>() < it.getRange<2>())
@@ -69,34 +69,34 @@ namespace oidn {
 
   #if defined(OIDN_CUDA)
     template<typename F>
-    OIDN_INLINE void runKernel(const WorkRange<2>& range, const F& f)
+    OIDN_INLINE void runKernel(WorkDim<2> range, const F& f)
     {
       const dim3 blockDim(16, 16);
       const dim3 gridDim(ceil_div(range[1], blockDim.x), ceil_div(range[0], blockDim.y));
 
-      runCUDAKernel<<<gridDim, blockDim>>>(range[0], range[1], f);
+      runCUDAKernel<<<gridDim, blockDim>>>(range, f);
       checkError(cudaGetLastError());
     }
 
     template<typename F>
-    OIDN_INLINE void runKernel(const WorkRange<3>& range, const F& f)
+    OIDN_INLINE void runKernel(WorkDim<3> range, const F& f)
     {
       const dim3 blockDim(16, 16, 1);
       const dim3 gridDim(ceil_div(range[2], blockDim.x), ceil_div(range[1], blockDim.y), ceil_div(range[0], blockDim.z));
 
-      runCUDAKernel<<<gridDim, blockDim>>>(range[0], range[1], range[2], f);
+      runCUDAKernel<<<gridDim, blockDim>>>(range, f);
       checkError(cudaGetLastError());
     }
 
     template<typename F>
-    OIDN_INLINE void runKernel(const WorkRange<1>& groupRange, const WorkRange<1>& localRange, const F& f)
+    OIDN_INLINE void runKernel(WorkDim<1> groupRange, WorkDim<1> localRange, const F& f)
     {
       runCUDAKernel<1><<<groupRange[0], localRange[0]>>>(f);
       checkError(cudaGetLastError());
     }
 
     template<typename F>
-    OIDN_INLINE void runKernel(const WorkRange<2>& groupRange, const WorkRange<2>& localRange, const F& f)
+    OIDN_INLINE void runKernel(WorkDim<2> groupRange, WorkDim<2> localRange, const F& f)
     {
       runCUDAKernel<2><<<dim3(groupRange[1], groupRange[0]), dim3(localRange[1], localRange[0])>>>(f);
       checkError(cudaGetLastError());

@@ -21,18 +21,18 @@ namespace oidn {
     }
 
     template<typename F>
-    __global__ void runHIPKernel(int range0, int range1, const F f)
+    __global__ void runHIPKernel(WorkDim<2> range, const F f)
     {
-      WorkItem<2> it(range0, range1);
+      WorkItem<2> it(range);
       if (it.getId<0>() < it.getRange<0>() &&
           it.getId<1>() < it.getRange<1>())
         f(it);
     }
 
     template<typename F>
-    __global__ void runHIPKernel(int range0, int range1, int range2, const F f)
+    __global__ void runHIPKernel(WorkDim<3> range, const F f)
     {
-      WorkItem<3> it(range0, range1, range2);
+      WorkItem<3> it(range);
       if (it.getId<0>() < it.getRange<0>() &&
           it.getId<1>() < it.getRange<1>() &&
           it.getId<2>() < it.getRange<2>())
@@ -68,34 +68,34 @@ namespace oidn {
 
   #if defined(OIDN_HIP)
     template<typename F>
-    OIDN_INLINE void runKernel(const WorkRange<2>& range, const F& f)
+    OIDN_INLINE void runKernel(WorkDim<2> range, const F& f)
     {
       const dim3 blockDim(32, 32);
       const dim3 gridDim(ceil_div(range[1], blockDim.x), ceil_div(range[0], blockDim.y));
 
-      runHIPKernel<<<gridDim, blockDim>>>(range[0], range[1], f);
+      runHIPKernel<<<gridDim, blockDim>>>(range, f);
       checkError(hipGetLastError());
     }
 
     template<typename F>
-    OIDN_INLINE void runKernel(const WorkRange<3>& range, const F& f)
+    OIDN_INLINE void runKernel(WorkDim<3> range, const F& f)
     {
       const dim3 blockDim(32, 32, 1);
       const dim3 gridDim(ceil_div(range[2], blockDim.x), ceil_div(range[1], blockDim.y), ceil_div(range[0], blockDim.z));
 
-      runHIPKernel<<<gridDim, blockDim>>>(range[0], range[1], range[2], f);
+      runHIPKernel<<<gridDim, blockDim>>>(range, f);
       checkError(hipGetLastError());
     }
 
     template<typename F>
-    OIDN_INLINE void runKernel(const WorkRange<1>& groupRange, const WorkRange<1>& localRange, const F& f)
+    OIDN_INLINE void runKernel(WorkDim<1> groupRange, WorkDim<1> localRange, const F& f)
     {
       runHIPKernel<1><<<groupRange[0], localRange[0]>>>(f);
       checkError(hipGetLastError());
     }
 
     template<typename F>
-    OIDN_INLINE void runKernel(const WorkRange<2>& groupRange, const WorkRange<2>& localRange, const F& f)
+    OIDN_INLINE void runKernel(WorkDim<2> groupRange, WorkDim<2> localRange, const F& f)
     {
       runHIPKernel<2><<<dim3(groupRange[1], groupRange[0]), dim3(localRange[1], localRange[0])>>>(f);
       checkError(hipGetLastError());

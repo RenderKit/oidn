@@ -10,47 +10,32 @@
 namespace oidn {
 
   // ---------------------------------------------------------------------------
-  // WorkRange
+  // WorkDim
   // ---------------------------------------------------------------------------
 
   template<int dims>
-  class WorkRange;
-
-  template<>
-  class WorkRange<1>
+  class WorkDim
   {
   public:
-    WorkRange(int range0) : r{range0} {}
-    const int& operator [](size_t i) const { assert(i < 1); return r; }
-    int& operator [](size_t i) { assert(i < 1); return r; }
-    operator int() const { return r; }
+    template<int N = dims>
+    OIDN_HOST_DEVICE_INLINE WorkDim(typename std::enable_if<N == 1, int>::type dim0)
+      : dim{dim0} {}
+
+    template<int N = dims>
+    OIDN_HOST_DEVICE_INLINE WorkDim(typename std::enable_if<N == 2, int>::type dim0, int dim1)
+      : dim{dim0, dim1} {}
+
+    template<int N = dims>
+    OIDN_HOST_DEVICE_INLINE WorkDim(typename std::enable_if<N == 3, int>::type dim0, int dim1, int dim2)
+      : dim{dim0, dim1, dim2} {}
+
+    template<int N = dims>
+    OIDN_HOST_DEVICE_INLINE operator typename std::enable_if<N == 1, int>::type() const { return dim[0]; }
+
+    OIDN_HOST_DEVICE_INLINE int operator [](int i) const { return dim[i]; }
 
   private:
-    int r;
-  };
-
-  template<>
-  class WorkRange<2>
-  {
-  public:
-    WorkRange(int range0, int range1) : r{range0, range1} {}
-    const int& operator [](size_t i) const { assert(i < 2); return r[i]; }
-    int& operator [](size_t i) { assert(i < 2); return r[i]; }
-
-  private:
-    int r[2];
-  };
-
-  template<>
-  class WorkRange<3>
-  {
-  public:
-    WorkRange(int range0, int range1, int range2) : r{range0, range1, range2} {}
-    const int& operator [](size_t i) const { assert(i < 3); return r[i]; }
-    int& operator [](size_t i) { assert(i < 3); return r[i]; }
-
-  private:
-    int r[3];
+    int dim[dims];
   };
 
 #if defined(OIDN_SYCL)
@@ -63,24 +48,12 @@ namespace oidn {
   class WorkItem
   {
   public:
-    WorkItem(const sycl::item<dims>& item) : item(item) {}
+    OIDN_DEVICE_INLINE WorkItem(const sycl::item<dims>& item) : item(item) {}
 
-    template<int i = 0>
-    OIDN_DEVICE_INLINE int getId() const
-    {
-      return int(item.get_id(i));
-    }
+    template<int i = 0> OIDN_DEVICE_INLINE int getId() const { return int(item.get_id(i)); }
+    template<int i = 0> OIDN_DEVICE_INLINE int getRange() const { return int(item.get_range(i)); }
 
-    OIDN_DEVICE_INLINE int getLinearId() const
-    {
-      return int(item.get_linear_id());
-    }
-
-    template<int i = 0>
-    OIDN_DEVICE_INLINE int getRange() const
-    {
-      return int(item.get_range(i));
-    }
+    OIDN_DEVICE_INLINE int getLinearId() const { return int(item.get_linear_id()); }
 
   private:
     const sycl::item<dims>& item;
@@ -94,7 +67,7 @@ namespace oidn {
   class WorkGroupItem
   {
   public:
-    WorkGroupItem(const sycl::nd_item<dims>& item) : item(item) {}
+    OIDN_DEVICE_INLINE WorkGroupItem(const sycl::nd_item<dims>& item) : item(item) {}
 
     template<int i = 0> OIDN_DEVICE_INLINE int getGlobalId() const { return int(item.get_global_id(i)); }
     template<int i = 0> OIDN_DEVICE_INLINE int getGlobalRange() const { return int(item.get_global_range(i)); }
@@ -144,73 +117,34 @@ namespace oidn {
   // ---------------------------------------------------------------------------
 
   template<int dims>
-  class WorkItem;
-
-  template<>
-  class WorkItem<1>
+  class WorkItem
   {
   public:
-    OIDN_DEVICE_INLINE WorkItem(int range)
+    template<int N = dims>
+    OIDN_DEVICE_INLINE WorkItem(typename std::enable_if<N == 1, int>::type range)
       : id(blockIdx.x * blockDim.x + threadIdx.x),
         range(range) {}
 
-    OIDN_DEVICE_INLINE int getId() const { return id; }
-    OIDN_DEVICE_INLINE int getRange() const { return range; }
+    template<int N = dims>
+    OIDN_DEVICE_INLINE WorkItem(typename std::enable_if<N == 2, const WorkDim<2>&>::type range)
+      : id(blockIdx.y * blockDim.y + threadIdx.y,
+           blockIdx.x * blockDim.x + threadIdx.x),
+        range(range) {}
+
+    template<int N = dims>
+    OIDN_DEVICE_INLINE WorkItem(typename std::enable_if<N == 3, const WorkDim<3>&>::type range)
+      : id(blockIdx.z * blockDim.z + threadIdx.z,
+           blockIdx.y * blockDim.y + threadIdx.y,
+           blockIdx.x * blockDim.x + threadIdx.x),
+        range(range) {}
+
+    template<int i = 0> OIDN_DEVICE_INLINE int getId() const { return id[i]; }
+    template<int i = 0> OIDN_DEVICE_INLINE int getRange() const { return range[i]; }
 
   private:
-    int id;
-    int range;
+    WorkDim<dims> id;
+    WorkDim<dims> range;
   };
-
-  template<>
-  class WorkItem<2>
-  {
-  public:
-    OIDN_DEVICE_INLINE WorkItem(int range0, int range1)
-      : id0(blockIdx.y * blockDim.y + threadIdx.y),
-        id1(blockIdx.x * blockDim.x + threadIdx.x),
-        range0(range0),
-        range1(range1) {}
-
-    template<int i> OIDN_DEVICE_INLINE int getId() const;
-    template<int i> OIDN_DEVICE_INLINE int getRange() const;
-
-  private:
-    int id0, id1;
-    int range0, range1;
-  };
-
-  template<> OIDN_DEVICE_INLINE int WorkItem<2>::getId<0>() const { return id0; }
-  template<> OIDN_DEVICE_INLINE int WorkItem<2>::getId<1>() const { return id1; }
-  template<> OIDN_DEVICE_INLINE int WorkItem<2>::getRange<0>() const { return range0; }
-  template<> OIDN_DEVICE_INLINE int WorkItem<2>::getRange<1>() const { return range1; }
-
-  template<>
-  class WorkItem<3>
-  {
-  public:
-    OIDN_DEVICE_INLINE WorkItem(int range0, int range1, int range2)
-      : id0(blockIdx.z * blockDim.z + threadIdx.z),
-        id1(blockIdx.y * blockDim.y + threadIdx.y),
-        id2(blockIdx.x * blockDim.x + threadIdx.x),
-        range0(range0),
-        range1(range1),
-        range2(range2) {}
-
-    template<int i> OIDN_DEVICE_INLINE int getId() const;
-    template<int i> OIDN_DEVICE_INLINE int getRange() const;
-
-  private:
-    int id0, id1, id2;
-    int range0, range1, range2;
-  };
-
-  template<> OIDN_DEVICE_INLINE int WorkItem<3>::getId<0>() const { return id0; }
-  template<> OIDN_DEVICE_INLINE int WorkItem<3>::getId<1>() const { return id1; }
-  template<> OIDN_DEVICE_INLINE int WorkItem<3>::getId<2>() const { return id2; }
-  template<> OIDN_DEVICE_INLINE int WorkItem<3>::getRange<0>() const { return range0; }
-  template<> OIDN_DEVICE_INLINE int WorkItem<3>::getRange<1>() const { return range1; }
-  template<> OIDN_DEVICE_INLINE int WorkItem<3>::getRange<2>() const { return range2; }
 
   // ---------------------------------------------------------------------------
   // CUDA/HIP WorkGroupItem
