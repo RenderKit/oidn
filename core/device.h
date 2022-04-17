@@ -115,7 +115,6 @@ namespace oidn {
    
   protected:
     virtual void init() = 0;
-    virtual void printInfo() = 0;
 
     // Tasking
     std::shared_ptr<tbb::task_arena> arena;

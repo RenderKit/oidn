@@ -76,7 +76,6 @@ namespace oidn {
 
   protected:
     void init() override;
-    void printInfo() override;
   };
 
 } // namespace oidn

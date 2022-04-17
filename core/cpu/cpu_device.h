@@ -33,7 +33,6 @@ namespace oidn {
 
   protected:
     void init() override;
-    void printInfo() override;
     void initTasking();
 
   private:

@@ -40,6 +40,21 @@ namespace oidn {
 
   void CUDADevice::init()
   {
+    int deviceId = 0;
+    checkError(cudaGetDevice(&deviceId));
+
+    cudaDeviceProp prop;
+    checkError(cudaGetDeviceProperties(&prop, deviceId));
+
+    if (isVerbose())
+      std::cout << "  Device  : " << prop.name << std::endl;
+
+    // Check required hardware features
+    if (!prop.unifiedAddressing)
+      throw Exception(Error::UnsupportedHardware, "device does not support unified addressing");
+    if (!prop.managedMemory)
+      throw Exception(Error::UnsupportedHardware, "device does not support managed memory");
+
     checkError(cudnnCreate(&cudnnHandle));
 
     tensorDataType  = DataType::Float16;
@@ -51,14 +66,6 @@ namespace oidn {
   void CUDADevice::wait()
   {
     checkError(cudaDeviceSynchronize());
-  }
-
-  void CUDADevice::printInfo()
-  {
-    cudaDeviceProp prop;
-    checkError(cudaGetDeviceProperties(&prop, 0));
-
-    std::cout << "  Device  : " << prop.name << std::endl;
   }
 
   std::shared_ptr<Conv> CUDADevice::newConv(const ConvDesc& desc)

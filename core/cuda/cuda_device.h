@@ -105,7 +105,6 @@ namespace oidn {
 
   protected:
     void init() override;
-    void printInfo() override;
 
   private:
     cudnnHandle_t cudnnHandle;

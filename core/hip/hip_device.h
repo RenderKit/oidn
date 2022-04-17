@@ -104,7 +104,6 @@ namespace oidn {
 
   protected:
     void init() override;
-    void printInfo() override;
 
   private:
     miopenHandle_t miopenHandle;

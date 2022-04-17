@@ -39,14 +39,18 @@ namespace oidn {
 
   void HIPDevice::init()
   {
-    /*
-    int deviceId;
+    int deviceId = 0;
     checkError(hipGetDevice(&deviceId));
 
-    int pi;
-    checkError(hipDeviceGetAttribute(&pi, hipDeviceAttributeCanUseHostPointerForRegisteredMem, deviceId));
-    std::cout << "hipDeviceAttributeCanUseHostPointerForRegisteredMem: " << pi << std::endl;
-    */
+    hipDeviceProp_t prop;
+    checkError(hipGetDeviceProperties(&prop, deviceId));
+    
+    if (isVerbose())
+      std::cout << "  Device  : " << prop.name << std::endl;
+
+    // Check required hardware features
+    if (!prop.managedMemory)
+      throw Exception(Error::UnsupportedHardware, "device does not support managed memory");
 
     checkError(miopenCreate(&miopenHandle));
 
@@ -61,14 +65,6 @@ namespace oidn {
   void HIPDevice::wait()
   {
     checkError(hipDeviceSynchronize());
-  }
-
-  void HIPDevice::printInfo()
-  {
-    hipDeviceProp_t prop;
-    checkError(hipGetDeviceProperties(&prop, 0));
-
-    std::cout << "  Device  : " << prop.name << std::endl;
   }
 
   std::shared_ptr<Conv> HIPDevice::newConv(const ConvDesc& desc)

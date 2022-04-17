@@ -42,20 +42,27 @@ namespace oidn {
                           dnnl::sycl_interop::get_queue(dnnlStream)});
     }
 
+    if (isVerbose())
+      std::cout << "  Device  : " << sycl->device.get_info<sycl::info::device::name>() << std::endl;
+
+    // Check required hardware features
+    if (!sycl->device.has(sycl::aspect::usm_host_allocations) ||
+        !sycl->device.has(sycl::aspect::usm_device_allocations) ||
+        !sycl->device.has(sycl::aspect::usm_shared_allocations))
+      throw Exception(Error::UnsupportedHardware, "device does not support unified shared memory");
+
     tensorDataType = DataType::Float16;
     tensorLayout = TensorLayout::Chw16c;
     tensorBlockSize = 16;
-  }
 
-  void SYCLDevice::printInfo()
-  {
-    std::cout << "  Device  : " << sycl->device.get_info<sycl::info::device::name>() << std::endl;
-
-    std::cout << "  Neural  : ";
-    std::cout << "DNNL (oneDNN) " << DNNL_VERSION_MAJOR << "." <<
-                                     DNNL_VERSION_MINOR << "." <<
-                                     DNNL_VERSION_PATCH;
-    std::cout << std::endl;
+    if (isVerbose())
+    {
+      std::cout << "  Neural  : ";
+      std::cout << "DNNL (oneDNN) " << DNNL_VERSION_MAJOR << "." <<
+                                       DNNL_VERSION_MINOR << "." <<
+                                       DNNL_VERSION_PATCH;
+      std::cout << std::endl;
+    }
   }
 
   std::shared_ptr<Pool> SYCLDevice::newPool(const PoolDesc& desc)
