@@ -280,6 +280,53 @@ TEST_CASE("filter update", "[filter_update]")
 
 // -----------------------------------------------------------------------------
 
+TEST_CASE("async filter", "[async_filter]")
+{
+  const int W = 799;
+  const int H = 601;
+
+  DeviceRef device = newDevice(deviceType);
+  REQUIRE(bool(device));
+  device.commit();
+  REQUIRE(device.getError() == Error::None);
+
+  FilterRef filter = device.newFilter("RT");
+  REQUIRE(bool(filter));
+
+  auto color  = makeConstImage(device, W, H);
+  auto albedo = makeConstImage(device, W, H);
+  auto output = makeImage(device, W, H);
+
+  setFilterImage(filter, "color",  color);
+  setFilterImage(filter, "output", output);
+  filter.set("hdr", true);
+
+  filter.commit();
+  REQUIRE(device.getError() == Error::None);
+
+  for (int i = 0; i < 3; ++i)
+    filter.executeAsync();
+
+  setFilterImage(filter, "albedo", albedo);
+  filter.set("hdr", false);
+
+  filter.commit();
+  REQUIRE(device.getError() == Error::None);
+
+  for (int i = 0; i < 2; ++i)
+    filter.executeAsync();
+
+  device.sync();
+  REQUIRE(device.getError() == Error::None);
+
+  filter.executeAsync();
+  filter = nullptr;
+
+  REQUIRE(device.getError() == Error::None);
+}
+
+// -----------------------------------------------------------------------------
+
 void imageSizeTest(DeviceRef& device, int W, int H, bool execute = true)
 {
   FilterRef filter = device.newFilter("RT");

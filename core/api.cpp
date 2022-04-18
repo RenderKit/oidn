@@ -223,6 +223,16 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_CATCH(device)
   }
 
+  OIDN_API void oidnSyncDevice(OIDNDevice hDevice)
+  {
+    Device* device = (Device*)hDevice;
+    OIDN_TRY
+      checkHandle(hDevice);
+      OIDN_LOCK(device);
+      device->wait();
+    OIDN_CATCH(device)
+  }
+
   OIDN_API OIDNBuffer oidnNewBuffer(OIDNDevice hDevice, size_t byteSize)
   {
     Device* device = (Device*)hDevice;

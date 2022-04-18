@@ -491,6 +491,12 @@ OIDN_NAMESPACE_BEGIN
       oidnCommitDevice(handle);
     }
 
+    // Waits for all asynchronous operations running on the device to complete.
+    void sync()
+    {
+      oidnSyncDevice(handle);
+    }
+
     // Creates a new buffer accessible to both the host and device.
     BufferRef newBuffer(size_t byteSize) const
     {

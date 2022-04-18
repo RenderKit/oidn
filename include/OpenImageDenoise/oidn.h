@@ -81,6 +81,9 @@ OIDN_API OIDNError oidnGetDeviceError(OIDNDevice device, const char** outMessage
 // Must be called before first using the device (e.g. creating filters).
 OIDN_API void oidnCommitDevice(OIDNDevice device);
 
+// Waits for all asynchronous operations running on the device to complete.
+OIDN_API void oidnSyncDevice(OIDNDevice device);
+
 // -----------------------------------------------------------------------------
 // Buffer
 // -----------------------------------------------------------------------------
