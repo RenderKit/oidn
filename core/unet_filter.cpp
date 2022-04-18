@@ -6,9 +6,12 @@
 
 namespace oidn {
 
-  UNetFilter::UNetFilter(const Ref<Device>& device)
-    : Filter(device)
+  UNetFilter::UNetFilter(const Ref<Device>& device) : Filter(device) {}
+  
+  UNetFilter::~UNetFilter()
   {
+    // Make sure that all asynchronous operations have completed
+    device->wait();
   }
 
   void UNetFilter::setData(const std::string& name, const Data& data)
@@ -73,12 +76,11 @@ namespace oidn {
 
     if (dirtyParam)
     {
-      // (Re-)Initialize the filter
-      device->runTask([&]()
-      {
-        init();
-      });
+      // Make sure that all asynchronous operations have completed
+      device->wait();
 
+      // (Re-)Initialize the filter
+      device->runTask([&]() { init(); });
       device->wait();
     }
 

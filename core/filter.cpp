@@ -5,6 +5,8 @@
 
 namespace oidn {
 
+  Filter::Filter(const Ref<Device>& device) : device(device) {}
+
   void Filter::setProgressMonitorFunction(ProgressMonitorFunction func, void* userPtr)
   {
     progressFunc = func;

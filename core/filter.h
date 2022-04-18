@@ -13,7 +13,7 @@ namespace oidn {
   class Filter : public RefCount
   {
   public:
-    explicit Filter(const Ref<Device>& device) : device(device) {}
+    explicit Filter(const Ref<Device>& device);
 
     virtual void setImage(const std::string& name, const std::shared_ptr<Image>& image) = 0;
     virtual void removeImage(const std::string& name) = 0;
