@@ -151,20 +151,15 @@ namespace oidn {
     {
       switch (getInput()->getDataType())
       {
-      case DataType::Float32:
-        runKernel<float>();
-        break;
-      case DataType::Float16:
-        runKernel<half>();
-        break;
-      default:
-        assert(0);
+      case DataType::Float32: runImpl<float>(); break;
+      case DataType::Float16: runImpl<half>();  break;
+      default:                assert(0);
       }
     }
 
   private:
     template<typename ImageDataType>
-    void runKernel()
+    void runImpl()
     {
       assert(tile.H + tile.hSrcBegin <= getInput()->getH());
       assert(tile.W + tile.wSrcBegin <= getInput()->getW());
@@ -181,7 +176,7 @@ namespace oidn {
       kernel.hdr = hdr;
       kernel.snorm = snorm;
 
-      this->device->runKernel({dst->getH(), dst->getW()}, kernel);
+      this->device->runKernelAsync({dst->getH(), dst->getW()}, kernel);
     }
   };
 

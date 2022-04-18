@@ -69,7 +69,7 @@ namespace oidn {
 
   #if defined(OIDN_CUDA)
     template<typename F>
-    OIDN_INLINE void runKernel(WorkDim<2> range, const F& f)
+    OIDN_INLINE void runKernelAsync(WorkDim<2> range, const F& f)
     {
       const dim3 blockDim(16, 16);
       const dim3 gridDim(ceil_div(range[1], blockDim.x), ceil_div(range[0], blockDim.y));
@@ -79,7 +79,7 @@ namespace oidn {
     }
 
     template<typename F>
-    OIDN_INLINE void runKernel(WorkDim<3> range, const F& f)
+    OIDN_INLINE void runKernelAsync(WorkDim<3> range, const F& f)
     {
       const dim3 blockDim(16, 16, 1);
       const dim3 gridDim(ceil_div(range[2], blockDim.x), ceil_div(range[1], blockDim.y), ceil_div(range[0], blockDim.z));
@@ -89,14 +89,14 @@ namespace oidn {
     }
 
     template<typename F>
-    OIDN_INLINE void runKernel(WorkDim<1> groupRange, WorkDim<1> localRange, const F& f)
+    OIDN_INLINE void runKernelAsync(WorkDim<1> groupRange, WorkDim<1> localRange, const F& f)
     {
       runCUDAKernel<1><<<groupRange[0], localRange[0]>>>(f);
       checkError(cudaGetLastError());
     }
 
     template<typename F>
-    OIDN_INLINE void runKernel(WorkDim<2> groupRange, WorkDim<2> localRange, const F& f)
+    OIDN_INLINE void runKernelAsync(WorkDim<2> groupRange, WorkDim<2> localRange, const F& f)
     {
       runCUDAKernel<2><<<dim3(groupRange[1], groupRange[0]), dim3(localRange[1], localRange[0])>>>(f);
       checkError(cudaGetLastError());

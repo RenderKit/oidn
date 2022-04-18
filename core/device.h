@@ -73,6 +73,7 @@ namespace oidn {
     TensorLayout getWeightsLayout() const { return weightsLayout; }
     int getTensorBlockSize() const { return tensorBlockSize; }
 
+    // Waits for all asynchronous operations to complete
     virtual void wait() {}
 
     virtual Ref<Buffer> newBuffer(size_t byteSize, Storage storage);

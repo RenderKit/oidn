@@ -41,7 +41,7 @@ namespace oidn {
     void memcpy(void* dstPtr, const void* srcPtr, size_t byteSize) override;
 
     template<typename F>
-    OIDN_INLINE void runKernel(WorkDim<2> range, const F& f)
+    OIDN_INLINE void runKernelAsync(WorkDim<2> range, const F& f)
     {
       sycl->queue.parallel_for(
         sycl::range<2>(range[0], range[1]),
@@ -49,7 +49,7 @@ namespace oidn {
     }
 
     template<typename F>
-    OIDN_INLINE void runKernel(WorkDim<1> groupRange, WorkDim<1> localRange, const F& f)
+    OIDN_INLINE void runKernelAsync(WorkDim<1> groupRange, WorkDim<1> localRange, const F& f)
     {
       sycl->queue.parallel_for(
         sycl::nd_range<1>(groupRange[0] * localRange[0], localRange[0]),
@@ -57,7 +57,7 @@ namespace oidn {
     }
 
     template<typename F>
-    OIDN_INLINE void runKernel(WorkDim<2> groupRange, WorkDim<2> localRange, const F& f)
+    OIDN_INLINE void runKernelAsync(WorkDim<2> groupRange, WorkDim<2> localRange, const F& f)
     {
       sycl->queue.parallel_for(
         sycl::nd_range<2>(sycl::range<2>(groupRange[0] * localRange[0], groupRange[1] * localRange[1]),
@@ -66,7 +66,7 @@ namespace oidn {
     }
 
     template<typename F>
-    OIDN_INLINE void runESIMDKernel(WorkDim<2> range, const F& f)
+    OIDN_INLINE void runESIMDKernelAsync(WorkDim<2> range, const F& f)
     {
       // FIXME: Named kernel is necessary due to an ESIMD bug
       sycl->queue.parallel_for<class ESIMDKernel>(

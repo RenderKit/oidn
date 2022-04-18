@@ -172,16 +172,13 @@ namespace oidn {
 
     void run() override
     {
+      assert(scratch);
+
       switch (src->getDataType())
       {
-      case DataType::Float32:
-        runKernel<float>();
-        break;
-      case DataType::Float16:
-        runKernel<half>();
-        break;
-      default:
-        assert(0);
+      case DataType::Float32: runImpl<float>(); break;
+      case DataType::Float16: runImpl<half>();  break;
+      default:                assert(0);
       }
     }
 
@@ -189,7 +186,7 @@ namespace oidn {
 
   private:
     template<typename ImageDataType>
-    void runKernel()
+    void runImpl()
     {
       float* bins = (float*)scratch->getData();
       float* sums = (float*)((char*)bins + numBins * sizeof(float));
@@ -198,21 +195,21 @@ namespace oidn {
       GPUAutoexposureDownsampleKernel<ImageDataType, maxBinSize> downsample;
       downsample.src = *src;
       downsample.bins = bins;
-      this->device->runKernel({numBinsH, numBinsW}, {maxBinSize, maxBinSize}, downsample);
+      this->device->runKernelAsync({numBinsH, numBinsW}, {maxBinSize, maxBinSize}, downsample);
 
       GPUAutoexposureReduceKernel<groupSize> reduce;
       reduce.bins   = bins;
       reduce.size   = numBins;
       reduce.sums   = sums;
       reduce.counts = counts;
-      this->device->runKernel(numGroups, groupSize, reduce);
+      this->device->runKernelAsync(numGroups, groupSize, reduce);
 
       GPUAutoexposureReduceFinalKernel<groupSize> reduceFinal;
       reduceFinal.sums   = sums;
       reduceFinal.counts = counts;
       reduceFinal.size   = numGroups;
       reduceFinal.result = (float*)resultBuffer->getData();
-      this->device->runKernel(1, groupSize, reduceFinal);
+      this->device->runKernelAsync(1, groupSize, reduceFinal);
     }
 
     static constexpr int groupSize = 1024;
