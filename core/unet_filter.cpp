@@ -6,7 +6,9 @@
 
 namespace oidn {
 
-  UNetFilter::UNetFilter(const Ref<Device>& device) : Filter(device) {}
+  UNetFilter::UNetFilter(const Ref<Device>& device)
+    : Filter(device),
+      progress(device) {}
   
   UNetFilter::~UNetFilter()
   {
@@ -80,7 +82,7 @@ namespace oidn {
       device->wait();
 
       // (Re-)Initialize the filter
-      device->runTask([&]() { init(); });
+      device->runHostTask([&]() { init(); });
       device->wait();
     }
 
@@ -96,7 +98,7 @@ namespace oidn {
     if (H <= 0 || W <= 0)
       return;
 
-    device->runTask([&]()
+    device->runHostTask([&]()
     {
       // Initialize the progress state
       double workAmount = tileCountH * tileCountW * net->getWorkAmount();
@@ -104,7 +106,7 @@ namespace oidn {
         workAmount += 1;
       if (outputTemp)
         workAmount += 1;
-      Progress progress(progressFunc, progressUserPtr, workAmount);
+      progress.start(progressFunc, progressUserPtr, workAmount);
 
       // Set the input scale
       if (isnan(inputScale))

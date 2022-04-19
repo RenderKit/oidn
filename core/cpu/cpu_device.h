@@ -31,6 +31,9 @@ namespace oidn {
     std::shared_ptr<OutputProcess> newOutputProcess(const OutputProcessDesc& desc) override;
     std::shared_ptr<ImageCopy> newImageCopy() override;
 
+    // Enqueues a host function
+    void runHostFuncAsync(std::function<void()>&& f) override;
+
   protected:
     void init() override;
     void initTasking();

@@ -138,4 +138,21 @@ namespace oidn {
   {
     checkError(hipMemcpy(dstPtr, srcPtr, byteSize, hipMemcpyDefault));
   }
+
+  namespace
+  {
+    void hostFuncCallback(hipStream_t stream, hipError_t status, void* fPtr)
+    {
+      if (status != hipSuccess)
+        return;
+      std::unique_ptr<std::function<void()>> f(reinterpret_cast<std::function<void()>*>(fPtr));
+      (*f)();
+    }
+  }
+
+  void HIPDevice::runHostFuncAsync(std::function<void()>&& f)
+  {
+    auto fPtr = new std::function<void()>(std::move(f));
+    checkError(hipStreamAddCallback(0, hostFuncCallback, fPtr, 0));
+  }
 }

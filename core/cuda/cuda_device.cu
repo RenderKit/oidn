@@ -147,4 +147,19 @@ namespace oidn {
   {
     checkError(cudaMemcpy(dstPtr, srcPtr, byteSize, cudaMemcpyDefault));
   }
+
+  namespace
+  {
+    void CUDART_CB hostFuncCallback(void* fPtr)
+    {
+      std::unique_ptr<std::function<void()>> f(reinterpret_cast<std::function<void()>*>(fPtr));
+      (*f)();
+    }
+  }
+
+  void CUDADevice::runHostFuncAsync(std::function<void()>&& f)
+  {
+    auto fPtr = new std::function<void()>(std::move(f));
+    checkError(cudaLaunchHostFunc(0, hostFuncCallback, fPtr));
+  }
 }

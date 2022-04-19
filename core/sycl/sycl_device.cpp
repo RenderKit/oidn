@@ -132,4 +132,9 @@ namespace oidn {
     sycl->queue.memcpy(dstPtr, srcPtr, byteSize).wait();
   }
 
+  void SYCLDevice::runHostFuncAsync(std::function<void()>&& f)
+  {
+    sycl->queue.submit([&](sycl::handler& cgh) { cgh.host_task(f); });
+  }
+
 } // namespace oidn

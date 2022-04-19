@@ -467,8 +467,9 @@ filter operations, by passing the payload as set at registration time
 (`userPtr` argument), and a `double` in the range [0, 1] which estimates the
 progress of the operation (`n` argument). When returning `true` from the
 callback function, Intel Open Image Denoise will continue the filter operation
-normally. When returning `false`, the library will cancel the filter operation
-with the `OIDN_ERROR_CANCELLED` error code.
+normally. When returning `false`, the library will attempt to cancel the filter
+operation as soon as possible, and if that is fulfilled, it will raise an
+`OIDN_ERROR_CANCELLED` error.
 
 After setting all necessary parameters for the filter, the changes must be
 commmitted by calling

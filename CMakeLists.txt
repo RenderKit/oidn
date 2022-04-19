@@ -219,6 +219,7 @@ set(CORE_SOURCES
   core/pool.h
   core/pool.cpp
   core/progress.h
+  core/progress.cpp
   core/reorder.h
   core/reorder.cpp
   core/rt_filter.h

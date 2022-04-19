@@ -119,4 +119,9 @@ namespace oidn {
     return std::make_shared<CPUImageCopy>(this);
   }
 
+  void CPUDevice::runHostFuncAsync(std::function<void()>&& f)
+  {
+    f(); // no async execution on the CPU
+  }
+
 } // namespace oidn

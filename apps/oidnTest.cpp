@@ -448,7 +448,7 @@ bool progressCallback(void* userPtr, double n)
 {
   Progress* progress = (Progress*)userPtr;
   REQUIRE((std::isfinite(n) && n >= 0 && n <= 1)); // n must be between 0 and 1
-  REQUIRE(n >= progress->n);   // n must not decrease
+  REQUIRE(n >= progress->n); // n must not decrease
   progress->n = n;
   return n < progress->nMax; // cancel if reached nMax
 }
@@ -477,9 +477,11 @@ void progressTest(DeviceRef& device, double nMax = 1000)
 
   if (nMax <= 1)
   {
-    // Execution should be cancelled
-    REQUIRE(device.getError() == Error::Cancelled);
-    REQUIRE(progress.n >= nMax); // check whether execution was cancelled too early
+    // Execution should be cancelled but it's not guaranteed
+    Error error = device.getError();
+    REQUIRE((error == Error::None || error == Error::Cancelled));
+    // Check whether the callback has not been called after requesting cancellation
+    REQUIRE(progress.n >= nMax);
   }
   else
   {
@@ -510,7 +512,7 @@ TEST_CASE("progress monitor", "[progress]")
   {
     progressTest(device, 0);
   }
- 
+
   SECTION("progress monitor: cancel at the end")
   {
     progressTest(device, 1);

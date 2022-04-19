@@ -68,6 +68,7 @@ namespace oidn {
     void memcpy(void* dstPtr, const void* srcPtr, size_t byteSize) override;
 
   #if defined(OIDN_CUDA)
+    // Enqueues a basic 2D kernel
     template<typename F>
     OIDN_INLINE void runKernelAsync(WorkDim<2> range, const F& f)
     {
@@ -78,6 +79,7 @@ namespace oidn {
       checkError(cudaGetLastError());
     }
 
+    // Enqueues a basic 3D kernel
     template<typename F>
     OIDN_INLINE void runKernelAsync(WorkDim<3> range, const F& f)
     {
@@ -88,6 +90,7 @@ namespace oidn {
       checkError(cudaGetLastError());
     }
 
+    // Enqueues a group-based 1D kernel
     template<typename F>
     OIDN_INLINE void runKernelAsync(WorkDim<1> groupRange, WorkDim<1> localRange, const F& f)
     {
@@ -95,6 +98,7 @@ namespace oidn {
       checkError(cudaGetLastError());
     }
 
+    // Enqueues a group-based 2D kernel
     template<typename F>
     OIDN_INLINE void runKernelAsync(WorkDim<2> groupRange, WorkDim<2> localRange, const F& f)
     {
@@ -102,6 +106,9 @@ namespace oidn {
       checkError(cudaGetLastError());
     }
   #endif
+
+    // Enqueues a host function
+    void runHostFuncAsync(std::function<void()>&& f) override;
 
   protected:
     void init() override;

@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include <functional>
 #include "common.h"
 #include "kernel.h"
 #include "buffer.h"
@@ -103,9 +104,9 @@ namespace oidn {
     virtual void memcpy(void* dstPtr, const void* srcPtr, size_t byteSize);
 
   #if !defined(OIDN_CUDA)
-    // Runs task in the arena (if it exists)
+    // Runs a parallel host task in the thread arena (if it exists)
     template<typename F>
-    void runTask(const F& f)
+    void runHostTask(const F& f)
     {
       if (arena)
         arena->execute(f);
@@ -113,6 +114,9 @@ namespace oidn {
         f();
     }
   #endif
+
+  // Enqueues a host function
+  virtual void runHostFuncAsync(std::function<void()>&& f) = 0;
    
   protected:
     virtual void init() = 0;

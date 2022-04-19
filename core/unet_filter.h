@@ -89,6 +89,8 @@ namespace oidn {
     std::shared_ptr<OutputProcess> outputProcess;
     std::shared_ptr<ImageCopy> imageCopy;
     std::shared_ptr<TransferFunction> transferFunc;
+    
+    Progress progress;
   };
 
 } // namespace oidn

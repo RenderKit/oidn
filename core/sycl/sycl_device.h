@@ -40,6 +40,7 @@ namespace oidn {
     void free(void* ptr, Storage storage) override;
     void memcpy(void* dstPtr, const void* srcPtr, size_t byteSize) override;
 
+    // Enqueues a basic 2D kernel
     template<typename F>
     OIDN_INLINE void runKernelAsync(WorkDim<2> range, const F& f)
     {
@@ -48,6 +49,7 @@ namespace oidn {
         [=](sycl::item<2> it) { f(it); });
     }
 
+    // Enqueues a group-based 1D kernel
     template<typename F>
     OIDN_INLINE void runKernelAsync(WorkDim<1> groupRange, WorkDim<1> localRange, const F& f)
     {
@@ -56,6 +58,7 @@ namespace oidn {
         [=](sycl::nd_item<1> it) { f(it); });
     }
 
+    // Enqueues a group-based 2D kernel
     template<typename F>
     OIDN_INLINE void runKernelAsync(WorkDim<2> groupRange, WorkDim<2> localRange, const F& f)
     {
@@ -65,6 +68,7 @@ namespace oidn {
         [=](sycl::nd_item<2> it) { f(it); });
     }
 
+    // Enqueues a basic 2D ESIMD kernel
     template<typename F>
     OIDN_INLINE void runESIMDKernelAsync(WorkDim<2> range, const F& f)
     {
@@ -73,6 +77,9 @@ namespace oidn {
         sycl::range<2>(range[0], range[1]),
         [=](sycl::item<2> it) SYCL_ESIMD_KERNEL { f(it); });
     }
+
+    // Enqueues a host function
+    void runHostFuncAsync(std::function<void()>&& f) override;
 
   protected:
     void init() override;
