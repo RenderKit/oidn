@@ -143,10 +143,9 @@ namespace oidn {
   {
     void hostFuncCallback(hipStream_t stream, hipError_t status, void* fPtr)
     {
-      if (status != hipSuccess)
-        return;
       std::unique_ptr<std::function<void()>> f(reinterpret_cast<std::function<void()>*>(fPtr));
-      (*f)();
+      if (status == hipSuccess)
+        (*f)();
     }
   }
 

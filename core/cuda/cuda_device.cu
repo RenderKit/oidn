@@ -150,16 +150,17 @@ namespace oidn {
 
   namespace
   {
-    void CUDART_CB hostFuncCallback(void* fPtr)
+    void CUDART_CB hostFuncCallback(cudaStream_t stream, cudaError_t status, void* fPtr)
     {
       std::unique_ptr<std::function<void()>> f(reinterpret_cast<std::function<void()>*>(fPtr));
-      (*f)();
+      if (status == cudaSuccess)
+        (*f)();
     }
   }
 
   void CUDADevice::runHostFuncAsync(std::function<void()>&& f)
   {
     auto fPtr = new std::function<void()>(std::move(f));
-    checkError(cudaLaunchHostFunc(0, hostFuncCallback, fPtr));
+    checkError(cudaStreamAddCallback(0, hostFuncCallback, fPtr, 0));
   }
 }
