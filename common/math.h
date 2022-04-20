@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -7,6 +7,16 @@
 
 namespace oidn {
 
+#if defined(OIDN_CUDA) || defined(OIDN_HIP)
+  // Make sure to use the CUDA/HIP math functions
+  using ::isfinite;
+  using ::isnan;
+  using ::pow;
+  using ::log;
+  using ::log2;
+  using ::exp;
+  using ::exp2;
+#else
   using std::isfinite;
   using std::isnan;
   using std::pow;
@@ -14,6 +24,7 @@ namespace oidn {
   using std::log2;
   using std::exp;
   using std::exp2;
+#endif
 
   // Returns ceil(a / b) for non-negative integers
   template<typename Int, typename IntB>

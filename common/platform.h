@@ -130,12 +130,13 @@ namespace oidn {
   // Common functions
   // ---------------------------------------------------------------------------
 
-#if !defined(__CUDA_ARCH__)
-  using std::min;
-  using std::max;
-#else
+#if defined(OIDN_CUDA) || defined(OIDN_HIP)
+  // Make sure to use the CUDA/HIP math functions
   using ::min;
   using ::max;
+#else
+  using std::min;
+  using std::max;
 #endif
 
   template<typename T>
