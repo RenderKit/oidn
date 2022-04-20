@@ -110,8 +110,8 @@ namespace oidn {
       acc.ptr = (uint8_t*)ptr;
       acc.hStride = hStride;
       acc.wStride = wStride;
-      acc.W = width;
-      acc.H = height;
+      acc.W = int(width);
+      acc.H = int(height);
       return acc;
     }
 

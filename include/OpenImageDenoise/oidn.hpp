@@ -68,7 +68,7 @@ OIDN_NAMESPACE_BEGIN
         oidnRetainBuffer(handle);
     }
 
-    BufferRef(BufferRef&& other) : handle(other.handle)
+    BufferRef(BufferRef&& other) noexcept : handle(other.handle)
     {
       other.handle = nullptr;
     }
@@ -86,7 +86,7 @@ OIDN_NAMESPACE_BEGIN
       return *this;
     }
 
-    BufferRef& operator =(BufferRef&& other)
+    BufferRef& operator =(BufferRef&& other) noexcept
     {
       std::swap(handle, other.handle);
       return *this;
@@ -180,7 +180,7 @@ OIDN_NAMESPACE_BEGIN
         oidnRetainFilter(handle);
     }
 
-    FilterRef(FilterRef&& other) : handle(other.handle)
+    FilterRef(FilterRef&& other) noexcept : handle(other.handle)
     {
       other.handle = nullptr;
     }
@@ -198,7 +198,7 @@ OIDN_NAMESPACE_BEGIN
       return *this;
     }
 
-    FilterRef& operator =(FilterRef&& other)
+    FilterRef& operator =(FilterRef&& other) noexcept
     {
       std::swap(handle, other.handle);
       return *this;
@@ -398,7 +398,7 @@ OIDN_NAMESPACE_BEGIN
         oidnRetainDevice(handle);
     }
 
-    DeviceRef(DeviceRef&& other) : handle(other.handle)
+    DeviceRef(DeviceRef&& other) noexcept : handle(other.handle)
     {
       other.handle = nullptr;
     }
@@ -416,7 +416,7 @@ OIDN_NAMESPACE_BEGIN
       return *this;
     }
 
-    DeviceRef& operator =(DeviceRef&& other)
+    DeviceRef& operator =(DeviceRef&& other) noexcept
     {
       std::swap(handle, other.handle);
       return *this;

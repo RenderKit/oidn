@@ -48,6 +48,8 @@ if(MSVC)
     append(OIDN_C_CXX_FLAGS "/wd4551")
     # Disable warning: int64_t -> int (tent)
     append(OIDN_C_CXX_FLAGS "/wd4244")
+    # Disable warning: prefer 'enum class' over 'enum'
+    append(OIDN_C_CXX_FLAGS "/wd26812")
   elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
     append(OIDN_C_CXX_FLAGS "/MP")
     # Disable warning: option '/Qstd=c++11' is not valid for C compilations (CMake bug?)

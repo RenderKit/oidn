@@ -100,8 +100,8 @@ namespace oidn {
     else
       acc.dataType = ispc::DataType_Float32;
 
-    acc.W = width;
-    acc.H = height;
+    acc.W = int(width);
+    acc.H = int(height);
 
     return acc;
   }
