@@ -72,7 +72,7 @@ set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 
 # Library dependencies
 find_package(Threads REQUIRED)
-find_package(TBB 2017.0 REQUIRED tbb)
+find_package(TBB 2017.0 REQUIRED tbb CONFIG)
 
 # Packaging
 include(oidn_package)
@@ -116,7 +116,7 @@ include(oidn_ispc)
 option(OIDN_DEVICE_CUDA "Enable CUDA device." OFF)
 if(OIDN_DEVICE_CUDA)
   enable_language(CUDA)
-  #find_package(cuDNN REQUIRED)
+  find_package(cuDNN REQUIRED)
 endif()
 
 # HIP
@@ -361,7 +361,7 @@ endif()
 
 if(OIDN_DEVICE_CUDA)
   target_compile_definitions(${PROJECT_NAME} PUBLIC OIDN_DEVICE_CUDA)
-  target_link_libraries(${PROJECT_NAME} PRIVATE cudnn)
+  target_link_libraries(${PROJECT_NAME} PRIVATE cuDNN::cuDNN)
 endif()
 
 if(OIDN_DEVICE_HIP)

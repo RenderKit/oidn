@@ -23,7 +23,7 @@ target_include_directories(common
 target_link_libraries(common
   PUBLIC
     ${CMAKE_THREAD_LIBS_INIT}
-    TBB
+    TBB::tbb
 )
 
 if(OIDN_STATIC_LIB)
