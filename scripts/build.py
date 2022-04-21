@@ -132,6 +132,7 @@ if cfg.target == 'all' or not os.path.isdir(build_dir):
   os.chdir(build_dir)
 
   # Set up CMake options
+  num_jobs = os.cpu_count()
   config_cmd = 'cmake -L'
   build_cmd  = 'cmake --build .'
 
@@ -158,7 +159,7 @@ if cfg.target == 'all' or not os.path.isdir(build_dir):
     config_cmd += f' -D CMAKE_C_COMPILER:FILEPATH="{cc}"'
     config_cmd += f' -D CMAKE_CXX_COMPILER:FILEPATH="{cxx}"'
 
-    build_cmd += ' --target preinstall -- -j VERBOSE=1'
+    build_cmd += f' --target preinstall -- -j {num_jobs} VERBOSE=1'
 
   config_cmd += f' -D CMAKE_BUILD_TYPE={cfg.config}'
   config_cmd += f' -D ISPC_EXECUTABLE="{ispc_executable}"'
@@ -189,7 +190,7 @@ if cfg.target == 'install':
   if OS == 'windows':
     run(f'cmake --build . --config {cfg.config} --target INSTALL')
   else:
-    run('cmake --build . --target install -- -j VERBOSE=1')
+    run(f'cmake --build . --target install -- -j {num_jobs} VERBOSE=1')
 
 # Package
 if cfg.target == 'package':
@@ -202,7 +203,7 @@ if cfg.target == 'package':
   if OS == 'windows':
     run(f'cmake --build . --config {cfg.config} --target PACKAGE')
   else:
-    run('cmake --build . --target package -- -j VERBOSE=1')
+    run(f'cmake --build . --target package -- -j {num_jobs} VERBOSE=1')
 
   # Extract the package
   package_filename = [f for f in glob(os.path.join(build_dir, 'oidn-*')) if os.path.isfile(f)][0]
