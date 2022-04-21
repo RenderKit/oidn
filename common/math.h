@@ -7,7 +7,7 @@
 
 namespace oidn {
 
-#if defined(OIDN_CUDA) || defined(OIDN_HIP)
+#if defined(OIDN_CUDA_DEVICE_ONLY) || defined(OIDN_HIP_DEVICE_ONLY)
   // Make sure to use the CUDA/HIP math functions
   using ::isfinite;
   using ::isnan;

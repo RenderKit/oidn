@@ -16,13 +16,22 @@
 #if defined(SYCL_LANGUAGE_VERSION)
   #define OIDN_SYCL
 #endif
+#if defined(__SYCL_DEVICE_ONLY__)
+  #define OIDN_SYCL_DEVICE_ONLY
+#endif
 
 #if defined(__CUDACC__)
   #define OIDN_CUDA
 #endif
+#if defined(__CUDA_ARCH__)
+  #define OIDN_CUDA_DEVICE_ONLY
+#endif
 
 #if defined(__HIPCC__)
   #define OIDN_HIP
+#endif
+#if defined(__HIP_DEVICE_COMPILE__)
+  #define OIDN_HIP_DEVICE_ONLY
 #endif
 
 #if defined(_WIN32)
@@ -130,7 +139,7 @@ namespace oidn {
   // Common functions
   // ---------------------------------------------------------------------------
 
-#if defined(OIDN_CUDA) || defined(OIDN_HIP)
+#if defined(OIDN_CUDA_DEVICE_ONLY) || defined(OIDN_HIP_DEVICE_ONLY)
   // Make sure to use the CUDA/HIP math functions
   using ::min;
   using ::max;
