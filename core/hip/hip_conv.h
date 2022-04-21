@@ -8,7 +8,7 @@
 
 namespace oidn {
 
-  class HIPConv final : public HIPOp, public Conv
+  class HIPConv final : public Conv
   {
   public:
     HIPConv(const Ref<HIPDevice>& device, const ConvDesc& desc);
@@ -23,6 +23,8 @@ namespace oidn {
     void run() override;
 
   private:
+    Ref<HIPDevice> device;
+
     miopenConvolutionDescriptor_t convDesc;
     miopenConvFwdAlgorithm_t algo;
     miopenActivationDescriptor_t activationDesc;

@@ -4,15 +4,15 @@
 #pragma once
 
 #include "../reorder.h"
-#include "dnnl_op.h"
+#include "dnnl_common.h"
 
 namespace oidn {
 
-  class DNNLReorder final : public DNNLOp
+  class DNNLReorder final : public Op
   {
   public:
     DNNLReorder(const Ref<DNNLDevice>& device, const ReorderDesc& desc)
-      : DNNLOp(device),
+      : device(device),
         src(desc.src),
         dst(desc.dst)
     {
@@ -23,10 +23,18 @@ namespace oidn {
       args = {{DNNL_ARG_SRC, srcMem},
               {DNNL_ARG_DST, dstMem}};
     }
+
+    void run() override
+    {
+      prim.execute(device->getDNNLStream(), args);
+    }
   
   private:
+    Ref<DNNLDevice> device;
     std::shared_ptr<Tensor> src;
     std::shared_ptr<Tensor> dst;
+    dnnl::reorder prim;
+    std::unordered_map<int, dnnl::memory> args;
   };
 
 } // namespace oidn

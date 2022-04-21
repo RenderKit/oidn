@@ -8,7 +8,7 @@
 
 namespace oidn {
 
-  class HIPPool final : public HIPOp, public Pool
+  class HIPPool final : public Pool
   {
   public:
     HIPPool(const Ref<HIPDevice>& device, const PoolDesc& desc);
@@ -19,6 +19,8 @@ namespace oidn {
     void run() override;
 
   private:
+    Ref<HIPDevice> device;
+
     miopenPoolingDescriptor_t poolDesc;
     miopenTensorDescriptor_t xDesc;
     miopenTensorDescriptor_t yDesc;

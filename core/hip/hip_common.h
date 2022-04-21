@@ -4,12 +4,10 @@
 #pragma once
 
 #include <miopen/miopen.h>
-#include "../op.h"
+#include "../tensor.h"
 #include "hip_device.h"
 
 namespace oidn {
-
-  using HIPOp = BaseOp<HIPDevice>;
 
   void checkError(miopenStatus_t status);
 

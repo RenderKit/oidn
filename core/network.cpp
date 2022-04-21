@@ -1,11 +1,11 @@
 // Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
+#include "network.h"
 #include "conv.h"
 #include "pool.h"
 #include "upsample.h"
 #include "color.h"
-#include "network.h"
 
 namespace oidn {
 

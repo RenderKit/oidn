@@ -29,7 +29,7 @@ namespace oidn {
     TransferFunction transferFunc;
     bool hdr;
     bool snorm; // signed normalized ([-1..1])
-
+    
     OIDN_DEVICE_INLINE void storeZero(int c, int h, int w) const
     {
       dst(c, h, w) = 0.f;
@@ -138,14 +138,13 @@ namespace oidn {
     }
   };
 
-  template<typename OpType, typename TensorDataType, TensorLayout tensorLayout>
-  class GPUInputProcess : public OpType, public InputProcess
+  template<typename DeviceType, typename TensorDataType, TensorLayout tensorLayout>
+  class GPUInputProcess : public InputProcess
   {
   public:
-    GPUInputProcess(const Ref<typename OpType::DeviceType>& device,
-                    const InputProcessDesc& desc)
-      : OpType(device),
-        InputProcess(desc) {}
+    GPUInputProcess(const Ref<DeviceType>& device, const InputProcessDesc& desc)
+      : InputProcess(device, desc),
+        device(device) {}
 
     void run() override
     {
@@ -176,8 +175,10 @@ namespace oidn {
       kernel.hdr = hdr;
       kernel.snorm = snorm;
 
-      this->device->runKernelAsync({dst->getH(), dst->getW()}, kernel);
+      device->runKernelAsync({dst->getH(), dst->getW()}, kernel);
     }
+
+    Ref<DeviceType> device;
   };
 
 } // namespace oidn

@@ -6,8 +6,8 @@
 namespace oidn {
 
   CUDAConv::CUDAConv(const Ref<CUDADevice>& device, const ConvDesc& desc)
-    : CUDAOp(device),
-      Conv(desc)
+    : Conv(desc),
+      device(device)
   {
     checkError(cudnnCreateConvolutionDescriptor(&convDesc));
     checkError(cudnnSetConvolution2dDescriptor(convDesc,

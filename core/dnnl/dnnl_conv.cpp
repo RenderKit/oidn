@@ -1,16 +1,16 @@
 // Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "../reorder.h"
 #include "dnnl_conv.h"
+#include "../reorder.h"
 #include "dnnl_tensor.h"
 #include "dnnl_reorder.h"
 
 namespace oidn {
 
   DNNLConv::DNNLConv(const Ref<DNNLDevice>& device, const ConvDesc& desc)
-    : DNNLOp(device),
-      Conv(desc)
+    : Conv(desc),
+      device(device)
   {
     const dnnl::memory::dims strides = {1, 1};
     const dnnl::memory::dims padding = {1, 1};
@@ -56,6 +56,12 @@ namespace oidn {
     return primDesc.scratchpad_desc().get_size();
   }
 
+  void DNNLConv::setScratch(const std::shared_ptr<Tensor>& scratch)
+  {
+    this->scratch = scratch;
+    args[DNNL_ARG_SCRATCHPAD] = getDNNL(scratch);
+  }
+
   void DNNLConv::setSrc(const std::shared_ptr<Tensor>& src)
   {
     Conv::setSrc(src);
@@ -92,6 +98,11 @@ namespace oidn {
 
     args[DNNL_ARG_WEIGHTS] = getDNNL(weight);
     args[DNNL_ARG_BIAS]    = getDNNL(bias);
+  }
+
+  void DNNLConv::run()
+  {
+    prim.execute(device->getDNNLStream(), args);
   }
 
 } // namespace oidn

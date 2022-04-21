@@ -17,7 +17,7 @@ namespace oidn {
     bool relu;
   };
 
-  class ConcatConv : public virtual Op, protected ConcatConvDesc
+  class ConcatConv : public Op, protected ConcatConvDesc
   {
   public:    
     ConcatConv(const ConcatConvDesc& desc);
@@ -36,7 +36,7 @@ namespace oidn {
 
   // Concatenation + 3x3 convolution for CHW tensors (including blocked) stored consecutively in memory
   // Since the tensors are pre-concatenated in memory, only the convolution needs to be executed
-  class CHWConcatConv final : public BaseOp<>, public ConcatConv
+  class CHWConcatConv final : public ConcatConv
   {
   public:
     CHWConcatConv(const Ref<Device>& device, const ConcatConvDesc& desc);
@@ -51,6 +51,7 @@ namespace oidn {
     void run() override { conv->run(); }
 
   private:
+    Ref<Device> device;
     TensorDesc srcDesc; // concatenated source
     std::shared_ptr<Conv> conv;
   };

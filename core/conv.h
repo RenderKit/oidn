@@ -17,7 +17,7 @@ namespace oidn {
   };
 
   // 3x3 convolution
-  class Conv : public virtual Op, protected ConvDesc
+  class Conv : public Op, protected ConvDesc
   {
   public:
     Conv(const ConvDesc& desc);

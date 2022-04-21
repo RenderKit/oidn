@@ -1,12 +1,12 @@
 // Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
+#include "cuda_device.h"
 #include "../gpu/gpu_autoexposure.h"
 #include "../gpu/gpu_input_process.h"
 #include "../gpu/gpu_output_process.h"
 #include "../gpu/gpu_upsample.h"
 #include "../gpu/gpu_image_copy.h"
-#include "cuda_device.h"
 #include "cuda_common.h"
 #include "cuda_conv.h"
 #include "cuda_concat_conv.h"
@@ -88,27 +88,27 @@ namespace oidn {
 
   std::shared_ptr<Upsample> CUDADevice::newUpsample(const UpsampleDesc& desc)
   {
-    return std::make_shared<GPUUpsample<CUDAOp, half, TensorLayout::hwc>>(this, desc);
+    return std::make_shared<GPUUpsample<CUDADevice, half, TensorLayout::hwc>>(this, desc);
   }
 
   std::shared_ptr<Autoexposure> CUDADevice::newAutoexposure(const ImageDesc& srcDesc)
   {
-    return std::make_shared<GPUAutoexposure<CUDAOp>>(this, srcDesc);
+    return std::make_shared<GPUAutoexposure<CUDADevice>>(this, srcDesc);
   }
 
   std::shared_ptr<InputProcess> CUDADevice::newInputProcess(const InputProcessDesc& desc)
   {
-    return std::make_shared<GPUInputProcess<CUDAOp, half, TensorLayout::hwc>>(this, desc);
+    return std::make_shared<GPUInputProcess<CUDADevice, half, TensorLayout::hwc>>(this, desc);
   }
 
   std::shared_ptr<OutputProcess> CUDADevice::newOutputProcess(const OutputProcessDesc& desc)
   {
-    return std::make_shared<GPUOutputProcess<CUDAOp, half, TensorLayout::hwc>>(this, desc);
+    return std::make_shared<GPUOutputProcess<CUDADevice, half, TensorLayout::hwc>>(this, desc);
   }
 
   std::shared_ptr<ImageCopy> CUDADevice::newImageCopy()
   {
-    return std::make_shared<GPUImageCopy<CUDAOp>>(this);
+    return std::make_shared<GPUImageCopy<CUDADevice>>(this);
   }
 
   void* CUDADevice::malloc(size_t byteSize, Storage storage)

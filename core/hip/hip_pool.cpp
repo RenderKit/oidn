@@ -6,8 +6,8 @@
 namespace oidn {
 
   HIPPool::HIPPool(const Ref<HIPDevice>& device, const PoolDesc& desc)
-    : HIPOp(device),
-      Pool(desc)
+    : Pool(desc),
+      device(device)
   {
     checkError(miopenCreatePoolingDescriptor(&poolDesc));
     checkError(miopenSet2dPoolingDescriptor(poolDesc,

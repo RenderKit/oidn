@@ -14,7 +14,7 @@ namespace oidn {
   };
 
   // 2x2 max pooling
-  class Pool : public virtual Op, protected PoolDesc
+  class Pool : public Op, protected PoolDesc
   {
   public:
     Pool(const PoolDesc& desc);

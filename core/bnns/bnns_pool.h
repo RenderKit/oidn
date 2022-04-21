@@ -4,17 +4,22 @@
 #pragma once
 
 #include "../pool.h"
-#include "bnns_op.h"
+#include "bnns_common.h"
 
 namespace oidn {
 
-  class BNNSPool : public BNNSOp, public Pool
+  class BNNSPool : public Pool
   {
   public:
     BNNSPool(const Ref<BNNSDevice>& device, const PoolDesc& desc);
+    ~BNNSPool();
 
     void finalize() override;
     void run() override;
+
+  private:
+    Ref<BNNSDevice> device;
+    BNNSFilter filter = nullptr;
   };
 
 } // namespace oidn

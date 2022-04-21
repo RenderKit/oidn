@@ -5,6 +5,7 @@
 
 #include <Accelerate/Accelerate.h>
 #include "../tensor.h"
+#include "bnns_device.h"
 
 namespace oidn {
 

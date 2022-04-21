@@ -3,6 +3,7 @@
 
 #include "cpu_device.h"
 #include "cpu_upsample.h"
+#include "cpu_autoexposure.h"
 #include "cpu_input_process.h"
 #include "cpu_output_process.h"
 #include "cpu_image_copy.h"
@@ -102,6 +103,11 @@ namespace oidn {
   std::shared_ptr<Upsample> CPUDevice::newUpsample(const UpsampleDesc& desc)
   {
     return std::make_shared<CPUUpsample>(this, desc);
+  }
+
+  std::shared_ptr<Autoexposure> CPUDevice::newAutoexposure(const ImageDesc& srcDesc)
+  {
+    return std::make_shared<CPUAutoexposure>(this, srcDesc);
   }
 
   std::shared_ptr<InputProcess> CPUDevice::newInputProcess(const InputProcessDesc& desc)

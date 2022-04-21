@@ -6,8 +6,8 @@
 namespace oidn {
 
   CUDAPool::CUDAPool(const Ref<CUDADevice>& device, const PoolDesc& desc)
-    : CUDAOp(device),
-      Pool(desc)
+    : Pool(desc),
+      device(device)
   {
     checkError(cudnnCreatePoolingDescriptor(&poolDesc));
     checkError(cudnnSetPooling2dDescriptor(poolDesc,

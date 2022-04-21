@@ -3,8 +3,8 @@
 
 #pragma once
 
+#include "mkl-dnn/include/dnnl.hpp"
 #include "../device.h"
-#include "dnnl_common.h"
 
 namespace oidn {
 

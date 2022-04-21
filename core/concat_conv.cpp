@@ -36,8 +36,8 @@ namespace oidn {
   }
 
   CHWConcatConv::CHWConcatConv(const Ref<Device>& device, const ConcatConvDesc& desc)
-    : BaseOp(device),
-      ConcatConv(desc)
+    : ConcatConv(desc),
+      device(device)
   {
     assert(src1Desc.layout != TensorLayout::hwc);
     TensorDims srcDims {src1Desc.getC() + src2Desc.getC(), src1Desc.getH(), src1Desc.getW()};

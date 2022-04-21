@@ -8,7 +8,7 @@
 
 namespace oidn {
 
-  class CUDAConcatConv final : public CUDAOp, public ConcatConv
+  class CUDAConcatConv final : public ConcatConv
   {
   public:
     CUDAConcatConv(const Ref<CUDADevice>& device, const ConcatConvDesc& desc);
@@ -23,6 +23,8 @@ namespace oidn {
     void run() override;
 
   private:
+    Ref<CUDADevice> device;
+
     TensorDesc weight1Desc;
     TensorDesc weight2Desc;
 

@@ -5,22 +5,24 @@
 
 namespace oidn {
 
-  InputProcess::InputProcess(const InputProcessDesc& desc)
+  InputProcess::InputProcess(const Ref<Device>& device, const InputProcessDesc& desc)
     : InputProcessDesc(desc)
   {
     assert(srcDims.size() == 3);
+
+    TensorDims dstDims {
+      round_up(srcDims[0], device->getTensorBlockSize()), // round up C
+      round_up(srcDims[1], int64_t(alignment)), // round up H
+      round_up(srcDims[2], int64_t(alignment))  // round up W
+    };
+    dstDesc = {dstDims, device->getTensorLayout(), device->getTensorDataType()};
+
     setTile(0, 0, 0, 0, 0, 0);
   }
 
   TensorDesc InputProcess::getDstDesc() const
   {
-    TensorDims dstDims {
-      round_up(srcDims[0], getDevice()->getTensorBlockSize()), // round up C
-      round_up(srcDims[1], int64_t(alignment)), // round up H
-      round_up(srcDims[2], int64_t(alignment))  // round up W
-    };
-
-    return TensorDesc(dstDims, getDevice()->getTensorLayout(), getDevice()->getTensorDataType());
+    return dstDesc;
   }
 
   void InputProcess::setSrc(const std::shared_ptr<Image>& color, const std::shared_ptr<Image>& albedo, const std::shared_ptr<Image>& normal)

@@ -6,7 +6,6 @@
 #include "scratch.h"
 #include "rt_filter.h"
 #include "rtlightmap_filter.h"
-#include "cpu/cpu_autoexposure.h"
 
 namespace oidn {
 
@@ -235,11 +234,6 @@ namespace oidn {
   std::shared_ptr<ConcatConv> Device::newConcatConv(const ConcatConvDesc& desc)
   {
     return std::make_shared<CHWConcatConv>(this, desc);
-  }
-
-  std::shared_ptr<Autoexposure> Device::newAutoexposure(const ImageDesc& srcDesc)
-  {
-    return std::make_shared<CPUAutoexposure>(this, srcDesc);
   }
 
   void* Device::malloc(size_t byteSize, Storage storage)

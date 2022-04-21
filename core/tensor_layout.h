@@ -138,7 +138,7 @@ namespace oidn {
     };
   };
 
-   template<>
+  template<>
   struct TensorLayoutTraits<TensorLayout::ohwi>
   {
     template<typename T>

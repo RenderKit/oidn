@@ -8,11 +8,11 @@
 
 namespace oidn {
 
-#if defined(OIDN_DNNL)
-
   CPUUpsample::CPUUpsample(const Ref<CPUDevice>& device, const UpsampleDesc& desc)
-    : CPUOp(device),
-      Upsample(desc) {}
+    : Upsample(desc),
+      device(device) {}
+
+#if defined(OIDN_DNNL)
 
   void CPUUpsample::run()
   {
@@ -31,10 +31,6 @@ namespace oidn {
   }
 
 #else
-
-  CPUUpsample::CPUUpsample(const Ref<CPUDevice>& device, const UpsampleDesc& desc)
-    : CPUOp(device),
-      Upsample(desc) {}
 
   void CPUUpsample::run()
   {

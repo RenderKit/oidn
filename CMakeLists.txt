@@ -177,7 +177,6 @@ set(CORE_SOURCES
   core/cpu/cpu_image_copy.cpp
   core/cpu/cpu_input_process.h
   core/cpu/cpu_input_process.cpp
-  core/cpu/cpu_op.h
   core/cpu/cpu_output_process.h
   core/cpu/cpu_output_process.cpp
   core/cpu/cpu_upsample.h
@@ -252,8 +251,6 @@ if(OIDN_NEURAL_RUNTIME STREQUAL "DNNL")
     core/dnnl/dnnl_common.cpp
     core/dnnl/dnnl_device.h
     core/dnnl/dnnl_device.cpp
-    core/dnnl/dnnl_op.h
-    core/dnnl/dnnl_op.cpp
     core/dnnl/dnnl_pool.h
     core/dnnl/dnnl_pool.cpp
     core/dnnl/dnnl_reorder.h
@@ -268,8 +265,6 @@ elseif(OIDN_NEURAL_RUNTIME STREQUAL "BNNS")
     core/bnns/bnns_conv.cpp
     core/bnns/bnns_device.h
     core/bnns/bnns_device.cpp
-    core/bnns/bnns_op.h
-    core/bnns/bnns_op.cpp
     core/bnns/bnns_pool.h
     core/bnns/bnns_pool.cpp
   )
@@ -281,7 +276,6 @@ if(OIDN_DEVICE_SYCL)
   list(APPEND CORE_SOURCES
     core/sycl/sycl_device.h
     core/sycl/sycl_device.cpp
-    core/sycl/sycl_op.h
     core/sycl/sycl_pool.h
     core/sycl/sycl_pool.cpp
     core/sycl/sycl_upsample.h

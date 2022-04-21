@@ -13,8 +13,6 @@ namespace oidn {
   public:
     virtual ~Op() = default;
 
-    virtual Device* getDevice() const = 0;
-
     // Support must be checked before getting the scratch size or running
     virtual bool isSupported() const { return true; }
 
@@ -22,33 +20,17 @@ namespace oidn {
     virtual size_t getScratchByteSize() const { return 0; }
     virtual void setScratch(const std::shared_ptr<Tensor>& scratch) {}
 
-    // Name for debugging purposes
-    virtual std::string getName() const = 0;
-    virtual void setName(const std::string& name) = 0;
-
     // Finalization is required before running
     virtual void finalize() {}
 
+    // Runs the operation which may be asynchronous
     virtual void run() = 0;
-  };
 
-  // Operation base class
-  template<typename DeviceT = Device>
-  class BaseOp : public virtual Op
-  {
-  public:
-    using DeviceType = DeviceT;
+    // Name for debugging purposes
+    std::string getName() const { return name; }
+    void setName(const std::string& name) { this->name = name; }
 
-    BaseOp(const Ref<DeviceT>& device)
-      : device(device) {}
-
-    Device* getDevice() const override { return device.get(); }
-
-    std::string getName() const override { return name; }
-    void setName(const std::string& name) override { this->name = name; }
-
-  protected:
-    Ref<DeviceT> device;
+  private:
     std::string name;
   };
 

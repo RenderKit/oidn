@@ -146,13 +146,13 @@ namespace oidn {
     }
   };
 
-  template<typename OpType>
-  class GPUAutoexposure final : public OpType, public Autoexposure
+  template<typename DeviceType>
+  class GPUAutoexposure final : public Autoexposure
   {
   public:
-    GPUAutoexposure(const Ref<typename OpType::DeviceType>& device, const ImageDesc& srcDesc)
-      : OpType(device),
-        Autoexposure(srcDesc)
+    GPUAutoexposure(const Ref<DeviceType>& device, const ImageDesc& srcDesc)
+      : Autoexposure(srcDesc),
+        device(device)
     {
       numGroups = min(ceil_div(numBins, groupSize), groupSize);
       scratchSize = numBins * sizeof(float) + numGroups * (sizeof(float) + sizeof(int));
@@ -195,24 +195,26 @@ namespace oidn {
       GPUAutoexposureDownsampleKernel<ImageDataType, maxBinSize> downsample;
       downsample.src = *src;
       downsample.bins = bins;
-      this->device->runKernelAsync({numBinsH, numBinsW}, {maxBinSize, maxBinSize}, downsample);
+      device->runKernelAsync({numBinsH, numBinsW}, {maxBinSize, maxBinSize}, downsample);
 
       GPUAutoexposureReduceKernel<groupSize> reduce;
       reduce.bins   = bins;
       reduce.size   = numBins;
       reduce.sums   = sums;
       reduce.counts = counts;
-      this->device->runKernelAsync(numGroups, groupSize, reduce);
+      device->runKernelAsync(numGroups, groupSize, reduce);
 
       GPUAutoexposureReduceFinalKernel<groupSize> reduceFinal;
       reduceFinal.sums   = sums;
       reduceFinal.counts = counts;
       reduceFinal.size   = numGroups;
       reduceFinal.result = (float*)resultBuffer->getData();
-      this->device->runKernelAsync(1, groupSize, reduceFinal);
+      device->runKernelAsync(1, groupSize, reduceFinal);
     }
 
     static constexpr int groupSize = 1024;
+
+    Ref<DeviceType> device;
     int numGroups;
     Ref<Buffer> resultBuffer;
     size_t scratchSize;

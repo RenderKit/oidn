@@ -13,7 +13,7 @@ namespace oidn {
   };
 
   // 2x2 nearest-neighbor upsampling
-  class Upsample : public virtual Op, protected UpsampleDesc
+  class Upsample : public Op, protected UpsampleDesc
   {
   public:
     Upsample(const UpsampleDesc& desc);

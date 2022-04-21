@@ -7,8 +7,8 @@
 namespace oidn {
 
   CPUInputProcess::CPUInputProcess(const Ref<CPUDevice>& device, const InputProcessDesc& desc)
-    : CPUOp(device),
-      InputProcess(desc) {}
+    : InputProcess(device, desc),
+      device(device) {}
 
   void CPUInputProcess::run()
   {

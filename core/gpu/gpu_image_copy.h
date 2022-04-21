@@ -22,11 +22,12 @@ namespace oidn {
     }
   };
 
-  template<typename OpType>
-  class GPUImageCopy final : public OpType, public ImageCopy
+  template<typename DeviceType>
+  class GPUImageCopy final : public ImageCopy
   {
   public:
-    explicit GPUImageCopy(const Ref<typename OpType::DeviceType>& device) : OpType(device) {}
+    explicit GPUImageCopy(const Ref<DeviceType>& device)
+      : device(device) {}
 
     void run() override
     {
@@ -50,8 +51,10 @@ namespace oidn {
       kernel.src = *src;
       kernel.dst = *dst;
 
-      this->device->runKernelAsync({dst->getH(), dst->getW()}, kernel);
+      device->runKernelAsync({dst->getH(), dst->getW()}, kernel);
     }
+
+    Ref<DeviceType> device;
   };
 
 } // namespace oidn

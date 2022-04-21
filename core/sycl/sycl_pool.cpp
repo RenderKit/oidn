@@ -43,8 +43,8 @@ namespace oidn {
   };
 
   SYCLPool::SYCLPool(const Ref<SYCLDevice>& device, const PoolDesc& desc)
-    : SYCLOp(device),
-      Pool(desc)
+    : Pool(desc),
+      device(device)
   {
     assert(src->getLayout() == TensorLayout::Chw16c);
     assert(src->getBlockSize() == device->getTensorBlockSize());

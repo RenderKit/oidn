@@ -93,7 +93,7 @@ namespace oidn {
     virtual std::shared_ptr<ConcatConv> newConcatConv(const ConcatConvDesc& desc);
     virtual std::shared_ptr<Pool> newPool(const PoolDesc& desc) = 0;
     virtual std::shared_ptr<Upsample> newUpsample(const UpsampleDesc& desc) = 0;
-    virtual std::shared_ptr<Autoexposure> newAutoexposure(const ImageDesc& srcDesc);
+    virtual std::shared_ptr<Autoexposure> newAutoexposure(const ImageDesc& srcDesc) = 0;
     virtual std::shared_ptr<InputProcess> newInputProcess(const InputProcessDesc& desc) = 0;
     virtual std::shared_ptr<OutputProcess> newOutputProcess(const OutputProcessDesc& desc) = 0;
     virtual std::shared_ptr<ImageCopy> newImageCopy() = 0;

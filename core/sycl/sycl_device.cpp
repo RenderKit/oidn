@@ -1,13 +1,12 @@
 // Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
+#include "sycl_device.h"
 #include "mkl-dnn/include/dnnl_sycl.hpp"
 #include "../gpu/gpu_autoexposure.h"
 #include "../gpu/gpu_input_process.h"
 #include "../gpu/gpu_output_process.h"
 #include "../gpu/gpu_image_copy.h"
-#include "sycl_device.h"
-#include "sycl_op.h"
 #include "sycl_pool.h"
 #include "sycl_upsample.h"
 
@@ -77,22 +76,22 @@ namespace oidn {
 
   std::shared_ptr<Autoexposure> SYCLDevice::newAutoexposure(const ImageDesc& srcDesc)
   {
-    return std::make_shared<GPUAutoexposure<SYCLOp>>(this, srcDesc);
+    return std::make_shared<GPUAutoexposure<SYCLDevice>>(this, srcDesc);
   }
 
   std::shared_ptr<InputProcess> SYCLDevice::newInputProcess(const InputProcessDesc& desc)
   {
-    return std::make_shared<GPUInputProcess<SYCLOp, half, TensorLayout::Chw16c>>(this, desc);
+    return std::make_shared<GPUInputProcess<SYCLDevice, half, TensorLayout::Chw16c>>(this, desc);
   }
 
   std::shared_ptr<OutputProcess> SYCLDevice::newOutputProcess(const OutputProcessDesc& desc)
   {
-    return std::make_shared<GPUOutputProcess<SYCLOp, half, TensorLayout::Chw16c>>(this, desc);
+    return std::make_shared<GPUOutputProcess<SYCLDevice, half, TensorLayout::Chw16c>>(this, desc);
   }
 
   std::shared_ptr<ImageCopy> SYCLDevice::newImageCopy()
   {
-    return std::make_shared<GPUImageCopy<SYCLOp>>(this);
+    return std::make_shared<GPUImageCopy<SYCLDevice>>(this);
   }
 
   void* SYCLDevice::malloc(size_t byteSize, Storage storage)

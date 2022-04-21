@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "bnns_common.h"
 #include "../device.h"
 
 namespace oidn {

@@ -6,8 +6,14 @@
 namespace oidn {
 
   BNNSConv::BNNSConv(const Ref<BNNSDevice>& device, const ConvDesc& desc)
-    : BNNSOp(device),
-      Conv(desc) {}
+    : Conv(desc),
+      device(device) {}
+
+  BNNSConv::~BNNSConv()
+  {
+    if (filter)
+      BNNSFilterDestroy(filter);
+  }
 
   void BNNSConv::finalize()
   {

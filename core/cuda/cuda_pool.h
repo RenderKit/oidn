@@ -8,7 +8,7 @@
 
 namespace oidn {
 
-  class CUDAPool final : public CUDAOp, public Pool
+  class CUDAPool final : public Pool
   {
   public:
     CUDAPool(const Ref<CUDADevice>& device, const PoolDesc& desc);
@@ -19,6 +19,8 @@ namespace oidn {
     void run() override;
 
   private:
+    Ref<CUDADevice> device;
+    
     cudnnPoolingDescriptor_t poolDesc;
     cudnnTensorDescriptor_t xDesc;
     cudnnTensorDescriptor_t yDesc;

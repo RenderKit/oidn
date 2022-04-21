@@ -4,12 +4,10 @@
 #pragma once
 
 #include <cudnn.h>
-#include "../op.h"
+#include "../tensor.h"
 #include "cuda_device.h"
 
 namespace oidn {
-
-  using CUDAOp = BaseOp<CUDADevice>;
 
   void checkError(cudnnStatus_t status);
 

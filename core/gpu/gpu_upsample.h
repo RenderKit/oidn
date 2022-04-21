@@ -51,14 +51,14 @@ namespace oidn {
     }
   };
 
-  template<typename OpType, typename TensorDataType, TensorLayout tensorLayout>
-  class GPUUpsample : public OpType, public Upsample
+  template<typename DeviceType, typename TensorDataType, TensorLayout tensorLayout>
+  class GPUUpsample : public Upsample
   {
   public:
-    GPUUpsample(const Ref<typename OpType::DeviceType>& device,
+    GPUUpsample(const Ref<DeviceType>& device,
                 const UpsampleDesc& desc)
-      : OpType(device),
-        Upsample(desc) {}
+      : Upsample(desc),
+        device(device) {}
 
     void run() override
     {
@@ -67,10 +67,13 @@ namespace oidn {
       kernel.dst = *dst;
 
       if (tensorLayout == TensorLayout::hwc)
-        this->device->runKernelAsync({src->getH(), src->getW(), src->getC()}, kernel);
+        device->runKernelAsync({src->getH(), src->getW(), src->getC()}, kernel);
       else
-        this->device->runKernelAsync({src->getC(), src->getH(), src->getW()}, kernel);
+        device->runKernelAsync({src->getC(), src->getH(), src->getW()}, kernel);
     }
+
+  private:
+    Ref<DeviceType> device;
   };
 
 } // namespace oidn

@@ -1,8 +1,8 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "common/exception.h"
 #include "tza.h"
+#include "common/exception.h"
 
 namespace oidn {
 

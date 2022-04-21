@@ -8,7 +8,7 @@
 
 namespace oidn {
 
-  class ImageCopy : public virtual Op
+  class ImageCopy : public Op
   {
   public:
     void setSrc(const std::shared_ptr<Image>& src) { this->src = src; }

@@ -6,8 +6,8 @@
 namespace oidn {
 
   CUDAConcatConv::CUDAConcatConv(const Ref<CUDADevice>& device, const ConcatConvDesc& desc)
-    : CUDAOp(device),
-      ConcatConv(desc)
+    : ConcatConv(desc),
+      device(device)
   {
     // Split the convolution into two smaller convolutions
     weight1Desc = {{weight->getO(), src1Desc.getC(), weight->getH(), weight->getW()}, weight->getLayout(), weight->getDataType()};

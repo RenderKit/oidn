@@ -8,7 +8,7 @@
 
 namespace oidn {
 
-  class CUDAConv final : public CUDAOp, public Conv
+  class CUDAConv final : public Conv
   {
   public:
     CUDAConv(const Ref<CUDADevice>& device, const ConvDesc& desc);
@@ -22,6 +22,8 @@ namespace oidn {
     void run() override;
 
   private:
+    Ref<CUDADevice> device;
+    
     cudnnConvolutionDescriptor_t convDesc;
     cudnnConvolutionFwdAlgo_t algo;
     cudnnActivationDescriptor_t activationDesc;

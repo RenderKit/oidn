@@ -1,12 +1,12 @@
 // Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
+#include "hip_device.h"
 #include "../gpu/gpu_autoexposure.h"
 #include "../gpu/gpu_input_process.h"
 #include "../gpu/gpu_output_process.h"
 #include "../gpu/gpu_upsample.h"
 #include "../gpu/gpu_image_copy.h"
-#include "hip_device.h"
 #include "hip_common.h"
 #include "hip_conv.h"
 #include "hip_pool.h"
@@ -79,27 +79,27 @@ namespace oidn {
 
   std::shared_ptr<Upsample> HIPDevice::newUpsample(const UpsampleDesc& desc)
   {
-    return std::make_shared<GPUUpsample<HIPOp, half, TensorLayout::chw>>(this, desc);
+    return std::make_shared<GPUUpsample<HIPDevice, half, TensorLayout::chw>>(this, desc);
   }
 
   std::shared_ptr<Autoexposure> HIPDevice::newAutoexposure(const ImageDesc& srcDesc)
   {
-    return std::make_shared<GPUAutoexposure<HIPOp>>(this, srcDesc);
+    return std::make_shared<GPUAutoexposure<HIPDevice>>(this, srcDesc);
   }
 
   std::shared_ptr<InputProcess> HIPDevice::newInputProcess(const InputProcessDesc& desc)
   {
-    return std::make_shared<GPUInputProcess<HIPOp, half, TensorLayout::chw>>(this, desc);
+    return std::make_shared<GPUInputProcess<HIPDevice, half, TensorLayout::chw>>(this, desc);
   }
 
   std::shared_ptr<OutputProcess> HIPDevice::newOutputProcess(const OutputProcessDesc& desc)
   {
-    return std::make_shared<GPUOutputProcess<HIPOp, half, TensorLayout::chw>>(this, desc);
+    return std::make_shared<GPUOutputProcess<HIPDevice, half, TensorLayout::chw>>(this, desc);
   }
 
   std::shared_ptr<ImageCopy> HIPDevice::newImageCopy()
   {
-    return std::make_shared<GPUImageCopy<HIPOp>>(this);
+    return std::make_shared<GPUImageCopy<HIPDevice>>(this);
   }
 
   void* HIPDevice::malloc(size_t byteSize, Storage storage)

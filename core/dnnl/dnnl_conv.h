@@ -4,24 +4,30 @@
 #pragma once
 
 #include "../conv.h"
-#include "dnnl_op.h"
+#include "dnnl_common.h"
 
 namespace oidn {
 
-  class DNNLConv final : public DNNLOp, public Conv
+  class DNNLConv final : public Conv
   {
   public:
     DNNLConv(const Ref<DNNLDevice>& device, const ConvDesc& desc);
 
     size_t getScratchByteSize() const override;
+    void setScratch(const std::shared_ptr<Tensor>& scratch) override;
     
     void setSrc(const std::shared_ptr<Tensor>& src) override;
     void setDst(const std::shared_ptr<Tensor>& dst) override;
 
     void finalize() override;
+    void run() override;
 
   private:
+    Ref<DNNLDevice> device;
     dnnl::convolution_forward::primitive_desc primDesc;
+    dnnl::convolution_forward prim;
+    std::unordered_map<int, dnnl::memory> args;
+    std::shared_ptr<Tensor> scratch;
   };
 
 } // namespace oidn

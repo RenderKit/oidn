@@ -6,8 +6,14 @@
 namespace oidn {
 
   BNNSPool::BNNSPool(const Ref<BNNSDevice>& device, const PoolDesc& desc)
-    : BNNSOp(device),
-      Pool(desc) {}
+    : Pool(desc),
+      device(device) {}
+
+  BNNSPool::~BNNSPool()
+  {
+    if (filter)
+      BNNSFilterDestroy(filter);
+  }
 
   void BNNSPool::finalize()
   {

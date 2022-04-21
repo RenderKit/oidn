@@ -6,8 +6,8 @@
 namespace oidn {
 
   DNNLPool::DNNLPool(const Ref<DNNLDevice>& device, const PoolDesc& desc)
-    : DNNLOp(device),
-      Pool(desc)
+    : Pool(desc),
+      device(device)
   {
     const dnnl::memory::dims kernel  = {2, 2};
     const dnnl::memory::dims strides = {2, 2};
@@ -32,6 +32,12 @@ namespace oidn {
     return primDesc.scratchpad_desc().get_size();
   }
 
+  void DNNLPool::setScratch(const std::shared_ptr<Tensor>& scratch)
+  {
+    this->scratch = scratch;
+    args[DNNL_ARG_SCRATCHPAD] = getDNNL(scratch);
+  }
+
   void DNNLPool::setSrc(const std::shared_ptr<Tensor>& src)
   {
     Pool::setSrc(src);
@@ -47,6 +53,11 @@ namespace oidn {
   void DNNLPool::finalize()
   {
     prim = dnnl::pooling_forward(primDesc);
+  }
+
+  void DNNLPool::run()
+  {
+    prim.execute(device->getDNNLStream(), args);
   }
 
 } // namespace oidn

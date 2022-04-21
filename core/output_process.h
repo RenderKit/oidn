@@ -18,7 +18,7 @@ namespace oidn {
     bool snorm;
   };
 
-  class OutputProcess : public virtual Op, protected OutputProcessDesc
+  class OutputProcess : public Op, protected OutputProcessDesc
   {
   public:
     OutputProcess(const OutputProcessDesc& desc);

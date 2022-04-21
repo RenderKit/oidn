@@ -65,13 +65,13 @@ namespace oidn {
     }
   };
 
-  template<typename OpType, typename TensorDataType, TensorLayout tensorLayout>
-  class GPUOutputProcess : public OpType, public OutputProcess
+  template<typename DeviceType, typename TensorDataType, TensorLayout tensorLayout>
+  class GPUOutputProcess : public OutputProcess
   {
   public:
-    GPUOutputProcess(const Ref<typename OpType::DeviceType>& device, const OutputProcessDesc& desc)
-      : OpType(device),
-        OutputProcess(desc) {}
+    GPUOutputProcess(const Ref<DeviceType>& device, const OutputProcessDesc& desc)
+      : OutputProcess(desc),
+        device(device) {}
 
     void run() override
     {
@@ -100,8 +100,10 @@ namespace oidn {
       kernel.hdr = hdr;
       kernel.snorm = snorm;
 
-      this->device->runKernelAsync({tile.H, tile.W}, kernel);
+      device->runKernelAsync({tile.H, tile.W}, kernel);
     }
+
+    Ref<DeviceType> device;
   };
 
 } // namespace oidn

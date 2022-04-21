@@ -4,18 +4,19 @@
 #pragma once
 
 #include "../autoexposure.h"
-#include "cpu_op.h"
+#include "cpu_device.h"
 
 namespace oidn {
 
-  class CPUAutoexposure final : public BaseOp<>, public Autoexposure
+  class CPUAutoexposure final : public Autoexposure
   {
   public:
-    CPUAutoexposure(const Ref<Device>& device, const ImageDesc& srcDesc);
+    CPUAutoexposure(const Ref<CPUDevice>& device, const ImageDesc& srcDesc);
     void run() override;
     const float* getResult() const override { return &result; }
 
   private:
+    Ref<CPUDevice> device;
     float result;
   };
 

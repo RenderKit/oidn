@@ -8,7 +8,7 @@
 
 namespace oidn {
 
-  class Autoexposure : public virtual Op
+  class Autoexposure : public Op
   {
   public:
     static constexpr int maxBinSize = 16;

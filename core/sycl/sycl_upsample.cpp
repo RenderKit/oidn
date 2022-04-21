@@ -39,8 +39,8 @@ namespace oidn {
   };
 
   SYCLUpsample::SYCLUpsample(const Ref<SYCLDevice>& device, const UpsampleDesc& desc)
-    : SYCLOp(device),
-      Upsample(desc)
+    : Upsample(desc),
+      device(device)
   {
     assert(src->getLayout() == TensorLayout::Chw16c);
     assert(src->getBlockSize() == device->getTensorBlockSize());

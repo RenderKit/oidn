@@ -6,8 +6,8 @@
 namespace oidn {
 
   HIPConv::HIPConv(const Ref<HIPDevice>& device, const ConvDesc& desc)
-    : HIPOp(device),
-      Conv(desc)
+    : Conv(desc),
+      device(device)
   {
     checkError(miopenCreateConvolutionDescriptor(&convDesc));
     checkError(miopenInitConvolutionDescriptor(convDesc,
