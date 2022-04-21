@@ -12,21 +12,21 @@ namespace oidn {
     switch (td.layout)
     {
     case TensorLayout::x:
-      assert(getRank() == 1);
+      assert(td.getRank() == 1);
       res = BNNSNDArrayDescriptor({
         .layout = BNNSDataLayoutVector,
         .size   = {size_t(td.dims[0])}
       });
       break;
     case TensorLayout::chw:
-      assert(getRank() == 3);
+      assert(td.getRank() == 3);
       res = BNNSNDArrayDescriptor({
         .layout = BNNSDataLayoutImageCHW,
         .size   = {size_t(td.dims[2]), size_t(td.dims[1]), size_t(td.dims[0])}
       });
       break;
     case TensorLayout::oihw:
-      assert(getRank() == 4);
+      assert(td.getRank() == 4);
       res = BNNSNDArrayDescriptor({
         .layout = BNNSDataLayoutConvolutionWeightsOIHW,
         .size   = {size_t(td.dims[3]), size_t(td.dims[2]), size_t(td.dims[1]), size_t(td.dims[0])}
