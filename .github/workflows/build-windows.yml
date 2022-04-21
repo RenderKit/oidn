@@ -1,0 +1,46 @@
+on:
+  workflow_call:
+    inputs:
+      cmd:
+        required: true
+        type: string
+      artifact-name:
+        required: false
+        type: string
+      runs-on:
+        required: false
+        type: string
+        default: '[ "Windows", "build" ]'
+
+jobs:
+  build-windows:
+    runs-on: ${{ fromJSON(inputs.runs-on) }}
+    steps:
+      # We need to checkout code first to get access to repo actions
+      # used in next step.
+      - uses: actions/checkout@v3
+      # Custom action to WA submodules problem with OIDN
+      - name: Checkout OIDN src code with submodules
+        uses: ./.github/actions/checkout
+        with:
+          pat: ${{ secrets.PAT_TOKEN }}
+
+      - name: Execute build command
+        shell: powershell
+        run: ${{ inputs.cmd }}
+
+      - name: Compress artifact files
+        if: ${{ inputs.artifact-name }}
+        shell: powershell
+        run: |
+         Compress-Archive -Path ${env:GITHUB_WORKSPACE}\build -DestinationPath ${env:GITHUB_WORKSPACE}\build.zip
+         Compress-Archive -Path ${env:GITHUB_WORKSPACE}\deps  -DestinationPath ${env:GITHUB_WORKSPACE}\deps.zip
+
+      - name: Upload artifact
+        if: ${{ inputs.artifact-name }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: |
+            build.zip
+            deps.zip

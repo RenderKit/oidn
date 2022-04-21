@@ -1,0 +1,43 @@
+on:
+  workflow_call:
+    inputs:
+      cmd:
+        required: true
+        type: string
+      artifact-name:
+        required: true
+        type: string
+      runs-on:
+        required: true
+        type: string
+
+jobs:
+  test-macos:
+    runs-on: ${{ fromJSON(inputs.runs-on) }}
+    env:
+      OIDN_TRAINING_DIR_WINDOWS: \\nassie.an.intel.com\NAS\oidn
+
+    steps:
+      # We need to checkout code first to get access to repo actions
+      # used in next step.
+      - uses: actions/checkout@v3
+      # Custom action to WA submodules problem with OIDN
+      - name: Checkout OIDN src code with submodules
+        uses: ./.github/actions/checkout
+        with:
+          pat: ${{ secrets.PAT_TOKEN }}
+
+      - name: Download artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ inputs.artifact-name }}
+
+      - name: Uncompress artifact files
+        shell: powershell
+        run: |
+         Expand-Archive -Path build.zip -DestinationPath ${env:GITHUB_WORKSPACE}
+         Expand-Archive -Path deps.zip -DestinationPath ${env:GITHUB_WORKSPACE}
+
+      - name: Execute test command
+        shell: powershell
+        run: ${{ inputs.cmd }}
