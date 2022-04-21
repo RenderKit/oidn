@@ -467,9 +467,9 @@ namespace oidn {
     }
 
     // Allocate scratch space for the operations
-    size_t opScratchByteSize = net->getScratchByteSize();
+    size_t opScratchByteSize = net->getScratchAlignedSize();
     if (hdr)
-      opScratchByteSize = max(opScratchByteSize, autoexposure->getScratchByteSize());
+      opScratchByteSize = max(opScratchByteSize, autoexposure->getScratchAlignedSize());
     ptrdiff_t opScratchOfs = minOfs - opScratchByteSize;
     minOfs = opScratchOfs;
 

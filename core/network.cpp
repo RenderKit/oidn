@@ -98,12 +98,12 @@ namespace oidn {
     return true;
   }
 
-  size_t Network::getScratchByteSize() const
+  size_t Network::getScratchAlignedSize() const
   {
-    size_t scratchByteSize = 0;
+    size_t scratchAlignedSize = 0;
     for (const auto& op : ops)
-      scratchByteSize = max(scratchByteSize, op->getScratchByteSize());
-    return scratchByteSize;
+      scratchAlignedSize = max(scratchAlignedSize, op->getScratchAlignedSize());
+    return scratchAlignedSize;
   }
 
   void Network::setScratch(const std::shared_ptr<Tensor>& scratch)

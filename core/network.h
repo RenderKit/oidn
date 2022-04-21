@@ -52,7 +52,7 @@ namespace oidn {
 
     bool isSupported() const;
 
-    size_t getScratchByteSize() const;
+    size_t getScratchAlignedSize() const;
     void setScratch(const std::shared_ptr<Tensor>& scratch);
 
     double getWorkAmount() const;

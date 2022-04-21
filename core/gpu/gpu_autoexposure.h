@@ -155,18 +155,18 @@ namespace oidn {
         device(device)
     {
       numGroups = min(ceil_div(numBins, groupSize), groupSize);
-      scratchSize = numBins * sizeof(float) + numGroups * (sizeof(float) + sizeof(int));
+      scratchByteSize = numBins * sizeof(float) + numGroups * (sizeof(float) + sizeof(int));
       resultBuffer = device->newBuffer(sizeof(float), Storage::Device);
     }
 
     size_t getScratchByteSize() const override
     {
-      return scratchSize;
+      return scratchByteSize;
     }
 
     void setScratch(const std::shared_ptr<Tensor>& scratch) override
     {
-      assert(scratch->getByteSize() >= scratchSize);
+      assert(scratch->getByteSize() >= scratchByteSize);
       this->scratch = scratch;
     }
 
@@ -217,7 +217,7 @@ namespace oidn {
     Ref<DeviceType> device;
     int numGroups;
     Ref<Buffer> resultBuffer;
-    size_t scratchSize;
+    size_t scratchByteSize;
     std::shared_ptr<Tensor> scratch;
   };
 

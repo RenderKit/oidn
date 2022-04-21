@@ -18,6 +18,7 @@ namespace oidn {
 
     // Scratch memory
     virtual size_t getScratchByteSize() const { return 0; }
+    size_t getScratchAlignedSize() const { return round_up(getScratchByteSize(), memoryAlignment); }
     virtual void setScratch(const std::shared_ptr<Tensor>& scratch) {}
 
     // Finalization is required before running
