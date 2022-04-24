@@ -17,7 +17,7 @@ namespace oidn {
                                                1,
                                                1,
                                                1,
-                                               CUDNN_CONVOLUTION,
+                                               CUDNN_CROSS_CORRELATION,
                                                toCuDNN(dstDesc.dataType)));
 
     // Enable Tensor Core operations
