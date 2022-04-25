@@ -49,17 +49,28 @@ namespace oidn {
 
   void Tensor::dump(const std::string& filenamePrefix) const
   {
-    assert(getRank() == 3);
-    assert(dataType == DataType::Float32);
+    if (dataType == DataType::Float32 && layout == TensorLayout::chw)
+      dumpImpl<float, TensorLayout::chw>(filenamePrefix);
+    else if (dataType == DataType::Float32 && layout == TensorLayout::Chw8c)
+      dumpImpl<float, TensorLayout::Chw8c>(filenamePrefix);
+    else if (dataType == DataType::Float32 && layout == TensorLayout::Chw16c)
+      dumpImpl<float, TensorLayout::Chw16c>(filenamePrefix);
+    else if (dataType == DataType::Float16 && layout == TensorLayout::chw)
+      dumpImpl<half, TensorLayout::chw>(filenamePrefix);
+    else if (dataType == DataType::Float16 && layout == TensorLayout::Chw16c)
+      dumpImpl<half, TensorLayout::Chw16c>(filenamePrefix);
+    else if (dataType == DataType::Float16 && layout == TensorLayout::hwc)
+      dumpImpl<half, TensorLayout::hwc>(filenamePrefix);
+    else
+      throw std::runtime_error("tensor dump not implemented");
+  }
 
-    const int C = getC();
-    const int H = getH();
-    const int W = getW();
-    const int B = getBlockSize();
+  template<typename T, TensorLayout layout>
+  void Tensor::dumpImpl(const std::string& filenamePrefix) const
+  {
+    TensorAccessor3D<T, layout> acc = *this;
 
-    const float* ptr = (const float*)getData();
-
-    for (int c = 0; c < C; ++c)
+    for (int c = 0; c < acc.C; ++c)
     {
       // Open the file
       const std::string filename = filenamePrefix + toString(c) + ".pfm";
@@ -69,15 +80,15 @@ namespace oidn {
 
       // Write the header
       file << "Pf" << std::endl;
-      file << W << " " << H << std::endl;
+      file << acc.W << " " << acc.H << std::endl;
       file << "-1.0" << std::endl;
 
       // Write the pixels
-      for (int h = H-1; h >= 0; --h)
+      for (int h = acc.H-1; h >= 0; --h)
       {
-        for (int w = 0; w < W; ++w)
+        for (int w = 0; w < acc.W; ++w)
         {
-          const float x = ptr[((size_t)H * (c/B) + h) * ((size_t)W*B) + (size_t)w*B + (c%B)];
+          const float x = acc(c, h, w);
           file.write((char*)&x, sizeof(float));
         }
       }

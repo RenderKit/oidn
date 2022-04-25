@@ -131,13 +131,23 @@ namespace oidn {
     {
       ops[i]->run();
       
+    #if 0
       // Dump
-      /*
-      //device->wait();
-      auto dst = ops[i]->getDst();
+      device->wait();
+      std::shared_ptr<Tensor> dst;
+
+      if (auto conv = std::dynamic_pointer_cast<Conv>(ops[i]))
+        dst = conv->getDst();
+      else if (auto conv = std::dynamic_pointer_cast<ConcatConv>(ops[i]))
+        dst = conv->getDst();
+      else if (auto pool = std::dynamic_pointer_cast<Pool>(ops[i]))
+        dst = pool->getDst();
+      else if (auto upsample = std::dynamic_pointer_cast<Upsample>(ops[i]))
+        dst = upsample->getDst();
+
       if (dst)
-        dst->dump("gpu/" + ops[i]->getName() + "_");
-      */
+        dst->dump(toString(i) + "_" + ops[i]->getName() + "_");
+    #endif
 
       progress.update(1);
     }

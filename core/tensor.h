@@ -191,6 +191,11 @@ namespace oidn {
     Tensor(const Ref<Device>& device, const TensorDesc& desc);
     Tensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset = 0);
 
+  private:
+    template<typename T, TensorLayout layout>
+    void dumpImpl(const std::string& filenamePrefix) const;
+
+  protected:
     Ref<Device> device;
   };
 
