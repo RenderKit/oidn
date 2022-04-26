@@ -10,7 +10,7 @@ typedef struct miopenHandle* miopenHandle_t;
 
 namespace oidn {
 
-#if defined(OIDN_HIP)
+#if defined(OIDN_COMPILE_HIP)
   namespace
   {
     // Helper functions for kernel execution
@@ -66,7 +66,7 @@ namespace oidn {
     void free(void* ptr, Storage storage) override;
     void memcpy(void* dstPtr, const void* srcPtr, size_t byteSize) override;
 
-  #if defined(OIDN_HIP)
+  #if defined(OIDN_COMPILE_HIP)
     // Enqueues a basic 2D kernel
     template<typename F>
     OIDN_INLINE void runKernelAsync(WorkDim<2> range, const F& f)

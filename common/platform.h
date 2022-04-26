@@ -14,24 +14,28 @@
 #endif
 
 #if defined(SYCL_LANGUAGE_VERSION)
-  #define OIDN_SYCL
+  #define OIDN_COMPILE_SYCL
 #endif
 #if defined(__SYCL_DEVICE_ONLY__)
-  #define OIDN_SYCL_DEVICE_ONLY
+  #define OIDN_COMPILE_SYCL_DEVICE
 #endif
 
 #if defined(__CUDACC__)
-  #define OIDN_CUDA
+  #define OIDN_COMPILE_CUDA
 #endif
 #if defined(__CUDA_ARCH__)
-  #define OIDN_CUDA_DEVICE_ONLY
+  #define OIDN_COMPILE_CUDA_DEVICE
 #endif
 
 #if defined(__HIPCC__)
-  #define OIDN_HIP
+  #define OIDN_COMPILE_HIP
 #endif
 #if defined(__HIP_DEVICE_COMPILE__)
-  #define OIDN_HIP_DEVICE_ONLY
+  #define OIDN_COMPILE_HIP_DEVICE
+#endif
+
+#if defined(OIDN_COMPILE_SYCL_DEVICE) || defined(OIDN_COMPILE_CUDA_DEVICE) || defined(OIDN_COMPILE_HIP_DEVICE)
+  #define OIDN_COMPILE_DEVICE
 #endif
 
 #if defined(_WIN32)
@@ -51,7 +55,7 @@
   #define MAYBE_UNUSED(x) UNUSED(x)
 #endif
 
-#if defined(OIDN_CUDA) || defined(OIDN_HIP)
+#if defined(OIDN_COMPILE_CUDA) || defined(OIDN_COMPILE_HIP)
   #define OIDN_DEVICE __device__
   #define OIDN_DEVICE_INLINE __device__ OIDN_INLINE
   #define OIDN_HOST_DEVICE __host__ __device__
@@ -102,14 +106,14 @@
 #include <iostream>
 #include <cassert>
 
-#if defined(OIDN_SYCL)
+#if defined(OIDN_COMPILE_SYCL)
   #include <CL/sycl.hpp>
   #include <sycl/ext/intel/esimd.hpp>
 #endif
 
-#if defined(OIDN_CUDA)
+#if defined(OIDN_COMPILE_CUDA)
   #include <cuda_fp16.h>
-#elif defined(OIDN_HIP)
+#elif defined(OIDN_COMPILE_HIP)
   #include <hip/hip_fp16.h>
 #endif
 
@@ -119,6 +123,10 @@ namespace oidn {
 
   // Introduce all names from the API namespace
   OIDN_NAMESPACE_USING
+
+#if defined(OIDN_COMPILE_SYCL)
+  namespace esimd = sycl::ext::intel::esimd;
+#endif
 
   // ---------------------------------------------------------------------------
   // Error handling and debugging
@@ -139,20 +147,37 @@ namespace oidn {
   // Common functions
   // ---------------------------------------------------------------------------
 
-#if defined(OIDN_CUDA_DEVICE_ONLY) || defined(OIDN_HIP_DEVICE_ONLY)
-  // Make sure to use the CUDA/HIP math functions
-  using ::min;
-  using ::max;
-#else
-  using std::min;
-  using std::max;
-#endif
+  template<typename T>
+  OIDN_INLINE T min(T a, T b) { return (b < a) ? b : a; }
 
   template<typename T>
-  OIDN_HOST_DEVICE_INLINE T clamp(const T& x, const T& minVal, const T& maxVal)
+  OIDN_INLINE T max(T a, T b) { return (a < b) ? b : a; }
+
+  template<typename T>
+  OIDN_INLINE T clamp(T x, T minVal, T maxVal)
   {
     return min(max(x, minVal), maxVal);
   }
+
+  // Returns ceil(a / b) for non-negative integers
+  template<typename Int, typename IntB>
+  OIDN_HOST_DEVICE_INLINE constexpr Int ceil_div(Int a, IntB b)
+  {
+    //assert(a >= 0);
+    //assert(b > 0);
+    return (a + b - 1) / b;
+  }
+
+  // Returns a rounded up to multiple of b
+  template<typename Int, typename IntB>
+  OIDN_HOST_DEVICE_INLINE constexpr Int round_up(Int a, IntB b)
+  {
+    return ceil_div(a, b) * b;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Memory allocation
+  // ---------------------------------------------------------------------------
 
   constexpr size_t memoryAlignment = 128;
 
@@ -227,9 +252,9 @@ namespace oidn {
   float half_to_float(int16_t x);
   int16_t float_to_half(float x);
 
-  #if defined(OIDN_SYCL)
+  #if defined(OIDN_COMPILE_SYCL)
     using sycl::half;
-  #elif !defined(OIDN_CUDA) && !defined(OIDN_HIP)
+  #elif !defined(OIDN_COMPILE_CUDA) && !defined(OIDN_COMPILE_HIP)
     // Minimal half data type
     class half
     {

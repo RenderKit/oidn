@@ -10,7 +10,7 @@ namespace oidn {
   TransferFunction::TransferFunction(Type type)
     : type(type)
   {
-    const float xMax = reduce_max(forward(yMax));
+    const float xMax = math::reduce_max(forward(yMax));
     normScale    = 1./xMax;
     rcpNormScale = xMax;
   }

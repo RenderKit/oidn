@@ -9,7 +9,7 @@
 #include "buffer.h"
 #include "tensor_layout.h"
 
-#if defined(OIDN_CUDA)
+#if defined(OIDN_COMPILE_CUDA)
   // Workaround for NVCC bug
   namespace tbb { class task_arena; }
 #else
@@ -103,7 +103,7 @@ namespace oidn {
     virtual void free(void* ptr, Storage storage);
     virtual void memcpy(void* dstPtr, const void* srcPtr, size_t byteSize);
 
-  #if !defined(OIDN_CUDA)
+  #if !defined(OIDN_COMPILE_CUDA)
     // Runs a parallel host task in the thread arena (if it exists)
     template<typename F>
     void runHostTask(const F& f)

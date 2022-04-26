@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -43,7 +43,7 @@ namespace oidn {
     OIDN_INLINE float get1f()
     {
       next();
-      return to_float_unorm(state);
+      return math::to_float_unorm(state);
     }
   };
 

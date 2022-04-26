@@ -43,7 +43,7 @@ namespace oidn {
         if (y <= y0)
           return a * y;
         else
-          return b * pow(y, c) + d;
+          return b * math::pow(y, c) + d;
       }
 
       static OIDN_HOST_DEVICE_INLINE float inverse(float x)
@@ -51,7 +51,7 @@ namespace oidn {
         if (x <= x0)
           return x / a;
         else
-          return pow((x - d) / b, 1.f/c);
+          return math::pow((x - d) / b, 1.f/c);
       }
     };
 
@@ -74,9 +74,9 @@ namespace oidn {
         if (y <= y0)
           return a * y;
         else if (y <= y1)
-          return b * pow(y, c) + d;
+          return b * math::pow(y, c) + d;
         else
-          return e * log(y + f) + g;
+          return e * math::log(y + f) + g;
       }
 
       static OIDN_HOST_DEVICE_INLINE float inverse(float x)
@@ -84,9 +84,9 @@ namespace oidn {
         if (x <= x0)
           return x / a;
         else if (x <= x1)
-          return pow((x - d) / b, 1.f/c);
+          return math::pow((x - d) / b, 1.f/c);
         else
-          return exp((x - g) / e) - f;
+          return math::exp((x - g) / e) - f;
       }
     };
 
@@ -136,7 +136,7 @@ namespace oidn {
         return vec3f(PU::forward(y.x), PU::forward(y.y), PU::forward(y.z)) * normScale;
 
       case Type::Log:
-        return log(y + 1.f) * normScale;
+        return math::log(y + 1.f) * normScale;
 
       default:
         assert(0);
@@ -158,7 +158,7 @@ namespace oidn {
         return vec3f(PU::inverse(x.x * rcpNormScale), PU::inverse(x.y * rcpNormScale), PU::inverse(x.z * rcpNormScale));
 
       case Type::Log:
-        return exp(x * rcpNormScale) - 1.f;
+        return math::exp(x * rcpNormScale) - 1.f;
       
       default:
         assert(0);

@@ -102,14 +102,14 @@ namespace oidn {
     {
       // Initialize the progress state
       double workAmount = tileCountH * tileCountW * net->getWorkAmount();
-      if (hdr && isnan(inputScale))
+      if (hdr && math::isnan(inputScale))
         workAmount += 1;
       if (outputTemp)
         workAmount += 1;
       progress.start(progressFunc, progressUserPtr, workAmount);
 
       // Set the input scale
-      if (isnan(inputScale))
+      if (math::isnan(inputScale))
       {
         if (hdr)
         {

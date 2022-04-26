@@ -42,7 +42,7 @@ namespace oidn {
       vec3f value = src.get3(0, hSrc, wSrc);
 
       // The CNN output may contain negative values or even NaNs, so it must be sanitized
-      value = clamp(nan_to_zero(value), 0.f, FLT_MAX);
+      value = math::clamp(math::nan_to_zero(value), 0.f, FLT_MAX);
 
       // Apply the inverse transfer function
       value = transferFunc.inverse(value);
@@ -52,10 +52,10 @@ namespace oidn {
       {
         // Transform to [-1..1]
         value = value * 2.f - 1.f;
-        value = max(value, -1.f);
+        value = math::max(value, -1.f);
       }
       if (!hdr)
-        value = min(value, 1.f);
+        value = math::min(value, 1.f);
 
       // Scale
       value = value * transferFunc.getOutputScale();

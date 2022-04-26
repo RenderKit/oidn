@@ -42,7 +42,7 @@ namespace oidn {
               // Accumulate the log luminance
               if (L > eps)
               {
-                sum.first += log2(L);
+                sum.first += math::log2(L);
                 sum.second++;
               }
             }
@@ -53,7 +53,7 @@ namespace oidn {
         [](Sum a, Sum b) -> Sum { return Sum(a.first+b.first, a.second+b.second); }
       );
 
-    result = (sum.second > 0) ? (key / exp2(sum.first / float(sum.second))) : 1.f;
+    result = (sum.second > 0) ? (key / math::exp2(sum.first / float(sum.second))) : 1.f;
   }
 
 }

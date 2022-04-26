@@ -15,7 +15,7 @@ namespace oidn {
 
     OIDN_INLINE void operator ()(const WorkItem<2>& it) const SYCL_ESIMD_FUNCTION
     {
-      using namespace sycl::ext::intel::esimd;
+      using namespace esimd;
 
       const size_t hSrc = it.getId<0>();
       const size_t wSrc = it.getId<1>();

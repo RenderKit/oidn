@@ -3,7 +3,7 @@
 
 #pragma once
 
-#if defined(OIDN_HIP)
+#if defined(OIDN_COMPILE_HIP)
   #include <hip/hip_runtime.h>
 #endif
 
@@ -34,11 +34,33 @@ namespace oidn {
 
     OIDN_HOST_DEVICE_INLINE int operator [](int i) const { return dim[i]; }
 
+  #if defined(OIDN_COMPILE_CUDA) || defined(OIDN_COMPILE_HIP)
+    OIDN_INLINE operator dim3() const
+    {
+      if (dims == 1)
+        return dim[0];
+      else if (dims == 2)
+        return dim3(dim[1], dim[0]);
+      else
+        return dim3(dim[2], dim[1], dim[0]);
+    }
+  #endif
+
   private:
     int dim[dims];
   };
 
-#if defined(OIDN_SYCL)
+  OIDN_HOST_DEVICE_INLINE WorkDim<2> ceil_div(WorkDim<2> a, WorkDim<2> b)
+  {
+    return {ceil_div(a[0], b[0]), ceil_div(a[1], b[1])};
+  }
+
+  OIDN_HOST_DEVICE_INLINE WorkDim<3> ceil_div(WorkDim<3> a, WorkDim<3> b)
+  {
+    return {ceil_div(a[0], b[0]), ceil_div(a[1], b[1]), ceil_div(a[2], b[2])};
+  }
+
+#if defined(OIDN_COMPILE_SYCL)
 
   // ---------------------------------------------------------------------------
   // SYCL WorkItem
@@ -110,7 +132,7 @@ namespace oidn {
     };
   };
 
-#elif defined(OIDN_CUDA) || defined(OIDN_HIP)
+#elif defined(OIDN_COMPILE_CUDA) || defined(OIDN_COMPILE_HIP)
 
   // ---------------------------------------------------------------------------
   // CUDA/HIP WorkItem

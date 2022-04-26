@@ -42,7 +42,7 @@ namespace oidn {
       value = value * transferFunc.getInputScale();
 
       // Sanitize
-      value = clamp(nan_to_zero(value), snorm ? -1.f : 0.f, hdr ? FLT_MAX : 1.f);
+      value = math::clamp(math::nan_to_zero(value), snorm ? -1.f : 0.f, hdr ? FLT_MAX : 1.f);
 
       if (snorm)
       {
@@ -65,7 +65,7 @@ namespace oidn {
         value = value * transferFunc.getInputScale();
 
       // Sanitize
-      value = clamp(nan_to_zero(value), 0.f, 1.f);
+      value = math::clamp(math::nan_to_zero(value), 0.f, 1.f);
 
       // Apply the transfer function
       if (!color.ptr)
@@ -83,7 +83,7 @@ namespace oidn {
         value = value * transferFunc.getInputScale();
 
       // Sanitize
-      value = clamp(nan_to_zero(value), -1.f, 1.f);
+      value = math::clamp(math::nan_to_zero(value), -1.f, 1.f);
 
       // Transform to [0..1]
       value = value * 0.5f + 0.5f;

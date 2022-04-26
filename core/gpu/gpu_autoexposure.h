@@ -32,7 +32,7 @@ namespace oidn {
       if (h < endH && w < endW)
       {
         vec3f c = src.get3(h, w);
-        c = clamp(nan_to_zero(c), 0.f, FLT_MAX); // sanitize
+        c = math::clamp(math::nan_to_zero(c), 0.f, FLT_MAX); // sanitize
         L = luminance(c);
       }
       else
@@ -78,7 +78,7 @@ namespace oidn {
         const float L = bins[i];
         if (L > Autoexposure::eps)
         {
-          sum += log2(L);
+          sum += math::log2(L);
           ++count;
         }
       }
@@ -142,7 +142,7 @@ namespace oidn {
       }
 
       if (localId == 0)
-        *result = (localCounts[0] > 0) ? (Autoexposure::key / exp2(localSums[0] / float(localCounts[0]))) : 1.f;
+        *result = (localCounts[0] > 0) ? (Autoexposure::key / math::exp2(localSums[0] / float(localCounts[0]))) : 1.f;
     }
   };
 

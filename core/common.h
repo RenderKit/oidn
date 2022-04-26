@@ -14,6 +14,9 @@
 
 namespace oidn {
 
+  using math::vec3;
+  using math::vec3f;
+
   enum class DataType
   {
     Float32,

@@ -6,6 +6,7 @@
 #include "common/math.h"
 
 namespace oidn {
+namespace math {
 
   template<typename T>
   struct vec2
@@ -148,4 +149,5 @@ namespace oidn {
     return vec3<T>(clamp(v.x, minVal, maxVal), clamp(v.y, minVal, maxVal), clamp(v.z, minVal, maxVal));
   }
 
+} // namespace math
 } // namespace oidn
