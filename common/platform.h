@@ -148,13 +148,13 @@ namespace oidn {
   // ---------------------------------------------------------------------------
 
   template<typename T>
-  OIDN_INLINE T min(T a, T b) { return (b < a) ? b : a; }
+  OIDN_HOST_DEVICE_INLINE T min(T a, T b) { return (b < a) ? b : a; }
 
   template<typename T>
-  OIDN_INLINE T max(T a, T b) { return (a < b) ? b : a; }
+  OIDN_HOST_DEVICE_INLINE T max(T a, T b) { return (a < b) ? b : a; }
 
   template<typename T>
-  OIDN_INLINE T clamp(T x, T minVal, T maxVal)
+  OIDN_HOST_DEVICE_INLINE T clamp(T x, T minVal, T maxVal)
   {
     return min(max(x, minVal), maxVal);
   }

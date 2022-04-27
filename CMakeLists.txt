@@ -185,6 +185,7 @@ set(CORE_SOURCES
   core/gpu/gpu_image_copy.h
   core/gpu/gpu_input_process.h
   core/gpu/gpu_output_process.h
+  core/gpu/gpu_pool.h
   core/gpu/gpu_upsample.h
   core/api.cpp
   core/autoexposure.h
@@ -295,8 +296,6 @@ if(OIDN_DEVICE_CUDA)
     core/cuda/cuda_concat_conv.cu
     core/cuda/cuda_device.h
     core/cuda/cuda_device.cu
-    core/cuda/cuda_pool.h
-    core/cuda/cuda_pool.cu
   )
 endif()
 
@@ -308,8 +307,6 @@ if(OIDN_DEVICE_HIP)
     core/hip/hip_conv.cpp
     core/hip/hip_device.h
     core/hip/hip_device.cpp
-    core/hip/hip_pool.h
-    core/hip/hip_pool.cpp
   )
 endif()
 
@@ -355,6 +352,7 @@ endif()
 
 if(OIDN_DEVICE_CUDA)
   target_compile_definitions(${PROJECT_NAME} PUBLIC OIDN_DEVICE_CUDA)
+  set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_ARCHITECTURES "60;61;70;75;80;86")
   target_link_libraries(${PROJECT_NAME} PRIVATE cuDNN::cuDNN)
 endif()
 

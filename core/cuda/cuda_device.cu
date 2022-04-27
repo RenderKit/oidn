@@ -5,12 +5,12 @@
 #include "../gpu/gpu_autoexposure.h"
 #include "../gpu/gpu_input_process.h"
 #include "../gpu/gpu_output_process.h"
+#include "../gpu/gpu_pool.h"
 #include "../gpu/gpu_upsample.h"
 #include "../gpu/gpu_image_copy.h"
 #include "cuda_common.h"
 #include "cuda_conv.h"
 #include "cuda_concat_conv.h"
-#include "cuda_pool.h"
 
 namespace oidn {
 
@@ -83,7 +83,7 @@ namespace oidn {
 
   std::shared_ptr<Pool> CUDADevice::newPool(const PoolDesc& desc)
   {
-    return std::make_shared<CUDAPool>(this, desc);
+    return std::make_shared<GPUPool<CUDADevice, half, TensorLayout::hwc>>(this, desc);
   }
 
   std::shared_ptr<Upsample> CUDADevice::newUpsample(const UpsampleDesc& desc)

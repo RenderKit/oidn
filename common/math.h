@@ -21,8 +21,8 @@ namespace math {
   using sycl::exp2;
 #elif defined(OIDN_COMPILE_CUDA_DEVICE) || defined(OIDN_COMPILE_HIP_DEVICE)
   // Use the CUDA/HIP math functions
-  using ::min;
-  using ::max;
+  template<typename T> OIDN_HOST_DEVICE_INLINE T min(T a, T b) { return ::min(a, b); }
+  template<typename T> OIDN_HOST_DEVICE_INLINE T max(T a, T b) { return ::max(a, b); }
   using ::isfinite;
   using ::isnan;
   using ::pow;
@@ -42,15 +42,13 @@ namespace math {
   using std::exp2;
 #endif
 
-#if defined(OIDN_COMPILE_CUDA_DEVICE)
-  // CUDA currently does not provide min/max overloads for half float
-#if __CUDA_ARCH__ >= 800
+  // CUDA and HIP do not provide min/max overloads for half
+#if defined(OIDN_COMPILE_CUDA_DEVICE) && (__CUDA_ARCH__ >= 800)
   OIDN_DEVICE_INLINE half min(half a, half b) { return __hmin(a, b); }
   OIDN_DEVICE_INLINE half max(half a, half b) { return __hmax(a, b); }
-#elif __CUDA_ARCH__ >= 530
+#elif defined(OIDN_COMPILE_CUDA_DEVICE) || defined(OIDN_COMPILE_HIP_DEVICE)
   OIDN_DEVICE_INLINE half min(half a, half b) { return (b < a) ? b : a; }
   OIDN_DEVICE_INLINE half max(half a, half b) { return (a < b) ? b : a; }
-#endif
 #endif
 
   template<typename T>

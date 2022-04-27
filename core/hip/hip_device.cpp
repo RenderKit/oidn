@@ -5,11 +5,11 @@
 #include "../gpu/gpu_autoexposure.h"
 #include "../gpu/gpu_input_process.h"
 #include "../gpu/gpu_output_process.h"
+#include "../gpu/gpu_pool.h"
 #include "../gpu/gpu_upsample.h"
 #include "../gpu/gpu_image_copy.h"
 #include "hip_common.h"
 #include "hip_conv.h"
-#include "hip_pool.h"
 
 namespace oidn {
 
@@ -74,7 +74,7 @@ namespace oidn {
 
   std::shared_ptr<Pool> HIPDevice::newPool(const PoolDesc& desc)
   {
-    return std::make_shared<HIPPool>(this, desc);
+    return std::make_shared<GPUPool<HIPDevice, half, TensorLayout::chw>>(this, desc);
   }
 
   std::shared_ptr<Upsample> HIPDevice::newUpsample(const UpsampleDesc& desc)
