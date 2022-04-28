@@ -40,42 +40,30 @@ namespace oidn {
     void free(void* ptr, Storage storage) override;
     void memcpy(void* dstPtr, const void* srcPtr, size_t byteSize) override;
 
-    // Enqueues a basic 2D kernel
-    template<typename F>
-    OIDN_INLINE void runKernelAsync(WorkDim<2> range, const F& f)
+    // Enqueues a basic kernel
+    template<int N, typename F>
+    OIDN_INLINE void runKernelAsync(WorkDim<N> globalSize, const F& f)
     {
-      sycl->queue.parallel_for(
-        sycl::range<2>(range[0], range[1]),
-        [=](sycl::item<2> it) { f(it); });
+      sycl->queue.parallel_for(globalSize, [=](sycl::item<N> it) { f(it); });
     }
 
-    // Enqueues a group-based 1D kernel
-    template<typename F>
-    OIDN_INLINE void runKernelAsync(WorkDim<1> groupRange, WorkDim<1> localRange, const F& f)
+    // Enqueues a work-group kernel
+    template<int N, typename F>
+    OIDN_INLINE void runKernelAsync(WorkDim<N> numGroups, WorkDim<N> groupSize, const F& f)
     {
       sycl->queue.parallel_for(
-        sycl::nd_range<1>(groupRange[0] * localRange[0], localRange[0]),
-        [=](sycl::nd_item<1> it) { f(it); });
+        sycl::nd_range<N>(numGroups * groupSize, groupSize),
+        [=](sycl::nd_item<N> it) { f(it); });
     }
 
-    // Enqueues a group-based 2D kernel
-    template<typename F>
-    OIDN_INLINE void runKernelAsync(WorkDim<2> groupRange, WorkDim<2> localRange, const F& f)
-    {
-      sycl->queue.parallel_for(
-        sycl::nd_range<2>(sycl::range<2>(groupRange[0] * localRange[0], groupRange[1] * localRange[1]),
-                          sycl::range<2>(localRange[0], localRange[1])),
-        [=](sycl::nd_item<2> it) { f(it); });
-    }
-
-    // Enqueues a basic 2D ESIMD kernel
-    template<typename F>
-    OIDN_INLINE void runESIMDKernelAsync(WorkDim<2> range, const F& f)
+    // Enqueues a basic ESIMD kernel
+    template<int N, typename F>
+    OIDN_INLINE void runESIMDKernelAsync(WorkDim<N> globalSize, const F& f)
     {
       // FIXME: Named kernel is necessary due to an ESIMD bug
       sycl->queue.parallel_for<class ESIMDKernel>(
-        sycl::range<2>(range[0], range[1]),
-        [=](sycl::item<2> it) SYCL_ESIMD_KERNEL { f(it); });
+        globalSize,
+        [=](sycl::item<N> it) SYCL_ESIMD_KERNEL { f(it); });
     }
 
     // Enqueues a host function

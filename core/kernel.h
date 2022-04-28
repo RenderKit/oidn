@@ -6,6 +6,7 @@
 #if defined(OIDN_COMPILE_HIP)
   #include <hip/hip_runtime.h>
 #endif
+#include "common/platform.h"
 
 namespace oidn {
 
@@ -18,27 +19,36 @@ namespace oidn {
   {
   public:
     template<int N = dims>
-    OIDN_HOST_DEVICE_INLINE WorkDim(typename std::enable_if<N == 1, int>::type dim0)
+    OIDN_HOST_DEVICE_INLINE WorkDim(enable_if_t<N == 1, int> dim0)
       : dim{dim0} {}
 
     template<int N = dims>
-    OIDN_HOST_DEVICE_INLINE WorkDim(typename std::enable_if<N == 2, int>::type dim0, int dim1)
+    OIDN_HOST_DEVICE_INLINE WorkDim(enable_if_t<N == 2, int> dim0, int dim1)
       : dim{dim0, dim1} {}
 
     template<int N = dims>
-    OIDN_HOST_DEVICE_INLINE WorkDim(typename std::enable_if<N == 3, int>::type dim0, int dim1, int dim2)
+    OIDN_HOST_DEVICE_INLINE WorkDim(enable_if_t<N == 3, int> dim0, int dim1, int dim2)
       : dim{dim0, dim1, dim2} {}
 
     template<int N = dims>
-    OIDN_HOST_DEVICE_INLINE operator typename std::enable_if<N == 1, int>::type() const { return dim[0]; }
+    OIDN_HOST_DEVICE_INLINE operator enable_if_t<N == 1, int>() const { return dim[0]; }
 
     OIDN_HOST_DEVICE_INLINE int operator [](int i) const { return dim[i]; }
 
-  #if defined(OIDN_COMPILE_CUDA) || defined(OIDN_COMPILE_HIP)
+  #if defined(OIDN_COMPILE_SYCL)
+    template<int N = dims>
+    OIDN_INLINE operator enable_if_t<N == 1, sycl::range<1>>() const { return sycl::range<1>(dim[0]); }
+
+    template<int N = dims>
+    OIDN_INLINE operator enable_if_t<N == 2, sycl::range<2>>() const { return sycl::range<2>(dim[0], dim[1]); }
+
+    template<int N = dims>
+    OIDN_INLINE operator enable_if_t<N == 3, sycl::range<3>>() const { return sycl::range<3>(dim[0], dim[1], dim[2]); }
+  #elif defined(OIDN_COMPILE_CUDA) || defined(OIDN_COMPILE_HIP)
     OIDN_INLINE operator dim3() const
     {
       if (dims == 1)
-        return dim[0];
+        return dim3(dim[0]);
       else if (dims == 2)
         return dim3(dim[1], dim[0]);
       else
@@ -50,13 +60,17 @@ namespace oidn {
     int dim[dims];
   };
 
-  OIDN_HOST_DEVICE_INLINE WorkDim<2> ceil_div(WorkDim<2> a, WorkDim<2> b)
-  {
+  OIDN_INLINE WorkDim<1> operator *(WorkDim<1> a, WorkDim<1> b) { return {a[0] * b[0]}; }
+  OIDN_INLINE WorkDim<2> operator *(WorkDim<2> a, WorkDim<2> b) { return {a[0] * b[0], a[1] * b[1]}; }
+  OIDN_INLINE WorkDim<3> operator *(WorkDim<3> a, WorkDim<3> b) { return {a[0] * b[0], a[1] * b[1], a[2] * b[2]}; }
+
+  OIDN_INLINE WorkDim<1> ceil_div(WorkDim<1> a, WorkDim<1> b) {
+    return {ceil_div(a[0], b[0])};
+  }
+  OIDN_INLINE WorkDim<2> ceil_div(WorkDim<2> a, WorkDim<2> b) {
     return {ceil_div(a[0], b[0]), ceil_div(a[1], b[1])};
   }
-
-  OIDN_HOST_DEVICE_INLINE WorkDim<3> ceil_div(WorkDim<3> a, WorkDim<3> b)
-  {
+  OIDN_INLINE WorkDim<3> ceil_div(WorkDim<3> a, WorkDim<3> b) {
     return {ceil_div(a[0], b[0]), ceil_div(a[1], b[1]), ceil_div(a[2], b[2])};
   }
 
@@ -72,7 +86,7 @@ namespace oidn {
   public:
     OIDN_DEVICE_INLINE WorkItem(const sycl::item<dims>& item) : item(item) {}
 
-    template<int i = 0> OIDN_DEVICE_INLINE int getId() const { return int(item.get_id(i)); }
+    template<int i = 0> OIDN_DEVICE_INLINE int getId()    const { return int(item.get_id(i)); }
     template<int i = 0> OIDN_DEVICE_INLINE int getRange() const { return int(item.get_range(i)); }
 
     OIDN_DEVICE_INLINE int getLinearId() const { return int(item.get_linear_id()); }
@@ -91,16 +105,16 @@ namespace oidn {
   public:
     OIDN_DEVICE_INLINE WorkGroupItem(const sycl::nd_item<dims>& item) : item(item) {}
 
-    template<int i = 0> OIDN_DEVICE_INLINE int getGlobalId() const { return int(item.get_global_id(i)); }
+    template<int i = 0> OIDN_DEVICE_INLINE int getGlobalId()    const { return int(item.get_global_id(i)); }
     template<int i = 0> OIDN_DEVICE_INLINE int getGlobalRange() const { return int(item.get_global_range(i)); }
-    template<int i = 0> OIDN_DEVICE_INLINE int getLocalId() const { return int(item.get_local_id(i)); }
-    template<int i = 0> OIDN_DEVICE_INLINE int getLocalRange() const { return int(item.get_local_range(i)); }
-    template<int i = 0> OIDN_DEVICE_INLINE int getGroupId() const { return int(item.get_group(i)); }
-    template<int i = 0> OIDN_DEVICE_INLINE int getGroupRange() const { return int(item.get_group_range(i)); }
+    template<int i = 0> OIDN_DEVICE_INLINE int getLocalId()     const { return int(item.get_local_id(i)); }
+    template<int i = 0> OIDN_DEVICE_INLINE int getLocalRange()  const { return int(item.get_local_range(i)); }
+    template<int i = 0> OIDN_DEVICE_INLINE int getGroupId()     const { return int(item.get_group(i)); }
+    template<int i = 0> OIDN_DEVICE_INLINE int getGroupRange()  const { return int(item.get_group_range(i)); }
 
-    OIDN_DEVICE_INLINE int getGlobalLinearId() const { return int(item.get_global_linear_id()); };
-    OIDN_DEVICE_INLINE int getLocalLinearId() const { return int(item.get_local_linear_id()); };
-    OIDN_DEVICE_INLINE int getGroupLinearId() const { return int(item.get_group_linear_id()); }
+    OIDN_DEVICE_INLINE int getGlobalLinearId() const { return int(item.get_global_linear_id()); }
+    OIDN_DEVICE_INLINE int getLocalLinearId()  const { return int(item.get_local_linear_id()); }
+    OIDN_DEVICE_INLINE int getGroupLinearId()  const { return int(item.get_group_linear_id()); }
 
     OIDN_DEVICE_INLINE void syncGroup() const
     {
@@ -143,7 +157,7 @@ namespace oidn {
   {
   public:
     template<int N = dims>
-    OIDN_DEVICE_INLINE WorkItem(typename std::enable_if<N == 1, int>::type range)
+    OIDN_DEVICE_INLINE WorkItem(typename std::enable_if<N == 1, const WorkDim<1>&>::type range)
       : id(blockIdx.x * blockDim.x + threadIdx.x),
         range(range) {}
 
@@ -160,7 +174,7 @@ namespace oidn {
            blockIdx.x * blockDim.x + threadIdx.x),
         range(range) {}
 
-    template<int i = 0> OIDN_DEVICE_INLINE int getId() const { return id[i]; }
+    template<int i = 0> OIDN_DEVICE_INLINE int getId()    const { return id[i]; }
     template<int i = 0> OIDN_DEVICE_INLINE int getRange() const { return range[i]; }
 
   private:
@@ -179,12 +193,12 @@ namespace oidn {
   class WorkGroupItem<1>
   {
   public:
-    OIDN_DEVICE_INLINE int getGlobalId() const { return blockIdx.x * blockDim.x + threadIdx.x; }
+    OIDN_DEVICE_INLINE int getGlobalId()    const { return blockIdx.x * blockDim.x + threadIdx.x; }
     OIDN_DEVICE_INLINE int getGlobalRange() const { return gridDim.x * blockDim.x; }
-    OIDN_DEVICE_INLINE int getLocalId() const { return threadIdx.x; };
-    OIDN_DEVICE_INLINE int getLocalRange() const { return blockDim.x; };
-    OIDN_DEVICE_INLINE int getGroupId() const { return blockIdx.x; };
-    OIDN_DEVICE_INLINE int getGroupRange() const { return gridDim.x; }
+    OIDN_DEVICE_INLINE int getLocalId()     const { return threadIdx.x; };
+    OIDN_DEVICE_INLINE int getLocalRange()  const { return blockDim.x; };
+    OIDN_DEVICE_INLINE int getGroupId()     const { return blockIdx.x; };
+    OIDN_DEVICE_INLINE int getGroupRange()  const { return gridDim.x; }
 
     OIDN_DEVICE_INLINE void syncGroup() const { __syncthreads(); }
   };
@@ -193,16 +207,16 @@ namespace oidn {
   class WorkGroupItem<2>
   {
   public:
-    template<int i> OIDN_DEVICE_INLINE int getGlobalId() const;
+    template<int i> OIDN_DEVICE_INLINE int getGlobalId()    const;
     template<int i> OIDN_DEVICE_INLINE int getGlobalRange() const;
-    template<int i> OIDN_DEVICE_INLINE int getLocalId() const;
-    template<int i> OIDN_DEVICE_INLINE int getLocalRange() const;
-    template<int i> OIDN_DEVICE_INLINE int getGroupId() const;
-    template<int i> OIDN_DEVICE_INLINE int getGroupRange() const;
+    template<int i> OIDN_DEVICE_INLINE int getLocalId()     const;
+    template<int i> OIDN_DEVICE_INLINE int getLocalRange()  const;
+    template<int i> OIDN_DEVICE_INLINE int getGroupId()     const;
+    template<int i> OIDN_DEVICE_INLINE int getGroupRange()  const;
 
     OIDN_DEVICE_INLINE int getGlobalLinearId() const;
-    OIDN_DEVICE_INLINE int getLocalLinearId() const { return threadIdx.y * blockDim.x + threadIdx.x; };
-    OIDN_DEVICE_INLINE int getGroupLinearId() const { return blockIdx.y * gridDim.x + blockIdx.x; }
+    OIDN_DEVICE_INLINE int getLocalLinearId()  const { return threadIdx.y * blockDim.x + threadIdx.x; };
+    OIDN_DEVICE_INLINE int getGroupLinearId()  const { return blockIdx.y * gridDim.x + blockIdx.x; }
     
     OIDN_DEVICE_INLINE void syncGroup() const { __syncthreads(); }
   };

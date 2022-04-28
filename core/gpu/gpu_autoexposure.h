@@ -195,21 +195,21 @@ namespace oidn {
       GPUAutoexposureDownsampleKernel<ImageDataType, maxBinSize> downsample;
       downsample.src = *src;
       downsample.bins = bins;
-      device->runKernelAsync({numBinsH, numBinsW}, {maxBinSize, maxBinSize}, downsample);
+      device->runKernelAsync(WorkDim<2>(numBinsH, numBinsW), WorkDim<2>(maxBinSize, maxBinSize), downsample);
 
       GPUAutoexposureReduceKernel<groupSize> reduce;
       reduce.bins   = bins;
       reduce.size   = numBins;
       reduce.sums   = sums;
       reduce.counts = counts;
-      device->runKernelAsync(numGroups, groupSize, reduce);
+      device->runKernelAsync(WorkDim<1>(numGroups), WorkDim<1>(groupSize), reduce);
 
       GPUAutoexposureReduceFinalKernel<groupSize> reduceFinal;
       reduceFinal.sums   = sums;
       reduceFinal.counts = counts;
       reduceFinal.size   = numGroups;
       reduceFinal.result = (float*)resultBuffer->getData();
-      device->runKernelAsync(1, groupSize, reduceFinal);
+      device->runKernelAsync(WorkDim<1>(1), WorkDim<1>(groupSize), reduceFinal);
     }
 
     static constexpr int groupSize = 1024;

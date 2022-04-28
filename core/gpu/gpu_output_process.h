@@ -100,7 +100,7 @@ namespace oidn {
       kernel.hdr = hdr;
       kernel.snorm = snorm;
 
-      device->runKernelAsync({tile.H, tile.W}, kernel);
+      device->runKernelAsync(WorkDim<2>(tile.H, tile.W), kernel);
     }
 
     Ref<DeviceType> device;

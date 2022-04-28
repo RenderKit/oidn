@@ -11,32 +11,40 @@ typedef struct miopenHandle* miopenHandle_t;
 namespace oidn {
 
 #if defined(OIDN_COMPILE_HIP)
+  // Main kernel functions
   namespace
   {
-    // Helper functions for kernel execution
-    template<int dims, typename F>
-    __global__ void runHIPKernel(const F f)
+    template<typename F>
+    __global__ void basicHIPKernel(WorkDim<1> globalSize, const F f)
     {
-      f(WorkGroupItem<dims>());
+      WorkItem<1> it(globalSize);
+      if (it.getId() < it.getRange())
+        f(it);
     }
 
     template<typename F>
-    __global__ void runHIPKernel(WorkDim<2> range, const F f)
+    __global__ void basicHIPKernel(WorkDim<2> globalSize, const F f)
     {
-      WorkItem<2> it(range);
+      WorkItem<2> it(globalSize);
       if (it.getId<0>() < it.getRange<0>() &&
           it.getId<1>() < it.getRange<1>())
         f(it);
     }
 
     template<typename F>
-    __global__ void runHIPKernel(WorkDim<3> range, const F f)
+    __global__ void basicHIPKernel(WorkDim<3> globalSize, const F f)
     {
-      WorkItem<3> it(range);
+      WorkItem<3> it(globalSize);
       if (it.getId<0>() < it.getRange<0>() &&
           it.getId<1>() < it.getRange<1>() &&
           it.getId<2>() < it.getRange<2>())
         f(it);
+    }
+
+    template<int N, typename F>
+    __global__ void groupHIPKernel(const F f)
+    {
+      f(WorkGroupItem<N>());
     }
   }
 
@@ -67,41 +75,23 @@ namespace oidn {
     void memcpy(void* dstPtr, const void* srcPtr, size_t byteSize) override;
 
   #if defined(OIDN_COMPILE_HIP)
-    // Enqueues a basic 2D kernel
-    template<typename F>
-    OIDN_INLINE void runKernelAsync(WorkDim<2> range, const F& f)
+    // Enqueues a basic kernel
+    template<int N, typename F>
+    OIDN_INLINE void runKernelAsync(WorkDim<N> globalSize, const F& f)
     {
-      const dim3 blockDim(32, 32);
-      const dim3 gridDim(ceil_div(range[1], blockDim.x), ceil_div(range[0], blockDim.y));
+      // TODO: improve group size computation
+      WorkDim<N> groupSize = suggestWorkGroupSize(globalSize);
+      WorkDim<N> numGroups = ceil_div(globalSize, groupSize);
 
-      runHIPKernel<<<gridDim, blockDim>>>(range, f);
+      basicHIPKernel<<<numGroups, groupSize>>>(globalSize, f);
       checkError(hipGetLastError());
     }
 
-    // Enqueues a basic 3D kernel
-    template<typename F>
-    OIDN_INLINE void runKernelAsync(WorkDim<3> range, const F& f)
+    // Enqueues a work-group kernel
+    template<int N, typename F>
+    OIDN_INLINE void runKernelAsync(WorkDim<N> numGroups, WorkDim<N> groupSize, const F& f)
     {
-      const dim3 blockDim(32, 32, 1);
-      const dim3 gridDim(ceil_div(range[2], blockDim.x), ceil_div(range[1], blockDim.y), ceil_div(range[0], blockDim.z));
-
-      runHIPKernel<<<gridDim, blockDim>>>(range, f);
-      checkError(hipGetLastError());
-    }
-
-    // Enqueues a group-based 1D kernel
-    template<typename F>
-    OIDN_INLINE void runKernelAsync(WorkDim<1> groupRange, WorkDim<1> localRange, const F& f)
-    {
-      runHIPKernel<1><<<groupRange[0], localRange[0]>>>(f);
-      checkError(hipGetLastError());
-    }
-
-    // Enqueues a group-based 2D kernel
-    template<typename F>
-    OIDN_INLINE void runKernelAsync(WorkDim<2> groupRange, WorkDim<2> localRange, const F& f)
-    {
-      runHIPKernel<2><<<dim3(groupRange[1], groupRange[0]), dim3(localRange[1], localRange[0])>>>(f);
+      groupHIPKernel<N><<<numGroups, groupSize>>>(f);
       checkError(hipGetLastError());
     }
   #endif
@@ -109,10 +99,14 @@ namespace oidn {
     // Enqueues a host function
     void runHostFuncAsync(std::function<void()>&& f) override;
 
-  protected:
+  private:
     void init() override;
 
-  private:
+    // FIXME
+    WorkDim<1> suggestWorkGroupSize(WorkDim<1> globalSize) { return 1024; }
+    WorkDim<2> suggestWorkGroupSize(WorkDim<2> globalSize) { return {32, 32}; }
+    WorkDim<3> suggestWorkGroupSize(WorkDim<3> globalSize) { return {1, 32, 32}; }
+
     miopenHandle_t miopenHandle;
   };
 

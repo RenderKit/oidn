@@ -128,6 +128,9 @@ namespace oidn {
   namespace esimd = sycl::ext::intel::esimd;
 #endif
 
+  template<bool B, class T = void>
+  using enable_if_t = typename std::enable_if<B, T>::type;
+
   // ---------------------------------------------------------------------------
   // Error handling and debugging
   // ---------------------------------------------------------------------------

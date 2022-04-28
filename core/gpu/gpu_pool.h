@@ -67,9 +67,9 @@ namespace oidn {
       kernel.dst = *dst;
 
       if (tensorLayout == TensorLayout::hwc)
-        device->runKernelAsync({dst->getH(), dst->getW(), dst->getC()}, kernel);
+        device->runKernelAsync(WorkDim<3>(dst->getH(), dst->getW(), dst->getC()), kernel);
       else
-        device->runKernelAsync({dst->getC(), dst->getH(), dst->getW()}, kernel);
+        device->runKernelAsync(WorkDim<3>(dst->getC(), dst->getH(), dst->getW()), kernel);
     }
 
   private:

@@ -51,7 +51,7 @@ namespace oidn {
       kernel.src = *src;
       kernel.dst = *dst;
 
-      device->runKernelAsync({dst->getH(), dst->getW()}, kernel);
+      device->runKernelAsync(WorkDim<2>(dst->getH(), dst->getW()), kernel);
     }
 
     Ref<DeviceType> device;

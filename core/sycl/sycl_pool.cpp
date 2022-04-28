@@ -56,7 +56,7 @@ namespace oidn {
     kernel.src = *src;
     kernel.dst = *dst;
 
-    device->runESIMDKernelAsync({dst->getH() * dst->getCB(), dst->getW()}, kernel);
+    device->runESIMDKernelAsync(WorkDim<2>(dst->getH() * dst->getCB(), dst->getW()), kernel);
   }
 
 } // namespace oidn
