@@ -23,8 +23,6 @@ namespace oidn {
     poolAttr.set_scratchpad_mode(dnnl::scratchpad_mode::user);
 
     primDesc = dnnl::pooling_forward::primitive_desc(poolDesc, poolAttr, device->getDNNLEngine());
-
-    prim = dnnl::pooling_forward(primDesc);
   }
 
   size_t DNNLPool::getScratchByteSize() const
@@ -38,25 +36,31 @@ namespace oidn {
     args[DNNL_ARG_SCRATCHPAD] = getDNNL(scratch);
   }
 
-  void DNNLPool::setSrc(const std::shared_ptr<Tensor>& src)
+  void DNNLPool::updateSrc()
   {
-    Pool::setSrc(src);
     args[DNNL_ARG_SRC] = getDNNL(src);
   }
 
-  void DNNLPool::setDst(const std::shared_ptr<Tensor>& dst)
+  void DNNLPool::updateDst()
   {
-    Pool::setDst(dst);
     args[DNNL_ARG_DST] = getDNNL(dst);
   }
 
   void DNNLPool::finalize()
   {
+    if (prim)
+      throw std::logic_error("pooling already finalized");
+
     prim = dnnl::pooling_forward(primDesc);
   }
 
   void DNNLPool::run()
   {
+    if (!prim)
+      throw std::logic_error("pooling not finalized");
+    if (!src || !dst)
+      throw std::logic_error("pooling source/destination not set");
+
     prim.execute(device->getDNNLStream(), args);
   }
 

@@ -8,7 +8,6 @@
 #include "../gpu/gpu_pool.h"
 #include "../gpu/gpu_upsample.h"
 #include "../gpu/gpu_image_copy.h"
-#include "cuda_common.h"
 #include "cuda_conv.h"
 #include "cuda_concat_conv.h"
 
@@ -33,11 +32,6 @@ namespace oidn {
     }
   }
 
-  CUDADevice::~CUDADevice()
-  {
-    checkError(cudnnDestroy(cudnnHandle));
-  }
-
   void CUDADevice::init()
   {
     int deviceId = 0;
@@ -45,17 +39,18 @@ namespace oidn {
 
     cudaDeviceProp prop;
     checkError(cudaGetDeviceProperties(&prop, deviceId));
+    computeCapability = prop.major * 10 + prop.minor;
 
     if (isVerbose())
       std::cout << "  Device  : " << prop.name << std::endl;
 
     // Check required hardware features
+    if (computeCapability < 60)
+      throw Exception(Error::UnsupportedHardware, "device does not have compute capability 6.0 or newer");
     if (!prop.unifiedAddressing)
       throw Exception(Error::UnsupportedHardware, "device does not support unified addressing");
     if (!prop.managedMemory)
       throw Exception(Error::UnsupportedHardware, "device does not support managed memory");
-
-    checkError(cudnnCreate(&cudnnHandle));
 
     tensorDataType  = DataType::Float16;
     tensorLayout    = TensorLayout::hwc;
@@ -70,7 +65,7 @@ namespace oidn {
 
   std::shared_ptr<Conv> CUDADevice::newConv(const ConvDesc& desc)
   {
-    return std::make_shared<CUDAConv>(this, desc);
+    return newCUDAConv(this, desc);
   }
 
   std::shared_ptr<ConcatConv> CUDADevice::newConcatConv(const ConcatConvDesc& desc)

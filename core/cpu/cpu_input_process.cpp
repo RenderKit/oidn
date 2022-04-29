@@ -12,10 +12,13 @@ namespace oidn {
 
   void CPUInputProcess::run()
   {
-    assert(tile.H + tile.hSrcBegin <= getInput()->getH());
-    assert(tile.W + tile.wSrcBegin <= getInput()->getW());
-    assert(tile.H + tile.hDstBegin <= dst->getH());
-    assert(tile.W + tile.wDstBegin <= dst->getW());
+    if (!getMainSrc() || !dst)
+      throw std::logic_error("input processing source/destination not set");
+    if (tile.hSrcBegin + tile.H > getMainSrc()->getH() ||
+        tile.wSrcBegin + tile.W > getMainSrc()->getW() ||
+        tile.hDstBegin + tile.H > dst->getH() ||
+        tile.wDstBegin + tile.W > dst->getW())
+      throw std::out_of_range("input processing source/destination out of range");
 
     ispc::CPUInputProcessKernel kernel;
 

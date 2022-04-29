@@ -99,6 +99,7 @@
 #include <atomic>
 #include <algorithm>
 #include <memory>
+#include <array>
 #include <cmath>
 #include <cfloat>
 #include <string>

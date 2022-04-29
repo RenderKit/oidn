@@ -18,6 +18,9 @@ namespace oidn {
     void run() override;
 
   private:
+    void updateWeight() override;
+    void updateBias() override;
+
     Ref<BNNSDevice> device;
     BNNSFilter filter = nullptr;
   };

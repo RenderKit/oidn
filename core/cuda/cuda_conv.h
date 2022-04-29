@@ -4,35 +4,10 @@
 #pragma once
 
 #include "../conv.h"
-#include "cuda_common.h"
+#include "cuda_device.h"
 
 namespace oidn {
 
-  class CUDAConv final : public Conv
-  {
-  public:
-    CUDAConv(const Ref<CUDADevice>& device, const ConvDesc& desc);
-    ~CUDAConv();
-
-    bool isSupported() const override;
-
-    size_t getScratchByteSize() const override;
-    void setScratch(const std::shared_ptr<Tensor>& scratch) override;
-
-    void run() override;
-
-  private:
-    Ref<CUDADevice> device;
-    
-    cudnnConvolutionDescriptor_t convDesc;
-    cudnnConvolutionFwdAlgo_t algo;
-    cudnnActivationDescriptor_t activationDesc;
-    cudnnTensorDescriptor_t xDesc;
-    cudnnFilterDescriptor_t wDesc;
-    cudnnTensorDescriptor_t biasDesc;
-    cudnnTensorDescriptor_t yDesc;
-
-    std::shared_ptr<Tensor> scratch;
-  };
+  std::shared_ptr<Conv> newCUDAConv(const Ref<CUDADevice>& device, const ConvDesc& desc);
 
 } // namespace oidn

@@ -75,6 +75,14 @@ namespace oidn {
 
     void run() override
     {
+      if (!src || !dst)
+        throw std::logic_error("output processing source/destination not set");
+      if (tile.hSrcBegin + tile.H > src->getH() ||
+          tile.wSrcBegin + tile.W > src->getW() ||
+          tile.hDstBegin + tile.H > dst->getH() ||
+          tile.wDstBegin + tile.W > dst->getW())
+        throw std::out_of_range("output processing source/destination out of range");
+
       switch (dst->getDataType())
       {
       case DataType::Float32: runImpl<float>(); break;
@@ -87,11 +95,6 @@ namespace oidn {
     template<typename ImageDataType>
     void runImpl()
     {
-      assert(tile.hSrcBegin + tile.H <= src->getH());
-      assert(tile.wSrcBegin + tile.W <= src->getW());
-      //assert(tile.hDstBegin + tile.H <= dst->getH());
-      //assert(tile.wDstBegin + tile.W <= dst->getW());
-
       GPUOutputProcessKernel<ImageDataType, TensorDataType, tensorLayout> kernel;
       kernel.src = *src;
       kernel.dst = *dst;

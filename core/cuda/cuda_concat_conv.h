@@ -4,7 +4,7 @@
 #pragma once
 
 #include "../concat_conv.h"
-#include "cuda_common.h"
+#include "cuda_conv.h"
 
 namespace oidn {
 
@@ -12,7 +12,6 @@ namespace oidn {
   {
   public:
     CUDAConcatConv(const Ref<CUDADevice>& device, const ConcatConvDesc& desc);
-    ~CUDAConcatConv();
 
     bool isSupported() const override;
 
@@ -23,24 +22,19 @@ namespace oidn {
     void run() override;
 
   private:
+    void updateSrc() override;
+    void updateWeight() override;
+    void updateBias() override;
+    void updateDst() override;
+
     Ref<CUDADevice> device;
+    bool finalized = false;
 
     TensorDesc weight1Desc;
     TensorDesc weight2Desc;
 
-    cudnnConvolutionDescriptor_t convDesc;
-    cudnnConvolutionFwdAlgo_t algo;
-    cudnnActivationDescriptor_t activationDesc;
-    cudnnTensorDescriptor_t x1Desc;
-    cudnnTensorDescriptor_t x2Desc;
-    cudnnFilterDescriptor_t w1Desc;
-    cudnnFilterDescriptor_t w2Desc;
-    cudnnTensorDescriptor_t biasDesc;
-    cudnnTensorDescriptor_t yDesc;
-
-    std::shared_ptr<Tensor> weight1;
-    std::shared_ptr<Tensor> weight2;
-    std::shared_ptr<Tensor> scratch;
+    std::shared_ptr<Conv> conv1;
+    std::shared_ptr<Conv> conv2;
   };
 
 } // namespace oidn

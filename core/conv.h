@@ -7,13 +7,20 @@
 
 namespace oidn {
 
+  // Activation function
+  enum class Activation
+  {
+    None, // identity
+    ReLU
+  };
+
   // 3x3 convolution descriptor
   struct ConvDesc
   {
     TensorDesc srcDesc;
-    std::shared_ptr<Tensor> weight;
-    std::shared_ptr<Tensor> bias;
-    bool relu;
+    TensorDesc weightDesc;
+    TensorDesc biasDesc;
+    Activation activation;
   };
 
   // 3x3 convolution
@@ -23,13 +30,23 @@ namespace oidn {
     Conv(const ConvDesc& desc);
     
     TensorDesc getDstDesc() const { return dstDesc; }
-    virtual void setSrc(const std::shared_ptr<Tensor>& src);
-    virtual void setDst(const std::shared_ptr<Tensor>& dst);
     std::shared_ptr<Tensor> getDst() const { return dst; }
 
+    void setSrc(const std::shared_ptr<Tensor>& src);
+    void setWeight(const std::shared_ptr<Tensor>& weight);
+    void setBias(const std::shared_ptr<Tensor>& bias);
+    void setDst(const std::shared_ptr<Tensor>& dst);
+
   protected:
+    virtual void updateSrc() {}
+    virtual void updateWeight() {}
+    virtual void updateBias() {}
+    virtual void updateDst() {}
+
     TensorDesc dstDesc;
     std::shared_ptr<Tensor> src;
+    std::shared_ptr<Tensor> weight;
+    std::shared_ptr<Tensor> bias;
     std::shared_ptr<Tensor> dst;
   };
 

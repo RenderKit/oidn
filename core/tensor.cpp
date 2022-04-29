@@ -65,10 +65,10 @@ namespace oidn {
       throw std::runtime_error("tensor dump not implemented");
   }
 
-  template<typename T, TensorLayout layout>
+  template<typename T, TensorLayout accessorLayout>
   void Tensor::dumpImpl(const std::string& filenamePrefix) const
   {
-    TensorAccessor3D<T, layout> acc = *this;
+    TensorAccessor3D<T, accessorLayout> acc = *this;
 
     for (int c = 0; c < acc.C; ++c)
     {

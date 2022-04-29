@@ -40,13 +40,15 @@ namespace oidn {
 
   std::shared_ptr<Conv> Network::addConv(const std::string& name,
                                          const TensorDesc& srcDesc,
-                                         bool relu)
+                                         Activation activation)
   {
     assert(weights);
     auto weight = weights->get(name + ".weight");
     auto bias   = weights->get(name + ".bias");
 
-    auto op = device->newConv({srcDesc, weight, bias, relu});
+    auto op = device->newConv({srcDesc, weight->getDesc(), bias->getDesc(), activation});
+    op->setWeight(weight);
+    op->setBias(bias);
     op->setName(name);
     ops.push_back(op);
     return op;
@@ -55,13 +57,15 @@ namespace oidn {
    std::shared_ptr<ConcatConv> Network::addConcatConv(const std::string& name,
                                                       const TensorDesc& src1Desc,
                                                       const TensorDesc& src2Desc,
-                                                      bool relu)
+                                                      Activation activation)
   {
     assert(weights);
     auto weight = weights->get(name + ".weight");
     auto bias   = weights->get(name + ".bias");
 
-    auto op = device->newConcatConv({src1Desc, src2Desc, weight, bias, relu});
+    auto op = device->newConcatConv({src1Desc, src2Desc, weight->getDesc(), bias->getDesc(), activation});
+    op->setWeight(weight);
+    op->setBias(bias);
     op->setName(name);
     ops.push_back(op);
     return op;

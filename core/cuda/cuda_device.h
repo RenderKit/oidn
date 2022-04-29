@@ -5,9 +5,6 @@
 
 #include "../device.h"
 
-struct cudnnContext;
-typedef struct cudnnContext* cudnnHandle_t;
-
 namespace oidn {
 
 #if defined(OIDN_COMPILE_CUDA)
@@ -54,10 +51,6 @@ namespace oidn {
   class CUDADevice final : public Device
   { 
   public:
-    ~CUDADevice();
-
-    OIDN_INLINE cudnnHandle_t getCuDNNHandle() const { return cudnnHandle; }
-
     void wait() override;
 
     // Ops
@@ -105,6 +98,8 @@ namespace oidn {
     // Enqueues a host function
     void runHostFuncAsync(std::function<void()>&& f) override;
 
+    int getComputeCapability() const { return computeCapability; }
+
   private:
     void init() override;
 
@@ -113,7 +108,7 @@ namespace oidn {
     WorkDim<2> suggestWorkGroupSize(WorkDim<2> globalSize) { return {16, 16}; }
     WorkDim<3> suggestWorkGroupSize(WorkDim<3> globalSize) { return {1, 16, 16}; }
 
-    cudnnHandle_t cudnnHandle;
+    int computeCapability;
   };
 
 } // namespace oidn

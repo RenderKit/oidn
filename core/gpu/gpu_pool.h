@@ -62,6 +62,9 @@ namespace oidn {
 
     void run() override
     {
+      if (!src || !dst)
+        throw std::logic_error("pooling source/destination not set");
+
       GPUPoolKernel<TensorDataType, tensorLayout> kernel;
       kernel.src = *src;
       kernel.dst = *dst;

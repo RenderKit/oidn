@@ -46,12 +46,15 @@ namespace oidn {
     : Pool(desc),
       device(device)
   {
-    assert(src->getLayout() == TensorLayout::Chw16c);
-    assert(src->getBlockSize() == device->getTensorBlockSize());
+    if (srcDesc.layout != TensorLayout::Chw16c || srcDesc.dataType != DataType::Float16)
+      throw std::invalid_argument("unsupported pooling source layout/data type");
   }
 
   void SYCLPool::run()
   {
+    if (!src || !dst)
+      throw std::logic_error("pooling source/destination not set");
+
     SYCLPoolKernel<half, TensorLayout::Chw16c> kernel;
     kernel.src = *src;
     kernel.dst = *dst;

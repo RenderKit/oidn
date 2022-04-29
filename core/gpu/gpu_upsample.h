@@ -62,6 +62,9 @@ namespace oidn {
 
     void run() override
     {
+      if (!src || !dst)
+        throw std::logic_error("upsampling source/destination not set");
+
       GPUUpsampleKernel<TensorDataType, tensorLayout> kernel;
       kernel.src = *src;
       kernel.dst = *dst;

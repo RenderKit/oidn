@@ -8,26 +8,53 @@ namespace oidn {
   Conv::Conv(const ConvDesc& desc)
     : ConvDesc(desc)
   {
-    assert(srcDesc.getRank() == 3);
-    assert(weight->getRank() == 4);
-    assert(weight->getI() == srcDesc.getC());
-    assert(bias->getRank() == 1);
-    assert(bias->getX() == weight->getO());
+    if (srcDesc.getRank() != 3)
+      throw std::invalid_argument("invalid convolution source shape");
+    if (weightDesc.getRank() != 4 || weightDesc.getI() != srcDesc.getC())
+      throw std::invalid_argument("invalid convolution weight shape");
 
-    TensorDims dstDims {weight->getO(), srcDesc.getH(), srcDesc.getW()};
+    TensorDims dstDims {weightDesc.getO(), srcDesc.getH(), srcDesc.getW()};
     dstDesc = TensorDesc(dstDims, srcDesc.layout, srcDesc.dataType);
+
+    if (!((biasDesc.getRank() == 1 && biasDesc.getX() == weightDesc.getO()) ||
+          (biasDesc.getRank() == 3 && biasDesc.dims == dstDesc.dims)))
+      throw std::invalid_argument("invalid convolution bias shape");
   }
 
   void Conv::setSrc(const std::shared_ptr<Tensor>& src)
   {
-    assert(src->getDesc() == srcDesc);
+    if (!src || src->getDesc() != srcDesc)
+      throw std::invalid_argument("invalid convolution source");
+
     this->src = src;
+    updateSrc();
+  }
+
+  void Conv::setWeight(const std::shared_ptr<Tensor>& weight)
+  {
+    if (!weight || weight->getDesc() != weightDesc)
+      throw std::invalid_argument("invalid convolution weight");
+
+    this->weight = weight;
+    updateWeight();
+  }
+  
+  void Conv::setBias(const std::shared_ptr<Tensor>& bias)
+  {
+    if (!bias || bias->getDesc() != biasDesc)
+      throw std::invalid_argument("invalid convolution bias");
+
+    this->bias = bias;
+    updateBias();
   }
 
   void Conv::setDst(const std::shared_ptr<Tensor>& dst)
   {
-    assert(dst->getDesc() == dstDesc);
+    if (!dst || dst->getDesc() != dstDesc)
+      throw std::invalid_argument("invalid convolution destination");
+
     this->dst = dst;
+    updateDst();
   }
 
 } // namespace oidn

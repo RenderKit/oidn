@@ -35,12 +35,12 @@ namespace oidn {
 
     std::shared_ptr<Conv> addConv(const std::string& name,
                                   const TensorDesc& srcDesc,
-                                  bool relu = true);
+                                  Activation activation = Activation::ReLU);
 
     std::shared_ptr<ConcatConv> addConcatConv(const std::string& name,
                                               const TensorDesc& src1Desc,
                                               const TensorDesc& src2Desc,
-                                              bool relu = true);
+                                              Activation activation = Activation::ReLU);
 
     std::shared_ptr<Pool> addPool(const std::string& name,
                                   const TensorDesc& srcDesc);

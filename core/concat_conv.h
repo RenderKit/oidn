@@ -12,9 +12,9 @@ namespace oidn {
   {
     TensorDesc src1Desc;
     TensorDesc src2Desc;
-    std::shared_ptr<Tensor> weight;
-    std::shared_ptr<Tensor> bias;
-    bool relu;
+    TensorDesc weightDesc;
+    TensorDesc biasDesc;
+    Activation activation;
   };
 
   class ConcatConv : public Op, protected ConcatConvDesc
@@ -23,14 +23,24 @@ namespace oidn {
     ConcatConv(const ConcatConvDesc& desc);
 
     TensorDesc getDstDesc() const { return dstDesc; }
-    virtual void setSrc(const std::shared_ptr<Tensor>& src1, const std::shared_ptr<Tensor>& src2);
-    virtual void setDst(const std::shared_ptr<Tensor>& dst);
     std::shared_ptr<Tensor> getDst() const { return dst; }
 
+    void setSrc(const std::shared_ptr<Tensor>& src1, const std::shared_ptr<Tensor>& src2);
+    void setWeight(const std::shared_ptr<Tensor>& weight);
+    void setBias(const std::shared_ptr<Tensor>& bias);
+    void setDst(const std::shared_ptr<Tensor>& dst);
+
   protected:
+    virtual void updateSrc() {}
+    virtual void updateWeight() {}
+    virtual void updateBias() {}
+    virtual void updateDst() {}
+
     TensorDesc dstDesc;
     std::shared_ptr<Tensor> src1;
     std::shared_ptr<Tensor> src2;
+    std::shared_ptr<Tensor> weight;
+    std::shared_ptr<Tensor> bias;
     std::shared_ptr<Tensor> dst;
   };
 
@@ -44,13 +54,15 @@ namespace oidn {
     size_t getScratchByteSize() const override { return conv->getScratchByteSize(); }
     void setScratch(const std::shared_ptr<Tensor>& scratch) override { conv->setScratch(scratch); }
 
-    void setSrc(const std::shared_ptr<Tensor>& src1, const std::shared_ptr<Tensor>& src2) override;
-    void setDst(const std::shared_ptr<Tensor>& dst) override;
-
     void finalize() override { conv->finalize(); }
     void run() override { conv->run(); }
 
   private:
+    void updateSrc() override;
+    void updateWeight() override { conv->setWeight(weight); }
+    void updateBias() override { conv->setBias(bias); }
+    void updateDst() override { conv->setDst(dst); }
+
     Ref<Device> device;
     TensorDesc srcDesc; // concatenated source
     std::shared_ptr<Conv> conv;

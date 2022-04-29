@@ -116,7 +116,6 @@ include(oidn_ispc)
 option(OIDN_DEVICE_CUDA "Enable CUDA device." OFF)
 if(OIDN_DEVICE_CUDA)
   enable_language(CUDA)
-  find_package(cuDNN REQUIRED)
 endif()
 
 # HIP
@@ -288,12 +287,10 @@ endif()
 
 if(OIDN_DEVICE_CUDA)
   list(APPEND CORE_SOURCES
-    core/cuda/cuda_common.h
-    core/cuda/cuda_common.cu
     core/cuda/cuda_conv.h
     core/cuda/cuda_conv.cu
     core/cuda/cuda_concat_conv.h
-    core/cuda/cuda_concat_conv.cu
+    core/cuda/cuda_concat_conv.cpp
     core/cuda/cuda_device.h
     core/cuda/cuda_device.cu
   )
@@ -351,9 +348,9 @@ if(OIDN_DEVICE_SYCL)
 endif()
 
 if(OIDN_DEVICE_CUDA)
+  target_include_directories(${PROJECT_NAME} PRIVATE "${PROJECT_SOURCE_DIR}/cutlass/include" "${PROJECT_SOURCE_DIR}/cutlass/tools/util/include")
+  set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_ARCHITECTURES "86")
   target_compile_definitions(${PROJECT_NAME} PUBLIC OIDN_DEVICE_CUDA)
-  set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_ARCHITECTURES "60;61;70;75;80;86")
-  target_link_libraries(${PROJECT_NAME} PRIVATE cuDNN::cuDNN)
 endif()
 
 if(OIDN_DEVICE_HIP)

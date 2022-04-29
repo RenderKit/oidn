@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "cpu_upsample.h"
@@ -10,15 +10,18 @@ namespace oidn {
 
   CPUUpsample::CPUUpsample(const Ref<CPUDevice>& device, const UpsampleDesc& desc)
     : Upsample(desc),
-      device(device) {}
+      device(device)
+  {
+    if (srcDesc.layout != device->getTensorLayout())
+      throw std::invalid_argument("unsupported upsampling source layout");
+  }
 
 #if defined(OIDN_DNNL)
 
   void CPUUpsample::run()
   {
-    assert(src->getLayout() == TensorLayout::Chw8c ||
-           src->getLayout() == TensorLayout::Chw16c);
-    assert(src->getBlockSize() == device->getTensorBlockSize());
+    if (!src || !dst)
+      throw std::logic_error("upsampling source/destination not set");
 
     ispc::CPUUpsampleKernel kernel;
     kernel.src = *src;
@@ -34,7 +37,8 @@ namespace oidn {
 
   void CPUUpsample::run()
   {
-    assert(src->getLayout() == TensorLayout::chw);
+    if (!src || !dst)
+      throw std::logic_error("upsampling source/destination not set");
 
     const size_t C = src->getC();
     const size_t H = src->getH();

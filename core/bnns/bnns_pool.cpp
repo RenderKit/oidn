@@ -17,6 +17,9 @@ namespace oidn {
 
   void BNNSPool::finalize()
   {
+    if (filter)
+      throw std::logic_error("pooling already finalized");
+
     BNNSLayerParametersPooling params = {
       .i_desc = toBNNS(srcDesc),
       .o_desc = toBNNS(dstDesc),
@@ -34,6 +37,11 @@ namespace oidn {
 
   void BNNSPool::run()
   {
+    if (!filter)
+      throw std::logic_error("pooling not finalized");
+    if (!src || !dst)
+      throw std::logic_error("pooling source/destination not set");
+
     BNNSFilterApply(filter, src->getData(), dst->getData());
   }
 

@@ -165,20 +165,20 @@ namespace oidn {
       return TensorAccessor1D<T>(getData(), dims[0]);
     }
 
-    template<typename T, TensorLayout layout>
-    operator TensorAccessor3D<T, layout>() const
+    template<typename T, TensorLayout accessorLayout>
+    operator TensorAccessor3D<T, accessorLayout>() const
     {
-      if (this->layout != layout || dataType != DataTypeOf<T>::value)
+      if (layout != accessorLayout || dataType != DataTypeOf<T>::value)
         throw std::logic_error("incompatible tensor accessor");
-      return TensorAccessor3D<T, layout>(getData(), getC(), getH(), getW());
+      return TensorAccessor3D<T, accessorLayout>(getData(), getC(), getH(), getW());
     }
 
-    template<typename T, TensorLayout layout>
-    operator TensorAccessor4D<T, layout>() const
+    template<typename T, TensorLayout accessorLayout>
+    operator TensorAccessor4D<T, accessorLayout>() const
     {
-      if (this->layout != layout || dataType != DataTypeOf<T>::value)
+      if (layout != accessorLayout || dataType != DataTypeOf<T>::value)
         throw std::logic_error("incompatible tensor accessor");
-      return TensorAccessor4D<T, layout>(getData(), getO(), getI(), getH(), getW());
+      return TensorAccessor4D<T, accessorLayout>(getData(), getO(), getI(), getH(), getW());
     }
 
     operator ispc::TensorAccessor3D() const;

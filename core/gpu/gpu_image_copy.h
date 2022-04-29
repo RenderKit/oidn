@@ -31,9 +31,12 @@ namespace oidn {
 
     void run() override
     {
-      assert(dst->getH() >= src->getH());
-      assert(dst->getW() >= src->getW());
-      assert(dst->getDataType() == src->getDataType());
+      if (!src || !dst)
+        throw std::logic_error("image copy source/destination not set");
+      if (dst->getH() < src->getH() || dst->getW() < src->getW())
+        throw std::out_of_range("image copy destination smaller than the source");
+      if (dst->getDataType() != src->getDataType())
+        throw std::invalid_argument("image copy source and destination have different data types");
 
       switch (src->getDataType())
       {

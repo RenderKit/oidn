@@ -25,7 +25,9 @@ namespace oidn {
     
     void setSrc(const std::shared_ptr<Image>& src)
     {
-      assert(src->getW() == srcDesc.getW() && src->getH() == srcDesc.getH());
+      if (!src || src->getW() != srcDesc.getW() || src->getH() != srcDesc.getH())
+        throw std::invalid_argument("invalid autoexposure source");
+
       this->src = src;
     }
     

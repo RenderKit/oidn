@@ -42,12 +42,15 @@ namespace oidn {
     : Upsample(desc),
       device(device)
   {
-    assert(src->getLayout() == TensorLayout::Chw16c);
-    assert(src->getBlockSize() == device->getTensorBlockSize());
+    if (srcDesc.layout != TensorLayout::Chw16c || srcDesc.dataType != DataType::Float16)
+      throw std::invalid_argument("unsupported upsampling source layout/data type");
   }
 
   void SYCLUpsample::run()
   {
+    if (!src || !dst)
+      throw std::logic_error("upsampling source/destination not set");
+
     SYCLUpsampleKernel<half, TensorLayout::Chw16c> kernel;
     kernel.src = *src;
     kernel.dst = *dst;

@@ -10,24 +10,26 @@ namespace oidn {
       device(device)
   {
     checkError(miopenCreateConvolutionDescriptor(&convDesc));
-    checkError(miopenInitConvolutionDescriptor(convDesc,
-                                               miopenConvolution, 
-                                               1,
-                                               1,
-                                               1,
-                                               1,
-                                               1,
-                                               1));
+    checkError(miopenInitConvolutionDescriptor(
+      convDesc,
+      miopenConvolution, 
+      1,
+      1,
+      1,
+      1,
+      1,
+      1));
 
     checkError(miopenCreateActivationDescriptor(&activationDesc));
-    checkError(miopenSetActivationDescriptor(activationDesc,
-                                             relu ? miopenActivationRELU : miopenActivationPASTHRU,
-                                             0, 0, 0));
+    checkError(miopenSetActivationDescriptor(
+      activationDesc,
+      activation == Activation::ReLU ? miopenActivationRELU : miopenActivationPASTHRU,
+      0, 0, 0));
 
-    xDesc    = toMIOpen(srcDesc);
-    wDesc    = toMIOpen(weight->getDesc());
-    biasDesc = toMIOpen(bias->getDesc());
-    yDesc    = toMIOpen(dstDesc);
+    xDesc = toMIOpen(srcDesc);
+    wDesc = toMIOpen(weightDesc);
+    bDesc = toMIOpen(biasDesc);
+    yDesc = toMIOpen(dstDesc);
   }
 
   HIPConv::~HIPConv()
@@ -36,13 +38,13 @@ namespace oidn {
     checkError(miopenDestroyActivationDescriptor(activationDesc));
     checkError(miopenDestroyTensorDescriptor(xDesc));
     checkError(miopenDestroyTensorDescriptor(wDesc));
-    checkError(miopenDestroyTensorDescriptor(biasDesc));
+    checkError(miopenDestroyTensorDescriptor(bDesc));
     checkError(miopenDestroyTensorDescriptor(yDesc));
   }
 
   bool HIPConv::isSupported() const
   {
-    return xDesc && wDesc && biasDesc && yDesc;
+    return xDesc && wDesc && bDesc && yDesc;
   }
 
   size_t HIPConv::getScratchByteSize() const
@@ -66,6 +68,12 @@ namespace oidn {
 
   void HIPConv::finalize()
   {
+    assert(isSupported());
+    if (finalized)
+      throw std::logic_error("convolution already finalized");
+    if (!src || !weight || !dst)
+      throw std::logic_error("convolution source/weight/destination not set before finalization");
+
     int returnedAlgoCount;
     miopenConvAlgoPerf_t perfResults;
 
@@ -86,11 +94,13 @@ namespace oidn {
 
     algo = perfResults.fwd_algo;
     //std::cout << "ALGO found: " << int(algo) << " " << perfResults.memory << std::endl;
+    finalized = true;
   }
 
   void HIPConv::run()
   {
-    assert(isSupported());
+    if (!finalized)
+      throw std::logic_error("convolution not finalized");
 
     const float alpha = 1;
     const float beta = 0;
@@ -115,13 +125,13 @@ namespace oidn {
 
     checkError(miopenConvolutionForwardBias(device->getMIOpenHandle(),
                                             &alpha,
-                                            biasDesc,
+                                            bDesc,
                                             bias->getData(),
                                             &beta,
                                             yDesc,
                                             dst->getData()));
 
-    if (relu)
+    if (activation != Activation::None)
     {
       checkError(miopenActivationForward(device->getMIOpenHandle(),
                                          activationDesc,

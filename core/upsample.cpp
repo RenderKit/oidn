@@ -8,7 +8,8 @@ namespace oidn {
   Upsample::Upsample(const UpsampleDesc& desc)
     : UpsampleDesc(desc)
   {
-    assert(srcDesc.getRank() == 3);
+    if (srcDesc.getRank() != 3)
+      throw std::invalid_argument("invalid upsampling source shape");
 
     TensorDims dstDims {srcDesc.getC(), srcDesc.getH() * 2, srcDesc.getW() * 2};
     dstDesc = TensorDesc(dstDims, srcDesc.layout, srcDesc.dataType);
@@ -16,14 +17,20 @@ namespace oidn {
 
   void Upsample::setSrc(const std::shared_ptr<Tensor>& src)
   {
-    assert(src->getDesc() == srcDesc);
+    if (!src || src->getDesc() != srcDesc)
+      throw std::invalid_argument("invalid upsampling source");
+
     this->src = src;
+    updateSrc();
   }
 
   void Upsample::setDst(const std::shared_ptr<Tensor>& dst)
   {
-    assert(dst->getDesc() == dstDesc);
+    if (!dst || dst->getDesc() != dstDesc)
+      throw std::invalid_argument("invalid upsampling destination");
+
     this->dst = dst;
+    updateDst();
   }
 
 } // namespace oidn

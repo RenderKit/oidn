@@ -19,11 +19,15 @@ namespace oidn {
     Upsample(const UpsampleDesc& desc);
     
     TensorDesc getDstDesc() const { return dstDesc; }
-    virtual void setSrc(const std::shared_ptr<Tensor>& src);
-    virtual void setDst(const std::shared_ptr<Tensor>& dst);
     std::shared_ptr<Tensor> getDst() const { return dst; }
 
+    void setSrc(const std::shared_ptr<Tensor>& src);
+    void setDst(const std::shared_ptr<Tensor>& dst);
+
   protected:
+    virtual void updateSrc() {}
+    virtual void updateDst() {}
+
     TensorDesc dstDesc;
     std::shared_ptr<Tensor> src;
     std::shared_ptr<Tensor> dst;

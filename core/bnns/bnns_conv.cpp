@@ -15,8 +15,25 @@ namespace oidn {
       BNNSFilterDestroy(filter);
   }
 
+  void BNNSConv::updateWeight()
+  {
+    if (filter)
+      throw std::logic_error("convolution weight cannot be set after finalization");
+  }
+
+  void BNNSConv::updateBias()
+  {
+    if (filter)
+      throw std::logic_error("convolution bias cannot be set after finalization");
+  }
+
   void BNNSConv::finalize()
   {
+    if (filter)
+      throw std::logic_error("convolution already finalized");
+    if (!weight || !bias)
+      throw std::logic_error("convolution weight/bias not set before finalization");
+
     BNNSLayerParametersConvolution params = {
       .i_desc = toBNNS(srcDesc),
       .w_desc = toBNNS(weight),
@@ -30,7 +47,7 @@ namespace oidn {
       .y_padding = 1,
     };
 
-    if (relu)
+    if (activation == Activation::ReLU)
       params.activation.function = BNNSActivationFunctionRectifiedLinear;
     else
       params.activation.function = BNNSActivationFunctionIdentity;
@@ -42,6 +59,11 @@ namespace oidn {
 
   void BNNSConv::run()
   {
+    if (!filter)
+      throw std::logic_error("convolution not finalized");
+    if (!src || !dst)
+      throw std::logic_error("convolution source/destination not set");
+
     BNNSFilterApply(filter, src->getData(), dst->getData());
   }
 

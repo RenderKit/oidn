@@ -15,14 +15,16 @@ namespace oidn {
 
     size_t getScratchByteSize() const override;
     void setScratch(const std::shared_ptr<Tensor>& scratch) override;
-    
-    void setSrc(const std::shared_ptr<Tensor>& src) override;
-    void setDst(const std::shared_ptr<Tensor>& dst) override;
 
     void finalize() override;
     void run() override;
 
   private:
+    void updateSrc() override;
+    void updateWeight() override;
+    void updateBias() override;
+    void updateDst() override;
+
     Ref<DNNLDevice> device;
     dnnl::convolution_forward::primitive_desc primDesc;
     dnnl::convolution_forward prim;

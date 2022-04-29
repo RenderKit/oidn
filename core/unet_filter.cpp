@@ -359,9 +359,9 @@ namespace oidn {
 
     // Get the number of input channels
     int inputC = 0;
-    if (color)  inputC += 3;
-    if (albedo) inputC += 3;
-    if (normal) inputC += 3;
+    if (color)  inputC += color->getC();
+    if (albedo) inputC += albedo->getC();
+    if (normal) inputC += normal->getC();
 
     // Create the ops
     std::shared_ptr<Autoexposure> autoexposure;
@@ -405,7 +405,7 @@ namespace oidn {
     auto decConv1a = net->addConcatConv("dec_conv1a", upsample1->getDstDesc(), inputProcess->getDstDesc());
     auto decConv1b = net->addConv("dec_conv1b", decConv1a->getDstDesc());
     
-    auto decConv0 = net->addConv("dec_conv0", decConv1b->getDstDesc(), false);
+    auto decConv0 = net->addConv("dec_conv0", decConv1b->getDstDesc(), Activation::None);
 
     auto outputProcess = net->addOutputProcess("output", decConv0->getDstDesc(), transferFunc, hdr, snorm);
 
@@ -589,8 +589,8 @@ namespace oidn {
     if (outputTemp)
     {
       imageCopy = device->newImageCopy();
-      imageCopy->finalize();
       imageCopy->setSrc(outputTemp);
+      imageCopy->finalize();
     }
 
     // Print statistics

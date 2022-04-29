@@ -8,7 +8,8 @@ namespace oidn {
   InputProcess::InputProcess(const Ref<Device>& device, const InputProcessDesc& desc)
     : InputProcessDesc(desc)
   {
-    assert(srcDims.size() == 3);
+    if (srcDims.size() != 3)
+      throw std::invalid_argument("invalid input processing source shape");
 
     TensorDims dstDims {
       round_up(srcDims[0], device->getTensorBlockSize()), // round up C
@@ -25,17 +26,28 @@ namespace oidn {
     return dstDesc;
   }
 
-  void InputProcess::setSrc(const std::shared_ptr<Image>& color, const std::shared_ptr<Image>& albedo, const std::shared_ptr<Image>& normal)
+  void InputProcess::setSrc(const std::shared_ptr<Image>& color,
+                            const std::shared_ptr<Image>& albedo,
+                            const std::shared_ptr<Image>& normal)
   {
-    // FIXME: add checks
+    int C = 0;
+    if (color)  C += color->getC();
+    if (albedo) C += albedo->getC();
+    if (normal) C += normal->getC();
+    if (C != srcDims[0])
+      throw std::invalid_argument("invalid input processing source");
+
     this->color  = color;
     this->albedo = albedo;
     this->normal = normal;
+    updateSrc();
   }
 
   void InputProcess::setDst(const std::shared_ptr<Tensor>& dst)
   {
-    assert(dst->getDesc() == getDstDesc());
+    if (!dst || dst->getDesc() != dstDesc)
+      throw std::invalid_argument("invalid input processing destination");
+
     this->dst = dst;
   }
 

@@ -24,13 +24,14 @@ namespace oidn {
 
   private:
     Ref<HIPDevice> device;
+    bool finalized = false;
 
     miopenConvolutionDescriptor_t convDesc;
     miopenConvFwdAlgorithm_t algo;
     miopenActivationDescriptor_t activationDesc;
     miopenTensorDescriptor_t xDesc;
     miopenTensorDescriptor_t wDesc;
-    miopenTensorDescriptor_t biasDesc;
+    miopenTensorDescriptor_t bDesc;
     miopenTensorDescriptor_t yDesc;
 
     std::shared_ptr<Tensor> scratch;

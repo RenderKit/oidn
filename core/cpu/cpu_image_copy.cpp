@@ -11,8 +11,10 @@ namespace oidn {
 
   void CPUImageCopy::run()
   {
-    assert(dst->getH() >= src->getH());
-    assert(dst->getW() >= src->getW());
+    if (!src || !dst)
+      throw std::logic_error("image copy source/destination not set");
+    if (dst->getH() < src->getH() || dst->getW() < src->getW())
+      throw std::out_of_range("image copy destination smaller than the source");
 
     ispc::CPUImageCopyKernel kernel;
     kernel.src = *src;

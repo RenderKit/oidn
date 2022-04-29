@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "output_process.h"
@@ -8,20 +8,25 @@ namespace oidn {
   OutputProcess::OutputProcess(const OutputProcessDesc& desc)
     : OutputProcessDesc(desc)
   {
-    assert(srcDesc.getRank() == 3);
+    if (srcDesc.getRank() != 3)
+      throw std::invalid_argument("invalid output processing source shape");
+
     setTile(0, 0, 0, 0, 0, 0);
   }
 
   void OutputProcess::setSrc(const std::shared_ptr<Tensor>& src)
   {
-    assert(src->getDesc() == srcDesc);
+    if (!src || src->getDesc() != srcDesc)
+      throw std::invalid_argument("invalid output processing source");
+
     this->src = src;
   }
 
   void OutputProcess::setDst(const std::shared_ptr<Image>& dst)
   {
-    assert(srcDesc.getC() >= dst->getC());
-    assert(dst->getC() == 3);
+    if (!dst || dst->getC() > srcDesc.getC())
+      throw std::invalid_argument("invalid output processing destination");
+
     this->dst = dst;
   }
 

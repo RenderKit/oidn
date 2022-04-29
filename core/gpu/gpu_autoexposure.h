@@ -166,13 +166,18 @@ namespace oidn {
 
     void setScratch(const std::shared_ptr<Tensor>& scratch) override
     {
-      assert(scratch->getByteSize() >= scratchByteSize);
+      if (!scratch || scratch->getByteSize() < scratchByteSize)
+        throw std::invalid_argument("invalid autoexposure scratch");
+        
       this->scratch = scratch;
     }
 
     void run() override
     {
-      assert(scratch);
+      if (!src)
+        throw std::logic_error("autoexposure source not set");
+      if (!scratch)
+        throw std::logic_error("autoexposure scratch not set");
 
       switch (src->getDataType())
       {

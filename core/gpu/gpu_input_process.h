@@ -148,7 +148,15 @@ namespace oidn {
 
     void run() override
     {
-      switch (getInput()->getDataType())
+      if (!getMainSrc() || !dst)
+        throw std::logic_error("input processing source/destination not set");
+      if (tile.hSrcBegin + tile.H > getMainSrc()->getH() ||
+          tile.wSrcBegin + tile.W > getMainSrc()->getW() ||
+          tile.hDstBegin + tile.H > dst->getH() ||
+          tile.wDstBegin + tile.W > dst->getW())
+        throw std::out_of_range("input processing source/destination out of range");
+ 
+      switch (getMainSrc()->getDataType())
       {
       case DataType::Float32: runImpl<float>(); break;
       case DataType::Float16: runImpl<half>();  break;
@@ -157,14 +165,17 @@ namespace oidn {
     }
 
   private:
+    void updateSrc() override
+    {
+      if ((color  && color->getDataType()  != getMainSrc()->getDataType()) ||
+          (albedo && albedo->getDataType() != getMainSrc()->getDataType()) ||
+          (normal && normal->getDataType() != getMainSrc()->getDataType()))
+        throw std::invalid_argument("input processing sources have different data types");
+    }
+
     template<typename ImageDataType>
     void runImpl()
     {
-      assert(tile.H + tile.hSrcBegin <= getInput()->getH());
-      assert(tile.W + tile.wSrcBegin <= getInput()->getW());
-      assert(tile.H + tile.hDstBegin <= dst->getH());
-      assert(tile.W + tile.wDstBegin <= dst->getW());
-      
       GPUInputProcessKernel<ImageDataType, TensorDataType, tensorLayout> kernel;
       kernel.color  = color  ? *color  : Image();
       kernel.albedo = albedo ? *albedo : Image();

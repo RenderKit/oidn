@@ -14,6 +14,9 @@ namespace oidn {
 
   void CPUAutoexposure::run()
   {
+    if (!src)
+      throw std::logic_error("autoexposure source not set");
+
     // Downsample the image to minimize sensitivity to noise
     ispc::ImageAccessor srcAcc = *src;
 
