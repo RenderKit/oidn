@@ -56,8 +56,8 @@ namespace oidn {
   struct CutlassEpilogueTraits
   {
     static constexpr int elementBits  = cutlass::sizeof_bits<Element>::value;
-    static constexpr int alignmentC   = std::min(alignment, 8);
-    static constexpr int vectorLength = std::min(alignmentC * elementBits, 128) / elementBits;
+    static constexpr int alignmentC   = min(alignment, 8);
+    static constexpr int vectorLength = min(alignmentC * elementBits, 128) / elementBits;
   };
 
   template<typename Element, Activation, int alignment>
@@ -276,7 +276,7 @@ namespace oidn {
 
   struct CutlassConvFactory
   {
-    std::shared_ptr<Conv> (*make)(const Ref<CUDADevice>&, const ConvDesc&) = nullptr;
+    std::shared_ptr<Conv> (*make)(const Ref<CUDADevice>&, const ConvDesc&);
 
     DataType dataType;
     int sm;                     // compute capability
@@ -292,7 +292,7 @@ namespace oidn {
   class CutlassConvInstance
   {
   public:
-    static constexpr CutlassConvFactory get()
+    static CutlassConvFactory get()
     {
       return {
         make,
@@ -328,7 +328,7 @@ namespace oidn {
     using cutlass::gemm::GemmShape;
 
     // Table of kernels optimized for different architectures and problem sizes
-    static constexpr std::array<CutlassConvFactory, 8> kernels = {
+    static const std::vector<CutlassConvFactory> kernels = {
       // Ampere
       CutlassConvInstance<half, Sm80, GemmShape<256, 32, 32>, GemmShape<64, 32, 32>, 3 /*4*/>::get(),
       CutlassConvInstance<half, Sm80, GemmShape<256, 64, 32>, GemmShape<64, 64, 32>, 3>::get(),
