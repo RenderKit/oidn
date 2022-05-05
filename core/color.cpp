@@ -15,6 +15,7 @@ namespace oidn {
     rcpNormScale = xMax;
   }
 
+#if defined(OIDN_DEVICE_CPU)
   TransferFunction::operator ispc::TransferFunction() const
   {
     ispc::TransferFunction res;
@@ -34,5 +35,6 @@ namespace oidn {
     
     return res;
   }
+#endif
 
 } // namespace oidn

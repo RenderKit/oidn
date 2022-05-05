@@ -4,7 +4,9 @@
 #pragma once
 
 #include "image.h"
-#include "color_ispc.h"
+#if defined(OIDN_DEVICE_CPU)
+  #include "color_ispc.h"
+#endif
 
 namespace oidn {
 
@@ -166,7 +168,9 @@ namespace oidn {
       }
     }
 
+  #if defined(OIDN_DEVICE_CPU)
     operator ispc::TransferFunction() const;
+  #endif
   };
 
   // Computes the luminance of an RGB color

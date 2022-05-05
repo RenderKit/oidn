@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "tensor.h"
+#include <fstream>
 
 namespace oidn {
 
@@ -27,6 +28,7 @@ namespace oidn {
       TensorDesc(desc),
       device(buffer->getDevice()) {}
 
+#if defined(OIDN_DEVICE_CPU)
   Tensor::operator ispc::TensorAccessor3D() const
   {
     if (getRank() != 3 || dataType != DataType::Float32)
@@ -39,6 +41,7 @@ namespace oidn {
     result.W = getW();
     return result;
   }
+#endif
 
   std::shared_ptr<Tensor> Tensor::map(Access access)
   {

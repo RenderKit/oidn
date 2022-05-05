@@ -6,6 +6,7 @@
 #include "device.h"
 #include "buffer.h"
 #include "image_accessor.h"
+#include "cpu_image_copy_ispc.h" // ispc::ImageAccessor
 
 namespace oidn {
 

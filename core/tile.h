@@ -4,6 +4,9 @@
 #pragma once
 
 #include "common.h"
+#if defined(OIDN_DEVICE_CPU)
+  #include "cpu_input_process_ispc.h" // ispc::Tile
+#endif
 
 namespace oidn {
 
@@ -16,6 +19,7 @@ namespace oidn {
     int H;
     int W;
 
+  #if defined(OIDN_DEVICE_CPU)
     operator ispc::Tile() const
     {
       ispc::Tile res;
@@ -27,6 +31,7 @@ namespace oidn {
       res.W = W;
       return res;
     }
+  #endif
   };
 
 } // namespace oidn

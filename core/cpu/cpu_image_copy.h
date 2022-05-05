@@ -11,11 +11,11 @@ namespace oidn {
   class CPUImageCopy final : public ImageCopy
   {
   public:
-    explicit CPUImageCopy(const Ref<CPUDevice>& device);
+    explicit CPUImageCopy(const Ref<Device>& device);
     void run() override;
 
   private:
-    Ref<CPUDevice> device;
+    Ref<Device> device;
   };
 
 } // namespace oidn

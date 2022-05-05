@@ -10,8 +10,6 @@
 #include "common/math.h"
 #include "vec.h"
 
-#include "cpu_input_process_ispc.h" // ispc::TensorAccessor3D, ispc::ImageAccessor, ispc::Tile
-
 namespace oidn {
 
   using math::vec3;

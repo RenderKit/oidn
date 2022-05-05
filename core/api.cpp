@@ -35,7 +35,9 @@
     Device::setError(obj ? obj->getDevice() : nullptr, Error::Unknown, "unknown exception caught"); \
   }
 
-#include "cpu/cpu_device.h"
+#if defined(OIDN_DEVICE_CPU)
+  #include "cpu/cpu_device.h"
+#endif
 #if defined(OIDN_DEVICE_SYCL)
   #include "sycl/sycl_device.h"
 #endif
@@ -106,21 +108,26 @@ OIDN_API_NAMESPACE_BEGIN
   {
     Ref<Device> device = nullptr;
     OIDN_TRY
+    #if defined(OIDN_DEVICE_CPU)
       if (type == OIDN_DEVICE_TYPE_CPU || type == OIDN_DEVICE_TYPE_DEFAULT)
         device = makeRef<CPUDevice>();
-    #if defined(OIDN_DEVICE_SYCL)
-      else if (type == OIDN_DEVICE_TYPE_SYCL)
-        device = makeRef<SYCLDevice>();
+      else
     #endif
     #if defined(OIDN_DEVICE_CUDA)
-      else if (type == OIDN_DEVICE_TYPE_CUDA)
+      if (type == OIDN_DEVICE_TYPE_CUDA || type == OIDN_DEVICE_TYPE_DEFAULT)
         device = makeRef<CUDADevice>();
+      else
     #endif
     #if defined(OIDN_DEVICE_HIP)
-      else if (type == OIDN_DEVICE_TYPE_HIP)
+      if (type == OIDN_DEVICE_TYPE_HIP || type == OIDN_DEVICE_TYPE_DEFAULT)
         device = makeRef<HIPDevice>();
-    #endif
       else
+    #endif
+    #if defined(OIDN_DEVICE_SYCL)
+      if (type == OIDN_DEVICE_TYPE_SYCL || type == OIDN_DEVICE_TYPE_DEFAULT)
+        device = makeRef<SYCLDevice>();
+      else
+    #endif
         throw Exception(Error::InvalidArgument, "unsupported device type");
     OIDN_CATCH(device)
     return (OIDNDevice)device.detach();

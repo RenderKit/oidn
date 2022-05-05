@@ -77,29 +77,26 @@ find_package(TBB 2017.0 REQUIRED tbb CONFIG)
 # Packaging
 include(oidn_package)
 
-# Neural network runtime
-set(OIDN_NEURAL_RUNTIMES)
-if(OIDN_ARCH STREQUAL "X64")
-  list(APPEND OIDN_NEURAL_RUNTIMES "DNNL")
-endif()
-if(APPLE AND OIDN_ARCH STREQUAL "ARM64")
-  list(APPEND OIDN_NEURAL_RUNTIMES "BNNS")
-endif()
-list(GET OIDN_NEURAL_RUNTIMES 0 OIDN_NEURAL_RUNTIME_DEFAULT)
-set(OIDN_NEURAL_RUNTIME ${OIDN_NEURAL_RUNTIME_DEFAULT} CACHE STRING "Neural network runtime to use.")
-set_property(CACHE OIDN_NEURAL_RUNTIME PROPERTY STRINGS ${OIDN_NEURAL_RUNTIMES})
+# CPU device
+option(OIDN_DEVICE_CPU "Enable CPU device." ON)
 
-# DNNL
-if(OIDN_NEURAL_RUNTIME STREQUAL "DNNL")
+if(OIDN_ARCH STREQUAL "X64")
+  # SYCL device
   option(OIDN_DEVICE_SYCL "Enable SYCL device." OFF)
-  include(oidn_dnnl)
+
+  # DNNL
+  if(OIDN_DEVICE_CPU OR OIDN_DEVICE_SYCL)
+    set(OIDN_DNNL ON)
+    include(oidn_dnnl)
+  endif()
 endif()
 
 # Platform-specific settings
 include(oidn_platform)
 
 # BNNS
-if(OIDN_NEURAL_RUNTIME STREQUAL "BNNS")
+if(OIDN_DEVICE_CPU AND APPLE AND OIDN_ARCH STREQUAL "ARM64")
+  set(OIDN_BNNS ON)
   include(oidn_bnns)
 endif()
 
@@ -112,33 +109,35 @@ endif()
 set(OIDN_ISPC_ADDRESSING 64)
 include(oidn_ispc)
 
-# CUDA
-if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.8.0")
+# CUDA device
+if(NOT APPLE AND ${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.8.0")
   option(OIDN_DEVICE_CUDA "Enable CUDA device." OFF)
   if(OIDN_DEVICE_CUDA)
     enable_language(CUDA)
   endif()
 endif()
 
-# HIP
-option(OIDN_DEVICE_HIP "Enable HIP device." OFF)
-if(OIDN_DEVICE_HIP)
-  if(NOT DEFINED ROCM_PATH)
-    set(ROCM_PATH "/opt/rocm" CACHE STRING "Default ROCM installation directory.")
+# HIP device
+if(NOT APPLE)
+  option(OIDN_DEVICE_HIP "Enable HIP device." OFF)
+  if(OIDN_DEVICE_HIP)
+    if(NOT DEFINED ROCM_PATH)
+      set(ROCM_PATH "/opt/rocm" CACHE STRING "Default ROCM installation directory.")
+    endif()
+
+    # Search for rocm in common locations
+    list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/hip ${ROCM_PATH})
+
+    # Find hip
+    find_package(hip)
+
+    # Set compiler and linker
+    set(CMAKE_CXX_COMPILER ${HIP_HIPCC_EXECUTABLE})
+    set(CMAKE_CXX_LINKER   ${HIP_HIPCC_EXECUTABLE})
+
+    # Find MIOpen
+    find_package(miopen)
   endif()
-
-  # Search for rocm in common locations
-  list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/hip ${ROCM_PATH})
-
-  # Find hip
-  find_package(hip)
-
-  # Set compiler and linker
-  set(CMAKE_CXX_COMPILER ${HIP_HIPCC_EXECUTABLE})
-  set(CMAKE_CXX_LINKER   ${HIP_HIPCC_EXECUTABLE})
-
-  # Find MIOpen
-  find_package(miopen)
 endif()
 
 ## -----------------------------------------------------------------------------
@@ -170,24 +169,8 @@ set(CORE_SOURCES
   include/OpenImageDenoise/oidn.hpp
   include/OpenImageDenoise/config.h
   ${OIDN_RESOURCE}
-  core/cpu/cpu_autoexposure.h
-  core/cpu/cpu_autoexposure.cpp
-  core/cpu/cpu_device.h
-  core/cpu/cpu_device.cpp
   core/cpu/cpu_image_copy.h
   core/cpu/cpu_image_copy.cpp
-  core/cpu/cpu_input_process.h
-  core/cpu/cpu_input_process.cpp
-  core/cpu/cpu_output_process.h
-  core/cpu/cpu_output_process.cpp
-  core/cpu/cpu_upsample.h
-  core/cpu/cpu_upsample.cpp
-  core/gpu/gpu_autoexposure.h
-  core/gpu/gpu_image_copy.h
-  core/gpu/gpu_input_process.h
-  core/gpu/gpu_output_process.h
-  core/gpu/gpu_pool.h
-  core/gpu/gpu_upsample.h
   core/api.cpp
   core/autoexposure.h
   core/buffer.h
@@ -245,7 +228,51 @@ set(CORE_SOURCES
   core/weights.cpp
 )
 
-if(OIDN_NEURAL_RUNTIME STREQUAL "DNNL")
+set(CORE_SOURCES_ISPC
+  core/cpu/cpu_image_copy.ispc
+  core/image_accessor.isph
+  core/math.isph
+  core/vec.isph
+)
+
+if(OIDN_DEVICE_CPU)
+  list(APPEND CORE_SOURCES
+    core/cpu/cpu_autoexposure.h
+    core/cpu/cpu_autoexposure.cpp
+    core/cpu/cpu_device.h
+    core/cpu/cpu_device.cpp
+    core/cpu/cpu_input_process.h
+    core/cpu/cpu_input_process.cpp
+    core/cpu/cpu_output_process.h
+    core/cpu/cpu_output_process.cpp
+    core/cpu/cpu_upsample.h
+    core/cpu/cpu_upsample.cpp
+  )
+
+  list(APPEND CORE_SOURCES_ISPC
+    core/cpu/cpu_autoexposure.ispc
+    core/cpu/cpu_input_process.ispc
+    core/cpu/cpu_output_process.ispc
+    core/cpu/cpu_upsample.ispc
+    core/color.isph
+    core/color.ispc
+    core/tensor_accessor.isph
+    core/tile.isph
+  )
+endif()
+
+if(OIDN_DEVICE_SYCL OR OIDN_DEVICE_CUDA OR OIDN_DEVICE_HIP)
+  list(APPEND CORE_SOURCES
+    core/gpu/gpu_autoexposure.h
+    core/gpu/gpu_image_copy.h
+    core/gpu/gpu_input_process.h
+    core/gpu/gpu_output_process.h
+    core/gpu/gpu_pool.h
+    core/gpu/gpu_upsample.h
+  )
+endif()
+
+if(OIDN_DNNL)
   list(APPEND CORE_SOURCES
     core/dnnl/dnnl_conv.h
     core/dnnl/dnnl_conv.cpp
@@ -259,7 +286,7 @@ if(OIDN_NEURAL_RUNTIME STREQUAL "DNNL")
     core/dnnl/dnnl_tensor.h
     core/dnnl/dnnl_tensor.cpp
   )
-elseif(OIDN_NEURAL_RUNTIME STREQUAL "BNNS")
+elseif(OIDN_BNNS)
   list(APPEND CORE_SOURCES
     core/bnns/bnns_common.h
     core/bnns/bnns_common.cpp
@@ -309,27 +336,7 @@ if(OIDN_DEVICE_HIP)
   )
 endif()
 
-set(CORE_SOURCES_ISPC
-  core/cpu/cpu_autoexposure.ispc
-  core/cpu/cpu_image_copy.ispc
-  core/cpu/cpu_input_process.ispc
-  core/cpu/cpu_output_process.ispc
-  core/cpu/cpu_upsample.ispc
-  core/color.isph
-  core/color.ispc
-  core/image_accessor.isph
-  core/math.isph
-  core/tensor_accessor.isph
-  core/tile.isph
-  core/vec.isph
-)
-
 add_library(${PROJECT_NAME} ${OIDN_LIB_TYPE} ${CORE_SOURCES})
-
-target_compile_definitions(${PROJECT_NAME} PRIVATE OIDN_${OIDN_NEURAL_RUNTIME})
-ispc_add_definitions(-DOIDN_${OIDN_NEURAL_RUNTIME})
-
-ispc_target_add_sources(${PROJECT_NAME} ${CORE_SOURCES_ISPC})
 
 target_include_directories(${PROJECT_NAME}
   PUBLIC
@@ -338,10 +345,19 @@ target_include_directories(${PROJECT_NAME}
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE common)
-if(OIDN_NEURAL_RUNTIME STREQUAL "DNNL")
+
+if(OIDN_DNNL)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE OIDN_DNNL)
+  ispc_add_definitions(-DOIDN_DNNL)
   target_link_libraries(${PROJECT_NAME} PRIVATE dnnl)
-elseif(OIDN_NEURAL_RUNTIME STREQUAL "BNNS")
+elseif(OIDN_BNNS)
+  target_compile_definitions(${PROJECT_NAME} PRIVATE OIDN_BNNS)
+  ispc_add_definitions(-DOIDN_BNNS)
   target_link_libraries(${PROJECT_NAME} PRIVATE "-framework Accelerate")
+endif()
+
+if(OIDN_DEVICE_CPU)
+  target_compile_definitions(${PROJECT_NAME} PUBLIC OIDN_DEVICE_CPU)
 endif()
 
 if(OIDN_DEVICE_SYCL)
@@ -359,6 +375,8 @@ if(OIDN_DEVICE_HIP)
   target_compile_definitions(${PROJECT_NAME} PUBLIC OIDN_DEVICE_HIP)
   target_link_libraries(${PROJECT_NAME} PRIVATE hip::device MIOpen)
 endif()
+
+ispc_target_add_sources(${PROJECT_NAME} ${CORE_SOURCES_ISPC})
 
 # Include weights
 option(OIDN_FILTER_RT "Include trained weights of the RT filter." ON)

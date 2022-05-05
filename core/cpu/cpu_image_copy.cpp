@@ -6,7 +6,7 @@
 
 namespace oidn {
 
-  CPUImageCopy::CPUImageCopy(const Ref<CPUDevice>& device)
+  CPUImageCopy::CPUImageCopy(const Ref<Device>& device)
     : device(device) {}
 
   void CPUImageCopy::run()
