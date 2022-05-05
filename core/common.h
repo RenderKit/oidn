@@ -12,7 +12,7 @@
 #include "vec.h"
 
 #if defined(OIDN_DNNL)
-  #include "mkl-dnn/include/dnnl.hpp"
+  #include "oneDNN/include/dnnl.hpp"
 #elif defined(OIDN_BNNS)
   #include <Accelerate/Accelerate.h>
 #endif

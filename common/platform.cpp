@@ -4,7 +4,7 @@
 #include "platform.h"
 
 #if defined(OIDN_X64)
-  #include "mkl-dnn/src/cpu/x64/xbyak/xbyak_util.h"
+  #include "oneDNN/src/cpu/x64/xbyak/xbyak_util.h"
 #endif
 
 namespace oidn {
