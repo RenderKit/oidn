@@ -113,9 +113,11 @@ set(OIDN_ISPC_ADDRESSING 64)
 include(oidn_ispc)
 
 # CUDA
-option(OIDN_DEVICE_CUDA "Enable CUDA device." OFF)
-if(OIDN_DEVICE_CUDA)
-  enable_language(CUDA)
+if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.8.0")
+  option(OIDN_DEVICE_CUDA "Enable CUDA device." OFF)
+  if(OIDN_DEVICE_CUDA)
+    enable_language(CUDA)
+  endif()
 endif()
 
 # HIP
