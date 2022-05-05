@@ -357,7 +357,9 @@ function(rk_tbb_find_library COMPONENT_NAME BUILD_CONFIG)
       ${TBB_ROOT}/lib
       ${TBB_ROOT}/lib/x86_64-linux-gnu
       ${TBB_ROOT}/lib64
-      ${TBB_ROOT}/libx86_64-linux-gnu)
+      ${TBB_ROOT}/libx86_64-linux-gnu
+      ${TBB_ROOT}/lib/aarch64-linux-gnu
+      )
   endif()
 
   # We prefer finding the versioned file on Unix so that the library path

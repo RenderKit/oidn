@@ -6,9 +6,17 @@ set(DNNL_VERSION_MINOR 6)
 set(DNNL_VERSION_PATCH 0)
 set(DNNL_VERSION_HASH  "N/A")
 
-set(DNNL_CPU_RUNTIME "TBB")
-set(DNNL_CPU_THREADING_RUNTIME "TBB")
-set(DNNL_GPU_RUNTIME "NONE")
+if(OIDN_ARCH STREQUAL "X64")
+  set(DNNL_CPU_RUNTIME "TBB")
+  set(DNNL_CPU_THREADING_RUNTIME "TBB")
+  set(DNNL_GPU_RUNTIME "NONE")
+else()
+  set(DNNL_CPU_RUNTIME "OMP")
+  set(DNNL_CPU_THREADING_RUNTIME "OMP")
+  set(DNNL_GPU_RUNTIME "NONE")
+endif()
+mark_as_advanced(DNNL_CPU_RUNTIME)
+mark_as_advanced(DNNL_CPU_THREADING_RUNTIME)
 
 option(DNNL_ENABLE_JIT_PROFILING
   "Enable registration of oneDNN kernels that are generated at runtime with

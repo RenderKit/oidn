@@ -16,6 +16,8 @@ namespace oidn {
     dnnl_set_verbose(clamp(verbose - 2, 0, 2)); // unfortunately this is not per-device but global
     dnnlEngine = dnnl::engine(dnnl::engine::kind::cpu, 0);
     dnnlStream = dnnl::stream(dnnlEngine);
+  #endif
+  #if defined(OIDN_X64)
     tensorBlockSize = isISASupported(ISA::AVX512_CORE) ? 16 : 8;
   #else
     tensorBlockSize = 1;

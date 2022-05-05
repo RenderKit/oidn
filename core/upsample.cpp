@@ -6,7 +6,7 @@
 
 namespace oidn {
 
-#if defined(OIDN_DNNL)
+#if defined(OIDN_X64)
 
   CPUUpsampleNode::CPUUpsampleNode(const Ref<Device>& device,
                                    const std::string& name,

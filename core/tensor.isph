@@ -18,7 +18,7 @@ struct TensorAccessor
 
 inline size_t getIndex(uniform TensorAccessor& tz, uniform int h, int w, uniform int c)
 {
-#if defined(OIDN_DNNL)
+#if defined(OIDN_X64)
   // ChwKc layout (blocked)
   return ((size_t)tz.H * (c/K) + h) * ((size_t)tz.W*K) + (size_t)w*K + (c%K);
 #else
