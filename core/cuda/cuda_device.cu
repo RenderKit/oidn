@@ -45,8 +45,8 @@ namespace oidn {
       std::cout << "  Device  : " << prop.name << std::endl;
 
     // Check required hardware features
-    if (computeCapability < 60)
-      throw Exception(Error::UnsupportedHardware, "device does not have compute capability 6.0 or newer");
+    if (computeCapability < 60 || computeCapability > 87)
+      throw Exception(Error::UnsupportedHardware, "device has unsupported compute capability");
     if (!prop.unifiedAddressing)
       throw Exception(Error::UnsupportedHardware, "device does not support unified addressing");
     if (!prop.managedMemory)

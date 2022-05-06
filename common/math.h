@@ -46,7 +46,7 @@ namespace math {
 #if defined(OIDN_COMPILE_CUDA_DEVICE) && (__CUDA_ARCH__ >= 800)
   OIDN_DEVICE_INLINE half min(half a, half b) { return __hmin(a, b); }
   OIDN_DEVICE_INLINE half max(half a, half b) { return __hmax(a, b); }
-#elif defined(OIDN_COMPILE_CUDA_DEVICE) || defined(OIDN_COMPILE_HIP_DEVICE)
+#elif (defined(OIDN_COMPILE_CUDA_DEVICE) && (__CUDA_ARCH__ >= 530)) || defined(OIDN_COMPILE_HIP_DEVICE)
   OIDN_DEVICE_INLINE half min(half a, half b) { return (b < a) ? b : a; }
   OIDN_DEVICE_INLINE half max(half a, half b) { return (a < b) ? b : a; }
 #endif

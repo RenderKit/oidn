@@ -322,7 +322,30 @@ if(OIDN_DEVICE_CUDA)
     core/cuda/cuda_concat_conv.cpp
     core/cuda/cuda_device.h
     core/cuda/cuda_device.cu
+    core/cuda/cutlass_conv.h
+    core/cuda/cutlass_conv_sm60.cu
+    core/cuda/cutlass_conv_sm70.cu
+    core/cuda/cutlass_conv_sm75.cu
+    core/cuda/cutlass_conv_sm80.cu
   )
+
+  # We do not generate PTX to avoid excessive JIT compile times
+  set(OIDN_NVCC_SM60_FLAGS "-gencode arch=compute_60,code=sm_60 -gencode arch=compute_61,code=[sm_61,sm_62]")
+  set(OIDN_NVCC_SM70_FLAGS "-gencode arch=compute_70,code=[sm_70,sm_72]")
+  set(OIDN_NVCC_SM75_FLAGS "-gencode arch=compute_75,code=sm_75")
+  set(OIDN_NVCC_SM80_FLAGS "-gencode arch=compute_80,code=sm_80 -gencode arch=compute_86,code=[sm_86,sm_87]")
+
+  set_source_files_properties(
+    core/cuda/cuda_conv.cu
+    core/cuda/cuda_device.cu
+    PROPERTIES COMPILE_FLAGS
+      "${OIDN_NVCC_SM60_FLAGS} ${OIDN_NVCC_SM70_FLAGS} ${OIDN_NVCC_SM75_FLAGS} ${OIDN_NVCC_SM80_FLAGS}"
+  )
+
+  set_source_files_properties(core/cuda/cutlass_conv_sm60.cu PROPERTIES COMPILE_FLAGS ${OIDN_NVCC_SM60_FLAGS})
+  set_source_files_properties(core/cuda/cutlass_conv_sm70.cu PROPERTIES COMPILE_FLAGS ${OIDN_NVCC_SM70_FLAGS})
+  set_source_files_properties(core/cuda/cutlass_conv_sm75.cu PROPERTIES COMPILE_FLAGS ${OIDN_NVCC_SM75_FLAGS})
+  set_source_files_properties(core/cuda/cutlass_conv_sm80.cu PROPERTIES COMPILE_FLAGS ${OIDN_NVCC_SM80_FLAGS})
 endif()
 
 if(OIDN_DEVICE_HIP)
@@ -367,7 +390,7 @@ endif()
 
 if(OIDN_DEVICE_CUDA)
   target_include_directories(${PROJECT_NAME} PRIVATE "${PROJECT_SOURCE_DIR}/cutlass/include" "${PROJECT_SOURCE_DIR}/cutlass/tools/util/include")
-  set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_ARCHITECTURES "60;61;70;75;80;86")
+  set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_ARCHITECTURES OFF)
   target_compile_definitions(${PROJECT_NAME} PUBLIC OIDN_DEVICE_CUDA)
 endif()
 
