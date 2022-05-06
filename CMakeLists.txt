@@ -110,7 +110,7 @@ set(OIDN_ISPC_ADDRESSING 64)
 include(oidn_ispc)
 
 # CUDA device
-if(NOT APPLE AND ${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.8.0")
+if(NOT APPLE AND ${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.18.0")
   option(OIDN_DEVICE_CUDA "Enable CUDA device." OFF)
   if(OIDN_DEVICE_CUDA)
     enable_language(CUDA)
@@ -367,7 +367,7 @@ endif()
 
 if(OIDN_DEVICE_CUDA)
   target_include_directories(${PROJECT_NAME} PRIVATE "${PROJECT_SOURCE_DIR}/cutlass/include" "${PROJECT_SOURCE_DIR}/cutlass/tools/util/include")
-  set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_ARCHITECTURES "86")
+  set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_ARCHITECTURES "60;61;70;75;80;86")
   target_compile_definitions(${PROJECT_NAME} PUBLIC OIDN_DEVICE_CUDA)
 endif()
 
