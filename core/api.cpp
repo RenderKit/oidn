@@ -133,6 +133,19 @@ OIDN_API_NAMESPACE_BEGIN
     return (OIDNDevice)device.detach();
   }
 
+  OIDN_API OIDNDevice oidnNewDeviceCUDA(void* cudaStream)
+  {
+    Ref<Device> device = nullptr;
+    OIDN_TRY
+    #if defined(OIDN_DEVICE_CUDA)
+      device = makeRef<CUDADevice>(static_cast<cudaStream_t>(cudaStream));
+    #else
+      throw Exception(Error::InvalidArgument, "unsupported device type");
+    #endif
+    OIDN_CATCH(device)
+    return (OIDNDevice)device.detach();
+  }
+
   OIDN_API OIDNDevice oidnNewDeviceSYCL(void* syclQueue)
   {
     Ref<Device> device = nullptr;

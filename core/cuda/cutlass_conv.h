@@ -240,7 +240,9 @@ namespace oidn {
 
     void finalize() override
     {
-      checkError(gemm.initialize(initialArguments, scratch ? scratch->getData() : nullptr));
+      checkError(gemm.initialize(initialArguments,
+                                 scratch ? scratch->getData() : nullptr,
+                                 device->getCUDAStream()));
       finalized = true;
     }
 
@@ -261,8 +263,10 @@ namespace oidn {
         {ElementComputeEpilogue(1)}
       };
 
-      checkError(gemm.update(arguments, scratch ? scratch->getData() : nullptr));
-      checkError(gemm());
+      checkError(gemm.update(arguments,
+                             scratch ? scratch->getData() : nullptr));
+                             
+      checkError(gemm.run(device->getCUDAStream()));
     }
 
   private:

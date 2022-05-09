@@ -13,6 +13,9 @@
 
 namespace oidn {
 
+  CUDADevice::CUDADevice(cudaStream_t stream)
+    : stream(stream) {}
+
   void checkError(cudaError_t error)
   {
     if (error == cudaSuccess)
@@ -60,7 +63,7 @@ namespace oidn {
 
   void CUDADevice::wait()
   {
-    checkError(cudaDeviceSynchronize());
+    checkError(cudaStreamSynchronize(stream));
   }
 
   std::shared_ptr<Conv> CUDADevice::newConv(const ConvDesc& desc)
@@ -156,6 +159,6 @@ namespace oidn {
   void CUDADevice::runHostFuncAsync(std::function<void()>&& f)
   {
     auto fPtr = new std::function<void()>(std::move(f));
-    checkError(cudaStreamAddCallback(0, hostFuncCallback, fPtr, 0));
+    checkError(cudaStreamAddCallback(stream, hostFuncCallback, fPtr, 0));
   }
 }

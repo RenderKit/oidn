@@ -550,4 +550,12 @@ OIDN_NAMESPACE_BEGIN
   }
 #endif
 
+#if defined(__CUDACC__)
+  // Creates a new CUDA device using a specified CUDA stream.
+  inline DeviceRef newDevice(cudaStream_t stream)
+  {
+    return DeviceRef(oidnNewDeviceCUDA(stream));
+  }
+#endif
+
 OIDN_NAMESPACE_END

@@ -5,6 +5,10 @@
 
 #include "../device.h"
 
+#if !defined(OIDN_COMPILE_CUDA)
+  typedef struct CUstream_st* cudaStream_t;
+#endif
+
 namespace oidn {
 
 #if defined(OIDN_COMPILE_CUDA)
@@ -51,6 +55,9 @@ namespace oidn {
   class CUDADevice final : public Device
   { 
   public:
+    CUDADevice(cudaStream_t stream = nullptr);
+
+    cudaStream_t getCUDAStream() const { return stream; }
     void wait() override;
 
     // Ops
@@ -82,7 +89,7 @@ namespace oidn {
       WorkDim<N> groupSize = suggestWorkGroupSize(globalSize);
       WorkDim<N> numGroups = ceil_div(globalSize, groupSize);
 
-      basicCUDAKernel<<<numGroups, groupSize>>>(globalSize, f);
+      basicCUDAKernel<<<numGroups, groupSize, 0, stream>>>(globalSize, f);
       checkError(cudaGetLastError());
     }
 
@@ -90,7 +97,7 @@ namespace oidn {
     template<int N, typename F>
     OIDN_INLINE void runKernelAsync(WorkDim<N> numGroups, WorkDim<N> groupSize, const F& f)
     {
-      groupCUDAKernel<N><<<numGroups, groupSize>>>(f);
+      groupCUDAKernel<N><<<numGroups, groupSize, 0, stream>>>(f);
       checkError(cudaGetLastError());
     }
   #endif
@@ -108,6 +115,7 @@ namespace oidn {
     WorkDim<2> suggestWorkGroupSize(WorkDim<2> globalSize) { return {16, 16}; }
     WorkDim<3> suggestWorkGroupSize(WorkDim<3> globalSize) { return {1, 16, 16}; }
 
+    cudaStream_t stream;
     int computeCapability;
   };
 
