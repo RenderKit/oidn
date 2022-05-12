@@ -4,7 +4,7 @@
 #pragma once
 
 #include "../image_copy.h"
-#include "cpu_device.h"
+#include "../device.h"
 
 namespace oidn {
 
