@@ -102,7 +102,6 @@ namespace oidn {
   private:
     void init() override;
 
-    // FIXME
     WorkDim<1> suggestWorkGroupSize(WorkDim<1> globalSize) { return 1024; }
     WorkDim<2> suggestWorkGroupSize(WorkDim<2> globalSize) { return {32, 32}; }
     WorkDim<3> suggestWorkGroupSize(WorkDim<3> globalSize) { return {1, 32, 32}; }

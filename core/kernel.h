@@ -14,42 +14,42 @@ namespace oidn {
   // WorkDim
   // ---------------------------------------------------------------------------
 
-  template<int dims>
+  template<int N>
   class WorkDim
   {
   public:
-    template<int N = dims>
-    OIDN_HOST_DEVICE_INLINE WorkDim(enable_if_t<N == 1, int> dim0)
+    template<int n = N>
+    OIDN_HOST_DEVICE_INLINE WorkDim(enable_if_t<n == 1, int> dim0)
       : dim{dim0} {}
 
-    template<int N = dims>
-    OIDN_HOST_DEVICE_INLINE WorkDim(enable_if_t<N == 2, int> dim0, int dim1)
+    template<int n = N>
+    OIDN_HOST_DEVICE_INLINE WorkDim(enable_if_t<n == 2, int> dim0, int dim1)
       : dim{dim0, dim1} {}
 
-    template<int N = dims>
-    OIDN_HOST_DEVICE_INLINE WorkDim(enable_if_t<N == 3, int> dim0, int dim1, int dim2)
+    template<int n = N>
+    OIDN_HOST_DEVICE_INLINE WorkDim(enable_if_t<n == 3, int> dim0, int dim1, int dim2)
       : dim{dim0, dim1, dim2} {}
 
-    template<int N = dims>
-    OIDN_HOST_DEVICE_INLINE operator enable_if_t<N == 1, int>() const { return dim[0]; }
+    template<int n = N>
+    OIDN_HOST_DEVICE_INLINE operator enable_if_t<n == 1, int>() const { return dim[0]; }
 
     OIDN_HOST_DEVICE_INLINE int operator [](int i) const { return dim[i]; }
 
   #if defined(OIDN_COMPILE_SYCL)
-    template<int N = dims>
-    OIDN_INLINE operator enable_if_t<N == 1, sycl::range<1>>() const { return sycl::range<1>(dim[0]); }
+    template<int n = N>
+    OIDN_INLINE operator enable_if_t<n == 1, sycl::range<1>>() const { return sycl::range<1>(dim[0]); }
 
-    template<int N = dims>
-    OIDN_INLINE operator enable_if_t<N == 2, sycl::range<2>>() const { return sycl::range<2>(dim[0], dim[1]); }
+    template<int n = N>
+    OIDN_INLINE operator enable_if_t<n == 2, sycl::range<2>>() const { return sycl::range<2>(dim[0], dim[1]); }
 
-    template<int N = dims>
-    OIDN_INLINE operator enable_if_t<N == 3, sycl::range<3>>() const { return sycl::range<3>(dim[0], dim[1], dim[2]); }
+    template<int n = N>
+    OIDN_INLINE operator enable_if_t<n == 3, sycl::range<3>>() const { return sycl::range<3>(dim[0], dim[1], dim[2]); }
   #elif defined(OIDN_COMPILE_CUDA) || defined(OIDN_COMPILE_HIP)
     OIDN_INLINE operator dim3() const
     {
-      if (dims == 1)
+      if (N == 1)
         return dim3(dim[0]);
-      else if (dims == 2)
+      else if (N == 2)
         return dim3(dim[1], dim[0]);
       else
         return dim3(dim[2], dim[1], dim[0]);
@@ -57,7 +57,7 @@ namespace oidn {
   #endif
 
   private:
-    int dim[dims];
+    int dim[N];
   };
 
   OIDN_INLINE WorkDim<1> operator *(WorkDim<1> a, WorkDim<1> b) { return {a[0] * b[0]}; }
@@ -80,11 +80,11 @@ namespace oidn {
   // SYCL WorkItem
   // ---------------------------------------------------------------------------
 
-  template<int dims>
+  template<int N>
   class WorkItem
   {
   public:
-    OIDN_DEVICE_INLINE WorkItem(const sycl::item<dims>& item) : item(item) {}
+    OIDN_DEVICE_INLINE WorkItem(const sycl::item<N>& item) : item(item) {}
 
     template<int i = 0> OIDN_DEVICE_INLINE int getId()    const { return int(item.get_id(i)); }
     template<int i = 0> OIDN_DEVICE_INLINE int getRange() const { return int(item.get_range(i)); }
@@ -92,18 +92,18 @@ namespace oidn {
     OIDN_DEVICE_INLINE int getLinearId() const { return int(item.get_linear_id()); }
 
   private:
-    const sycl::item<dims>& item;
+    const sycl::item<N>& item;
   };
 
   // ---------------------------------------------------------------------------
   // SYCL WorkGroupItem
   // ---------------------------------------------------------------------------
 
-  template<int dims>
+  template<int N>
   class WorkGroupItem
   {
   public:
-    OIDN_DEVICE_INLINE WorkGroupItem(const sycl::nd_item<dims>& item) : item(item) {}
+    OIDN_DEVICE_INLINE WorkGroupItem(const sycl::nd_item<N>& item) : item(item) {}
 
     template<int i = 0> OIDN_DEVICE_INLINE int getGlobalId()    const { return int(item.get_global_id(i)); }
     template<int i = 0> OIDN_DEVICE_INLINE int getGlobalRange() const { return int(item.get_global_range(i)); }
@@ -122,18 +122,18 @@ namespace oidn {
     }
 
   private:
-    const sycl::nd_item<dims>& item;
+    const sycl::nd_item<N>& item;
   };
 
   // ---------------------------------------------------------------------------
   // SYCL WorkGroup
   // ---------------------------------------------------------------------------
 
-  template<int dims>
+  template<int N>
   struct WorkGroup
   {
     // Shared local array
-    template<typename T, int N>
+    template<typename T, int size>
     class LocalArray
     {
     public:
@@ -141,8 +141,8 @@ namespace oidn {
       OIDN_DEVICE_INLINE T& operator [](unsigned int i) { return (*ptr)[i]; }
 
     private:
-      sycl::multi_ptr<T[N], sycl::access::address_space::local_space> ptr =
-        sycl::ext::oneapi::group_local_memory<T[N]>(sycl::ext::oneapi::experimental::this_nd_item<dims>().get_group());
+      sycl::multi_ptr<T[size], sycl::access::address_space::local_space> ptr =
+        sycl::ext::oneapi::group_local_memory<T[size]>(sycl::ext::oneapi::experimental::this_nd_item<N>().get_group());
     };
   };
 
@@ -152,23 +152,23 @@ namespace oidn {
   // CUDA/HIP WorkItem
   // ---------------------------------------------------------------------------
 
-  template<int dims>
+  template<int N>
   class WorkItem
   {
   public:
-    template<int N = dims>
-    OIDN_DEVICE_INLINE WorkItem(typename std::enable_if<N == 1, const WorkDim<1>&>::type range)
+    template<int n = N>
+    OIDN_DEVICE_INLINE WorkItem(typename std::enable_if<n == 1, const WorkDim<1>&>::type range)
       : id(blockIdx.x * blockDim.x + threadIdx.x),
         range(range) {}
 
-    template<int N = dims>
-    OIDN_DEVICE_INLINE WorkItem(typename std::enable_if<N == 2, const WorkDim<2>&>::type range)
+    template<int n = N>
+    OIDN_DEVICE_INLINE WorkItem(typename std::enable_if<n == 2, const WorkDim<2>&>::type range)
       : id(blockIdx.y * blockDim.y + threadIdx.y,
            blockIdx.x * blockDim.x + threadIdx.x),
         range(range) {}
 
-    template<int N = dims>
-    OIDN_DEVICE_INLINE WorkItem(typename std::enable_if<N == 3, const WorkDim<3>&>::type range)
+    template<int n = N>
+    OIDN_DEVICE_INLINE WorkItem(typename std::enable_if<n == 3, const WorkDim<3>&>::type range)
       : id(blockIdx.z * blockDim.z + threadIdx.z,
            blockIdx.y * blockDim.y + threadIdx.y,
            blockIdx.x * blockDim.x + threadIdx.x),
@@ -178,15 +178,15 @@ namespace oidn {
     template<int i = 0> OIDN_DEVICE_INLINE int getRange() const { return range[i]; }
 
   private:
-    WorkDim<dims> id;
-    WorkDim<dims> range;
+    WorkDim<N> id;
+    WorkDim<N> range;
   };
 
   // ---------------------------------------------------------------------------
   // CUDA/HIP WorkGroupItem
   // ---------------------------------------------------------------------------
 
-  template<int dims>
+  template<int N>
   class WorkGroupItem;
 
   template<>
@@ -243,11 +243,11 @@ namespace oidn {
   // CUDA/HIP WorkGroup
   // ---------------------------------------------------------------------------
 
-  template<int dims>
+  template<int N>
   struct WorkGroup
   {
     // Shared local array, must be declared with OIDN_SHARED
-    template<typename T, int N>
+    template<typename T, int size>
     class LocalArray
     {
     public:
@@ -255,7 +255,7 @@ namespace oidn {
       OIDN_DEVICE_INLINE T& operator [](unsigned int i) { return v[i]; }
 
     private:
-      T v[N];
+      T v[size];
     };
   };
 
