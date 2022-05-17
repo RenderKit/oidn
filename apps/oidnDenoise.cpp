@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include <iostream>
@@ -24,7 +24,7 @@ using namespace oidn;
 void printUsage()
 {
   std::cout << "Intel(R) Open Image Denoise" << std::endl;
-  std::cout << "usage: oidnDenoise [-d/--device default|cpu|sycl|cuda]" << std::endl
+  std::cout << "usage: oidnDenoise [-d/--device default|cpu|sycl|cuda|hip]" << std::endl
             << "                   [-f/--filter RT|RTLightmap]" << std::endl
             << "                   [--hdr color.pfm] [--ldr color.pfm] [--srgb] [--dir directional.pfm]" << std::endl
             << "                   [--alb albedo.pfm] [--nrm normal.pfm] [--clean_aux]" << std::endl

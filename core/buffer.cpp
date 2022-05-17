@@ -7,6 +7,10 @@
 
 namespace oidn {
 
+  // ---------------------------------------------------------------------------
+  // Buffer
+  // ---------------------------------------------------------------------------
+
   void* Buffer::map(size_t byteOffset, size_t byteSize, Access access)
   {
     throw Exception(Error::InvalidOperation, "mapping the buffer is not supported");
@@ -44,6 +48,10 @@ namespace oidn {
     return std::make_shared<Image>(this, desc, byteOffset);
   }
 
+  // ---------------------------------------------------------------------------
+  // MappedBuffer
+  // ---------------------------------------------------------------------------
+
   MappedBuffer::MappedBuffer(const Ref<Buffer>& buffer, size_t byteOffset, size_t byteSize, Access access)
     : ptr((char*)buffer->map(byteOffset, byteSize, access)),
       byteSize(byteSize),
@@ -53,6 +61,10 @@ namespace oidn {
   {
     buffer->unmap(ptr);
   }
+
+  // ---------------------------------------------------------------------------
+  // USMBuffer
+  // ---------------------------------------------------------------------------
 
   USMBuffer::USMBuffer(const Ref<Device>& device, size_t byteSize, Storage storage)
     : ptr(nullptr),
@@ -73,6 +85,7 @@ namespace oidn {
   {
     if (ptr == nullptr)
       throw Exception(Error::InvalidArgument, "buffer pointer null");
+    storage = device->getPointerStorage(ptr);
   }
 
   USMBuffer::~USMBuffer()

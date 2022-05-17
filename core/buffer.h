@@ -16,6 +16,10 @@ namespace oidn {
   class Tensor;
   class Image;
 
+  // ---------------------------------------------------------------------------
+  // Buffer
+  // ---------------------------------------------------------------------------
+
   // Generic buffer object
   class Buffer : public RefCount
   {
@@ -47,6 +51,10 @@ namespace oidn {
     virtual void detach(Memory* mem) {}
   };
 
+  // ---------------------------------------------------------------------------
+  // MappedBuffer
+  // ---------------------------------------------------------------------------
+
   // Memory mapped version of a buffer
   class MappedBuffer final : public Buffer
   {
@@ -66,6 +74,10 @@ namespace oidn {
     size_t byteSize;
     Ref<Buffer> buffer;
   };
+
+  // ---------------------------------------------------------------------------
+  // USMBuffer
+  // ---------------------------------------------------------------------------
 
   // Unified shared memory based buffer object
   class USMBuffer final : public Buffer
@@ -105,6 +117,10 @@ namespace oidn {
     std::unordered_map<void*, MappedRegion> mappedRegions;
     Ref<Device> device;
   };
+
+  // ---------------------------------------------------------------------------
+  // Memory
+  // ---------------------------------------------------------------------------
 
   // Memory object optionally backed by a buffer
   class Memory

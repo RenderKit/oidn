@@ -37,7 +37,6 @@ namespace oidn {
 
   void CUDADevice::init()
   {
-    int deviceId = 0;
     checkError(cudaGetDevice(&deviceId));
 
     cudaDeviceProp prop;
@@ -144,6 +143,28 @@ namespace oidn {
   void CUDADevice::memcpy(void* dstPtr, const void* srcPtr, size_t byteSize)
   {
     checkError(cudaMemcpy(dstPtr, srcPtr, byteSize, cudaMemcpyDefault));
+  }
+
+  Storage CUDADevice::getPointerStorage(const void* ptr)
+  {
+    cudaPointerAttributes attrib;
+    if (cudaPointerGetAttributes(&attrib, ptr) != cudaSuccess)
+      return Storage::Undefined;
+
+    switch (attrib.type)
+    {
+    case cudaMemoryTypeHost:
+      return Storage::Host;
+
+    case cudaMemoryTypeDevice:
+      return attrib.device == deviceId ? Storage::Device : Storage::Undefined;
+
+    case cudaMemoryTypeManaged:
+      return Storage::Managed;
+
+    default:
+      return Storage::Undefined;
+    }
   }
 
   namespace

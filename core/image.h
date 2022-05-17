@@ -93,6 +93,9 @@ namespace oidn {
     using ImageDesc::getAlignedSize;
     using ImageDesc::getDataType;
 
+    OIDN_INLINE       void* getData()       { return ptr; }
+    OIDN_INLINE const void* getData() const { return ptr; }
+
     OIDN_INLINE       char* begin()       { return ptr; }
     OIDN_INLINE const char* begin() const { return ptr; }
 

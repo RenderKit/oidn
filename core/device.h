@@ -102,6 +102,7 @@ namespace oidn {
     virtual void* malloc(size_t byteSize, Storage storage);
     virtual void free(void* ptr, Storage storage);
     virtual void memcpy(void* dstPtr, const void* srcPtr, size_t byteSize);
+    virtual Storage getPointerStorage(const void* ptr);
 
   #if !defined(OIDN_COMPILE_CUDA)
     // Runs a parallel host task in the thread arena (if it exists)

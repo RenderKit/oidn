@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "filter.h"
@@ -27,7 +27,15 @@ namespace oidn {
 
   void Filter::setParam(std::shared_ptr<Image>& dst, const std::shared_ptr<Image>& src)
   {
-    // The image parameter is *not* dirty if only the pointer changes (except to/from nullptr)
+    // Check whether the image is accessible to the device
+    if (src && *src)
+    {
+      Storage storage = src->getBuffer() ? src->getBuffer()->getStorage() : device->getPointerStorage(src->getData());
+      if (storage == Storage::Undefined)
+        throw Exception(Error::InvalidArgument, "the specified image is not accessible to the device, please use OIDNBuffer or native device malloc");
+    }
+
+    // The image parameter is *not* dirty if only the pointer and/or strides change (except to/from nullptr)
     dirtyParam |= (!dst && src && *src) || (dst && (!src || !(*src))) ||
                   (dst && src && *src &&
                    ((dst->getW() != src->getW()) || (dst->getH() != src->getH()) ||
@@ -47,6 +55,10 @@ namespace oidn {
 
   void Filter::setParam(Data& dst, const Data& src)
   {
+    // Check whether the data is accessible to the host
+    if (src && device->getPointerStorage(src.ptr) == Storage::Device)
+      throw Exception(Error::InvalidArgument, "the specified data is not accessible to the host, please use host malloc");
+
     dirtyParam = dst || src;
     dst = src;
   }

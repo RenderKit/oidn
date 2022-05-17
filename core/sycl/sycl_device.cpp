@@ -131,6 +131,24 @@ namespace oidn {
     sycl->queue.memcpy(dstPtr, srcPtr, byteSize).wait();
   }
 
+  Storage SYCLDevice::getPointerStorage(const void* ptr)
+  {
+    switch (sycl::get_pointer_type(ptr, sycl->context))
+    {
+      case sycl::usm::alloc::host:
+        return Storage::Host;
+
+      case sycl::usm::alloc::device:
+        return sycl::get_pointer_device(ptr, sycl->context) == sycl->device ? Storage::Device : Storage::Undefined;
+      
+      case sycl::usm::alloc::shared:
+        return Storage::Managed;
+      
+      default:
+        return Storage::Undefined;
+    }
+  }
+
   void SYCLDevice::runHostFuncAsync(std::function<void()>&& f)
   {
     sycl->queue.submit([&](sycl::handler& cgh) { cgh.host_task(f); });

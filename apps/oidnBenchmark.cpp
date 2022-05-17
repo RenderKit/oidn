@@ -33,7 +33,7 @@ bool inplace = false;
 void printUsage()
 {
   std::cout << "Intel(R) Open Image Denoise - Benchmark" << std::endl;
-  std::cout << "usage: oidnBenchmark [-d/--device default|cpu|sycl|cuda]" << std::endl
+  std::cout << "usage: oidnBenchmark [-d/--device default|cpu|sycl|cuda|hip]" << std::endl
             << "                     [-r/--run regex] [-n times]" << std::endl
             << "                     [-s/--size width height]" << std::endl
             << "                     [-t/--type float|half]" << std::endl
@@ -88,7 +88,7 @@ void addBenchmark(const std::string& filter, const std::vector<std::string>& inp
 
 std::shared_ptr<ImageBuffer> newImage(DeviceRef& device, int width, int height)
 {
-  // Create a buffer stored on the device to avoid potential performance issues
+  // Create a buffer stored on the device to maximize performance
   return std::make_shared<ImageBuffer>(device, width, height, 3, dataType, Storage::Device);
 }
 
@@ -117,7 +117,7 @@ double runBenchmark(DeviceRef& device, const Benchmark& bench)
   {
     input = albedo = newImage(device, bench.width, bench.height);
     initImage(*albedo, rng, 0.f, 1.f);
-    filter.setImage("albedo", albedo->getData(), albedo->getFormat(), bench.width, bench.height);
+    filter.setImage("albedo", albedo->getBuffer(), albedo->getFormat(), bench.width, bench.height);
   }
 
   std::shared_ptr<ImageBuffer> normal;
@@ -125,7 +125,7 @@ double runBenchmark(DeviceRef& device, const Benchmark& bench)
   {
     input = normal = newImage(device, bench.width, bench.height);
     initImage(*normal, rng, -1.f, 1.f);
-    filter.setImage("normal", normal->getData(), normal->getFormat(), bench.width, bench.height);
+    filter.setImage("normal", normal->getBuffer(), normal->getFormat(), bench.width, bench.height);
   }
 
   std::shared_ptr<ImageBuffer> color;
@@ -133,14 +133,14 @@ double runBenchmark(DeviceRef& device, const Benchmark& bench)
   {
     input = color = newImage(device, bench.width, bench.height);
     initImage(*color, rng, 0.f, 100.f);
-    filter.setImage("color", color->getData(), color->getFormat(), bench.width, bench.height);
+    filter.setImage("color", color->getBuffer(), color->getFormat(), bench.width, bench.height);
     filter.set("hdr", true);
   }
   else if (bench.hasInput("ldr"))
   {
     input = color = newImage(device, bench.width, bench.height);
     initImage(*color, rng, 0.f, 1.f);
-    filter.setImage("color", color->getData(), color->getFormat(), bench.width, bench.height);
+    filter.setImage("color", color->getBuffer(), color->getFormat(), bench.width, bench.height);
     filter.set("hdr", false);
   }
 
@@ -149,7 +149,7 @@ double runBenchmark(DeviceRef& device, const Benchmark& bench)
     output = input;
   else
     output = newImage(device, bench.width, bench.height);
-  filter.setImage("output", output->getData(), output->getFormat(), bench.width, bench.height);
+  filter.setImage("output", output->getBuffer(), output->getFormat(), bench.width, bench.height);
 
   if (maxMemoryMB >= 0)
     filter.set("maxMemoryMB", maxMemoryMB);

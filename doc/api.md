@@ -275,17 +275,16 @@ Buffer
 ------
 
 Large data like images can be passed to Intel Open Image Denoise either via
-pointers to memory allocated and managed by the user (this is the recommended,
-often easier and more efficient approach, if supported by the device) or by
-creating buffer objects (supported by all devices). To create a new data buffer
-with memory allocated and owned by the device, holding `byteSize` number of
-bytes, use
+pointers to memory allocated and managed by the user or by creating buffer
+objects. To create a new data buffer with memory allocated and owned by the
+device, holding `byteSize` number of bytes, use
 
     OIDNBuffer oidnNewBuffer(OIDNDevice device, size_t byteSize);
 
 The created buffer is bound to the specified device (`device` argument). The
 specified number of bytes are allocated at buffer construction time and
-deallocated when the buffer is destroyed.
+deallocated when the buffer is destroyed. The allocated memory is accessible to
+both the host and the device.
 
 It is also possible to create a "shared" data buffer with memory allocated and
 managed by the user with
@@ -398,7 +397,9 @@ To bind images to the filter, you can use one of the following functions:
 
 It is possible to specify either a data buffer object (`buffer` argument) with
 the `oidnSetFilterImage` function, or directly a pointer to shared user-managed
-data (`ptr` argument) with the `oidnSetSharedFilterImage` function.
+data (`ptr` argument) with the `oidnSetSharedFilterImage` function. Regardless
+of whether a buffer or a pointer is specified, the data must be acessible to the
+device. To ensure this, 
 
 In both cases, you must also specify the name of the image parameter to set
 (`name` argument, e.g. `"color"`, `"output"`), the pixel format (`format`
@@ -717,7 +718,7 @@ Type        Name             Default Description
 ----------- ------------- ---------- ---------------------------------------------------------------
 `Image`     `color`                  input beauty image (3 channels, HDR values in [0, +∞),
                                      interpreted such that, after scaling with the `inputScale`
-                                     parameter, a value of 1 corresponds to aluminance level of 100
+                                     parameter, a value of 1 corresponds to a luminance level of 100
                                      cd/m²; directional values in [-1, 1])
 
 `Image`     `output`                 output image (3 channels); can be one of the input images

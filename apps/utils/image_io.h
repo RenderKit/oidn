@@ -39,6 +39,8 @@ namespace oidn {
     OIDN_INLINE const void* getData() const { return hostPtr ? hostPtr : devPtr; }
     OIDN_INLINE void* getData() { return hostPtr ? hostPtr : devPtr; }
 
+    OIDN_INLINE const BufferRef& getBuffer() const { return buffer; }
+
     OIDN_INLINE operator bool() const { return devPtr != nullptr; }
 
     void map(Access access);

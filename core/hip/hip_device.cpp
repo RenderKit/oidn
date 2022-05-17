@@ -39,7 +39,6 @@ namespace oidn {
 
   void HIPDevice::init()
   {
-    int deviceId = 0;
     checkError(hipGetDevice(&deviceId));
 
     hipDeviceProp_t prop;
@@ -137,6 +136,31 @@ namespace oidn {
   void HIPDevice::memcpy(void* dstPtr, const void* srcPtr, size_t byteSize)
   {
     checkError(hipMemcpy(dstPtr, srcPtr, byteSize, hipMemcpyDefault));
+  }
+
+  Storage HIPDevice::getPointerStorage(const void* ptr)
+  {
+    hipPointerAttribute_t attrib;
+    if (hipPointerGetAttributes(&attrib, ptr) != hipSuccess)
+      return Storage::Undefined;
+
+    if (attrib.isManaged)
+      return Storage::Managed;
+
+    switch (attrib.memoryType)
+    {
+    case hipMemoryTypeHost:
+      return Storage::Host;
+
+    case hipMemoryTypeDevice:
+      return attrib.device == deviceId ? Storage::Device : Storage::Undefined;
+
+    case hipMemoryTypeUnified:
+      return Storage::Managed;
+
+    default:
+      return Storage::Undefined;
+    }
   }
 
   namespace

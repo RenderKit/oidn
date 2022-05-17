@@ -73,6 +73,7 @@ namespace oidn {
     void* malloc(size_t byteSize, Storage storage) override;
     void free(void* ptr, Storage storage) override;
     void memcpy(void* dstPtr, const void* srcPtr, size_t byteSize) override;
+    Storage getPointerStorage(const void* ptr) override;
 
   #if defined(OIDN_COMPILE_HIP)
     // Enqueues a basic kernel
@@ -106,7 +107,8 @@ namespace oidn {
     WorkDim<2> suggestWorkGroupSize(WorkDim<2> globalSize) { return {32, 32}; }
     WorkDim<3> suggestWorkGroupSize(WorkDim<3> globalSize) { return {1, 32, 32}; }
 
-    miopenHandle_t miopenHandle;
+    int deviceId = -1;
+    miopenHandle_t miopenHandle = nullptr;
   };
 
 } // namespace oidn

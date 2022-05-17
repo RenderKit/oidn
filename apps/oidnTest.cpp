@@ -18,7 +18,7 @@ DeviceType deviceType = DeviceType::Default;
 
 #if defined(OIDN_FILTER_RT)
 
-void setFilterImage(FilterRef& filter, const char* name, const std::shared_ptr<ImageBuffer>& image)
+void setFilterImage(FilterRef& filter, const char* name, const std::shared_ptr<ImageBuffer>& image, bool useBuffer = false)
 {
   Format format = Format::Undefined;
   switch (image->getC())
@@ -31,7 +31,10 @@ void setFilterImage(FilterRef& filter, const char* name, const std::shared_ptr<I
     assert(0);
   }
 
-  filter.setImage(name, image->getData(), format, image->getW(), image->getH());
+  if (useBuffer)
+    filter.setImage(name, image->getBuffer(), format, image->getW(), image->getH());
+  else
+    filter.setImage(name, image->getData(), format, image->getW(), image->getH());
 }
 
 std::shared_ptr<ImageBuffer> makeImage(DeviceRef& device, int W, int H, int C = 3)
@@ -203,6 +206,33 @@ TEST_CASE("multiple devices", "[multi_device]")
     filters[i].execute();
     REQUIRE(devices[i].getError() == Error::None);
   }
+}
+
+// -----------------------------------------------------------------------------
+
+TEST_CASE("image buffers", "[image_buffers]")
+{
+  const int W = 198;
+  const int H = 300;
+
+  DeviceRef device = newDevice(deviceType);
+  REQUIRE(bool(device));
+  device.commit();
+  REQUIRE(device.getError() == Error::None);
+
+  FilterRef filter = device.newFilter("RT");
+  REQUIRE(bool(filter));
+
+  auto color  = makeConstImage(device, W, H);
+  auto output = makeImage(device, W, H);
+  setFilterImage(filter, "color",  color,  true);
+  setFilterImage(filter, "output", output, true);
+
+  filter.commit();
+  REQUIRE(device.getError() == Error::None);
+
+  filter.execute();
+  REQUIRE(device.getError() == Error::None);
 }
 
 // -----------------------------------------------------------------------------

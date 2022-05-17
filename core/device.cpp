@@ -251,4 +251,9 @@ namespace oidn {
     std::memcpy(dstPtr, srcPtr, byteSize);
   }
 
+  Storage Device::getPointerStorage(const void* ptr)
+  {
+    return Storage::Host;
+  }
+
 } // namespace oidn
