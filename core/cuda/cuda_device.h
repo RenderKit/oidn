@@ -55,9 +55,10 @@ namespace oidn {
   class CUDADevice final : public Device
   { 
   public:
-    CUDADevice(cudaStream_t stream = nullptr);
+    explicit CUDADevice(cudaStream_t stream = nullptr);
 
-    cudaStream_t getCUDAStream() const { return stream; }
+    OIDN_INLINE cudaStream_t getCUDAStream() const { return stream; }
+    
     void wait() override;
 
     // Ops

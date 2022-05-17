@@ -32,6 +32,9 @@ namespace oidn {
     }
   }
 
+  HIPDevice::HIPDevice(hipStream_t stream)
+    : stream(stream) {}
+
   HIPDevice::~HIPDevice()
   {
     checkError(miopenDestroy(miopenHandle));
@@ -51,7 +54,7 @@ namespace oidn {
     if (!prop.managedMemory)
       throw Exception(Error::UnsupportedHardware, "device does not support managed memory");
 
-    checkError(miopenCreate(&miopenHandle));
+    checkError(miopenCreateWithStream(&miopenHandle, stream));
 
     //miopenEnableProfiling(miopenHandle, true);
 
@@ -63,7 +66,7 @@ namespace oidn {
 
   void HIPDevice::wait()
   {
-    checkError(hipDeviceSynchronize());
+    checkError(hipStreamSynchronize(stream));
   }
 
   std::shared_ptr<Conv> HIPDevice::newConv(const ConvDesc& desc)
@@ -176,6 +179,6 @@ namespace oidn {
   void HIPDevice::runHostFuncAsync(std::function<void()>&& f)
   {
     auto fPtr = new std::function<void()>(std::move(f));
-    checkError(hipStreamAddCallback(0, hostFuncCallback, fPtr, 0));
+    checkError(hipStreamAddCallback(stream, hostFuncCallback, fPtr, 0));
   }
 }

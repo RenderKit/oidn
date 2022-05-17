@@ -53,6 +53,9 @@ OIDN_API OIDNDevice oidnNewDeviceSYCL(void* syclQueue);
 // Creates a new CUDA device using a specified CUDA stream.
 OIDN_API OIDNDevice oidnNewDeviceCUDA(void* cudaStream);
 
+// Creates a new HIP device using a specified HIP stream.
+OIDN_API OIDNDevice oidnNewDeviceHIP(void* hipStream);
+
 // Retains the device (increments the reference count).
 OIDN_API void oidnRetainDevice(OIDNDevice device);
 

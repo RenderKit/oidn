@@ -5,7 +5,9 @@
 
 #include "../device.h"
 
-struct miopenHandle;
+#if !defined(OIDN_COMPILE_HIP)
+  typedef struct ihipStream_t* hipStream_t;
+#endif
 typedef struct miopenHandle* miopenHandle_t;
 
 namespace oidn {
@@ -54,8 +56,10 @@ namespace oidn {
   class HIPDevice final : public Device
   { 
   public:
+    explicit HIPDevice(hipStream_t stream = nullptr);
     ~HIPDevice();
 
+    OIDN_INLINE hipStream_t getHIPStream() const { return stream; }
     OIDN_INLINE miopenHandle_t getMIOpenHandle() const { return miopenHandle; }
 
     void wait() override;
@@ -84,7 +88,7 @@ namespace oidn {
       WorkDim<N> groupSize = suggestWorkGroupSize(globalSize);
       WorkDim<N> numGroups = ceil_div(globalSize, groupSize);
 
-      basicHIPKernel<<<numGroups, groupSize>>>(globalSize, f);
+      basicHIPKernel<<<numGroups, groupSize, 0, stream>>>(globalSize, f);
       checkError(hipGetLastError());
     }
 
@@ -92,7 +96,7 @@ namespace oidn {
     template<int N, typename F>
     OIDN_INLINE void runKernelAsync(WorkDim<N> numGroups, WorkDim<N> groupSize, const F& f)
     {
-      groupHIPKernel<N><<<numGroups, groupSize>>>(f);
+      groupHIPKernel<N><<<numGroups, groupSize, 0, stream>>>(f);
       checkError(hipGetLastError());
     }
   #endif
@@ -108,6 +112,7 @@ namespace oidn {
     WorkDim<3> suggestWorkGroupSize(WorkDim<3> globalSize) { return {1, 32, 32}; }
 
     int deviceId = -1;
+    hipStream_t stream = nullptr;
     miopenHandle_t miopenHandle = nullptr;
   };
 

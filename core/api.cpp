@@ -133,6 +133,19 @@ OIDN_API_NAMESPACE_BEGIN
     return (OIDNDevice)device.detach();
   }
 
+  OIDN_API OIDNDevice oidnNewDeviceSYCL(void* syclQueue)
+  {
+    Ref<Device> device = nullptr;
+    OIDN_TRY
+    #if defined(OIDN_DEVICE_SYCL)
+      device = makeRef<SYCLDevice>(*((sycl::queue*)syclQueue));
+    #else
+      throw Exception(Error::InvalidArgument, "unsupported device type");
+    #endif
+    OIDN_CATCH(device)
+    return (OIDNDevice)device.detach();
+  }
+
   OIDN_API OIDNDevice oidnNewDeviceCUDA(void* cudaStream)
   {
     Ref<Device> device = nullptr;
@@ -146,12 +159,12 @@ OIDN_API_NAMESPACE_BEGIN
     return (OIDNDevice)device.detach();
   }
 
-  OIDN_API OIDNDevice oidnNewDeviceSYCL(void* syclQueue)
+  OIDN_API OIDNDevice oidnNewDeviceHIP(void* hipStream)
   {
     Ref<Device> device = nullptr;
     OIDN_TRY
-    #if defined(OIDN_DEVICE_SYCL)
-      device = makeRef<SYCLDevice>(*((sycl::queue*)syclQueue));
+    #if defined(OIDN_DEVICE_HIP)
+      device = makeRef<HIPDevice>(static_cast<hipStream_t>(hipStream));
     #else
       throw Exception(Error::InvalidArgument, "unsupported device type");
     #endif

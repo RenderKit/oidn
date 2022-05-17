@@ -6,6 +6,9 @@
 #if defined(SYCL_LANGUAGE_VERSION)
   #include <CL/sycl.hpp>
 #endif
+#if defined(__HIPCC__)
+  #include <hip/hip_runtime.h>
+#endif
 
 #include <algorithm>
 #include "oidn.h"
@@ -555,6 +558,14 @@ OIDN_NAMESPACE_BEGIN
   inline DeviceRef newDevice(cudaStream_t stream)
   {
     return DeviceRef(oidnNewDeviceCUDA(stream));
+  }
+#endif
+
+#if defined(__HIPCC__)
+  // Creates a new HIP device using a specified HIP stream.
+  inline DeviceRef newDevice(hipStream_t stream)
+  {
+    return DeviceRef(oidnNewDeviceHIP(stream));
   }
 #endif
 
