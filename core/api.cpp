@@ -108,24 +108,24 @@ OIDN_API_NAMESPACE_BEGIN
   {
     Ref<Device> device = nullptr;
     OIDN_TRY
-    #if defined(OIDN_DEVICE_CPU)
-      if (type == OIDN_DEVICE_TYPE_CPU || type == OIDN_DEVICE_TYPE_DEFAULT)
-        device = makeRef<CPUDevice>();
-      else
-    #endif
     #if defined(OIDN_DEVICE_CUDA)
-      if (type == OIDN_DEVICE_TYPE_CUDA || type == OIDN_DEVICE_TYPE_DEFAULT)
+      if (type == OIDN_DEVICE_TYPE_CUDA || (type == OIDN_DEVICE_TYPE_DEFAULT && CUDADevice::isSupported()))
         device = makeRef<CUDADevice>();
       else
     #endif
     #if defined(OIDN_DEVICE_HIP)
-      if (type == OIDN_DEVICE_TYPE_HIP || type == OIDN_DEVICE_TYPE_DEFAULT)
+      if (type == OIDN_DEVICE_TYPE_HIP || (type == OIDN_DEVICE_TYPE_DEFAULT && HIPDevice::isSupported()))
         device = makeRef<HIPDevice>();
       else
     #endif
     #if defined(OIDN_DEVICE_SYCL)
-      if (type == OIDN_DEVICE_TYPE_SYCL || type == OIDN_DEVICE_TYPE_DEFAULT)
+      if (type == OIDN_DEVICE_TYPE_SYCL || (type == OIDN_DEVICE_TYPE_DEFAULT && SYCLDevice::isSupported()))
         device = makeRef<SYCLDevice>();
+      else
+    #endif
+    #if defined(OIDN_DEVICE_CPU)
+      if (type == OIDN_DEVICE_TYPE_CPU || type == OIDN_DEVICE_TYPE_DEFAULT)
+        device = makeRef<CPUDevice>();
       else
     #endif
         throw Exception(Error::InvalidArgument, "unsupported device type");

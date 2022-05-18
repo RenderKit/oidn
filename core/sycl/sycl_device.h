@@ -20,6 +20,8 @@ namespace oidn {
     std::unique_ptr<SYCL> sycl;
 
   public:
+    static bool isSupported();
+
     SYCLDevice();
     SYCLDevice(const sycl::queue& syclQueue);
 

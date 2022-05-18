@@ -32,6 +32,17 @@ namespace oidn {
     }
   }
 
+  bool HIPDevice::isSupported()
+  {
+    int deviceId = 0;
+    if (hipGetDevice(&deviceId) != hipSuccess)
+      return false;
+    hipDeviceProp_t prop;
+    if (hipGetDeviceProperties(&prop, deviceId) != hipSuccess)
+      return false;
+    return prop.managedMemory;
+  }
+
   HIPDevice::HIPDevice(hipStream_t stream)
     : stream(stream) {}
 

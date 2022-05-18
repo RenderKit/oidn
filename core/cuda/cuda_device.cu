@@ -13,6 +13,19 @@
 
 namespace oidn {
 
+  bool CUDADevice::isSupported()
+  {
+    int deviceId = 0;
+    if (cudaGetDevice(&deviceId) != cudaSuccess)
+      return false;
+    cudaDeviceProp prop;
+    if (cudaGetDeviceProperties(&prop, deviceId) != cudaSuccess)
+      return false;
+    const int computeCapability = prop.major * 10 + prop.minor;
+    return computeCapability >= minComputeCapability && computeCapability <= maxComputeCapability &&
+           prop.unifiedAddressing && prop.managedMemory;
+  }
+
   CUDADevice::CUDADevice(cudaStream_t stream)
     : stream(stream) {}
 
@@ -47,7 +60,7 @@ namespace oidn {
       std::cout << "  Device  : " << prop.name << std::endl;
 
     // Check required hardware features
-    if (computeCapability < 60 || computeCapability > 87)
+    if (computeCapability < minComputeCapability || computeCapability > maxComputeCapability)
       throw Exception(Error::UnsupportedHardware, "device has unsupported compute capability");
     if (!prop.unifiedAddressing)
       throw Exception(Error::UnsupportedHardware, "device does not support unified addressing");

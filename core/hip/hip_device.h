@@ -56,6 +56,8 @@ namespace oidn {
   class HIPDevice final : public Device
   { 
   public:
+    static bool isSupported();
+
     explicit HIPDevice(hipStream_t stream = nullptr);
     ~HIPDevice();
 

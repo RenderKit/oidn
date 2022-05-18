@@ -12,6 +12,15 @@
 
 namespace oidn {
 
+  bool SYCLDevice::isSupported()
+  {
+    auto platforms = sycl::platform::get_platforms();
+    for (const auto& platform : platforms)
+      if (platform.get_devices(sycl::info::device_type::gpu).size() > 0)
+        return true;
+    return false;
+  }
+
   SYCLDevice::SYCLDevice() {}
 
   SYCLDevice::SYCLDevice(const sycl::queue& syclQueue)

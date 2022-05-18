@@ -55,6 +55,8 @@ namespace oidn {
   class CUDADevice final : public Device
   { 
   public:
+    static bool isSupported();
+
     explicit CUDADevice(cudaStream_t stream = nullptr);
 
     OIDN_INLINE cudaStream_t getCUDAStream() const { return stream; }
@@ -115,6 +117,9 @@ namespace oidn {
     WorkDim<1> suggestWorkGroupSize(WorkDim<1> globalSize) { return 256; }
     WorkDim<2> suggestWorkGroupSize(WorkDim<2> globalSize) { return {16, 16}; }
     WorkDim<3> suggestWorkGroupSize(WorkDim<3> globalSize) { return {1, 16, 16}; }
+
+    static constexpr int minComputeCapability = 60;
+    static constexpr int maxComputeCapability = 87;
 
     int deviceId = -1;
     cudaStream_t stream = nullptr;
