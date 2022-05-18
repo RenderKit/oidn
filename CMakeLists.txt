@@ -181,7 +181,6 @@ set(CORE_SOURCES
   include/OpenImageDenoise/oidn.h
   include/OpenImageDenoise/oidn.hpp
   include/OpenImageDenoise/config.h
-  ${OIDN_RESOURCE}
   core/api.cpp
   core/autoexposure.h
   core/buffer.h
@@ -371,7 +370,7 @@ if(OIDN_DEVICE_HIP)
   )
 endif()
 
-add_library(${PROJECT_NAME} ${OIDN_LIB_TYPE} ${CORE_SOURCES})
+add_library(${PROJECT_NAME} ${OIDN_LIB_TYPE} ${CORE_SOURCES} ${OIDN_RESOURCE})
 
 target_include_directories(${PROJECT_NAME}
   PUBLIC
