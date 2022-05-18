@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "thread.h"
+#include "common/thread.h"
 
 #if defined(__clang__) && !defined(_LIBCPP_VERSION) && !defined(TBB_USE_GLIBCXX_VERSION)
   // TBB does not always detect the version of libstdc++ correctly when using

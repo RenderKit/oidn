@@ -9,13 +9,6 @@
 #include "buffer.h"
 #include "tensor_layout.h"
 
-#if defined(OIDN_COMPILE_CUDA)
-  // Workaround for NVCC bug
-  namespace tbb { class task_arena; }
-#else
-  #include "common/tasking.h"
-#endif
-
 namespace oidn {
 
   struct TensorDesc;
@@ -104,26 +97,17 @@ namespace oidn {
     virtual void memcpy(void* dstPtr, const void* srcPtr, size_t byteSize);
     virtual Storage getPointerStorage(const void* ptr);
 
-  #if !defined(OIDN_COMPILE_CUDA)
-    // Runs a parallel host task in the thread arena (if it exists)
-    template<typename F>
-    void runHostTask(const F& f)
+    // Runs a host task
+    virtual void runHostTask(std::function<void()>&& f)
     {
-      if (arena)
-        arena->execute(f);
-      else
-        f();
+      f();
     }
-  #endif
 
-  // Enqueues a host function
-  virtual void runHostFuncAsync(std::function<void()>&& f) = 0;
+    // Enqueues a host function
+    virtual void runHostFuncAsync(std::function<void()>&& f) = 0;
    
   protected:
     virtual void init() = 0;
-
-    // Tasking
-    std::shared_ptr<tbb::task_arena> arena;
 
     // Native tensor layout
     DataType tensorDataType = DataType::Float32;
@@ -131,10 +115,7 @@ namespace oidn {
     TensorLayout weightsLayout = TensorLayout::oihw;
     int tensorBlockSize = 1;
 
-    // Parameters
-    int numThreads = 0; // autodetect by default
-    bool setAffinity = true;
-
+    // State
     bool dirty = true;
     bool committed = false;
 

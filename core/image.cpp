@@ -73,6 +73,7 @@ namespace oidn {
     this->ptr = buffer->getData();
   }
 
+#if defined(OIDN_DEVICE_CPU)
   Image::operator ispc::ImageAccessor() const
   {
     ispc::ImageAccessor acc;
@@ -105,6 +106,7 @@ namespace oidn {
 
     return acc;
   }
+#endif
 
   void Image::updatePtr()
   {

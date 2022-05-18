@@ -70,22 +70,24 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 
-# Library dependencies
-find_package(Threads REQUIRED)
-find_package(TBB 2017.0 REQUIRED tbb CONFIG)
-
 # Packaging
 include(oidn_package)
 
 # CPU device
 option(OIDN_DEVICE_CPU "Enable CPU device." ON)
 
+# SYCL device
 if(OIDN_ARCH STREQUAL "X64")
-  # SYCL device
   option(OIDN_DEVICE_SYCL "Enable SYCL device." OFF)
+endif()
+
+if(OIDN_DEVICE_CPU OR OIDN_DEVICE_SYCL)
+  # TBB
+  find_package(Threads REQUIRED)
+  find_package(TBB 2017.0 REQUIRED tbb CONFIG)
 
   # DNNL
-  if(OIDN_DEVICE_CPU OR OIDN_DEVICE_SYCL)
+  if(OIDN_ARCH STREQUAL "X64")
     set(OIDN_DNNL ON)
     include(oidn_dnnl)
   endif()
@@ -94,20 +96,23 @@ endif()
 # Platform-specific settings
 include(oidn_platform)
 
-# BNNS
-if(OIDN_DEVICE_CPU AND APPLE AND OIDN_ARCH STREQUAL "ARM64")
-  set(OIDN_BNNS ON)
-  include(oidn_bnns)
-endif()
+# CPU device
+if(OIDN_DEVICE_CPU)
+  # BNNS
+  if(APPLE AND OIDN_ARCH STREQUAL "ARM64")
+    set(OIDN_BNNS ON)
+    include(oidn_bnns)
+  endif()
 
-# ISPC
-if(OIDN_ARCH STREQUAL "X64")
-  set(OIDN_ISPC_TARGET_LIST sse4-i32x8;avx2-i32x8;avx512skx-i32x16)
-elseif(OIDN_ARCH STREQUAL "ARM64")
-  set(OIDN_ISPC_TARGET_LIST neon-i32x8)
+  # ISPC
+  if(OIDN_ARCH STREQUAL "X64")
+    set(OIDN_ISPC_TARGET_LIST sse4-i32x8;avx2-i32x8;avx512skx-i32x16)
+  elseif(OIDN_ARCH STREQUAL "ARM64")
+    set(OIDN_ISPC_TARGET_LIST neon-i32x8)
+  endif()
+  set(OIDN_ISPC_ADDRESSING 64)
+  include(oidn_ispc)
 endif()
-set(OIDN_ISPC_ADDRESSING 64)
-include(oidn_ispc)
 
 # CUDA device
 if(NOT APPLE)
@@ -177,8 +182,6 @@ set(CORE_SOURCES
   include/OpenImageDenoise/oidn.hpp
   include/OpenImageDenoise/config.h
   ${OIDN_RESOURCE}
-  core/cpu/cpu_image_copy.h
-  core/cpu/cpu_image_copy.cpp
   core/api.cpp
   core/autoexposure.h
   core/buffer.h
@@ -236,36 +239,37 @@ set(CORE_SOURCES
   core/weights.cpp
 )
 
-set(CORE_SOURCES_ISPC
-  core/cpu/cpu_image_copy.ispc
-  core/image_accessor.isph
-  core/math.isph
-  core/vec.isph
-)
-
 if(OIDN_DEVICE_CPU)
   list(APPEND CORE_SOURCES
     core/cpu/cpu_autoexposure.h
     core/cpu/cpu_autoexposure.cpp
     core/cpu/cpu_device.h
     core/cpu/cpu_device.cpp
+    core/cpu/cpu_image_copy.h
+    core/cpu/cpu_image_copy.cpp
     core/cpu/cpu_input_process.h
     core/cpu/cpu_input_process.cpp
     core/cpu/cpu_output_process.h
     core/cpu/cpu_output_process.cpp
     core/cpu/cpu_upsample.h
     core/cpu/cpu_upsample.cpp
+    core/cpu/tasking.h
+    core/cpu/tasking.cpp
   )
 
   list(APPEND CORE_SOURCES_ISPC
     core/cpu/cpu_autoexposure.ispc
+    core/cpu/cpu_image_copy.ispc
     core/cpu/cpu_input_process.ispc
     core/cpu/cpu_output_process.ispc
     core/cpu/cpu_upsample.ispc
     core/color.isph
     core/color.ispc
+    core/image_accessor.isph
+    core/math.isph
     core/tensor_accessor.isph
     core/tile.isph
+    core/vec.isph
   )
 endif()
 
@@ -379,7 +383,9 @@ target_link_libraries(${PROJECT_NAME} PRIVATE common)
 
 if(OIDN_DNNL)
   target_compile_definitions(${PROJECT_NAME} PRIVATE OIDN_DNNL)
-  ispc_add_definitions(-DOIDN_DNNL)
+  if(OIDN_DEVICE_CPU)
+    ispc_add_definitions(-DOIDN_DNNL)
+  endif()
   target_link_libraries(${PROJECT_NAME} PRIVATE dnnl)
 elseif(OIDN_BNNS)
   target_compile_definitions(${PROJECT_NAME} PRIVATE OIDN_BNNS)
@@ -389,6 +395,8 @@ endif()
 
 if(OIDN_DEVICE_CPU)
   target_compile_definitions(${PROJECT_NAME} PUBLIC OIDN_DEVICE_CPU)
+  ispc_target_add_sources(${PROJECT_NAME} ${CORE_SOURCES_ISPC})
+  target_link_libraries(${PROJECT_NAME} PUBLIC ${CMAKE_THREAD_LIBS_INIT} TBB::tbb)
 endif()
 
 if(OIDN_DEVICE_SYCL)
@@ -406,8 +414,6 @@ if(OIDN_DEVICE_HIP)
   target_compile_definitions(${PROJECT_NAME} PUBLIC OIDN_DEVICE_HIP)
   target_link_libraries(${PROJECT_NAME} PRIVATE hip::device MIOpen)
 endif()
-
-ispc_target_add_sources(${PROJECT_NAME} ${CORE_SOURCES_ISPC})
 
 # Include weights
 option(OIDN_FILTER_RT "Include trained weights of the RT filter." ON)

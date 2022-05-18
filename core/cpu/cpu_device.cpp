@@ -10,6 +10,13 @@
 
 namespace oidn {
 
+  CPUDevice::CPUDevice()
+  {
+    // Get default values from environment variables
+    getEnvVar("OIDN_NUM_THREADS", numThreads);
+    getEnvVar("OIDN_SET_AFFINITY", setAffinity);
+  }
+
   CPUDevice::~CPUDevice()
   {
     observer.reset();
@@ -98,6 +105,46 @@ namespace oidn {
       std::cout << std::endl;
       std::cout << "  Threads : " << numThreads << " (" << (affinity ? "affinitized" : "non-affinitized") << ")" << std::endl;
     }
+  }
+
+  int CPUDevice::get1i(const std::string& name)
+  {
+    if (name == "numThreads")
+      return numThreads;
+    else if (name == "setAffinity")
+      return setAffinity;
+    else
+      return Device::get1i(name);
+  }
+
+  void CPUDevice::set1i(const std::string& name, int value)
+  {
+    if (name == "numThreads")
+    {
+      if (!isEnvVar("OIDN_NUM_THREADS"))
+        numThreads = value;
+      else if (numThreads != value)
+        warning("OIDN_NUM_THREADS environment variable overrides device parameter");
+    }
+    else if (name == "setAffinity")
+    {
+      if (!isEnvVar("OIDN_SET_AFFINITY"))
+        setAffinity = value;
+      else if (setAffinity != bool(value))
+        warning("OIDN_SET_AFFINITY environment variable overrides device parameter");
+    }
+    else
+      Device::set1i(name, value);
+
+    dirty = true;
+  }
+
+  void CPUDevice::runHostTask(std::function<void()>&& f)
+  {
+    if (arena)
+      arena->execute(f);
+    else
+      f();
   }
 
   std::shared_ptr<Upsample> CPUDevice::newUpsample(const UpsampleDesc& desc)

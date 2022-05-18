@@ -6,7 +6,9 @@
 #include "device.h"
 #include "buffer.h"
 #include "image_accessor.h"
-#include "cpu_image_copy_ispc.h" // ispc::ImageAccessor
+#if defined(OIDN_DEVICE_CPU)
+  #include "cpu_image_copy_ispc.h" // ispc::ImageAccessor
+#endif
 
 namespace oidn {
 
@@ -119,7 +121,9 @@ namespace oidn {
       return acc;
     }
 
+  #if defined(OIDN_DEVICE_CPU)
     operator ispc::ImageAccessor() const;
+  #endif
 
     // Determines whether two images overlap in memory
     bool overlaps(const Image& other) const;

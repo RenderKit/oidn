@@ -21,8 +21,6 @@ namespace oidn {
     // Get default values from environment variables
     if (getEnvVar("OIDN_VERBOSE", verbose))
       error.verbose = verbose;
-    getEnvVar("OIDN_NUM_THREADS", numThreads);
-    getEnvVar("OIDN_SET_AFFINITY", setAffinity);
   }
 
   void Device::setError(Device* device, Error code, const std::string& message)
@@ -101,11 +99,7 @@ namespace oidn {
 
   int Device::get1i(const std::string& name)
   {
-    if (name == "numThreads")
-      return numThreads;
-    else if (name == "setAffinity")
-      return setAffinity;
-    else if (name == "verbose")
+    if (name == "verbose")
       return verbose;
     else if (name == "version")
       return OIDN_VERSION;
@@ -121,21 +115,7 @@ namespace oidn {
 
   void Device::set1i(const std::string& name, int value)
   {
-    if (name == "numThreads")
-    {
-      if (!isEnvVar("OIDN_NUM_THREADS"))
-        numThreads = value;
-      else if (numThreads != value)
-        warning("OIDN_NUM_THREADS environment variable overrides device parameter");
-    }
-    else if (name == "setAffinity")
-    {
-      if (!isEnvVar("OIDN_SET_AFFINITY"))
-        setAffinity = value;
-      else if (setAffinity != bool(value))
-        warning("OIDN_SET_AFFINITY environment variable overrides device parameter");
-    }
-    else if (name == "verbose")
+    if (name == "verbose")
     {
       if (!isEnvVar("OIDN_VERBOSE"))
       {

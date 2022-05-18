@@ -10,6 +10,7 @@
 #elif defined(OIDN_BNNS)
   #include "../bnns/bnns_device.h"
 #endif
+#include "tasking.h"
 
 namespace oidn {
 
@@ -23,7 +24,11 @@ namespace oidn {
   #endif
   { 
   public:
+    CPUDevice();
     ~CPUDevice();
+
+    int get1i(const std::string& name) override;
+    void set1i(const std::string& name, int value) override;
 
     // Ops
     std::shared_ptr<Upsample> newUpsample(const UpsampleDesc& desc) override;
@@ -31,6 +36,9 @@ namespace oidn {
     std::shared_ptr<InputProcess> newInputProcess(const InputProcessDesc& desc) override;
     std::shared_ptr<OutputProcess> newOutputProcess(const OutputProcessDesc& desc) override;
     std::shared_ptr<ImageCopy> newImageCopy() override;
+
+    // Runs a parallel host task in the thread arena (if it exists)
+    void runHostTask(std::function<void()>&& f) override;
 
     // Enqueues a host function
     void runHostFuncAsync(std::function<void()>&& f) override;
@@ -41,8 +49,11 @@ namespace oidn {
 
   private:
     // Tasking
+    std::shared_ptr<tbb::task_arena> arena;
     std::shared_ptr<PinningObserver> observer;
     std::shared_ptr<ThreadAffinity> affinity;
+    int numThreads = 0; // autodetect by default
+    bool setAffinity = true;
   };
 
 } // namespace oidn

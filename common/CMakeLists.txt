@@ -8,8 +8,6 @@ add_library(common STATIC
   platform.h
   platform.cpp
   ref.h
-  tasking.h
-  tasking.cpp
   thread.h
   thread.cpp
   timer.h
@@ -18,12 +16,6 @@ add_library(common STATIC
 target_include_directories(common
   PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
-)
-
-target_link_libraries(common
-  PUBLIC
-    ${CMAKE_THREAD_LIBS_INIT}
-    TBB::tbb
 )
 
 if(OIDN_STATIC_LIB)
