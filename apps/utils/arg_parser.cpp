@@ -26,9 +26,10 @@ namespace oidn {
   std::string ArgParser::getNextOpt()
   {
     std::string str = getNext();
-    if (str.empty() || str[0] != '-')
+    size_t pos = str.find_first_not_of("-");
+    if (pos == 0 || pos == std::string::npos)
       throw std::invalid_argument("option expected");
-    return str.substr(str.find_first_not_of("-"));
+    return str.substr(pos);
   }
 
   template<>
