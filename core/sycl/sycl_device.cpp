@@ -50,6 +50,8 @@ namespace oidn {
                           dnnl::sycl_interop::get_queue(dnnlStream)});
     }
 
+    maxWorkGroupSize = sycl->device.get_info<sycl::info::device::max_work_group_size>();
+
     if (isVerbose())
       std::cout << "  Device  : " << sycl->device.get_info<sycl::info::device::name>() << std::endl;
 
@@ -85,7 +87,12 @@ namespace oidn {
 
   std::shared_ptr<Autoexposure> SYCLDevice::newAutoexposure(const ImageDesc& srcDesc)
   {
-    return std::make_shared<GPUAutoexposure<SYCLDevice>>(this, srcDesc);
+    if (maxWorkGroupSize >= 1024)
+      return std::make_shared<GPUAutoexposure<SYCLDevice, 1024>>(this, srcDesc);
+    else if (maxWorkGroupSize >= 512)
+      return std::make_shared<GPUAutoexposure<SYCLDevice, 512>>(this, srcDesc);
+    else
+      return std::make_shared<GPUAutoexposure<SYCLDevice, 256>>(this, srcDesc);
   }
 
   std::shared_ptr<InputProcess> SYCLDevice::newInputProcess(const InputProcessDesc& desc)

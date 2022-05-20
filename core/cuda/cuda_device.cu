@@ -54,6 +54,7 @@ namespace oidn {
 
     cudaDeviceProp prop;
     checkError(cudaGetDeviceProperties(&prop, deviceId));
+    maxWorkGroupSize = prop.maxThreadsPerBlock;
     computeCapability = prop.major * 10 + prop.minor;
 
     if (isVerbose())
@@ -103,7 +104,7 @@ namespace oidn {
 
   std::shared_ptr<Autoexposure> CUDADevice::newAutoexposure(const ImageDesc& srcDesc)
   {
-    return std::make_shared<GPUAutoexposure<CUDADevice>>(this, srcDesc);
+    return std::make_shared<GPUAutoexposure<CUDADevice, 1024>>(this, srcDesc);
   }
 
   std::shared_ptr<InputProcess> CUDADevice::newInputProcess(const InputProcessDesc& desc)

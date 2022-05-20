@@ -59,7 +59,7 @@ namespace oidn {
 
     explicit CUDADevice(cudaStream_t stream = nullptr);
 
-    OIDN_INLINE cudaStream_t getCUDAStream() const { return stream; }
+    cudaStream_t getCUDAStream() const { return stream; }
     
     void wait() override;
 
@@ -109,6 +109,7 @@ namespace oidn {
     // Enqueues a host function
     void runHostFuncAsync(std::function<void()>&& f) override;
 
+    int getMaxWorkGroupSize() const override { return maxWorkGroupSize; }
     int getComputeCapability() const { return computeCapability; }
 
   private:
@@ -123,6 +124,8 @@ namespace oidn {
 
     int deviceId = -1;
     cudaStream_t stream = nullptr;
+
+    int maxWorkGroupSize = 0;
     int computeCapability = 0;
   };
 

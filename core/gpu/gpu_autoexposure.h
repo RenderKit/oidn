@@ -146,9 +146,11 @@ namespace oidn {
     }
   };
 
-  template<typename DeviceType>
+  template<typename DeviceType, int groupSize>
   class GPUAutoexposure final : public Autoexposure
   {
+    static_assert(groupSize >= maxBinSize * maxBinSize, "GPUAutoexposure groupSize is too small");
+
   public:
     GPUAutoexposure(const Ref<DeviceType>& device, const ImageDesc& srcDesc)
       : Autoexposure(srcDesc),
@@ -216,8 +218,6 @@ namespace oidn {
       reduceFinal.result = (float*)resultBuffer->getData();
       device->runKernelAsync(WorkDim<1>(1), WorkDim<1>(groupSize), reduceFinal);
     }
-
-    static constexpr int groupSize = 1024;
 
     Ref<DeviceType> device;
     int numGroups;
