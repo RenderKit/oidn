@@ -61,8 +61,8 @@ namespace oidn {
     explicit HIPDevice(hipStream_t stream = nullptr);
     ~HIPDevice();
 
-    OIDN_INLINE hipStream_t getHIPStream() const { return stream; }
-    OIDN_INLINE miopenHandle_t getMIOpenHandle() const { return miopenHandle; }
+    hipStream_t getHIPStream() const { return stream; }
+    miopenHandle_t getMIOpenHandle() const { return miopenHandle; }
 
     void wait() override;
 
@@ -106,6 +106,8 @@ namespace oidn {
     // Enqueues a host function
     void runHostFuncAsync(std::function<void()>&& f) override;
 
+    int getMaxWorkGroupSize() const override { return maxWorkGroupSize; }
+
   private:
     void init() override;
 
@@ -116,6 +118,8 @@ namespace oidn {
     int deviceId = -1;
     hipStream_t stream = nullptr;
     miopenHandle_t miopenHandle = nullptr;
+
+    int maxWorkGroupSize = 0;
   };
 
 } // namespace oidn

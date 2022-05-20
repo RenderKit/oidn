@@ -105,6 +105,8 @@ namespace oidn {
 
     // Enqueues a host function
     virtual void runHostFuncAsync(std::function<void()>&& f) = 0;
+
+    virtual int getMaxWorkGroupSize() const { return 0; }
    
   protected:
     virtual void init() = 0;

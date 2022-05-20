@@ -72,8 +72,12 @@ namespace oidn {
     // Enqueues a host function
     void runHostFuncAsync(std::function<void()>&& f) override;
 
+    int getMaxWorkGroupSize() const override { return maxWorkGroupSize; }
+
   protected:
     void init() override;
+
+    int maxWorkGroupSize = 0;
   };
 
 } // namespace oidn

@@ -57,6 +57,7 @@ namespace oidn {
 
     hipDeviceProp_t prop;
     checkError(hipGetDeviceProperties(&prop, deviceId));
+    maxWorkGroupSize = prop.maxThreadsPerBlock;
     
     if (isVerbose())
       std::cout << "  Device  : " << prop.name << std::endl;
@@ -97,7 +98,7 @@ namespace oidn {
 
   std::shared_ptr<Autoexposure> HIPDevice::newAutoexposure(const ImageDesc& srcDesc)
   {
-    return std::make_shared<GPUAutoexposure<HIPDevice>>(this, srcDesc);
+    return std::make_shared<GPUAutoexposure<HIPDevice, 1024>>(this, srcDesc);
   }
 
   std::shared_ptr<InputProcess> HIPDevice::newInputProcess(const InputProcessDesc& desc)
