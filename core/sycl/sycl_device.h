@@ -47,14 +47,14 @@ namespace oidn {
     template<int N, typename F>
     OIDN_INLINE void runKernelAsync(WorkDim<N> globalSize, const F& f)
     {
-      sycl->queue.parallel_for(globalSize, [=](sycl::item<N> it) { f(it); });
+      sycl->queue.parallel_for<F>(globalSize, [=](sycl::item<N> it) { f(it); });
     }
 
     // Enqueues a work-group kernel
     template<int N, typename F>
     OIDN_INLINE void runKernelAsync(WorkDim<N> numGroups, WorkDim<N> groupSize, const F& f)
     {
-      sycl->queue.parallel_for(
+      sycl->queue.parallel_for<F>(
         sycl::nd_range<N>(numGroups * groupSize, groupSize),
         [=](sycl::nd_item<N> it) { f(it); });
     }
@@ -63,8 +63,7 @@ namespace oidn {
     template<int N, typename F>
     OIDN_INLINE void runESIMDKernelAsync(WorkDim<N> globalSize, const F& f)
     {
-      // FIXME: Named kernel is necessary due to an ESIMD bug
-      sycl->queue.parallel_for<class ESIMDKernel>(
+      sycl->queue.parallel_for<F>(
         globalSize,
         [=](sycl::item<N> it) SYCL_ESIMD_KERNEL { f(it); });
     }

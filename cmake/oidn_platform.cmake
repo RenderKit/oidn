@@ -156,7 +156,7 @@ endif()
 ## -----------------------------------------------------------------------------
 
 if(OIDN_DEVICE_SYCL)
-  append(OIDN_CXX_FLAGS_SYCL "-fsycl -fsycl-unnamed-lambda")
+  append(OIDN_CXX_FLAGS_SYCL "-fsycl")
 endif()
 
 ## -----------------------------------------------------------------------------
