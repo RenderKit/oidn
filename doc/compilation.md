@@ -53,7 +53,7 @@ following prerequisites:
 
 #### HIP device for AMD GPUs: {-}
 
--   [AMD ROCm](https://docs.amd.com) v5.1.1 or later
+-   [AMD ROCm](https://docs.amd.com) v5.1.3 or later
 
 ### Installation
 
