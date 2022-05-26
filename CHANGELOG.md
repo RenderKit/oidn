@@ -1,6 +1,16 @@
 Version History
 ---------------
 
+### Changes in v2.0.0:
+
+-   Added CUDA device for NVIDIA Pascal architecture and later GPUs
+-   Added HIP device for AMD RDNA2 architecture and later GPUs (*experimental*)
+-   Added new API functions for advanced GPU support:
+    -  `oidnNewBufferWithStorage`, `oidnReadBuffer`, and `oidnWriteBuffer` for
+       improved GPU buffer support
+    -  `oidnExecuteFilterAsync` and `oidnSyncDevice` for asynchronous
+       filter execution
+
 ### Changes in v1.4.3:
 
 -   Fixed hardcoded library paths in installed macOS binaries

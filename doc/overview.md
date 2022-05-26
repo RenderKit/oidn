@@ -34,7 +34,7 @@ included training toolkit and user-provided image datasets.
 
 Intel Open Image Denoise supports Intel® 64 architecture compatible CPUs
 (with at least SSE4.1), Apple Silicon, NVIDIA GPUs (Pascal architecture and
-newer), and AMD GPUs (RDNA2 architecture and newer). It runs on most machines
+later), and AMD GPUs (RDNA2 architecture and later). It runs on most machines
 ranging from laptops to workstations and compute nodes in HPC systems. It is
 efficient enough to be suitable not only for offline rendering, but, depending
 on the hardware used, also for interactive or even real-time ray tracing.
