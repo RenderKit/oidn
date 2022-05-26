@@ -32,16 +32,16 @@ mandatory to use these. To optimize a filter for a specific renderer, sample
 count, content type, scene, etc., it is possible to train the model using the
 included training toolkit and user-provided image datasets.
 
-Intel Open Image Denoise supports Intel® 64 architecture compatible CPUs and
-Apple Silicon, and runs on anything from laptops, to workstations, to compute
-nodes in HPC systems. It is efficient enough to be suitable not only for offline
-rendering, but, depending on the hardware used, also for interactive ray tracing.
+Intel Open Image Denoise supports Intel® 64 architecture compatible CPUs
+(with at least SSE4.1), Apple Silicon, NVIDIA GPUs (Pascal architecture and
+newer), and AMD GPUs (RDNA2 architecture and newer). It runs on most machines
+ranging from laptops to workstations and compute nodes in HPC systems. It is
+efficient enough to be suitable not only for offline rendering, but, depending
+on the hardware used, also for interactive or even real-time ray tracing.
 
-Intel Open Image Denoise internally builds on top of
-[Intel oneAPI Deep Neural Network Library (oneDNN)](https://github.com/oneapi-src/oneDNN),
-and automatically exploits modern instruction sets like Intel SSE4, AVX2, and
-AVX-512 to achieve high denoising performance. A CPU with support for at least
-SSE4.1 or Apple Silicon is required to run Intel Open Image Denoise.
+Intel Open Image Denoise exploits modern instruction sets like Intel SSE4, AVX2,
+and AVX-512, and tensor cores on NVIDIA GPUs to achieve high denoising
+performance.
 
 
 Support and Contact

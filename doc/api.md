@@ -1,7 +1,7 @@
 Open Image Denoise API
 ======================
 
-Open Image Denoise provides a C99 API (also compatible with C++) and a
+Intel Open Image Denoise provides a C99 API (also compatible with C++) and a
 C++11 wrapper API as well. For simplicity, this document mostly refers to the
 C99 version of the API.
 
@@ -32,24 +32,34 @@ simple example code snippets.
 
     #include <OpenImageDenoise/oidn.h>
     ...
+
     // Create an Intel Open Image Denoise device
-    OIDNDevice device = oidnNewDevice(OIDN_DEVICE_TYPE_DEFAULT);
+    OIDNDevice device = oidnNewDevice(OIDN_DEVICE_TYPE_DEFAULT); // CPU or GPU if available
     oidnCommitDevice(device);
 
+    // Create buffers for input/output images accessible to both host (CPU) and device (CPU/GPU)
+    OIDNBuffer colorBuf  = oidnNewBuffer(device, width * height * 3 * sizeof(float));
+    OIDNBuffer albedoBuf = ...
+
     // Create a filter for denoising a beauty (color) image using optional auxiliary images too
+    // This can be an expensive operation, so try not to create a new filter for every image!
     OIDNFilter filter = oidnNewFilter(device, "RT"); // generic ray tracing filter
-    oidnSetSharedFilterImage(filter, "color",  colorPtr,
-                             OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0); // beauty
-    oidnSetSharedFilterImage(filter, "albedo", albedoPtr,
-                             OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0); // auxiliary
-    oidnSetSharedFilterImage(filter, "normal", normalPtr,
-                             OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0); // auxiliary
-    oidnSetSharedFilterImage(filter, "output", outputPtr,
-                             OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0); // denoised beauty
+    oidnSetFilterImage(filter, "color",  colorBuf,
+                       OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0); // beauty
+    oidnSetFilterImage(filter, "albedo", albedoBuf,
+                       OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0); // auxiliary
+    oidnSetFilterImage(filter, "normal", normalBuf,
+                       OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0); // auxiliary
+    oidnSetFilterImage(filter, "output", colorBuf,
+                       OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0); // denoised beauty
     oidnSetFilter1b(filter, "hdr", true); // beauty image is HDR
     oidnCommitFilter(filter);
 
-    // Filter the image
+    // Fill the input image buffers
+    float* colorPtr = (float*)oidnGetBufferData(colorBuf);
+    ...
+
+    // Filter the beauty image
     oidnExecuteFilter(filter);
 
     // Check for errors
@@ -58,6 +68,8 @@ simple example code snippets.
       printf("Error: %s\n", errorMessage);
 
     // Cleanup
+    oidnReleaseBuffer(colorBuf);
+    ...
     oidnReleaseFilter(filter);
     oidnReleaseDevice(device);
 
@@ -65,20 +77,30 @@ simple example code snippets.
 
     #include <OpenImageDenoise/oidn.hpp>
     ...
+
     // Create an Intel Open Image Denoise device
-    oidn::DeviceRef device = oidn::newDevice();
+    oidn::DeviceRef device = oidn::newDevice(); // CPU or GPU if available
     device.commit();
 
+    // Create buffers for input/output images accessible to both host (CPU) and device (CPU/GPU)
+    oidn::BufferRef colorBuf  = device.newBuffer(width * height * 3 * sizeof(float));
+    oidn::BufferRef albedoBuf = ...
+
     // Create a filter for denoising a beauty (color) image using optional auxiliary images too
+    // This can be an expensive operation, so try no to create a new filter for every image!
     oidn::FilterRef filter = device.newFilter("RT"); // generic ray tracing filter
-    filter.setImage("color",  colorPtr,  oidn::Format::Float3, width, height); // beauty
-    filter.setImage("albedo", albedoPtr, oidn::Format::Float3, width, height); // auxiliary
-    filter.setImage("normal", normalPtr, oidn::Format::Float3, width, height); // auxiliary
-    filter.setImage("output", outputPtr, oidn::Format::Float3, width, height); // denoised beauty
+    filter.setImage("color",  colorBuf,  oidn::Format::Float3, width, height); // beauty
+    filter.setImage("albedo", albedoBuf, oidn::Format::Float3, width, height); // auxiliary
+    filter.setImage("normal", normalBuf, oidn::Format::Float3, width, height); // auxiliary
+    filter.setImage("output", colorBuf,  oidn::Format::Float3, width, height); // denoised beauty
     filter.set("hdr", true); // beauty image is HDR
     filter.commit();
 
-    // Filter the image
+    // Fill the input image buffers
+    float* colorPtr = (float*)colorBuf.getData();
+    ...
+
+    // Filter the beauty image
     filter.execute();
 
     // Check for errors
@@ -90,24 +112,24 @@ simple example code snippets.
 
     // Create a filter for denoising a beauty (color) image using prefiltered auxiliary images too
     oidn::FilterRef filter = device.newFilter("RT"); // generic ray tracing filter
-    filter.setImage("color",  colorPtr,  oidn::Format::Float3, width, height); // beauty
-    filter.setImage("albedo", albedoPtr, oidn::Format::Float3, width, height); // auxiliary
-    filter.setImage("normal", normalPtr, oidn::Format::Float3, width, height); // auxiliary
-    filter.setImage("output", outputPtr, oidn::Format::Float3, width, height); // denoised beauty
+    filter.setImage("color",  colorBuf,  oidn::Format::Float3, width, height); // beauty
+    filter.setImage("albedo", albedoBuf, oidn::Format::Float3, width, height); // auxiliary
+    filter.setImage("normal", normalBuf, oidn::Format::Float3, width, height); // auxiliary
+    filter.setImage("output", outputBuf, oidn::Format::Float3, width, height); // denoised beauty
     filter.set("hdr", true); // beauty image is HDR
     filter.set("cleanAux", true); // auxiliary images will be prefiltered
     filter.commit();
 
     // Create a separate filter for denoising an auxiliary albedo image (in-place)
     oidn::FilterRef albedoFilter = device.newFilter("RT"); // same filter type as for beauty
-    albedoFilter.setImage("albedo", albedoPtr, oidn::Format::Float3, width, height);
-    albedoFilter.setImage("output", albedoPtr, oidn::Format::Float3, width, height);
+    albedoFilter.setImage("albedo", albedoBuf, oidn::Format::Float3, width, height);
+    albedoFilter.setImage("output", albedoBuf, oidn::Format::Float3, width, height);
     albedoFilter.commit();
 
     // Create a separate filter for denoising an auxiliary normal image (in-place)
     oidn::FilterRef normalFilter = device.newFilter("RT"); // same filter type as for beauty
-    normalFilter.setImage("normal", normalPtr, oidn::Format::Float3, width, height);
-    normalFilter.setImage("output", normalPtr, oidn::Format::Float3, width, height);
+    normalFilter.setImage("normal", normalBuf, oidn::Format::Float3, width, height);
+    normalFilter.setImage("output", normalBuf, oidn::Format::Float3, width, height);
     normalFilter.commit();
 
     // Prefilter the auxiliary images
@@ -116,6 +138,27 @@ simple example code snippets.
 
     // Filter the beauty image
     filter.execute();
+
+
+Upgrading from Open Image Denoise 1.x
+-------------------------------------
+
+Intel Open Image Denoise 2 introduces GPU support without breaking the 1.x API.
+However, some applications may require some code changes to support running on
+GPUs.
+
+Applications that explicitly use the CPU device (`OIDN_DEVICE_TYPE_CPU`) do not
+require any code changes but using the default device
+(`OIDN_DEVICE_TYPE_DEFAULT`) may cause runtime errors if a GPU device is
+created and the user code is not GPU-ready.
+
+To ensure compatibility with any kind of device, including GPUs, the application
+should use `OIDNBuffer` objects to store all image data passed to the library.
+Data allocated this way is accessible to both the host and the device. The user
+is free to use other ways to allocate memory for images but then they need to
+make sure that the proper allocation functions are used for the created device
+type. System memory allocation (e.g., `malloc`) is not supported on most
+platforms.
 
 
 Device
@@ -131,10 +174,13 @@ where the `type` enumeration maps to a specific device implementation, which
 can be one of the following:
 
 Name                       Description
--------------------------- -----------------------------------------------------
-`OIDN_DEVICE_TYPE_DEFAULT` select the approximately fastest device
+-------------------------- ---------------------------------------------------------------
+`OIDN_DEVICE_TYPE_DEFAULT` select the likely fastest device (GPUs are preferred over CPUs)
 `OIDN_DEVICE_TYPE_CPU`     CPU device (requires SSE4.1 support or Apple Silicon)
--------------------------- -----------------------------------------------------
+`OIDN_DEVICE_TYPE_SYCL`    SYCL device (requires Intel Gen9 architecture or newer GPU)
+`OIDN_DEVICE_TYPE_CUDA`    CUDA device (requires NVIDIA Pascal architecture or newer GPU)
+`OIDN_DEVICE_TYPE_HIP`     HIP device (requires AMD RDNA2 architecture or newer GPU)
+-------------------------- ---------------------------------------------------------------
 : Supported device types, i.e., valid constants of type `OIDNDeviceType`.
 
 Once a device is created, you can call
@@ -195,6 +241,13 @@ Once parameters are set on the created device, the device must be committed with
 
 This device can then be used to construct further objects, such as buffers and
 filters. Note that a device can be committed only once during its lifetime.
+
+When running operations asynchronously on a device (functions with `Async` in
+their name), eventually it is necessary to wait for all asynchronous operations
+to complete. This can be done by calling
+
+    void oidnSyncDevice(OIDNDevice device);
+
 Before the application exits, it should release all devices by invoking
 
     void oidnReleaseDevice(OIDNDevice device);
@@ -206,8 +259,11 @@ increase the reference count by calling
 
     void oidnRetainDevice(OIDNDevice device);
 
-An application typically creates only a single device. If required differently,
-it should only use a small number of devices at any given time.
+An application should typically create only a single device object per physical
+device (one for *all* CPUs or one per GPU) as creation can be very expensive and
+additional device objects may incur a significant memory overhead. If required
+differently, it should only use a small number of device objects at any given
+time.
 
 ### Error Handling
 
@@ -264,7 +320,7 @@ Name                              Description
 
 `OIDN_ERROR_OUT_OF_MEMORY`        not enough memory to execute the operation
 
-`OIDN_ERROR_UNSUPPORTED_HARDWARE` the hardware (e.g., CPU) is not supported
+`OIDN_ERROR_UNSUPPORTED_HARDWARE` the hardware (CPU/GPU) is not supported
 
 `OIDN_ERROR_CANCELLED`            the operation was cancelled by the user
 --------------------------------- ----------------------------------------------
@@ -276,26 +332,48 @@ Buffer
 
 Large data like images can be passed to Intel Open Image Denoise either via
 pointers to memory allocated and managed by the user or by creating buffer
-objects. To create a new data buffer with memory allocated and owned by the
-device, holding `byteSize` number of bytes, use
+objects. Regardless of which method is used, the data typically should be
+allocated in a way that it is accessible to the device (either CPU or GPU). To
+create a new data buffer with memory allocated and owned by the device, holding
+`byteSize` number of bytes, use
 
     OIDNBuffer oidnNewBuffer(OIDNDevice device, size_t byteSize);
 
 The created buffer is bound to the specified device (`device` argument). The
 specified number of bytes are allocated at buffer construction time and
 deallocated when the buffer is destroyed. The allocated memory is accessible to
-both the host and the device.
+both the host and the device, thus using buffers is the recommended
+device-independent way to fulfill the memory allocation requirements.
+
+If this default buffer allocation is not suitable, a buffer can be created with
+a manually specified storage mode as well:
+
+    OIDNBuffer oidnNewBufferWithStorage(OIDNDevice device, size_t byteSize, OIDNStorage storage);
+
+The supported storage modes are the following:
+
+Name                     Description
+------------------------ ----------------------------------------------------------------------
+`OIDN_STORAGE_UNDEFINED` undefined storage mode
+`OIDN_STORAGE_HOST`      stored on the host, accessible to both the host and device (*default*)
+`OIDN_STORAGE_DEVICE`    stored on the device, *not* accessible to the host
+`OIDN_STORAGE_MANAGED`   automatically migrated between the host and device, accessible to both
+------------------------ ----------------------------------------------------------------------
+: Supported storage modes for buffers, i.e., valid constants of type `OIDNStorage`.
 
 It is also possible to create a "shared" data buffer with memory allocated and
 managed by the user with
 
-    OIDNBuffer oidnNewSharedBuffer(OIDNDevice device, void* ptr, size_t byteSize);
+    OIDNBuffer oidnNewSharedBuffer(OIDNDevice device, void* devPtr, size_t byteSize);
 
-where `ptr` points to the user-managed memory and `byteSize` is its size in
-bytes. At buffer construction time no buffer data is allocated, but the buffer
-data provided by the user is used. The buffer data must remain valid for as
-long as the buffer may be used, and the user is responsible to free the buffer
-data when no longer required.
+where `devPtr` points to user-managed device-accessible memory and `byteSize` is
+its size in bytes. At buffer construction time no buffer data is allocated, but
+the buffer data provided by the user is used. The buffer data must remain valid
+for as long as the buffer may be used, and the user is responsible to free the
+buffer data when no longer required. The user must also ensure that the memory is
+accessible to the device by using allocation functions supported by the device
+(e.g. `sycl::malloc` for SYCL devices, `cudaMalloc` for CUDA devices, `hipMalloc`
+for HIP devices).
 
 Similar to device objects, buffer objects are also reference-counted and can be
 retained and released by calling the following functions:
@@ -307,10 +385,19 @@ The size of the buffer in bytes can be queried using
 
     size_t oidnGetBufferSize(OIDNBuffer buffer);
 
-Accessing the data stored in a buffer object is possible by mapping it into the
-address space of the application using
+It is possible to get a pointer directly to the buffer data, which is the most
+efficient way to access the data stored in the buffer:
 
-    void* oidnMapBuffer(OIDNBuffer buffer, OIDNAccess access, size_t byteOffset, size_t byteSize)
+    void* oidnGetBufferData(OIDNBuffer buffer);
+
+However, accessing the data on the host through this pointer is possible only if
+the buffer was created with a storage mode that enables this, i.e., any mode
+*except* `OIDN_STORAGE_DEVICE`.
+
+One way to access the buffer data on the host regardless of the storage mode is
+by mapping it into the address space of the application using
+
+    void* oidnMapBuffer(OIDNBuffer buffer, OIDNAccess access, size_t byteOffset, size_t byteSize);
 
 where `access` is the desired access mode of the mapped memory, `byteOffset` is
 the offset to the beginning of the mapped memory region in bytes, and
@@ -338,10 +425,15 @@ where `mappedPtr` must be a pointer returned by a call to `oidnMapBuffer` for
 the specified buffer. Any change to the mapped data is guaranteed to take
 effect only after unmapping the memory region.
 
-It is also possible to get a pointer directly to the buffer data but this might be valid
-only on the device the buffer was created on:
+If the goal is to copy the buffer data to/from another location in host memory,
+it is more efficient to directly read/write a region from the buffer using the
+following functions:
 
-    void* oidnGetBufferData(OIDNBuffer buffer);
+    void oidnReadBuffer(OIDNBuffer buffer,
+                        size_t byteOffset, size_t byteSize, void* dstHostPtr);
+
+    void oidnWriteBuffer(OIDNBuffer buffer,
+                         size_t byteOffset, size_t byteSize, const void* srcHostPtr);
 
 ### Data Format
 
@@ -372,8 +464,16 @@ object, call
     OIDNFilter oidnNewFilter(OIDNDevice device, const char* type);
 
 where `type` is the name of the filter type to create. The supported filter
-types are documented later in this section. Once created, filter objects can be
-retained and released with
+types are documented later in this section.
+
+Creating filter objects can be very expensive, therefore it is *strongly*
+recommended to reuse the same filter for denoising as many images as possible,
+as long as the these images have the same same size, format, and features (i.e.,
+only the memory locations and pixel values may be different). Otherwise (e.g.
+for images with different resolutions), reusing the same filter would not have
+any benefits.
+
+Once created, filter objects can be retained and released with
 
     void oidnRetainFilter(OIDNFilter filter);
     void oidnReleaseFilter(OIDNFilter filter);
@@ -390,16 +490,17 @@ To bind images to the filter, you can use one of the following functions:
                             size_t bytePixelStride, size_t byteRowStride);
 
     void oidnSetSharedFilterImage(OIDNFilter filter, const char* name,
-                                  void* ptr, OIDNFormat format,
+                                  void* devPtr, OIDNFormat format,
                                   size_t width, size_t height,
                                   size_t byteOffset,
                                   size_t bytePixelStride, size_t byteRowStride);
 
 It is possible to specify either a data buffer object (`buffer` argument) with
-the `oidnSetFilterImage` function, or directly a pointer to shared user-managed
-data (`ptr` argument) with the `oidnSetSharedFilterImage` function. Regardless
-of whether a buffer or a pointer is specified, the data must be acessible to the
-device. To ensure this, 
+the `oidnSetFilterImage` function, or directly a pointer to user-managed
+device-accessible data (`devPtr` argument) with the `oidnSetSharedFilterImage`
+function. Regardless of whether a buffer or a pointer is specified, the data
+*must* be accessible to the device. The easiest way to guarantee this regardless
+of the device (CPU or GPU) is using buffer objects.
 
 In both cases, you must also specify the name of the image parameter to set
 (`name` argument, e.g. `"color"`, `"output"`), the pixel format (`format`
@@ -426,7 +527,11 @@ Some special data used by filters are opaque/untyped (e.g. trained model weights
 blobs), which can be specified with the `oidnSetSharedFilterData` function:
 
     void oidnSetSharedFilterData(OIDNFilter filter, const char* name,
-                                 void* ptr, size_t byteSize);
+                                 void* hostPtr, size_t byteSize);
+
+This data (`hostPtr`) must be accessible to the *host*, therefore system memory
+allocation is suitable (i.e., there is no reason to use buffer objects for
+allocation).
 
 Modifying the contents of an opaque data parameter after binding it to a filter
 is allowed but the filter needs to be notified that the data has been updated by
@@ -473,7 +578,7 @@ operation as soon as possible, and if that is fulfilled, it will raise an
 `OIDN_ERROR_CANCELLED` error.
 
 After setting all necessary parameters for the filter, the changes must be
-commmitted by calling
+committed by calling
 
     void oidnCommitFilter(OIDNFilter filter);
 
@@ -488,6 +593,16 @@ Finally, an image can be filtered by executing the filter with
 
 which will read the input image data from the specified buffers and produce the
 denoised output image.
+
+This function will block until the filtering operation has been completed. GPU
+devices also support asynchronous execution, which can be performed with
+
+    void oidnExecuteFilterAsync(OIDNFilter filter);
+
+If filtering asynchronously, the user must ensure correct synchronization with
+the device before accessing the input and output image data by, e.g., calling
+`oidnSyncDevice`. Currently the CPU device does not support asynchronous
+filtering and `oidnExecuteFilterAsync` will block as well.
 
 In the following we describe the different filters that are currently
 implemented in Intel Open Image Denoise.
@@ -649,7 +764,7 @@ albedos.][imgMazdaAlbedoNonDeltaHit]
 
 For simple matte surfaces this means using the diffuse color/texture as the
 albedo. For other, more complex surfaces it is not always obvious what is
-the best way to compute the albedo, but the denoising filter is flexibile to
+the best way to compute the albedo, but the denoising filter is flexible to
 a certain extent and works well with differently computed albedos. Thus it is
 not necessary to compute the strict, exact albedo values but must be always
 between 0 and 1.

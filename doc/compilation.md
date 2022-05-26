@@ -19,8 +19,8 @@ clone the repository. Cloning without Git LFS will seemingly succeed but
 actually some of the files will be invalid and thus compilation will fail.
 
 Intel Open Image Denoise currently supports 64-bit Linux, Windows, and macOS
-operating systems. In addition, before you can build Intel Open Image Denoise
-you need the following prerequisites:
+operating systems. Before you can build Intel Open Image Denoise you need the
+following prerequisites:
 
 -   [CMake](http://www.cmake.org) 3.1 or later
 
@@ -29,8 +29,12 @@ you need the following prerequisites:
     [Intel® C++ Compiler](https://software.intel.com/en-us/c-compilers) 17.0 or
     later)
 
--   [Intel® SPMD Program Compiler (ISPC)](http://ispc.github.io), version 1.14.1
-    or later. Please obtain a release of ISPC from the [ISPC downloads
+-   Python 2.7 or later
+
+#### CPU device: {-}
+
+-   [Intel® SPMD Program Compiler (ISPC)](http://ispc.github.io) 1.14.1 or
+    later. Please obtain a release of ISPC from the [ISPC downloads
     page](https://ispc.github.io/downloads.html). The build system looks for
     ISPC in the `PATH` and in the directory right "next to" the checked-out
     Intel Open Image Denoise sources.^[For example, if Intel Open Image Denoise
@@ -38,21 +42,31 @@ you need the following prerequisites:
     Alternatively set the CMake variable `ISPC_EXECUTABLE` to the location of
     the ISPC compiler.
 
--   Python 2.7 or later
-
 -   [Intel® Threading Building Blocks](https://www.threadingbuildingblocks.org/)
     (TBB) 2017 or later
 
-Depending on your Linux distribution you can install these dependencies
-using `yum` or `apt-get`. Some of these packages might already be installed or
-might have slightly different names.
+#### CUDA device for NVIDIA GPUs: {-}
 
-Type the following to install the dependencies using `yum`:
+-   [CMake](http://www.cmake.org) 3.23.2 or later
+
+-   [NVIDIA CUDA Toolkit](https://developer.nvidia.com/cuda-toolkit) 11.1 or later
+
+#### HIP device for AMD GPUs: {-}
+
+-   [AMD ROCm](https://docs.amd.com) v5.1.1 or later
+
+### Installation
+
+Depending on your Linux distribution you can install some or all required
+dependencies using `yum` or `apt-get`. Some of these packages might already be
+installed or might have slightly different names.
+
+Type the following to install the dependencies for the CPU device using `yum`:
 
     sudo yum install cmake
     sudo yum install tbb-devel
 
-Type the following to install the dependencies using `apt-get`:
+Type the following to install the dependencies for the CPU device using `apt-get`:
 
     sudo apt-get install cmake-curses-gui
     sudo apt-get install libtbb-dev
@@ -181,12 +195,17 @@ in CMake:
 - `OIDN_STATIC_RUNTIME`: Use the static version of the C/C++ runtime library
   (available only on Windows, OFF by default).
 
-- `OIDN_NEURAL_RUNTIME`: Specifies which neural network runtime library to use: 
-  `DNNL` (oneDNN, default) or `BNNS` (available only on macOS).
-
 - `OIDN_API_NAMESPACE`: Specifies a namespace to put all Intel Open Image
   Denoise API symbols inside. By default no namespace is used and plain C
   symbols are exported.
+
+- `OIDN_DEVICE_CPU`: Enable building the CPU device (ON by default).
+
+- `OIDN_DEVICE_CUDA`: Enable building the CUDA device for NVIDIA GPUs (OFF by
+  default).
+
+- `OIDN_DEVICE_HIP`: Enable building the HIP device for AMD GPUs (OFF by
+  default).
 
 - `OIDN_FILTER_RT`: Include the trained weights of the `RT` filter in the build
   (ON by default). Turning this OFF significantly decreases the size of the
