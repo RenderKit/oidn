@@ -8,7 +8,10 @@ namespace oidn {
 
   UNetFilter::UNetFilter(const Ref<Device>& device)
     : Filter(device),
-      progress(device) {}
+      progress(device)
+  {
+    maxMemoryMB = int(600 * getDataTypeSize(device->getTensorDataType()));
+  }
   
   UNetFilter::~UNetFilter()
   {

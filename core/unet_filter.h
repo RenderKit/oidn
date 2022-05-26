@@ -47,7 +47,7 @@ namespace oidn {
     bool directional = false;
     float inputScale = std::numeric_limits<float>::quiet_NaN();
     bool cleanAux = false;
-    int maxMemoryMB = 3000; // approximate maximum memory usage in MBs
+    int maxMemoryMB = 0; // approximate maximum memory usage in MBs
 
     // Weights
     struct
