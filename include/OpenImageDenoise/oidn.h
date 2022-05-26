@@ -142,6 +142,12 @@ OIDN_API OIDNBuffer oidnNewBufferWithStorage(OIDNDevice device, size_t byteSize,
 // Creates a new shared buffer allocated and owned by the user and accessible to the device.
 OIDN_API OIDNBuffer oidnNewSharedBuffer(OIDNDevice device, void* devPtr, size_t byteSize);
 
+// Gets the size of the buffer in bytes.
+OIDN_API size_t oidnGetBufferSize(OIDNBuffer buffer);
+
+// Gets a pointer to the buffer data, which is accessible to the device but not necessarily to the host as well.
+OIDN_API void* oidnGetBufferData(OIDNBuffer buffer);
+
 // Maps a region of the buffer to the host memory.
 // If byteSize is 0, the maximum available amount of memory will be mapped.
 OIDN_API void* oidnMapBuffer(OIDNBuffer buffer, OIDNAccess access, size_t byteOffset, size_t byteSize);
@@ -155,12 +161,6 @@ OIDN_API void oidnReadBuffer(OIDNBuffer buffer, size_t byteOffset, size_t byteSi
 
 // Writes data to a region of the buffer from host memory.
 OIDN_API void oidnWriteBuffer(OIDNBuffer buffer, size_t byteOffset, size_t byteSize, const void* srcHostPtr);
-
-// Gets a pointer to the buffer data, which is accessible to the device but not necessarily to the host as well.
-OIDN_API void* oidnGetBufferData(OIDNBuffer buffer);
-
-// Gets the size of the buffer in bytes.
-OIDN_API size_t oidnGetBufferSize(OIDNBuffer buffer);
 
 // Retains the buffer (increments the reference count).
 OIDN_API void oidnRetainBuffer(OIDNBuffer buffer);

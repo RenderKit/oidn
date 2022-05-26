@@ -121,6 +121,18 @@ OIDN_NAMESPACE_BEGIN
       return handle != nullptr;
     }
 
+    // Gets the size of the buffer in bytes.
+    size_t getSize() const
+    {
+      return oidnGetBufferSize(handle);
+    }
+
+    // Gets a pointer to the buffer data, which is accessible to the device but not necessarily to the host as well.
+    void* getData() const
+    {
+      return oidnGetBufferData(handle);
+    }
+
     // Maps a region of the buffer to the host memory.
     // If byteSize is 0, the maximum available amount of memory will be mapped.
     void* map(Access access = Access::ReadWrite, size_t byteOffset = 0, size_t byteSize = 0) const
@@ -145,18 +157,6 @@ OIDN_NAMESPACE_BEGIN
     void write(size_t byteOffset, size_t byteSize, const void* srcHostPtr)
     {
       oidnWriteBuffer(handle, byteOffset, byteSize, srcHostPtr);
-    }
-
-    // Gets a pointer to the buffer data, which is accessible to the device but not necessarily to the host as well.
-    void* getData() const
-    {
-      return oidnGetBufferData(handle);
-    }
-
-    // Gets the size of the buffer in bytes.
-    size_t getSize() const
-    {
-      return oidnGetBufferSize(handle);
     }
   };
 
