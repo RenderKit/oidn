@@ -192,6 +192,9 @@ namespace oidn {
   // String functions
   // ---------------------------------------------------------------------------
 
+  std::ostream& operator <<(std::ostream& sm, DeviceType deviceType);
+  std::istream& operator >>(std::istream& sm, DeviceType& deviceType);
+
   template<typename T>
   inline std::string toString(const T& a)
   {
@@ -214,9 +217,6 @@ namespace oidn {
   {
     return str;
   }
-
-  std::ostream& operator <<(std::ostream& sm, DeviceType deviceType);
-  std::istream& operator >>(std::istream& sm, DeviceType& deviceType);
 
 #if defined(__APPLE__)
   template<typename T>
