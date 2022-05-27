@@ -405,7 +405,7 @@ endif()
 if(OIDN_DEVICE_CPU)
   target_compile_definitions(${PROJECT_NAME} PUBLIC OIDN_DEVICE_CPU)
   ispc_target_add_sources(${PROJECT_NAME} ${CORE_SOURCES_ISPC})
-  target_link_libraries(${PROJECT_NAME} PUBLIC ${CMAKE_THREAD_LIBS_INIT} TBB::tbb)
+  target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_THREAD_LIBS_INIT} TBB::tbb)
 endif()
 
 if(OIDN_DEVICE_SYCL)
