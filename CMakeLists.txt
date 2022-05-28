@@ -349,10 +349,10 @@ if(OIDN_DEVICE_CUDA)
   )
 
   # We do not generate PTX to avoid excessive JIT compile times
-  set(OIDN_NVCC_SM60_FLAGS "-gencode arch=compute_60,code=sm_60 -gencode arch=compute_61,code=[sm_61,sm_62]")
-  set(OIDN_NVCC_SM70_FLAGS "-gencode arch=compute_70,code=[sm_70,sm_72]")
+  set(OIDN_NVCC_SM60_FLAGS "-gencode arch=compute_60,code=sm_60")
+  set(OIDN_NVCC_SM70_FLAGS "-gencode arch=compute_70,code=sm_70")
   set(OIDN_NVCC_SM75_FLAGS "-gencode arch=compute_75,code=sm_75")
-  set(OIDN_NVCC_SM80_FLAGS "-gencode arch=compute_80,code=sm_80 -gencode arch=compute_86,code=[sm_86,sm_87]")
+  set(OIDN_NVCC_SM80_FLAGS "-gencode arch=compute_80,code=sm_80")
 
   set_source_files_properties(
     core/cuda/cuda_conv.cu
