@@ -90,6 +90,7 @@ endif()
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   file(GLOB DNNL_SOURCES_BIGOBJ
+    mkl-dnn/src/common/memory_zero_pad.cpp
     mkl-dnn/src/cpu/cpu_engine.cpp
     mkl-dnn/src/cpu/reorder/cpu_reorder_regular_f32_f32.cpp
     mkl-dnn/src/cpu/cpu_convolution_list.cpp
