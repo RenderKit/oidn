@@ -17,8 +17,6 @@ namespace oidn {
       kernels = getCutlassConvInstances<75>();
     else if (sm >= 70)
       kernels = getCutlassConvInstances<70>();
-    else if (sm >= 60)
-      kernels = getCutlassConvInstances<60>();
     else
       throw std::runtime_error("could not find a supported convolution kernel");
 

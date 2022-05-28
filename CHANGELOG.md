@@ -3,7 +3,7 @@ Version History
 
 ### Changes in v2.0.0:
 
--   Added CUDA device for NVIDIA Pascal architecture and later GPUs
+-   Added CUDA device for NVIDIA Volta architecture and later GPUs
 -   Added HIP device for AMD RDNA2 architecture and later GPUs (*experimental*)
 -   Added new API functions for advanced GPU support:
     -  `oidnNewBufferWithStorage`, `oidnReadBuffer`, and `oidnWriteBuffer` for

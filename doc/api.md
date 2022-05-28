@@ -178,7 +178,7 @@ Name                       Description
 `OIDN_DEVICE_TYPE_DEFAULT` select the likely fastest device (GPUs are preferred over CPUs)
 `OIDN_DEVICE_TYPE_CPU`     CPU device (requires SSE4.1 support or Apple Silicon)
 `OIDN_DEVICE_TYPE_SYCL`    SYCL device (requires Intel Gen9 architecture or newer GPU)
-`OIDN_DEVICE_TYPE_CUDA`    CUDA device (requires NVIDIA Pascal architecture or newer GPU)
+`OIDN_DEVICE_TYPE_CUDA`    CUDA device (requires NVIDIA Volta architecture or newer GPU)
 `OIDN_DEVICE_TYPE_HIP`     HIP device (requires AMD RDNA2 architecture or newer GPU)
 -------------------------- ---------------------------------------------------------------
 : Supported device types, i.e., valid constants of type `OIDNDeviceType`.

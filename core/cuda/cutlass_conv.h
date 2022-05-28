@@ -44,14 +44,6 @@ namespace oidn {
     static constexpr int alignment = 8;
   };
 
-  template<>
-  struct CutlassMathInstruction<cutlass::half_t, cutlass::arch::Sm60>
-  {
-    using MMAOp = cutlass::arch::OpClassSimt;
-    using InstructionShape = cutlass::gemm::GemmShape<1, 1, 1>;
-    static constexpr int alignment = 1;
-  };
-
   template<typename Element, int alignment>
   struct CutlassEpilogueTraits
   {

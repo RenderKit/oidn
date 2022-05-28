@@ -119,7 +119,7 @@ namespace oidn {
     WorkDim<2> suggestWorkGroupSize(WorkDim<2> globalSize) { return {16, 16}; }
     WorkDim<3> suggestWorkGroupSize(WorkDim<3> globalSize) { return {1, 16, 16}; }
 
-    static constexpr int minComputeCapability = 60;
+    static constexpr int minComputeCapability = 70;
     static constexpr int maxComputeCapability = 87;
 
     int deviceId = -1;
