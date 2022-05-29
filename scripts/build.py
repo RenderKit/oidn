@@ -15,7 +15,7 @@ import argparse
 
 from common import *
 
-ISPC_VERSION = '1.17.0'
+ISPC_VERSION = '1.18.0'
 TBB_VERSION  = '2021.5.0'
 
 def download_file(url, output_dir):
