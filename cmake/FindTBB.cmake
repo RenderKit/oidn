@@ -249,6 +249,7 @@ function(rk_tbb_find_root)
       endif()
       set(TBB_PATHS
           "${PROJECT_SOURCE_DIR}/../tbb"
+          "${PROGRAMFILES32}/Intel/oneAPI/tbb/latest"
           "${PROGRAMFILES32}/IntelSWTools/compilers_and_libraries/windows/tbb"
           "${PROGRAMFILES32}/Intel/Composer XE/tbb"
           "${PROGRAMFILES32}/Intel/compilers_and_libraries/windows/tbb")
