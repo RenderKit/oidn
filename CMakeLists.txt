@@ -125,7 +125,7 @@ if(NOT APPLE)
     endif()
 
     # Set the NVCC host compiler to make sure the same C++ compiler is used for all host code (except DPC++, which is not supported yet)
-    if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_VERSION VERSION_LESS 15)
+    if(NOT WIN32 AND (NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_VERSION VERSION_LESS 15))
       set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
     endif()
 
