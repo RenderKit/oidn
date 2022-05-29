@@ -123,6 +123,12 @@ if(NOT APPLE)
     elseif(${CMAKE_VERSION} VERSION_LESS "3.18.0")
       message(FATAL_ERROR "Building with CUDA support requires CMake 3.18.0 or newer")
     endif()
+
+    # Set the NVCC host compiler to make sure the same C++ compiler is used for all host code (except DPC++, which is not supported yet)
+    if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_VERSION VERSION_LESS 15)
+      set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
+    endif()
+
     enable_language(CUDA)
     if (${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS "11.1")
       message(FATAL_ERROR "Building with CUDA support requires NVIDIA CUDA Toolkit 11.1 or newer")
