@@ -494,6 +494,23 @@ package-windows:
   script: python scripts/build.py package --compiler msvc16 -D OIDN_DEVICE_CUDA=ON
 
 ## -----------------------------------------------------------------------------
+## Source
+## -----------------------------------------------------------------------------
+
+package-src-zip:
+  extends: .package
+  tags:
+    - win10
+  script: python scripts/build_src.py
+
+package-src-targz:
+  extends: .package
+  tags:
+    - docker
+  image: $DOCKER_REGISTRY/oidn-build:centos7
+  script: scripts/build_src.py
+
+## -----------------------------------------------------------------------------
 ## Scans
 ## -----------------------------------------------------------------------------
 
@@ -508,6 +525,8 @@ av:
     - package-linux
     - package-macos
     - package-windows
+    - package-src-zip
+    - package-src-targz
   script:
     - freshclam | tee -a /tmp/av_scan.log
     - clamscan -va --max-filesize=512M --max-scansize=2048M --alert-broken --alert-exceeds-max build/oidn-* | tee -a /tmp/av_scan.log

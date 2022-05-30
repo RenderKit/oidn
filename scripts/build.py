@@ -8,52 +8,12 @@ import sys
 import os
 from glob import glob
 import shutil
-import tarfile
-from zipfile import ZipFile
-from urllib.request import urlretrieve
 import argparse
 
 from common import *
 
 ISPC_VERSION = '1.18.0'
 TBB_VERSION  = '2021.5.0'
-
-def download_file(url, output_dir):
-  print('Downloading file:', url)
-  filename = os.path.join(output_dir, os.path.basename(url))
-  urlretrieve(url, filename=filename)
-  return filename
-
-def extract_package(filename, output_dir):
-  print('Extracting package:', filename)
-  # Detect the package format and open the package
-  if re.search(r'(\.tar(\..+)?|tgz)$', filename):
-    package = tarfile.open(filename)
-    members = package.getnames()
-  elif filename.endswith('.zip'):
-    package = ZipFile(filename)
-    members = package.namelist()
-  else:
-    raise Exception('unsupported package format')
-  # Avoid nesting two top-level directories with the same name
-  if os.path.commonpath(members) == os.path.basename(output_dir):
-    output_dir = os.path.dirname(output_dir)
-  # Create the output directory if it doesn't exist
-  if not os.path.isdir(output_dir):
-    os.makedirs(output_dir)
-  # Extract the package
-  package.extractall(output_dir)
-  package.close()
-
-def create_package(filename, input_dir):
-  print('Creating package:', filename)
-  if filename.endswith('.tar.gz'):
-    with tarfile.open(filename, "w:gz") as package:
-      package.add(input_dir, arcname=os.path.basename(input_dir))
-  elif filename.endswith('.zip'):
-    shutil.make_archive(filename[:-4], 'zip', os.path.dirname(input_dir), os.path.basename(input_dir))
-  else:
-    raise Exception('unsupported package format')
 
 def check_symbols(filename, label, max_version):
   with os.popen("nm \"%s\" | tr ' ' '\n' | grep @@%s_" % (filename, label)) as out:
