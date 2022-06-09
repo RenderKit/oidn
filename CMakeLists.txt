@@ -413,7 +413,7 @@ endif()
 
 if(OIDN_DEVICE_SYCL)
   target_compile_definitions(${PROJECT_NAME} PUBLIC OIDN_DEVICE_SYCL)
-  target_link_options(${PROJECT_NAME} PUBLIC "-fsycl")
+  target_link_options(${PROJECT_NAME} PRIVATE "-fsycl")
 endif()
 
 if(OIDN_DEVICE_CUDA)
