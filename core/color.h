@@ -141,7 +141,6 @@ namespace oidn {
         return math::log(y + 1.f) * normScale;
 
       default:
-        assert(0);
         return 0;
       }
     }
@@ -163,7 +162,6 @@ namespace oidn {
         return math::exp(x * rcpNormScale) - 1.f;
       
       default:
-        assert(0);
         return 0;
       }
     }

@@ -1,4 +1,4 @@
-## Copyright 2009-2021 Intel Corporation
+## Copyright 2009-2022 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 include(CheckCXXCompilerFlag)
@@ -34,8 +34,6 @@ if(MSVC)
   append(OIDN_C_CXX_FLAGS_RELEASE "/Ox")
   # Package individual functions
   append(OIDN_C_CXX_FLAGS_RELEASE "/Gy")
-  # Disable secure warnings
-  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
   if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     append(OIDN_C_CXX_FLAGS "/MP")
     # Disable warning: int -> bool
@@ -107,6 +105,8 @@ endif()
 if(WIN32)
   add_definitions(-D_WIN)
   add_definitions(-DNOMINMAX)
+  # Disable secure warnings
+  add_definitions(-D_CRT_SECURE_NO_WARNINGS)
   if(MSVC)
     option(OIDN_STATIC_RUNTIME "Use the static version of the C/C++ runtime library." OFF)
     mark_as_advanced(OIDN_STATIC_RUNTIME)
@@ -157,6 +157,12 @@ endif()
 
 if(OIDN_DEVICE_SYCL)
   append(OIDN_CXX_FLAGS_SYCL "-fsycl")
+
+  # FIXME: DPCPP issues a warning when WINAPI is used:
+  # warning: '__stdcall' calling convention is not supported for this target
+  if(WIN32)
+    append(OIDN_CXX_FLAGS_SYCL "-Wno-ignored-attributes")
+  endif()
 endif()
 
 ## -----------------------------------------------------------------------------
