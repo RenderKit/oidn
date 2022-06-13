@@ -81,12 +81,6 @@ if(OIDN_ARCH STREQUAL "X64")
   option(OIDN_DEVICE_SYCL "Enable SYCL device." OFF)
 endif()
 
-if(OIDN_DEVICE_SYCL AND WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  # FIXME: DPCPP nightly builds do not include lld-link
-  append(CMAKE_EXE_LINKER_FLAGS    "-fuse-ld=link")
-  append(CMAKE_SHARED_LINKER_FLAGS "-fuse-ld=link")
-endif()
-
 if(OIDN_DEVICE_CPU OR OIDN_DEVICE_SYCL)
   # TBB
   find_package(Threads REQUIRED)
