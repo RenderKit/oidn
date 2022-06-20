@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -16,6 +16,8 @@ namespace oidn {
     Chw8c,  // blocked
     Chw16c, // blocked
     oihw,
+    OIhw8i8o,   // blocked
+    OIhw16i16o, // blocked
 
     hwc,
     ohwi,
@@ -44,7 +46,9 @@ namespace oidn {
 
       OIDN_HOST_DEVICE_INLINE size_t getOffset(int c, int h, int w) const
       {
-        return size_t(c) * cStride + size_t(h) * hStride + size_t(w) * wStride;
+        return size_t(c) * cStride +
+               size_t(h) * hStride +
+               size_t(w) * wStride;
       }
     };
   };
@@ -69,7 +73,9 @@ namespace oidn {
 
       OIDN_HOST_DEVICE_INLINE size_t getOffset(int c, int h, int w) const
       {
-        return size_t(c) * cStride + size_t(h) * hStride + size_t(w) * wStride;
+        return size_t(c) * cStride +
+               size_t(h) * hStride +
+               size_t(w) * wStride;
       }
     };
   };
@@ -81,19 +87,22 @@ namespace oidn {
 
     static constexpr size_t wStride = B * sizeof(T);
     size_t hStride;
-    size_t cStride;
+    size_t CStride;
 
     TensorAddressingChwBc() = default;
 
     OIDN_HOST_DEVICE_INLINE TensorAddressingChwBc(int C, int H, int W)
     {
       hStride = size_t(W) * wStride;
-      cStride = size_t(H) * hStride;
+      CStride = size_t(H) * hStride;
     }
 
     OIDN_HOST_DEVICE_INLINE size_t getOffset(int c, int h, int w) const
     {
-      return size_t(c/B) * cStride + size_t(h) * hStride + size_t(w) * wStride + size_t(c%B) * sizeof(T);
+      return size_t(c/B) * CStride +
+             size_t(h)   * hStride +
+             size_t(w)   * wStride +
+             size_t(c%B) * sizeof(T);
     }
   };
 
@@ -133,9 +142,58 @@ namespace oidn {
 
       OIDN_HOST_DEVICE_INLINE size_t getOffset(int o, int i, int h, int w) const
       {
-        return size_t(o) * oStride + size_t(i) * iStride + size_t(h) * hStride + size_t(w) * wStride;
+        return size_t(o) * oStride +
+               size_t(i) * iStride +
+               size_t(h) * hStride +
+               size_t(w) * wStride;
       }
     };
+  };
+
+  template<typename T, int blockSize>
+  struct TensorAddressingOIhwBiBo
+  {
+    static constexpr int B = blockSize;
+
+    static constexpr size_t oStride = sizeof(T);
+    static constexpr size_t iStride = B * oStride;
+    static constexpr size_t wStride = B * iStride;
+    size_t hStride;
+    size_t IStride;
+    size_t OStride;
+
+    TensorAddressingOIhwBiBo() = default;
+
+    OIDN_HOST_DEVICE_INLINE TensorAddressingOIhwBiBo(int O, int I, int H, int W)
+    {
+      hStride = size_t(W)   * wStride;
+      IStride = size_t(H)   * hStride;
+      OStride = size_t(I/B) * IStride;
+    }
+
+    OIDN_HOST_DEVICE_INLINE size_t getOffset(int o, int i, int h, int w) const
+    {
+      return size_t(o/B) * OStride +
+             size_t(i/B) * IStride +
+             size_t(h)   * hStride +
+             size_t(w)   * wStride +
+             size_t(i%B) * iStride +
+             size_t(o%B) * oStride;
+    }
+  };
+
+  template<>
+  struct TensorLayoutTraits<TensorLayout::OIhw8i8o>
+  {
+    template<typename T>
+    using Addressing = TensorAddressingOIhwBiBo<T, 8>;
+  };
+  
+  template<>
+  struct TensorLayoutTraits<TensorLayout::OIhw16i16o>
+  {
+    template<typename T>
+    using Addressing = TensorAddressingOIhwBiBo<T, 16>;
   };
 
   template<>
@@ -160,7 +218,10 @@ namespace oidn {
 
       OIDN_HOST_DEVICE_INLINE size_t getOffset(int o, int i, int h, int w) const
       {
-        return size_t(o) * oStride + size_t(i) * iStride + size_t(h) * hStride + size_t(w) * wStride;
+        return size_t(o) * oStride +
+               size_t(i) * iStride +
+               size_t(h) * hStride +
+               size_t(w) * wStride;
       }
     };
   };

@@ -52,6 +52,16 @@ namespace oidn {
       dnnlDims   = {td.dims[0], td.dims[1], td.dims[2], td.dims[3]};
       dnnlFormat = dnnl::memory::format_tag::oihw;
       break;
+    case TensorLayout::OIhw8i8o:
+      assert(td.getRank() == 4);
+      dnnlDims   = {td.dims[0], td.dims[1], td.dims[2], td.dims[3]};
+      dnnlFormat = dnnl::memory::format_tag::OIhw8i8o;
+      break;
+    case TensorLayout::OIhw16i16o:
+      assert(td.getRank() == 4);
+      dnnlDims   = {td.dims[0], td.dims[1], td.dims[2], td.dims[3]};
+      dnnlFormat = dnnl::memory::format_tag::OIhw16i16o;
+      break;
     default:
       throw std::invalid_argument("unsupported tensor layout");
     }

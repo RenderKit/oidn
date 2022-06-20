@@ -36,7 +36,8 @@ namespace oidn {
   #else
     tensorBlockSize = 1;
   #endif
-    tensorLayout = tensorBlockSize == 16 ? TensorLayout::Chw16c : (tensorBlockSize == 8 ? TensorLayout::Chw8c : TensorLayout::chw);
+    tensorLayout   = tensorBlockSize == 16 ? TensorLayout::Chw16c : (tensorBlockSize == 8 ? TensorLayout::Chw8c : TensorLayout::chw);
+    weightsLayout  = tensorBlockSize == 16 ? TensorLayout::OIhw16i16o : (tensorBlockSize == 8 ? TensorLayout::OIhw8i8o : TensorLayout::oihw);
     tensorDataType = DataType::Float32;
 
     if (isVerbose())
