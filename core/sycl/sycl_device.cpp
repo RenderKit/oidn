@@ -7,6 +7,7 @@
 #include "../gpu/gpu_input_process.h"
 #include "../gpu/gpu_output_process.h"
 #include "../gpu/gpu_image_copy.h"
+#include "sycl_conv.h"
 #include "sycl_pool.h"
 #include "sycl_upsample.h"
 
@@ -61,8 +62,9 @@ namespace oidn {
         !sycl->device.has(sycl::aspect::usm_shared_allocations))
       throw Exception(Error::UnsupportedHardware, "device does not support unified shared memory");
 
-    tensorDataType = DataType::Float16;
-    tensorLayout = TensorLayout::Chw16c;
+    tensorDataType  = DataType::Float16;
+    tensorLayout    = TensorLayout::Chw16c;
+    weightsLayout   = TensorLayout::OIhw16i16o;
     tensorBlockSize = 16;
 
     if (isVerbose())
@@ -73,6 +75,11 @@ namespace oidn {
                                        DNNL_VERSION_PATCH;
       std::cout << std::endl;
     }
+  }
+
+  std::shared_ptr<Conv> SYCLDevice::newConv(const ConvDesc& desc)
+  {
+    return std::make_shared<SYCLConv>(this, desc);
   }
 
   std::shared_ptr<Pool> SYCLDevice::newPool(const PoolDesc& desc)

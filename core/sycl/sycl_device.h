@@ -30,6 +30,7 @@ namespace oidn {
     OIDN_INLINE sycl::queue&   getSYCLQueue()   { return sycl->queue; }
 
     // Ops
+    std::shared_ptr<Conv> newConv(const ConvDesc& desc) override;
     std::shared_ptr<Pool> newPool(const PoolDesc& desc) override;
     std::shared_ptr<Upsample> newUpsample(const UpsampleDesc& desc) override;
     std::shared_ptr<Autoexposure> newAutoexposure(const ImageDesc& srcDesc) override;
