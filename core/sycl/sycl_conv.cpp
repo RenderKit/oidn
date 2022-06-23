@@ -5,7 +5,9 @@
 
 namespace oidn {
 
-  constexpr int owBlock = 16;
+  using namespace esimd;
+
+  constexpr int owBlock = 14;
   constexpr int iwBlock = owBlock + 3 - 1;
 
   template<typename T, TensorLayout tensorLayout, TensorLayout weightLayout>
@@ -19,10 +21,16 @@ namespace oidn {
     TensorAccessor1D<T> bias;
     TensorAccessor3D<T, tensorLayout> dst;
 
-    OIDN_INLINE void operator ()(const WorkItem<3>& it) const SYCL_ESIMD_FUNCTION
-    { 
-      using namespace esimd;
+    template<int N>
+    OIDN_INLINE void large_block_load(simd<T, N>& vec, const T* ptr) const
+    {
+      #pragma unroll
+      for (int i = 0; i < N; i += V)
+        vec.template select<V, 1>(i) = block_load<T, V, vector_aligned_tag>(ptr + i);
+    }
 
+    OIDN_INLINE void operator ()(const WorkItem<3>& it) const SYCL_ESIMD_FUNCTION
+    {
       const int oc = it.getId<0>() * cBlock;
       const int oh = it.getId<1>();
       const int ow = it.getId<2>() * owBlock;
@@ -44,36 +52,37 @@ namespace oidn {
 
           const int iw = ow - 1;
           const T* srcPtr = &src(ic, ih, iw);
-          simd<T, cBlock> srcVec[iwBlock];
-          #pragma unroll
-          for (int i = 0; i < iwBlock; ++i)
+          simd<T, iwBlock*cBlock> srcVec;
+
+          if (iw >= 0 && iw + iwBlock < src.W)
           {
-            if (iw + i < 0 || iw + i >= src.W)
-              srcVec[i] = 0;
-            else
-              srcVec[i] = block_load<T, cBlock, vector_aligned_tag>(srcPtr);
-            srcPtr += cBlock;
+            large_block_load(srcVec, srcPtr);
+          }
+          else
+          {
+            srcVec = 0;
+            #pragma unroll
+            for (int i = 0; i < iwBlock; ++i)
+            {
+              if (iw + i >= 0 && iw + i < src.W)
+                srcVec.template select<cBlock, 1>(i*cBlock) = block_load<T, cBlock, vector_aligned_tag>(srcPtr);
+              srcPtr += cBlock;
+            }
           }
 
           #pragma unroll
           for (int kw = 0; kw < 3; ++kw)
           {
-            const T* weightPtr = &weight(oc, ic, kw, kh);
+            const T* weightPtr = &weight(oc, ic, kh, kw);
             simd<T, cBlock*cBlock> weightVec;
-
-            #pragma unroll
-            for (int i = 0; i < cBlock*cBlock; i += V)
-            {
-              weightVec.template select<V, 1>(i) = block_load<T, V, vector_aligned_tag>(weightPtr);
-              weightPtr += V;
-            }
+            large_block_load(weightVec, weightPtr);
 
             #pragma unroll
             for (int i = 0; i < cBlock; ++i)
             {
               #pragma unroll
               for (int j = 0; j < owBlock; ++j)
-                dstVec[j] += srcVec[j+kw].template replicate_w<cBlock, 1>(i) * weightVec.template select<cBlock, 1>(i * cBlock);
+                dstVec[j] += srcVec.template replicate_w<cBlock, 1>((j+kw)*cBlock + i) * weightVec.template select<cBlock, 1>(i * cBlock);
             }
           }
         }
