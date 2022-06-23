@@ -11,7 +11,7 @@ namespace oidn {
   template<typename T, TensorLayout tensorLayout, TensorLayout weightLayout>
   struct SYCLConvKernel
   {
-    static constexpr int B = TensorAccessor3D<T, tensorLayout>::B;
+    static constexpr int cBlock = TensorAccessor3D<T, tensorLayout>::cBlock;
     static constexpr int V = 128 / sizeof(T);
 
     TensorAccessor3D<T, tensorLayout> src;
@@ -23,17 +23,17 @@ namespace oidn {
     { 
       using namespace esimd;
 
-      const int oc = it.getId<0>() * B;
+      const int oc = it.getId<0>() * cBlock;
       const int oh = it.getId<1>();
       const int ow = it.getId<2>() * owBlock;
 
-      simd<T, B> accum[owBlock];
-      const auto b = block_load<T, B, vector_aligned_tag>(&bias(oc));
+      simd<T, cBlock> dstVec[owBlock];
+      const auto biasVec = block_load<T, cBlock, vector_aligned_tag>(&bias(oc));
       #pragma unroll
       for (int i = 0; i < owBlock; ++i)
-        accum[i] = b;
+        dstVec[i] = biasVec;
 
-      for (int ic = 0; ic < src.C; ic += B)
+      for (int ic = 0; ic < src.C; ic += cBlock)
       {
         #pragma unroll
         for (int kh = 0; kh < 3; ++kh)
@@ -44,36 +44,36 @@ namespace oidn {
 
           const int iw = ow - 1;
           const T* srcPtr = &src(ic, ih, iw);
-          simd<T, B> a[iwBlock];
+          simd<T, cBlock> srcVec[iwBlock];
           #pragma unroll
           for (int i = 0; i < iwBlock; ++i)
           {
             if (iw + i < 0 || iw + i >= src.W)
-              a[i] = 0;
+              srcVec[i] = 0;
             else
-              a[i] = block_load<T, B, vector_aligned_tag>(srcPtr);
-            srcPtr += B;
+              srcVec[i] = block_load<T, cBlock, vector_aligned_tag>(srcPtr);
+            srcPtr += cBlock;
           }
 
           #pragma unroll
           for (int kw = 0; kw < 3; ++kw)
           {
             const T* weightPtr = &weight(oc, ic, kw, kh);
-            simd<T, B*B> w;
+            simd<T, cBlock*cBlock> weightVec;
 
             #pragma unroll
-            for (int i = 0; i < B*B; i += V)
+            for (int i = 0; i < cBlock*cBlock; i += V)
             {
-              w.template select<V, 1>(i) = block_load<T, V, vector_aligned_tag>(weightPtr);
+              weightVec.template select<V, 1>(i) = block_load<T, V, vector_aligned_tag>(weightPtr);
               weightPtr += V;
             }
 
             #pragma unroll
-            for (int i = 0; i < B; ++i)
+            for (int i = 0; i < cBlock; ++i)
             {
               #pragma unroll
               for (int j = 0; j < owBlock; ++j)
-                accum[j] += a[j+kw].template replicate_w<B, 1>(i) * w.template select<B, 1>(i * B);
+                dstVec[j] += srcVec[j+kw].template replicate_w<cBlock, 1>(i) * weightVec.template select<cBlock, 1>(i * cBlock);
             }
           }
         }
@@ -81,15 +81,15 @@ namespace oidn {
 
       #pragma unroll
       for (int i = 0; i < owBlock; ++i)
-        accum[i] = max(accum[i], simd<T, B>(0));
+        dstVec[i] = max(dstVec[i], simd<T, cBlock>(0));
 
       T* dstPtr = &dst(oc, oh, ow);
       #pragma unroll
       for (int i = 0; i < owBlock; ++i)
       {
         if (ow + i < dst.W)
-          block_store(dstPtr, accum[i]);
-        dstPtr += B;
+          block_store(dstPtr, dstVec[i]);
+        dstPtr += cBlock;
       }
     }
   };

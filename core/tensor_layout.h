@@ -80,28 +80,28 @@ namespace oidn {
     };
   };
 
-  template<typename T, int blockSize>
+  template<typename T, int B>
   struct TensorAddressingChwBc
   {
-    static constexpr int B = blockSize;
+    static constexpr int cBlock = B;
 
     static constexpr size_t wStride = B * sizeof(T);
     size_t hStride;
-    size_t CStride;
+    size_t cbStride;
 
     TensorAddressingChwBc() = default;
 
     OIDN_HOST_DEVICE_INLINE TensorAddressingChwBc(int C, int H, int W)
     {
-      hStride = size_t(W) * wStride;
-      CStride = size_t(H) * hStride;
+      hStride  = size_t(W) * wStride;
+      cbStride = size_t(H) * hStride;
     }
 
     OIDN_HOST_DEVICE_INLINE size_t getOffset(int c, int h, int w) const
     {
-      return size_t(c/B) * CStride +
-             size_t(h)   * hStride +
-             size_t(w)   * wStride +
+      return size_t(c/B) * cbStride +
+             size_t(h)   * hStride  +
+             size_t(w)   * wStride  +
              size_t(c%B) * sizeof(T);
     }
   };
@@ -150,34 +150,34 @@ namespace oidn {
     };
   };
 
-  template<typename T, int blockSize>
+  template<typename T, int B>
   struct TensorAddressingOIhwBiBo
   {
-    static constexpr int B = blockSize;
+    static constexpr int cBlock = B;
 
     static constexpr size_t oStride = sizeof(T);
     static constexpr size_t iStride = B * oStride;
     static constexpr size_t wStride = B * iStride;
     size_t hStride;
-    size_t IStride;
-    size_t OStride;
+    size_t ibStride;
+    size_t obStride;
 
     TensorAddressingOIhwBiBo() = default;
 
     OIDN_HOST_DEVICE_INLINE TensorAddressingOIhwBiBo(int O, int I, int H, int W)
     {
-      hStride = size_t(W)   * wStride;
-      IStride = size_t(H)   * hStride;
-      OStride = size_t(I/B) * IStride;
+      hStride  = size_t(W)   * wStride;
+      ibStride = size_t(H)   * hStride;
+      obStride = size_t(I/B) * ibStride;
     }
 
     OIDN_HOST_DEVICE_INLINE size_t getOffset(int o, int i, int h, int w) const
     {
-      return size_t(o/B) * OStride +
-             size_t(i/B) * IStride +
-             size_t(h)   * hStride +
-             size_t(w)   * wStride +
-             size_t(i%B) * iStride +
+      return size_t(o/B) * obStride +
+             size_t(i/B) * ibStride +
+             size_t(h)   * hStride  +
+             size_t(w)   * wStride  +
+             size_t(i%B) * iStride  +
              size_t(o%B) * oStride;
     }
   };

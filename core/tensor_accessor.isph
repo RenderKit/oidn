@@ -5,7 +5,7 @@
 
 #include "vec.isph"
 
-#define B programCount // tensor block size
+#define B programCount // channel block size
 
 // Tensor in ChwBc/chw layout
 struct TensorAccessor3D
