@@ -7,7 +7,7 @@ namespace oidn {
 
   using namespace esimd;
 
-  constexpr int owBlock = 14;
+  constexpr int owBlock = 16;
   constexpr int iwBlock = owBlock + 3 - 1;
 
   template<typename T, TensorLayout tensorLayout, TensorLayout weightLayout>
@@ -20,14 +20,6 @@ namespace oidn {
     TensorAccessor4D<T, weightLayout> weight;
     TensorAccessor1D<T> bias;
     TensorAccessor3D<T, tensorLayout> dst;
-
-    template<int N>
-    OIDN_INLINE void large_block_load(simd<T, N>& vec, const T* ptr) const
-    {
-      #pragma unroll
-      for (int i = 0; i < N; i += V)
-        vec.template select<V, 1>(i) = block_load<T, V, vector_aligned_tag>(ptr + i);
-    }
 
     OIDN_INLINE void operator ()(const WorkItem<3>& it) const SYCL_ESIMD_FUNCTION
     {
@@ -56,7 +48,7 @@ namespace oidn {
 
           if (iw >= 0 && iw + iwBlock < src.W)
           {
-            large_block_load(srcVec, srcPtr);
+            srcVec.copy_from(srcPtr, overaligned<32>);
           }
           else
           {
@@ -73,9 +65,8 @@ namespace oidn {
           #pragma unroll
           for (int kw = 0; kw < 3; ++kw)
           {
-            const T* weightPtr = &weight(oc, ic, kh, kw);
             simd<T, cBlock*cBlock> weightVec;
-            large_block_load(weightVec, weightPtr);
+            weightVec.copy_from(&weight(oc, ic, kh, kw), vector_aligned);
 
             #pragma unroll
             for (int i = 0; i < cBlock; ++i)
