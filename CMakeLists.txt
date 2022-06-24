@@ -96,6 +96,11 @@ elseif(OIDN_NEURAL_RUNTIME STREQUAL "BNNS")
   include(oidn_bnns)
 endif()
 
+# Check if MPSGraph SDK available
+if(APPLE)
+  include(oidn_mps)
+endif()
+
 # ISPC
 if(OIDN_ARCH STREQUAL "X64")
   set(OIDN_ISPC_TARGET_LIST sse4-i32x8;avx2-i32x8;avx512skx-i32x16)
@@ -187,6 +192,20 @@ set(CORE_SOURCES_ISPC
   core/vec.isph
 )
 
+if (OIDN_MPS)
+  set(CORE_SOURCES
+    ${CORE_SOURCES}
+    core/mps/MPSGraphNetworkObjC.mm
+    core/mps/MPSGraphNetwork-C-Interface.h
+    core/mps/MPSGraphNetworkObjC.hpp
+    core/mps/mps_device.h
+    core/mps/mps_device.cpp
+    core/mps/mps_network.h
+    core/mps/mps_network.cpp
+    core/mps/mps_node.h
+  )
+endif()
+
 add_library(${PROJECT_NAME} ${OIDN_LIB_TYPE} ${CORE_SOURCES})
 
 target_compile_definitions(${PROJECT_NAME} PRIVATE OIDN_${OIDN_NEURAL_RUNTIME})
@@ -205,6 +224,14 @@ if(OIDN_NEURAL_RUNTIME STREQUAL "DNNL")
   target_link_libraries(${PROJECT_NAME} PRIVATE dnnl)
 elseif(OIDN_NEURAL_RUNTIME STREQUAL "BNNS")
   target_link_libraries(${PROJECT_NAME} PRIVATE "-framework Accelerate")
+endif()
+
+if (OIDN_MPS)
+  target_compile_definitions(${PROJECT_NAME} PUBLIC OIDN_MPS)
+  target_link_libraries(${PROJECT_NAME} PRIVATE "-framework Foundation")
+  target_link_libraries(${PROJECT_NAME} PRIVATE "-framework Metal")
+  target_link_libraries(${PROJECT_NAME} PRIVATE "-framework MetalPerformanceShadersGraph")
+  target_link_libraries(${PROJECT_NAME} PRIVATE "-framework MetalPerformanceShaders")
 endif()
 
 # Include weights
@@ -239,6 +266,8 @@ endif()
 
 generate_cpp_from_blob(WEIGHTS_SOURCES "oidn::blobs::weights" ${WEIGHTS})
 target_sources(${PROJECT_NAME} PRIVATE ${WEIGHTS_SOURCES})
+
+include_directories(BEFORE ${PROJECT_SOURCE_DIR}/core/)
 
 # Specify list of symbols to export
 if(WIN32)

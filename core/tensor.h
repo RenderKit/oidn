@@ -299,6 +299,7 @@ namespace oidn {
       result.C = numChannels();
       result.H = height();
       result.W = width();
+      result.K = blockSize();
       return result;
     }
 

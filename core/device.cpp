@@ -9,7 +9,7 @@ namespace oidn {
 
   thread_local Device::ErrorState Device::globalError;
 
-  Device::Device()
+  Device::Device(OIDNDeviceType type) : deviceType(type)
   {
   #if defined(OIDN_X64)
     if (!isISASupported(ISA::SSE41))

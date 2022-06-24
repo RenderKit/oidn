@@ -21,6 +21,9 @@ typedef enum
   OIDN_DEVICE_TYPE_DEFAULT = 0, // select device automatically
 
   OIDN_DEVICE_TYPE_CPU = 1, // CPU device
+#if defined(OIDN_MPS)
+  OIDN_DEVICE_TYPE_MPS = 2, // Metal Device
+#endif
 } OIDNDeviceType;
 
 // Error codes

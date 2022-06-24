@@ -11,8 +11,8 @@ namespace oidn {
 
   Network::Network(const Ref<Device>& device, const std::map<std::string, std::shared_ptr<Tensor>>& weightsMap)
     : device(device),
-      K(device->getTensorBlockSize()),
-      weightsMap(weightsMap)
+      weightsMap(weightsMap),
+      K(device->getTensorBlockSize())
   {
   }
 
@@ -182,6 +182,14 @@ namespace oidn {
       dstDims[0] += srcDescs[i].dims[0]; // C
     }
     return TensorDesc(dstDims, srcDescs[0].layout, srcDescs[0].dataType);
+  }
+
+  std::shared_ptr<Node> Network::addConcat(const std::string& name,
+                                  const std::shared_ptr<Tensor>& src1,
+                                  const std::shared_ptr<Tensor>& src2,
+                                  const std::shared_ptr<Tensor>& dst)
+  {
+    throw Exception(Error::InvalidOperation, "Not implemented for CPU");
   }
 
   void Network::finalize()

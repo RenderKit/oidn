@@ -18,55 +18,63 @@ namespace oidn {
   {
   public:
     Network(const Ref<Device>& device, const std::map<std::string, std::shared_ptr<Tensor>>& weightsMap);
+    virtual ~Network() = default;
 
-    void execute(Progress& progress);
-    double getWorkAmount() const;
+    virtual void execute(Progress& progress);
+    virtual double getWorkAmount() const;
 
     // Scratch memory
     void allocScratch(size_t size);
-    std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, ptrdiff_t offset);
+    virtual std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, ptrdiff_t offset);
     std::shared_ptr<Image> newImage(const ImageDesc& desc, ptrdiff_t offset);
 
     TensorDesc getInputReorderDesc(const TensorDims& srcDims, int alignment);
 
-    std::shared_ptr<InputReorderNode> addInputReorder(const std::string& name,
+    virtual std::shared_ptr<InputReorderNode> addInputReorder(const std::string& name,
                                                       const std::shared_ptr<Tensor>& dst,
                                                       const std::shared_ptr<TransferFunction>& transferFunc,
                                                       bool hdr,
                                                       bool snorm);
 
-    std::shared_ptr<OutputReorderNode> addOutputReorder(const std::string& name,
+    virtual std::shared_ptr<OutputReorderNode> addOutputReorder(const std::string& name,
                                                         const std::shared_ptr<Tensor>& src,
                                                         const std::shared_ptr<TransferFunction>& transferFunc,
                                                         bool hdr,
                                                         bool snorm);
 
     TensorDesc getConvDesc(const std::string& name, const TensorDesc& srcDesc);
-    std::shared_ptr<Node> addConv(const std::string& name,
+    virtual std::shared_ptr<Node> addConv(const std::string& name,
                                   const std::shared_ptr<Tensor>& src,
                                   const std::shared_ptr<Tensor>& dst,
                                   bool relu = true);
 
     TensorDesc getPoolDesc(const TensorDesc& srcDesc);
-    std::shared_ptr<Node> addPool(const std::string& name,
+    virtual std::shared_ptr<Node> addPool(const std::string& name,
                                   const std::shared_ptr<Tensor>& src,
                                   const std::shared_ptr<Tensor>& dst);
 
     TensorDesc getUpsampleDesc(const TensorDesc& srcDesc);
-    std::shared_ptr<Node> addUpsample(const std::string& name,
+    virtual std::shared_ptr<Node> addUpsample(const std::string& name,
                                       const std::shared_ptr<Tensor>& src,
                                       const std::shared_ptr<Tensor>& dst);
 
     TensorDesc getConcatDesc(const std::vector<TensorDesc>& srcDescs);
+    virtual std::shared_ptr<Node> addConcat(const std::string& name,
+                                      const std::shared_ptr<Tensor>& src1,
+                                      const std::shared_ptr<Tensor>& src2,
+                                            const std::shared_ptr<Tensor>& dst);
 
     void finalize();
 
-  private:
+  protected:
     Ref<Device> device;
+    std::map<std::string, std::shared_ptr<Tensor>> weightsMap;
+    
+  private:
     int K; // block size of blocked tensor layouts
 
     std::vector<std::shared_ptr<Node>> nodes;
-    std::map<std::string, std::shared_ptr<Tensor>> weightsMap;
+
     Ref<ScratchBuffer> scratch;
 
     std::shared_ptr<Tensor> padWeights(const std::shared_ptr<Tensor>& src);

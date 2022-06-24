@@ -1,6 +1,6 @@
 [submodule "mkl-dnn"]
 	path = mkl-dnn
-	url = ../mkl-dnn.git
+url=https://github.com/OpenImageDenoise/mkl-dnn.gitOpenImageDenoise/mkl-dnn.git
 [submodule "weights"]
 	path = weights
-	url = ../oidn-weights.git
+url=https://github.com/OpenImageDenoise/oidn-weights.git

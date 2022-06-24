@@ -5,6 +5,10 @@
 #include "output_copy.h"
 #include "unet.h"
 
+#if defined(OIDN_MPS)
+#include "mps/mps_network.h"
+#endif
+
 // Default weights
 #if defined(OIDN_FILTER_RT)
   #include "weights/rt_hdr.h"
@@ -338,8 +342,17 @@ namespace oidn {
     // Parse the weights blob
     const auto weightsMap = parseTZA(device, weights.ptr, weights.size);
 
+    OIDNDeviceType deviceType = device->getDeviceType();
+    
     // Create the network
-    net.reset(new Network(device, weightsMap));
+    if (deviceType== OIDN_DEVICE_TYPE_CPU || deviceType== OIDN_DEVICE_TYPE_DEFAULT)
+      net.reset(new Network(device, weightsMap));
+#if defined(OIDN_MPS)
+    else if (deviceType == OIDN_DEVICE_TYPE_MPS)
+      net.reset(new MPSNetwork(device, weightsMap));
+#endif
+    else
+      throw Exception(Error::InvalidOperation, "unsupported device type");
 
     // Compute the tile size
     computeTileSize();
@@ -460,10 +473,22 @@ namespace oidn {
       minOfs = outputTempOfs;
     }
 
+    
     // Compute the size of the scratch buffer
-    const size_t scratchSize = -minOfs;
+    size_t scratchSize = -minOfs;
     if (getScratchSizeOnly)
       return scratchSize;
+
+#if defined(OIDN_MPS)    
+    OIDNDeviceType deviceType = device->getDeviceType();
+
+    if (deviceType == OIDN_DEVICE_TYPE_MPS)
+    {
+      // For MPS we need only memory allocated for input reorder
+      // concat1Desc is a largest one
+      scratchSize = concat1Desc.byteSize();
+    }
+#endif
 
     // Allocate the scratch buffer
     net->allocScratch(scratchSize);
@@ -473,6 +498,13 @@ namespace oidn {
 
     // Create the nodes
     const bool snorm = directional || (!color && normal);
+
+#if defined(OIDN_MPS)
+    if (deviceType == OIDN_DEVICE_TYPE_MPS)
+    {
+      inputReorderOfs = 0;
+    }
+#endif
 
     inputReorder = net->addInputReorder("input",
                                         net->newTensor(inputReorderDesc, inputReorderOfs),
@@ -526,8 +558,15 @@ namespace oidn {
                                       encConv5b->getDst(),
                                       net->newTensor(upsample4Desc, upsample4Ofs));
 
+    auto concat4Tensor = net->newTensor(concat4Desc, upsample4Ofs);
+    
+#if defined(OIDN_MPS)
+    if (deviceType == OIDN_DEVICE_TYPE_MPS)
+      auto concat4 = net->addConcat("concat4", upsample4->getDst(), pool3->getDst(), concat4Tensor);
+#endif
+
     auto decConv4a = net->addConv("dec_conv4a",
-                                  net->newTensor(concat4Desc, upsample4Ofs),
+                                  concat4Tensor,
                                   net->newTensor(decConv4aDesc, decConv4aOfs));
 
     auto decConv4b = net->addConv("dec_conv4b",
@@ -538,8 +577,15 @@ namespace oidn {
                                       decConv4b->getDst(),
                                       net->newTensor(upsample3Desc, upsample3Ofs));
 
+    auto concat3Tensor = net->newTensor(concat3Desc, upsample3Ofs);
+
+#if defined(OIDN_MPS)
+    if (deviceType == OIDN_DEVICE_TYPE_MPS)
+      auto concat3 = net->addConcat("concat3", upsample3->getDst(), pool2->getDst(), concat3Tensor);
+#endif
+
     auto decConv3a = net->addConv("dec_conv3a",
-                                  net->newTensor(concat3Desc, upsample3Ofs),
+                                  concat3Tensor,
                                   net->newTensor(decConv3aDesc, decConv3aOfs));
 
     auto decConv3b = net->addConv("dec_conv3b",
@@ -550,8 +596,15 @@ namespace oidn {
                                       decConv3b->getDst(),
                                       net->newTensor(upsample2Desc, upsample2Ofs));
 
+    auto concat2Tensor = net->newTensor(concat2Desc, upsample2Ofs);
+    
+#if defined(OIDN_MPS)
+    if (deviceType == OIDN_DEVICE_TYPE_MPS)
+      auto concat2 = net->addConcat("concat2", upsample2->getDst(), pool1->getDst(), concat2Tensor);
+#endif
+
     auto decConv2a = net->addConv("dec_conv2a",
-                                  net->newTensor(concat2Desc, upsample2Ofs),
+                                  concat2Tensor,
                                   net->newTensor(decConv2aDesc, decConv2aOfs));
 
     auto decConv2b = net->addConv("dec_conv2b",
@@ -562,8 +615,15 @@ namespace oidn {
                                       decConv2b->getDst(),
                                       net->newTensor(upsample1Desc, upsample1Ofs));
 
+    auto concat1Tensor = net->newTensor(concat1Desc, upsample1Ofs);
+    
+#if defined(OIDN_MPS)
+    if (deviceType == OIDN_DEVICE_TYPE_MPS)
+      auto concat1 = net->addConcat("concat1", upsample1->getDst(), inputReorder->getDst(), concat1Tensor);
+#endif
+
     auto decConv1a = net->addConv("dec_conv1a",
-                                  net->newTensor(concat1Desc, upsample1Ofs),
+                                  concat1Tensor,
                                   net->newTensor(decConv1aDesc, decConv1aOfs));
 
     auto decConv1b = net->addConv("dec_conv1b",

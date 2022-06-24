@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -7,10 +7,10 @@
 
 namespace oidn {
 
-  class CPUDevice : public Device
-  { 
+  class MPSDevice : public Device
+  {
   public:
-    CPUDevice(OIDNDeviceType type) : Device(type) {};
+    MPSDevice(OIDNDeviceType type) : Device(type) {};
     
     Ref<Buffer> newBuffer(size_t byteSize, Buffer::Kind kind) override;
     Ref<Buffer> newBuffer(void* ptr, size_t byteSize) override;

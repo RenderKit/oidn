@@ -230,6 +230,10 @@ int main(int argc, char* argv[])
           deviceType = DeviceType::Default;
         else if (val == "cpu" || val == "CPU")
           deviceType = DeviceType::CPU;
+#if defined(OIDN_MPS)
+        else if (val == "mps" || val == "MPS")
+          deviceType = DeviceType::MPS;
+#endif
         else
           throw std::invalid_argument("invalid device");
       }

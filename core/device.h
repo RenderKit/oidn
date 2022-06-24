@@ -16,6 +16,8 @@ namespace oidn {
   class Device : public RefCount, public Verbose
   {
   private:
+    OIDNDeviceType deviceType;
+    
     // Thread-safety
     std::mutex mutex;
 
@@ -56,7 +58,7 @@ namespace oidn {
     bool committed = false;
 
   public:
-    Device();
+    Device(OIDNDeviceType type);
     ~Device();
 
     static void setError(Device* device, Error code, const std::string& message);
@@ -93,6 +95,11 @@ namespace oidn {
     #if defined(OIDN_DNNL)
       dnnlStream.wait();
     #endif
+    }
+    
+    OIDNDeviceType getDeviceType()
+    {
+      return deviceType;
     }
 
     virtual Ref<Buffer> newBuffer(size_t byteSize, Buffer::Kind kind = Buffer::Kind::Shared) = 0;

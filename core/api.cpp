@@ -36,6 +36,9 @@
   }
 
 #include "cpu_device.h"
+#if defined(OIDN_MPS)
+#include "mps/mps_device.h"
+#endif
 #include "filter.h"
 #include <mutex>
 
@@ -98,7 +101,11 @@ OIDN_API_NAMESPACE_BEGIN
     Ref<Device> device = nullptr;
     OIDN_TRY
       if (type == OIDN_DEVICE_TYPE_CPU || type == OIDN_DEVICE_TYPE_DEFAULT)
-        device = makeRef<CPUDevice>();
+        device = makeRef<CPUDevice>(type);
+#if defined(OIDN_MPS)
+      else if (type == OIDN_DEVICE_TYPE_MPS)
+          device = makeRef<MPSDevice>(type);
+#endif
       else
         throw Exception(Error::InvalidArgument, "unsupported device type");
     OIDN_CATCH(device)

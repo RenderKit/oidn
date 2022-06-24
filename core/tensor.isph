@@ -5,8 +5,6 @@
 
 #include "vec.isph"
 
-#define K programCount // native tensor block size
-
 // Tensor in CHW layout
 struct TensorAccessor
 {
@@ -14,17 +12,21 @@ struct TensorAccessor
   uniform int C;
   uniform int H;
   uniform int W;
+  uniform int K;
 };
 
 inline size_t getIndex(uniform TensorAccessor& tz, uniform int h, int w, uniform int c)
 {
-#if defined(OIDN_DNNL)
-  // ChwKc layout (blocked)
-  return ((size_t)tz.H * (c/K) + h) * ((size_t)tz.W*K) + (size_t)w*K + (c%K);
-#else
-  // chw layout
-  return ((size_t)tz.H * c + h) * (size_t)tz.W + w;
-#endif
+  if (tz.K > 1)
+  {
+    // ChwKc layout (blocked)
+    return ((size_t)tz.H * (c/tz.K) + h) * ((size_t)tz.W*tz.K) + (size_t)w*tz.K + (c%tz.K);
+  }
+  else
+  {
+    // chw layout
+    return ((size_t)tz.H * c + h) * (size_t)tz.W + w;
+  }
 }
 
 inline float get1f(uniform TensorAccessor& tz, uniform int h, int w, uniform int c)
