@@ -68,12 +68,15 @@ namespace oidn {
           }
 
           // Iterate over kernel width
+          const T* weightPtr = &weight(oc, ic, kh, 0);
+          
           #pragma unroll
           for (int kw = 0; kw < 3; ++kw)
           {
             // Load weights
             simd<T, cBlock*cBlock> weightVec;
-            weightVec.copy_from(&weight(oc, ic, kh, kw), vector_aligned);
+            weightVec.copy_from(weightPtr, vector_aligned);
+            weightPtr += cBlock*cBlock;
 
             // Accumulate to output row
             #pragma unroll
