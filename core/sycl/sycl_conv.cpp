@@ -14,7 +14,6 @@ namespace oidn {
   struct SYCLConvKernel
   {
     static constexpr int cBlock = TensorAccessor3D<T, tensorLayout>::cBlock;
-    static constexpr int V = 128 / sizeof(T);
 
     TensorAccessor3D<T, tensorLayout> src;
     TensorAccessor4D<T, weightLayout> weight;
@@ -27,14 +26,19 @@ namespace oidn {
       const int oh = it.getId<1>();
       const int ow = it.getId<2>() * owBlock;
 
+      // Output row
       simd<T, cBlock> dstVec[owBlock];
+
+      // Load biases
       const auto biasVec = block_load<T, cBlock, vector_aligned_tag>(&bias(oc));
       #pragma unroll
       for (int i = 0; i < owBlock; ++i)
         dstVec[i] = biasVec;
 
+      // Iterate over input channel blocks
       for (int ic = 0; ic < src.C; ic += cBlock)
       {
+        // Iterate over kernel height
         #pragma unroll
         for (int kh = 0; kh < 3; ++kh)
         {
@@ -46,6 +50,7 @@ namespace oidn {
           const T* srcPtr = &src(ic, ih, iw);
           simd<T, iwBlock*cBlock> srcVec;
 
+          // Load input row
           if (iw >= 0 && iw + iwBlock < src.W)
           {
             srcVec.copy_from(srcPtr, overaligned<32>);
@@ -57,32 +62,37 @@ namespace oidn {
             for (int i = 0; i < iwBlock; ++i)
             {
               if (iw + i >= 0 && iw + i < src.W)
-                srcVec.template select<cBlock, 1>(i*cBlock) = block_load<T, cBlock, vector_aligned_tag>(srcPtr);
+                srcVec.template select<cBlock, 1>(i*cBlock) = block_load<T, cBlock>(srcPtr, vector_aligned);
               srcPtr += cBlock;
             }
           }
 
+          // Iterate over kernel width
           #pragma unroll
           for (int kw = 0; kw < 3; ++kw)
           {
+            // Load weights
             simd<T, cBlock*cBlock> weightVec;
             weightVec.copy_from(&weight(oc, ic, kh, kw), vector_aligned);
 
+            // Accumulate to output row
             #pragma unroll
             for (int i = 0; i < cBlock; ++i)
             {
               #pragma unroll
               for (int j = 0; j < owBlock; ++j)
-                dstVec[j] += srcVec.template replicate_w<cBlock, 1>((j+kw)*cBlock + i) * weightVec.template select<cBlock, 1>(i * cBlock);
+                dstVec[j] += srcVec.template replicate_w<cBlock, 1>((kw+j)*cBlock + i) * weightVec.template select<cBlock, 1>(i*cBlock);
             }
           }
         }
       }
 
+      // Apply ReLU
       #pragma unroll
       for (int i = 0; i < owBlock; ++i)
         dstVec[i] = max(dstVec[i], simd<T, cBlock>(0));
 
+      // Store output row
       T* dstPtr = &dst(oc, oh, ow);
       #pragma unroll
       for (int i = 0; i < owBlock; ++i)
