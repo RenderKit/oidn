@@ -1,7 +1,7 @@
 // Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "sycl_conv.h"
+#include "sycl_conv_mad.h"
 
 namespace oidn {
 
@@ -11,7 +11,7 @@ namespace oidn {
   constexpr int iwBlock = owBlock + 3 - 1;
 
   template<typename T, TensorLayout tensorLayout, TensorLayout weightLayout>
-  struct SYCLConvKernel
+  struct SYCLConvMADKernel
   {
     static constexpr int cBlock = TensorAccessor3D<T, tensorLayout>::cBlock;
 
@@ -107,7 +107,7 @@ namespace oidn {
     }
   };
 
-  SYCLConv::SYCLConv(const Ref<SYCLDevice>& device, const ConvDesc& desc)
+  SYCLConvMAD::SYCLConvMAD(const Ref<SYCLDevice>& device, const ConvDesc& desc)
     : Conv(desc),
       device(device)
   {
@@ -119,12 +119,12 @@ namespace oidn {
       throw std::invalid_argument("unsupported convolution bias layout/data type");
   }
 
-  void SYCLConv::run()
+  void SYCLConvMAD::run()
   {
     if (!src || !weight || !bias || !dst)
       throw std::logic_error("convolution argument not set");
 
-    SYCLConvKernel<half, TensorLayout::Chw16c, TensorLayout::OIhw16i16o> kernel;
+    SYCLConvMADKernel<half, TensorLayout::Chw16c, TensorLayout::OIhw16i16o> kernel;
     kernel.src    = *src;
     kernel.weight = *weight;
     kernel.bias   = *bias;

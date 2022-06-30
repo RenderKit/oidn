@@ -7,7 +7,7 @@
 #include "../gpu/gpu_input_process.h"
 #include "../gpu/gpu_output_process.h"
 #include "../gpu/gpu_image_copy.h"
-#include "sycl_conv.h"
+#include "sycl_conv_mad.h"
 #include "sycl_pool.h"
 #include "sycl_upsample.h"
 
@@ -79,7 +79,7 @@ namespace oidn {
 
   std::shared_ptr<Conv> SYCLDevice::newConv(const ConvDesc& desc)
   {
-    return std::make_shared<SYCLConv>(this, desc);
+    return std::make_shared<SYCLConvMAD>(this, desc);
   }
 
   std::shared_ptr<Pool> SYCLDevice::newPool(const PoolDesc& desc)
