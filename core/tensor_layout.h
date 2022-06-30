@@ -18,6 +18,7 @@ namespace oidn {
     oihw,
     OIhw8i8o,   // blocked
     OIhw16i16o, // blocked
+    OIhw2o8i8o2i, // blocked
 
     hwc,
     ohwi,
@@ -155,30 +156,30 @@ namespace oidn {
   {
     static constexpr int cBlock = B;
 
-    static constexpr size_t oStride = sizeof(T);
-    static constexpr size_t iStride = B * oStride;
-    static constexpr size_t wStride = B * iStride;
+    static constexpr size_t BoStride = sizeof(T);
+    static constexpr size_t BiStride = B * BoStride;
+    static constexpr size_t wStride  = B * BiStride;
     size_t hStride;
-    size_t ibStride;
-    size_t obStride;
+    size_t IStride;
+    size_t OStride;
 
     TensorAddressingOIhwBiBo() = default;
 
     OIDN_HOST_DEVICE_INLINE TensorAddressingOIhwBiBo(int O, int I, int H, int W)
     {
-      hStride  = size_t(W)   * wStride;
-      ibStride = size_t(H)   * hStride;
-      obStride = size_t(I/B) * ibStride;
+      hStride = size_t(W)     * wStride;
+      IStride = size_t(H)     * hStride;
+      OStride = size_t(I / B) * IStride;
     }
 
     OIDN_HOST_DEVICE_INLINE size_t getOffset(int o, int i, int h, int w) const
     {
-      return size_t(o/B) * obStride +
-             size_t(i/B) * ibStride +
-             size_t(h)   * hStride  +
-             size_t(w)   * wStride  +
-             size_t(i%B) * iStride  +
-             size_t(o%B) * oStride;
+      return size_t(o / B) * OStride  +
+             size_t(i / B) * IStride  +
+             size_t(h)     * hStride  +
+             size_t(w)     * wStride  +
+             size_t(i % B) * BiStride +
+             size_t(o % B) * BoStride;
     }
   };
 
@@ -194,6 +195,50 @@ namespace oidn {
   {
     template<typename T>
     using Addressing = TensorAddressingOIhwBiBo<T, 16>;
+  };
+
+  template<typename T, int U, int V>
+  struct TensorAddressingOIhwUoViVoUi
+  {
+    static constexpr int B = U * V;
+    static constexpr int cBlock = B;
+
+    static constexpr size_t UiStride = sizeof(T);
+    static constexpr size_t VoStride = U * UiStride;
+    static constexpr size_t ViStride = V * VoStride;
+    static constexpr size_t UoStride = V * ViStride;
+    static constexpr size_t wStride  = U * UoStride;
+    size_t hStride;
+    size_t IStride;
+    size_t OStride;
+
+    TensorAddressingOIhwUoViVoUi() = default;
+
+    OIDN_HOST_DEVICE_INLINE TensorAddressingOIhwUoViVoUi(int O, int I, int H, int W)
+    {
+      hStride = size_t(W)     * wStride;
+      IStride = size_t(H)     * hStride;
+      OStride = size_t(I / B) * IStride;
+    }
+
+    OIDN_HOST_DEVICE_INLINE size_t getOffset(int o, int i, int h, int w) const
+    {
+      return size_t(o / B)     * OStride  +
+             size_t(i / B)     * IStride  +
+             size_t(h)         * hStride  +
+             size_t(w)         * wStride  +
+             size_t(o % B / V) * UoStride +
+             size_t(i % B / U) * ViStride +
+             size_t(o % V)     * VoStride +
+             size_t(i % U)     * UiStride;
+    }
+  };
+
+  template<>
+  struct TensorLayoutTraits<TensorLayout::OIhw2o8i8o2i>
+  {
+    template<typename T>
+    using Addressing = TensorAddressingOIhwUoViVoUi<T, 2, 8>;
   };
 
   template<>
