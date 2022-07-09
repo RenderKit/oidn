@@ -8,6 +8,7 @@
 #include "../gpu/gpu_output_process.h"
 #include "../gpu/gpu_image_copy.h"
 #include "sycl_conv_mad.h"
+#include "sycl_conv_dpas.h"
 #include "sycl_pool.h"
 #include "sycl_upsample.h"
 
@@ -64,7 +65,7 @@ namespace oidn {
 
     tensorDataType  = DataType::Float16;
     tensorLayout    = TensorLayout::Chw16c;
-    weightsLayout   = TensorLayout::OIhw16i16o;
+    weightsLayout   = TensorLayout::OIhw2o8i8o2i;
     tensorBlockSize = 16;
 
     if (isVerbose())
@@ -79,7 +80,7 @@ namespace oidn {
 
   std::shared_ptr<Conv> SYCLDevice::newConv(const ConvDesc& desc)
   {
-    return std::make_shared<SYCLConvMAD>(this, desc);
+    return std::make_shared<SYCLConvDPAS>(this, desc);
   }
 
   std::shared_ptr<Pool> SYCLDevice::newPool(const PoolDesc& desc)
