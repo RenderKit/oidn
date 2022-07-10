@@ -33,7 +33,8 @@ namespace oidn {
     template<int n = N>
     OIDN_HOST_DEVICE_INLINE operator enable_if_t<n == 1, int>() const { return dim[0]; }
 
-    OIDN_HOST_DEVICE_INLINE int operator [](int i) const { return dim[i]; }
+    OIDN_HOST_DEVICE_INLINE const int& operator [](int i) const { return dim[i]; }
+    OIDN_HOST_DEVICE_INLINE int& operator [](int i) { return dim[i]; }
 
   #if defined(OIDN_COMPILE_SYCL)
     template<int n = N>
@@ -63,6 +64,10 @@ namespace oidn {
   OIDN_INLINE WorkDim<1> operator *(WorkDim<1> a, WorkDim<1> b) { return {a[0] * b[0]}; }
   OIDN_INLINE WorkDim<2> operator *(WorkDim<2> a, WorkDim<2> b) { return {a[0] * b[0], a[1] * b[1]}; }
   OIDN_INLINE WorkDim<3> operator *(WorkDim<3> a, WorkDim<3> b) { return {a[0] * b[0], a[1] * b[1], a[2] * b[2]}; }
+
+  OIDN_INLINE WorkDim<1> operator /(WorkDim<1> a, WorkDim<1> b) { return {a[0] / b[0]}; }
+  OIDN_INLINE WorkDim<2> operator /(WorkDim<2> a, WorkDim<2> b) { return {a[0] / b[0], a[1] / b[1]}; }
+  OIDN_INLINE WorkDim<3> operator /(WorkDim<3> a, WorkDim<3> b) { return {a[0] / b[0], a[1] / b[1], a[2] / b[2]}; }
 
   OIDN_INLINE WorkDim<1> ceil_div(WorkDim<1> a, WorkDim<1> b) {
     return {ceil_div(a[0], b[0])};

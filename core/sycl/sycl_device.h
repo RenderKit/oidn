@@ -69,6 +69,15 @@ namespace oidn {
         [=](sycl::item<N> it) SYCL_ESIMD_KERNEL { f(it); });
     }
 
+    // Enqueues a work-group ESIMD kernel
+    template<int N, typename F>
+    OIDN_INLINE void runESIMDKernelAsync(WorkDim<N> numGroups, WorkDim<N> groupSize, const F& f)
+    {
+      sycl->queue.parallel_for<F>(
+        sycl::nd_range<N>(numGroups * groupSize, groupSize),
+        [=](sycl::nd_item<N> it) SYCL_ESIMD_KERNEL { f(it); });
+    }
+
     // Enqueues a host function
     void runHostFuncAsync(std::function<void()>&& f) override;
 

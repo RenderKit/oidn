@@ -9,10 +9,8 @@ namespace oidn {
   using namespace esimd;
   using namespace sycl::ext::intel::experimental::esimd;
 
-  constexpr int owBlock = 16;
-  constexpr int iwBlock = owBlock + 3 - 1;
-
-  constexpr int ohBlock = 3;
+  constexpr int owBlock = 8;
+  constexpr int ohBlock = 5;
 
   template<typename T, TensorLayout tensorLayout, TensorLayout weightLayout>
   struct SYCLConvDPASKernel
@@ -29,19 +27,21 @@ namespace oidn {
 
     static constexpr int owSubblock = dpasRepeat;
     static constexpr int owOuter = owBlock / owSubblock;
+
+    static constexpr int iwBlock = owBlock + 3 - 1;
     
     TensorAccessor3D<T, tensorLayout> src;
     TensorAccessor4D<T, weightLayout> weight;
     TensorAccessor1D<T> bias;
     TensorAccessor3D<T, tensorLayout> dst;
 
-    OIDN_INLINE void operator ()(const WorkItem<3>& it) const SYCL_ESIMD_FUNCTION
+    OIDN_INLINE void operator ()(const WorkGroupItem<3>& it) const SYCL_ESIMD_FUNCTION
     {
       set_kernel_properties(kernel_properties::use_double_grf);
 
-      const int oc = it.getId<0>() * cBlock;
-      const int oh = it.getId<1>() * ohBlock;
-      const int ow = it.getId<2>() * owBlock;
+      const int oh = it.getGlobalId<0>() * ohBlock;
+      const int ow = it.getGlobalId<1>() * owBlock;
+      const int oc = it.getGlobalId<2>() * cBlock;
 
       // Accumulators
       simd<AccumType, owSubblock * ocSubblock> accumVec[ohBlock][owOuter][ocOuter] = {}; // = 0
@@ -90,16 +90,16 @@ namespace oidn {
                 {
                   accumVec[r][j][i] =
                     dpas<argument_type::FP16,
-                        argument_type::FP16,
-                        AccumType,
-                        dpasDepth,
-                        dpasRepeat,
-                        AccumType,
-                        int,
-                        int,
-                        dpasRepeat * execWidth,
-                        dpasDepth  * execWidth,
-                        dpasRepeat * dpasDepth
+                         argument_type::FP16,
+                         AccumType,
+                         dpasDepth,
+                         dpasRepeat,
+                         AccumType,
+                         int,
+                         int,
+                         dpasRepeat * execWidth,
+                         dpasDepth  * execWidth,
+                         dpasRepeat * dpasDepth
                         >(accumVec[r][j][i],
                           weightVec[i].template bit_cast_view<int>(),
                           srcVec[(kh + r) % ohBlock].template select<owSubblock*cBlock, 1>((kw+j*owSubblock)*cBlock).template bit_cast_view<int>());
@@ -110,13 +110,14 @@ namespace oidn {
         }
       }
 
+      // Load bias
       const auto biasVec = block_load<T, cBlock>(&bias(oc), vector_aligned);
       
       #pragma unroll
       for (int r = 0; r < ohBlock; ++r)
       {
         if (oh + r >= dst.H)
-          continue;
+          break;
 
         T* dstPtr = &dst(oc, oh + r, ow);
 
@@ -199,8 +200,33 @@ namespace oidn {
     kernel.bias   = *bias;
     kernel.dst    = *dst;
 
+    WorkDim<3> globalSize = {ceil_div(dst->getH(), ohBlock), ceil_div(dst->getW(), owBlock), dst->getCB()};
+
     // FIXME: need to round up WB dimension to multiple of 2 due to DPAS bug
-    device->runESIMDKernelAsync(WorkDim<3>(dst->getCB(), ceil_div(dst->getH(), ohBlock), round_up(ceil_div(dst->getW(), owBlock), 2)), kernel);
+    if (globalSize[0] % 2 != 0 && globalSize[1] % 2 != 0 && globalSize[2] % 2 != 0)
+      globalSize[1]++;
+
+    WorkDim<3> localSize = {1, 1, globalSize[2]};
+    int totalSize = globalSize[2];
+
+    while (totalSize % 2 != 0 || totalSize * 2 <= 8)
+    {
+      const int i = (localSize[0] * ohBlock < localSize[1] * owBlock) ? 0 : 1;
+      if (globalSize[i] % (localSize[i]*2) == 0)
+      {
+        localSize[i] *= 2;
+        totalSize *= 2;
+      }
+      else if (globalSize[1-i] % (localSize[1-i]*2) == 0)
+      {
+        localSize[1-i] *= 2;
+        totalSize *= 2;
+      }
+      else
+        break;
+    }
+
+    device->runESIMDKernelAsync(globalSize / localSize, localSize, kernel);
   }
 
 } // namespace oidn
