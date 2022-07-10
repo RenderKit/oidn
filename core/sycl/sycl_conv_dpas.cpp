@@ -9,7 +9,7 @@ namespace oidn {
   using namespace esimd;
   using namespace sycl::ext::intel::experimental::esimd;
 
-  constexpr int owBlock = 8;
+  constexpr int owBlock = 16;
   constexpr int iwBlock = owBlock + 3 - 1;
 
   template<typename T, TensorLayout tensorLayout, TensorLayout weightLayout>
@@ -24,6 +24,9 @@ namespace oidn {
     static constexpr int cBlock = TensorAccessor3D<T, tensorLayout>::cBlock;
     static constexpr int ocSubblock = execWidth;
     static constexpr int ocOuter = cBlock / ocSubblock;
+
+    static constexpr int owSubblock = dpasRepeat;
+    static constexpr int owOuter = owBlock / owSubblock;
     
     TensorAccessor3D<T, tensorLayout> src;
     TensorAccessor4D<T, weightLayout> weight;
@@ -37,7 +40,7 @@ namespace oidn {
       const int ow = it.getId<2>() * owBlock;
 
       // Accumulators
-      simd<AccumType, owBlock * ocSubblock> accumVec[ocOuter] = {0};
+      simd<AccumType, owSubblock * ocSubblock> accumVec[owOuter][ocOuter] = {}; // = 0
 
       // Iterate over input channel blocks
       for (int ic = 0; ic < src.C; ic += cBlock)
@@ -88,64 +91,73 @@ namespace oidn {
 
             // Multiply + accumulate
             #pragma unroll
-            for (int i = 0; i < ocOuter; ++i)
+            for (int j = 0; j < owOuter; ++j)
             {
-            #if 1
-              accumVec[i] =
-                dpas<argument_type::FP16,
-                     argument_type::FP16,
-                     AccumType,
-                     dpasDepth,
-                     dpasRepeat,
-                     AccumType,
-                     int,
-                     int,
-                     dpasRepeat * execWidth,
-                     dpasDepth  * execWidth,
-                     dpasRepeat * dpasDepth
-                    >(accumVec[i],
-                      weightVec[i].template bit_cast_view<int>(),
-                      srcVec.template select<owBlock*cBlock, 1>(kw*cBlock).template bit_cast_view<int>());
-            #else
-              for (int r = 0; r < dpasRepeat; ++r)
+              #pragma unroll
+              for (int i = 0; i < ocOuter; ++i)
               {
-                for (int d = 0; d < dpasDepth; ++d)
+              #if 1
+                accumVec[j][i] =
+                  dpas<argument_type::FP16,
+                      argument_type::FP16,
+                      AccumType,
+                      dpasDepth,
+                      dpasRepeat,
+                      AccumType,
+                      int,
+                      int,
+                      dpasRepeat * execWidth,
+                      dpasDepth  * execWidth,
+                      dpasRepeat * dpasDepth
+                      >(accumVec[j][i],
+                        weightVec[i].template bit_cast_view<int>(),
+                        srcVec.template select<owSubblock*cBlock, 1>((kw+j*owSubblock)*cBlock).template bit_cast_view<int>());
+              #else
+                for (int r = 0; r < dpasRepeat; ++r)
                 {
-                  for (int n = 0; n < execWidth; ++n)
+                  for (int d = 0; d < dpasDepth; ++d)
                   {
-                    accumVec[i][r*execWidth + n] += srcVec[((kw+r)*dpasDepth + d) * 2 + 0] * weightVec[i][(d*execWidth + n) * 2 + 0];
-                    accumVec[i][r*execWidth + n] += srcVec[((kw+r)*dpasDepth + d) * 2 + 1] * weightVec[i][(d*execWidth + n) * 2 + 1];
+                    for (int n = 0; n < execWidth; ++n)
+                    {
+                      accumVec[i][r*execWidth + n] += srcVec[((kw+r)*dpasDepth + d) * 2 + 0] * weightVec[i][(d*execWidth + n) * 2 + 0];
+                      accumVec[i][r*execWidth + n] += srcVec[((kw+r)*dpasDepth + d) * 2 + 1] * weightVec[i][(d*execWidth + n) * 2 + 1];
+                    }
                   }
                 }
+              #endif
               }
-            #endif
             }
           }
         }
       }
 
-      // Shuffle and convert accumulators
-      simd<T, owBlock*cBlock> dstVec;
-      auto dstMat = dstVec.template bit_cast_view<T, owBlock, cBlock>();
-      #pragma unroll
-      for (int i = 0; i < ocOuter; ++i)
-        dstMat.template select<owBlock, 1, ocSubblock, 1>(0, i*ocSubblock) = accumVec[i];
-
-      // Add bias
       const auto biasVec = block_load<T, cBlock>(&bias(oc), vector_aligned);
-      dstVec += biasVec.template replicate<owBlock>();
-
-      // Apply ReLU
-      dstVec = max(dstVec, simd<T, owBlock*cBlock>(0));
-
-      // Store output row
       T* dstPtr = &dst(oc, oh, ow);
+
       #pragma unroll
-      for (int i = 0; i < owBlock; ++i)
+      for (int j = 0; j < owOuter; ++j)
       {
-        if (ow + i < dst.W)
-          block_store<T, cBlock>(dstPtr, dstVec.template select<cBlock, 1>(i * cBlock));
-        dstPtr += cBlock;
+        // Shuffle and convert accumulators
+        simd<T, owSubblock*cBlock> dstVec;
+        auto dstMat = dstVec.template bit_cast_view<T, owSubblock, cBlock>();
+        #pragma unroll
+        for (int i = 0; i < ocOuter; ++i)
+          dstMat.template select<owSubblock, 1, ocSubblock, 1>(0, i*ocSubblock) = accumVec[j][i];
+
+        // Add bias
+        dstVec += biasVec.template replicate<owSubblock>();
+
+        // Apply ReLU
+        dstVec = max(dstVec, simd<T, owSubblock*cBlock>(0));
+
+        // Store output row
+        #pragma unroll
+        for (int i = 0; i < owSubblock; ++i)
+        {
+          if (ow + j*owSubblock + i < dst.W)
+            block_store<T, cBlock>(dstPtr, dstVec.template select<cBlock, 1>(i * cBlock));
+          dstPtr += cBlock;
+        }
       }
     }
   };
