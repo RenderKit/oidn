@@ -39,9 +39,9 @@ namespace oidn {
     {
       set_kernel_properties(kernel_properties::use_double_grf);
 
-      const int oh = it.getGlobalId<0>() * ohBlock;
-      const int ow = it.getGlobalId<1>() * owBlock;
-      const int oc = it.getGlobalId<2>() * cBlock;
+      const int oc = it.getGlobalId<0>() * cBlock;
+      const int oh = it.getGlobalId<1>() * ohBlock;
+      const int ow = it.getGlobalId<2>() * owBlock;
 
       // Accumulators
       simd<AccumType, owSubblock * ocSubblock> accumVec[ohBlock][owOuter][ocOuter] = {}; // = 0
@@ -200,26 +200,26 @@ namespace oidn {
     kernel.bias   = *bias;
     kernel.dst    = *dst;
 
-    WorkDim<3> globalSize = {ceil_div(dst->getH(), ohBlock), ceil_div(dst->getW(), owBlock), dst->getCB()};
+    WorkDim<3> globalSize = {dst->getCB(), ceil_div(dst->getH(), ohBlock), ceil_div(dst->getW(), owBlock)};
 
     // FIXME: need to round up WB dimension to multiple of 2 due to DPAS bug
     if (globalSize[0] % 2 != 0 && globalSize[1] % 2 != 0 && globalSize[2] % 2 != 0)
-      globalSize[1]++;
+      globalSize[2]++;
 
-    WorkDim<3> localSize = {1, 1, globalSize[2]};
-    int totalSize = globalSize[2];
+    WorkDim<3> localSize = {globalSize[0], 1, 1};
+    int totalSize = globalSize[0];
 
     while (totalSize % 2 != 0 || totalSize * 2 <= 8)
     {
-      const int i = (localSize[0] * ohBlock < localSize[1] * owBlock) ? 0 : 1;
+      const int i = (localSize[1] * ohBlock < localSize[2] * owBlock) ? 1 : 2;
       if (globalSize[i] % (localSize[i]*2) == 0)
       {
         localSize[i] *= 2;
         totalSize *= 2;
       }
-      else if (globalSize[1-i] % (localSize[1-i]*2) == 0)
+      else if (globalSize[3-i] % (localSize[3-i]*2) == 0)
       {
-        localSize[1-i] *= 2;
+        localSize[3-i] *= 2;
         totalSize *= 2;
       }
       else
