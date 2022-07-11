@@ -9,9 +9,6 @@ namespace oidn {
   using namespace esimd;
   using namespace sycl::ext::intel::experimental::esimd;
 
-  constexpr int owBlock = 8;
-  constexpr int ohBlock = 5;
-
   template<typename T, TensorLayout tensorLayout, TensorLayout weightLayout>
   struct SYCLConvDPASKernel
   {
@@ -21,14 +18,14 @@ namespace oidn {
     static constexpr int dpasDepth  = 8;
     static constexpr int dpasRepeat = 8;
 
+    static constexpr int owBlock = dpasRepeat;
+    static constexpr int ohBlock = 5;
+    
+    static constexpr int iwBlock = owBlock + 3 - 1;
+
     static constexpr int cBlock = TensorAccessor3D<T, tensorLayout>::cBlock;
     static constexpr int ocSubblock = execWidth;
     static constexpr int ocOuter = cBlock / ocSubblock;
-
-    static constexpr int owSubblock = dpasRepeat;
-    static constexpr int owOuter = owBlock / owSubblock;
-
-    static constexpr int iwBlock = owBlock + 3 - 1;
     
     TensorAccessor3D<T, tensorLayout> src;
     TensorAccessor4D<T, weightLayout> weight;
@@ -39,12 +36,12 @@ namespace oidn {
     {
       set_kernel_properties(kernel_properties::use_double_grf);
 
-      const int oc = it.getGlobalId<0>() * cBlock;
+      const int oc = it.getLocalId<0>()  * cBlock;
       const int oh = it.getGlobalId<1>() * ohBlock;
       const int ow = it.getGlobalId<2>() * owBlock;
 
       // Accumulators
-      simd<AccumType, owSubblock * ocSubblock> accumVec[ohBlock][owOuter][ocOuter] = {}; // = 0
+      simd<AccumType, owBlock * ocSubblock> accumVec[ohBlock][ocOuter] = {}; // = 0
 
       // Iterate over input channel blocks
       for (int ic = 0; ic < src.C; ic += cBlock)
@@ -83,27 +80,23 @@ namespace oidn {
             for (int r = 0; r < ohBlock; ++r)
             {
               #pragma unroll
-              for (int j = 0; j < owOuter; ++j)
+              for (int i = 0; i < ocOuter; ++i)
               {
-                #pragma unroll
-                for (int i = 0; i < ocOuter; ++i)
-                {
-                  accumVec[r][j][i] =
-                    dpas<argument_type::FP16,
-                         argument_type::FP16,
-                         AccumType,
-                         dpasDepth,
-                         dpasRepeat,
-                         AccumType,
-                         int,
-                         int,
-                         dpasRepeat * execWidth,
-                         dpasDepth  * execWidth,
-                         dpasRepeat * dpasDepth
-                        >(accumVec[r][j][i],
-                          weightVec[i].template bit_cast_view<int>(),
-                          srcVec[(kh + r) % ohBlock].template select<owSubblock*cBlock, 1>((kw+j*owSubblock)*cBlock).template bit_cast_view<int>());
-                }
+                accumVec[r][i] =
+                  dpas<argument_type::FP16,
+                        argument_type::FP16,
+                        AccumType,
+                        dpasDepth,
+                        dpasRepeat,
+                        AccumType,
+                        int,
+                        int,
+                        dpasRepeat * execWidth,
+                        dpasDepth  * execWidth,
+                        dpasRepeat * dpasDepth
+                      >(accumVec[r][i],
+                        weightVec[i].template bit_cast_view<int>(),
+                        srcVec[(kh + r) % ohBlock].template select<owBlock*cBlock, 1>(kw*cBlock).template bit_cast_view<int>());
               }
             }
           }
@@ -121,30 +114,26 @@ namespace oidn {
 
         T* dstPtr = &dst(oc, oh + r, ow);
 
+        // Shuffle and convert accumulators
+        simd<T, owBlock*cBlock> dstVec;
+        auto dstMat = dstVec.template bit_cast_view<T, owBlock, cBlock>();
         #pragma unroll
-        for (int j = 0; j < owOuter; ++j)
+        for (int i = 0; i < ocOuter; ++i)
+          dstMat.template select<owBlock, 1, ocSubblock, 1>(0, i*ocSubblock) = accumVec[r][i];
+
+        // Add bias
+        dstVec += biasVec.template replicate<owBlock>();
+
+        // Apply ReLU
+        dstVec = max(dstVec, simd<T, owBlock*cBlock>(0));
+
+        // Store output row
+        #pragma unroll
+        for (int i = 0; i < owBlock; ++i)
         {
-          // Shuffle and convert accumulators
-          simd<T, owSubblock*cBlock> dstVec;
-          auto dstMat = dstVec.template bit_cast_view<T, owSubblock, cBlock>();
-          #pragma unroll
-          for (int i = 0; i < ocOuter; ++i)
-            dstMat.template select<owSubblock, 1, ocSubblock, 1>(0, i*ocSubblock) = accumVec[r][j][i];
-
-          // Add bias
-          dstVec += biasVec.template replicate<owSubblock>();
-
-          // Apply ReLU
-          dstVec = max(dstVec, simd<T, owSubblock*cBlock>(0));
-
-          // Store output row
-          #pragma unroll
-          for (int i = 0; i < owSubblock; ++i)
-          {
-            if (ow + j*owSubblock + i < dst.W)
-              block_store<T, cBlock>(dstPtr, dstVec.template select<cBlock, 1>(i * cBlock));
-            dstPtr += cBlock;
-          }
+          if (ow + i < dst.W)
+            block_store<T, cBlock>(dstPtr, dstVec.template select<cBlock, 1>(i * cBlock));
+          dstPtr += cBlock;
         }
       }
     }
@@ -194,13 +183,17 @@ namespace oidn {
     if (!src || !weight || !bias || !dst)
       throw std::logic_error("convolution argument not set");
 
-    SYCLConvDPASKernel<half, TensorLayout::Chw16c, TensorLayout::OIhw2o8i8o2i> kernel;
+    using Kernel = SYCLConvDPASKernel<half, TensorLayout::Chw16c, TensorLayout::OIhw2o8i8o2i>;
+
+    Kernel kernel;
     kernel.src    = *src;
     kernel.weight = *weight;
     kernel.bias   = *bias;
     kernel.dst    = *dst;
 
-    WorkDim<3> globalSize = {dst->getCB(), ceil_div(dst->getH(), ohBlock), ceil_div(dst->getW(), owBlock)};
+    WorkDim<3> globalSize = {dst->getCB(),
+                             ceil_div(dst->getH(), Kernel::ohBlock),
+                             ceil_div(dst->getW(), Kernel::owBlock)};
 
     // FIXME: need to round up WB dimension to multiple of 2 due to DPAS bug
     if (globalSize[0] % 2 != 0 && globalSize[1] % 2 != 0 && globalSize[2] % 2 != 0)
@@ -211,7 +204,7 @@ namespace oidn {
 
     while (totalSize % 2 != 0 || totalSize * 2 <= 8)
     {
-      const int i = (localSize[1] * ohBlock < localSize[2] * owBlock) ? 1 : 2;
+      const int i = (localSize[1] * Kernel::ohBlock < localSize[2] * Kernel::owBlock) ? 1 : 2;
       if (globalSize[i] % (localSize[i]*2) == 0)
       {
         localSize[i] *= 2;
