@@ -128,12 +128,19 @@ namespace oidn {
         dstVec = max(dstVec, simd<T, owBlock*cBlock>(0));
 
         // Store output row
-        #pragma unroll
-        for (int i = 0; i < owBlock; ++i)
+        if (ow + owBlock <= dst.W)
         {
-          if (ow + i < dst.W)
-            block_store<T, cBlock>(dstPtr, dstVec.template select<cBlock, 1>(i * cBlock));
-          dstPtr += cBlock;
+          dstVec.copy_to(dstPtr, overaligned<32>);
+        }
+        else
+        {
+          #pragma unroll
+          for (int i = 0; i < owBlock; ++i)
+          {
+            if (ow + i < dst.W)
+              block_store<T, cBlock>(dstPtr, dstVec.template select<cBlock, 1>(i * cBlock));
+            dstPtr += cBlock;
+          }
         }
       }
     }
