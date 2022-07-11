@@ -84,16 +84,16 @@ namespace oidn {
               {
                 accumVec[r][i] =
                   dpas<argument_type::FP16,
-                        argument_type::FP16,
-                        AccumType,
-                        dpasDepth,
-                        dpasRepeat,
-                        AccumType,
-                        int,
-                        int,
-                        dpasRepeat * execWidth,
-                        dpasDepth  * execWidth,
-                        dpasRepeat * dpasDepth
+                       argument_type::FP16,
+                       AccumType,
+                       dpasDepth,
+                       dpasRepeat,
+                       AccumType,
+                       int,
+                       int,
+                       dpasRepeat * execWidth,
+                       dpasDepth  * execWidth,
+                       dpasRepeat * dpasDepth
                       >(accumVec[r][i],
                         weightVec[i].template bit_cast_view<int>(),
                         srcVec[(kh + r) % ohBlock].template select<owBlock*cBlock, 1>(kw*cBlock).template bit_cast_view<int>());
@@ -112,8 +112,6 @@ namespace oidn {
         if (oh + r >= dst.H)
           break;
 
-        T* dstPtr = &dst(oc, oh + r, ow);
-
         // Shuffle and convert accumulators
         simd<T, owBlock*cBlock> dstVec;
         auto dstMat = dstVec.template bit_cast_view<T, owBlock, cBlock>();
@@ -128,6 +126,7 @@ namespace oidn {
         dstVec = max(dstVec, simd<T, owBlock*cBlock>(0));
 
         // Store output row
+        T* dstPtr = &dst(oc, oh + r, ow);
         if (ow + owBlock <= dst.W)
         {
           dstVec.copy_to(dstPtr, overaligned<32>);
