@@ -154,7 +154,7 @@ namespace oidn {
 
       const T* srcPtr = &src(ic, ih, iw);
 
-      if (iw >= 0 && iw + iwBlock < src.W)
+      if (iw >= 0 && iw + iwBlock <= src.W)
       {
         srcVec.copy_from(srcPtr, overaligned<32>);
       }
