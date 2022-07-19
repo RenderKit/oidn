@@ -81,7 +81,7 @@ if(OIDN_ARCH STREQUAL "X64")
   option(OIDN_DEVICE_SYCL "Enable SYCL device." OFF)
 endif()
 
-if(OIDN_DEVICE_CPU OR OIDN_DEVICE_SYCL)
+if(OIDN_DEVICE_CPU)
   # TBB
   find_package(Threads REQUIRED)
   find_package(TBB 2017.0 REQUIRED tbb CONFIG)
@@ -418,6 +418,10 @@ endif()
 if(OIDN_DEVICE_SYCL)
   target_compile_definitions(${PROJECT_NAME} PUBLIC OIDN_DEVICE_SYCL)
   target_link_options(${PROJECT_NAME} PRIVATE "-fsycl")
+  if(WIN32)
+    # FIXME: on Windows we need to explicitly link "sycl" for some reason
+    target_link_libraries(${PROJECT_NAME} PRIVATE sycl)
+  endif()
 endif()
 
 if(OIDN_DEVICE_CUDA)

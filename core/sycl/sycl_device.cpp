@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "sycl_device.h"
-#include "mkl-dnn/include/dnnl_sycl.hpp"
 #include "../gpu/gpu_autoexposure.h"
 #include "../gpu/gpu_input_process.h"
 #include "../gpu/gpu_output_process.h"
@@ -14,13 +13,31 @@
 
 namespace oidn {
 
+  class SYCLDeviceSelector : public sycl::device_selector
+  {
+  public:
+    int operator()(const sycl::device& device) const override
+    {
+      return SYCLDevice::isDeviceSupported(device) ? 1 : -1;
+    }
+  };
+
   bool SYCLDevice::isSupported()
   {
-    auto platforms = sycl::platform::get_platforms();
-    for (const auto& platform : platforms)
-      if (platform.get_devices(sycl::info::device_type::gpu).size() > 0)
-        return true;
+    for (const auto& platform : sycl::platform::get_platforms())
+      for (const auto& device : platform.get_devices(sycl::info::device_type::gpu))
+        if (isDeviceSupported(device))
+          return true;
     return false;
+  }
+
+  bool SYCLDevice::isDeviceSupported(const sycl::device& device)
+  {
+    return device.is_gpu() &&
+           device.get_info<sycl::info::device::vendor_id>() == 0x8086 && // Intel
+           device.has(sycl::aspect::usm_host_allocations) &&
+           device.has(sycl::aspect::usm_device_allocations) &&
+           device.has(sycl::aspect::usm_shared_allocations);
   }
 
   SYCLDevice::SYCLDevice() {}
@@ -30,52 +47,30 @@ namespace oidn {
 
   void SYCLDevice::init()
   {
-    // Initialize the neural network runtime
-    dnnl_set_verbose(clamp(verbose - 2, 0, 2)); // unfortunately this is not per-device but global
-
-    if (sycl)
+    if (!sycl)
     {
-      if (!sycl->device.is_gpu())
-        throw Exception(Error::InvalidArgument, "unsupported SYCL device");
-      if (!sycl->queue.is_in_order())
-        throw Exception(Error::InvalidArgument, "unsupported out-of-order SYCL queue");
+      // Initialize the SYCL device and queue
+      sycl::queue syclQueue(SYCLDeviceSelector(),
+                            sycl::property_list{sycl::property::queue::in_order{}});
 
-      dnnlEngine = dnnl::sycl_interop::make_engine(sycl->device, sycl->context);
-      dnnlStream = dnnl::sycl_interop::make_stream(dnnlEngine, sycl->queue);
+      sycl.reset(new SYCL{syclQueue.get_context(), syclQueue.get_device(), syclQueue});
     }
-    else
-    {
-      dnnlEngine  = dnnl::engine(dnnl::engine::kind::gpu, 0);
-      dnnlStream  = dnnl::stream(dnnlEngine, dnnl::stream::flags::in_order);
-      sycl.reset(new SYCL{dnnl::sycl_interop::get_context(dnnlEngine),
-                          dnnl::sycl_interop::get_device(dnnlEngine),
-                          dnnl::sycl_interop::get_queue(dnnlStream)});
-    }
-
-    maxWorkGroupSize = sycl->device.get_info<sycl::info::device::max_work_group_size>();
 
     if (isVerbose())
       std::cout << "  Device  : " << sycl->device.get_info<sycl::info::device::name>() << std::endl;
 
-    // Check required hardware features
-    if (!sycl->device.has(sycl::aspect::usm_host_allocations) ||
-        !sycl->device.has(sycl::aspect::usm_device_allocations) ||
-        !sycl->device.has(sycl::aspect::usm_shared_allocations))
-      throw Exception(Error::UnsupportedHardware, "device does not support unified shared memory");
+    // Check the SYCL device and queue
+    if (!isDeviceSupported(sycl->device))
+      throw Exception(Error::UnsupportedHardware, "unsupported SYCL device");
+    if (!sycl->queue.is_in_order())
+        throw Exception(Error::InvalidArgument, "unsupported out-of-order SYCL queue");
+
+    maxWorkGroupSize = sycl->device.get_info<sycl::info::device::max_work_group_size>();
 
     tensorDataType  = DataType::Float16;
     tensorLayout    = TensorLayout::Chw16c;
     weightsLayout   = TensorLayout::OIhw2o8i8o2i;
     tensorBlockSize = 16;
-
-    if (isVerbose())
-    {
-      std::cout << "  Neural  : ";
-      std::cout << "DNNL (oneDNN) " << DNNL_VERSION_MAJOR << "." <<
-                                       DNNL_VERSION_MINOR << "." <<
-                                       DNNL_VERSION_PATCH;
-      std::cout << std::endl;
-    }
   }
 
   std::shared_ptr<Conv> SYCLDevice::newConv(const ConvDesc& desc)
@@ -176,6 +171,11 @@ namespace oidn {
   void SYCLDevice::runHostFuncAsync(std::function<void()>&& f)
   {
     sycl->queue.submit([&](sycl::handler& cgh) { cgh.host_task(f); });
+  }
+
+  void SYCLDevice::wait()
+  {
+    sycl->queue.wait_and_throw();
   }
 
 } // namespace oidn

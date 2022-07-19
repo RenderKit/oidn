@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include "../dnnl/dnnl_device.h"
+#include "../device.h"
 
 namespace oidn {
 
-  class SYCLDevice : public DNNLDevice
+  class SYCLDevice : public Device
   { 
   private:
     struct SYCL
@@ -21,6 +21,7 @@ namespace oidn {
 
   public:
     static bool isSupported();
+    static bool isDeviceSupported(const sycl::device& device);
 
     SYCLDevice();
     SYCLDevice(const sycl::queue& syclQueue);
@@ -80,6 +81,8 @@ namespace oidn {
 
     // Enqueues a host function
     void runHostFuncAsync(std::function<void()>&& f) override;
+
+    void wait() override;
 
     int getMaxWorkGroupSize() const override { return maxWorkGroupSize; }
 
