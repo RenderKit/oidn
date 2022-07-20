@@ -3,6 +3,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <iomanip>
 #include <cassert>
 #include <limits>
 #include <cmath>
@@ -328,10 +329,23 @@ int main(int argc, char* argv[])
     filter.execute();
 
     const double denoiseTime = timer.query();
+
     if (showProgress)
       std::cout << std::endl;
-    if (verbose <= 2)
-      std::cout << "  msec=" << (1000. * denoiseTime) << std::endl;
+    std::cout << "  msec=" << (1000. * denoiseTime);
+    if (verbose >= 3)
+    {
+      // Compute a hash of the output
+      const uint8_t* outputBytes = (const uint8_t*)output->getData();
+      uint32_t hash = 0x811c9dc5;
+      for (size_t i = 0; i < output->getByteSize(); ++i)
+      {
+        hash ^= outputBytes[i];
+        hash *= 0x1000193;
+      }
+      std::cout << ", hash=" << std::hex << std::setfill('0') << std::setw(8) << hash << std::dec;
+    }
+    std::cout << std::endl;
 
     if (showProgress)
     {
