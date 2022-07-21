@@ -26,7 +26,7 @@ using namespace oidn;
 int width  = -1;
 int height = -1;
 Format dataType = Format::Float;
-int numRuns = 4;
+int numRuns = 0;
 int maxMemoryMB = -1;
 bool inplace = false;
 
@@ -156,11 +156,28 @@ double runBenchmark(DeviceRef& device, const Benchmark& bench)
 
   filter.commit();
 
-  // Warmup loop
-  const int numBenchmarkRuns = max(numRuns - 1, 1);
-  const int numWarmupRuns = numRuns - numBenchmarkRuns;
-  for (int i = 0; i < numWarmupRuns; ++i)
+  // Warmup / determine number of benchmark runs
+  int numBenchmarkRuns = 0;
+  if (numRuns > 0)
+  {
+    numBenchmarkRuns = max(numRuns - 1, 1);
+    const int numWarmupRuns = numRuns - numBenchmarkRuns;
+    for (int i = 0; i < numWarmupRuns; ++i)
+      filter.execute();
+  }
+  else
+  {
+    // First warmup run
     filter.execute();
+
+    // Second warmup run, measure time
+    Timer timer;
+    filter.execute();
+    double warmupTime = timer.query();
+
+    // Benchmark for at least 0.5 seconds or 3 times
+    numBenchmarkRuns = max(int(0.5 / warmupTime), 3);
+  }
 
   // Benchmark loop
   Timer timer;
