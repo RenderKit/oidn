@@ -18,7 +18,11 @@ namespace oidn {
   public:
     int operator()(const sycl::device& device) const override
     {
-      return SYCLDevice::isDeviceSupported(device) ? 1 : -1;
+      if (!SYCLDevice::isDeviceSupported(device))
+        return -1;
+
+      // FIXME: improve detection of fastest discrete GPU
+      return device.get_info<sycl::info::device::max_compute_units>() * device.get_info<sycl::info::device::max_work_group_size>();
     }
   };
 
@@ -57,7 +61,11 @@ namespace oidn {
     }
 
     if (isVerbose())
-      std::cout << "  Device  : " << sycl->device.get_info<sycl::info::device::name>() << std::endl;
+    {
+      std::cout << "  Device    : " << sycl->device.get_info<sycl::info::device::name>() << std::endl;
+      std::cout << "    EUs     : " << sycl->device.get_info<sycl::info::device::max_compute_units>() << std::endl;
+      std::cout << "    Platform: " << sycl->device.get_platform().get_info<sycl::info::platform::name>() << std::endl;
+    }
 
     // Check the SYCL device and queue
     if (!isDeviceSupported(sycl->device))

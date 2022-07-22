@@ -221,7 +221,7 @@ namespace oidn {
   }
 #endif
 
-  std::string getPlatformName()
+  std::string getOSName()
   {
     std::string name;
 

@@ -292,7 +292,7 @@ namespace oidn {
   bool isISASupported(ISA isa);
 #endif
 
-  std::string getPlatformName();
+  std::string getOSName();
   std::string getCompilerName();
   std::string getBuildName();
 

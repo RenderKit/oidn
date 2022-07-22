@@ -58,7 +58,7 @@ namespace oidn {
     computeCapability = prop.major * 10 + prop.minor;
 
     if (isVerbose())
-      std::cout << "  Device  : " << prop.name << std::endl;
+      std::cout << "  Device    : " << prop.name << std::endl;
 
     // Check required hardware features
     if (computeCapability < minComputeCapability || computeCapability > maxComputeCapability)

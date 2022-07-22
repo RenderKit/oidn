@@ -42,7 +42,9 @@ namespace oidn {
 
     if (isVerbose())
     {
-      std::cout << "  ISA     : ";
+      // FIXME: detect CPU name
+      std::cout << "  Device    : CPU" << std::endl;
+      std::cout << "    ISA     : ";
     #if defined(OIDN_X64)
       if (isISASupported(ISA::AVX512_CORE))
         std::cout << "AVX512";
@@ -55,7 +57,7 @@ namespace oidn {
     #endif
       std::cout << std::endl;
       
-      std::cout << "  Neural  : ";
+      std::cout << "  Neural    : ";
     #if defined(OIDN_DNNL)
       std::cout << "DNNL (oneDNN) " << DNNL_VERSION_MAJOR << "." <<
                                        DNNL_VERSION_MINOR << "." <<
@@ -96,7 +98,7 @@ namespace oidn {
 
     if (isVerbose())
     {
-      std::cout << "  Tasking :";
+      std::cout << "  Tasking   :";
       std::cout << " TBB" << TBB_VERSION_MAJOR << "." << TBB_VERSION_MINOR;
     #if TBB_INTERFACE_VERSION >= 12002
       std::cout << " TBB_header_interface_" << TBB_INTERFACE_VERSION << " TBB_lib_interface_" << TBB_runtime_interface_version();
@@ -104,7 +106,7 @@ namespace oidn {
       std::cout << " TBB_header_interface_" << TBB_INTERFACE_VERSION << " TBB_lib_interface_" << tbb::TBB_runtime_interface_version();
     #endif
       std::cout << std::endl;
-      std::cout << "  Threads : " << numThreads << " (" << (affinity ? "affinitized" : "non-affinitized") << ")" << std::endl;
+      std::cout << "    Threads : " << numThreads << " (" << (affinity ? "affinitized" : "non-affinitized") << ")" << std::endl;
     }
   }
 

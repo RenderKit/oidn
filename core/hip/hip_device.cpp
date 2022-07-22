@@ -60,7 +60,7 @@ namespace oidn {
     maxWorkGroupSize = prop.maxThreadsPerBlock;
     
     if (isVerbose())
-      std::cout << "  Device  : " << prop.name << std::endl;
+      std::cout << "  Device    : " << prop.name << std::endl;
 
     // Check required hardware features
     if (!prop.managedMemory)
