@@ -1,4 +1,5 @@
 name: CI workflow
+
 on:
   pull_request:
   push:
@@ -385,11 +386,13 @@ jobs:
 
   kw-build-scan-report:
     secrets: inherit
-    uses: ./.github/workflows/build-kw-scan.yml
-
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_klocwork.yml@tgt/oidn
+    with:
+      build: scripts/build.py
+  
   snyk-scan:
     secrets: inherit
-    uses: ./.github/workflows/snyk-scan.yml
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_snyk.yml@tgt/oidn
 
   package-scan:
     secrets: inherit
