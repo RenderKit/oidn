@@ -1,5 +1,4 @@
 name: CI workflow
-
 on:
   pull_request:
   push:
@@ -322,64 +321,66 @@ jobs:
 
   build-windows-msvc15-icc:
     secrets: inherit
-    uses: ./.github/workflows/build-windows.yml
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_win_powershell.yml@tgt/oidn
     with:
       runs-on: '[ "Windows", "build", "icc19.0" ]'
-      artifact-name: build-windows-msvc15-icc_artifact
+      artifact-out: build-windows-msvc15-icc_artifact
+      artifact-path: '"build","deps"'
       cmd: python scripts/build.py install --compiler msvc15-icc19 -D OIDN_WARN_AS_ERRORS=ON
 
   build-windows-msvc15:
     secrets: inherit
-    uses: ./.github/workflows/build-windows.yml
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_win_powershell.yml@tgt/oidn
     with:
       runs-on: '[ "Windows", "build" ]'
       cmd: python scripts/build.py install --compiler msvc15 -D OIDN_WARN_AS_ERRORS=ON
 
   build-windows-msvc15-static:
     secrets: inherit
-    uses: ./.github/workflows/build-windows.yml
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_win_powershell.yml@tgt/oidn
     with:
       runs-on: '[ "Windows", "build" ]'
       cmd: python scripts/build.py --compiler msvc15 -D OIDN_STATIC_LIB=ON
       
   build-windows-msvc15-debug:
     secrets: inherit
-    uses: ./.github/workflows/build-windows.yml
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_win_powershell.yml@tgt/oidn
     with:
       runs-on: '[ "Windows", "build" ]'
       cmd: python scripts/build.py --compiler msvc15 --config Debug
 
   build-windows-msvc15-namespace:
     secrets: inherit
-    uses: ./.github/workflows/build-windows.yml
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_win_powershell.yml@tgt/oidn
     with:
       runs-on: '[ "Windows", "build" ]'
       cmd: python scripts/build.py --compiler msvc15 -D OIDN_API_NAMESPACE=myoidn
 
   build-windows-msvc16:
     secrets: inherit
-    uses: ./.github/workflows/build-windows.yml
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_win_powershell.yml@tgt/oidn
     with:
       runs-on: '[ "Windows", "build" ]'
-      artifact-name: build-windows-msvc16_artifact
+      artifact-out: build-windows-msvc16_artifact
+      artifact-path: '"build","deps"'
       cmd: python scripts/build.py install --compiler msvc16 -D OIDN_WARN_AS_ERRORS=ON
 
   test-windows-msvc16-avx512:
     needs: build-windows-msvc16
     secrets: inherit
-    uses: ./.github/workflows/test-windows.yml
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_win_powershell.yml@tgt/oidn
     with:
       runs-on: '[ "Windows", "avx512", "NAS" ]'
-      artifact-name: build-windows-msvc16_artifact
+      artifact-in: build-windows-msvc16_artifact
       cmd: python scripts/test.py
       
   test-windows-icc-avx512:
     needs: build-windows-msvc15-icc
     secrets: inherit
-    uses: ./.github/workflows/test-windows.yml
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_win_powershell.yml@tgt/oidn
     with:
       runs-on: '[ "Windows", "avx512", "NAS" ]'
-      artifact-name: build-windows-msvc15-icc_artifact
+      artifact-in: build-windows-msvc15-icc_artifact
       cmd: python scripts/test.py
 
   kw-build-scan-report:
