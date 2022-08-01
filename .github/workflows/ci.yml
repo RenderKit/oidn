@@ -1,5 +1,4 @@
 name: CI workflow
-
 on:
   pull_request:
   push:
@@ -394,7 +393,58 @@ jobs:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_snyk.yml@tgt/oidn
 
-  package-scan:
+  # package-scan:
+  #   secrets: inherit
+  #   uses: ./.github/workflows/package-scan.yml
+
+  package-linux:
     secrets: inherit
-    uses: ./.github/workflows/package-scan.yml
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@tgt/oidn
+    with:
+      image: oidn-build:centos7
+      cmd: scripts/build.py package --compiler icc
+      artifact-out: package-linux-artifact
+      artifact-path: "./build/oidn-*.tar.gz"
+
+  package-macos:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@tgt/oidn
+    with:
+      runs-on: '[ "macOS", "sign" ]'
+      cmd: scripts/build.py package --compiler icc
+      artifact-out: package-macos-artifact
+      artifact-path: "./build ./deps"
+
+  package-windows:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_win_powershell.yml@tgt/oidn
+    with:
+      runs-on: '[ "Windows", "build", "icc19.0" ]'
+      cmd: python scripts/build.py package --compiler msvc15-icc19
+      artifact-out: package-windows-artifact
+      artifact-path: '"build","deps"'
+
+  av-scan-linux:
+      needs: package-linux
+      secrets: inherit
+      uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/antivirus.yml@tgt/oidn
+      with:
+        artifact-in: package-linux-artifact
+        path: "./build/oidn-*"
+
+  av-scan-macos:
+      needs: package-macos
+      secrets: inherit
+      uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/antivirus.yml@tgt/oidn
+      with:
+        artifact-in: package-macos-artifact
+        path: "./build/oidn-*"
+
+  av-scan-windows:
+      needs: package-windows
+      secrets: inherit
+      uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/antivirus.yml@tgt/oidn
+      with:
+        artifact-in: package-windows-artifact
+        path: "./build/oidn-*"
 
