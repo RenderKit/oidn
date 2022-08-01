@@ -1,12 +1,9 @@
 name: CI workflow
 on:
   pull_request:
-  push:
-    paths:
-      - '.github/workflows/ci.yml'
   workflow_dispatch:
-  schedule:
-    - cron:  '0 6 * * *'
+  # schedule:
+  #   - cron:  '0 6 * * *'
 
 concurrency: 
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -15,7 +12,7 @@ concurrency:
 jobs:
   build-arch-gcc-oiio:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
     with:
       image: oidn-build:arch
       cmd: |
@@ -26,7 +23,7 @@ jobs:
 
   build-centos7-icc:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
     with:
       image: oidn-build:centos7
       cmd: scripts/build.py install --compiler icc -D OIDN_WARN_AS_ERRORS=ON
@@ -35,7 +32,7 @@ jobs:
 
   build-ubuntu1804-gcc:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
     with:
       image: oidn-build:ubuntu18.04
       cmd: scripts/build.py install --compiler gcc -D OIDN_WARN_AS_ERRORS=ON
@@ -44,7 +41,7 @@ jobs:
 
   build-ubuntu1804-gcc-debug:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
     with:
       image: oidn-build:ubuntu18.04
       cmd: scripts/build.py install --compiler gcc --config Debug -D OIDN_WARN_AS_ERRORS=ON
@@ -53,28 +50,28 @@ jobs:
 
   build-ubuntu1804-clang:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
     with:
       image: oidn-build:ubuntu18.04
       cmd: scripts/build.py --compiler clang
 
   build-ubuntu1804-gcc-static:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
     with:
       image: oidn-build:ubuntu18.04
       cmd: scripts/build.py --compiler gcc -D OIDN_STATIC_LIB=ON
 
   build-ubuntu1804-gcc-namespace:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
     with:
       image: oidn-build:ubuntu18.04
       cmd: scripts/build.py --compiler gcc -D OIDN_API_NAMESPACE=myoidn
 
   build-ubuntu1804-gcc-tbb2007:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
     with:
       image: oidn-build:ubuntu18.04
       cmd: |
@@ -85,7 +82,7 @@ jobs:
 
   build-ubuntu2004-gcc-oiio:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
     with:
       image: oidn-build:ubuntu20.04
       cmd: |
@@ -96,7 +93,7 @@ jobs:
 
   build-ubuntu2004-gcc-minimal:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
     with:
       image: oidn-build:ubuntu20.04
       cmd: scripts/build.py --compiler gcc -D OIDN_FILTER_RT=OFF -D OIDN_FILTER_RTLIGHTMAP=OFF
@@ -104,9 +101,9 @@ jobs:
   test-centos7-icc-avx2:
     needs: build-centos7-icc
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
     with:
-      runs-on: '[ "Linux", "build", "avx2" ]'
+      runs-on: '[ "Linux", "avx2" ]'
       image: oidn-build:centos7
       artifact-in: build-centos7-icc_artifact
       cmd: scripts/test.py
@@ -114,7 +111,7 @@ jobs:
   test-centos7-icc-avx512:
     needs: build-centos7-icc
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
     with:
       runs-on: '[ "Linux", "build", "avx512" ]'
       image: oidn-build:centos7
@@ -124,7 +121,7 @@ jobs:
   test-centos7-icc-sse4:
     needs: build-centos7-icc
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
     with:
       runs-on: '[ "Linux", "build" ]'
       image: oidn-build:centos7
@@ -134,9 +131,9 @@ jobs:
   test-ubuntu1804-gcc-avx2:
     needs: build-ubuntu1804-gcc
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
     with:
-      runs-on: '[ "Linux", "build", "avx2" ]'
+      runs-on: '[ "Linux", "avx2" ]'
       image: oidn-build:ubuntu18.04
       artifact-in: build-ubuntu1804-gcc_artifact
       cmd: scripts/test.py
@@ -144,7 +141,7 @@ jobs:
   test-ubuntu1804-gcc-avx512:
     needs: build-ubuntu1804-gcc
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
     with:
       runs-on: '[ "Linux", "build", "avx512" ]'
       image: oidn-build:ubuntu18.04
@@ -154,7 +151,7 @@ jobs:
   test-ubuntu1804-gcc-sse4:
     needs: build-ubuntu1804-gcc
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
     with:
       runs-on: '[ "Linux", "build", "build" ]'
       image: oidn-build:ubuntu18.04
@@ -164,9 +161,9 @@ jobs:
   test-ubuntu1804-gcc-debug-avx2:
     needs: build-ubuntu1804-gcc-debug
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
     with:
-      runs-on: '[ "Linux", "build", "avx2" ]'
+      runs-on: '[ "Linux", "avx2" ]'
       image: oidn-build:ubuntu18.04
       artifact-in: build-ubuntu1804-gcc-debug_artifact
       cmd: scripts/test.py
@@ -174,7 +171,7 @@ jobs:
   test-ubuntu1804-gcc-debug-avx512:
     needs: build-ubuntu1804-gcc-debug
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
     with:
       runs-on: '[ "Linux", "build", "avx512" ]'
       image: oidn-build:ubuntu18.04
@@ -183,7 +180,7 @@ jobs:
 
   build-macos-clang-arm:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "arm" ]'
       artifact-out: test-macos-clang-arm_artifact
@@ -192,7 +189,7 @@ jobs:
 
   build-macos-clang-debug-arm:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "arm" ]'
       artifact-out: test-macos-clang-debug-arm_artifact
@@ -201,14 +198,14 @@ jobs:
 
   build-macos-clang-static-arm:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "arm" ]'
       cmd: scripts/build.py --compiler clang -D OIDN_STATIC_LIB=ON
 
   build-macos-clang-namespace-arm:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "arm" ]'
       cmd: scripts/build.py --compiler clang -D OIDN_API_NAMESPACE=myoidn  
@@ -216,7 +213,7 @@ jobs:
   test-macos-clang-arm:
     needs: build-macos-clang-arm
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "arm" ]'
       artifact-in: test-macos-clang-arm_artifact
@@ -225,7 +222,7 @@ jobs:
   test-macos-clang-debug-arm:
     needs: build-macos-clang-debug-arm
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "arm" ]'
       artifact-in: test-macos-clang-debug-arm_artifact
@@ -233,7 +230,7 @@ jobs:
 
   build-macos-clang:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "avx2" ]'
       artifact-out: build-macos-clang_artifact
@@ -243,7 +240,7 @@ jobs:
 
   build-macos-clang-debug:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "avx2" ]'
       cmd: scripts/build.py install --compiler clang --config Debug -D OIDN_WARN_AS_ERRORS=ON
@@ -251,7 +248,7 @@ jobs:
 
   build-macos-clang-static:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "avx2" ]'
       cmd: scripts/build.py --compiler clang -D OIDN_STATIC_LIB=ON
@@ -259,7 +256,7 @@ jobs:
 
   build-macos-clang-namespace:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "avx2" ]'
       cmd: scripts/build.py --compiler clang -D OIDN_API_NAMESPACE=myoidn
@@ -267,7 +264,7 @@ jobs:
 
   build-macos-icc:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "avx2" ]'
       artifact-out: build-macos-icc_artifact
@@ -276,7 +273,7 @@ jobs:
 
   build-macos-icc-debug:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "avx2" ]'
       cmd: scripts/build.py install --compiler icc --config Debug -D OIDN_WARN_AS_ERRORS=ON   
@@ -284,7 +281,7 @@ jobs:
   test-macos-clang-avx2:
     needs: build-macos-clang
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "avx2", "sign" ]'
       artifact-in: build-macos-clang_artifact
@@ -294,7 +291,7 @@ jobs:
   test-macos-clang-avx512:
     needs: build-macos-clang
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "avx512" ]'
       artifact-in: build-macos-clang_artifact
@@ -303,7 +300,7 @@ jobs:
   test-macos-icc-avx2:
     needs: build-macos-icc
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "avx2", "sign" ]'
       artifact-in: build-macos-icc_artifact
@@ -312,7 +309,7 @@ jobs:
   test-macos-icc-avx512:
     needs: build-macos-icc
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "avx512" ]'
       artifact-in: build-macos-icc_artifact
@@ -321,7 +318,7 @@ jobs:
 
   build-windows-msvc15-icc:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_win_powershell.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_windows.yml@main
     with:
       runs-on: '[ "Windows", "build", "icc19.0" ]'
       artifact-out: build-windows-msvc15-icc_artifact
@@ -330,35 +327,35 @@ jobs:
 
   build-windows-msvc15:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_win_powershell.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_windows.yml@main
     with:
       runs-on: '[ "Windows", "build" ]'
       cmd: python scripts/build.py install --compiler msvc15 -D OIDN_WARN_AS_ERRORS=ON
 
   build-windows-msvc15-static:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_win_powershell.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_windows.yml@main
     with:
       runs-on: '[ "Windows", "build" ]'
       cmd: python scripts/build.py --compiler msvc15 -D OIDN_STATIC_LIB=ON
       
   build-windows-msvc15-debug:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_win_powershell.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_windows.yml@main
     with:
       runs-on: '[ "Windows", "build" ]'
       cmd: python scripts/build.py --compiler msvc15 --config Debug
 
   build-windows-msvc15-namespace:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_win_powershell.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_windows.yml@main
     with:
       runs-on: '[ "Windows", "build" ]'
       cmd: python scripts/build.py --compiler msvc15 -D OIDN_API_NAMESPACE=myoidn
 
   build-windows-msvc16:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_win_powershell.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_windows.yml@main
     with:
       runs-on: '[ "Windows", "build" ]'
       artifact-out: build-windows-msvc16_artifact
@@ -368,7 +365,7 @@ jobs:
   test-windows-msvc16-avx512:
     needs: build-windows-msvc16
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_win_powershell.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_windows.yml@main
     with:
       runs-on: '[ "Windows", "avx512", "NAS" ]'
       artifact-in: build-windows-msvc16_artifact
@@ -377,7 +374,7 @@ jobs:
   test-windows-icc-avx512:
     needs: build-windows-msvc15-icc
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_win_powershell.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_windows.yml@main
     with:
       runs-on: '[ "Windows", "avx512", "NAS" ]'
       artifact-in: build-windows-msvc15-icc_artifact
@@ -385,66 +382,121 @@ jobs:
 
   kw-build-scan-report:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_klocwork.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_static_analysis.yml@main
     with:
+      project: oidn
       build: scripts/build.py
   
   snyk-scan:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_snyk.yml@tgt/oidn
-
-  # package-scan:
-  #   secrets: inherit
-  #   uses: ./.github/workflows/package-scan.yml
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_snyk.yml@main
 
   package-linux:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
     with:
       image: oidn-build:centos7
       cmd: scripts/build.py package --compiler icc
       artifact-out: package-linux-artifact
-      artifact-path: "./build/oidn-*.tar.gz"
+      artifact-path: ./build/oidn-*.tar.gz
 
   package-macos:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "sign" ]'
       cmd: scripts/build.py package --compiler icc
       artifact-out: package-macos-artifact
-      artifact-path: "./build ./deps"
+      artifact-path: ./build/oidn-*.tar.gz
 
   package-windows:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_win_powershell.yml@tgt/oidn
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_windows.yml@main
     with:
       runs-on: '[ "Windows", "build", "icc19.0" ]'
       cmd: python scripts/build.py package --compiler msvc15-icc19
       artifact-out: package-windows-artifact
-      artifact-path: '"build","deps"'
+      artifact-path: build\oidn-*.zip
 
-  av-scan-linux:
-      needs: package-linux
-      secrets: inherit
-      uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/antivirus.yml@tgt/oidn
-      with:
-        artifact-in: package-linux-artifact
-        path: "./build/oidn-*"
+  antivirus-scan:
+    needs:
+      - package-linux
+      - package-macos
+      - package-windows
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/antivirus_scan.yml@main
+    with:
+      project: oidn
+      artifact-in-linux: package-linux-artifact
+      artifact-in-macos: package-macos-artifact
+      artifact-in-windows: package-windows-artifact
+      path: "oidn-* ./build/oidn-*"
 
-  av-scan-macos:
-      needs: package-macos
-      secrets: inherit
-      uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/antivirus.yml@tgt/oidn
-      with:
-        artifact-in: package-macos-artifact
-        path: "./build/oidn-*"
+  # antivirus-linux:
+  #   needs: package-linux
+  #   secrets: inherit
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/antivirus.yml@main
+  #   with:
+  #     project: oidn
+  #     artifact-in: package-linux-artifact
+  #     path: ./build/oidn-*
 
-  av-scan-windows:
-      needs: package-windows
-      secrets: inherit
-      uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/antivirus.yml@tgt/oidn
-      with:
-        artifact-in: package-windows-artifact
-        path: "./build/oidn-*"
+  # antivirus-macos:
+  #   needs: package-macos
+  #   secrets: inherit
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/antivirus.yml@main
+  #   with:
+  #     project: oidn
+  #     artifact-in: package-macos-artifact
+  #     path: ./build/oidn-*
+
+  # antivirus-windows:
+  #   needs: package-windows
+  #   secrets: inherit
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/antivirus.yml@main
+  #   with:
+  #     project: oidn
+  #     artifact-in: package-windows-artifact
+  #     path: oidn-*
+
+  binary-analysis:
+    needs:
+      - package-linux
+      - package-macos
+      - package-windows
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/binary_analysis.yml@main
+    with:
+      project: oidn
+      artifact-in-linux: package-linux-artifact
+      artifact-in-macos: package-macos-artifact
+      artifact-in-windows: package-windows-artifact
+      path: "oidn-* ./build/oidn-*"
+
+  # binary-analysis-linux:
+  #   needs: package-linux
+  #   secrets: inherit
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/binary_analysis.yml@main
+  #   with:
+  #     project: oidn
+  #     artifact-in: package-linux-artifact
+  #     path: ./build/oidn-*
+
+  # binary-analysis-macos:
+  #   needs: package-macos
+  #   secrets: inherit
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/binary_analysis.yml@main
+  #   with:
+  #     project: oidn
+  #     artifact-in: package-macos-artifact
+  #     path: ./build/oidn-*
+
+  # binary-analysis-windows:
+  #   needs: package-windows
+  #   secrets: inherit
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/binary_analysis.yml@main
+  #   with:
+  #     project: oidn
+  #     artifact-in: package-windows-artifact
+  #     path: oidn-*
 
