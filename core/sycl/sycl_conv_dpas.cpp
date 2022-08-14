@@ -83,20 +83,10 @@ namespace oidn {
               for (int i = 0; i < ocOuter; ++i)
               {
                 accumVec[r][i] =
-                  dpas<argument_type::FP16,
-                       argument_type::FP16,
-                       AccumType,
-                       dpasDepth,
-                       dpasRepeat,
-                       AccumType,
-                       int,
-                       int,
-                       dpasRepeat * execWidth,
-                       dpasDepth  * execWidth,
-                       dpasRepeat * dpasDepth
-                      >(accumVec[r][i],
-                        weightVec[i].template bit_cast_view<int>(),
-                        srcVec[(kh + r) % ohBlock].template select<owBlock*cBlock, 1>(kw*cBlock).template bit_cast_view<int>());
+                  dpas<argument_type::FP16, argument_type::FP16, AccumType, dpasDepth, dpasRepeat>(
+                    accumVec[r][i],
+                    weightVec[i].template bit_cast_view<int>().read(),
+                    srcVec[(kh + r) % ohBlock].template select<owBlock*cBlock, 1>(kw*cBlock).template bit_cast_view<int>().read());
               }
             }
           }
