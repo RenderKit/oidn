@@ -324,7 +324,7 @@ namespace oidn {
     WorkDim<3> localSize = {globalSize[0], 1, 1};
     int totalSize = globalSize[0];
 
-    while (totalSize % 2 != 0 || totalSize * 2 <= 8)
+    while (totalSize % 2 != 0 || totalSize * 2 <= 16)
     {
       const int i = (localSize[1] * Kernel::blockOH < localSize[2] * Kernel::blockOW) ? 1 : 2;
       if (globalSize[i] % (localSize[i]*2) == 0)
