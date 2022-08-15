@@ -246,8 +246,8 @@ namespace oidn {
         }
         else
         {
-          const simd<int, blockOW> owVec(ow, 1);
-          simd_mask<blockOW> predVec = owVec < dst.W;
+          const simd<int, blockOW> bowVec(0, 1); // 0, 1, 2, ...
+          simd_mask<blockOW> predVec = bowVec < dst.W - ow;
 
           #pragma unroll
           for (int bow = 0; bow < blockOW; ++bow)
@@ -275,8 +275,8 @@ namespace oidn {
       }
       else
       {
-        const simd<int, blockIW> iwVec(iw, 1);
-        simd_mask<blockIW> predVec = (iwVec >= 0) & (iwVec < src.W);
+        const simd<int, blockIW> biwVec(0, 1); // 0, 1, 2, ...
+        simd_mask<blockIW> predVec = (biwVec >= -iw) & (biwVec < src.W - iw);
 
         #pragma unroll
         for (int biw = 0; biw < blockIW; ++biw)
