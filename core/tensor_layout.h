@@ -84,25 +84,25 @@ namespace oidn {
   template<typename T, int B>
   struct TensorAddressingChwBc
   {
-    static constexpr int cBlock = B;
+    static constexpr int blockC = B; // block channels
 
     static constexpr size_t wStride = B * sizeof(T);
     size_t hStride;
-    size_t cbStride;
+    size_t CStride;
 
     TensorAddressingChwBc() = default;
 
     OIDN_HOST_DEVICE_INLINE TensorAddressingChwBc(int C, int H, int W)
     {
-      hStride  = size_t(W) * wStride;
-      cbStride = size_t(H) * hStride;
+      hStride = size_t(W) * wStride;
+      CStride = size_t(H) * hStride;
     }
 
     OIDN_HOST_DEVICE_INLINE size_t getOffset(int c, int h, int w) const
     {
-      return size_t(c/B) * cbStride +
-             size_t(h)   * hStride  +
-             size_t(w)   * wStride  +
+      return size_t(c/B) * CStride +
+             size_t(h)   * hStride +
+             size_t(w)   * wStride +
              size_t(c%B) * sizeof(T);
     }
   };
@@ -154,7 +154,7 @@ namespace oidn {
   template<typename T, int B>
   struct TensorAddressingOIhwBiBo
   {
-    static constexpr int cBlock = B;
+    static constexpr int blockC = B; // block channels
 
     static constexpr size_t BoStride = sizeof(T);
     static constexpr size_t BiStride = B * BoStride;
@@ -201,7 +201,7 @@ namespace oidn {
   struct TensorAddressingOIhwUoViVoUi
   {
     static constexpr int B = U * V;
-    static constexpr int cBlock = B;
+    static constexpr int blockC = B; // block channels
 
     static constexpr size_t UiStride = sizeof(T);
     static constexpr size_t VoStride = U * UiStride;

@@ -8,7 +8,7 @@ namespace oidn {
   template<typename T, TensorLayout layout>
   struct SYCLUpsampleKernel
   {
-    static constexpr int cBlock = TensorAccessor3D<T, layout>::cBlock;
+    static constexpr int blockC = TensorAccessor3D<T, layout>::blockC;
 
     TensorAccessor3D<T, layout> src;
     TensorAccessor3D<T, layout> dst;
@@ -30,9 +30,9 @@ namespace oidn {
       char* dstPtr0 = dst.ptr + dstOffset;
       char* dstPtr2 = dstPtr0 + dst.hStride;
 
-      const simd<T, cBlock> v = block_load<T, cBlock, vector_aligned_tag>((T*)srcPtr);
+      const simd<T, blockC> v = block_load<T, blockC, vector_aligned_tag>((T*)srcPtr);
 
-      const simd<T, cBlock*2> v2 = v.template replicate<2>();
+      const simd<T, blockC*2> v2 = v.template replicate<2>();
       block_store((T*)dstPtr0, v2);
       block_store((T*)dstPtr2, v2);
     }

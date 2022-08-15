@@ -40,8 +40,8 @@ namespace oidn {
   {
     assert(src->getRank() == 1);
 
-    const int cBlock = device->getTensorBlockSize();
-    const int X = round_up(src->getX(), cBlock);
+    const int blockC = device->getTensorBlockC();
+    const int X = round_up(src->getX(), blockC);
 
     auto dst = device->newTensor({{X}, TensorLayout::x, device->getTensorDataType()});
     reorder(*src, *dst->map(Access::WriteDiscard));
@@ -52,9 +52,9 @@ namespace oidn {
   {
     assert(src->getRank() == 4);
 
-    const int cBlock = device->getTensorBlockSize();
-    const int O = round_up(src->getO(), cBlock);
-    const int I = round_up(src->getI(), cBlock);
+    const int blockC = device->getTensorBlockC();
+    const int O = round_up(src->getO(), blockC);
+    const int I = round_up(src->getI(), blockC);
     const int H = src->getH();
     const int W = src->getW();
 

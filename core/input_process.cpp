@@ -12,7 +12,7 @@ namespace oidn {
       throw std::invalid_argument("invalid input processing source shape");
 
     TensorDims dstDims {
-      round_up(srcDims[0], device->getTensorBlockSize()), // round up C
+      round_up(srcDims[0], device->getTensorBlockC()), // round up C
       round_up(srcDims[1], int64_t(alignment)), // round up H
       round_up(srcDims[2], int64_t(alignment))  // round up W
     };

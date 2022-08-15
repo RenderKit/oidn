@@ -65,7 +65,7 @@ namespace oidn {
     DataType getTensorDataType() const { return tensorDataType; }
     TensorLayout getTensorLayout() const { return tensorLayout; }
     TensorLayout getWeightsLayout() const { return weightsLayout; }
-    int getTensorBlockSize() const { return tensorBlockSize; }
+    int getTensorBlockC() const { return tensorBlockSize; }
 
     // Waits for all asynchronous operations to complete
     virtual void wait() {}

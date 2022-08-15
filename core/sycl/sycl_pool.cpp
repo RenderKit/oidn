@@ -8,7 +8,7 @@ namespace oidn {
   template<typename T, TensorLayout layout>
   struct SYCLPoolKernel
   {
-    static constexpr int cBlock = TensorAccessor3D<T, layout>::cBlock;
+    static constexpr int blockC = TensorAccessor3D<T, layout>::blockC;
 
     TensorAccessor3D<T, layout> src;
     TensorAccessor3D<T, layout> dst;
@@ -32,12 +32,12 @@ namespace oidn {
       char* srcPtr3 = srcPtr2 + src.wStride;
       char* dstPtr  = dst.ptr + dstOffset;
 
-      const simd<T, cBlock> v0 = block_load<T, cBlock, vector_aligned_tag>((T*)srcPtr0);
-      const simd<T, cBlock> v1 = block_load<T, cBlock, vector_aligned_tag>((T*)srcPtr1);
-      const simd<T, cBlock> v2 = block_load<T, cBlock, vector_aligned_tag>((T*)srcPtr2);
-      const simd<T, cBlock> v3 = block_load<T, cBlock, vector_aligned_tag>((T*)srcPtr3);
+      const simd<T, blockC> v0 = block_load<T, blockC, vector_aligned_tag>((T*)srcPtr0);
+      const simd<T, blockC> v1 = block_load<T, blockC, vector_aligned_tag>((T*)srcPtr1);
+      const simd<T, blockC> v2 = block_load<T, blockC, vector_aligned_tag>((T*)srcPtr2);
+      const simd<T, blockC> v3 = block_load<T, blockC, vector_aligned_tag>((T*)srcPtr3);
 
-      const simd<T, cBlock> v = max(max(v0, v1), max(v2, v3));
+      const simd<T, blockC> v = max(max(v0, v1), max(v2, v3));
       block_store((T*)dstPtr, v);
     }
   };
