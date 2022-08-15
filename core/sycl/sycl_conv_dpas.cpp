@@ -10,6 +10,57 @@
 #include <sycl/ext/intel/experimental/esimd/memory.hpp>
 #include "sycl_conv_dpas.h"
 
+// FIXME: add to ESIMD
+__SYCL_INLINE_NAMESPACE(cl) {
+namespace __ESIMD_ENS {
+
+template <typename T, uint8_t NElts = 1,
+          lsc_data_size DS = lsc_data_size::default_size,
+          cache_hint L1H = cache_hint::none, cache_hint L3H = cache_hint::none>
+__ESIMD_API __ESIMD_NS::simd<T, NElts> lsc_block_load(const T *p, __ESIMD_NS::simd_mask<1> pred/* = 1*/) {
+  detail::check_lsc_vector_size<NElts>();
+  detail::check_lsc_data_size<T, DS>();
+  detail::check_lsc_cache_hint<detail::lsc_action::load, L1H, L3H>();
+  constexpr uint16_t _AddressScale = 1;
+  constexpr int _ImmOffset = 0;
+  constexpr lsc_data_size _DS = detail::finalize_data_size<T, DS>();
+  static_assert(_DS == lsc_data_size::u32 || _DS == lsc_data_size::u64,
+                "Transposed load is supported only for data size u32 or u64");
+  constexpr detail::lsc_vector_size _VS = detail::to_lsc_vector_size<NElts>();
+  constexpr detail::lsc_data_order _Transposed =
+      detail::lsc_data_order::transpose;
+  constexpr int N = 1;
+  __ESIMD_NS::simd<uintptr_t, N> addrs = reinterpret_cast<uintptr_t>(p);
+  return __esimd_lsc_load_stateless<T, L1H, L3H, _AddressScale, _ImmOffset, _DS,
+                                    _VS, _Transposed, N>(pred.data(),
+                                                         addrs.data());
+}
+
+template <typename T, uint8_t NElts = 1,
+          lsc_data_size DS = lsc_data_size::default_size,
+          cache_hint L1H = cache_hint::none, cache_hint L3H = cache_hint::none>
+__ESIMD_API void lsc_block_store(T *p, __ESIMD_NS::simd<T, NElts> vals, __ESIMD_NS::simd_mask<1> pred/* = 1*/) {
+  detail::check_lsc_vector_size<NElts>();
+  detail::check_lsc_data_size<T, DS>();
+  detail::check_lsc_cache_hint<detail::lsc_action::store, L1H, L3H>();
+  constexpr uint16_t _AddressScale = 1;
+  constexpr int _ImmOffset = 0;
+  constexpr lsc_data_size _DS = detail::finalize_data_size<T, DS>();
+  static_assert(_DS == lsc_data_size::u32 || _DS == lsc_data_size::u64,
+                "Transposed store is supported only for data size u32 or u64");
+  constexpr detail::lsc_vector_size _VS = detail::to_lsc_vector_size<NElts>();
+  constexpr detail::lsc_data_order _Transposed =
+      detail::lsc_data_order::transpose;
+  constexpr int N = 1;
+  __ESIMD_NS::simd<uintptr_t, N> addrs = reinterpret_cast<uintptr_t>(p);
+  __esimd_lsc_store_stateless<T, L1H, L3H, _AddressScale, _ImmOffset, _DS, _VS,
+                              _Transposed, N>(pred.data(), addrs.data(),
+                                              vals.data());
+}
+
+} // namespace __ESIMD_ENS
+} // __SYCL_INLINE_NAMESPACE(cl)
+
 namespace oidn {
 
   using namespace esimd;
@@ -26,12 +77,24 @@ namespace oidn {
   }
 
   template<typename T, int N>
-  OIDN_INLINE void storeBlock(T* ptr, simd<T, N> blk)
+  OIDN_INLINE simd<T, N> loadBlock(const T* ptr, simd_mask<1> pred)
+  {
+    //return block_load<T, N>(ptr, vector_aligned);
+    
+    static_assert((sizeof(T) * N) % sizeof(int) == 0, "unsupported block size");
+    auto blk = lsc_block_load<int, (sizeof(T) * N) / sizeof(int)>((const int*)ptr, pred);
+    auto res = simd<T, N>(0);
+    res.merge(blk.template bit_cast_view<T>(), simd_mask<N>(bool(pred)));
+    return res;
+  }
+
+  template<typename T, int N>
+  OIDN_INLINE void storeBlock(T* ptr, simd<T, N> blk, simd_mask<1> pred = 1)
   {
     //block_store(ptr, blk);
 
     static_assert((sizeof(T) * N) % sizeof(int) == 0, "unsupported block size");
-    lsc_block_store<int, (sizeof(T) * N) / sizeof(int)>((int*)ptr, blk.template bit_cast_view<int>());
+    lsc_block_store<int, (sizeof(T) * N) / sizeof(int)>((int*)ptr, blk.template bit_cast_view<int>(), pred);
   }
 
   template<typename T, int N>
@@ -186,8 +249,7 @@ namespace oidn {
           #pragma unroll
           for (int bow = 0; bow < blockOW; ++bow)
           {
-            if (ow + bow < dst.W)
-              storeBlock(dstPtr, dstVec.template select<blockC, 1>(bow * blockC).read());
+            storeBlock(dstPtr, dstVec.template select<blockC, 1>(bow * blockC).read(), ow + bow < dst.W);
             dstPtr += blockC;
           }
         }
@@ -214,8 +276,7 @@ namespace oidn {
         #pragma unroll
         for (int biw = 0; biw < blockIW; ++biw)
         {
-          if (iw + biw >= 0 && iw + biw < src.W)
-            srcVec.template select<blockC, 1>(biw * blockC) = loadBlock<T, blockC>(srcPtr);
+          srcVec.template select<blockC, 1>(biw * blockC) = loadBlock<T, blockC>(srcPtr, iw + biw >= 0 && iw + biw < src.W);
           srcPtr += blockC;
         }
       }
