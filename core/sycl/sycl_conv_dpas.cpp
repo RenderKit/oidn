@@ -2,12 +2,66 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include <sycl/ext/intel/experimental/esimd/math.hpp>
+#include <sycl/ext/intel/experimental/esimd/memory.hpp>
 #include "sycl_conv_dpas.h"
 
 namespace oidn {
 
   using namespace esimd;
   using namespace sycl::ext::intel::experimental::esimd;
+
+  template<typename T, int N>
+  OIDN_INLINE simd<T, N> loadBlock(const T* ptr)
+  {
+    //return block_load<T, N>(ptr, vector_aligned);
+    
+    static_assert((sizeof(T) * N) % sizeof(int) == 0, "unsupported block size");
+    auto blk = lsc_block_load<int, (sizeof(T) * N) / sizeof(int)>((const int*)ptr);
+    return blk.template bit_cast_view<T>();
+  }
+
+  template<typename T, int N>
+  OIDN_INLINE void storeBlock(T* ptr, simd<T, N> blk)
+  {
+    //block_store(ptr, blk);
+
+    static_assert((sizeof(T) * N) % sizeof(int) == 0, "unsupported block size");
+    lsc_block_store<int, (sizeof(T) * N) / sizeof(int)>((int*)ptr, blk.template bit_cast_view<int>());
+  }
+
+  template<typename T, int N>
+  OIDN_INLINE void loadLargeBlock(const T* ptr, simd<T, N>& blk)
+  {
+    //blk.copy_from(ptr, overaligned<32>);
+
+    constexpr int chunkSize = 256 / sizeof(T);
+    constexpr int numChunks = N / chunkSize;
+    constexpr int remSize   = N % chunkSize;
+
+    #pragma unroll
+    for (int i = 0; i < numChunks; ++i)
+      blk.template select<chunkSize, 1>(i * chunkSize) = loadBlock<T, chunkSize>(ptr + i * chunkSize);
+
+    if constexpr (remSize != 0)
+      blk.template select<remSize, 1>(numChunks * chunkSize) = loadBlock<T, remSize>(ptr + numChunks * chunkSize);
+  }
+
+  template<typename T, int N>
+  OIDN_INLINE void storeLargeBlock(T* ptr, simd<T, N>& blk)
+  {
+    //blk.copy_to(ptr, overaligned<32>);
+
+    constexpr int chunkSize = 256 / sizeof(T);
+    constexpr int numChunks = N / chunkSize;
+    constexpr int remSize   = N % chunkSize;
+
+    #pragma unroll
+    for (int i = 0; i < numChunks; ++i)
+      storeBlock<T, chunkSize>(ptr + i * chunkSize, blk.template select<chunkSize, 1>(i * chunkSize));
+
+    if constexpr (remSize != 0)
+      storeBlock<T, remSize>(ptr + numChunks * chunkSize, blk.template select<remSize, 1>(numChunks * chunkSize));
+  }
 
   template<typename T, TensorLayout tensorLayout, TensorLayout weightLayout>
   struct SYCLConvDPASKernel
@@ -72,7 +126,7 @@ namespace oidn {
             #pragma unroll
             for (int i = 0; i < numBlockAC; ++i)
             {
-              weightVec[i].copy_from(weightPtr, vector_aligned);
+              weightVec[i] = loadBlock<T, blockAC * blockC>(weightPtr);
               weightPtr += blockAC * blockC;
             }
 
@@ -95,7 +149,7 @@ namespace oidn {
       }
 
       // Load bias
-      const auto biasVec = block_load<T, blockC>(&bias(oc), vector_aligned);
+      const auto biasVec = loadBlock<T, blockC>(&bias(oc));
       
       #pragma unroll
       for (int boh = 0; boh < blockOH; ++boh)
@@ -120,7 +174,7 @@ namespace oidn {
         T* dstPtr = &dst(oc, oh + boh, ow);
         if (ow + blockOW <= dst.W)
         {
-          dstVec.copy_to(dstPtr, overaligned<32>);
+          storeLargeBlock(dstPtr, dstVec);
         }
         else
         {
@@ -128,7 +182,7 @@ namespace oidn {
           for (int bow = 0; bow < blockOW; ++bow)
           {
             if (ow + bow < dst.W)
-              block_store<T, blockC>(dstPtr, dstVec.template select<blockC, 1>(bow * blockC));
+              storeBlock(dstPtr, dstVec.template select<blockC, 1>(bow * blockC).read());
             dstPtr += blockC;
           }
         }
@@ -147,7 +201,7 @@ namespace oidn {
 
       if (iw >= 0 && iw + blockIW <= src.W)
       {
-        srcVec.copy_from(srcPtr, overaligned<32>);
+        loadLargeBlock(srcPtr, srcVec);
       }
       else
       {
@@ -156,7 +210,7 @@ namespace oidn {
         for (int biw = 0; biw < blockIW; ++biw)
         {
           if (iw + biw >= 0 && iw + biw < src.W)
-            srcVec.template select<blockC, 1>(biw * blockC) = block_load<T, blockC>(srcPtr, vector_aligned);
+            srcVec.template select<blockC, 1>(biw * blockC) = loadBlock<T, blockC>(srcPtr);
           srcPtr += blockC;
         }
       }
