@@ -1,6 +1,11 @@
 // Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
+// FIXME: ESIMD compile error on Windows
+#if defined(_WIN32)
+  typedef unsigned int uint;
+#endif
+
 #include <sycl/ext/intel/experimental/esimd/math.hpp>
 #include <sycl/ext/intel/experimental/esimd/memory.hpp>
 #include "sycl_conv_dpas.h"
