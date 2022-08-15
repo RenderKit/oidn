@@ -84,7 +84,7 @@ namespace oidn {
     static_assert((sizeof(T) * N) % sizeof(int) == 0, "unsupported block size");
     auto blk = lsc_block_load<int, (sizeof(T) * N) / sizeof(int)>((const int*)ptr, pred);
     auto res = simd<T, N>(0);
-    res.merge(blk.template bit_cast_view<T>(), simd_mask<N>(bool(pred)));
+    res.merge(blk.template bit_cast_view<T>(), simd_mask<N>(pred[0]));
     return res;
   }
 
@@ -246,10 +246,13 @@ namespace oidn {
         }
         else
         {
+          const simd<int, blockOW> owVec(ow, 1);
+          simd_mask<blockOW> predVec = owVec < dst.W;
+
           #pragma unroll
           for (int bow = 0; bow < blockOW; ++bow)
           {
-            storeBlock(dstPtr, dstVec.template select<blockC, 1>(bow * blockC).read(), ow + bow < dst.W);
+            storeBlock(dstPtr, dstVec.template select<blockC, 1>(bow * blockC).read(), predVec.select<1, 1>(bow));
             dstPtr += blockC;
           }
         }
@@ -272,11 +275,13 @@ namespace oidn {
       }
       else
       {
-        srcVec = 0;
+        const simd<int, blockIW> iwVec(iw, 1);
+        simd_mask<blockIW> predVec = (iwVec >= 0) & (iwVec < src.W);
+
         #pragma unroll
         for (int biw = 0; biw < blockIW; ++biw)
         {
-          srcVec.template select<blockC, 1>(biw * blockC) = loadBlock<T, blockC>(srcPtr, iw + biw >= 0 && iw + biw < src.W);
+          srcVec.template select<blockC, 1>(biw * blockC) = loadBlock<T, blockC>(srcPtr, predVec.select<1, 1>(biw));
           srcPtr += blockC;
         }
       }
