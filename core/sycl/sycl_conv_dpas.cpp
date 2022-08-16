@@ -11,13 +11,13 @@
 #include "sycl_conv_dpas.h"
 
 // FIXME: add to ESIMD
-__SYCL_INLINE_NAMESPACE(cl) {
-namespace __ESIMD_ENS {
+namespace sycl::ext::intel::experimental::esimd {
 
 template <typename T, uint8_t NElts = 1,
           lsc_data_size DS = lsc_data_size::default_size,
           cache_hint L1H = cache_hint::none, cache_hint L3H = cache_hint::none>
-__ESIMD_API __ESIMD_NS::simd<T, NElts> lsc_block_load(const T *p, __ESIMD_NS::simd_mask<1> pred/* = 1*/) {
+__ESIMD_API __ESIMD_NS::simd<T, NElts> lsc_block_load(const T *p,
+                                                      __ESIMD_NS::simd_mask<1> pred/* = 1*/) {
   detail::check_lsc_vector_size<NElts>();
   detail::check_lsc_data_size<T, DS>();
   detail::check_lsc_cache_hint<detail::lsc_action::load, L1H, L3H>();
@@ -39,7 +39,8 @@ __ESIMD_API __ESIMD_NS::simd<T, NElts> lsc_block_load(const T *p, __ESIMD_NS::si
 template <typename T, uint8_t NElts = 1,
           lsc_data_size DS = lsc_data_size::default_size,
           cache_hint L1H = cache_hint::none, cache_hint L3H = cache_hint::none>
-__ESIMD_API void lsc_block_store(T *p, __ESIMD_NS::simd<T, NElts> vals, __ESIMD_NS::simd_mask<1> pred/* = 1*/) {
+__ESIMD_API void lsc_block_store(T *p, __ESIMD_NS::simd<T, NElts> vals,
+                                 __ESIMD_NS::simd_mask<1> pred/* = 1*/) {
   detail::check_lsc_vector_size<NElts>();
   detail::check_lsc_data_size<T, DS>();
   detail::check_lsc_cache_hint<detail::lsc_action::store, L1H, L3H>();
@@ -58,8 +59,7 @@ __ESIMD_API void lsc_block_store(T *p, __ESIMD_NS::simd<T, NElts> vals, __ESIMD_
                                               vals.data());
 }
 
-} // namespace __ESIMD_ENS
-} // __SYCL_INLINE_NAMESPACE(cl)
+} // sycl::ext::intel::experimental::esimd
 
 namespace oidn {
 
