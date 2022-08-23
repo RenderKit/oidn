@@ -15,6 +15,9 @@ namespace oidn {
     void run() override;
 
   private:
+    template<PostOp kernelPostOp>
+    void runImpl();
+
     Ref<SYCLDevice> device;
   };
 

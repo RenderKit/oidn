@@ -13,7 +13,27 @@ namespace oidn {
     if (weightDesc.getRank() != 4 || weightDesc.getI() != srcDesc.getC())
       throw std::invalid_argument("invalid convolution weight shape");
 
-    TensorDims dstDims {weightDesc.getO(), srcDesc.getH(), srcDesc.getW()};
+    TensorDims dstDims;
+    switch (postOp)
+    {
+    case PostOp::None:
+      dstDims = {weightDesc.getO(), srcDesc.getH(), srcDesc.getW()};
+      break;
+
+    case PostOp::Pool:
+      if (srcDesc.getH() % 2 != 0 || srcDesc.getW() % 2 != 0)
+        throw std::invalid_argument("invalid pooling source shape");
+      dstDims = {weightDesc.getO(), srcDesc.getH() / 2, srcDesc.getW() / 2};
+      break;
+
+    case PostOp::Upsample:
+      dstDims = {weightDesc.getO(), srcDesc.getH() * 2, srcDesc.getW() * 2};
+      break;
+
+    default:
+      throw std::invalid_argument("invalid postop");
+    } 
+
     dstDesc = TensorDesc(dstDims, srcDesc.layout, srcDesc.dataType);
 
     if (!((biasDesc.getRank() == 1 && biasDesc.getX() == weightDesc.getO()) ||

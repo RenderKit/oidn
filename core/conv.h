@@ -14,6 +14,13 @@ namespace oidn {
     ReLU
   };
 
+  enum class PostOp
+  {
+    None,
+    Pool,
+    Upsample
+  };
+
   // 3x3 convolution descriptor
   struct ConvDesc
   {
@@ -21,6 +28,7 @@ namespace oidn {
     TensorDesc weightDesc;
     TensorDesc biasDesc;
     Activation activation;
+    PostOp postOp;
   };
 
   // 3x3 convolution

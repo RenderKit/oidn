@@ -40,13 +40,14 @@ namespace oidn {
 
   std::shared_ptr<Conv> Network::addConv(const std::string& name,
                                          const TensorDesc& srcDesc,
-                                         Activation activation)
+                                         Activation activation,
+                                         PostOp postOp)
   {
     assert(weights);
     auto weight = weights->get(name + ".weight");
     auto bias   = weights->get(name + ".bias");
 
-    auto op = device->newConv({srcDesc, weight->getDesc(), bias->getDesc(), activation});
+    auto op = device->newConv({srcDesc, weight->getDesc(), bias->getDesc(), activation, postOp});
     op->setWeight(weight);
     op->setBias(bias);
     op->setName(name);

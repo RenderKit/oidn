@@ -35,7 +35,8 @@ namespace oidn {
 
     std::shared_ptr<Conv> addConv(const std::string& name,
                                   const TensorDesc& srcDesc,
-                                  Activation activation = Activation::ReLU);
+                                  Activation activation = Activation::ReLU,
+                                  PostOp postOp = PostOp::None);
 
     std::shared_ptr<ConcatConv> addConcatConv(const std::string& name,
                                               const TensorDesc& src1Desc,
