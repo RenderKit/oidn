@@ -216,8 +216,30 @@ namespace oidn {
         }
       }
 
+      // Shuffle and convert accumulators to destination
+      simd<T, blockOW * blockC> dstVec[blockOH];
+      
+      #pragma unroll
+      for (int boh = 0; boh < blockOH; ++boh)
+      {
+        auto dstMat = dstVec[boh].template bit_cast_view<T, blockOW, blockC>();
+        #pragma unroll
+        for (int i = 0; i < numBlockAC; ++i)
+          dstMat.template select<blockOW, 1, blockAC, 1>(0, i * blockAC) = accumVec[boh][i];
+      }
+
       // Load bias
       const auto biasVec = loadBlock<T, blockC>(&bias(oc));
+
+      #pragma unroll
+      for (int boh = 0; boh < blockOH; ++boh)
+      {
+        // Add bias
+        dstVec[boh] += biasVec.template replicate<blockOW>();
+
+        // Apply ReLU
+        dstVec[boh] = max(dstVec[boh], simd<T, blockOW * blockC>(0));
+      }
       
       #pragma unroll
       for (int boh = 0; boh < blockOH; ++boh)
@@ -225,21 +247,8 @@ namespace oidn {
         if (oh + boh >= dst.H)
           break;
 
-        // Shuffle and convert accumulators
-        simd<T, blockOW * blockC> dstVec;
-        auto dstMat = dstVec.template bit_cast_view<T, blockOW, blockC>();
-        #pragma unroll
-        for (int i = 0; i < numBlockAC; ++i)
-          dstMat.template select<blockOW, 1, blockAC, 1>(0, i * blockAC) = accumVec[boh][i];
-
-        // Add bias
-        dstVec += biasVec.template replicate<blockOW>();
-
-        // Apply ReLU
-        dstVec = max(dstVec, simd<T, blockOW * blockC>(0));
-
         // Store output row
-        storeRow(dstVec, oc, oh + boh, ow);
+        storeRow(dstVec[boh], oc, oh + boh, ow);
       }
     }
 
