@@ -239,23 +239,7 @@ namespace oidn {
         dstVec = max(dstVec, simd<T, blockOW * blockC>(0));
 
         // Store output row
-        T* dstPtr = &dst(oc, oh + boh, ow);
-        if (ow + blockOW <= dst.W)
-        {
-          storeLargeBlock(dstPtr, dstVec);
-        }
-        else
-        {
-          const simd<int, blockOW> bowVec(0, 1); // 0, 1, 2, ...
-          simd_mask<blockOW> predVec = bowVec < dst.W - ow;
-
-          #pragma unroll
-          for (int bow = 0; bow < blockOW; ++bow)
-          {
-            storeBlock(dstPtr, dstVec.template select<blockC, 1>(bow * blockC).read(), predVec.select<1, 1>(bow));
-            dstPtr += blockC;
-          }
-        }
+        storeRow(dstVec, oc, oh + boh, ow);
       }
     }
 
@@ -283,6 +267,31 @@ namespace oidn {
         {
           srcVec.template select<blockC, 1>(biw * blockC) = loadBlock<T, blockC>(srcPtr, predVec.select<1, 1>(biw));
           srcPtr += blockC;
+        }
+      }
+    }
+
+    OIDN_INLINE void storeRow(simd<T, blockOW * blockC>& dstVec, int oc, int oh, int ow) const
+    {
+      //if (oh >= dst.H)
+      //  return;
+
+      T* dstPtr = &dst(oc, oh, ow);
+
+      if (ow + blockOW <= dst.W)
+      {
+        storeLargeBlock(dstPtr, dstVec);
+      }
+      else
+      {
+        const simd<int, blockOW> bowVec(0, 1); // 0, 1, 2, ...
+        simd_mask<blockOW> predVec = bowVec < dst.W - ow;
+
+        #pragma unroll
+        for (int bow = 0; bow < blockOW; ++bow)
+        {
+          storeBlock(dstPtr, dstVec.template select<blockC, 1>(bow * blockC).read(), predVec.select<1, 1>(bow));
+          dstPtr += blockC;
         }
       }
     }
