@@ -79,6 +79,7 @@ namespace oidn {
       tryReorder<float, float, TensorLayout::oihw, TensorLayout::OIhw16i16o>(src, dst) ||
       tryReorder<float, half,  TensorLayout::oihw, TensorLayout::OIhw16i16o>(src, dst) ||
       tryReorder<float, half,  TensorLayout::oihw, TensorLayout::OIhw2o8i8o2i>(src, dst) ||
+      tryReorder<float, half,  TensorLayout::oihw, TensorLayout::OIhw8i16o2i>(src, dst) ||
       tryReorder<float, float, TensorLayout::oihw, TensorLayout::ohwi>(src, dst) ||
       tryReorder<float, half,  TensorLayout::oihw, TensorLayout::ohwi>(src, dst);
 

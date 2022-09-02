@@ -18,7 +18,8 @@ namespace oidn {
     oihw,
     OIhw8i8o,   // blocked
     OIhw16i16o, // blocked
-    OIhw2o8i8o2i, // blocked
+    OIhw2o8i8o2i, // blocked (DG2)
+    OIhw8i16o2i, // blocked (PVC)
 
     hwc,
     ohwi,
@@ -197,24 +198,26 @@ namespace oidn {
     using Addressing = TensorAddressingOIhwBiBo<T, 16>;
   };
 
-  template<typename T, int U, int V>
-  struct TensorAddressingOIhwUoViVoUi
+  template<typename T, int P, int Q, int R, int S>
+  struct TensorAddressingOIhwPoQiRoSi
   {
-    static constexpr int B = U * V;
+    static_assert(P * R == Q * S, "invalid tensor layout parameters");
+
+    static constexpr int B = P * R;
     static constexpr int blockC = B; // block channels
 
-    static constexpr size_t UiStride = sizeof(T);
-    static constexpr size_t VoStride = U * UiStride;
-    static constexpr size_t ViStride = V * VoStride;
-    static constexpr size_t UoStride = V * ViStride;
-    static constexpr size_t wStride  = U * UoStride;
+    static constexpr size_t SiStride = sizeof(T);
+    static constexpr size_t RoStride = S * SiStride;
+    static constexpr size_t QiStride = R * RoStride;
+    static constexpr size_t PoStride = Q * QiStride;
+    static constexpr size_t wStride  = P * PoStride;
     size_t hStride;
     size_t IStride;
     size_t OStride;
 
-    TensorAddressingOIhwUoViVoUi() = default;
+    TensorAddressingOIhwPoQiRoSi() = default;
 
-    OIDN_HOST_DEVICE_INLINE TensorAddressingOIhwUoViVoUi(int O, int I, int H, int W)
+    OIDN_HOST_DEVICE_INLINE TensorAddressingOIhwPoQiRoSi(int O, int I, int H, int W)
     {
       hStride = size_t(W)     * wStride;
       IStride = size_t(H)     * hStride;
@@ -227,10 +230,10 @@ namespace oidn {
              size_t(i / B)     * IStride  +
              size_t(h)         * hStride  +
              size_t(w)         * wStride  +
-             size_t(o % B / V) * UoStride +
-             size_t(i % B / U) * ViStride +
-             size_t(o % V)     * VoStride +
-             size_t(i % U)     * UiStride;
+             size_t(o % B / R) * PoStride +
+             size_t(i % B / S) * QiStride +
+             size_t(o % R)     * RoStride +
+             size_t(i % S)     * SiStride;
     }
   };
 
@@ -238,7 +241,14 @@ namespace oidn {
   struct TensorLayoutTraits<TensorLayout::OIhw2o8i8o2i>
   {
     template<typename T>
-    using Addressing = TensorAddressingOIhwUoViVoUi<T, 2, 8>;
+    using Addressing = TensorAddressingOIhwPoQiRoSi<T, 2, 8, 8, 2>;
+  };
+
+  template<>
+  struct TensorLayoutTraits<TensorLayout::OIhw8i16o2i>
+  {
+    template<typename T>
+    using Addressing = TensorAddressingOIhwPoQiRoSi<T, 1, 8, 16, 2>;
   };
 
   template<>

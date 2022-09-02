@@ -332,6 +332,8 @@ if(OIDN_DEVICE_SYCL)
     core/sycl/sycl_conv_dpas.cpp
     core/sycl/sycl_conv_mad.h
     core/sycl/sycl_conv_mad.cpp
+    core/sycl/sycl_conv_pvc.h
+    core/sycl/sycl_conv_pvc.cpp
     core/sycl/sycl_device.h
     core/sycl/sycl_device.cpp
     core/sycl/sycl_pool.h
