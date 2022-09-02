@@ -432,33 +432,6 @@ jobs:
       artifact-in-windows: package-windows-artifact
       path: "oidn-* ./build/oidn-*"
 
-  # antivirus-linux:
-  #   needs: package-linux
-  #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/antivirus.yml@main
-  #   with:
-  #     project: oidn
-  #     artifact-in: package-linux-artifact
-  #     path: ./build/oidn-*
-
-  # antivirus-macos:
-  #   needs: package-macos
-  #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/antivirus.yml@main
-  #   with:
-  #     project: oidn
-  #     artifact-in: package-macos-artifact
-  #     path: ./build/oidn-*
-
-  # antivirus-windows:
-  #   needs: package-windows
-  #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/antivirus.yml@main
-  #   with:
-  #     project: oidn
-  #     artifact-in: package-windows-artifact
-  #     path: oidn-*
-
   binary-analysis:
     needs:
       - package-linux
@@ -472,31 +445,3 @@ jobs:
       artifact-in-macos: package-macos-artifact
       artifact-in-windows: package-windows-artifact
       path: "oidn-* ./build/oidn-*"
-
-  # binary-analysis-linux:
-  #   needs: package-linux
-  #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/binary_analysis.yml@main
-  #   with:
-  #     project: oidn
-  #     artifact-in: package-linux-artifact
-  #     path: ./build/oidn-*
-
-  # binary-analysis-macos:
-  #   needs: package-macos
-  #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/binary_analysis.yml@main
-  #   with:
-  #     project: oidn
-  #     artifact-in: package-macos-artifact
-  #     path: ./build/oidn-*
-
-  # binary-analysis-windows:
-  #   needs: package-windows
-  #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/binary_analysis.yml@main
-  #   with:
-  #     project: oidn
-  #     artifact-in: package-windows-artifact
-  #     path: oidn-*
-
