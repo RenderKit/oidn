@@ -140,7 +140,7 @@ namespace oidn {
     static constexpr int dpasDepth  = 8;  // DPAS depth
     static constexpr int dpasRepeat = 8;  // DPAS repeat count
 
-    static constexpr int blockOH = 6; // block output height
+    static constexpr int blockOH = 6; /* FIXME: 4 causes corruption!!! */ // block output height
     static constexpr int blockOW = dpasRepeat;      // block output width
     static constexpr int blockIW = blockOW + 3 - 1; // block input width
 
@@ -153,7 +153,7 @@ namespace oidn {
 
     OIDN_INLINE void operator ()(const WorkGroupItem<3>& it) const SYCL_ESIMD_FUNCTION
     {
-      set_kernel_properties(kernel_properties::use_double_grf);
+      //set_kernel_properties(kernel_properties::use_double_grf);
 
       const int oc = it.getLocalId<0>()  * blockC;
       const int oh = it.getGlobalId<1>() * blockOH;
@@ -399,14 +399,10 @@ namespace oidn {
                              ceil_div(src->getH(), Kernel::blockOH),
                              ceil_div(src->getW(), Kernel::blockOW)};
 
-    // FIXME: need to round up WB dimension to multiple of 2 due to DPAS bug
-    if (globalSize[0] % 2 != 0 && globalSize[1] % 2 != 0 && globalSize[2] % 2 != 0)
-      globalSize[2]++;
-
     WorkDim<3> localSize = {globalSize[0], 1, 1};
     int totalSize = globalSize[0];
 
-    while (totalSize % 2 != 0 || totalSize * 2 <= 16)
+    while (totalSize * 2 <= 32)
     {
       const int i = (localSize[1] * Kernel::blockOH < localSize[2] * Kernel::blockOW) ? 1 : 2;
       if (globalSize[i] % (localSize[i]*2) == 0)

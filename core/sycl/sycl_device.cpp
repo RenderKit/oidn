@@ -54,8 +54,12 @@ namespace oidn {
   {
     if (!sycl)
     {
+      sycl::device device{SYCLDeviceSelector()};
+      sycl::info::partition_affinity_domain pad = sycl::info::partition_affinity_domain::next_partitionable;
+      auto subDevices = device.create_sub_devices<sycl::info::partition_property::partition_by_affinity_domain>(pad);
+
       // Initialize the SYCL device and queue
-      sycl::queue syclQueue(SYCLDeviceSelector(),
+      sycl::queue syclQueue(subDevices[0],
                             sycl::property_list{sycl::property::queue::in_order{}});
 
       sycl.reset(new SYCL{syclQueue.get_context(), syclQueue.get_device(), syclQueue});
