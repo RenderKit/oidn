@@ -6,9 +6,9 @@
   typedef unsigned int uint;
 #endif
 
+#include "sycl_conv_dpas.h"
 #include <sycl/ext/intel/experimental/esimd/math.hpp>
 #include <sycl/ext/intel/experimental/esimd/memory.hpp>
-#include "sycl_conv_dpas.h"
 
 // FIXME: add to ESIMD
 namespace sycl::ext::intel::experimental::esimd {
