@@ -8,9 +8,9 @@
 
 #define ESIMD_XE_HPC
 
+#include "sycl_conv_pvc.h"
 #include <sycl/ext/intel/experimental/esimd/math.hpp>
 #include <sycl/ext/intel/experimental/esimd/memory.hpp>
-#include "sycl_conv_pvc.h"
 
 // FIXME: add to ESIMD
 namespace sycl::ext::intel::experimental::esimd {
