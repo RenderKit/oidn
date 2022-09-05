@@ -2,10 +2,8 @@ name: CI workflow
 on:
   pull_request:
   workflow_dispatch:
-  # schedule:
-  #   - cron:  '0 6 * * *'
 
-concurrency: 
+concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
@@ -208,7 +206,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "arm" ]'
-      cmd: scripts/build.py --compiler clang -D OIDN_API_NAMESPACE=myoidn  
+      cmd: scripts/build.py --compiler clang -D OIDN_API_NAMESPACE=myoidn
 
   test-macos-clang-arm:
     needs: build-macos-clang-arm
@@ -236,7 +234,7 @@ jobs:
       artifact-out: build-macos-clang_artifact
       artifact-path: "./build ./deps"
       cmd: scripts/build.py install --compiler clang -D OIDN_WARN_AS_ERRORS=ON
-      
+
 
   build-macos-clang-debug:
     secrets: inherit
@@ -244,7 +242,7 @@ jobs:
     with:
       runs-on: '[ "macOS", "build", "avx2" ]'
       cmd: scripts/build.py install --compiler clang --config Debug -D OIDN_WARN_AS_ERRORS=ON
-      
+
 
   build-macos-clang-static:
     secrets: inherit
@@ -252,7 +250,7 @@ jobs:
     with:
       runs-on: '[ "macOS", "build", "avx2" ]'
       cmd: scripts/build.py --compiler clang -D OIDN_STATIC_LIB=ON
-      
+
 
   build-macos-clang-namespace:
     secrets: inherit
@@ -260,7 +258,7 @@ jobs:
     with:
       runs-on: '[ "macOS", "build", "avx2" ]'
       cmd: scripts/build.py --compiler clang -D OIDN_API_NAMESPACE=myoidn
-      
+
 
   build-macos-icc:
     secrets: inherit
@@ -276,7 +274,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "avx2" ]'
-      cmd: scripts/build.py install --compiler icc --config Debug -D OIDN_WARN_AS_ERRORS=ON   
+      cmd: scripts/build.py install --compiler icc --config Debug -D OIDN_WARN_AS_ERRORS=ON
 
   test-macos-clang-avx2:
     needs: build-macos-clang
@@ -286,7 +284,7 @@ jobs:
       runs-on: '[ "macOS", "avx2", "sign" ]'
       artifact-in: build-macos-clang_artifact
       cmd: scripts/test.py
-      
+
 
   test-macos-clang-avx512:
     needs: build-macos-clang
@@ -314,7 +312,7 @@ jobs:
       runs-on: '[ "macOS", "build", "avx512" ]'
       artifact-in: build-macos-icc_artifact
       cmd: scripts/test.py
-      
+
 
   build-windows-msvc15-icc:
     secrets: inherit
@@ -338,7 +336,7 @@ jobs:
     with:
       runs-on: '[ "Windows", "build" ]'
       cmd: python scripts/build.py --compiler msvc15 -D OIDN_STATIC_LIB=ON
-      
+
   build-windows-msvc15-debug:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_windows.yml@main
@@ -370,7 +368,7 @@ jobs:
       runs-on: '[ "Windows", "avx512", "NAS" ]'
       artifact-in: build-windows-msvc16_artifact
       cmd: python scripts/test.py
-      
+
   test-windows-icc-avx512:
     needs: build-windows-msvc15-icc
     secrets: inherit
@@ -386,7 +384,7 @@ jobs:
     with:
       project: oidn
       build: scripts/build.py
-  
+
   snyk-scan:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_snyk.yml@main
