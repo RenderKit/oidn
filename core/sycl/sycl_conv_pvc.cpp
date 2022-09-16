@@ -140,7 +140,7 @@ namespace oidn {
     static constexpr int dpasDepth  = 8;  // DPAS depth
     static constexpr int dpasRepeat = 8;  // DPAS repeat count
 
-    static constexpr int blockOH = 6; /* FIXME: 4 causes corruption!!! */ // block output height
+    static constexpr int blockOH = 4;               // block output height
     static constexpr int blockOW = dpasRepeat;      // block output width
     static constexpr int blockIW = blockOW + 3 - 1; // block input width
 
