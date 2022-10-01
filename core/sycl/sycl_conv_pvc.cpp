@@ -73,8 +73,8 @@ namespace oidn {
   {
     //return block_load<T, N>(ptr, vector_aligned);
     
-    static_assert((sizeof(T) * N) % sizeof(int) == 0, "unsupported block size");
-    auto blk = lsc_block_load<int, (sizeof(T) * N) / sizeof(int)>((const int*)ptr);
+    static_assert((sizeof(T) * N) % sizeof(int64_t) == 0, "unsupported block size");
+    auto blk = lsc_block_load<int64_t, (sizeof(T) * N) / sizeof(int64_t)>((const int64_t*)ptr);
     return blk.template bit_cast_view<T>();
   }
 
@@ -83,8 +83,8 @@ namespace oidn {
   {
     //return block_load<T, N>(ptr, vector_aligned);
     
-    static_assert((sizeof(T) * N) % sizeof(int) == 0, "unsupported block size");
-    auto blk = lsc_block_load<int, (sizeof(T) * N) / sizeof(int)>((const int*)ptr, pred);
+    static_assert((sizeof(T) * N) % sizeof(int64_t) == 0, "unsupported block size");
+    auto blk = lsc_block_load<int64_t, (sizeof(T) * N) / sizeof(int64_t)>((const int64_t*)ptr, pred);
     auto res = simd<T, N>(0);
     res.merge(blk.template bit_cast_view<T>(), simd_mask<N>(pred[0]));
     return res;
@@ -95,8 +95,8 @@ namespace oidn {
   {
     //block_store(ptr, blk);
 
-    static_assert((sizeof(T) * N) % sizeof(int) == 0, "unsupported block size");
-    lsc_block_store<int, (sizeof(T) * N) / sizeof(int)>((int*)ptr, blk.template bit_cast_view<int>(), pred);
+    static_assert((sizeof(T) * N) % sizeof(int64_t) == 0, "unsupported block size");
+    lsc_block_store<int64_t, (sizeof(T) * N) / sizeof(int64_t)>((int64_t*)ptr, blk.template bit_cast_view<int64_t>(), pred);
   }
 
   template<typename T, int N>
@@ -190,8 +190,7 @@ namespace oidn {
           for (int kw = 0; kw < 3; ++kw)
           {
             // Load weight matrix for kernel tap
-            simd<T, blockC * blockC> weightMat;
-            loadLargeBlock<T, blockC * blockC>(weightPtr, weightMat);
+            simd<T, blockC * blockC> weightMat = loadBlock<T, blockC * blockC>(weightPtr);
             weightPtr += blockC * blockC;
 
             // Multiply + accumulate rows
