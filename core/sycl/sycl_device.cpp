@@ -14,10 +14,10 @@
 
 namespace oidn {
 
-  class SYCLDeviceSelector : public sycl::device_selector
+  class SYCLDeviceSelector
   {
   public:
-    int operator()(const sycl::device& device) const override
+    int operator()(const sycl::device& device) const
     {
       if (!SYCLDevice::isDeviceSupported(device))
         return -1;

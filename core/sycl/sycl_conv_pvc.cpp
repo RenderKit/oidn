@@ -6,73 +6,17 @@
   typedef unsigned int uint;
 #endif
 
-#define ESIMD_XE_HPC
-
 #include "sycl_conv_pvc.h"
-#include <sycl/ext/intel/experimental/esimd/math.hpp>
-#include <sycl/ext/intel/experimental/esimd/memory.hpp>
-
-// FIXME: add to ESIMD
-namespace sycl::ext::intel::experimental::esimd {
-
-template <typename T, uint8_t NElts = 1,
-          lsc_data_size DS = lsc_data_size::default_size,
-          cache_hint L1H = cache_hint::none, cache_hint L3H = cache_hint::none>
-__ESIMD_API __ESIMD_NS::simd<T, NElts> lsc_block_load(const T *p,
-                                                      __ESIMD_NS::simd_mask<1> pred/* = 1*/) {
-  detail::check_lsc_vector_size<NElts>();
-  detail::check_lsc_data_size<T, DS>();
-  detail::check_lsc_cache_hint<detail::lsc_action::load, L1H, L3H>();
-  constexpr uint16_t _AddressScale = 1;
-  constexpr int _ImmOffset = 0;
-  constexpr lsc_data_size _DS = detail::finalize_data_size<T, DS>();
-  static_assert(_DS == lsc_data_size::u32 || _DS == lsc_data_size::u64,
-                "Transposed load is supported only for data size u32 or u64");
-  constexpr detail::lsc_vector_size _VS = detail::to_lsc_vector_size<NElts>();
-  constexpr detail::lsc_data_order _Transposed =
-      detail::lsc_data_order::transpose;
-  constexpr int N = 1;
-  __ESIMD_NS::simd<uintptr_t, N> addrs = reinterpret_cast<uintptr_t>(p);
-  return __esimd_lsc_load_stateless<T, L1H, L3H, _AddressScale, _ImmOffset, _DS,
-                                    _VS, _Transposed, N>(pred.data(),
-                                                         addrs.data());
-}
-
-template <typename T, uint8_t NElts = 1,
-          lsc_data_size DS = lsc_data_size::default_size,
-          cache_hint L1H = cache_hint::none, cache_hint L3H = cache_hint::none>
-__ESIMD_API void lsc_block_store(T *p, __ESIMD_NS::simd<T, NElts> vals,
-                                 __ESIMD_NS::simd_mask<1> pred/* = 1*/) {
-  detail::check_lsc_vector_size<NElts>();
-  detail::check_lsc_data_size<T, DS>();
-  detail::check_lsc_cache_hint<detail::lsc_action::store, L1H, L3H>();
-  constexpr uint16_t _AddressScale = 1;
-  constexpr int _ImmOffset = 0;
-  constexpr lsc_data_size _DS = detail::finalize_data_size<T, DS>();
-  static_assert(_DS == lsc_data_size::u32 || _DS == lsc_data_size::u64,
-                "Transposed store is supported only for data size u32 or u64");
-  constexpr detail::lsc_vector_size _VS = detail::to_lsc_vector_size<NElts>();
-  constexpr detail::lsc_data_order _Transposed =
-      detail::lsc_data_order::transpose;
-  constexpr int N = 1;
-  __ESIMD_NS::simd<uintptr_t, N> addrs = reinterpret_cast<uintptr_t>(p);
-  __esimd_lsc_store_stateless<T, L1H, L3H, _AddressScale, _ImmOffset, _DS, _VS,
-                              _Transposed, N>(pred.data(), addrs.data(),
-                                              vals.data());
-}
-
-} // sycl::ext::intel::experimental::esimd
 
 namespace oidn {
 
   using namespace esimd;
+  using namespace esimd::xmx;
   using namespace sycl::ext::intel::experimental::esimd;
 
   template<typename T, int N>
   OIDN_INLINE simd<T, N> loadBlock(const T* ptr)
-  {
-    //return block_load<T, N>(ptr, vector_aligned);
-    
+  { 
     static_assert((sizeof(T) * N) % sizeof(int64_t) == 0, "unsupported block size");
     auto blk = lsc_block_load<int64_t, (sizeof(T) * N) / sizeof(int64_t)>((const int64_t*)ptr);
     return blk.template bit_cast_view<T>();
@@ -81,8 +25,6 @@ namespace oidn {
   template<typename T, int N>
   OIDN_INLINE simd<T, N> loadBlock(const T* ptr, simd_mask<1> pred)
   {
-    //return block_load<T, N>(ptr, vector_aligned);
-    
     static_assert((sizeof(T) * N) % sizeof(int64_t) == 0, "unsupported block size");
     auto blk = lsc_block_load<int64_t, (sizeof(T) * N) / sizeof(int64_t)>((const int64_t*)ptr, pred);
     auto res = simd<T, N>(0);
@@ -93,8 +35,6 @@ namespace oidn {
   template<typename T, int N>
   OIDN_INLINE void storeBlock(T* ptr, simd<T, N> blk, simd_mask<1> pred = 1)
   {
-    //block_store(ptr, blk);
-
     static_assert((sizeof(T) * N) % sizeof(int64_t) == 0, "unsupported block size");
     lsc_block_store<int64_t, (sizeof(T) * N) / sizeof(int64_t)>((int64_t*)ptr, blk.template bit_cast_view<int64_t>(), pred);
   }
@@ -102,8 +42,6 @@ namespace oidn {
   template<typename T, int N>
   OIDN_INLINE void loadLargeBlock(const T* ptr, simd<T, N>& blk)
   {
-    //blk.copy_from(ptr, overaligned<32>);
-
     constexpr int chunkSize = 256 / sizeof(T);
     constexpr int numChunks = N / chunkSize;
     constexpr int remSize   = N % chunkSize;
@@ -119,8 +57,6 @@ namespace oidn {
   template<typename T, int N>
   OIDN_INLINE void storeLargeBlock(T* ptr, simd<T, N>& blk)
   {
-    //blk.copy_to(ptr, overaligned<32>);
-
     constexpr int chunkSize = 256 / sizeof(T);
     constexpr int numChunks = N / chunkSize;
     constexpr int remSize   = N % chunkSize;
@@ -197,10 +133,10 @@ namespace oidn {
             #pragma unroll
             for (int boh = 0; boh < blockOH; ++boh)
             {
-              accumRows[boh] = dpas<argument_type::FP16, argument_type::FP16, float, dpasDepth, dpasRepeat>(
+              accumRows[boh] = xmx::dpas<dpasDepth, dpasRepeat, float>(
                 accumRows[boh],
-                weightMat.template bit_cast_view<int>().read(),
-                inRows[(kh + boh) % blockOH].template select<blockOW * blockC, 1>(kw * blockC).template bit_cast_view<int>().read());
+                weightMat,
+                inRows[(kh + boh) % blockOH].template select<blockOW * blockC, 1>(kw * blockC).read());
             }
           }
         }

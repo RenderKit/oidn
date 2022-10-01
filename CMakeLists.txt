@@ -420,10 +420,6 @@ endif()
 if(OIDN_DEVICE_SYCL)
   target_compile_definitions(${PROJECT_NAME} PUBLIC OIDN_DEVICE_SYCL)
   target_link_options(${PROJECT_NAME} PRIVATE "-fsycl")
-  if(WIN32)
-    # FIXME: on Windows we need to explicitly link "sycl" for some reason
-    target_link_libraries(${PROJECT_NAME} PRIVATE sycl)
-  endif()
 endif()
 
 if(OIDN_DEVICE_CUDA)
