@@ -3,7 +3,7 @@
 
 #include "platform.h"
 
-#if defined(OIDN_X64)
+#if defined(OIDN_ARCH_X64)
   #include "mkl-dnn/src/cpu/x64/xbyak/xbyak_util.h"
 #endif
 
@@ -19,7 +19,7 @@ namespace oidn {
       return nullptr;
 
     assert((alignment & (alignment-1)) == 0);
-  #if defined(OIDN_X64)
+  #if defined(OIDN_ARCH_X64)
     void* ptr = _mm_malloc(size, alignment);
   #else
     void* ptr;
@@ -36,7 +36,7 @@ namespace oidn {
   void alignedFree(void* ptr)
   {
     if (ptr)
-    #if defined(OIDN_X64)
+    #if defined(OIDN_ARCH_X64)
       _mm_free(ptr);
     #else
       free(ptr);
@@ -200,7 +200,7 @@ namespace oidn {
   // System information
   // ---------------------------------------------------------------------------
 
-#if defined(OIDN_X64)
+#if defined(OIDN_ARCH_X64)
   bool isISASupported(ISA isa)
   {
     using Xbyak::util::Cpu;

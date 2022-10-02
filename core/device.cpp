@@ -13,7 +13,7 @@ namespace oidn {
 
   Device::Device()
   {
-  #if defined(OIDN_X64)
+  #if defined(OIDN_ARCH_X64)
     if (!isISASupported(ISA::SSE41))
       throw Exception(Error::UnsupportedHardware, "SSE4.1 support is required at minimum");
   #endif

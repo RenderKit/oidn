@@ -8,9 +8,9 @@
 // ---------------------------------------------------------------------------
 
 #if defined(__x86_64__) || defined(_M_X64)
-  #define OIDN_X64
+  #define OIDN_ARCH_X64
 #elif defined(__aarch64__)
-  #define OIDN_ARM64
+  #define OIDN_ARCH_ARM64
 #endif
 
 #if defined(SYCL_LANGUAGE_VERSION)
@@ -85,7 +85,7 @@
   #include <sys/sysctl.h>
 #endif
 
-#if defined(OIDN_X64)
+#if defined(OIDN_ARCH_X64)
   #include <xmmintrin.h>
   #include <pmmintrin.h>
 #endif
@@ -100,6 +100,7 @@
 #include <algorithm>
 #include <memory>
 #include <array>
+#include <type_traits>
 #include <cmath>
 #include <cfloat>
 #include <string>
@@ -126,7 +127,8 @@ namespace oidn {
   OIDN_NAMESPACE_USING
 
 #if defined(OIDN_COMPILE_SYCL)
-  namespace esimd = sycl::ext::intel::esimd;
+  namespace esimd  = sycl::ext::intel::esimd;
+  namespace esimdx = sycl::ext::intel::experimental::esimd;
 #endif
 
   template<bool B, class T = void>
@@ -281,7 +283,7 @@ namespace oidn {
   // System information
   // ---------------------------------------------------------------------------
 
-#if defined(OIDN_X64)
+#if defined(OIDN_ARCH_X64)
   enum class ISA
   {
     SSE41,

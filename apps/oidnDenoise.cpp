@@ -178,7 +178,7 @@ int main(int argc, char* argv[])
     if (!refFilename.empty() && numBenchmarkRuns > 0)
       throw std::runtime_error("reference and benchmark modes cannot be enabled at the same time");
 
-  #if defined(OIDN_X64)
+  #if defined(OIDN_ARCH_X64)
     // Set MXCSR flags
     if (!refFilename.empty())
     {

@@ -45,14 +45,14 @@ namespace oidn {
       // FIXME: detect CPU name
       std::cout << "  Device    : CPU" << std::endl;
       std::cout << "    ISA     : ";
-    #if defined(OIDN_X64)
+    #if defined(OIDN_ARCH_X64)
       if (isISASupported(ISA::AVX512_CORE))
         std::cout << "AVX512";
       else if (isISASupported(ISA::AVX2))
         std::cout << "AVX2";
       else if (isISASupported(ISA::SSE41))
         std::cout << "SSE4.1";
-    #elif defined(OIDN_ARM64)
+    #elif defined(OIDN_ARCH_ARM64)
       std::cout << "NEON";
     #endif
       std::cout << std::endl;
@@ -72,7 +72,7 @@ namespace oidn {
   void CPUDevice::initTasking()
   {
     // Get the thread affinities for one thread per core on non-hybrid CPUs with SMT
-  #if !(defined(__APPLE__) && defined(OIDN_ARM64))
+  #if !(defined(__APPLE__) && defined(OIDN_ARCH_ARM64))
     if (setAffinity
       #if TBB_INTERFACE_VERSION >= 12020 // oneTBB 2021.2 or later
         && tbb::info::core_types().size() <= 1 // non-hybrid cores

@@ -305,7 +305,7 @@ int main(int argc, char* argv[])
       return 0;
     }
 
-  #if defined(OIDN_X64)
+  #if defined(OIDN_ARCH_X64)
     // Enable the FTZ and DAZ flags to maximize performance
     _MM_SET_FLUSH_ZERO_MODE(_MM_FLUSH_ZERO_ON);
     _MM_SET_DENORMALS_ZERO_MODE(_MM_DENORMALS_ZERO_ON);
