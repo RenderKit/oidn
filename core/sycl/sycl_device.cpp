@@ -6,9 +6,9 @@
 #include "../gpu/gpu_input_process.h"
 #include "../gpu/gpu_output_process.h"
 #include "../gpu/gpu_image_copy.h"
-#include "sycl_conv_mad.h"
-#include "sycl_conv_dpas.h"
-#include "sycl_conv_pvc.h"
+#include "sycl_conv_gen9.h"
+#include "sycl_conv_xehpg.h"
+#include "sycl_conv_xehpc.h"
 #include "sycl_pool.h"
 #include "sycl_upsample.h"
 
@@ -55,19 +55,52 @@ namespace oidn {
     if (!sycl)
     {
       sycl::device device{SYCLDeviceSelector()};
-      sycl::info::partition_affinity_domain pad = sycl::info::partition_affinity_domain::next_partitionable;
-      auto subDevices = device.create_sub_devices<sycl::info::partition_property::partition_by_affinity_domain>(pad);
+      
+      // FIXME: If the device has multiple sub-devices (GPU tiles), use only one of them
+      if (device.get_info<sycl::info::device::partition_max_sub_devices>() > 0)
+      {
+        auto domain = sycl::info::partition_affinity_domain::next_partitionable;
+        auto subDevices = device.create_sub_devices<sycl::info::partition_property::partition_by_affinity_domain>(domain);
+        device = subDevices[0];
+      }
 
       // Initialize the SYCL device and queue
-      sycl::queue syclQueue(subDevices[0],
+      sycl::queue syclQueue(device,
                             sycl::property_list{sycl::property::queue::in_order{}});
 
       sycl.reset(new SYCL{syclQueue.get_context(), syclQueue.get_device(), syclQueue});
     }
 
+    // FIXME: Detect the GPU arch
+    if (sycl->device.get_info<sycl::info::device::max_work_group_size>() >= 1024)
+    {
+      if (sycl->device.has(sycl::aspect::fp64))
+        arch = Arch::XeHPC;
+      else
+        arch = Arch::XeHPG;
+    }
+    else
+      arch = Arch::Gen9;
+
     if (isVerbose())
     {
       std::cout << "  Device    : " << sycl->device.get_info<sycl::info::device::name>() << std::endl;
+      std::cout << "    Arch    : ";
+      switch (arch)
+      {
+      case Arch::Gen9:
+        std::cout << "Gen9/Xe-LP";
+        break;
+      case Arch::XeHPG:
+        std::cout << "Xe-HPG";
+        break;
+      case Arch::XeHPC:
+        std::cout << "Xe-HPC";
+        break;
+      default:
+        std::cout << "Unknown";
+      }
+      std::cout << std::endl;
       std::cout << "    EUs     : " << sycl->device.get_info<sycl::info::device::max_compute_units>() << std::endl;
       std::cout << "    Platform: " << sycl->device.get_platform().get_info<sycl::info::platform::name>() << std::endl;
     }
@@ -82,15 +115,32 @@ namespace oidn {
 
     tensorDataType  = DataType::Float16;
     tensorLayout    = TensorLayout::Chw16c;
-    //weightsLayout   = TensorLayout::OIhw2o8i8o2i;
-    weightsLayout   = TensorLayout::OIhw8i16o2i;
     tensorBlockSize = 16;
+
+    switch (arch)
+    {
+    case Arch::XeHPG:
+      weightsLayout = TensorLayout::OIhw2o8i8o2i;
+      break;
+    case Arch::XeHPC:
+      weightsLayout = TensorLayout::OIhw8i16o2i;
+      break;
+    default:
+      weightsLayout = TensorLayout::OIhw16i16o;
+    }
   }
 
   std::shared_ptr<Conv> SYCLDevice::newConv(const ConvDesc& desc)
   {
-    //return std::make_shared<SYCLConvDPAS>(this, desc);
-    return std::make_shared<SYCLConvPVC>(this, desc);
+    switch (arch)
+    {
+    case Arch::XeHPG:
+      return std::make_shared<SYCLConvXeHPG>(this, desc);
+    case Arch::XeHPC:
+      return std::make_shared<SYCLConvXeHPC>(this, desc);
+    default:
+      return std::make_shared<SYCLConvGen9>(this, desc);
+    }
   }
 
   std::shared_ptr<Pool> SYCLDevice::newPool(const PoolDesc& desc)

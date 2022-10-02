@@ -8,10 +8,10 @@
 
 namespace oidn {
 
-  class SYCLConvDPAS : public Conv
+  class SYCLConvXeHPG : public Conv
   {
   public:
-    SYCLConvDPAS(const Ref<SYCLDevice>& device, const ConvDesc& desc);
+    SYCLConvXeHPG(const Ref<SYCLDevice>& device, const ConvDesc& desc);
     void run() override;
 
   private:

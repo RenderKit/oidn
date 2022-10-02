@@ -328,12 +328,12 @@ if(OIDN_DEVICE_SYCL)
   set(CMAKE_CXX_STANDARD 17)
 
   list(APPEND CORE_SOURCES
-    core/sycl/sycl_conv_dpas.h
-    core/sycl/sycl_conv_dpas.cpp
-    core/sycl/sycl_conv_mad.h
-    core/sycl/sycl_conv_mad.cpp
-    core/sycl/sycl_conv_pvc.h
-    core/sycl/sycl_conv_pvc.cpp
+    core/sycl/sycl_conv_gen9.h
+    core/sycl/sycl_conv_gen9.cpp
+    core/sycl/sycl_conv_xehpc.h
+    core/sycl/sycl_conv_xehpc.cpp
+    core/sycl/sycl_conv_xehpg.h
+    core/sycl/sycl_conv_xehpg.cpp
     core/sycl/sycl_device.h
     core/sycl/sycl_device.cpp
     core/sycl/sycl_pool.h

@@ -6,7 +6,7 @@
   typedef unsigned int uint;
 #endif
 
-#include "sycl_conv_pvc.h"
+#include "sycl_conv_xehpg.h"
 
 namespace oidn {
 
@@ -16,27 +16,23 @@ namespace oidn {
 
   template<typename T, int N>
   OIDN_INLINE simd<T, N> loadBlock(const T* ptr)
-  { 
-    static_assert((sizeof(T) * N) % sizeof(int64_t) == 0, "unsupported block size");
-    auto blk = lsc_block_load<int64_t, (sizeof(T) * N) / sizeof(int64_t)>((const int64_t*)ptr);
-    return blk.template bit_cast_view<T>();
+  {
+    return lsc_block_load<T, N>(ptr);
   }
 
   template<typename T, int N>
   OIDN_INLINE simd<T, N> loadBlock(const T* ptr, simd_mask<1> pred)
   {
-    static_assert((sizeof(T) * N) % sizeof(int64_t) == 0, "unsupported block size");
-    auto blk = lsc_block_load<int64_t, (sizeof(T) * N) / sizeof(int64_t)>((const int64_t*)ptr, pred);
+    auto blk = lsc_block_load<T, N>(ptr, pred);
     auto res = simd<T, N>(0);
-    res.merge(blk.template bit_cast_view<T>(), simd_mask<N>(pred[0]));
+    res.merge(blk, simd_mask<N>(pred[0]));
     return res;
   }
 
   template<typename T, int N>
   OIDN_INLINE void storeBlock(T* ptr, simd<T, N> blk, simd_mask<1> pred = 1)
   {
-    static_assert((sizeof(T) * N) % sizeof(int64_t) == 0, "unsupported block size");
-    lsc_block_store<int64_t, (sizeof(T) * N) / sizeof(int64_t)>((int64_t*)ptr, blk.template bit_cast_view<int64_t>(), pred);
+    lsc_block_store(ptr, blk, pred);
   }
 
   template<typename T, int N>
@@ -70,17 +66,21 @@ namespace oidn {
   }
 
   template<typename T, TensorLayout tensorLayout, TensorLayout weightLayout, PostOp postOp>
-  struct SYCLConvPVCKernel
+  struct SYCLConvXeHPGKernel
   {
-    static constexpr int execWidth  = 16; // SIMD execution width
-    static constexpr int dpasDepth  = 8;  // DPAS depth
-    static constexpr int dpasRepeat = 8;  // DPAS repeat count
+    using AT = float; // accumulator type
 
-    static constexpr int blockOH = 4;               // block output height
+    static constexpr int execWidth  = 8; // SIMD execution width
+    static constexpr int dpasDepth  = 8; // DPAS depth
+    static constexpr int dpasRepeat = 8; // DPAS repeat count
+
+    static constexpr int blockOH = (postOp == PostOp::Pool) ? 6 : 5; // block output height
     static constexpr int blockOW = dpasRepeat;      // block output width
     static constexpr int blockIW = blockOW + 3 - 1; // block input width
 
     static constexpr int blockC = TensorAccessor3D<T, tensorLayout>::blockC; // block input/output channels
+    static constexpr int blockAC = execWidth;           // block accumulator channels
+    static constexpr int numBlockAC = blockC / blockAC; // number of accumulator channel blocks
     
     TensorAccessor3D<T, tensorLayout> src;
     TensorAccessor4D<T, weightLayout> weight;
@@ -89,14 +89,14 @@ namespace oidn {
 
     OIDN_INLINE void operator ()(const WorkGroupItem<3>& it) const SYCL_ESIMD_FUNCTION
     {
-      //set_kernel_properties(kernel_properties::use_double_grf);
+      set_kernel_properties(kernel_properties::use_double_grf);
 
       const int oc = it.getLocalId<0>()  * blockC;
       const int oh = it.getGlobalId<1>() * blockOH;
       const int ow = it.getGlobalId<2>() * blockOW;
 
       // Accumulator rows
-      simd<float, blockOW * blockC> accumRows[blockOH] = {}; // = 0
+      simd<AT, blockOW * blockAC> accumRows[blockOH][numBlockAC] = {}; // = 0
 
       // Iterate over input channel blocks
       for (int ic = 0; ic < src.C; ic += blockC)
@@ -126,28 +126,43 @@ namespace oidn {
           for (int kw = 0; kw < 3; ++kw)
           {
             // Load weight matrix for kernel tap
-            simd<T, blockC * blockC> weightMat = loadBlock<T, blockC * blockC>(weightPtr);
-            weightPtr += blockC * blockC;
+            simd<T, blockAC * blockC> weightMat[numBlockAC];
+
+            #pragma unroll
+            for (int i = 0; i < numBlockAC; ++i)
+            {
+              weightMat[i] = loadBlock<T, blockAC * blockC>(weightPtr);
+              weightPtr += blockAC * blockC;
+            }
 
             // Multiply + accumulate rows
             #pragma unroll
             for (int boh = 0; boh < blockOH; ++boh)
             {
-              accumRows[boh] = xmx::dpas<dpasDepth, dpasRepeat, float>(
-                accumRows[boh],
-                weightMat,
-                inRows[(kh + boh) % blockOH].template select<blockOW * blockC, 1>(kw * blockC).read());
+              #pragma unroll
+              for (int i = 0; i < numBlockAC; ++i)
+              {
+                accumRows[boh][i] = xmx::dpas<dpasDepth, dpasRepeat, float>(
+                  accumRows[boh][i],
+                  weightMat[i],
+                  inRows[(kh + boh) % blockOH].template select<blockOW * blockC, 1>(kw * blockC).read());
+              }
             }
           }
         }
       }
 
-      // Convert accumulator rows to output rows
+      // Shuffle and convert accumulator rows to output rows
       simd<T, blockOW * blockC> outRows[blockOH];
       
       #pragma unroll
       for (int boh = 0; boh < blockOH; ++boh)
-        outRows[boh] = accumRows[boh];
+      {
+        auto outRowView = outRows[boh].template bit_cast_view<T, blockOW, blockC>();
+        #pragma unroll
+        for (int i = 0; i < numBlockAC; ++i)
+          outRowView.template select<blockOW, 1, blockAC, 1>(0, i * blockAC) = accumRows[boh][i];
+      }
 
       // Load bias vector
       const auto biasVec = loadBlock<T, blockC>(&bias(oc));
@@ -286,19 +301,19 @@ namespace oidn {
     }
   };
 
-  SYCLConvPVC::SYCLConvPVC(const Ref<SYCLDevice>& device, const ConvDesc& desc)
+  SYCLConvXeHPG::SYCLConvXeHPG(const Ref<SYCLDevice>& device, const ConvDesc& desc)
     : Conv(desc),
       device(device)
   {
     if (srcDesc.layout != TensorLayout::Chw16c || srcDesc.dataType != DataType::Float16)
       throw std::invalid_argument("unsupported convolution source layout/data type");
-    if (weightDesc.layout != TensorLayout::OIhw8i16o2i || weightDesc.dataType != DataType::Float16)
+    if (weightDesc.layout != TensorLayout::OIhw2o8i8o2i || weightDesc.dataType != DataType::Float16)
       throw std::invalid_argument("unsupported convolution weight layout/data type");
     if (biasDesc.layout != TensorLayout::x || biasDesc.dataType != DataType::Float16)
       throw std::invalid_argument("unsupported convolution bias layout/data type");
   }
 
-  void SYCLConvPVC::run()
+  void SYCLConvXeHPG::run()
   {
     if (!src || !weight || !bias || !dst)
       throw std::logic_error("convolution argument not set");
@@ -320,9 +335,9 @@ namespace oidn {
   }
 
   template<PostOp kernelPostOp>
-  void SYCLConvPVC::runImpl()
+  void SYCLConvXeHPG::runImpl()
   {
-    using Kernel = SYCLConvPVCKernel<half, TensorLayout::Chw16c, TensorLayout::OIhw8i16o2i, kernelPostOp>;
+    using Kernel = SYCLConvXeHPGKernel<half, TensorLayout::Chw16c, TensorLayout::OIhw2o8i8o2i, kernelPostOp>;
 
     Kernel kernel;
     kernel.src    = *src;
@@ -334,10 +349,14 @@ namespace oidn {
                              ceil_div(src->getH(), Kernel::blockOH),
                              ceil_div(src->getW(), Kernel::blockOW)};
 
+    // FIXME: need to round up WB dimension to multiple of 2 due to DPAS bug
+    if (globalSize[0] % 2 != 0 && globalSize[1] % 2 != 0 && globalSize[2] % 2 != 0)
+      globalSize[2]++;
+
     WorkDim<3> localSize = {globalSize[0], 1, 1};
     int totalSize = globalSize[0];
 
-    while (totalSize * 2 <= 32)
+    while (totalSize % 2 != 0 || totalSize * 2 <= 16)
     {
       const int i = (localSize[1] * Kernel::blockOH < localSize[2] * Kernel::blockOW) ? 1 : 2;
       if (globalSize[i] % (localSize[i]*2) == 0)

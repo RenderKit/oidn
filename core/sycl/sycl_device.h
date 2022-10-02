@@ -9,16 +9,6 @@ namespace oidn {
 
   class SYCLDevice : public Device
   { 
-  private:
-    struct SYCL
-    {
-      sycl::context context;
-      sycl::device  device;
-      sycl::queue   queue;
-    };
-
-    std::unique_ptr<SYCL> sycl;
-
   public:
     static bool isSupported();
     static bool isDeviceSupported(const sycl::device& device);
@@ -86,9 +76,27 @@ namespace oidn {
 
     int getMaxWorkGroupSize() const override { return maxWorkGroupSize; }
 
-  protected:
+  private:
     void init() override;
 
+    struct SYCL
+    {
+      sycl::context context;
+      sycl::device  device;
+      sycl::queue   queue;
+    };
+
+    // GPU architecture
+    enum class Arch
+    {
+      Gen9,
+      XeHPG,
+      XeHPC,
+    };
+
+    std::unique_ptr<SYCL> sycl;
+
+    Arch arch;
     int maxWorkGroupSize = 0;
   };
 

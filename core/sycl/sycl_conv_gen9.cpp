@@ -1,7 +1,7 @@
 // Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "sycl_conv_mad.h"
+#include "sycl_conv_gen9.h"
 
 namespace oidn {
 
@@ -107,7 +107,7 @@ namespace oidn {
     }
   };
 
-  SYCLConvMAD::SYCLConvMAD(const Ref<SYCLDevice>& device, const ConvDesc& desc)
+  SYCLConvGen9::SYCLConvGen9(const Ref<SYCLDevice>& device, const ConvDesc& desc)
     : Conv(desc),
       device(device)
   {
@@ -119,7 +119,7 @@ namespace oidn {
       throw std::invalid_argument("unsupported convolution bias layout/data type");
   }
 
-  void SYCLConvMAD::run()
+  void SYCLConvGen9::run()
   {
     if (!src || !weight || !bias || !dst)
       throw std::logic_error("convolution argument not set");
