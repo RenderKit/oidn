@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "sycl_upsample.h"
+#include "sycl_common.h"
 
 namespace oidn {
 

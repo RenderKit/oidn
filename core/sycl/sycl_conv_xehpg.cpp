@@ -1,69 +1,10 @@
 // Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-// FIXME: ESIMD compile error on Windows
-#if defined(_WIN32)
-  typedef unsigned int uint;
-#endif
-
 #include "sycl_conv_xehpg.h"
+#include "sycl_common.h"
 
 namespace oidn {
-
-  using namespace esimd;
-  using namespace esimd::xmx;
-  using namespace sycl::ext::intel::experimental::esimd;
-
-  template<typename T, int N>
-  OIDN_INLINE simd<T, N> loadBlock(const T* ptr)
-  {
-    return lsc_block_load<T, N>(ptr);
-  }
-
-  template<typename T, int N>
-  OIDN_INLINE simd<T, N> loadBlock(const T* ptr, simd_mask<1> pred)
-  {
-    auto blk = lsc_block_load<T, N>(ptr, pred);
-    auto res = simd<T, N>(0);
-    res.merge(blk, simd_mask<N>(pred[0]));
-    return res;
-  }
-
-  template<typename T, int N>
-  OIDN_INLINE void storeBlock(T* ptr, simd<T, N> blk, simd_mask<1> pred = 1)
-  {
-    lsc_block_store(ptr, blk, pred);
-  }
-
-  template<typename T, int N>
-  OIDN_INLINE void loadLargeBlock(const T* ptr, simd<T, N>& blk)
-  {
-    constexpr int chunkSize = 256 / sizeof(T);
-    constexpr int numChunks = N / chunkSize;
-    constexpr int remSize   = N % chunkSize;
-
-    #pragma unroll
-    for (int i = 0; i < numChunks; ++i)
-      blk.template select<chunkSize, 1>(i * chunkSize) = loadBlock<T, chunkSize>(ptr + i * chunkSize);
-
-    if constexpr (remSize != 0)
-      blk.template select<remSize, 1>(numChunks * chunkSize) = loadBlock<T, remSize>(ptr + numChunks * chunkSize);
-  }
-
-  template<typename T, int N>
-  OIDN_INLINE void storeLargeBlock(T* ptr, simd<T, N>& blk)
-  {
-    constexpr int chunkSize = 256 / sizeof(T);
-    constexpr int numChunks = N / chunkSize;
-    constexpr int remSize   = N % chunkSize;
-
-    #pragma unroll
-    for (int i = 0; i < numChunks; ++i)
-      storeBlock<T, chunkSize>(ptr + i * chunkSize, blk.template select<chunkSize, 1>(i * chunkSize));
-
-    if constexpr (remSize != 0)
-      storeBlock<T, remSize>(ptr + numChunks * chunkSize, blk.template select<remSize, 1>(numChunks * chunkSize));
-  }
 
   template<typename T, TensorLayout tensorLayout, TensorLayout weightLayout, PostOp postOp>
   struct SYCLConvXeHPGKernel

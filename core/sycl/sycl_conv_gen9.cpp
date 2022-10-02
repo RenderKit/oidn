@@ -2,16 +2,15 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "sycl_conv_gen9.h"
+#include "sycl_common.h"
 
 namespace oidn {
-
-  using namespace esimd;
 
   constexpr int blockOW = 16;
   constexpr int blockIW = blockOW + 3 - 1;
 
   template<typename T, TensorLayout tensorLayout, TensorLayout weightLayout>
-  struct SYCLConvMADKernel
+  struct SYCLConvGen9Kernel
   {
     static constexpr int blockC = TensorAccessor3D<T, tensorLayout>::blockC;
 
@@ -124,7 +123,7 @@ namespace oidn {
     if (!src || !weight || !bias || !dst)
       throw std::logic_error("convolution argument not set");
 
-    SYCLConvMADKernel<half, TensorLayout::Chw16c, TensorLayout::OIhw16i16o> kernel;
+    SYCLConvGen9Kernel<half, TensorLayout::Chw16c, TensorLayout::OIhw16i16o> kernel;
     kernel.src    = *src;
     kernel.weight = *weight;
     kernel.bias   = *bias;
