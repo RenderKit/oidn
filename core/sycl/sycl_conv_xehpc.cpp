@@ -28,8 +28,6 @@ namespace oidn {
 
     OIDN_INLINE void operator ()(const WorkGroupItem<3>& it) const SYCL_ESIMD_FUNCTION
     {
-      //set_kernel_properties(kernel_properties::use_double_grf);
-
       const int oc = it.getLocalId<0>()  * blockC;
       const int oh = it.getGlobalId<1>() * blockOH;
       const int ow = it.getGlobalId<2>() * blockOW;
