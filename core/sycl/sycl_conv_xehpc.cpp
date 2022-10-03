@@ -34,8 +34,8 @@ namespace oidn {
       const int oh = it.getGlobalId<1>() * blockOH;
       const int ow = it.getGlobalId<2>() * blockOW;
 
-      // Accumulator rows
-      simd<float, blockOW * blockC> accumRows[blockOH] = {}; // = 0
+      // Output rows
+      simd<T, blockOW * blockC> outRows[blockOH] = {}; // = 0
 
       // Iterate over input channel blocks
       for (int ic = 0; ic < src.C; ic += blockC)
@@ -72,21 +72,14 @@ namespace oidn {
             #pragma unroll
             for (int boh = 0; boh < blockOH; ++boh)
             {
-              accumRows[boh] = xmx::dpas<dpasDepth, dpasRepeat, float>(
-                accumRows[boh],
+              outRows[boh] = xmx::dpas<dpasDepth, dpasRepeat, T>(
+                outRows[boh],
                 weightMat,
                 inRows[(kh + boh) % blockOH].template select<blockOW * blockC, 1>(kw * blockC).read());
             }
           }
         }
       }
-
-      // Convert accumulator rows to output rows
-      simd<T, blockOW * blockC> outRows[blockOH];
-      
-      #pragma unroll
-      for (int boh = 0; boh < blockOH; ++boh)
-        outRows[boh] = accumRows[boh];
 
       // Load bias vector
       const auto biasVec = loadBlock<T, blockC>(&bias(oc));
