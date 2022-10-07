@@ -1,6 +1,6 @@
 name: CI workflow
 on:
-  pull_request:
+  push:
   workflow_dispatch:
 
 concurrency:
@@ -26,7 +26,7 @@ jobs:
       image: oidn-build:centos7
       cmd: scripts/build.py install --compiler icc -D OIDN_WARN_AS_ERRORS=ON
       artifact-out: build-centos7-icc_artifact
-      artifact-path: "./build ./deps"
+      artifact-path: ./build ./deps
 
   build-ubuntu1804-gcc:
     secrets: inherit
@@ -35,7 +35,7 @@ jobs:
       image: oidn-build:ubuntu18.04
       cmd: scripts/build.py install --compiler gcc -D OIDN_WARN_AS_ERRORS=ON
       artifact-out: build-ubuntu1804-gcc_artifact
-      artifact-path: "./build ./deps"
+      artifact-path: ./build ./deps
 
   build-ubuntu1804-gcc-debug:
     secrets: inherit
@@ -44,7 +44,7 @@ jobs:
       image: oidn-build:ubuntu18.04
       cmd: scripts/build.py install --compiler gcc --config Debug -D OIDN_WARN_AS_ERRORS=ON
       artifact-out: build-ubuntu1804-gcc-debug_artifact
-      artifact-path: "./build ./deps"
+      artifact-path: ./build ./deps
 
   build-ubuntu1804-clang:
     secrets: inherit
@@ -182,7 +182,7 @@ jobs:
     with:
       runs-on: '[ "macOS", "build", "arm" ]'
       artifact-out: test-macos-clang-arm_artifact
-      artifact-path: "./build ./deps"
+      artifact-path: ./build ./deps
       cmd: scripts/build.py install --compiler clang -D OIDN_WARN_AS_ERRORS=ON
 
   build-macos-clang-debug-arm:
@@ -191,7 +191,7 @@ jobs:
     with:
       runs-on: '[ "macOS", "build", "arm" ]'
       artifact-out: test-macos-clang-debug-arm_artifact
-      artifact-path: "./build ./deps"
+      artifact-path: ./build ./deps
       cmd: scripts/build.py install --compiler clang --config Debug -D OIDN_WARN_AS_ERRORS=ON
 
   build-macos-clang-static-arm:
@@ -230,9 +230,9 @@ jobs:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
-      runs-on: '[ "macOS", "build", "avx2" ]'
+      runs-on: '[ "macOS", "build", "avx2", "x86_64" ]'
       artifact-out: build-macos-clang_artifact
-      artifact-path: "./build ./deps"
+      artifact-path: ./build ./deps
       cmd: scripts/build.py install --compiler clang -D OIDN_WARN_AS_ERRORS=ON
 
 
@@ -240,7 +240,7 @@ jobs:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
-      runs-on: '[ "macOS", "build", "avx2" ]'
+      runs-on: '[ "macOS", "build", "avx2", "x86_64" ]'
       cmd: scripts/build.py install --compiler clang --config Debug -D OIDN_WARN_AS_ERRORS=ON
 
 
@@ -248,7 +248,7 @@ jobs:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
-      runs-on: '[ "macOS", "build", "avx2" ]'
+      runs-on: '[ "macOS", "build", "avx2", "x86_64" ]'
       cmd: scripts/build.py --compiler clang -D OIDN_STATIC_LIB=ON
 
 
@@ -256,7 +256,7 @@ jobs:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
-      runs-on: '[ "macOS", "build", "avx2" ]'
+      runs-on: '[ "macOS", "build", "avx2", "x86_64" ]'
       cmd: scripts/build.py --compiler clang -D OIDN_API_NAMESPACE=myoidn
 
 
@@ -264,16 +264,16 @@ jobs:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
-      runs-on: '[ "macOS", "build", "avx2" ]'
+      runs-on: '[ "macOS", "build", "avx2", "x86_64" ]'
       artifact-out: build-macos-icc_artifact
-      artifact-path: "./build ./deps"
+      artifact-path: ./build ./deps
       cmd: scripts/build.py install --compiler icc -D OIDN_WARN_AS_ERRORS=ON
 
   build-macos-icc-debug:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
-      runs-on: '[ "macOS", "build", "avx2" ]'
+      runs-on: '[ "macOS", "build", "avx2", "x86_64" ]'
       cmd: scripts/build.py install --compiler icc --config Debug -D OIDN_WARN_AS_ERRORS=ON
 
   test-macos-clang-avx2:
@@ -281,7 +281,7 @@ jobs:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
-      runs-on: '[ "macOS", "avx2", "sign" ]'
+      runs-on: '[ "macOS", "avx2", "sign", "x86_64" ]'
       artifact-in: build-macos-clang_artifact
       cmd: scripts/test.py
 
@@ -291,7 +291,7 @@ jobs:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
-      runs-on: '[ "macOS", "build", "avx512" ]'
+      runs-on: '[ "macOS", "build", "avx512", "x86_64" ]'
       artifact-in: build-macos-clang_artifact
       cmd: scripts/test.py
 
@@ -300,7 +300,7 @@ jobs:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
-      runs-on: '[ "macOS", "avx2", "sign" ]'
+      runs-on: '[ "macOS", "avx2", "sign", "x86_64" ]'
       artifact-in: build-macos-icc_artifact
       cmd: scripts/test.py
 
@@ -309,7 +309,7 @@ jobs:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
-      runs-on: '[ "macOS", "build", "avx512" ]'
+      runs-on: '[ "macOS", "build", "avx512", "x86_64" ]'
       artifact-in: build-macos-icc_artifact
       cmd: scripts/test.py
 
@@ -320,7 +320,7 @@ jobs:
     with:
       runs-on: '[ "Windows", "build", "icc19.0" ]'
       artifact-out: build-windows-msvc15-icc_artifact
-      artifact-path: '"build","deps"'
+      artifact-path: build deps
       cmd: python scripts/build.py install --compiler msvc15-icc19 -D OIDN_WARN_AS_ERRORS=ON
 
   build-windows-msvc15:
@@ -357,7 +357,7 @@ jobs:
     with:
       runs-on: '[ "Windows", "build" ]'
       artifact-out: build-windows-msvc16_artifact
-      artifact-path: '"build","deps"'
+      artifact-path: build deps
       cmd: python scripts/build.py install --compiler msvc16 -D OIDN_WARN_AS_ERRORS=ON
 
   test-windows-msvc16-avx512:
@@ -402,7 +402,7 @@ jobs:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
-      runs-on: '[ "macOS", "sign" ]'
+      runs-on: '[ "macOS", "sign", "x86_64" ]'
       cmd: scripts/build.py package --compiler icc
       artifact-out: package-macos-artifact
       artifact-path: ./build/oidn-*.tar.gz
@@ -428,7 +428,7 @@ jobs:
       artifact-in-linux: package-linux-artifact
       artifact-in-macos: package-macos-artifact
       artifact-in-windows: package-windows-artifact
-      path: "oidn-* ./build/oidn-*"
+      path: ./build/oidn-*
 
   binary-analysis:
     needs:
@@ -442,4 +442,4 @@ jobs:
       artifact-in-linux: package-linux-artifact
       artifact-in-macos: package-macos-artifact
       artifact-in-windows: package-windows-artifact
-      path: "oidn-* ./build/oidn-*"
+      path: ./build/oidn-*
