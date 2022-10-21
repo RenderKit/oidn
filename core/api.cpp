@@ -35,6 +35,7 @@
     Device::setError(obj ? obj->getDevice() : nullptr, Error::Unknown, "unknown exception caught"); \
   }
 
+#include "common/platform.h"
 #if defined(OIDN_DEVICE_CPU)
   #include "cpu/cpu_device.h"
 #endif
@@ -133,44 +134,38 @@ OIDN_API_NAMESPACE_BEGIN
     return (OIDNDevice)device.detach();
   }
 
+#if defined(OIDN_DEVICE_SYCL)
   OIDN_API OIDNDevice oidnNewDeviceSYCL(void* syclQueue)
   {
     Ref<Device> device = nullptr;
     OIDN_TRY
-    #if defined(OIDN_DEVICE_SYCL)
       device = makeRef<SYCLDevice>(std::vector<sycl::queue>{*static_cast<sycl::queue*>(syclQueue)});
-    #else
-      throw Exception(Error::InvalidArgument, "unsupported device type");
-    #endif
     OIDN_CATCH(device)
     return (OIDNDevice)device.detach();
   }
+#endif
 
+#if defined(OIDN_DEVICE_CUDA)
   OIDN_API OIDNDevice oidnNewDeviceCUDA(void* cudaStream)
   {
     Ref<Device> device = nullptr;
     OIDN_TRY
-    #if defined(OIDN_DEVICE_CUDA)
       device = makeRef<CUDADevice>(static_cast<cudaStream_t>(cudaStream));
-    #else
-      throw Exception(Error::InvalidArgument, "unsupported device type");
-    #endif
     OIDN_CATCH(device)
     return (OIDNDevice)device.detach();
   }
+#endif
 
+#if defined(OIDN_DEVICE_HIP)
   OIDN_API OIDNDevice oidnNewDeviceHIP(void* hipStream)
   {
     Ref<Device> device = nullptr;
     OIDN_TRY
-    #if defined(OIDN_DEVICE_HIP)
       device = makeRef<HIPDevice>(static_cast<hipStream_t>(hipStream));
-    #else
-      throw Exception(Error::InvalidArgument, "unsupported device type");
-    #endif
     OIDN_CATCH(device)
     return (OIDNDevice)device.detach();
   }
+#endif
 
   OIDN_API void oidnRetainDevice(OIDNDevice hDevice)
   {

@@ -47,14 +47,20 @@ typedef struct OIDNDeviceImpl* OIDNDevice;
 // Creates a new device.
 OIDN_API OIDNDevice oidnNewDevice(OIDNDeviceType type);
 
+#if defined(OIDN_DEVICE_SYCL)
 // Creates a new SYCL device using a specified in-order SYCL queue (experimental).
 OIDN_API OIDNDevice oidnNewDeviceSYCL(void* syclQueue);
+#endif
 
+#if defined(OIDN_DEVICE_CUDA)
 // Creates a new CUDA device using a specified CUDA stream (experimental).
 OIDN_API OIDNDevice oidnNewDeviceCUDA(void* cudaStream);
+#endif
 
+#if defined(OIDN_DEVICE_HIP)
 // Creates a new HIP device using a specified HIP stream (experimental).
 OIDN_API OIDNDevice oidnNewDeviceHIP(void* hipStream);
+#endif
 
 // Retains the device (increments the reference count).
 OIDN_API void oidnRetainDevice(OIDNDevice device);

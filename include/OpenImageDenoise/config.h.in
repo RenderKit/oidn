@@ -9,7 +9,9 @@
 #define OIDN_VERSION @OIDN_VERSION_NUMBER@
 #define OIDN_VERSION_STRING "@OIDN_VERSION_MAJOR@.@OIDN_VERSION_MINOR@.@OIDN_VERSION_PATCH@@OIDN_VERSION_NOTE@"
 
-#cmakedefine OIDN_STATIC_LIB
+#if !defined(OIDN_STATIC_LIB)
+  #cmakedefine OIDN_STATIC_LIB
+#endif
 #cmakedefine OIDN_API_NAMESPACE
 
 #if defined(OIDN_API_NAMESPACE)
@@ -50,4 +52,17 @@
   #define OIDN_API OIDN_API_EXPORT
 #else
   #define OIDN_API OIDN_API_IMPORT
+#endif
+
+#if !defined(OIDN_DEVICE_CPU)
+  #cmakedefine OIDN_DEVICE_CPU
+#endif
+#if !defined(OIDN_DEVICE_SYCL)
+  #cmakedefine OIDN_DEVICE_SYCL
+#endif
+#if !defined(OIDN_DEVICE_CUDA)
+  #cmakedefine OIDN_DEVICE_CUDA
+#endif
+#if !defined(OIDN_DEVICE_HIP)
+  #cmakedefine OIDN_DEVICE_HIP
 #endif

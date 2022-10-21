@@ -424,24 +424,20 @@ elseif(OIDN_BNNS)
 endif()
 
 if(OIDN_DEVICE_CPU)
-  target_compile_definitions(${PROJECT_NAME} PUBLIC OIDN_DEVICE_CPU)
   ispc_target_add_sources(${PROJECT_NAME} ${CORE_SOURCES_ISPC})
   target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_THREAD_LIBS_INIT} TBB::tbb)
 endif()
 
 if(OIDN_DEVICE_SYCL)
-  target_compile_definitions(${PROJECT_NAME} PUBLIC OIDN_DEVICE_SYCL)
   target_link_options(${PROJECT_NAME} PRIVATE "-fsycl")
 endif()
 
 if(OIDN_DEVICE_CUDA)
   target_include_directories(${PROJECT_NAME} PRIVATE "${PROJECT_SOURCE_DIR}/cutlass/include" "${PROJECT_SOURCE_DIR}/cutlass/tools/util/include")
-  target_compile_definitions(${PROJECT_NAME} PUBLIC OIDN_DEVICE_CUDA)
   set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_ARCHITECTURES OFF)
 endif()
 
 if(OIDN_DEVICE_HIP)
-  target_compile_definitions(${PROJECT_NAME} PUBLIC OIDN_DEVICE_HIP)
   target_link_libraries(${PROJECT_NAME} PRIVATE hip::device MIOpen)
 endif()
 
