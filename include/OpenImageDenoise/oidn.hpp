@@ -3,13 +3,6 @@
 
 #pragma once
 
-#if defined(SYCL_LANGUAGE_VERSION)
-  #include <CL/sycl.hpp>
-#endif
-#if defined(__HIPCC__)
-  #include <hip/hip_runtime.h>
-#endif
-
 #include <algorithm>
 #include "oidn.h"
 
@@ -332,6 +325,17 @@ OIDN_NAMESPACE_BEGIN
     {
       oidnExecuteFilterAsync(handle);
     }
+
+  #if defined(OIDN_DEVICE_SYCL) && defined(SYCL_LANGUAGE_VERSION)
+    // Executes the SYCL filter asynchronously using the specified dependent events,
+    // and returns an event for completion.
+    sycl::event executeAsync(const std::vector<sycl::event>& depEvents)
+    {
+      sycl::event doneEvent;
+      oidnExecuteSYCLFilterAsync(handle, depEvents.data(), int(depEvents.size()), &doneEvent);
+      return doneEvent;
+    }
+  #endif
   };
 
   // Gets a boolean parameter of the filter.
@@ -539,33 +543,40 @@ OIDN_NAMESPACE_BEGIN
     return oidnGetDevice1i(handle, name);
   }
 
-  // Creates a new device.
+  // Creates a new Open Image Denoise device.
   inline DeviceRef newDevice(DeviceType type = DeviceType::Default)
   {
     return DeviceRef(oidnNewDevice((OIDNDeviceType)type));
   }
 
-  // Creates a new SYCL device using an in-order SYCL queue.
-#if defined(SYCL_LANGUAGE_VERSION)
-  inline DeviceRef newDevice(sycl::queue& queue)
+#if defined(OIDN_DEVICE_SYCL) && defined(SYCL_LANGUAGE_VERSION)
+  // Creates a new Open Image Denoise device from the specified SYCL queue.
+  inline DeviceRef newSYCLDevice(const sycl::queue& queue)
   {
-    return DeviceRef(oidnNewDeviceSYCL(&queue));
+    return DeviceRef(oidnNewSYCLDevice(&queue, 1));
+  }
+
+  // Creates a new Open Image Denoise device from the specified list of SYCL queues.
+  // The queues should belong to different SYCL sub-devices (Xe-Stacks/Tiles) of the same SYCL root-device (GPU).
+  inline DeviceRef newSYCLDevice(const std::vector<sycl::queue>& queues)
+  {
+    return DeviceRef(oidnNewSYCLDevice(queues.data(), int(queues.size())));
   }
 #endif
 
-#if defined(__CUDACC__)
-  // Creates a new CUDA device using a specified CUDA stream.
-  inline DeviceRef newDevice(cudaStream_t stream)
+#if defined(OIDN_DEVICE_CUDA)
+  // Creates a new Open Image Denoise device from the specified CUDA stream.
+  inline DeviceRef newCUDADevice(cudaStream_t stream)
   {
-    return DeviceRef(oidnNewDeviceCUDA(stream));
+    return DeviceRef(oidnNewCUDADevice(stream));
   }
 #endif
 
-#if defined(__HIPCC__)
-  // Creates a new HIP device using a specified HIP stream.
-  inline DeviceRef newDevice(hipStream_t stream)
+#if defined(OIDN_DEVICE_HIP)
+  // Creates a new Open Image Denoise device from the specified HIP stream.
+  inline DeviceRef newHIPDevice(hipStream_t stream)
   {
-    return DeviceRef(oidnNewDeviceHIP(stream));
+    return DeviceRef(oidnNewHIPDevice(stream));
   }
 #endif
 

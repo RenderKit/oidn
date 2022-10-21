@@ -135,11 +135,13 @@ OIDN_API_NAMESPACE_BEGIN
   }
 
 #if defined(OIDN_DEVICE_SYCL)
-  OIDN_API OIDNDevice oidnNewDeviceSYCL(void* syclQueue)
+  OIDN_API OIDNDevice oidnNewSYCLDevice(const sycl::queue* queues, int numQueues)
   {
     Ref<Device> device = nullptr;
     OIDN_TRY
-      device = makeRef<SYCLDevice>(std::vector<sycl::queue>{*static_cast<sycl::queue*>(syclQueue)});
+      if (numQueues < 0)
+        throw Exception(Error::InvalidArgument, "invalid number of queues");
+      device = makeRef<SYCLDevice>(std::vector<sycl::queue>{queues, queues + numQueues});
     OIDN_CATCH(device)
     return (OIDNDevice)device.detach();
   }
@@ -578,5 +580,44 @@ OIDN_API_NAMESPACE_BEGIN
       filter->execute(false);
     OIDN_CATCH(filter)
   }
+
+#if defined(OIDN_DEVICE_SYCL)
+  OIDN_API void oidnExecuteSYCLFilterAsync(OIDNFilter hFilter,
+                                           const sycl::event* depEvents,
+                                           int numDepEvents,
+                                           sycl::event* doneEvent)
+  {
+    Filter* filter = (Filter*)hFilter;
+    OIDN_TRY
+      // Check the parameters
+      checkHandle(hFilter);
+      if (numDepEvents < 0)
+        throw Exception(Error::InvalidArgument, "invalid number of dependent events");
+
+      OIDN_LOCK(filter);
+
+      // Check whether the filter belongs to a SYCL device
+      SYCLDevice* device = dynamic_cast<SYCLDevice*>(filter->getDevice());
+      if (device == nullptr)
+        throw Exception(Error::InvalidArgument, "filter does not belong to a SYCL device");
+
+      // Execute the filter
+      device->setDepEvents({depEvents, depEvents + numDepEvents});
+      filter->execute(false);
+      auto doneEvents = device->getDoneEvents();
+
+      // Output the completion event (optional)
+      if (doneEvent != nullptr)
+      {
+        if (doneEvents.size() == 1)
+          *doneEvent = doneEvents[0];
+        else if (doneEvents.size() == 0)
+          *doneEvent = {}; // no kernels were executed
+        else
+          throw std::logic_error("missing barrier after filter kernels");
+      }
+    OIDN_CATCH(filter)
+  }
+#endif
 
 OIDN_API_NAMESPACE_END

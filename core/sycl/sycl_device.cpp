@@ -162,7 +162,7 @@ namespace oidn {
 
     // Submit the barrier to the default engine
     // The barrier depends on the commands on all engines
-    engines[0]->depEvents = getDone();
+    engines[0]->depEvents = getDoneEvents();
     engines[0]->submitBarrier();
     
     // The next commands on all the other engines also depend on the barrier
@@ -176,14 +176,14 @@ namespace oidn {
   void SYCLDevice::wait()
   {
     // Wait for the commands on all engines to complete
-    sycl::event::wait_and_throw(getDone());
+    sycl::event::wait_and_throw(getDoneEvents());
     
     // We can now discard all events
     for (auto& engine : engines)
       engine->lastEvent.reset();
   }
   
-  void SYCLDevice::setDependencies(const std::vector<sycl::event>& depEvents)
+  void SYCLDevice::setDepEvents(const std::vector<sycl::event>& depEvents)
   {
     for (auto& engine : engines)
     {
@@ -192,7 +192,7 @@ namespace oidn {
     }
   }
   
-  std::vector<sycl::event> SYCLDevice::getDone()
+  std::vector<sycl::event> SYCLDevice::getDoneEvents()
   {
     std::vector<sycl::event> events;
     for (auto& engine : engines)

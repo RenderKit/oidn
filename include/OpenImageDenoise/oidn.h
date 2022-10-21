@@ -9,6 +9,13 @@
 
 #include "config.h"
 
+#if defined(OIDN_DEVICE_SYCL) && defined(SYCL_LANGUAGE_VERSION)
+  #include <CL/sycl.hpp>
+#endif
+#if defined(OIDN_DEVICE_HIP)
+  #include <hip/hip_runtime.h>
+#endif
+
 OIDN_API_NAMESPACE_BEGIN
 
 // -----------------------------------------------------------------------------
@@ -44,22 +51,23 @@ typedef void (*OIDNErrorFunction)(void* userPtr, OIDNError code, const char* mes
 // Device handle
 typedef struct OIDNDeviceImpl* OIDNDevice;
 
-// Creates a new device.
+// Creates a new Open Image Denoise device.
 OIDN_API OIDNDevice oidnNewDevice(OIDNDeviceType type);
 
-#if defined(OIDN_DEVICE_SYCL)
-// Creates a new SYCL device using a specified in-order SYCL queue (experimental).
-OIDN_API OIDNDevice oidnNewDeviceSYCL(void* syclQueue);
+#if defined(OIDN_DEVICE_SYCL) && defined(SYCL_LANGUAGE_VERSION)
+// Creates a new Open Image Denoise device from the specified list of SYCL queues.
+// The queues should belong to different SYCL sub-devices (Xe-Stacks/Tiles) of the same SYCL root-device (GPU).
+OIDN_API OIDNDevice oidnNewSYCLDevice(const sycl::queue* queues, int numQueues);
 #endif
 
 #if defined(OIDN_DEVICE_CUDA)
-// Creates a new CUDA device using a specified CUDA stream (experimental).
-OIDN_API OIDNDevice oidnNewDeviceCUDA(void* cudaStream);
+// Creates a new Open Image Denoise device from the specified CUDA stream.
+OIDN_API OIDNDevice oidnNewCUDADevice(void* cudaStream);
 #endif
 
 #if defined(OIDN_DEVICE_HIP)
-// Creates a new HIP device using a specified HIP stream (experimental).
-OIDN_API OIDNDevice oidnNewDeviceHIP(void* hipStream);
+// Creates a new Open Image Denoise device from the specified HIP stream.
+OIDN_API OIDNDevice oidnNewHIPDevice(void* hipStream);
 #endif
 
 // Retains the device (increments the reference count).
@@ -252,5 +260,14 @@ OIDN_API void oidnExecuteFilter(OIDNFilter filter);
 
 // Executes the filter asynchronously.
 OIDN_API void oidnExecuteFilterAsync(OIDNFilter filter);
+
+#if defined(OIDN_DEVICE_SYCL) && defined(SYCL_LANGUAGE_VERSION)
+// Executes the SYCL filter asynchronously using the specified dependent events,
+// and optionally returns an event for completion.
+OIDN_API void oidnExecuteSYCLFilterAsync(OIDNFilter filter,
+                                         const sycl::event* depEvents,
+                                         int numDepEvents,
+                                         sycl::event* doneEvent);
+#endif
 
 OIDN_API_NAMESPACE_END

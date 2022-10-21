@@ -33,11 +33,11 @@ namespace oidn {
     void submitBarrier() override;
     void wait() override;
     
-    // Manually sets the dependencies for the next command on all engines
-    void setDependencies(const std::vector<sycl::event>& depEvents);
+    // Manually sets the dependent events for the next command on all engines
+    void setDepEvents(const std::vector<sycl::event>& depEvents);
     
     // Gets the list of events corresponding to the completion of all commands
-    std::vector<sycl::event> getDone();
+    std::vector<sycl::event> getDoneEvents();
 
     SYCLArch getArch() const { return arch; }
 
