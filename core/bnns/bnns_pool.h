@@ -11,14 +11,14 @@ namespace oidn {
   class BNNSPool : public Pool
   {
   public:
-    BNNSPool(const Ref<BNNSDevice>& device, const PoolDesc& desc);
+    BNNSPool(const Ref<BNNSEngine>& engine, const PoolDesc& desc);
     ~BNNSPool();
 
     void finalize() override;
-    void run() override;
+    void submit() override;
 
   private:
-    Ref<BNNSDevice> device;
+    Ref<BNNSEngine> engine;
     BNNSFilter filter = nullptr;
   };
 

@@ -5,7 +5,7 @@
 
 #include <vector>
 #include <iostream>
-#include "device.h"
+#include "engine.h"
 #include "buffer.h"
 #include "tensor_accessor.h"
 #if defined(OIDN_DEVICE_CPU)
@@ -192,7 +192,7 @@ namespace oidn {
     void dump(const std::string& filenamePrefix) const;
 
   protected:
-    Tensor(const Ref<Device>& device, const TensorDesc& desc);
+    Tensor(const Ref<Engine>& engine, const TensorDesc& desc);
     Tensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset = 0);
 
   private:
@@ -200,22 +200,22 @@ namespace oidn {
     void dumpImpl(const std::string& filenamePrefix) const;
 
   protected:
-    Ref<Device> device;
+    Ref<Engine> engine;
   };
 
   class GenericTensor final : public Tensor
   {
   public:
-    GenericTensor(const Ref<Device>& device, const TensorDesc& desc, Storage storage);
-    GenericTensor(const Ref<Device>& device, const TensorDesc& desc, void* data);
+    GenericTensor(const Ref<Engine>& engine, const TensorDesc& desc, Storage storage);
+    GenericTensor(const Ref<Engine>& engine, const TensorDesc& desc, void* data);
     GenericTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset = 0);
 
     void* getData() override { return ptr; }
     const void* getData() const override { return ptr; }
 
   private:
-    void init(const Ref<Device>& device, Storage storage);
-    void init(const Ref<Device>& device, void* data);
+    void init(const Ref<Engine>& engine, Storage storage);
+    void init(const Ref<Engine>& engine, void* data);
     void updatePtr() override;
 
     void* ptr;

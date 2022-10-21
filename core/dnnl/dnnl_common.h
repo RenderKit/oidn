@@ -4,7 +4,7 @@
 #pragma once
 
 #include "../tensor.h"
-#include "dnnl_device.h"
+#include "dnnl_engine.h"
 
 namespace oidn {
 

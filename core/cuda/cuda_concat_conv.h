@@ -11,7 +11,7 @@ namespace oidn {
   class CUDAConcatConv final : public ConcatConv
   {
   public:
-    CUDAConcatConv(const Ref<CUDADevice>& device, const ConcatConvDesc& desc);
+    CUDAConcatConv(const Ref<CUDAEngine>& engine, const ConcatConvDesc& desc);
 
     bool isSupported() const override;
 
@@ -19,7 +19,7 @@ namespace oidn {
     void setScratch(const std::shared_ptr<Tensor>& scratch) override;
 
     void finalize() override;
-    void run() override;
+    void submit() override;
 
   private:
     void updateSrc() override;
@@ -27,7 +27,7 @@ namespace oidn {
     void updateBias() override;
     void updateDst() override;
 
-    Ref<CUDADevice> device;
+    Ref<CUDAEngine> engine;
     bool finalized = false;
 
     TensorDesc weight1Desc;

@@ -6,10 +6,10 @@
 
 namespace oidn {
 
-  CPUImageCopy::CPUImageCopy(const Ref<Device>& device)
-    : device(device) {}
+  CPUImageCopy::CPUImageCopy(const Ref<CPUEngine>& engine)
+    : engine(engine) {}
 
-  void CPUImageCopy::run()
+  void CPUImageCopy::submit()
   {
     if (!src || !dst)
       throw std::logic_error("image copy source/destination not set");

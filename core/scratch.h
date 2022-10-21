@@ -19,7 +19,7 @@ namespace oidn {
     friend class ScratchBuffer;
 
   public:
-    ScratchBufferManager(const Ref<Device>& device);
+    ScratchBufferManager(const Ref<Engine>& engine);
 
   private:
     // Scratch buffers must attach themselves
@@ -42,7 +42,7 @@ namespace oidn {
     ScratchBuffer(const std::shared_ptr<ScratchBufferManager>& manager, size_t size);
     ~ScratchBuffer();
 
-    Device* getDevice() override { return manager->buffer->getDevice(); }
+    Engine* getEngine() const override { return manager->buffer->getEngine(); }
 
     char* getData() override { return manager->buffer->getData(); }
     const char* getData() const override { return manager->buffer->getData(); };

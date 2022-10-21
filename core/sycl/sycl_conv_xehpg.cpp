@@ -244,9 +244,9 @@ namespace oidn {
     }
   };
 
-  SYCLConvXeHPG::SYCLConvXeHPG(const Ref<SYCLDevice>& device, const ConvDesc& desc)
+  SYCLConvXeHPG::SYCLConvXeHPG(const Ref<SYCLEngine>& engine, const ConvDesc& desc)
     : Conv(desc),
-      device(device)
+      engine(engine)
   {
     if (srcDesc.layout != TensorLayout::Chw16c || srcDesc.dataType != DataType::Float16)
       throw std::invalid_argument("unsupported convolution source layout/data type");
@@ -256,7 +256,7 @@ namespace oidn {
       throw std::invalid_argument("unsupported convolution bias layout/data type");
   }
 
-  void SYCLConvXeHPG::run()
+  void SYCLConvXeHPG::submit()
   {
     if (!src || !weight || !bias || !dst)
       throw std::logic_error("convolution argument not set");
@@ -316,7 +316,7 @@ namespace oidn {
         break;
     }
 
-    device->runESIMDKernelAsync(globalSize / localSize, localSize, kernel);
+    engine->submitESIMDKernel(globalSize / localSize, localSize, kernel);
   }
 
 } // namespace oidn

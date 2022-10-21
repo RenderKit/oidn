@@ -49,13 +49,13 @@ namespace oidn {
   class CHWConcatConv final : public ConcatConv
   {
   public:
-    CHWConcatConv(const Ref<Device>& device, const ConcatConvDesc& desc);
+    CHWConcatConv(const Ref<Engine>& engine, const ConcatConvDesc& desc);
 
     size_t getScratchByteSize() const override { return conv->getScratchByteSize(); }
     void setScratch(const std::shared_ptr<Tensor>& scratch) override { conv->setScratch(scratch); }
 
     void finalize() override { conv->finalize(); }
-    void run() override { conv->run(); }
+    void submit() override { conv->submit(); }
 
   private:
     void updateSrc() override;
@@ -63,7 +63,7 @@ namespace oidn {
     void updateBias() override { conv->setBias(bias); }
     void updateDst() override { conv->setDst(dst); }
 
-    Ref<Device> device;
+    Ref<Engine> engine;
     TensorDesc srcDesc; // concatenated source
     std::shared_ptr<Conv> conv;
   };

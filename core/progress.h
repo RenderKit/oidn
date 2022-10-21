@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "device.h"
+#include "engine.h"
 
 namespace oidn {
 
@@ -11,16 +11,16 @@ namespace oidn {
   class Progress
   {
   public:
-    explicit Progress(const Ref<Device>& device);
+    Progress();
 
     // Starts progress monitoring using the specified callback function
-    void start(ProgressMonitorFunction func, void* userPtr, double total = 1);
+    void start(const Ref<Engine>& engine, ProgressMonitorFunction func, void* userPtr, double total = 1);
 
     // Advances the progress with the specified amount and calls the progress monitor function
-    void update(double done);
+    void update(const Ref<Engine>& engine, double done);
 
     // Finishes monitoring, setting the progress to the total value
-    void finish();
+    void finish(const Ref<Engine>& engine);
 
   private:
     // Calls the progress monitor function
@@ -38,7 +38,8 @@ namespace oidn {
     double total;   // maximum progress value
     double current; // current progress value
 
-    Ref<Device> device;
+    Ref<Engine> engine;
+    std::mutex mutex; // for thread safety
   };
 
 } // namespace oidn

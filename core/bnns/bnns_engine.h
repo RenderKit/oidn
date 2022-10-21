@@ -1,15 +1,17 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
 
-#include "../device.h"
+#include "../cpu/cpu_engine.h"
 
 namespace oidn {
 
-  class BNNSDevice : public Device
+  class BNNSEngine final : public CPUEngine
   {
   public:
+    explicit BNNSEngine(const Ref<CPUDevice>& device);
+
     // Ops
     std::shared_ptr<Conv> newConv(const ConvDesc& desc) override;
     std::shared_ptr<Pool> newPool(const PoolDesc& desc) override;

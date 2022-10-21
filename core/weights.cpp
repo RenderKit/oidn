@@ -7,9 +7,9 @@
 
 namespace oidn {
 
-  Weights::Weights(const Ref<Device>& device, const Data& blob)
-    : tensors(parseTZA(device, blob.ptr, blob.size)),
-      device(device) {}
+  Weights::Weights(const Ref<Engine>& engine, const Data& blob)
+    : tensors(parseTZA(engine, blob.ptr, blob.size)),
+      engine(engine) {}
 
   const std::shared_ptr<Tensor>& Weights::get(const std::string& name)
   {
@@ -40,10 +40,10 @@ namespace oidn {
   {
     assert(src->getRank() == 1);
 
-    const int blockC = device->getTensorBlockC();
+    const int blockC = engine->getDevice()->getTensorBlockC();
     const int X = round_up(src->getX(), blockC);
 
-    auto dst = device->newTensor({{X}, TensorLayout::x, device->getTensorDataType()});
+    auto dst = engine->newTensor({{X}, TensorLayout::x, engine->getDevice()->getTensorDataType()});
     reorder(*src, *dst->map(Access::WriteDiscard));
     return dst;
   }
@@ -52,13 +52,13 @@ namespace oidn {
   {
     assert(src->getRank() == 4);
 
-    const int blockC = device->getTensorBlockC();
+    const int blockC = engine->getDevice()->getTensorBlockC();
     const int O = round_up(src->getO(), blockC);
     const int I = round_up(src->getI(), blockC);
     const int H = src->getH();
     const int W = src->getW();
 
-    auto dst = device->newTensor({{O, I, H, W}, device->getWeightsLayout(), device->getTensorDataType()});
+    auto dst = engine->newTensor({{O, I, H, W}, engine->getDevice()->getWeightsLayout(), engine->getDevice()->getTensorDataType()});
     reorder(*src, *dst->map(Access::WriteDiscard));
     return dst;
   }

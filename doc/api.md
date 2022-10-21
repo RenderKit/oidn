@@ -577,6 +577,11 @@ normally. When returning `false`, the library will attempt to cancel the filter
 operation as soon as possible, and if that is fulfilled, it will raise an
 `OIDN_ERROR_CANCELLED` error.
 
+Please note that using a progress monitor callback function introduces some
+overhead, which may be significant on GPU devices, hurting performance.
+Therefore we recommend progress monitoring only for offline denoising, when
+denoising an image is expected to take several seconds.
+
 After setting all necessary parameters for the filter, the changes must be
 committed by calling
 

@@ -6,11 +6,11 @@
 
 namespace oidn {
 
-  std::shared_ptr<Conv> newCUDAConv(const Ref<CUDADevice>& device, const ConvDesc& desc)
+  std::shared_ptr<Conv> newCUDAConv(const Ref<CUDAEngine>& engine, const ConvDesc& desc)
   {
-    // Get the list of kernels supported by the device
+    // Get the list of kernels supported by the engine
     std::vector<CutlassConvFactory> kernels;
-    const int sm = device->getComputeCapability();
+    const int sm = engine->getComputeCapability();
     if (sm >= 80)
       kernels = getCutlassConvInstances<80>();
     else if (sm >= 75)
@@ -50,7 +50,7 @@ namespace oidn {
     if (!bestKernel)
       throw std::runtime_error("could not find a compatible convolution kernel");
 
-    return bestKernel->make(device, desc);
+    return bestKernel->make(engine, desc);
   }
 
 } // namespace oidn

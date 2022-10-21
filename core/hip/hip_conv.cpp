@@ -5,9 +5,9 @@
 
 namespace oidn {
 
-  HIPConv::HIPConv(const Ref<HIPDevice>& device, const ConvDesc& desc)
+  HIPConv::HIPConv(const Ref<HIPEngine>& engine, const ConvDesc& desc)
     : Conv(desc),
-      device(device)
+      engine(engine)
   {
     checkError(miopenCreateConvolutionDescriptor(&convDesc));
     checkError(miopenInitConvolutionDescriptor(
@@ -52,7 +52,7 @@ namespace oidn {
     assert(isSupported());
     
     size_t scratchByteSize;
-    checkError(miopenConvolutionForwardGetWorkSpaceSize(device->getMIOpenHandle(),
+    checkError(miopenConvolutionForwardGetWorkSpaceSize(engine->getMIOpenHandle(),
                                                         wDesc,
                                                         xDesc,
                                                         convDesc,
@@ -77,7 +77,7 @@ namespace oidn {
     int returnedAlgoCount;
     miopenConvAlgoPerf_t perfResults;
 
-    checkError(miopenFindConvolutionForwardAlgorithm(device->getMIOpenHandle(),
+    checkError(miopenFindConvolutionForwardAlgorithm(engine->getMIOpenHandle(),
                                                      xDesc,
                                                      src->getData(),
                                                      wDesc,
@@ -97,7 +97,7 @@ namespace oidn {
     finalized = true;
   }
 
-  void HIPConv::run()
+  void HIPConv::submit()
   {
     if (!finalized)
       throw std::logic_error("convolution not finalized");
@@ -105,7 +105,7 @@ namespace oidn {
     const float alpha = 1;
     const float beta = 0;
 
-    checkError(miopenConvolutionForward(device->getMIOpenHandle(),
+    checkError(miopenConvolutionForward(engine->getMIOpenHandle(),
                                         &alpha,
                                         xDesc,
                                         src->getData(),
@@ -120,10 +120,10 @@ namespace oidn {
                                         scratch ? scratch->getByteSize() : 0));
 
     //float time;
-    //miopenGetKernelTime(device->getMIOpenHandle(), &time);
+    //miopenGetKernelTime(engine->getMIOpenHandle(), &time);
     //std::cout << "conv " << weight->getO() << "x" << weight->getI() << "x" << src->getH() << "x" << src->getW() << ": " << time << std::endl;;
 
-    checkError(miopenConvolutionForwardBias(device->getMIOpenHandle(),
+    checkError(miopenConvolutionForwardBias(engine->getMIOpenHandle(),
                                             &alpha,
                                             bDesc,
                                             bias->getData(),
@@ -133,7 +133,7 @@ namespace oidn {
 
     if (activation != Activation::None)
     {
-      checkError(miopenActivationForward(device->getMIOpenHandle(),
+      checkError(miopenActivationForward(engine->getMIOpenHandle(),
                                          activationDesc,
                                          &alpha,
                                          yDesc,

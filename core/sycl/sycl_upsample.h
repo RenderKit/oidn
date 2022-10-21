@@ -4,18 +4,18 @@
 #pragma once
 
 #include "../upsample.h"
-#include "sycl_device.h"
+#include "sycl_engine.h"
 
 namespace oidn {
 
   class SYCLUpsample : public Upsample
   {
   public:
-    SYCLUpsample(const Ref<SYCLDevice>& device, const UpsampleDesc& desc);
-    void run() override;
+    SYCLUpsample(const Ref<SYCLEngine>& engine, const UpsampleDesc& desc);
+    void submit() override;
 
   private:
-    Ref<SYCLDevice> device;
+    Ref<SYCLEngine> engine;
   };
 
 } // namespace oidn

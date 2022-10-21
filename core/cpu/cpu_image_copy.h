@@ -4,18 +4,18 @@
 #pragma once
 
 #include "../image_copy.h"
-#include "cpu_device.h"
+#include "cpu_engine.h"
 
 namespace oidn {
 
   class CPUImageCopy final : public ImageCopy
   {
   public:
-    explicit CPUImageCopy(const Ref<Device>& device);
-    void run() override;
+    explicit CPUImageCopy(const Ref<CPUEngine>& engine);
+    void submit() override;
 
   private:
-    Ref<Device> device;
+    Ref<CPUEngine> engine;
   };
 
 } // namespace oidn

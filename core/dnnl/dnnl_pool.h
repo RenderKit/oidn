@@ -11,19 +11,19 @@ namespace oidn {
   class DNNLPool final : public Pool
   {
   public:
-    DNNLPool(const Ref<DNNLDevice>& device, const PoolDesc& desc);
+    DNNLPool(const Ref<DNNLEngine>& engine, const PoolDesc& desc);
 
     size_t getScratchByteSize() const override;
     void setScratch(const std::shared_ptr<Tensor>& scratch) override;
 
     void finalize() override;
-    void run() override;
+    void submit() override;
 
   private:
     void updateSrc() override;
     void updateDst() override;
 
-    Ref<DNNLDevice> device;
+    Ref<DNNLEngine> engine;
     dnnl::pooling_forward::primitive_desc primDesc;
     dnnl::pooling_forward prim;
     std::unordered_map<int, dnnl::memory> args;

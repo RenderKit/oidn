@@ -7,12 +7,12 @@
 
 namespace oidn {
 
-  CPUAutoexposure::CPUAutoexposure(const Ref<CPUDevice>& device, const ImageDesc& srcDesc)
+  CPUAutoexposure::CPUAutoexposure(const Ref<CPUEngine>& engine, const ImageDesc& srcDesc)
     : Autoexposure(srcDesc),
-      device(device),
+      engine(engine),
       result(0) {}
 
-  void CPUAutoexposure::run()
+  void CPUAutoexposure::submit()
   {
     if (!src)
       throw std::logic_error("autoexposure source not set");

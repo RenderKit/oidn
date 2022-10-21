@@ -51,32 +51,32 @@ namespace oidn {
     }
   };
 
-  template<typename DeviceType, typename TensorDataType, TensorLayout tensorLayout>
+  template<typename EngineT, typename TensorDataT, TensorLayout tensorLayout>
   class GPUUpsample : public Upsample
   {
   public:
-    GPUUpsample(const Ref<DeviceType>& device,
+    GPUUpsample(const Ref<EngineT>& engine,
                 const UpsampleDesc& desc)
       : Upsample(desc),
-        device(device) {}
+        engine(engine) {}
 
-    void run() override
+    void submit() override
     {
       if (!src || !dst)
         throw std::logic_error("upsampling source/destination not set");
 
-      GPUUpsampleKernel<TensorDataType, tensorLayout> kernel;
+      GPUUpsampleKernel<TensorDataT, tensorLayout> kernel;
       kernel.src = *src;
       kernel.dst = *dst;
 
       if (tensorLayout == TensorLayout::hwc)
-        device->runKernelAsync(WorkDim<3>(src->getH(), src->getW(), src->getC()), kernel);
+        engine->submitKernel(WorkDim<3>(src->getH(), src->getW(), src->getC()), kernel);
       else
-        device->runKernelAsync(WorkDim<3>(src->getC(), src->getH(), src->getW()), kernel);
+        engine->submitKernel(WorkDim<3>(src->getC(), src->getH(), src->getW()), kernel);
     }
 
   private:
-    Ref<DeviceType> device;
+    Ref<EngineT> engine;
   };
 
 } // namespace oidn

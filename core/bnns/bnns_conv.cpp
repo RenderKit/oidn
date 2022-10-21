@@ -5,9 +5,9 @@
 
 namespace oidn {
 
-  BNNSConv::BNNSConv(const Ref<BNNSDevice>& device, const ConvDesc& desc)
+  BNNSConv::BNNSConv(const Ref<BNNSEngine>& engine, const ConvDesc& desc)
     : Conv(desc),
-      device(device) {}
+      engine(engine) {}
 
   BNNSConv::~BNNSConv()
   {
@@ -57,7 +57,7 @@ namespace oidn {
       throw std::runtime_error("BNNSFilterCreateLayerConvolution failed");
   }
 
-  void BNNSConv::run()
+  void BNNSConv::submit()
   {
     if (!filter)
       throw std::logic_error("convolution not finalized");

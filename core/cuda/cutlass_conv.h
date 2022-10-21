@@ -192,9 +192,9 @@ namespace oidn {
     using ImplicitGemm = cutlass::conv::device::ImplicitGemmConvolution<Conv2dFpropKernel>;
 
   public:
-    CutlassConv(const Ref<CUDADevice>& device, const ConvDesc& desc)
+    CutlassConv(const Ref<CUDAEngine>& engine, const ConvDesc& desc)
       : Conv(desc),
-        device(device)
+        engine(engine)
     {
       if (activation != builtinActivation)
         throw std::logic_error("incompatible convolution activation function");
@@ -234,11 +234,11 @@ namespace oidn {
     {
       checkError(gemm.initialize(initialArguments,
                                  scratch ? scratch->getData() : nullptr,
-                                 device->getCUDAStream()));
+                                 engine->getCUDAStream()));
       finalized = true;
     }
 
-    void run() override
+    void submit() override
     {
       assert(isSupported());
       if (!finalized)
@@ -258,11 +258,11 @@ namespace oidn {
       checkError(gemm.update(arguments,
                              scratch ? scratch->getData() : nullptr));
                              
-      checkError(gemm.run(device->getCUDAStream()));
+      checkError(gemm.run(engine->getCUDAStream()));
     }
 
   private:
-    Ref<CUDADevice> device;
+    Ref<CUDAEngine> engine;
     bool finalized = false;
     cutlass::conv::Conv2dProblemSize problemSize;
     typename ImplicitGemm::Arguments initialArguments;
@@ -272,7 +272,7 @@ namespace oidn {
 
   struct CutlassConvFactory
   {
-    std::shared_ptr<Conv> (*make)(const Ref<CUDADevice>&, const ConvDesc&);
+    std::shared_ptr<Conv> (*make)(const Ref<CUDAEngine>&, const ConvDesc&);
 
     DataType dataType;
     int sm;                     // compute capability
@@ -304,14 +304,14 @@ namespace oidn {
     template<Activation activation>
     using CutlassConvType = CutlassConv<T, SmArch, ThreadblockShape, WarpShape, numStages, activation>;
 
-    static std::shared_ptr<Conv> make(const Ref<CUDADevice>& device, const ConvDesc& desc)
+    static std::shared_ptr<Conv> make(const Ref<CUDAEngine>& engine, const ConvDesc& desc)
     {
       switch (desc.activation)
       {
       case Activation::None:
-        return std::make_shared<CutlassConvType<Activation::None>>(device, desc);
+        return std::make_shared<CutlassConvType<Activation::None>>(engine, desc);
       case Activation::ReLU:
-        return std::make_shared<CutlassConvType<Activation::ReLU>>(device, desc);
+        return std::make_shared<CutlassConvType<Activation::ReLU>>(engine, desc);
       default:
         throw std::invalid_argument("unsupported convolution activation function");
       }

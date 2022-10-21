@@ -4,18 +4,18 @@
 #pragma once
 
 #include "../conv.h"
-#include "sycl_device.h"
+#include "sycl_engine.h"
 
 namespace oidn {
 
   class SYCLConvGen9 : public Conv
   {
   public:
-    SYCLConvGen9(const Ref<SYCLDevice>& device, const ConvDesc& desc);
-    void run() override;
+    SYCLConvGen9(const Ref<SYCLEngine>& engine, const ConvDesc& desc);
+    void submit() override;
 
   private:
-    Ref<SYCLDevice> device;
+    Ref<SYCLEngine> engine;
   };
 
 } // namespace oidn

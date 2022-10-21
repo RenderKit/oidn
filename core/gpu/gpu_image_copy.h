@@ -22,14 +22,14 @@ namespace oidn {
     }
   };
 
-  template<typename DeviceType>
+  template<typename EngineT>
   class GPUImageCopy final : public ImageCopy
   {
   public:
-    explicit GPUImageCopy(const Ref<DeviceType>& device)
-      : device(device) {}
+    explicit GPUImageCopy(const Ref<EngineT>& engine)
+      : engine(engine) {}
 
-    void run() override
+    void submit() override
     {
       if (!src || !dst)
         throw std::logic_error("image copy source/destination not set");
@@ -47,17 +47,17 @@ namespace oidn {
     }
 
   private:
-    template<typename ImageDataType>
+    template<typename ImageDataT>
     void runImpl()
     {
-      GPUImageCopyKernel<ImageDataType> kernel;
+      GPUImageCopyKernel<ImageDataT> kernel;
       kernel.src = *src;
       kernel.dst = *dst;
 
-      device->runKernelAsync(WorkDim<2>(dst->getH(), dst->getW()), kernel);
+      engine->submitKernel(WorkDim<2>(dst->getH(), dst->getW()), kernel);
     }
 
-    Ref<DeviceType> device;
+    Ref<EngineT> engine;
   };
 
 } // namespace oidn

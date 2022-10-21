@@ -15,6 +15,8 @@ namespace oidn {
   public:
     explicit Filter(const Ref<Device>& device);
 
+    Device* getDevice() const { return device.get(); }
+
     virtual void setImage(const std::string& name, const std::shared_ptr<Image>& image) = 0;
     virtual void removeImage(const std::string& name) = 0;
     virtual void setData(const std::string& name, const Data& data) = 0;
@@ -29,8 +31,6 @@ namespace oidn {
 
     virtual void commit() = 0;
     virtual void execute(bool sync = true) = 0;
-
-    Device* getDevice() { return device.get(); }
 
   protected:
     void setParam(int& dst, int src);

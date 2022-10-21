@@ -6,11 +6,11 @@
 
 namespace oidn {
 
-  CPUOutputProcess::CPUOutputProcess(const Ref<CPUDevice>& device, const OutputProcessDesc& desc)
+  CPUOutputProcess::CPUOutputProcess(const Ref<CPUEngine>& engine, const OutputProcessDesc& desc)
     : OutputProcess(desc),
-      device(device) {}
+      engine(engine) {}
 
-  void CPUOutputProcess::run()
+  void CPUOutputProcess::submit()
   {
     if (!src || !dst)
       throw std::logic_error("output processing source/destination not set");

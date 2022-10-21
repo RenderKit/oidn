@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "device.h"
+#include "engine.h"
 #include "buffer.h"
 #include "image_accessor.h"
 #if defined(OIDN_DEVICE_CPU)
@@ -80,7 +80,7 @@ namespace oidn {
     Image(void* ptr, Format format, size_t width, size_t height, size_t byteOffset, size_t bytePixelStride, size_t byteRowStride);
     Image(const Ref<Buffer>& buffer, const ImageDesc& desc, size_t byteOffset);
     Image(const Ref<Buffer>& buffer, Format format, size_t width, size_t height, size_t byteOffset, size_t bytePixelStride, size_t byteRowStride);
-    Image(const Ref<Device>& device, Format format, size_t width, size_t height);
+    Image(const Ref<Engine>& engine, Format format, size_t width, size_t height);
 
     void updatePtr() override;
 

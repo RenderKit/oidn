@@ -24,7 +24,7 @@ namespace oidn {
     return value;
   }
 
-  std::unordered_map<std::string, std::shared_ptr<Tensor>> parseTZA(const Ref<Device>& device, void* buffer, size_t size)
+  std::unordered_map<std::string, std::shared_ptr<Tensor>> parseTZA(const Ref<Engine>& engine, void* buffer, size_t size)
   {
     char* input = (char*)buffer;
     char* const bufferEnd = input + size;
@@ -92,7 +92,7 @@ namespace oidn {
       checkBounds(tensorData, bufferEnd, tensorDesc.getByteSize());
 
       // Add the tensor to the map
-      auto tensor = device->newTensor(tensorDesc, tensorData);
+      auto tensor = engine->newTensor(tensorDesc, tensorData);
       tensorMap.emplace(name, tensor);
     }
 

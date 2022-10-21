@@ -211,6 +211,8 @@ set(CORE_SOURCES
   core/data.h
   core/device.h
   core/device.cpp
+  core/engine.h
+  core/engine.cpp
   core/filter.h
   core/filter.cpp
   core/image_accessor.h
@@ -258,6 +260,8 @@ if(OIDN_DEVICE_CPU)
     core/cpu/cpu_autoexposure.cpp
     core/cpu/cpu_device.h
     core/cpu/cpu_device.cpp
+    core/cpu/cpu_engine.h
+    core/cpu/cpu_engine.cpp
     core/cpu/cpu_image_copy.h
     core/cpu/cpu_image_copy.cpp
     core/cpu/cpu_input_process.h
@@ -303,8 +307,8 @@ if(OIDN_DNNL)
     core/dnnl/dnnl_conv.cpp
     core/dnnl/dnnl_common.h
     core/dnnl/dnnl_common.cpp
-    core/dnnl/dnnl_device.h
-    core/dnnl/dnnl_device.cpp
+    core/dnnl/dnnl_engine.h
+    core/dnnl/dnnl_engine.cpp
     core/dnnl/dnnl_pool.h
     core/dnnl/dnnl_pool.cpp
     core/dnnl/dnnl_reorder.h
@@ -317,8 +321,8 @@ elseif(OIDN_BNNS)
     core/bnns/bnns_common.cpp
     core/bnns/bnns_conv.h
     core/bnns/bnns_conv.cpp
-    core/bnns/bnns_device.h
-    core/bnns/bnns_device.cpp
+    core/bnns/bnns_engine.h
+    core/bnns/bnns_engine.cpp
     core/bnns/bnns_pool.h
     core/bnns/bnns_pool.cpp
   )
@@ -337,6 +341,8 @@ if(OIDN_DEVICE_SYCL)
     core/sycl/sycl_conv_xehpg.cpp
     core/sycl/sycl_device.h
     core/sycl/sycl_device.cpp
+    core/sycl/sycl_engine.h
+    core/sycl/sycl_engine.cpp
     core/sycl/sycl_pool.h
     core/sycl/sycl_pool.cpp
     core/sycl/sycl_upsample.h
@@ -354,6 +360,8 @@ if(OIDN_DEVICE_CUDA)
     core/cuda/cuda_concat_conv.cpp
     core/cuda/cuda_device.h
     core/cuda/cuda_device.cu
+    core/cuda/cuda_engine.h
+    core/cuda/cuda_engine.cu
     core/cuda/cutlass_conv.h
     core/cuda/cutlass_conv_sm70.cu
     core/cuda/cutlass_conv_sm75.cu
@@ -368,6 +376,7 @@ if(OIDN_DEVICE_CUDA)
   set_source_files_properties(
     core/cuda/cuda_conv.cu
     core/cuda/cuda_device.cu
+    core/cuda/cuda_engine.cu
     PROPERTIES COMPILE_FLAGS
       "${OIDN_NVCC_SM70_FLAGS} ${OIDN_NVCC_SM75_FLAGS} ${OIDN_NVCC_SM80_FLAGS}"
   )
@@ -385,6 +394,8 @@ if(OIDN_DEVICE_HIP)
     core/hip/hip_conv.cpp
     core/hip/hip_device.h
     core/hip/hip_device.cpp
+    core/hip/hip_engine.h
+    core/hip/hip_engine.cpp
   )
 endif()
 

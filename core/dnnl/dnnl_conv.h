@@ -11,13 +11,13 @@ namespace oidn {
   class DNNLConv final : public Conv
   {
   public:
-    DNNLConv(const Ref<DNNLDevice>& device, const ConvDesc& desc);
+    DNNLConv(const Ref<DNNLEngine>& engine, const ConvDesc& desc);
 
     size_t getScratchByteSize() const override;
     void setScratch(const std::shared_ptr<Tensor>& scratch) override;
 
     void finalize() override;
-    void run() override;
+    void submit() override;
 
   private:
     void updateSrc() override;
@@ -25,7 +25,7 @@ namespace oidn {
     void updateBias() override;
     void updateDst() override;
 
-    Ref<DNNLDevice> device;
+    Ref<DNNLEngine> engine;
     dnnl::convolution_forward::primitive_desc primDesc;
     dnnl::convolution_forward prim;
     std::unordered_map<int, dnnl::memory> args;

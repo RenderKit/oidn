@@ -3,15 +3,14 @@
 
 #pragma once
 
+#include "engine.h"
 #include <unordered_map>
-#include "common.h"
 
 namespace oidn {
 
   struct TensorDesc;
   struct ImageDesc;
 
-  class Device;
   class Memory;
   class Tensor;
   class Image;
@@ -26,7 +25,8 @@ namespace oidn {
     friend class Memory;
 
   public:
-    virtual Device* getDevice() = 0;
+    virtual Engine* getEngine() const = 0;
+    Device* getDevice() const { return getEngine()->getDevice(); }
 
     virtual char* getData() = 0;
     virtual const char* getData() const = 0;
@@ -62,7 +62,7 @@ namespace oidn {
     MappedBuffer(const Ref<Buffer>& buffer, size_t byteOffset, size_t byteSize, Access access);
     ~MappedBuffer();
 
-    Device* getDevice() override { return buffer->getDevice(); }
+    Engine* getEngine() const override { return buffer->getEngine(); }
 
     char* getData() override { return ptr; }
     const char* getData() const override { return ptr; }
@@ -83,11 +83,11 @@ namespace oidn {
   class USMBuffer final : public Buffer
   {
   public:
-    USMBuffer(const Ref<Device>& device, size_t byteSize, Storage storage);
-    USMBuffer(const Ref<Device>& device, void* data, size_t byteSize);
+    USMBuffer(const Ref<Engine>& engine, size_t byteSize, Storage storage);
+    USMBuffer(const Ref<Engine>& engine, void* data, size_t byteSize);
     ~USMBuffer();
 
-    Device* getDevice() override { return device.get(); }
+    Engine* getEngine() const override { return engine.get(); }
 
     char* getData() override { return ptr; }
     const char* getData() const override { return ptr; }
@@ -115,7 +115,7 @@ namespace oidn {
     bool shared;
     Storage storage;
     std::unordered_map<void*, MappedRegion> mappedRegions;
-    Ref<Device> device;
+    Ref<Engine> engine;
   };
 
   // ---------------------------------------------------------------------------

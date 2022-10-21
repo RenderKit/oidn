@@ -9,8 +9,8 @@
 
 namespace oidn {
 
-  Network::Network(const Ref<Device>& device, const std::shared_ptr<Weights>& weights)
-    : device(device),
+  Network::Network(const Ref<Engine>& engine, const std::shared_ptr<Weights>& weights)
+    : engine(engine),
       weights(weights) {}
 
   std::shared_ptr<InputProcess> Network::addInputProcess(const std::string& name,
@@ -20,7 +20,7 @@ namespace oidn {
                                                          bool hdr,
                                                          bool snorm)
   {
-    auto op = device->newInputProcess({srcDims, alignment, transferFunc, hdr, snorm});
+    auto op = engine->newInputProcess({srcDims, alignment, transferFunc, hdr, snorm});
     op->setName(name);
     ops.push_back(op);
     return op;
@@ -32,7 +32,7 @@ namespace oidn {
                                                            bool hdr,
                                                            bool snorm)
   {
-    auto op = device->newOutputProcess({srcDesc, transferFunc, hdr, snorm});
+    auto op = engine->newOutputProcess({srcDesc, transferFunc, hdr, snorm});
     op->setName(name);
     ops.push_back(op);
     return op;
@@ -47,7 +47,7 @@ namespace oidn {
     auto weight = weights->get(name + ".weight");
     auto bias   = weights->get(name + ".bias");
 
-    auto op = device->newConv({srcDesc, weight->getDesc(), bias->getDesc(), activation, postOp});
+    auto op = engine->newConv({srcDesc, weight->getDesc(), bias->getDesc(), activation, postOp});
     op->setWeight(weight);
     op->setBias(bias);
     op->setName(name);
@@ -64,7 +64,7 @@ namespace oidn {
     auto weight = weights->get(name + ".weight");
     auto bias   = weights->get(name + ".bias");
 
-    auto op = device->newConcatConv({src1Desc, src2Desc, weight->getDesc(), bias->getDesc(), activation});
+    auto op = engine->newConcatConv({src1Desc, src2Desc, weight->getDesc(), bias->getDesc(), activation});
     op->setWeight(weight);
     op->setBias(bias);
     op->setName(name);
@@ -75,7 +75,7 @@ namespace oidn {
   std::shared_ptr<Pool> Network::addPool(const std::string& name,
                                          const TensorDesc& srcDesc)
   {
-    auto op = device->newPool({srcDesc});
+    auto op = engine->newPool({srcDesc});
     op->setName(name);
     ops.push_back(op);
     return op;
@@ -84,7 +84,7 @@ namespace oidn {
   std::shared_ptr<Upsample> Network::addUpsample(const std::string& name,
                                                  const TensorDesc& srcDesc)
   {
-    auto op = device->newUpsample({srcDesc});
+    auto op = engine->newUpsample({srcDesc});
     op->setName(name);
     ops.push_back(op);
     return op;
@@ -134,11 +134,11 @@ namespace oidn {
   {
     for (size_t i = 0; i < ops.size(); ++i)
     {
-      ops[i]->run();
+      ops[i]->submit();
       
     #if 0
       // Dump
-      device->wait();
+      engine->wait();
       std::shared_ptr<Tensor> dst;
 
       if (auto conv = std::dynamic_pointer_cast<Conv>(ops[i]))
@@ -154,7 +154,7 @@ namespace oidn {
         dst->dump(toString(i) + "_" + ops[i]->getName() + "_");
     #endif
 
-      progress.update(1);
+      progress.update(engine, 1);
     }
   }
 

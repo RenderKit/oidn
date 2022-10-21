@@ -4,10 +4,10 @@
 #pragma once
 
 #include "../conv.h"
-#include "cuda_device.h"
+#include "cuda_engine.h"
 
 namespace oidn {
 
-  std::shared_ptr<Conv> newCUDAConv(const Ref<CUDADevice>& device, const ConvDesc& desc);
+  std::shared_ptr<Conv> newCUDAConv(const Ref<CUDAEngine>& engine, const ConvDesc& desc);
 
 } // namespace oidn

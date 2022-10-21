@@ -4,18 +4,18 @@
 #pragma once
 
 #include "../output_process.h"
-#include "cpu_device.h"
+#include "cpu_engine.h"
 
 namespace oidn {
 
   class CPUOutputProcess final : public OutputProcess
   {
   public:
-    CPUOutputProcess(const Ref<CPUDevice>& device, const OutputProcessDesc& desc);
-    void run() override;
+    CPUOutputProcess(const Ref<CPUEngine>& engine, const OutputProcessDesc& desc);
+    void submit() override;
 
   private:
-    Ref<CPUDevice> device;
+    Ref<CPUEngine> engine;
   };
 
 } // namespace oidn

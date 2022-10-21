@@ -2,8 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "device.h"
-#include "concat_conv.h"
-#include "scratch.h"
 #include "rt_filter.h"
 #include "rtlightmap_filter.h"
 
@@ -179,61 +177,17 @@ namespace oidn {
 
   Ref<Buffer> Device::newBuffer(size_t byteSize, Storage storage)
   {
-    return makeRef<USMBuffer>(this, byteSize, storage);
+    return getEngine()->newBuffer(byteSize, storage);
   }
 
   Ref<Buffer> Device::newBuffer(void* ptr, size_t byteSize)
   {
-    return makeRef<USMBuffer>(this, ptr, byteSize);
-  }
-
-  Ref<ScratchBuffer> Device::newScratchBuffer(size_t byteSize)
-  {
-    auto scratchManager = scratchManagerWp.lock();
-    if (!scratchManager)
-      scratchManagerWp = scratchManager = std::make_shared<ScratchBufferManager>(this);
-    return makeRef<ScratchBuffer>(scratchManager, byteSize);
-  }
-
-  std::shared_ptr<Tensor> Device::newTensor(const TensorDesc& desc, Storage storage)
-  {
-    return std::make_shared<GenericTensor>(this, desc, storage);
-  }
-
-  std::shared_ptr<Tensor> Device::newTensor(const TensorDesc& desc, void* data)
-  {
-    return std::make_shared<GenericTensor>(this, desc, data);
-  }
-
-  std::shared_ptr<Tensor> Device::newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
-  {
-    assert(buffer->getDevice() == this);
-    return std::make_shared<GenericTensor>(buffer, desc, byteOffset);
-  }
-
-  std::shared_ptr<ConcatConv> Device::newConcatConv(const ConcatConvDesc& desc)
-  {
-    return std::make_shared<CHWConcatConv>(this, desc);
-  }
-
-  void* Device::malloc(size_t byteSize, Storage storage)
-  {
-    return alignedMalloc(byteSize);
-  }
-
-  void Device::free(void* ptr, Storage storage)
-  {
-    alignedFree(ptr);
-  }
-
-  void Device::memcpy(void* dstPtr, const void* srcPtr, size_t byteSize)
-  {
-    std::memcpy(dstPtr, srcPtr, byteSize);
+    return getEngine()->newBuffer(ptr, byteSize);
   }
 
   Storage Device::getPointerStorage(const void* ptr)
   {
-    return Storage::Host;
+    return getEngine()->getPointerStorage(ptr);
   }
 
 } // namespace oidn

@@ -39,7 +39,6 @@ namespace oidn {
     std::shared_ptr<Image> albedo;
     std::shared_ptr<Image> normal;
     std::shared_ptr<Image> output;
-    std::shared_ptr<Image> outputTemp; // required for in-place tiled filtering
 
     // Options
     bool hdr = false;
@@ -70,8 +69,9 @@ namespace oidn {
     void init();
     void cleanup();
     void checkParams();
-    std::shared_ptr<Weights> parseWeights();
-    bool buildNet(size_t maxScratchByteSize = std::numeric_limits<size_t>::max());
+    Data getWeights();
+    bool buildModel(size_t maxScratchByteSize = std::numeric_limits<size_t>::max());
+    void resetModel();
 
     // Image dimensions
     int H = 0;            // image height
@@ -82,13 +82,21 @@ namespace oidn {
     int tileCountW = 1;   // number of tiles in W dimension
     bool inplace = false; // indicates whether input and output buffers overlap
 
-    // Network
-    std::unique_ptr<Network> net;
-    std::shared_ptr<Autoexposure> autoexposure;
-    std::shared_ptr<InputProcess> inputProcess;
-    std::shared_ptr<OutputProcess> outputProcess;
-    std::shared_ptr<ImageCopy> imageCopy;
+    // Per-engine model instance
+    struct Instance
+    {
+      std::unique_ptr<Network> net;
+      std::shared_ptr<InputProcess> inputProcess;
+      std::shared_ptr<OutputProcess> outputProcess;
+    };
+    
+    // Model
+    std::vector<Instance> instances;
     std::shared_ptr<TransferFunction> transferFunc;
+    std::shared_ptr<Autoexposure> autoexposure;
+    // In-place tiled filtering
+    std::shared_ptr<ImageCopy> imageCopy;
+    std::shared_ptr<Image> outputTemp;
     
     Progress progress;
   };

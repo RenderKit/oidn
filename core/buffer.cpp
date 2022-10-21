@@ -39,7 +39,7 @@ namespace oidn {
   std::shared_ptr<Tensor> Buffer::newTensor(const TensorDesc& desc, ptrdiff_t relByteOffset)
   {
     size_t byteOffset = relByteOffset >= 0 ? relByteOffset : getByteSize() + relByteOffset;
-    return getDevice()->newTensor(this, desc, byteOffset);
+    return getEngine()->newTensor(this, desc, byteOffset);
   }
 
   std::shared_ptr<Image> Buffer::newImage(const ImageDesc& desc, ptrdiff_t relByteOffset)
@@ -66,26 +66,26 @@ namespace oidn {
   // USMBuffer
   // ---------------------------------------------------------------------------
 
-  USMBuffer::USMBuffer(const Ref<Device>& device, size_t byteSize, Storage storage)
+  USMBuffer::USMBuffer(const Ref<Engine>& engine, size_t byteSize, Storage storage)
     : ptr(nullptr),
       byteSize(byteSize),
       shared(false),
       storage(storage),
-      device(device)
+      engine(engine)
   {
-    ptr = (char*)device->malloc(byteSize, storage);
+    ptr = (char*)engine->malloc(byteSize, storage);
   }
 
-  USMBuffer::USMBuffer(const Ref<Device>& device, void* data, size_t byteSize)
+  USMBuffer::USMBuffer(const Ref<Engine>& engine, void* data, size_t byteSize)
     : ptr((char*)data),
       byteSize(byteSize),
       shared(true),
       storage(Storage::Undefined),
-      device(device)
+      engine(engine)
   {
     if (ptr == nullptr)
       throw Exception(Error::InvalidArgument, "buffer pointer null");
-    storage = device->getPointerStorage(ptr);
+    storage = engine->getPointerStorage(ptr);
   }
 
   USMBuffer::~USMBuffer()
@@ -96,7 +96,7 @@ namespace oidn {
     for (const auto& region : mappedRegions)
       unmap(region.first);
 
-    device->free(ptr, storage);
+    engine->free(ptr, storage);
   }
 
   void* USMBuffer::map(size_t byteOffset, size_t byteSize, Access access)
@@ -111,9 +111,9 @@ namespace oidn {
     if (storage != Storage::Device)
       return devPtr;
 
-    void* hostPtr = device->malloc(byteSize, Storage::Host);
+    void* hostPtr = engine->malloc(byteSize, Storage::Host);
     if (access != Access::WriteDiscard)
-      device->memcpy(hostPtr, devPtr, byteSize);
+      engine->memcpy(hostPtr, devPtr, byteSize);
     
     mappedRegions.insert({hostPtr, {devPtr, byteSize, access}});
     return hostPtr;
@@ -129,8 +129,8 @@ namespace oidn {
       throw Exception(Error::InvalidArgument, "invalid mapped region");
 
     if (region->second.access != Access::Read)
-      device->memcpy(region->second.devPtr, hostPtr, byteSize);
-    device->free(hostPtr, Storage::Host);
+      engine->memcpy(region->second.devPtr, hostPtr, byteSize);
+    engine->free(hostPtr, Storage::Host);
 
     mappedRegions.erase(region);
   }
@@ -142,7 +142,7 @@ namespace oidn {
     if (byteOffset + byteSize > this->byteSize)
       throw Exception(Error::InvalidArgument, "buffer region out of range");
 
-    device->memcpy(dstHostPtr, ptr + byteOffset, byteSize);
+    engine->memcpy(dstHostPtr, ptr + byteOffset, byteSize);
   }
 
   void USMBuffer::write(size_t byteOffset, size_t byteSize, const void* srcHostPtr)
@@ -152,7 +152,7 @@ namespace oidn {
     if (byteOffset + byteSize > this->byteSize)
       throw Exception(Error::InvalidArgument, "buffer region out of range");
 
-    device->memcpy(ptr + byteOffset, srcHostPtr, byteSize);
+    engine->memcpy(ptr + byteOffset, srcHostPtr, byteSize);
   }
 
   void USMBuffer::realloc(size_t newByteSize)
@@ -162,8 +162,8 @@ namespace oidn {
     if (!mappedRegions.empty())
       throw std::logic_error("mapped buffers cannot be reallocated");
 
-    device->free(ptr, storage);
-    ptr = (char*)device->malloc(newByteSize, storage);
+    engine->free(ptr, storage);
+    ptr = (char*)engine->malloc(newByteSize, storage);
     byteSize = newByteSize;
   }
 

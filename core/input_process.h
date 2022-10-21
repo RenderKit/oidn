@@ -22,7 +22,7 @@ namespace oidn {
   class InputProcess : public Op, protected InputProcessDesc
   {
   public:
-    InputProcess(const Ref<Device>& device, const InputProcessDesc& desc);
+    InputProcess(const Ref<Engine>& engine, const InputProcessDesc& desc);
     
     TensorDesc getDstDesc() const;
     std::shared_ptr<Tensor> getDst() const { return dst; }

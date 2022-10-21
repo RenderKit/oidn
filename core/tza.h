@@ -9,6 +9,6 @@
 namespace oidn {
 
   // Parses tensors from a Tensor Archive (TZA)
-  std::unordered_map<std::string, std::shared_ptr<Tensor>> parseTZA(const Ref<Device>& device, void* buffer, size_t size);
+  std::unordered_map<std::string, std::shared_ptr<Tensor>> parseTZA(const Ref<Engine>& engine, void* buffer, size_t size);
 
 } // namespace oidn

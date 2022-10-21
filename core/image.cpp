@@ -66,8 +66,8 @@ namespace oidn {
     this->ptr = buffer->getData() + byteOffset;
   }
 
-  Image::Image(const Ref<Device>& device, Format format, size_t width, size_t height)
-    : Memory(device->newBuffer(width * height * getFormatSize(format), Storage::Device)),
+  Image::Image(const Ref<Engine>& engine, Format format, size_t width, size_t height)
+    : Memory(engine->newBuffer(width * height * getFormatSize(format), Storage::Device)),
       ImageDesc(format, width, height)
   {
     this->ptr = buffer->getData();

@@ -187,7 +187,9 @@ double runBenchmark(DeviceRef& device, const Benchmark& bench)
   #endif
 
   for (int i = 0; i < numBenchmarkRuns; ++i)
-    filter.execute();
+    filter.executeAsync();
+
+  device.sync();
 
   #ifdef VTUNE
     __itt_pause();

@@ -4,18 +4,18 @@
 #pragma once
 
 #include "../pool.h"
-#include "sycl_device.h"
+#include "sycl_engine.h"
 
 namespace oidn {
 
   class SYCLPool : public Pool
   {
   public:
-    SYCLPool(const Ref<SYCLDevice>& device, const PoolDesc& desc);
-    void run() override;
+    SYCLPool(const Ref<SYCLEngine>& engine, const PoolDesc& desc);
+    void submit() override;
 
   private:
-    Ref<SYCLDevice> device;
+    Ref<SYCLEngine> engine;
   };
 
 } // namespace oidn

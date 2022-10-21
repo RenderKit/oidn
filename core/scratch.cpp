@@ -5,8 +5,8 @@
 
 namespace oidn {
 
-  ScratchBufferManager::ScratchBufferManager(const Ref<Device>& device)
-    : buffer(device->newBuffer(0, Storage::Device))
+  ScratchBufferManager::ScratchBufferManager(const Ref<Engine>& engine)
+    : buffer(engine->newBuffer(0, Storage::Device))
   {
   }
 

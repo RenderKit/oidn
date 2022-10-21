@@ -1,0 +1,55 @@
+// Copyright 2009-2022 Intel Corporation
+// SPDX-License-Identifier: Apache-2.0
+
+#include "cpu_engine.h"
+#include "cpu_upsample.h"
+#include "cpu_autoexposure.h"
+#include "cpu_input_process.h"
+#include "cpu_output_process.h"
+#include "cpu_image_copy.h"
+
+namespace oidn {
+
+  CPUEngine::CPUEngine(const Ref<CPUDevice>& device)
+    : device(device.get())
+  {}
+
+  void CPUEngine::runHostTask(std::function<void()>&& f)
+  {
+    if (device->arena)
+      device->arena->execute(f);
+    else
+      f();
+  }
+
+  std::shared_ptr<Upsample> CPUEngine::newUpsample(const UpsampleDesc& desc)
+  {
+    return std::make_shared<CPUUpsample>(this, desc);
+  }
+
+  std::shared_ptr<Autoexposure> CPUEngine::newAutoexposure(const ImageDesc& srcDesc)
+  {
+    return std::make_shared<CPUAutoexposure>(this, srcDesc);
+  }
+
+  std::shared_ptr<InputProcess> CPUEngine::newInputProcess(const InputProcessDesc& desc)
+  {
+    return std::make_shared<CPUInputProcess>(this, desc);
+  }
+
+  std::shared_ptr<OutputProcess> CPUEngine::newOutputProcess(const OutputProcessDesc& desc)
+  {
+    return std::make_shared<CPUOutputProcess>(this, desc);
+  }
+
+  std::shared_ptr<ImageCopy> CPUEngine::newImageCopy()
+  {
+    return std::make_shared<CPUImageCopy>(this);
+  }
+
+  void CPUEngine::submitHostFunc(std::function<void()>&& f)
+  {
+    f(); // no async execution on the CPU
+  }
+
+} // namespace oidn

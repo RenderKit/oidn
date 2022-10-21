@@ -8,17 +8,17 @@
 
 namespace oidn {
 
-  CPUUpsample::CPUUpsample(const Ref<CPUDevice>& device, const UpsampleDesc& desc)
+  CPUUpsample::CPUUpsample(const Ref<CPUEngine>& engine, const UpsampleDesc& desc)
     : Upsample(desc),
-      device(device)
+      engine(engine)
   {
-    if (srcDesc.layout != device->getTensorLayout())
+    if (srcDesc.layout != engine->getDevice()->getTensorLayout())
       throw std::invalid_argument("unsupported upsampling source layout");
   }
 
 #if defined(OIDN_DNNL)
 
-  void CPUUpsample::run()
+  void CPUUpsample::submit()
   {
     if (!src || !dst)
       throw std::logic_error("upsampling source/destination not set");
@@ -35,7 +35,7 @@ namespace oidn {
 
 #else
 
-  void CPUUpsample::run()
+  void CPUUpsample::submit()
   {
     if (!src || !dst)
       throw std::logic_error("upsampling source/destination not set");

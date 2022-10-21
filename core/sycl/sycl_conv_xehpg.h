@@ -4,21 +4,21 @@
 #pragma once
 
 #include "../conv.h"
-#include "sycl_device.h"
+#include "sycl_engine.h"
 
 namespace oidn {
 
   class SYCLConvXeHPG : public Conv
   {
   public:
-    SYCLConvXeHPG(const Ref<SYCLDevice>& device, const ConvDesc& desc);
-    void run() override;
+    SYCLConvXeHPG(const Ref<SYCLEngine>& engine, const ConvDesc& desc);
+    void submit() override;
 
   private:
     template<PostOp kernelPostOp>
     void runImpl();
 
-    Ref<SYCLDevice> device;
+    Ref<SYCLEngine> engine;
   };
 
 } // namespace oidn

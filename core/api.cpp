@@ -138,7 +138,7 @@ OIDN_API_NAMESPACE_BEGIN
     Ref<Device> device = nullptr;
     OIDN_TRY
     #if defined(OIDN_DEVICE_SYCL)
-      device = makeRef<SYCLDevice>(*((sycl::queue*)syclQueue));
+      device = makeRef<SYCLDevice>(std::vector<sycl::queue>{*static_cast<sycl::queue*>(syclQueue)});
     #else
       throw Exception(Error::InvalidArgument, "unsupported device type");
     #endif

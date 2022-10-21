@@ -5,21 +5,21 @@
 
 namespace oidn {
 
-  DNNLTensor::DNNLTensor(const Ref<DNNLDevice>& device, const TensorDesc& desc, Storage storage)
-    : Tensor(device->newBuffer(desc.getByteSize(), storage), desc)
+  DNNLTensor::DNNLTensor(const Ref<DNNLEngine>& engine, const TensorDesc& desc, Storage storage)
+    : Tensor(engine->newBuffer(desc.getByteSize(), storage), desc)
   {
-    init(device, buffer->getData());
+    init(engine, buffer->getData());
   }
 
-  DNNLTensor::DNNLTensor(const Ref<DNNLDevice>& device, const TensorDesc& desc, void* data)
-    : Tensor(device, desc)
+  DNNLTensor::DNNLTensor(const Ref<DNNLEngine>& engine, const TensorDesc& desc, void* data)
+    : Tensor(engine, desc)
   {
-    init(device, data);
+    init(engine, data);
   }
 
-  DNNLTensor::DNNLTensor(const Ref<DNNLDevice>& device, const dnnl::memory::desc& desc)
-    : Tensor(device, TensorDesc({int64_t(desc.get_size())}, TensorLayout::x, DataType::UInt8)),
-      mem(desc, device->getDNNLEngine()) {}
+  DNNLTensor::DNNLTensor(const Ref<DNNLEngine>& engine, const dnnl::memory::desc& desc)
+    : Tensor(engine, TensorDesc({int64_t(desc.get_size())}, TensorLayout::x, DataType::UInt8)),
+      mem(desc, engine->getDNNLEngine()) {}
 
   DNNLTensor::DNNLTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
     : Tensor(buffer, desc, byteOffset)
@@ -27,12 +27,12 @@ namespace oidn {
     if (byteOffset + getByteSize() > buffer->getByteSize())
       throw Exception(Error::InvalidArgument, "buffer region out of range");
 
-    init(dynamicRefCast<DNNLDevice>(device), buffer->getData() + byteOffset);
+    init(dynamicRefCast<DNNLEngine>(engine), buffer->getData() + byteOffset);
   }
 
-  void DNNLTensor::init(const Ref<DNNLDevice>& device, void* data)
+  void DNNLTensor::init(const Ref<DNNLEngine>& engine, void* data)
   {
-    mem = dnnl::memory(toDNNL(getDesc()), device->getDNNLEngine(), data);
+    mem = dnnl::memory(toDNNL(getDesc()), engine->getDNNLEngine(), data);
   }
 
   void DNNLTensor::updatePtr()

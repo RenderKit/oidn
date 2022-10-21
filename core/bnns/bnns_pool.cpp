@@ -5,9 +5,9 @@
 
 namespace oidn {
 
-  BNNSPool::BNNSPool(const Ref<BNNSDevice>& device, const PoolDesc& desc)
+  BNNSPool::BNNSPool(const Ref<BNNSEngine>& engine, const PoolDesc& desc)
     : Pool(desc),
-      device(device) {}
+      engine(engine) {}
 
   BNNSPool::~BNNSPool()
   {
@@ -35,7 +35,7 @@ namespace oidn {
       throw std::runtime_error("BNNSFilterCreateLayerPooling failed");
   }
 
-  void BNNSPool::run()
+  void BNNSPool::submit()
   {
     if (!filter)
       throw std::logic_error("pooling not finalized");

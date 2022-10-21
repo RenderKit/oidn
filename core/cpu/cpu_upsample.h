@@ -4,18 +4,18 @@
 #pragma once
 
 #include "../upsample.h"
-#include "cpu_device.h"
+#include "cpu_engine.h"
 
 namespace oidn {
 
   class CPUUpsample final : public Upsample
   {
   public:
-    CPUUpsample(const Ref<CPUDevice>& device, const UpsampleDesc& desc);
-    void run() override;
+    CPUUpsample(const Ref<CPUEngine>& engine, const UpsampleDesc& desc);
+    void submit() override;
 
   private:
-    Ref<CPUDevice> device;
+    Ref<CPUEngine> engine;
   };
 
 } // namespace oidn

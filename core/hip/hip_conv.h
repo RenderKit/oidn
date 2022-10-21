@@ -11,7 +11,7 @@ namespace oidn {
   class HIPConv final : public Conv
   {
   public:
-    HIPConv(const Ref<HIPDevice>& device, const ConvDesc& desc);
+    HIPConv(const Ref<HIPEngine>& engine, const ConvDesc& desc);
     ~HIPConv();
 
     bool isSupported() const override;
@@ -20,10 +20,10 @@ namespace oidn {
     void setScratch(const std::shared_ptr<Tensor>& scratch) override;
 
     void finalize() override;
-    void run() override;
+    void submit() override;
 
   private:
-    Ref<HIPDevice> device;
+    Ref<HIPEngine> engine;
     bool finalized = false;
 
     miopenConvolutionDescriptor_t convDesc;

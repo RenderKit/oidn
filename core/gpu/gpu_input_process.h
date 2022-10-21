@@ -11,16 +11,16 @@
 
 namespace oidn {
 
-  template<typename ImageDataType, typename TensorDataType, TensorLayout tensorLayout>
+  template<typename ImageDataT, typename TensorDataT, TensorLayout tensorLayout>
   struct GPUInputProcessKernel
   {
     // Source
-    ImageAccessor<ImageDataType> color;
-    ImageAccessor<ImageDataType> albedo;
-    ImageAccessor<ImageDataType> normal;
+    ImageAccessor<ImageDataT> color;
+    ImageAccessor<ImageDataT> albedo;
+    ImageAccessor<ImageDataT> normal;
 
     // Destination
-    TensorAccessor3D<TensorDataType, tensorLayout> dst;
+    TensorAccessor3D<TensorDataT, tensorLayout> dst;
 
     // Tile
     Tile tile;
@@ -138,15 +138,15 @@ namespace oidn {
     }
   };
 
-  template<typename DeviceType, typename TensorDataType, TensorLayout tensorLayout>
+  template<typename EngineT, typename TensorDataT, TensorLayout tensorLayout>
   class GPUInputProcess : public InputProcess
   {
   public:
-    GPUInputProcess(const Ref<DeviceType>& device, const InputProcessDesc& desc)
-      : InputProcess(device, desc),
-        device(device) {}
+    GPUInputProcess(const Ref<EngineT>& engine, const InputProcessDesc& desc)
+      : InputProcess(engine, desc),
+        engine(engine) {}
 
-    void run() override
+    void submit() override
     {
       if (!getMainSrc() || !dst)
         throw std::logic_error("input processing source/destination not set");
@@ -173,10 +173,10 @@ namespace oidn {
         throw std::invalid_argument("input processing sources have different data types");
     }
 
-    template<typename ImageDataType>
+    template<typename ImageDataT>
     void runImpl()
     {
-      GPUInputProcessKernel<ImageDataType, TensorDataType, tensorLayout> kernel;
+      GPUInputProcessKernel<ImageDataT, TensorDataT, tensorLayout> kernel;
       kernel.color  = color  ? *color  : Image();
       kernel.albedo = albedo ? *albedo : Image();
       kernel.normal = normal ? *normal : Image();
@@ -186,10 +186,10 @@ namespace oidn {
       kernel.hdr = hdr;
       kernel.snorm = snorm;
 
-      device->runKernelAsync(WorkDim<2>(dst->getH(), dst->getW()), kernel);
+      engine->submitKernel(WorkDim<2>(dst->getH(), dst->getW()), kernel);
     }
 
-    Ref<DeviceType> device;
+    Ref<EngineT> engine;
   };
 
 } // namespace oidn

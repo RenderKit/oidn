@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "cpu_device.h"
-#include "cpu_upsample.h"
-#include "cpu_autoexposure.h"
-#include "cpu_input_process.h"
-#include "cpu_output_process.h"
-#include "cpu_image_copy.h"
+#if defined(OIDN_DNNL)
+  #include "../dnnl/dnnl_engine.h"
+#elif defined(OIDN_BNNS)
+  #include "../bnns/bnns_engine.h"
+#endif
 
 namespace oidn {
 
@@ -67,6 +67,12 @@ namespace oidn {
     #endif
       std::cout << std::endl;
     }
+
+  #if defined(OIDN_DNNL)
+    engine = makeRef<DNNLEngine>(this);
+  #elif defined(OIDN_BNNS)
+    engine = makeRef<BNNSEngine>(this);
+  #endif
   }
 
   void CPUDevice::initTasking()
@@ -142,42 +148,9 @@ namespace oidn {
     dirty = true;
   }
 
-  void CPUDevice::runHostTask(std::function<void()>&& f)
+  void CPUDevice::wait()
   {
-    if (arena)
-      arena->execute(f);
-    else
-      f();
-  }
-
-  std::shared_ptr<Upsample> CPUDevice::newUpsample(const UpsampleDesc& desc)
-  {
-    return std::make_shared<CPUUpsample>(this, desc);
-  }
-
-  std::shared_ptr<Autoexposure> CPUDevice::newAutoexposure(const ImageDesc& srcDesc)
-  {
-    return std::make_shared<CPUAutoexposure>(this, srcDesc);
-  }
-
-  std::shared_ptr<InputProcess> CPUDevice::newInputProcess(const InputProcessDesc& desc)
-  {
-    return std::make_shared<CPUInputProcess>(this, desc);
-  }
-
-  std::shared_ptr<OutputProcess> CPUDevice::newOutputProcess(const OutputProcessDesc& desc)
-  {
-    return std::make_shared<CPUOutputProcess>(this, desc);
-  }
-
-  std::shared_ptr<ImageCopy> CPUDevice::newImageCopy()
-  {
-    return std::make_shared<CPUImageCopy>(this);
-  }
-
-  void CPUDevice::runHostFuncAsync(std::function<void()>&& f)
-  {
-    f(); // no async execution on the CPU
+    engine->wait();
   }
 
 } // namespace oidn

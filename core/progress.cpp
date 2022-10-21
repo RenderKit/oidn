@@ -5,43 +5,47 @@
 
 namespace oidn {
 
-  Progress::Progress(const Ref<Device>& device)
+  Progress::Progress()
     : enabled(false),
       cancelled(false),
       func(nullptr),
       userPtr(nullptr),
       total(0),
-      current(0),
-      device(device) {}
+      current(0)
+  {}
 
-  void Progress::start(ProgressMonitorFunction func, void* userPtr, double total)
+  void Progress::start(const Ref<Engine>& engine, ProgressMonitorFunction func, void* userPtr, double total)
   {
     cancelled = false;
     enabled = func != nullptr;
     if (!enabled)
       return;
 
-    device->runHostFuncAsync([=]()
+    engine->submitHostFunc([=]()
     {
+      std::lock_guard<std::mutex> lock(mutex);
+
       this->func = func;
       this->userPtr = userPtr;
       this->total = total;
       this->current = 0;
+
       call();
     });
 
     checkCancelled();
   }
 
-  void Progress::update(double done)
+  void Progress::update(const Ref<Engine>& engine, double done)
   {
     assert(done >= 0);
 
     if (!enabled)
       return;
 
-    device->runHostFuncAsync([=]()
+    engine->submitHostFunc([=]()
     {
+      std::lock_guard<std::mutex> lock(mutex);
       current = std::min(current + done, total);
       call();
     });
@@ -49,13 +53,15 @@ namespace oidn {
     checkCancelled();
   }
 
-  void Progress::finish()
+  void Progress::finish(const Ref<Engine>& engine)
   {
     if (!enabled)
       return;
 
-    device->runHostFuncAsync([=]()
+    engine->submitHostFunc([=]()
     {
+      std::lock_guard<std::mutex> lock(mutex);
+
       // Make sure total progress is reported at the end
       if (current < total)
       {

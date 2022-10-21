@@ -3,16 +3,17 @@
 
 #pragma once
 
-#include "mkl-dnn/include/dnnl.hpp"
-#include "../device.h"
+#include "../cpu/cpu_engine.h"
 
 namespace oidn {
 
-  class DNNLDevice : public Device
+  class DNNLEngine final : public CPUEngine
   {
   public:
-    OIDN_INLINE dnnl::engine& getDNNLEngine() { return dnnlEngine; }
-    OIDN_INLINE dnnl::stream& getDNNLStream() { return dnnlStream; }
+    explicit DNNLEngine(const Ref<CPUDevice>& device);
+
+    OIDN_INLINE dnnl::engine& getDNNLEngine() { return device->dnnlEngine; }
+    OIDN_INLINE dnnl::stream& getDNNLStream() { return device->dnnlStream; }
 
     void wait() override;
 
@@ -23,10 +24,6 @@ namespace oidn {
     // Ops
     std::shared_ptr<Conv> newConv(const ConvDesc& desc) override;
     std::shared_ptr<Pool> newPool(const PoolDesc& desc) override;
-
-  protected:
-    dnnl::engine dnnlEngine;
-    dnnl::stream dnnlStream;
   };
 
 } // namespace oidn

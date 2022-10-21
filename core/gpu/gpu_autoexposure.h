@@ -9,10 +9,10 @@
 
 namespace oidn {
 
-  template<typename ImageDataType, int maxBinSize>
+  template<typename ImageDataT, int maxBinSize>
   struct GPUAutoexposureDownsampleKernel : WorkGroup<2>
   {
-    ImageAccessor<ImageDataType> src;
+    ImageAccessor<ImageDataT> src;
     float* bins;
 
     OIDN_DEVICE_INLINE void operator ()(const WorkGroupItem<2>& it) const
@@ -146,19 +146,19 @@ namespace oidn {
     }
   };
 
-  template<typename DeviceType, int groupSize>
+  template<typename EngineT, int groupSize>
   class GPUAutoexposure final : public Autoexposure
   {
     static_assert(groupSize >= maxBinSize * maxBinSize, "GPUAutoexposure groupSize is too small");
 
   public:
-    GPUAutoexposure(const Ref<DeviceType>& device, const ImageDesc& srcDesc)
+    GPUAutoexposure(const Ref<EngineT>& engine, const ImageDesc& srcDesc)
       : Autoexposure(srcDesc),
-        device(device)
+        engine(engine)
     {
       numGroups = min(ceil_div(numBins, groupSize), groupSize);
       scratchByteSize = numBins * sizeof(float) + numGroups * (sizeof(float) + sizeof(int));
-      resultBuffer = device->newBuffer(sizeof(float), Storage::Device);
+      resultBuffer = engine->newBuffer(sizeof(float), Storage::Device);
     }
 
     size_t getScratchByteSize() const override
@@ -174,7 +174,7 @@ namespace oidn {
       this->scratch = scratch;
     }
 
-    void run() override
+    void submit() override
     {
       if (!src)
         throw std::logic_error("autoexposure source not set");
@@ -192,34 +192,34 @@ namespace oidn {
     const float* getResult() const override { return (float*)resultBuffer->getData(); }
 
   private:
-    template<typename ImageDataType>
+    template<typename ImageDataT>
     void runImpl()
     {
       float* bins = (float*)scratch->getData();
       float* sums = (float*)((char*)bins + numBins * sizeof(float));
       int* counts = (int*)((char*)sums + numGroups * sizeof(float));
 
-      GPUAutoexposureDownsampleKernel<ImageDataType, maxBinSize> downsample;
+      GPUAutoexposureDownsampleKernel<ImageDataT, maxBinSize> downsample;
       downsample.src = *src;
       downsample.bins = bins;
-      device->runKernelAsync(WorkDim<2>(numBinsH, numBinsW), WorkDim<2>(maxBinSize, maxBinSize), downsample);
+      engine->submitKernel(WorkDim<2>(numBinsH, numBinsW), WorkDim<2>(maxBinSize, maxBinSize), downsample);
 
       GPUAutoexposureReduceKernel<groupSize> reduce;
       reduce.bins   = bins;
       reduce.size   = numBins;
       reduce.sums   = sums;
       reduce.counts = counts;
-      device->runKernelAsync(WorkDim<1>(numGroups), WorkDim<1>(groupSize), reduce);
+      engine->submitKernel(WorkDim<1>(numGroups), WorkDim<1>(groupSize), reduce);
 
       GPUAutoexposureReduceFinalKernel<groupSize> reduceFinal;
       reduceFinal.sums   = sums;
       reduceFinal.counts = counts;
       reduceFinal.size   = numGroups;
       reduceFinal.result = (float*)resultBuffer->getData();
-      device->runKernelAsync(WorkDim<1>(1), WorkDim<1>(groupSize), reduceFinal);
+      engine->submitKernel(WorkDim<1>(1), WorkDim<1>(groupSize), reduceFinal);
     }
 
-    Ref<DeviceType> device;
+    Ref<EngineT> engine;
     int numGroups;
     Ref<Buffer> resultBuffer;
     size_t scratchByteSize;

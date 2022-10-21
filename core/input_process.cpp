@@ -5,18 +5,18 @@
 
 namespace oidn {
 
-  InputProcess::InputProcess(const Ref<Device>& device, const InputProcessDesc& desc)
+  InputProcess::InputProcess(const Ref<Engine>& engine, const InputProcessDesc& desc)
     : InputProcessDesc(desc)
   {
     if (srcDims.size() != 3)
       throw std::invalid_argument("invalid input processing source shape");
 
     TensorDims dstDims {
-      round_up(srcDims[0], device->getTensorBlockC()), // round up C
+      round_up(srcDims[0], engine->getDevice()->getTensorBlockC()), // round up C
       round_up(srcDims[1], int64_t(alignment)), // round up H
       round_up(srcDims[2], int64_t(alignment))  // round up W
     };
-    dstDesc = {dstDims, device->getTensorLayout(), device->getTensorDataType()};
+    dstDesc = {dstDims, engine->getDevice()->getTensorLayout(), engine->getDevice()->getTensorDataType()};
 
     setTile(0, 0, 0, 0, 0, 0);
   }

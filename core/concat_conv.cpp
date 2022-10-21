@@ -61,16 +61,16 @@ namespace oidn {
     updateDst();
   }
 
-  CHWConcatConv::CHWConcatConv(const Ref<Device>& device, const ConcatConvDesc& desc)
+  CHWConcatConv::CHWConcatConv(const Ref<Engine>& engine, const ConcatConvDesc& desc)
     : ConcatConv(desc),
-      device(device)
+      engine(engine)
   {
     if (src1Desc.layout == TensorLayout::hwc)
       throw std::invalid_argument("unsupported concatenation+convolution source layout");
 
     TensorDims srcDims {src1Desc.getC() + src2Desc.getC(), src1Desc.getH(), src1Desc.getW()};
     srcDesc = TensorDesc(srcDims, src1Desc.layout, src1Desc.dataType);
-    conv = device->newConv({srcDesc, weightDesc, biasDesc, activation});
+    conv = engine->newConv({srcDesc, weightDesc, biasDesc, activation});
   }
 
   void CHWConcatConv::updateSrc()
@@ -83,7 +83,7 @@ namespace oidn {
     if (src1->getBuffer())
       src = src1->getBuffer()->newTensor(srcDesc, src1->getByteOffset());
     else
-      src = device->newTensor(srcDesc, src1->getData());
+      src = engine->newTensor(srcDesc, src1->getData());
     conv->setSrc(src);
   }
 

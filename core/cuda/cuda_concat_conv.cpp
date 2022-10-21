@@ -5,20 +5,20 @@
 
 namespace oidn {
 
-  CUDAConcatConv::CUDAConcatConv(const Ref<CUDADevice>& device, const ConcatConvDesc& desc)
+  CUDAConcatConv::CUDAConcatConv(const Ref<CUDAEngine>& engine, const ConcatConvDesc& desc)
     : ConcatConv(desc),
-      device(device)
+      engine(engine)
   {
     // Split the convolution into two smaller convolutions
     weight1Desc = {{weightDesc.getO(), src1Desc.getC(), weightDesc.getH(), weightDesc.getW()}, weightDesc.layout, weightDesc.dataType};
     weight2Desc = {{weightDesc.getO(), src2Desc.getC(), weightDesc.getH(), weightDesc.getW()}, weightDesc.layout, weightDesc.dataType};
 
     // Convolution 1: dst = conv(src1, weight1) + bias
-    conv1 = newCUDAConv(device, {src1Desc, weight1Desc, biasDesc, Activation::None});
+    conv1 = newCUDAConv(engine, {src1Desc, weight1Desc, biasDesc, Activation::None});
 
     // Convolution 2: dst = activation(conv(src2, weight2) + dst)
     // We use dst as bias, which is supported by CUTLASS
-    conv2 = newCUDAConv(device, {src2Desc, weight2Desc, dstDesc, activation});
+    conv2 = newCUDAConv(engine, {src2Desc, weight2Desc, dstDesc, activation});
   }
 
   bool CUDAConcatConv::isSupported() const
@@ -68,8 +68,8 @@ namespace oidn {
     assert(isSupported());
 
     // Split weight into weight1 and weight2
-    auto weight1 = device->newTensor(weight1Desc);
-    auto weight2 = device->newTensor(weight2Desc);
+    auto weight1 = engine->newTensor(weight1Desc);
+    auto weight2 = engine->newTensor(weight2Desc);
 
     auto weightHost  = weight->map(Access::Read);
     auto weight1Host = weight1->map(Access::WriteDiscard);
@@ -105,13 +105,13 @@ namespace oidn {
     finalized = true;
   }
 
-  void CUDAConcatConv::run()
+  void CUDAConcatConv::submit()
   {
     if (!finalized)
       throw std::logic_error("concatenation+convolution not finalized");
 
-    conv1->run();
-    conv2->run();
+    conv1->submit();
+    conv2->submit();
   }
 
 } // namespace oidn

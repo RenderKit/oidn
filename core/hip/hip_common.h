@@ -5,7 +5,7 @@
 
 #include <miopen/miopen.h>
 #include "../tensor.h"
-#include "hip_device.h"
+#include "hip_engine.h"
 
 namespace oidn {
 

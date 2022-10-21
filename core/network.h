@@ -18,7 +18,7 @@ namespace oidn {
   class Network
   {
   public:
-    Network(const Ref<Device>& device, const std::shared_ptr<Weights>& weights);
+    Network(const Ref<Engine>& engine, const std::shared_ptr<Weights>& weights);
 
     std::shared_ptr<InputProcess> addInputProcess(const std::string& name,
                                                   const TensorDims& srcDims,
@@ -62,7 +62,7 @@ namespace oidn {
     void run(Progress& progress);
 
   private:
-    Ref<Device> device;
+    Ref<Engine> engine;
     std::vector<std::shared_ptr<Op>> ops;
     std::shared_ptr<Weights> weights;
   };

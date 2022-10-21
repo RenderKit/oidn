@@ -43,15 +43,15 @@ namespace oidn {
     }
   };
 
-  SYCLPool::SYCLPool(const Ref<SYCLDevice>& device, const PoolDesc& desc)
+  SYCLPool::SYCLPool(const Ref<SYCLEngine>& engine, const PoolDesc& desc)
     : Pool(desc),
-      device(device)
+      engine(engine)
   {
     if (srcDesc.layout != TensorLayout::Chw16c || srcDesc.dataType != DataType::Float16)
       throw std::invalid_argument("unsupported pooling source layout/data type");
   }
 
-  void SYCLPool::run()
+  void SYCLPool::submit()
   {
     if (!src || !dst)
       throw std::logic_error("pooling source/destination not set");
@@ -60,7 +60,7 @@ namespace oidn {
     kernel.src = *src;
     kernel.dst = *dst;
 
-    device->runESIMDKernelAsync(WorkDim<2>(dst->getH() * dst->getCB(), dst->getW()), kernel);
+    engine->submitESIMDKernel(WorkDim<2>(dst->getH() * dst->getCB(), dst->getW()), kernel);
   }
 
 } // namespace oidn

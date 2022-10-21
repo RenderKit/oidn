@@ -11,14 +11,14 @@
 
 namespace oidn {
 
-  template<typename ImageDataType, typename TensorDataType, TensorLayout tensorLayout>
+  template<typename ImageDataT, typename TensorDataT, TensorLayout tensorLayout>
   struct GPUOutputProcessKernel
   {
     // Source
-    TensorAccessor3D<TensorDataType, tensorLayout> src;
+    TensorAccessor3D<TensorDataT, tensorLayout> src;
 
     // Destination
-    ImageAccessor<ImageDataType> dst;
+    ImageAccessor<ImageDataT> dst;
 
     // Tile
     Tile tile;
@@ -65,15 +65,15 @@ namespace oidn {
     }
   };
 
-  template<typename DeviceType, typename TensorDataType, TensorLayout tensorLayout>
+  template<typename EngineT, typename TensorDataT, TensorLayout tensorLayout>
   class GPUOutputProcess : public OutputProcess
   {
   public:
-    GPUOutputProcess(const Ref<DeviceType>& device, const OutputProcessDesc& desc)
+    GPUOutputProcess(const Ref<EngineT>& engine, const OutputProcessDesc& desc)
       : OutputProcess(desc),
-        device(device) {}
+        engine(engine) {}
 
-    void run() override
+    void submit() override
     {
       if (!src || !dst)
         throw std::logic_error("output processing source/destination not set");
@@ -92,10 +92,10 @@ namespace oidn {
     }
 
   private:
-    template<typename ImageDataType>
+    template<typename ImageDataT>
     void runImpl()
     {
-      GPUOutputProcessKernel<ImageDataType, TensorDataType, tensorLayout> kernel;
+      GPUOutputProcessKernel<ImageDataT, TensorDataT, tensorLayout> kernel;
       kernel.src = *src;
       kernel.dst = *dst;
       kernel.tile = tile;
@@ -103,10 +103,10 @@ namespace oidn {
       kernel.hdr = hdr;
       kernel.snorm = snorm;
 
-      device->runKernelAsync(WorkDim<2>(tile.H, tile.W), kernel);
+      engine->submitKernel(WorkDim<2>(tile.H, tile.W), kernel);
     }
 
-    Ref<DeviceType> device;
+    Ref<EngineT> engine;
   };
 
 } // namespace oidn

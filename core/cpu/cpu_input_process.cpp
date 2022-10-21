@@ -6,11 +6,11 @@
 
 namespace oidn {
 
-  CPUInputProcess::CPUInputProcess(const Ref<CPUDevice>& device, const InputProcessDesc& desc)
-    : InputProcess(device, desc),
-      device(device) {}
+  CPUInputProcess::CPUInputProcess(const Ref<CPUEngine>& engine, const InputProcessDesc& desc)
+    : InputProcess(engine, desc),
+      engine(engine) {}
 
-  void CPUInputProcess::run()
+  void CPUInputProcess::submit()
   {
     if (!getMainSrc() || !dst)
       throw std::logic_error("input processing source/destination not set");

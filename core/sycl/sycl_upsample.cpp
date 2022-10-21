@@ -39,15 +39,15 @@ namespace oidn {
     }
   };
 
-  SYCLUpsample::SYCLUpsample(const Ref<SYCLDevice>& device, const UpsampleDesc& desc)
+  SYCLUpsample::SYCLUpsample(const Ref<SYCLEngine>& engine, const UpsampleDesc& desc)
     : Upsample(desc),
-      device(device)
+      engine(engine)
   {
     if (srcDesc.layout != TensorLayout::Chw16c || srcDesc.dataType != DataType::Float16)
       throw std::invalid_argument("unsupported upsampling source layout/data type");
   }
 
-  void SYCLUpsample::run()
+  void SYCLUpsample::submit()
   {
     if (!src || !dst)
       throw std::logic_error("upsampling source/destination not set");
@@ -56,7 +56,7 @@ namespace oidn {
     kernel.src = *src;
     kernel.dst = *dst;
 
-    device->runESIMDKernelAsync(WorkDim<2>(src->getH() * src->getCB(), src->getW()), kernel);
+    engine->submitESIMDKernel(WorkDim<2>(src->getH() * src->getCB(), src->getW()), kernel);
   }
 
 } // namespace oidn

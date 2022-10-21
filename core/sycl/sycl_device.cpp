@@ -2,15 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "sycl_device.h"
-#include "../gpu/gpu_autoexposure.h"
-#include "../gpu/gpu_input_process.h"
-#include "../gpu/gpu_output_process.h"
-#include "../gpu/gpu_image_copy.h"
-#include "sycl_conv_gen9.h"
-#include "sycl_conv_xehpg.h"
-#include "sycl_conv_xehpc.h"
-#include "sycl_pool.h"
-#include "sycl_upsample.h"
+#include "sycl_engine.h"
+#include <iomanip>
 
 namespace oidn {
 
@@ -45,73 +38,104 @@ namespace oidn {
            device.has(sycl::aspect::usm_shared_allocations);
   }
 
+  SYCLArch SYCLDevice::getDeviceArch(const sycl::device& device)
+  {
+    // FIXME: improve robustness
+    if (device.get_info<sycl::info::device::max_work_group_size>() >= 1024)
+    {
+      if (device.has(sycl::aspect::fp64))
+        return SYCLArch::XeHPC;
+      else
+        return SYCLArch::XeHPG;
+    }
+    else
+      return SYCLArch::Gen9;
+  }
+
   SYCLDevice::SYCLDevice() {}
 
-  SYCLDevice::SYCLDevice(const sycl::queue& syclQueue)
-    : sycl(new SYCL{syclQueue.get_context(), syclQueue.get_device(), syclQueue}) {}
+  SYCLDevice::SYCLDevice(const std::vector<sycl::queue>& queues)
+    : queues(queues) {}
 
   void SYCLDevice::init()
   {
-    if (!sycl)
+    if (queues.empty())
     {
-      sycl::device device{SYCLDeviceSelector()};
-      
-      // FIXME: If the device has multiple sub-devices (GPU tiles), use only one of them
-      if (device.get_info<sycl::info::device::partition_max_sub_devices>() > 0)
+      try
       {
-        auto domain = sycl::info::partition_affinity_domain::next_partitionable;
-        auto subDevices = device.create_sub_devices<sycl::info::partition_property::partition_by_affinity_domain>(domain);
-        device = subDevices[0];
+        sycl::device device {SYCLDeviceSelector()};
+
+        arch = getDeviceArch(device);
+
+        // Try to split the device into sub-devices per NUMA domain (tile)
+        const auto partition = sycl::info::partition_property::partition_by_affinity_domain;
+        const auto supportedPartitions = device.get_info<sycl::info::device::partition_properties>();
+        if (std::find(supportedPartitions.begin(), supportedPartitions.end(), partition) != supportedPartitions.end())
+        {
+          const auto domain = sycl::info::partition_affinity_domain::numa;
+          const auto supportedDomains = device.get_info<sycl::info::device::partition_affinity_domains>();
+          if (std::find(supportedDomains.begin(), supportedDomains.end(), domain) != supportedDomains.end())
+          {
+            auto subDevices = device.create_sub_devices<partition>(domain);
+            for (auto& subDevice : subDevices)
+              queues.emplace_back(subDevice);
+          }
+        }
+
+        if (queues.empty())
+          queues.emplace_back(device);
       }
-
-      // Initialize the SYCL device and queue
-      sycl::queue syclQueue(device,
-                            sycl::property_list{sycl::property::queue::in_order{}});
-
-      sycl.reset(new SYCL{syclQueue.get_context(), syclQueue.get_device(), syclQueue});
-    }
-
-    // FIXME: Detect the GPU arch
-    if (sycl->device.get_info<sycl::info::device::max_work_group_size>() >= 1024)
-    {
-      if (sycl->device.has(sycl::aspect::fp64))
-        arch = Arch::XeHPC;
-      else
-        arch = Arch::XeHPG;
+      catch (sycl::exception& e)
+      {
+        if (e.code() == sycl::errc::runtime)
+          throw Exception(Error::UnsupportedHardware, "no supported SYCL device found");
+        else
+          throw;
+      }
     }
     else
-      arch = Arch::Gen9;
+    {
+      for (size_t i = 0; i < queues.size(); ++i)
+      {
+        if (!isDeviceSupported(queues[i].get_device()))
+          throw Exception(Error::UnsupportedHardware, "unsupported SYCL device");
+
+        if (i == 0)
+          arch = getDeviceArch(queues[i].get_device());
+        else if (getDeviceArch(queues[i].get_device()) != arch)
+          throw Exception(Error::UnsupportedHardware, "unsupported mixture of SYCL devices");
+      }
+    }
 
     if (isVerbose())
     {
-      std::cout << "  Device    : " << sycl->device.get_info<sycl::info::device::name>() << std::endl;
+      for (size_t i = 0; i < queues.size(); ++i)
+      {
+        if (queues.size() > 1)
+           std::cout << "  Device " << std::setw(2) << i << " : ";
+        else
+          std::cout << "  Device    : ";
+        std::cout << queues[i].get_device().get_info<sycl::info::device::name>() << std::endl;
+        std::cout << "    EUs     : " << queues[i].get_device().get_info<sycl::info::device::max_compute_units>() << std::endl;
+      }
+
       std::cout << "    Arch    : ";
       switch (arch)
       {
-      case Arch::Gen9:
-        std::cout << "Gen9/Xe-LP";
-        break;
-      case Arch::XeHPG:
-        std::cout << "Xe-HPG";
-        break;
-      case Arch::XeHPC:
-        std::cout << "Xe-HPC";
-        break;
-      default:
-        std::cout << "Unknown";
+      case SYCLArch::Gen9:  std::cout << "Gen9/Xe-LP"; break;
+      case SYCLArch::XeHPG: std::cout << "Xe-HPG";     break;
+      case SYCLArch::XeHPC: std::cout << "Xe-HPC";     break;
+      default:              std::cout << "Unknown";
       }
       std::cout << std::endl;
-      std::cout << "    EUs     : " << sycl->device.get_info<sycl::info::device::max_compute_units>() << std::endl;
-      std::cout << "    Platform: " << sycl->device.get_platform().get_info<sycl::info::platform::name>() << std::endl;
+      std::cout << "  Runtime   : " << queues[0].get_device().get_platform().get_info<sycl::info::platform::name>() << std::endl;
     }
 
-    // Check the SYCL device and queue
-    if (!isDeviceSupported(sycl->device))
-      throw Exception(Error::UnsupportedHardware, "unsupported SYCL device");
-    if (!sycl->queue.is_in_order())
-        throw Exception(Error::InvalidArgument, "unsupported out-of-order SYCL queue");
+    // Create the engines
+    for (auto& queue : queues)
+      engines.push_back(makeRef<SYCLEngine>(this, queue));
 
-    maxWorkGroupSize = sycl->device.get_info<sycl::info::device::max_work_group_size>();
+    queues.clear(); // not needed anymore
 
     tensorDataType  = DataType::Float16;
     tensorLayout    = TensorLayout::Chw16c;
@@ -119,128 +143,64 @@ namespace oidn {
 
     switch (arch)
     {
-    case Arch::XeHPG:
+    case SYCLArch::XeHPG:
       weightsLayout = TensorLayout::OIhw2o8i8o2i;
       break;
-    case Arch::XeHPC:
+    case SYCLArch::XeHPC:
       weightsLayout = TensorLayout::OIhw8i16o2i;
       break;
     default:
       weightsLayout = TensorLayout::OIhw16i16o;
     }
   }
-
-  std::shared_ptr<Conv> SYCLDevice::newConv(const ConvDesc& desc)
+  
+  void SYCLDevice::submitBarrier()
   {
-    switch (arch)
+    // We need a barrier only if there are at least 2 engines
+    if (engines.size() < 2)
+      return;
+
+    // Submit the barrier to the default engine
+    // The barrier depends on the commands on all engines
+    engines[0]->depEvents = getDone();
+    engines[0]->submitBarrier();
+    
+    // The next commands on all the other engines also depend on the barrier
+    for (size_t i = 1; i < engines.size(); ++i)
     {
-    case Arch::XeHPG:
-      return std::make_shared<SYCLConvXeHPG>(this, desc);
-    case Arch::XeHPC:
-      return std::make_shared<SYCLConvXeHPC>(this, desc);
-    default:
-      return std::make_shared<SYCLConvGen9>(this, desc);
+      engines[i]->lastEvent.reset();
+      engines[i]->depEvents = {engines[0]->lastEvent.value()};
     }
-  }
-
-  std::shared_ptr<Pool> SYCLDevice::newPool(const PoolDesc& desc)
-  {
-    return std::make_shared<SYCLPool>(this, desc);
-  }
-
-  std::shared_ptr<Upsample> SYCLDevice::newUpsample(const UpsampleDesc& desc)
-  {
-    return std::make_shared<SYCLUpsample>(this, desc);
-  }
-
-  std::shared_ptr<Autoexposure> SYCLDevice::newAutoexposure(const ImageDesc& srcDesc)
-  {
-    if (maxWorkGroupSize >= 1024)
-      return std::make_shared<GPUAutoexposure<SYCLDevice, 1024>>(this, srcDesc);
-    else if (maxWorkGroupSize >= 512)
-      return std::make_shared<GPUAutoexposure<SYCLDevice, 512>>(this, srcDesc);
-    else
-      return std::make_shared<GPUAutoexposure<SYCLDevice, 256>>(this, srcDesc);
-  }
-
-  std::shared_ptr<InputProcess> SYCLDevice::newInputProcess(const InputProcessDesc& desc)
-  {
-    return std::make_shared<GPUInputProcess<SYCLDevice, half, TensorLayout::Chw16c>>(this, desc);
-  }
-
-  std::shared_ptr<OutputProcess> SYCLDevice::newOutputProcess(const OutputProcessDesc& desc)
-  {
-    return std::make_shared<GPUOutputProcess<SYCLDevice, half, TensorLayout::Chw16c>>(this, desc);
-  }
-
-  std::shared_ptr<ImageCopy> SYCLDevice::newImageCopy()
-  {
-    return std::make_shared<GPUImageCopy<SYCLDevice>>(this);
-  }
-
-  void* SYCLDevice::malloc(size_t byteSize, Storage storage)
-  {
-    switch (storage)
-    {
-    case Storage::Undefined:
-    case Storage::Host:
-      return sycl::aligned_alloc_host(memoryAlignment,
-                                      byteSize,
-                                      sycl->context);
-
-    case Storage::Device:
-      return sycl::aligned_alloc_device(memoryAlignment,
-                                        byteSize,
-                                        sycl->device,
-                                        sycl->context);
-
-    case Storage::Managed:
-      return sycl::aligned_alloc_shared(memoryAlignment,
-                                        byteSize,
-                                        sycl->device,
-                                        sycl->context);
-
-    default:
-      throw Exception(Error::InvalidArgument, "invalid storage mode");
-    }
-  }
-
-  void SYCLDevice::free(void* ptr, Storage storage)
-  {
-    sycl::free(ptr, sycl->context);
-  }
-
-  void SYCLDevice::memcpy(void* dstPtr, const void* srcPtr, size_t byteSize)
-  {
-    sycl->queue.memcpy(dstPtr, srcPtr, byteSize).wait();
-  }
-
-  Storage SYCLDevice::getPointerStorage(const void* ptr)
-  {
-    switch (sycl::get_pointer_type(ptr, sycl->context))
-    {
-      case sycl::usm::alloc::host:
-        return Storage::Host;
-
-      case sycl::usm::alloc::device:
-        return sycl::get_pointer_device(ptr, sycl->context) == sycl->device ? Storage::Device : Storage::Undefined;
-      
-      case sycl::usm::alloc::shared:
-        return Storage::Managed;
-      
-      default:
-        return Storage::Undefined;
-    }
-  }
-
-  void SYCLDevice::runHostFuncAsync(std::function<void()>&& f)
-  {
-    sycl->queue.submit([&](sycl::handler& cgh) { cgh.host_task(f); });
   }
 
   void SYCLDevice::wait()
   {
-    sycl->queue.wait_and_throw();
+    // Wait for the commands on all engines to complete
+    sycl::event::wait_and_throw(getDone());
+    
+    // We can now discard all events
+    for (auto& engine : engines)
+      engine->lastEvent.reset();
+  }
+  
+  void SYCLDevice::setDependencies(const std::vector<sycl::event>& depEvents)
+  {
+    for (auto& engine : engines)
+    {
+      engine->lastEvent.reset();
+      engine->depEvents = depEvents;
+    }
+  }
+  
+  std::vector<sycl::event> SYCLDevice::getDone()
+  {
+    std::vector<sycl::event> events;
+    for (auto& engine : engines)
+    {
+      if (engine->lastEvent)
+        events.push_back(engine->lastEvent.value());
+    }
+    return events;
   }
 
 } // namespace oidn

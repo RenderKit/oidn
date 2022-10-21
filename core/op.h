@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -25,7 +25,7 @@ namespace oidn {
     virtual void finalize() {}
 
     // Runs the operation which may be asynchronous
-    virtual void run() = 0;
+    virtual void submit() = 0;
 
     // Name for debugging purposes
     std::string getName() const { return name; }

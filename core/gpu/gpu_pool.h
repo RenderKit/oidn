@@ -51,32 +51,32 @@ namespace oidn {
     }
   };
 
-  template<typename DeviceType, typename TensorDataType, TensorLayout tensorLayout>
+  template<typename EngineT, typename TensorDataT, TensorLayout tensorLayout>
   class GPUPool : public Pool
   {
   public:
-    GPUPool(const Ref<DeviceType>& device,
+    GPUPool(const Ref<EngineT>& engine,
             const PoolDesc& desc)
       : Pool(desc),
-        device(device) {}
+        engine(engine) {}
 
-    void run() override
+    void submit() override
     {
       if (!src || !dst)
         throw std::logic_error("pooling source/destination not set");
 
-      GPUPoolKernel<TensorDataType, tensorLayout> kernel;
+      GPUPoolKernel<TensorDataT, tensorLayout> kernel;
       kernel.src = *src;
       kernel.dst = *dst;
 
       if (tensorLayout == TensorLayout::hwc)
-        device->runKernelAsync(WorkDim<3>(dst->getH(), dst->getW(), dst->getC()), kernel);
+        engine->submitKernel(WorkDim<3>(dst->getH(), dst->getW(), dst->getC()), kernel);
       else
-        device->runKernelAsync(WorkDim<3>(dst->getC(), dst->getH(), dst->getW()), kernel);
+        engine->submitKernel(WorkDim<3>(dst->getC(), dst->getH(), dst->getW()), kernel);
     }
 
   private:
-    Ref<DeviceType> device;
+    Ref<EngineT> engine;
   };
 
 } // namespace oidn

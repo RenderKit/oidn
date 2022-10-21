@@ -106,9 +106,9 @@ namespace oidn {
     }
   };
 
-  SYCLConvGen9::SYCLConvGen9(const Ref<SYCLDevice>& device, const ConvDesc& desc)
+  SYCLConvGen9::SYCLConvGen9(const Ref<SYCLEngine>& engine, const ConvDesc& desc)
     : Conv(desc),
-      device(device)
+      engine(engine)
   {
     if (srcDesc.layout != TensorLayout::Chw16c || srcDesc.dataType != DataType::Float16)
       throw std::invalid_argument("unsupported convolution source layout/data type");
@@ -118,7 +118,7 @@ namespace oidn {
       throw std::invalid_argument("unsupported convolution bias layout/data type");
   }
 
-  void SYCLConvGen9::run()
+  void SYCLConvGen9::submit()
   {
     if (!src || !weight || !bias || !dst)
       throw std::logic_error("convolution argument not set");
@@ -129,7 +129,7 @@ namespace oidn {
     kernel.bias   = *bias;
     kernel.dst    = *dst;
 
-    device->runESIMDKernelAsync(WorkDim<3>(dst->getCB(), dst->getH(), ceil_div(dst->getW(), blockOW)), kernel);
+    engine->submitESIMDKernel(WorkDim<3>(dst->getCB(), dst->getH(), ceil_div(dst->getW(), blockOW)), kernel);
   }
 
 } // namespace oidn

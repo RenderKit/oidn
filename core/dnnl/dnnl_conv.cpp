@@ -8,9 +8,9 @@
 
 namespace oidn {
 
-  DNNLConv::DNNLConv(const Ref<DNNLDevice>& device, const ConvDesc& desc)
+  DNNLConv::DNNLConv(const Ref<DNNLEngine>& engine, const ConvDesc& desc)
     : Conv(desc),
-      device(device)
+      engine(engine)
   {
     const dnnl::memory::dims strides = {1, 1};
     const dnnl::memory::dims padding = {1, 1};
@@ -49,7 +49,7 @@ namespace oidn {
     }
     convAttr.set_scratchpad_mode(dnnl::scratchpad_mode::user);
 
-    primDesc = dnnl::convolution_forward::primitive_desc(convDesc, convAttr, device->getDNNLEngine());
+    primDesc = dnnl::convolution_forward::primitive_desc(convDesc, convAttr, engine->getDNNLEngine());
   }
 
   size_t DNNLConv::getScratchByteSize() const
@@ -95,18 +95,18 @@ namespace oidn {
     // Reorder the weight tensor to the final format, if necessary
     if (getDNNL(weight).get_desc() != primDesc.weights_desc())
     {
-      auto newWeight = std::make_shared<DNNLTensor>(device, primDesc.weights_desc());
-      DNNLReorder(device, {weight, newWeight}).run();
-      device->wait();
+      auto newWeight = std::make_shared<DNNLTensor>(engine, primDesc.weights_desc());
+      DNNLReorder(engine, {weight, newWeight}).submit();
+      engine->wait();
       weight = newWeight;
     }
 
     // Reorder the bias tensor to the final format, if necessary
     if (getDNNL(bias).get_desc() != primDesc.bias_desc())
     {
-      auto newBias = std::make_shared<DNNLTensor>(device, primDesc.bias_desc());
-      DNNLReorder(device, {bias, newBias}).run();
-      device->wait();
+      auto newBias = std::make_shared<DNNLTensor>(engine, primDesc.bias_desc());
+      DNNLReorder(engine, {bias, newBias}).submit();
+      engine->wait();
       bias = newBias;
     }
 
@@ -116,14 +116,14 @@ namespace oidn {
     prim = dnnl::convolution_forward(primDesc);
   }
 
-  void DNNLConv::run()
+  void DNNLConv::submit()
   {
     if (!prim)
       throw std::logic_error("convolution not finalized");
     if (!src || !dst)
       throw std::logic_error("convolution source/destination not set");
 
-    prim.execute(device->getDNNLStream(), args);
+    prim.execute(engine->getDNNLStream(), args);
   }
 
 } // namespace oidn

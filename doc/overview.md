@@ -34,14 +34,14 @@ included training toolkit and user-provided image datasets.
 
 Intel Open Image Denoise supports Intel® 64 architecture compatible CPUs
 (with at least SSE4.1), Apple Silicon, NVIDIA GPUs (Volta architecture and
-later), and AMD GPUs (RDNA2 architecture and later). It runs on most machines
+newer), and AMD GPUs (RDNA2 architecture and newer). It runs on most machines
 ranging from laptops to workstations and compute nodes in HPC systems. It is
 efficient enough to be suitable not only for offline rendering, but, depending
 on the hardware used, also for interactive or even real-time ray tracing.
 
 Intel Open Image Denoise exploits modern instruction sets like Intel SSE4, AVX2,
-and AVX-512, and tensor cores on NVIDIA GPUs to achieve high denoising
-performance.
+and AVX-512 on CPUs, Intel Xe Matrix Extensions (XMX) on Intel GPUs, and tensor
+cores on NVIDIA GPUs to achieve high denoising performance.
 
 
 Support and Contact

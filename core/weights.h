@@ -14,7 +14,7 @@ namespace oidn {
   class Weights final
   {
   public:
-    Weights(const Ref<Device>& device, const Data& blob);
+    Weights(const Ref<Engine>& engine, const Data& blob);
     
     const std::shared_ptr<Tensor>& get(const std::string& name);
 
@@ -27,7 +27,7 @@ namespace oidn {
 
     std::unordered_map<std::string, std::shared_ptr<Tensor>> tensors;
     std::unordered_set<std::string> reordered;
-    Ref<Device> device;
+    Ref<Engine> engine;
   };
 
 } // namespace oidn

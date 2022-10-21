@@ -11,8 +11,8 @@ namespace oidn {
   class DNNLReorder final : public Op
   {
   public:
-    DNNLReorder(const Ref<DNNLDevice>& device, const ReorderDesc& desc)
-      : device(device),
+    DNNLReorder(const Ref<DNNLEngine>& engine, const ReorderDesc& desc)
+      : engine(engine),
         src(desc.src),
         dst(desc.dst)
     {
@@ -24,13 +24,13 @@ namespace oidn {
               {DNNL_ARG_DST, dstMem}};
     }
 
-    void run() override
+    void submit() override
     {
-      prim.execute(device->getDNNLStream(), args);
+      prim.execute(engine->getDNNLStream(), args);
     }
   
   private:
-    Ref<DNNLDevice> device;
+    Ref<DNNLEngine> engine;
     std::shared_ptr<Tensor> src;
     std::shared_ptr<Tensor> dst;
     dnnl::reorder prim;

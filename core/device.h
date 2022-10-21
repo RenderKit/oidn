@@ -3,42 +3,14 @@
 
 #pragma once
 
-#include <functional>
 #include "common.h"
-#include "kernel.h"
-#include "buffer.h"
 #include "tensor_layout.h"
 
 namespace oidn {
-
-  struct TensorDesc;
-  class Tensor;
-
-  struct ImageDesc;
-  class Image;
   
+  class Engine;
+  class Buffer;
   class Filter;
-
-  class ScratchBuffer;
-  class ScratchBufferManager;
-
-  class TransferFunction;
-
-  struct ConvDesc;
-  struct ConcatConvDesc;
-  struct PoolDesc;
-  struct UpsampleDesc;
-  struct InputProcessDesc;
-  struct OutputProcessDesc;
-
-  class Conv;
-  class ConcatConv;
-  class Pool;
-  class Upsample;
-  class Autoexposure;
-  class InputProcess;
-  class OutputProcess;
-  class ImageCopy;
 
   class Device : public RefCount, public Verbose
   {
@@ -58,8 +30,11 @@ namespace oidn {
     void checkCommitted();
     void commit();
 
-    OIDN_INLINE Device* getDevice() { return this; }
+    OIDN_INLINE Device* getDevice() { return this; } // used by the API implementation
     OIDN_INLINE std::mutex& getMutex() { return mutex; }
+
+    virtual Engine* getEngine(int i = 0) const = 0;
+    virtual int getNumEngines() const = 0;
 
     // Native tensor layout
     DataType getTensorDataType() const { return tensorDataType; }
@@ -67,46 +42,18 @@ namespace oidn {
     TensorLayout getWeightsLayout() const { return weightsLayout; }
     int getTensorBlockC() const { return tensorBlockSize; }
 
-    // Waits for all asynchronous operations to complete
-    virtual void wait() {}
+    // Synchronizes all engines (does not block)
+    virtual void submitBarrier() {}
 
-    virtual Ref<Buffer> newBuffer(size_t byteSize, Storage storage);
-    virtual Ref<Buffer> newBuffer(void* ptr, size_t byteSize);
-
-    Ref<ScratchBuffer> newScratchBuffer(size_t byteSize);
-
-    Ref<Filter> newFilter(const std::string& type);
-
-    virtual std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, Storage storage = Storage::Device);
-    virtual std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, void* data);
-    virtual std::shared_ptr<Tensor> newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset = 0);
-
-    // Ops
-    virtual std::shared_ptr<Conv> newConv(const ConvDesc& desc) = 0;
-    virtual std::shared_ptr<ConcatConv> newConcatConv(const ConcatConvDesc& desc);
-    virtual std::shared_ptr<Pool> newPool(const PoolDesc& desc) = 0;
-    virtual std::shared_ptr<Upsample> newUpsample(const UpsampleDesc& desc) = 0;
-    virtual std::shared_ptr<Autoexposure> newAutoexposure(const ImageDesc& srcDesc) = 0;
-    virtual std::shared_ptr<InputProcess> newInputProcess(const InputProcessDesc& desc) = 0;
-    virtual std::shared_ptr<OutputProcess> newOutputProcess(const OutputProcessDesc& desc) = 0;
-    virtual std::shared_ptr<ImageCopy> newImageCopy() = 0;
+    // Waits for all asynchronous commands to complete (blocks)
+    virtual void wait() = 0;
 
     // Memory
-    virtual void* malloc(size_t byteSize, Storage storage);
-    virtual void free(void* ptr, Storage storage);
-    virtual void memcpy(void* dstPtr, const void* srcPtr, size_t byteSize);
-    virtual Storage getPointerStorage(const void* ptr);
+    Ref<Buffer> newBuffer(size_t byteSize, Storage storage);
+    Ref<Buffer> newBuffer(void* ptr, size_t byteSize);
+    Storage getPointerStorage(const void* ptr);
 
-    // Runs a host task
-    virtual void runHostTask(std::function<void()>&& f)
-    {
-      f();
-    }
-
-    // Enqueues a host function
-    virtual void runHostFuncAsync(std::function<void()>&& f) = 0;
-
-    virtual int getMaxWorkGroupSize() const { return 0; }
+    Ref<Filter> newFilter(const std::string& type);
    
   protected:
     virtual void init() = 0;
@@ -136,9 +83,6 @@ namespace oidn {
     ThreadLocal<ErrorState> error;
     ErrorFunction errorFunc = nullptr;
     void* errorUserPtr = nullptr;
-
-    // Memory
-    std::weak_ptr<ScratchBufferManager> scratchManagerWp;
   };
 
 } // namespace oidn
