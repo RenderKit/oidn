@@ -116,6 +116,7 @@
 #if defined(OIDN_COMPILE_CUDA)
   #include <cuda_fp16.h>
 #elif defined(OIDN_COMPILE_HIP)
+  #include <hip/hip_runtime.h>
   #include <hip/hip_fp16.h>
 #endif
 

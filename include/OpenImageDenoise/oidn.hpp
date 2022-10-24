@@ -576,7 +576,7 @@ OIDN_NAMESPACE_BEGIN
   // Creates a new Open Image Denoise device from the specified HIP stream.
   inline DeviceRef newHIPDevice(hipStream_t stream)
   {
-    return DeviceRef(oidnNewHIPDevice(stream));
+    return DeviceRef(oidnNewHIPDevice(&stream, 1));
   }
 #endif
 

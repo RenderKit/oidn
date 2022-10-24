@@ -18,7 +18,7 @@
 #endif
 
 #if defined(OIDN_DEVICE_HIP)
-  #include <hip/hip_runtime.h>
+  typedef struct ihipStream_t* hipStream_t;
 #endif
 
 OIDN_API_NAMESPACE_BEGIN
@@ -61,7 +61,7 @@ OIDN_API OIDNDevice oidnNewDevice(OIDNDeviceType type);
 
 #if defined(OIDN_DEVICE_SYCL) && defined(SYCL_LANGUAGE_VERSION)
 // Creates a new Open Image Denoise device from the specified list of SYCL queues.
-// The queues should belong to different SYCL sub-devices (Xe-Stacks/Tiles) of the same SYCL root-device (GPU).
+// The queues should belong to different SYCL sub-devices (Xe-Stacks/Tiles) of the same SYCL root-device (Xe GPU).
 OIDN_API OIDNDevice oidnNewSYCLDevice(const sycl::queue* queues, int numQueues);
 #endif
 
@@ -72,8 +72,9 @@ OIDN_API OIDNDevice oidnNewCUDADevice(const cudaStream_t* streams, int numStream
 #endif
 
 #if defined(OIDN_DEVICE_HIP)
-// Creates a new Open Image Denoise device from the specified HIP stream.
-OIDN_API OIDNDevice oidnNewHIPDevice(void* hipStream);
+// Creates a new Open Image Denoise device from the specified list of HIP streams.
+// Currently only one stream is supported.
+OIDN_API OIDNDevice oidnNewHIPDevice(const hipStream_t* streams, int numStreams);
 #endif
 
 // Retains the device (increments the reference count).

@@ -5,10 +5,6 @@
 
 #include "../device.h"
 
-#if !defined(OIDN_COMPILE_HIP)
-  typedef struct ihipStream_t* hipStream_t;
-#endif
-
 namespace oidn {
 
 #if defined(OIDN_COMPILE_HIP)

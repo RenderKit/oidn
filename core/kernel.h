@@ -3,9 +3,6 @@
 
 #pragma once
 
-#if defined(OIDN_COMPILE_HIP)
-  #include <hip/hip_runtime.h>
-#endif
 #include "common/platform.h"
 
 namespace oidn {

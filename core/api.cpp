@@ -164,11 +164,16 @@ OIDN_API_NAMESPACE_BEGIN
 #endif
 
 #if defined(OIDN_DEVICE_HIP)
-  OIDN_API OIDNDevice oidnNewDeviceHIP(void* hipStream)
+  OIDN_API OIDNDevice oidnNewHIPDevice(const hipStream_t* streams, int numStreams)
   {
     Ref<Device> device = nullptr;
     OIDN_TRY
-      device = makeRef<HIPDevice>(static_cast<hipStream_t>(hipStream));
+      if (numStreams == 1)
+        device = makeRef<HIPDevice>(streams[0]);
+      else if (numStreams == 0)
+        device = makeRef<HIPDevice>();
+      else
+        throw Exception(Error::InvalidArgument, "unsupported number of streams");
     OIDN_CATCH(device)
     return (OIDNDevice)device.detach();
   }
