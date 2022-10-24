@@ -12,6 +12,11 @@
 #if defined(OIDN_DEVICE_SYCL) && defined(SYCL_LANGUAGE_VERSION)
   #include <CL/sycl.hpp>
 #endif
+
+#if defined(OIDN_DEVICE_CUDA)
+  typedef struct CUstream_st* cudaStream_t;
+#endif
+
 #if defined(OIDN_DEVICE_HIP)
   #include <hip/hip_runtime.h>
 #endif
@@ -61,8 +66,9 @@ OIDN_API OIDNDevice oidnNewSYCLDevice(const sycl::queue* queues, int numQueues);
 #endif
 
 #if defined(OIDN_DEVICE_CUDA)
-// Creates a new Open Image Denoise device from the specified CUDA stream.
-OIDN_API OIDNDevice oidnNewCUDADevice(void* cudaStream);
+// Creates a new Open Image Denoise device from the specified list of CUDA streams.
+// Currently only one stream is supported.
+OIDN_API OIDNDevice oidnNewCUDADevice(const cudaStream_t* streams, int numStreams);
 #endif
 
 #if defined(OIDN_DEVICE_HIP)

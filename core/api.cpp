@@ -148,11 +148,16 @@ OIDN_API_NAMESPACE_BEGIN
 #endif
 
 #if defined(OIDN_DEVICE_CUDA)
-  OIDN_API OIDNDevice oidnNewDeviceCUDA(void* cudaStream)
+  OIDN_API OIDNDevice oidnNewCUDADevice(const cudaStream_t* streams, int numStreams)
   {
     Ref<Device> device = nullptr;
     OIDN_TRY
-      device = makeRef<CUDADevice>(static_cast<cudaStream_t>(cudaStream));
+      if (numStreams == 1)
+        device = makeRef<CUDADevice>(streams[0]);
+      else if (numStreams == 0)
+        device = makeRef<CUDADevice>();
+      else
+        throw Exception(Error::InvalidArgument, "unsupported number of streams");
     OIDN_CATCH(device)
     return (OIDNDevice)device.detach();
   }

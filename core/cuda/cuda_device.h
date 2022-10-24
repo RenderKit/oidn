@@ -5,10 +5,6 @@
 
 #include "../device.h"
 
-#if !defined(OIDN_COMPILE_CUDA)
-  typedef struct CUstream_st* cudaStream_t;
-#endif
-
 namespace oidn {
 
 #if defined(OIDN_COMPILE_CUDA)

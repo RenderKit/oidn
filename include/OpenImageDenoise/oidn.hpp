@@ -568,7 +568,7 @@ OIDN_NAMESPACE_BEGIN
   // Creates a new Open Image Denoise device from the specified CUDA stream.
   inline DeviceRef newCUDADevice(cudaStream_t stream)
   {
-    return DeviceRef(oidnNewCUDADevice(stream));
+    return DeviceRef(oidnNewCUDADevice(&stream, 1));
   }
 #endif
 
