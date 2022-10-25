@@ -123,10 +123,10 @@ namespace oidn {
 
     if (isVerbose())
     {
+      std::cout << "  Platform  : " << queues[0].get_device().get_platform().get_info<sycl::info::platform::name>() << std::endl;
+      
       for (size_t i = 0; i < queues.size(); ++i)
-      {
-        std::cout << "  Platform  : " << queues[0].get_device().get_platform().get_info<sycl::info::platform::name>() << std::endl;
-        
+      { 
         if (queues.size() > 1)
            std::cout << "  Device " << std::setw(2) << i << " : ";
         else
