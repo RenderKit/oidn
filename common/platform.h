@@ -128,6 +128,7 @@ namespace oidn {
   OIDN_NAMESPACE_USING
 
 #if defined(OIDN_COMPILE_SYCL)
+  namespace syclx  = sycl::ext::intel::experimental;
   namespace esimd  = sycl::ext::intel::esimd;
   namespace esimdx = sycl::ext::intel::experimental::esimd;
 #endif

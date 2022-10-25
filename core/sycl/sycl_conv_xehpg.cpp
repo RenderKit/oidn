@@ -5,6 +5,7 @@
 
 #include "sycl_conv_xehpg.h"
 #include "sycl_common.h"
+#include <sycl/ext/intel/experimental/kernel_properties.hpp>
 
 namespace oidn {
 
@@ -32,7 +33,7 @@ namespace oidn {
 
     OIDN_INLINE void operator ()(const WorkGroupItem<3>& it) const SYCL_ESIMD_FUNCTION
     {
-      set_kernel_properties(kernel_properties::use_double_grf);
+      syclx::set_kernel_properties(syclx::kernel_properties::use_double_grf);
 
       const int oc = it.getLocalId<0>()  * blockC;
       const int oh = it.getGlobalId<1>() * blockOH;
