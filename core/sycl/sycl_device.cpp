@@ -52,10 +52,12 @@ namespace oidn {
       return SYCLArch::Gen9;
   }
 
-  SYCLDevice::SYCLDevice() {}
-
   SYCLDevice::SYCLDevice(const std::vector<sycl::queue>& queues)
-    : queues(queues) {}
+    : queues(queues)
+  {
+    // Get default values from environment variables
+    getEnvVar("OIDN_NUM_SUBDEVICES", numSubdevices);
+  }
 
   void SYCLDevice::init()
   {
@@ -113,6 +115,11 @@ namespace oidn {
         }
       }
     }
+    
+    // Limit the number of subdevices/engines if requested
+    if (numSubdevices > 0 && numSubdevices < int(queues.size()))
+      queues.resize(numSubdevices);
+    numSubdevices = int(queues.size());
 
     if (isVerbose())
     {
@@ -161,6 +168,29 @@ namespace oidn {
     default:
       weightsLayout = TensorLayout::OIhw16i16o;
     }
+  }
+  
+  int SYCLDevice::get1i(const std::string& name)
+  {
+    if (name == "numSubdevices")
+      return numSubdevices;
+    else
+      return Device::get1i(name);
+  }
+
+  void SYCLDevice::set1i(const std::string& name, int value)
+  {
+    if (name == "numSubdevices")
+    {
+      if (!isEnvVar("OIDN_NUM_SUBDEVICES"))
+        numSubdevices = value;
+      else if (numSubdevices != value)
+        warning("OIDN_NUM_SUBDEVICES environment variable overrides device parameter");
+    }
+    else
+      Device::set1i(name, value);
+
+    dirty = true;
   }
   
   void SYCLDevice::submitBarrier()
