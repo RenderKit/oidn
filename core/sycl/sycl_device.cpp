@@ -101,9 +101,16 @@ namespace oidn {
           throw Exception(Error::UnsupportedHardware, "unsupported SYCL device");
 
         if (i == 0)
+        {
           arch = getDeviceArch(queues[i].get_device());
-        else if (getDeviceArch(queues[i].get_device()) != arch)
-          throw Exception(Error::UnsupportedHardware, "unsupported mixture of SYCL devices");
+        }
+        else
+        {
+          if (queues[i].get_context() != queues[0].get_context())
+            throw Exception(Error::InvalidArgument, "queues belong to different SYCL contexts");
+          if (getDeviceArch(queues[i].get_device()) != arch)
+            throw Exception(Error::UnsupportedHardware, "unsupported mixture of SYCL devices");
+        }
       }
     }
 
@@ -111,24 +118,26 @@ namespace oidn {
     {
       for (size_t i = 0; i < queues.size(); ++i)
       {
+        std::cout << "  Platform  : " << queues[0].get_device().get_platform().get_info<sycl::info::platform::name>() << std::endl;
+        
         if (queues.size() > 1)
            std::cout << "  Device " << std::setw(2) << i << " : ";
         else
           std::cout << "  Device    : ";
         std::cout << queues[i].get_device().get_info<sycl::info::device::name>() << std::endl;
+        
+        std::cout << "    Arch    : ";
+        switch (arch)
+        {
+        case SYCLArch::Gen9:  std::cout << "Gen9/Gen11/Xe-LP"; break;
+        case SYCLArch::XeHPG: std::cout << "Xe-HPG";     break;
+        case SYCLArch::XeHPC: std::cout << "Xe-HPC";     break;
+        default:              std::cout << "Unknown";
+        }
+        std::cout << std::endl;
+        
         std::cout << "    EUs     : " << queues[i].get_device().get_info<sycl::info::device::max_compute_units>() << std::endl;
       }
-
-      std::cout << "    Arch    : ";
-      switch (arch)
-      {
-      case SYCLArch::Gen9:  std::cout << "Gen9/Xe-LP"; break;
-      case SYCLArch::XeHPG: std::cout << "Xe-HPG";     break;
-      case SYCLArch::XeHPC: std::cout << "Xe-HPC";     break;
-      default:              std::cout << "Unknown";
-      }
-      std::cout << std::endl;
-      std::cout << "  Runtime   : " << queues[0].get_device().get_platform().get_info<sycl::info::platform::name>() << std::endl;
     }
 
     // Create the engines
