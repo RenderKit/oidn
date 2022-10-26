@@ -28,7 +28,7 @@ namespace oidn {
     }
 
   private:
-    using clock = std::chrono::high_resolution_clock;
+    using clock = std::chrono::steady_clock;
 
     std::chrono::time_point<clock> start;
   };
