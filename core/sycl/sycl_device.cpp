@@ -108,8 +108,6 @@ namespace oidn {
         }
         else
         {
-          if (queues[i].get_context() != queues[0].get_context())
-            throw Exception(Error::InvalidArgument, "queues belong to different SYCL contexts");
           if (getDeviceArch(queues[i].get_device()) != arch)
             throw Exception(Error::UnsupportedHardware, "unsupported mixture of SYCL devices");
         }
