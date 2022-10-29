@@ -52,4 +52,24 @@ namespace oidn {
     f(); // no async execution on the CPU
   }
 
+  void* CPUEngine::malloc(size_t byteSize, Storage storage)
+  {
+    return alignedMalloc(byteSize);
+  }
+
+  void CPUEngine::free(void* ptr, Storage storage)
+  {
+    alignedFree(ptr);
+  }
+
+  void CPUEngine::memcpy(void* dstPtr, const void* srcPtr, size_t byteSize)
+  {
+    std::memcpy(dstPtr, srcPtr, byteSize);
+  }
+
+  Storage CPUEngine::getPointerStorage(const void* ptr)
+  {
+    return Storage::Host;
+  }
+
 } // namespace oidn

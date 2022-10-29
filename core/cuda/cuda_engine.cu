@@ -115,13 +115,10 @@ namespace oidn {
     {
     case cudaMemoryTypeHost:
       return Storage::Host;
-
     case cudaMemoryTypeDevice:
-      return attrib.device == deviceId ? Storage::Device : Storage::Undefined;
-
+      return Storage::Device;
     case cudaMemoryTypeManaged:
       return Storage::Managed;
-
     default:
       return Storage::Undefined;
     }

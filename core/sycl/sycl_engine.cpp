@@ -116,13 +116,10 @@ namespace oidn {
     {
       case sycl::usm::alloc::host:
         return Storage::Host;
-
       case sycl::usm::alloc::device:
-        return sycl::get_pointer_device(ptr, syclContext) == syclDevice ? Storage::Device : Storage::Undefined;
-      
+        return Storage::Device;
       case sycl::usm::alloc::shared:
         return Storage::Managed;
-      
       default:
         return Storage::Undefined;
     }

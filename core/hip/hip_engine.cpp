@@ -119,13 +119,10 @@ namespace oidn {
     {
     case hipMemoryTypeHost:
       return Storage::Host;
-
     case hipMemoryTypeDevice:
-      return attrib.device == deviceId ? Storage::Device : Storage::Undefined;
-
+      return Storage::Device;
     case hipMemoryTypeUnified:
       return Storage::Managed;
-
     default:
       return Storage::Undefined;
     }

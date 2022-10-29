@@ -63,10 +63,10 @@ namespace oidn {
     virtual std::shared_ptr<ImageCopy> newImageCopy() = 0;
 
     // Memory
-    virtual void* malloc(size_t byteSize, Storage storage);
-    virtual void free(void* ptr, Storage storage);
-    virtual void memcpy(void* dstPtr, const void* srcPtr, size_t byteSize);
-    virtual Storage getPointerStorage(const void* ptr);
+    virtual void* malloc(size_t byteSize, Storage storage) = 0;
+    virtual void free(void* ptr, Storage storage) = 0;
+    virtual void memcpy(void* dstPtr, const void* srcPtr, size_t byteSize) = 0;
+    virtual Storage getPointerStorage(const void* ptr) = 0;
 
     // Runs a host task
     virtual void runHostTask(std::function<void()>&& f)

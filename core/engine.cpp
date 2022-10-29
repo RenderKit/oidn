@@ -46,24 +46,4 @@ namespace oidn {
     return std::make_shared<CHWConcatConv>(this, desc);
   }
 
-  void* Engine::malloc(size_t byteSize, Storage storage)
-  {
-    return alignedMalloc(byteSize);
-  }
-
-  void Engine::free(void* ptr, Storage storage)
-  {
-    alignedFree(ptr);
-  }
-
-  void Engine::memcpy(void* dstPtr, const void* srcPtr, size_t byteSize)
-  {
-    std::memcpy(dstPtr, srcPtr, byteSize);
-  }
-
-  Storage Engine::getPointerStorage(const void* ptr)
-  {
-    return Storage::Host;
-  }
-
 } // namespace oidn
