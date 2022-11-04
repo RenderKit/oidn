@@ -106,6 +106,11 @@ namespace oidn {
     checkError(hipMemcpy(dstPtr, srcPtr, byteSize, hipMemcpyDefault));
   }
 
+  void HIPEngine::submitMemcpy(void* dstPtr, const void* srcPtr, size_t byteSize)
+  {
+    checkError(hipMemcpyAsync(dstPtr, srcPtr, byteSize, hipMemcpyDefault, stream));
+  }
+
   Storage HIPEngine::getPointerStorage(const void* ptr)
   {
     hipPointerAttribute_t attrib;

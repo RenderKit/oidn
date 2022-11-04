@@ -67,6 +67,11 @@ namespace oidn {
     std::memcpy(dstPtr, srcPtr, byteSize);
   }
 
+  void CPUEngine::submitMemcpy(void* dstPtr, const void* srcPtr, size_t byteSize)
+  {
+    std::memcpy(dstPtr, srcPtr, byteSize);
+  }
+
   Storage CPUEngine::getPointerStorage(const void* ptr)
   {
     return Storage::Host;

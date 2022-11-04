@@ -180,8 +180,14 @@ OIDN_API void oidnUnmapBuffer(OIDNBuffer buffer, void* mappedPtr);
 // Reads data from a region of the buffer to host memory.
 OIDN_API void oidnReadBuffer(OIDNBuffer buffer, size_t byteOffset, size_t byteSize, void* dstHostPtr);
 
+// Reads data from a region of the buffer to host memory asynchronously.
+OIDN_API void oidnReadBufferAsync(OIDNBuffer buffer, size_t byteOffset, size_t byteSize, void* dstHostPtr);
+
 // Writes data to a region of the buffer from host memory.
 OIDN_API void oidnWriteBuffer(OIDNBuffer buffer, size_t byteOffset, size_t byteSize, const void* srcHostPtr);
+
+// Writes data to a region of the buffer from host memory asynchronously.
+OIDN_API void oidnWriteBufferAsync(OIDNBuffer buffer, size_t byteOffset, size_t byteSize, const void* srcHostPtr);
 
 // Retains the buffer (increments the reference count).
 OIDN_API void oidnRetainBuffer(OIDNBuffer buffer);

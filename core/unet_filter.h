@@ -23,7 +23,7 @@ namespace oidn {
     float get1f(const std::string& name) override;
 
     void commit() override;
-    void execute(bool sync) override;
+    void execute(SyncMode sync) override;
 
   protected:
     explicit UNetFilter(const Ref<Device>& device);

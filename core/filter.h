@@ -30,7 +30,7 @@ namespace oidn {
     void setProgressMonitorFunction(ProgressMonitorFunction func, void* userPtr);
 
     virtual void commit() = 0;
-    virtual void execute(bool sync = true) = 0;
+    virtual void execute(SyncMode sync = SyncMode::Sync) = 0;
 
   protected:
     void setParam(int& dst, int src);

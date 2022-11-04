@@ -242,11 +242,18 @@ Once parameters are set on the created device, the device must be committed with
 This device can then be used to construct further objects, such as buffers and
 filters. Note that a device can be committed only once during its lifetime.
 
-When running operations asynchronously on a device (functions with `Async` in
-their name), eventually it is necessary to wait for all asynchronous operations
-to complete. This can be done by calling
+Some functions execute asynchronously with respect to the host. The names of
+these functions are suffixed with `Async`. Asynchronous operations are executed
+*in order* on the device but do not block on the host. Eventually, it is
+necessary to wait for all asynchronous operations to complete, which can be done
+by calling
 
     void oidnSyncDevice(OIDNDevice device);
+
+Currently the CPU device does not support asynchronous execution, and thus the
+asynchronous versions of functions will block as well. However, `oidnSyncDevice`
+should be always called to ensure correctness on GPU devices too, which do
+support asynchronous execution.
 
 Before the application exits, it should release all devices by invoking
 
@@ -435,6 +442,18 @@ following functions:
     void oidnWriteBuffer(OIDNBuffer buffer,
                          size_t byteOffset, size_t byteSize, const void* srcHostPtr);
 
+These function will block until the read/write operation has been completed. GPU
+devices also support asynchronous copying, which can be performed with
+
+    void oidnReadBufferAsync(OIDNBuffer buffer,
+                             size_t byteOffset, size_t byteSize, void* dstHostPtr);
+
+    void oidnWriteBufferAsync(OIDNBuffer buffer,
+                              size_t byteOffset, size_t byteSize, const void* srcHostPtr);
+
+Before accessing asynchronously copied data on the host, the user must ensure correct
+synchronization with the device by calling `oidnSyncDevice`.
+
 ### Data Format
 
 Buffers store opaque data and thus have no information about the type and
@@ -605,9 +624,8 @@ devices also support asynchronous execution, which can be performed with
     void oidnExecuteFilterAsync(OIDNFilter filter);
 
 If filtering asynchronously, the user must ensure correct synchronization with
-the device before accessing the input and output image data by, e.g., calling
-`oidnSyncDevice`. Currently the CPU device does not support asynchronous
-filtering and `oidnExecuteFilterAsync` will block as well.
+the device before accessing the input and output image data by calling
+`oidnSyncDevice`.
 
 In the following we describe the different filters that are currently
 implemented in Intel Open Image Denoise.

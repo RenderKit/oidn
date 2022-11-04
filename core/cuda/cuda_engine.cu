@@ -105,6 +105,11 @@ namespace oidn {
     checkError(cudaMemcpy(dstPtr, srcPtr, byteSize, cudaMemcpyDefault));
   }
 
+  void CUDAEngine::submitMemcpy(void* dstPtr, const void* srcPtr, size_t byteSize)
+  {
+    checkError(cudaMemcpyAsync(dstPtr, srcPtr, byteSize, cudaMemcpyDefault, stream));
+  }
+
   Storage CUDAEngine::getPointerStorage(const void* ptr)
   {
     cudaPointerAttributes attrib;

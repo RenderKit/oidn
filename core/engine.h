@@ -66,6 +66,7 @@ namespace oidn {
     virtual void* malloc(size_t byteSize, Storage storage) = 0;
     virtual void free(void* ptr, Storage storage) = 0;
     virtual void memcpy(void* dstPtr, const void* srcPtr, size_t byteSize) = 0;
+    virtual void submitMemcpy(void* dstPtr, const void* srcPtr, size_t byteSize) = 0;
     virtual Storage getPointerStorage(const void* ptr) = 0;
 
     // Runs a host task

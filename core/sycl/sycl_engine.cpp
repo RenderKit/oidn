@@ -106,8 +106,13 @@ namespace oidn {
 
   void SYCLEngine::memcpy(void* dstPtr, const void* srcPtr, size_t byteSize)
   {
-    lastEvent = queue.memcpy(dstPtr, srcPtr, byteSize, getDepEvents());
+    submitMemcpy(dstPtr, srcPtr, byteSize);
     wait();
+  }
+
+  void SYCLEngine::submitMemcpy(void* dstPtr, const void* srcPtr, size_t byteSize)
+  {
+    lastEvent = queue.memcpy(dstPtr, srcPtr, byteSize, getDepEvents());
   }
 
   Storage SYCLEngine::getPointerStorage(const void* ptr)

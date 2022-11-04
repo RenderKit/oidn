@@ -94,7 +94,7 @@ namespace oidn {
     dirtyParam = false;
   }
 
-  void UNetFilter::execute(bool sync)
+  void UNetFilter::execute(SyncMode sync)
   {
     if (dirty)
       throw Exception(Error::InvalidOperation, "changes to the filter are not committed");
@@ -202,7 +202,7 @@ namespace oidn {
       progress.finish(device->getEngine());
     });
 
-    if (sync)
+    if (sync == SyncMode::Sync)
       device->wait();
   }
 

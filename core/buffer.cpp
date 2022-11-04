@@ -21,12 +21,12 @@ namespace oidn {
     throw Exception(Error::InvalidOperation, "unmapping the buffer is not supported");
   }
 
-  void Buffer::read(size_t byteOffset, size_t byteSize, void* dstHostPtr)
+  void Buffer::read(size_t byteOffset, size_t byteSize, void* dstHostPtr, SyncMode sync)
   {
     throw Exception(Error::InvalidOperation, "reading the buffer is not supported");
   }
 
-  void Buffer::write(size_t byteOffset, size_t byteSize, const void* srcHostPtr)
+  void Buffer::write(size_t byteOffset, size_t byteSize, const void* srcHostPtr, SyncMode sync)
   {
     throw Exception(Error::InvalidOperation, "writing the buffer is not supported");
   }
@@ -135,24 +135,30 @@ namespace oidn {
     mappedRegions.erase(region);
   }
 
-  void USMBuffer::read(size_t byteOffset, size_t byteSize, void* dstHostPtr)
+  void USMBuffer::read(size_t byteOffset, size_t byteSize, void* dstHostPtr, SyncMode sync)
   {
     if (!mappedRegions.empty())
       throw Exception(Error::InvalidOperation, "buffer cannot be read while mapped");
     if (byteOffset + byteSize > this->byteSize)
       throw Exception(Error::InvalidArgument, "buffer region out of range");
 
-    engine->memcpy(dstHostPtr, ptr + byteOffset, byteSize);
+    if (sync == SyncMode::Sync)
+      engine->memcpy(dstHostPtr, ptr + byteOffset, byteSize);
+    else
+      engine->submitMemcpy(dstHostPtr, ptr + byteOffset, byteSize);
   }
 
-  void USMBuffer::write(size_t byteOffset, size_t byteSize, const void* srcHostPtr)
+  void USMBuffer::write(size_t byteOffset, size_t byteSize, const void* srcHostPtr, SyncMode sync)
   {
     if (!mappedRegions.empty())
       throw Exception(Error::InvalidOperation, "buffer cannot be written while mapped");
     if (byteOffset + byteSize > this->byteSize)
       throw Exception(Error::InvalidArgument, "buffer region out of range");
 
-    engine->memcpy(ptr + byteOffset, srcHostPtr, byteSize);
+    if (sync == SyncMode::Sync)
+      engine->memcpy(ptr + byteOffset, srcHostPtr, byteSize);
+    else
+      engine->submitMemcpy(ptr + byteOffset, srcHostPtr, byteSize);
   }
 
   void USMBuffer::realloc(size_t newByteSize)

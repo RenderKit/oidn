@@ -355,6 +355,16 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_CATCH(buffer);
   }
 
+  OIDN_API void oidnReadBufferAsync(OIDNBuffer hBuffer, size_t byteOffset, size_t byteSize, void* dstHostPtr)
+  {
+    Buffer* buffer = (Buffer*)hBuffer;
+    OIDN_TRY
+      checkHandle(hBuffer);
+      OIDN_LOCK(buffer);
+      buffer->read(byteOffset, byteSize, dstHostPtr, SyncMode::Async);
+    OIDN_CATCH(buffer);
+  }
+
   OIDN_API void oidnWriteBuffer(OIDNBuffer hBuffer, size_t byteOffset, size_t byteSize, const void* srcHostPtr)
   {
     Buffer* buffer = (Buffer*)hBuffer;
@@ -362,6 +372,16 @@ OIDN_API_NAMESPACE_BEGIN
       checkHandle(hBuffer);
       OIDN_LOCK(buffer);
       buffer->write(byteOffset, byteSize, srcHostPtr);
+    OIDN_CATCH(buffer);
+  }
+
+  OIDN_API void oidnWriteBufferAsync(OIDNBuffer hBuffer, size_t byteOffset, size_t byteSize, const void* srcHostPtr)
+  {
+    Buffer* buffer = (Buffer*)hBuffer;
+    OIDN_TRY
+      checkHandle(hBuffer);
+      OIDN_LOCK(buffer);
+      buffer->write(byteOffset, byteSize, srcHostPtr, SyncMode::Async);
     OIDN_CATCH(buffer);
   }
 
@@ -587,7 +607,7 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_TRY
       checkHandle(hFilter);
       OIDN_LOCK(filter);
-      filter->execute(false);
+      filter->execute(SyncMode::Async);
     OIDN_CATCH(filter)
   }
 
@@ -613,7 +633,7 @@ OIDN_API_NAMESPACE_BEGIN
 
       // Execute the filter
       device->setDepEvents({depEvents, depEvents + numDepEvents});
-      filter->execute(false);
+      filter->execute(SyncMode::Async);
       auto doneEvents = device->getDoneEvents();
 
       // Output the completion event (optional)

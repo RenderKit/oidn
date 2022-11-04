@@ -36,8 +36,8 @@ namespace oidn {
     virtual void* map(size_t byteOffset, size_t byteSize, Access access);
     virtual void unmap(void* hostPtr);
 
-    virtual void read(size_t byteOffset, size_t byteSize, void* dstHostPtr);
-    virtual void write(size_t byteOffset, size_t byteSize, const void* srcHostPtr);
+    virtual void read(size_t byteOffset, size_t byteSize, void* dstHostPtr, SyncMode sync = SyncMode::Sync);
+    virtual void write(size_t byteOffset, size_t byteSize, const void* srcHostPtr, SyncMode sync = SyncMode::Sync);
 
     // Reallocates the buffer with a new size discarding its current contents
     virtual void realloc(size_t newByteSize);
@@ -97,8 +97,8 @@ namespace oidn {
     void* map(size_t byteOffset, size_t byteSize, Access access) override;
     void unmap(void* hostPtr) override;
 
-    void read(size_t byteOffset, size_t byteSize, void* dstHostPtr) override;
-    void write(size_t byteOffset, size_t byteSize, const void* srcHostPtr) override;
+    void read(size_t byteOffset, size_t byteSize, void* dstHostPtr, SyncMode sync) override;
+    void write(size_t byteOffset, size_t byteSize, const void* srcHostPtr, SyncMode sync) override;
 
     void realloc(size_t newByteSize) override;
 

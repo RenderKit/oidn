@@ -12,6 +12,17 @@
 
 namespace oidn {
 
+  // Synchronization mode for operations
+  enum class SyncMode
+  {
+    Sync,  // synchronous
+    Async  // asynchronous
+  };
+
+  // ---------------------------------------------------------------------------
+  // Data types and formats
+  // ---------------------------------------------------------------------------
+
   using math::vec3;
   using math::vec3f;
 

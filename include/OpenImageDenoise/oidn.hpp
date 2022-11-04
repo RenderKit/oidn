@@ -146,10 +146,22 @@ OIDN_NAMESPACE_BEGIN
       oidnReadBuffer(handle, byteOffset, byteSize, dstHostPtr);
     }
 
+    // Reads data from a region of the buffer to host memory asynchronously.
+    void readAsync(size_t byteOffset, size_t byteSize, void* dstHostPtr)
+    {
+      oidnReadBufferAsync(handle, byteOffset, byteSize, dstHostPtr);
+    }
+
     // Writes data to a region of the buffer from host memory.
     void write(size_t byteOffset, size_t byteSize, const void* srcHostPtr)
     {
       oidnWriteBuffer(handle, byteOffset, byteSize, srcHostPtr);
+    }
+
+    // Writes data to a region of the buffer from host memory asynchronously.
+    void writeAsync(size_t byteOffset, size_t byteSize, const void* srcHostPtr)
+    {
+      oidnWriteBufferAsync(handle, byteOffset, byteSize, srcHostPtr);
     }
   };
 
