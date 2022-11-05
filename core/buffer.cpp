@@ -90,13 +90,13 @@ namespace oidn {
 
   USMBuffer::~USMBuffer()
   {
-    if (shared)
-      return;
-
+    // Unmap all mapped regions
     for (const auto& region : mappedRegions)
       unmap(region.first);
 
-    engine->free(ptr, storage);
+    // Free the memory
+    if (!shared)
+      engine->free(ptr, storage);
   }
 
   void* USMBuffer::map(size_t byteOffset, size_t byteSize, Access access)
