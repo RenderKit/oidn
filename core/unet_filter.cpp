@@ -13,12 +13,6 @@ namespace oidn {
   {
     maxMemoryMB = int(600 * getDataTypeSize(device->getTensorDataType()));
   }
-  
-  UNetFilter::~UNetFilter()
-  {
-    // Make sure that all asynchronous operations have completed
-    device->wait();
-  }
 
   void UNetFilter::setData(const std::string& name, const Data& data)
   {
@@ -102,7 +96,9 @@ namespace oidn {
     if (H <= 0 || W <= 0)
       return;
 
-    device->getEngine()->runHostTask([&]()
+    auto mainEngine = device->getEngine();
+
+    mainEngine->runHostTask([&]()
     {
       // Initialize the progress state
       double workAmount = tileCountH * tileCountW * instances[0].net->getWorkAmount();
@@ -110,7 +106,7 @@ namespace oidn {
         workAmount += 1;
       if (outputTemp)
         workAmount += 1;
-      progress.start(device->getEngine(), progressFunc, progressUserPtr, workAmount);
+      progress.start(mainEngine, progressFunc, progressUserPtr, workAmount);
 
       // Set the input scale
       if (math::isnan(inputScale))
@@ -119,7 +115,7 @@ namespace oidn {
         {
           autoexposure->setSrc(color);
           autoexposure->submit();
-          progress.update(device->getEngine(), 1);
+          progress.update(mainEngine, 1);
           /*
           float autoexpResult;
           device->memcpy(&autoexpResult, autoexposure->getResult(), sizeof(float));
@@ -199,7 +195,7 @@ namespace oidn {
       }
 
       // Finished
-      progress.finish(device->getEngine());
+      progress.finish(mainEngine);
     });
 
     if (sync == SyncMode::Sync)
@@ -215,7 +211,7 @@ namespace oidn {
     Data weightsBlob = getWeights();
     for (int i = 0; i < device->getNumEngines(); ++i)
     {
-      Engine* engine = device->getEngine(i);
+      auto engine = device->getEngine(i);
       instances.emplace_back();
       instances.back().net.reset(new Network(engine, std::make_shared<Weights>(engine, weightsBlob)));
     }

@@ -451,8 +451,9 @@ devices also support asynchronous copying, which can be performed with
     void oidnWriteBufferAsync(OIDNBuffer buffer,
                               size_t byteOffset, size_t byteSize, const void* srcHostPtr);
 
-Before accessing asynchronously copied data on the host, the user must ensure correct
-synchronization with the device by calling `oidnSyncDevice`.
+When copying asynchronously, the user must ensure correct synchronization with
+the device by calling `oidnSyncDevice` before accessing the copied data or
+releasing the buffer. Failure to do so will result in undefined behavior.
 
 ### Data Format
 
@@ -623,9 +624,9 @@ devices also support asynchronous execution, which can be performed with
 
     void oidnExecuteFilterAsync(OIDNFilter filter);
 
-If filtering asynchronously, the user must ensure correct synchronization with
-the device before accessing the input and output image data by calling
-`oidnSyncDevice`.
+When filtering asynchronously, the user must ensure correct synchronization with
+the device by calling `oidnSyncDevice` before accessing the output image data or
+releasing the filter. Failure to do so will result in undefined behavior.
 
 In the following we describe the different filters that are currently
 implemented in Intel Open Image Denoise.

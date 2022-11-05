@@ -14,8 +14,6 @@ namespace oidn {
   class UNetFilter : public Filter
   {
   public:
-    ~UNetFilter();
-
     void setData(const std::string& name, const Data& data) override;
     void updateData(const std::string& name) override;
     void removeData(const std::string& name) override;
