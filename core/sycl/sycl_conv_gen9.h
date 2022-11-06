@@ -15,6 +15,9 @@ namespace oidn {
     void submit() override;
 
   private:
+    template<PostOp kernelPostOp>
+    void runImpl();
+
     Ref<SYCLEngine> engine;
   };
 

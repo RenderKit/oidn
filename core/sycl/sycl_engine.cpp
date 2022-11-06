@@ -9,8 +9,6 @@
 #include "sycl_conv_gen9.h"
 #include "sycl_conv_xehpg.h"
 #include "sycl_conv_xehpc.h"
-#include "sycl_pool.h"
-#include "sycl_upsample.h"
 
 namespace oidn {
 
@@ -39,12 +37,12 @@ namespace oidn {
 
   std::shared_ptr<Pool> SYCLEngine::newPool(const PoolDesc& desc)
   {
-    return std::make_shared<SYCLPool>(this, desc);
+    throw std::logic_error("operation not implemented");
   }
 
   std::shared_ptr<Upsample> SYCLEngine::newUpsample(const UpsampleDesc& desc)
   {
-    return std::make_shared<SYCLUpsample>(this, desc);
+    throw std::logic_error("operation not implemented");
   }
 
   std::shared_ptr<Autoexposure> SYCLEngine::newAutoexposure(const ImageDesc& srcDesc)

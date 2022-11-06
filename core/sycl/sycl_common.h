@@ -15,8 +15,10 @@ namespace oidn {
 
 #if defined(OIDN_ARCH_XEHPC)
   constexpr int maxLSCBlockByteSize = 512;
-#else
+#elif defined(OIDN_ARCH_XEHPG)
   constexpr int maxLSCBlockByteSize = 256;
+#else
+  constexpr int maxLSCBlockByteSize = 128;
 #endif
 
   // Helper class for LSC block load/store
@@ -32,9 +34,11 @@ namespace oidn {
     static_assert(byteSize % sizeof(DT) == 0, "unsupported block size");
   };
 
+#if defined(OIDN_ARCH_XEHPC) || defined(OIDN_ARCH_XEHPG)
+
   template<typename T, int N>
   OIDN_INLINE simd<T, N> loadBlock(const T* ptr)
-  { 
+  {
     using DT = typename LSCBlockTraits<T, N>::DT;
     constexpr int DN = LSCBlockTraits<T, N>::DN;
 
@@ -61,6 +65,22 @@ namespace oidn {
 
     lsc_block_store<DT, DN>((DT*)ptr, blk.template bit_cast_view<DT>(), pred);
   }
+
+#else
+
+  template<typename T, int N>
+  OIDN_INLINE simd<T, N> loadBlock(const T* ptr)
+  {
+    return block_load<T, N>(ptr, overaligned<16>);
+  }
+
+  template<typename T, int N>
+  OIDN_INLINE void storeBlock(T* ptr, simd<T, N> blk)
+  {
+    block_store(ptr, blk);
+  }
+
+#endif
 
   template<typename T, int N, int blockSize = maxLSCBlockByteSize / sizeof(T), int offset = 0>
   OIDN_INLINE void loadLargeBlock(const T* ptr, simd<T, N>& dst)

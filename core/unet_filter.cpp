@@ -4,7 +4,7 @@
 #include "unet_filter.h"
 #include "autoexposure.h"
 
-//#define _OIDN_NO_FUSION // FIXME: remove
+#define _OIDN_NO_FUSION // FIXME: remove
 
 namespace oidn {
 
