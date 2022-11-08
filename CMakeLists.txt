@@ -343,10 +343,6 @@ if(OIDN_DEVICE_SYCL)
     core/sycl/sycl_device.cpp
     core/sycl/sycl_engine.h
     core/sycl/sycl_engine.cpp
-    core/sycl/sycl_pool.h
-    core/sycl/sycl_pool.cpp
-    core/sycl/sycl_upsample.h
-    core/sycl/sycl_upsample.cpp
   )
 
   set_source_files_properties(${CORE_SOURCES} PROPERTIES COMPILE_FLAGS "${OIDN_CXX_FLAGS_SYCL}")
