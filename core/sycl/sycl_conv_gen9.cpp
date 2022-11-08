@@ -167,13 +167,13 @@ namespace oidn {
       else
       {
         // Slow path: load the in-bounds columns of the row
-        row = 0;
+        const simd<int, W> wVec(0, 1); // 0, 1, 2, ...
+        simd_mask<W> predVec = (wVec >= -iw) & (wVec < src.W - iw);
 
         #pragma unroll
         for (int w = 0; w < W; ++w)
         {
-          if (iw + w >= 0 && iw + w < src.W)
-            row.template select<blockC, 1>(w * blockC) = loadBlock<T, blockC>(srcPtr);
+          row.template select<blockC, 1>(w * blockC) = loadBlock<T, blockC>(srcPtr, predVec.template select<1, 1>(w));
           srcPtr += blockC;
         }
       }
@@ -203,12 +203,13 @@ namespace oidn {
         // Slow path: store the in-bounds columns of the row
         constexpr int numChunks = W / K;
         constexpr int chunkSize = blockC * K;
+        const simd<int, numChunks> wVec(0, K); // 0, 1*K, 2*K, ...
+        simd_mask<numChunks> predVec = wVec < dst.W - ow;
 
         #pragma unroll
         for (int i = 0; i < numChunks; ++i)
         {
-          if (ow + i * K < dst.W)
-            storeBlock(dstPtr, row.template select<chunkSize, 1>(i * chunkSize).read());
+          storeBlock(dstPtr, row.template select<chunkSize, 1>(i * chunkSize).read(), predVec.template select<1, 1>(i));
           dstPtr += chunkSize;
         }
       }
