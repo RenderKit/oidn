@@ -6,9 +6,7 @@
 #include "../gpu/gpu_input_process.h"
 #include "../gpu/gpu_output_process.h"
 #include "../gpu/gpu_image_copy.h"
-#include "sycl_conv_gen9.h"
-#include "sycl_conv_xehpg.h"
-#include "sycl_conv_xehpc.h"
+#include "sycl_conv.h"
 
 namespace oidn {
 
@@ -27,11 +25,11 @@ namespace oidn {
     switch (device->getArch())
     {
     case SYCLArch::XeHPG:
-      return std::make_shared<SYCLConvXeHPG>(this, desc);
+      return xehpg::newConv(this, desc);
     case SYCLArch::XeHPC:
-      return std::make_shared<SYCLConvXeHPC>(this, desc);
+      return xehpc::newConv(this, desc);
     default:
-      return std::make_shared<SYCLConvGen9>(this, desc);
+      return gen9::newConv(this, desc);
     }
   }
 

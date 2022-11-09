@@ -333,12 +333,11 @@ if(OIDN_DEVICE_SYCL)
 
   list(APPEND CORE_SOURCES
     core/sycl/sycl_common.h
-    core/sycl/sycl_conv_gen9.h
+    core/sycl/sycl_conv_gen.h
     core/sycl/sycl_conv_gen9.cpp
-    core/sycl/sycl_conv_xehpc.h
     core/sycl/sycl_conv_xehpc.cpp
-    core/sycl/sycl_conv_xehpg.h
     core/sycl/sycl_conv_xehpg.cpp
+    core/sycl/sycl_conv.h
     core/sycl/sycl_device.h
     core/sycl/sycl_device.cpp
     core/sycl/sycl_engine.h
