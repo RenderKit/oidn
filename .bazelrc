@@ -1,0 +1,8 @@
+## Copyright 2018-2021 Intel Corporation
+## SPDX-License-Identifier: Apache-2.0
+
+## DISCLAIMER: Bazel support is community-based. The maintainers do not
+## use Bazel internally. The Bazel build can have security risks or
+## optimization gaps.
+
+build --symlink_prefix=/ # Out of source build

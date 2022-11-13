@@ -1,0 +1,16 @@
+## Copyright 2018-2021 Intel Corporation
+## SPDX-License-Identifier: Apache-2.0
+
+## DISCLAIMER: Bazel support is community-based. The maintainers do not
+## use Bazel internally. The Bazel build can have security risks or
+## optimization gaps.
+
+workspace(name = "oidn")
+
+load("//:bazel/odin_deps.bzl", "odin_deps")
+
+odin_deps()
+
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+
+bazel_skylib_workspace()

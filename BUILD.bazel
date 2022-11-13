@@ -1,0 +1,39 @@
+## Copyright 2018-2021 Intel Corporation
+## SPDX-License-Identifier: Apache-2.0
+
+## DISCLAIMER: Bazel support is community-based. The maintainers do not
+## use Bazel internally. The Bazel build can have security risks or
+## optimization gaps.
+
+load("@bazel_skylib//rules:expand_template.bzl", "expand_template")
+
+expand_template(
+    name = "config",
+    out = "include/OpenImageDenoise/config.h",
+    substitutions = {
+        "#cmakedefine OIDN_STATIC_LIB": "",
+        "#cmakedefine OIDN_API_NAMESPACE": "oidn",
+    },
+    template = "include/OpenImageDenoise/config.h.in",
+)
+
+cc_library(
+    name = "common",
+    srcs = [
+        "common/barrier.h",
+        "common/exception.h",
+        "common/math.h",
+        "common/platform.cpp",
+        "common/platform.h",
+        "common/ref.h",
+        "common/tasking.cpp",
+        "common/tasking.h",
+        "common/thread.cpp",
+        "common/thread.h",
+        "common/timer.h",
+        "include/OpenImageDenoise/oidn.hpp",
+        "include/OpenImageDenoise/oidn.h",
+        "include/OpenImageDenoise/config.h", # generted
+    ],
+    includes = ["include/OpenImageDenoise"],
+)
