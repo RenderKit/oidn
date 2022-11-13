@@ -54,6 +54,14 @@ namespace oidn {
     }
   #endif
 
+    OIDN_INLINE int getLinearSize() const
+    {
+      int size = dim[0];
+      for (int i = 1; i < N; ++i)
+        size *= dim[i];
+      return size;
+    }
+
   private:
     int dim[N];
   };

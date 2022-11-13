@@ -351,43 +351,53 @@ namespace oidn::gen9 {
                                ceil_div(src->getH(), Kernel::blockOH),
                                ceil_div(src->getW(), Kernel::blockOW)};
 
-      WorkDim<3> localSize = {globalSize[0], 1, 1};
+      WorkDim<3> groupSize = {globalSize[0], 1, 1};
 
     #if defined(OIDN_ARCH_XEHPG)
       // Workaround for DPAS + EU fusion bug: make sure to have even number of threads per group
       if (globalSize[0] % 2 != 0 && globalSize[1] % 2 != 0 && globalSize[2] % 2 != 0)
       {
+        // We can safely round up one of the spatial dimensions thanks to bounds checking in the kernel
         globalSize[2]++;
-        localSize[2]++;
+        groupSize[2]++;
       }
     #endif
 
+      // Compute the final work-group size
     #if defined(OIDN_ARCH_XEHPC)
-      const int maxLocalThreads = 32;
+      const int maxGroupSize = 32;
     #else
-      const int maxLocalThreads = 16;
+      const int maxGroupSize = 16;
     #endif
-
-      int totalSize = localSize[0] * localSize[1] * localSize[2];
-
-      while (totalSize * 2 <= maxLocalThreads)
+    
+      for (; ;)
       {
-        const int i = (localSize[1] * Kernel::blockOH < localSize[2] * Kernel::blockOW) ? 1 : 2;
-        if (globalSize[i] % (localSize[i]*2) == 0)
+        bool updated = false;
+
+        // Try to increase one of the spatial dimensions (1 or 2), smallest first
+        int dim = (groupSize[1] * Kernel::blockOH < groupSize[2] * Kernel::blockOW) ? 1 : 2; 
+        for (int i = 0; i < 2 && !updated; ++i, dim = 3-dim)
         {
-          localSize[i] *= 2;
-          totalSize *= 2;
+          const int maxDiv = maxGroupSize / (groupSize[0] * groupSize[3-dim]);
+          for (int div = groupSize[dim] + 1; div <= maxDiv && !updated; ++div)
+          {
+            if (globalSize[dim] % div == 0
+              #if defined(OIDN_ARCH_XEHPG)
+                && (groupSize[0] * groupSize[3-dim] * div) % 2 == 0 // must have even number of threads
+              #endif
+               )
+            {
+              groupSize[dim] = div;
+              updated = true;
+            }
+          }
         }
-        else if (globalSize[3-i] % (localSize[3-i]*2) == 0)
-        {
-          localSize[3-i] *= 2;
-          totalSize *= 2;
-        }
-        else
+        
+        if (!updated)
           break;
       }
 
-      engine->submitESIMDKernel(globalSize / localSize, localSize, kernel);
+      engine->submitESIMDKernel(globalSize / groupSize, groupSize, kernel);
     }
 
     Ref<SYCLEngine> engine;
