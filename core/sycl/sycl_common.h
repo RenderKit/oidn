@@ -75,12 +75,12 @@ namespace oidn {
   }
 
   template<typename T, int N>
-  OIDN_INLINE simd<T, N> loadBlock(const T* ptr, simd_mask<1> pred)
+  OIDN_INLINE simd<T, N> loadBlock(const T* ptr, simd_mask<1> pred, simd<T, N> src = 0)
   {
     if (pred)
       return block_load<T, N>(ptr, overaligned<16>);
     else
-      return 0;
+      return src;
   }
 
   template<typename T, int N>
