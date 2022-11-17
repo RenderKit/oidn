@@ -89,7 +89,7 @@ if(OIDN_DEVICE_CPU)
   # DNNL
   if(OIDN_ARCH STREQUAL "X64")
     set(OIDN_DNNL ON)
-    include(oidn_dnnl_sycl) # FIXME
+    include(oidn_dnnl)
   endif()
 endif()
 

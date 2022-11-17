@@ -18,8 +18,7 @@ namespace oidn {
     // Let the convolution primitive choose the weight format
     auto anyWeightDesc = dnnl::memory::desc({ weightDesc.dims },
                                              toDNNL(srcDesc.dataType),
-                                             dnnl::memory::format_tag::any
-                                             /*dnnl::memory::format_tag::OIhw16i16o*/);
+                                             dnnl::memory::format_tag::any);
 
     // Let the convolution primitive choose the bias format
     auto anyBiasDesc = dnnl::memory::desc({ biasDesc.dims },
