@@ -136,7 +136,7 @@ namespace oidn {
         std::cout << "    Arch    : ";
         switch (arch)
         {
-        case SYCLArch::Gen9:  std::cout << "Gen9/Gen11/Xe-LP"; break;
+        case SYCLArch::Gen9:  std::cout << "Gen9/Gen10/Gen11/Xe-LP"; break;
         case SYCLArch::XeHPG: std::cout << "Xe-HPG";     break;
         case SYCLArch::XeHPC: std::cout << "Xe-HPC";     break;
         default:              std::cout << "Unknown";
