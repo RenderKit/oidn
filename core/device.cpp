@@ -160,7 +160,7 @@ namespace oidn {
 
   Ref<Filter> Device::newFilter(const std::string& type)
   {
-    if (isVerbose())
+    if (isVerbose(2))
       std::cout << "Filter: " << type << std::endl;
 
     Ref<Filter> filter;
