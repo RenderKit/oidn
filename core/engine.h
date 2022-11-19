@@ -24,6 +24,7 @@ namespace oidn {
   struct InputProcessDesc;
   struct OutputProcessDesc;
 
+  enum class PostOp;
   class Conv;
   class ConcatConv;
   class Pool;
@@ -53,6 +54,7 @@ namespace oidn {
     virtual std::shared_ptr<Tensor> newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset = 0);
 
     // Ops
+    virtual bool isConvSupported(PostOp postOp);
     virtual std::shared_ptr<Conv> newConv(const ConvDesc& desc) = 0;
     virtual std::shared_ptr<ConcatConv> newConcatConv(const ConcatConvDesc& desc);
     virtual std::shared_ptr<Pool> newPool(const PoolDesc& desc) = 0;

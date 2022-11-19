@@ -41,6 +41,11 @@ namespace oidn {
     return std::make_shared<GenericTensor>(buffer, desc, byteOffset);
   }
 
+  bool Engine::isConvSupported(PostOp postOp)
+  {
+    return postOp == PostOp::None;
+  }
+
   std::shared_ptr<ConcatConv> Engine::newConcatConv(const ConcatConvDesc& desc)
   {
     return std::make_shared<CHWConcatConv>(this, desc);

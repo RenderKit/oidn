@@ -20,6 +20,13 @@ namespace oidn {
     maxWorkGroupSize = syclDevice.get_info<sycl::info::device::max_work_group_size>();
   }
 
+  bool SYCLEngine::isConvSupported(PostOp postOp)
+  {
+    return postOp == PostOp::None ||
+           postOp == PostOp::Pool ||
+           postOp == PostOp::Upsample;
+  }
+
   std::shared_ptr<Conv> SYCLEngine::newConv(const ConvDesc& desc)
   {
     switch (device->getArch())

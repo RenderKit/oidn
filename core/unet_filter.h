@@ -69,6 +69,8 @@ namespace oidn {
     void checkParams();
     Data getWeights();
     bool buildModel(size_t maxScratchByteSize = std::numeric_limits<size_t>::max());
+    bool buildUnfusedModel(size_t maxScratchByteSize);
+    bool buildFusedModel(size_t maxScratchByteSize);
     void resetModel();
 
     // Image dimensions
