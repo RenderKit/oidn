@@ -14,11 +14,11 @@ namespace oidn {
     weight2Desc = {{weightDesc.getO(), src2Desc.getC(), weightDesc.getH(), weightDesc.getW()}, weightDesc.layout, weightDesc.dataType};
 
     // Convolution 1: dst = conv(src1, weight1) + bias
-    conv1 = newCUDAConv(engine, {src1Desc, weight1Desc, biasDesc, Activation::None});
+    conv1 = newCUDAConv(engine, {src1Desc, weight1Desc, biasDesc, Activation::None, PostOp::None});
 
     // Convolution 2: dst = activation(conv(src2, weight2) + dst)
     // We use dst as bias, which is supported by CUTLASS
-    conv2 = newCUDAConv(engine, {src2Desc, weight2Desc, dstDesc, activation});
+    conv2 = newCUDAConv(engine, {src2Desc, weight2Desc, dstDesc, activation, PostOp::None});
   }
 
   bool CUDAConcatConv::isSupported() const

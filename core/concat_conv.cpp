@@ -70,7 +70,7 @@ namespace oidn {
 
     TensorDims srcDims {src1Desc.getC() + src2Desc.getC(), src1Desc.getH(), src1Desc.getW()};
     srcDesc = TensorDesc(srcDims, src1Desc.layout, src1Desc.dataType);
-    conv = engine->newConv({srcDesc, weightDesc, biasDesc, activation});
+    conv = engine->newConv({srcDesc, weightDesc, biasDesc, activation, PostOp::None});
   }
 
   void CHWConcatConv::updateSrc()
