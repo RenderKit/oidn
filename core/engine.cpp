@@ -17,6 +17,20 @@ namespace oidn {
     return makeRef<USMBuffer>(this, ptr, byteSize);
   }
 
+  Ref<Buffer> Engine::newExternalBuffer(ExternalMemoryTypeFlag fdType,
+                                        int fd, size_t byteSize)
+  {
+    throw Exception(Error::InvalidOperation,
+      "creating a shared buffer from a POSIX file descriptor is not supported by the device");
+  }
+
+  Ref<Buffer> Engine::newExternalBuffer(ExternalMemoryTypeFlag handleType,
+                                        void* handle, const void* name, size_t byteSize)
+  {
+    throw Exception(Error::InvalidOperation,
+      "creating a shared buffer from a Win32 handle is not supported by the device");
+  }
+
   Ref<ScratchBuffer> Engine::newScratchBuffer(size_t byteSize)
   {
     auto scratchManager = scratchManagerWp.lock();

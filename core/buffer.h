@@ -80,11 +80,11 @@ namespace oidn {
   // ---------------------------------------------------------------------------
 
   // Unified shared memory based buffer object
-  class USMBuffer final : public Buffer
+  class USMBuffer : public Buffer
   {
   public:
     USMBuffer(const Ref<Engine>& engine, size_t byteSize, Storage storage);
-    USMBuffer(const Ref<Engine>& engine, void* data, size_t byteSize);
+    USMBuffer(const Ref<Engine>& engine, void* data, size_t byteSize, Storage storage = Storage::Undefined);
     ~USMBuffer();
 
     Engine* getEngine() const override { return engine.get(); }
@@ -102,6 +102,15 @@ namespace oidn {
 
     void realloc(size_t newByteSize) override;
 
+  protected:
+    explicit USMBuffer(const Ref<Engine>& engine);
+    void unmapAll();
+
+    char* ptr;
+    size_t byteSize;
+    bool shared;
+    Storage storage;
+
   private:
     struct MappedRegion
     {
@@ -110,10 +119,6 @@ namespace oidn {
       Access access;
     };
 
-    char* ptr;
-    size_t byteSize;
-    bool shared;
-    Storage storage;
     std::unordered_map<void*, MappedRegion> mappedRegions;
     Ref<Engine> engine;
   };

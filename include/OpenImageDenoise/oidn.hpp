@@ -4,9 +4,105 @@
 #pragma once
 
 #include <algorithm>
+#include <type_traits>
 #include "oidn.h"
 
 OIDN_NAMESPACE_BEGIN
+
+  // ---------------------------------------------------------------------------
+  // Flags helper type
+  // ---------------------------------------------------------------------------
+
+  template<typename FlagT>
+  struct IsFlag
+  {
+    static constexpr bool value = false;
+  };
+
+  template<typename FlagT>
+  class Flags
+  {
+  public:
+    static_assert(IsFlag<FlagT>::value, "not a flag type");
+
+    using MaskType = typename std::underlying_type<FlagT>::type;
+
+    constexpr Flags() noexcept : mask(0) {}
+    constexpr Flags(FlagT flag) noexcept : mask(static_cast<MaskType>(flag)) {}
+    constexpr Flags(const Flags& b) noexcept = default;
+    constexpr explicit Flags(MaskType mask) noexcept : mask(mask) {}
+
+    constexpr bool operator !() const noexcept { return !mask; }
+
+    constexpr Flags operator &(const Flags& b) const noexcept { return Flags(mask & b.mask); }
+    constexpr Flags operator |(const Flags& b) const noexcept { return Flags(mask | b.mask); }
+    constexpr Flags operator ^(const Flags& b) const noexcept { return Flags(mask ^ b.mask); }
+
+    Flags& operator =(const Flags& b) noexcept = default;
+
+    Flags& operator &=(const Flags& b) noexcept
+    {
+      mask &= b.mask;
+      return *this;
+    }
+
+    Flags& operator |=(const Flags& b) noexcept
+    {
+      mask |= b.mask;
+      return *this;
+    }
+
+    Flags& operator ^=(const Flags& b) noexcept
+    {
+      mask ^= b.mask;
+      return *this;
+    }
+
+    constexpr bool operator ==(const Flags& b) const noexcept { return mask == b.mask; }
+    constexpr bool operator !=(const Flags& b) const noexcept { return mask != b.mask; }
+
+    constexpr explicit operator bool() const noexcept { return mask; }
+    constexpr explicit operator MaskType() const noexcept { return mask; }
+
+  private:
+    MaskType mask;
+  };
+
+  template<typename FlagT>
+  inline constexpr Flags<FlagT> operator &(FlagT a, const Flags<FlagT>& b) noexcept
+  {
+    return Flags<FlagT>(a) & b;
+  }
+
+  template<typename FlagT>
+  inline constexpr Flags<FlagT> operator |(FlagT a, const Flags<FlagT>& b) noexcept
+  {
+    return Flags<FlagT>(a) | b;
+  }
+
+  template<typename FlagT>
+  inline constexpr Flags<FlagT> operator ^(FlagT a, const Flags<FlagT>& b) noexcept
+  {
+    return Flags<FlagT>(a) ^ b;
+  }
+
+  template<typename FlagT, typename std::enable_if<IsFlag<FlagT>::value, bool>::type = true>
+  inline constexpr Flags<FlagT> operator &(FlagT a, FlagT b) noexcept
+  {
+    return Flags<FlagT>(a) & b;
+  }
+
+  template<typename FlagT, typename std::enable_if<IsFlag<FlagT>::value, bool>::type = true>
+  inline constexpr Flags<FlagT> operator |(FlagT a, FlagT b) noexcept
+  {
+    return Flags<FlagT>(a) | b;
+  }
+
+  template<typename FlagT, typename std::enable_if<IsFlag<FlagT>::value, bool>::type = true>
+  inline constexpr Flags<FlagT> operator ^(FlagT a, FlagT b) noexcept
+  {
+    return Flags<FlagT>(a) ^ b;
+  }
 
   // ---------------------------------------------------------------------------
   // Buffer
@@ -48,12 +144,48 @@ OIDN_NAMESPACE_BEGIN
     WriteDiscard = OIDN_ACCESS_WRITE_DISCARD, // write-only access, previous contents discarded
   };
 
+  // External memory type flags
+  enum class ExternalMemoryTypeFlag
+  {
+    None = OIDN_EXTERNAL_MEMORY_TYPE_FLAG_NONE,
+
+    // an opaque POSIX file descriptor handle
+    OpaqueFD = OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_FD,
+
+    // a file descriptor handle for a Linux dma_buf
+    DMABuf = OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DMA_BUF,
+
+    // an NT handle
+    OpaqueWin32 = OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32,
+
+    // a global share (KMT) handle
+    OpaqueWin32KMT = OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32_KMT,
+
+    // an NT handle returned by IDXGIResource1::CreateSharedHandle referring to a Direct3D 11 texture resource
+    D3D11Texture = OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_TEXTURE,
+
+    // a global share (KMT) handle returned by IDXGIResource::GetSharedHandle referring to a Direct3D 11 texture resource
+    D3D11TextureKMT = OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_TEXTURE_KMT,
+
+    // an NT handle returned by IDXGIResource1::CreateSharedHandle referring to a Direct3D 11 resource
+    D3D11Resource = OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_RESOURCE,
+
+    // a global share (KMT) handle returned by IDXGIResource::GetSharedHandle referring to a Direct3D 11 resource
+    D3D11ResourceKMT = OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_RESOURCE_KMT,
+
+    // an NT handle returned by ID3D12Device::CreateSharedHandle referring to a Direct3D 12 heap resource
+    D3D12Heap = OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D12_HEAP,
+
+    // an NT handle returned by ID3D12Device::CreateSharedHandle referring to a Direct3D 12 committed resource
+    D3D12Resource = OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D12_RESOURCE,
+  };
+
+  template<> struct IsFlag<ExternalMemoryTypeFlag> { static constexpr bool value = true; };
+  using ExternalMemoryTypeFlags = Flags<ExternalMemoryTypeFlag>;
+
   // Buffer object with automatic reference counting
   class BufferRef
   {
-  private:
-    OIDNBuffer handle;
-
   public:
     BufferRef() : handle(nullptr) {}
     BufferRef(OIDNBuffer handle) : handle(handle) {}
@@ -163,6 +295,9 @@ OIDN_NAMESPACE_BEGIN
     {
       oidnWriteBufferAsync(handle, byteOffset, byteSize, srcHostPtr);
     }
+
+  private:
+    OIDNBuffer handle;
   };
 
   // ---------------------------------------------------------------------------
@@ -175,9 +310,6 @@ OIDN_NAMESPACE_BEGIN
   // Filter object with automatic reference counting
   class FilterRef
   {
-  private:
-    OIDNFilter handle;
-
   public:
     FilterRef() : handle(nullptr) {}
     FilterRef(OIDNFilter handle) : handle(handle) {}
@@ -348,6 +480,9 @@ OIDN_NAMESPACE_BEGIN
       return doneEvent;
     }
   #endif
+
+  private:
+    OIDNFilter handle;
   };
 
   // Gets a boolean parameter of the filter.
@@ -404,9 +539,6 @@ OIDN_NAMESPACE_BEGIN
   // Device object with automatic reference counting
   class DeviceRef
   {
-  private:
-    OIDNDevice handle;
-
   public:
     DeviceRef() : handle(nullptr) {}
     DeviceRef(OIDNDevice handle) : handle(handle) {}
@@ -516,29 +648,44 @@ OIDN_NAMESPACE_BEGIN
       oidnSyncDevice(handle);
     }
 
-    // Creates a new buffer accessible to both the host and device.
+    // Creates a buffer accessible to both the host and device.
     BufferRef newBuffer(size_t byteSize) const
     {
       return oidnNewBuffer(handle, byteSize);
     }
 
-    // Creates a new buffer with the specified storage mode.
+    // Creates a buffer with the specified storage mode.
     BufferRef newBuffer(size_t byteSize, Storage storage) const
     {
       return oidnNewBufferWithStorage(handle, byteSize, (OIDNStorage)storage);
     }
 
-    // Creates a new shared buffer allocated and owned by the user.
+    // Creates a shared buffer from memory allocated and owned by the user and accessible to the device.
     BufferRef newBuffer(void* ptr, size_t byteSize) const
     {
       return oidnNewSharedBuffer(handle, ptr, byteSize);
     }
 
-    // Creates a new filter of the specified type (e.g. "RT").
+    // Creates a shared buffer by importing external memory from a POSIX file descriptor.
+    BufferRef newBuffer(ExternalMemoryTypeFlag fdType, int fd, size_t byteSize) const
+    {
+      return oidnNewSharedBufferFromFD(handle, (OIDNExternalMemoryTypeFlag)fdType, fd, byteSize);
+    }
+
+    // Creates a shared buffer by importing external memory from a Win32 handle.
+    BufferRef newBuffer(ExternalMemoryTypeFlag handleType, void* handle, const void* name, size_t byteSize) const
+    {
+      return oidnNewSharedBufferFromWin32Handle(this->handle, (OIDNExternalMemoryTypeFlag)handleType, handle, name, byteSize);
+    }
+
+    // Creates a filter of the specified type (e.g. "RT").
     FilterRef newFilter(const char* type) const
     {
       return oidnNewFilter(handle, type);
     }
+
+  private:
+    OIDNDevice handle;
   };
 
   // Gets a boolean parameter of the device.
@@ -555,21 +702,28 @@ OIDN_NAMESPACE_BEGIN
     return oidnGetDevice1i(handle, name);
   }
 
-  // Creates a new Open Image Denoise device.
+  // Gets an ExternalMemoryTypeFlags parameter of the device ("externalMemoryTypes").
+  template<>
+  inline ExternalMemoryTypeFlags DeviceRef::get(const char* name) const
+  {
+    return ExternalMemoryTypeFlags(oidnGetDevice1i(handle, name));
+  }
+
+  // Creates a device of the specified type.
   inline DeviceRef newDevice(DeviceType type = DeviceType::Default)
   {
     return DeviceRef(oidnNewDevice((OIDNDeviceType)type));
   }
 
 #if defined(OIDN_DEVICE_SYCL) && defined(SYCL_LANGUAGE_VERSION)
-  // Creates a new Open Image Denoise device from the specified SYCL queue.
+  // Creates a SYCL device from the specified SYCL queue.
   inline DeviceRef newSYCLDevice(const sycl::queue& queue)
   {
     return DeviceRef(oidnNewSYCLDevice(&queue, 1));
   }
 
-  // Creates a new Open Image Denoise device from the specified list of SYCL queues.
-  // The queues should belong to different SYCL sub-devices (Xe-Stacks/Tiles) of the same SYCL root-device (GPU).
+  // Creates a SYCL device from the specified list of SYCL queues.
+  // The queues should belong to SYCL sub-devices (Xe-Stacks/Tiles) of the same SYCL root-device (GPU).
   inline DeviceRef newSYCLDevice(const std::vector<sycl::queue>& queues)
   {
     return DeviceRef(oidnNewSYCLDevice(queues.data(), int(queues.size())));
@@ -577,7 +731,7 @@ OIDN_NAMESPACE_BEGIN
 #endif
 
 #if defined(OIDN_DEVICE_CUDA)
-  // Creates a new Open Image Denoise device from the specified CUDA stream.
+  // Creates a CUDA device from the specified CUDA stream.
   inline DeviceRef newCUDADevice(cudaStream_t stream)
   {
     return DeviceRef(oidnNewCUDADevice(&stream, 1));
@@ -585,7 +739,7 @@ OIDN_NAMESPACE_BEGIN
 #endif
 
 #if defined(OIDN_DEVICE_HIP)
-  // Creates a new Open Image Denoise device from the specified HIP stream.
+  // Creates a HIP device from the specified HIP stream.
   inline DeviceRef newHIPDevice(hipStream_t stream)
   {
     return DeviceRef(oidnNewHIPDevice(&stream, 1));

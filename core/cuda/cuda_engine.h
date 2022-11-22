@@ -59,6 +59,13 @@ namespace oidn {
     
     void wait() override;
 
+    // Buffer
+    Ref<Buffer> newExternalBuffer(ExternalMemoryTypeFlag fdType,
+                                  int fd, size_t byteSize) override;
+
+    Ref<Buffer> newExternalBuffer(ExternalMemoryTypeFlag handleType,
+                                  void* handle, const void* name, size_t byteSize) override;
+
     // Ops
     std::shared_ptr<Conv> newConv(const ConvDesc& desc) override;
     std::shared_ptr<ConcatConv> newConcatConv(const ConcatConvDesc& desc) override;

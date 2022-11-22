@@ -56,23 +56,23 @@ typedef void (*OIDNErrorFunction)(void* userPtr, OIDNError code, const char* mes
 // Device handle
 typedef struct OIDNDeviceImpl* OIDNDevice;
 
-// Creates a new Open Image Denoise device.
+// Creates a device of the specified type.
 OIDN_API OIDNDevice oidnNewDevice(OIDNDeviceType type);
 
 #if defined(OIDN_DEVICE_SYCL) && defined(SYCL_LANGUAGE_VERSION)
-// Creates a new Open Image Denoise device from the specified list of SYCL queues.
-// The queues should belong to different SYCL sub-devices (Xe-Stacks/Tiles) of the same SYCL root-device (Xe GPU).
+// Creates a SYCL device from the specified list of SYCL queues.
+// The queues should belong to SYCL sub-devices (Xe-Stacks/Tiles) of the same SYCL root-device (Xe GPU).
 OIDN_API OIDNDevice oidnNewSYCLDevice(const sycl::queue* queues, int numQueues);
 #endif
 
 #if defined(OIDN_DEVICE_CUDA)
-// Creates a new Open Image Denoise device from the specified list of CUDA streams.
+// Creates a CUDA device from the specified list of CUDA streams.
 // Currently only one stream is supported.
 OIDN_API OIDNDevice oidnNewCUDADevice(const cudaStream_t* streams, int numStreams);
 #endif
 
 #if defined(OIDN_DEVICE_HIP)
-// Creates a new Open Image Denoise device from the specified list of HIP streams.
+// Creates a HIP device from the specified list of HIP streams.
 // Currently only one stream is supported.
 OIDN_API OIDNDevice oidnNewHIPDevice(const hipStream_t* streams, int numStreams);
 #endif
@@ -151,17 +151,63 @@ typedef enum
   OIDN_ACCESS_WRITE_DISCARD = 3, // write-only access, previous contents discarded
 } OIDNAccess;
 
+// External memory type flags
+typedef enum
+{
+  OIDN_EXTERNAL_MEMORY_TYPE_FLAG_NONE = 0,
+
+  // an opaque POSIX file descriptor handle
+  OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_FD = 1 << 0,
+
+  // a file descriptor handle for a Linux dma_buf
+  OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DMA_BUF = 1 << 1,
+
+  // an NT handle
+  OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32 = 1 << 2,
+
+  // a global share (KMT) handle
+  OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32_KMT = 1 << 3,
+
+  // an NT handle returned by IDXGIResource1::CreateSharedHandle referring to a Direct3D 11 texture resource
+  OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_TEXTURE = 1 << 4,
+
+  // a global share (KMT) handle returned by IDXGIResource::GetSharedHandle referring to a Direct3D 11 texture resource
+  OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_TEXTURE_KMT = 1 << 5,
+
+  // an NT handle returned by IDXGIResource1::CreateSharedHandle referring to a Direct3D 11 resource
+  OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_RESOURCE = 1 << 6,
+
+  // a global share (KMT) handle returned by IDXGIResource::GetSharedHandle referring to a Direct3D 11 resource
+  OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_RESOURCE_KMT = 1 << 7,
+
+  // an NT handle returned by ID3D12Device::CreateSharedHandle referring to a Direct3D 12 heap resource
+  OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D12_HEAP = 1 << 8,
+
+  // an NT handle returned by ID3D12Device::CreateSharedHandle referring to a Direct3D 12 committed resource
+  OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D12_RESOURCE = 1 << 9,
+} OIDNExternalMemoryTypeFlag;
+
 // Buffer handle
 typedef struct OIDNBufferImpl* OIDNBuffer;
 
-// Creates a new buffer accessible to both the host and device.
+// Creates a buffer accessible to both the host and device.
 OIDN_API OIDNBuffer oidnNewBuffer(OIDNDevice device, size_t byteSize);
 
-// Creates a new buffer with the specified storage mode.
+// Creates a buffer with the specified storage mode.
 OIDN_API OIDNBuffer oidnNewBufferWithStorage(OIDNDevice device, size_t byteSize, OIDNStorage storage);
 
-// Creates a new shared buffer allocated and owned by the user and accessible to the device.
+// Creates a shared buffer from memory allocated and owned by the user and accessible to the device.
 OIDN_API OIDNBuffer oidnNewSharedBuffer(OIDNDevice device, void* devPtr, size_t byteSize);
+
+// Creates a shared buffer by importing external memory from a POSIX file descriptor.
+OIDN_API OIDNBuffer oidnNewSharedBufferFromFD(OIDNDevice device,
+                                              OIDNExternalMemoryTypeFlag fdType,
+                                              int fd, size_t byteSize);
+
+// Creates a shared buffer by importing external memory from a Win32 handle.
+OIDN_API OIDNBuffer oidnNewSharedBufferFromWin32Handle(OIDNDevice device,
+                                                       OIDNExternalMemoryTypeFlag handleType,
+                                                       void* handle, const void* name, size_t byteSize);
 
 // Gets the size of the buffer in bytes.
 OIDN_API size_t oidnGetBufferSize(OIDNBuffer buffer);
@@ -205,7 +251,7 @@ typedef bool (*OIDNProgressMonitorFunction)(void* userPtr, double n);
 // Filter handle
 typedef struct OIDNFilterImpl* OIDNFilter;
 
-// Creates a new filter of the specified type (e.g. "RT").
+// Creates a filter of the specified type (e.g. "RT").
 OIDN_API OIDNFilter oidnNewFilter(OIDNDevice device, const char* type);
 
 // Retains the filter (increments the reference count).

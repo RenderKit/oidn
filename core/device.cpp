@@ -107,6 +107,8 @@ namespace oidn {
       return OIDN_VERSION_MINOR;
     else if (name == "versionPatch")
       return OIDN_VERSION_PATCH;
+    else if (name == "externalMemoryTypes")
+      return static_cast<int>(externalMemoryTypes);
     else
       throw Exception(Error::InvalidArgument, "unknown device parameter");
   }
@@ -173,21 +175,6 @@ namespace oidn {
       throw Exception(Error::InvalidArgument, "unknown filter type");
 
     return filter;
-  }
-
-  Ref<Buffer> Device::newBuffer(size_t byteSize, Storage storage)
-  {
-    return getEngine()->newBuffer(byteSize, storage);
-  }
-
-  Ref<Buffer> Device::newBuffer(void* ptr, size_t byteSize)
-  {
-    return getEngine()->newBuffer(ptr, byteSize);
-  }
-
-  Storage Device::getPointerStorage(const void* ptr)
-  {
-    return getEngine()->getPointerStorage(ptr);
   }
 
 } // namespace oidn

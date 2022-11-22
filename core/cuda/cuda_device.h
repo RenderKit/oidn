@@ -4,12 +4,11 @@
 #pragma once
 
 #include "../device.h"
+#include <cuda_runtime.h>
 
 namespace oidn {
 
-#if defined(OIDN_COMPILE_CUDA)
   void checkError(cudaError_t error);
-#endif
 
   class CUDAEngine;
 

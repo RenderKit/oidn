@@ -66,6 +66,14 @@ namespace oidn {
   // USMBuffer
   // ---------------------------------------------------------------------------
 
+  USMBuffer::USMBuffer(const Ref<Engine>& engine)
+    : ptr(nullptr),
+      byteSize(0),
+      shared(true),
+      storage(Storage::Undefined),
+      engine(engine)
+  {}
+
   USMBuffer::USMBuffer(const Ref<Engine>& engine, size_t byteSize, Storage storage)
     : ptr(nullptr),
       byteSize(byteSize),
@@ -76,26 +84,26 @@ namespace oidn {
     ptr = (char*)engine->malloc(byteSize, storage);
   }
 
-  USMBuffer::USMBuffer(const Ref<Engine>& engine, void* data, size_t byteSize)
+  USMBuffer::USMBuffer(const Ref<Engine>& engine, void* data, size_t byteSize, Storage storage)
     : ptr((char*)data),
       byteSize(byteSize),
       shared(true),
-      storage(Storage::Undefined),
+      storage(storage),
       engine(engine)
   {
     if (ptr == nullptr)
       throw Exception(Error::InvalidArgument, "buffer pointer null");
-    storage = engine->getPointerStorage(ptr);
+    if (storage == Storage::Undefined)
+      storage = engine->getPointerStorage(ptr);
   }
 
   USMBuffer::~USMBuffer()
   {
     // Unmap all mapped regions
-    for (const auto& region : mappedRegions)
-      unmap(region.first);
+    unmapAll();
 
     // Free the memory
-    if (!shared)
+    if (!shared && ptr)
       engine->free(ptr, storage);
   }
 
@@ -133,6 +141,12 @@ namespace oidn {
     engine->free(hostPtr, Storage::Host);
 
     mappedRegions.erase(region);
+  }
+
+  void USMBuffer::unmapAll()
+  {
+    for (const auto& region : mappedRegions)
+      unmap(region.first);
   }
 
   void USMBuffer::read(size_t byteOffset, size_t byteSize, void* dstHostPtr, SyncMode sync)

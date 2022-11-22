@@ -42,16 +42,13 @@ namespace oidn {
     TensorLayout getWeightsLayout() const { return weightsLayout; }
     int getTensorBlockC() const { return tensorBlockSize; }
 
+    ExternalMemoryTypeFlags getExternalMemoryTypes() const { return externalMemoryTypes; }
+
     // Synchronizes all engines (does not block)
     virtual void submitBarrier() {}
 
     // Waits for all asynchronous commands to complete (blocks)
     virtual void wait() = 0;
-
-    // Memory
-    Ref<Buffer> newBuffer(size_t byteSize, Storage storage);
-    Ref<Buffer> newBuffer(void* ptr, size_t byteSize);
-    Storage getPointerStorage(const void* ptr);
 
     Ref<Filter> newFilter(const std::string& type);
    
@@ -63,6 +60,8 @@ namespace oidn {
     TensorLayout tensorLayout = TensorLayout::chw;
     TensorLayout weightsLayout = TensorLayout::oihw;
     int tensorBlockSize = 1;
+
+    ExternalMemoryTypeFlags externalMemoryTypes;
 
     // State
     bool dirty = true;

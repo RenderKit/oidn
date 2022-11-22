@@ -47,6 +47,13 @@ namespace oidn {
 
     virtual Ref<Buffer> newBuffer(size_t byteSize, Storage storage);
     virtual Ref<Buffer> newBuffer(void* ptr, size_t byteSize);
+
+    virtual Ref<Buffer> newExternalBuffer(ExternalMemoryTypeFlag fdType,
+                                          int fd, size_t byteSize);
+
+    virtual Ref<Buffer> newExternalBuffer(ExternalMemoryTypeFlag handleType,
+                                          void* handle, const void* name, size_t byteSize);
+                                          
     Ref<ScratchBuffer> newScratchBuffer(size_t byteSize);
 
     virtual std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, Storage storage = Storage::Device);

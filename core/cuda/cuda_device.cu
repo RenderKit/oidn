@@ -74,6 +74,19 @@ namespace oidn {
     weightsLayout   = TensorLayout::ohwi;
     tensorBlockSize = 8; // required by Tensor Core operations
 
+#if defined(_WIN32)
+    externalMemoryTypes = ExternalMemoryTypeFlag::OpaqueWin32 |
+                          ExternalMemoryTypeFlag::OpaqueWin32KMT |
+                          ExternalMemoryTypeFlag::D3D11Texture |
+                          ExternalMemoryTypeFlag::D3D11TextureKMT |
+                          ExternalMemoryTypeFlag::D3D11Resource |
+                          ExternalMemoryTypeFlag::D3D11ResourceKMT |
+                          ExternalMemoryTypeFlag::D3D12Heap |
+                          ExternalMemoryTypeFlag::D3D12Resource;
+#else
+    externalMemoryTypes = ExternalMemoryTypeFlag::OpaqueFD;
+#endif
+
     engine = makeRef<CUDAEngine>(this, deviceId, stream);
   }
 

@@ -357,6 +357,8 @@ if(OIDN_DEVICE_CUDA)
     core/cuda/cuda_device.cu
     core/cuda/cuda_engine.h
     core/cuda/cuda_engine.cu
+    core/cuda/cuda_external_buffer.h
+    core/cuda/cuda_external_buffer.cu
     core/cuda/cutlass_conv.h
     core/cuda/cutlass_conv_sm70.cu
     core/cuda/cutlass_conv_sm75.cu
@@ -428,6 +430,7 @@ if(OIDN_DEVICE_SYCL)
 endif()
 
 if(OIDN_DEVICE_CUDA)
+  target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
   target_include_directories(${PROJECT_NAME} PRIVATE "${PROJECT_SOURCE_DIR}/cutlass/include" "${PROJECT_SOURCE_DIR}/cutlass/tools/util/include")
   set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_ARCHITECTURES OFF)
 endif()

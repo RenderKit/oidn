@@ -280,7 +280,7 @@ OIDN_API_NAMESPACE_BEGIN
       checkHandle(hDevice);
       OIDN_LOCK(device);
       device->checkCommitted();
-      Ref<Buffer> buffer = device->newBuffer(byteSize, Storage::Host);
+      Ref<Buffer> buffer = device->getEngine()->newBuffer(byteSize, Storage::Host);
       return (OIDNBuffer)buffer.detach();
     OIDN_CATCH(device)
     return nullptr;
@@ -293,7 +293,7 @@ OIDN_API_NAMESPACE_BEGIN
       checkHandle(hDevice);
       OIDN_LOCK(device);
       device->checkCommitted();
-      Ref<Buffer> buffer = device->newBuffer(byteSize, (Storage)storage);
+      Ref<Buffer> buffer = device->getEngine()->newBuffer(byteSize, (Storage)storage);
       return (OIDNBuffer)buffer.detach();
     OIDN_CATCH(device)
     return nullptr;
@@ -306,7 +306,45 @@ OIDN_API_NAMESPACE_BEGIN
       checkHandle(hDevice);
       OIDN_LOCK(device);
       device->checkCommitted();
-      Ref<Buffer> buffer = device->newBuffer(devPtr, byteSize);
+      Ref<Buffer> buffer = device->getEngine()->newBuffer(devPtr, byteSize);
+      return (OIDNBuffer)buffer.detach();
+    OIDN_CATCH(device)
+    return nullptr;
+  }
+
+  OIDN_API OIDNBuffer oidnNewSharedBufferFromFD(OIDNDevice hDevice,
+                                                OIDNExternalMemoryTypeFlag fdType,
+                                                int fd, size_t byteSize)
+  {
+    Device* device = (Device*)hDevice;
+    OIDN_TRY
+      checkHandle(hDevice);
+      OIDN_LOCK(device);
+      device->checkCommitted();
+      if (!((ExternalMemoryTypeFlag)fdType & device->getExternalMemoryTypes()))
+        throw Exception(Error::InvalidArgument, "external memory type not supported by the device");
+      Ref<Buffer> buffer = device->getEngine()->newExternalBuffer(
+        (ExternalMemoryTypeFlag)fdType, fd, byteSize);
+      return (OIDNBuffer)buffer.detach();
+    OIDN_CATCH(device)
+    return nullptr;
+  }
+
+  OIDN_API OIDNBuffer oidnNewSharedBufferFromWin32Handle(OIDNDevice hDevice,
+                                                         OIDNExternalMemoryTypeFlag handleType,
+                                                         void* handle, const void* name, size_t byteSize)
+  {
+    Device* device = (Device*)hDevice;
+    OIDN_TRY
+      checkHandle(hDevice);
+      OIDN_LOCK(device);
+      device->checkCommitted();
+      if (!((ExternalMemoryTypeFlag)handleType & device->getExternalMemoryTypes()))
+        throw Exception(Error::InvalidArgument, "external memory type not supported by the device");
+      if ((!handle && !name) || (handle && name))
+        throw Exception(Error::InvalidArgument, "exactly one of the external memory handle and name must be non-null");
+      Ref<Buffer> buffer = device->getEngine()->newExternalBuffer(
+        (ExternalMemoryTypeFlag)handleType, handle, name, byteSize);
       return (OIDNBuffer)buffer.detach();
     OIDN_CATCH(device)
     return nullptr;

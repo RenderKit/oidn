@@ -10,6 +10,7 @@
 #include "../gpu/gpu_image_copy.h"
 #include "cuda_conv.h"
 #include "cuda_concat_conv.h"
+#include "cuda_external_buffer.h"
 
 namespace oidn {
 
@@ -23,6 +24,18 @@ namespace oidn {
   void CUDAEngine::wait()
   {
     checkError(cudaStreamSynchronize(stream));
+  }
+
+  Ref<Buffer> CUDAEngine::newExternalBuffer(ExternalMemoryTypeFlag fdType,
+                                            int fd, size_t byteSize)
+  {
+    return makeRef<CUDAExternalBuffer>(this, fdType, fd, byteSize);
+  }
+
+  Ref<Buffer> CUDAEngine::newExternalBuffer(ExternalMemoryTypeFlag handleType,
+                                            void* handle, const void* name, size_t byteSize)
+  {
+    return makeRef<CUDAExternalBuffer>(this, handleType, handle, name, byteSize);
   }
 
   std::shared_ptr<Conv> CUDAEngine::newConv(const ConvDesc& desc)
