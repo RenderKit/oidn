@@ -10,6 +10,7 @@ Version History
        improved GPU buffer support
     -  `oidnExecuteFilterAsync` and `oidnSyncDevice` for asynchronous
        filter execution
+-   Fixed over-conservative buffer bounds checking for images with custom strides
 
 ### Changes in v1.4.3:
 

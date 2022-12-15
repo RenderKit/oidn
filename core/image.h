@@ -59,7 +59,12 @@ namespace oidn {
     OIDN_INLINE size_t getNumElements() const { return width * height; }
 
     // Returns the size in bytes of the image
-    OIDN_INLINE size_t getByteSize() const { return height * hStride; }
+    OIDN_INLINE size_t getByteSize() const
+    {
+      if (width == 0 || height == 0)
+        return 0;
+      return (height - 1) * hStride + (width - 1) * wStride + getFormatSize(format);
+    }
 
     // Returns the aligned size in bytes of the image
     OIDN_INLINE size_t getAlignedSize() const
