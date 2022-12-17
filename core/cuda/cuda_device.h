@@ -29,6 +29,8 @@ namespace oidn {
     
     int getNumEngines() const override { return 1; }
 
+    Storage getPointerStorage(const void* ptr) override;
+
     void wait() override;
 
   private:

@@ -81,7 +81,6 @@ namespace oidn {
     void free(void* ptr, Storage storage) override;
     void memcpy(void* dstPtr, const void* srcPtr, size_t byteSize) override;
     void submitMemcpy(void* dstPtr, const void* srcPtr, size_t byteSize) override;
-    Storage getPointerStorage(const void* ptr) override;
 
   #if defined(OIDN_COMPILE_CUDA)
     // Enqueues a basic kernel

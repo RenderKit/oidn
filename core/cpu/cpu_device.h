@@ -30,6 +30,8 @@ namespace oidn {
     
     int getNumEngines() const override { return 1; }
 
+    Storage getPointerStorage(const void* ptr) override;
+
     int get1i(const std::string& name) override;
     void set1i(const std::string& name, int value) override;
 

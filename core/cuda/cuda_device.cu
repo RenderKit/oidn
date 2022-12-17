@@ -90,6 +90,25 @@ namespace oidn {
     engine = makeRef<CUDAEngine>(this, deviceId, stream);
   }
 
+  Storage CUDADevice::getPointerStorage(const void* ptr)
+  {
+    cudaPointerAttributes attrib;
+    if (cudaPointerGetAttributes(&attrib, ptr) != cudaSuccess)
+      return Storage::Undefined;
+
+    switch (attrib.type)
+    {
+    case cudaMemoryTypeHost:
+      return Storage::Host;
+    case cudaMemoryTypeDevice:
+      return Storage::Device;
+    case cudaMemoryTypeManaged:
+      return Storage::Managed;
+    default:
+      return Storage::Undefined;
+    }
+  }
+
   void CUDADevice::wait()
   {
     engine->wait();

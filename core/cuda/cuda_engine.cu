@@ -123,25 +123,6 @@ namespace oidn {
     checkError(cudaMemcpyAsync(dstPtr, srcPtr, byteSize, cudaMemcpyDefault, stream));
   }
 
-  Storage CUDAEngine::getPointerStorage(const void* ptr)
-  {
-    cudaPointerAttributes attrib;
-    if (cudaPointerGetAttributes(&attrib, ptr) != cudaSuccess)
-      return Storage::Undefined;
-
-    switch (attrib.type)
-    {
-    case cudaMemoryTypeHost:
-      return Storage::Host;
-    case cudaMemoryTypeDevice:
-      return Storage::Device;
-    case cudaMemoryTypeManaged:
-      return Storage::Managed;
-    default:
-      return Storage::Undefined;
-    }
-  }
-
   namespace
   {
     void CUDART_CB hostFuncCallback(cudaStream_t stream, cudaError_t status, void* fPtr)

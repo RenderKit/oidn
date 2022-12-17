@@ -11,13 +11,11 @@
 namespace oidn {
 
   SYCLEngine::SYCLEngine(const Ref<SYCLDevice>& device,
-                         const sycl::queue& queue)
+                         const sycl::queue& syclQueue)
     : device(device.get()),
-      syclContext(queue.get_context()),
-      syclDevice(queue.get_device()),
-      queue(queue)
+      syclQueue(syclQueue)
   {
-    maxWorkGroupSize = syclDevice.get_info<sycl::info::device::max_work_group_size>();
+    maxWorkGroupSize = syclQueue.get_device().get_info<sycl::info::device::max_work_group_size>();
   }
 
   bool SYCLEngine::isConvSupported(PostOp postOp)
@@ -83,19 +81,19 @@ namespace oidn {
     case Storage::Host:
       return sycl::aligned_alloc_host(memoryAlignment,
                                       byteSize,
-                                      syclContext);
+                                      syclQueue.get_context());
 
     case Storage::Device:
       return sycl::aligned_alloc_device(memoryAlignment,
                                         byteSize,
-                                        syclDevice,
-                                        syclContext);
+                                        syclQueue.get_device(),
+                                        syclQueue.get_context());
 
     case Storage::Managed:
       return sycl::aligned_alloc_shared(memoryAlignment,
                                         byteSize,
-                                        syclDevice,
-                                        syclContext);
+                                        syclQueue.get_device(),
+                                        syclQueue.get_context());
 
     default:
       throw Exception(Error::InvalidArgument, "invalid storage mode");
@@ -104,7 +102,7 @@ namespace oidn {
 
   void SYCLEngine::free(void* ptr, Storage storage)
   {
-    sycl::free(ptr, syclContext);
+    sycl::free(ptr, syclQueue.get_context());
   }
 
   void SYCLEngine::memcpy(void* dstPtr, const void* srcPtr, size_t byteSize)
@@ -115,27 +113,12 @@ namespace oidn {
 
   void SYCLEngine::submitMemcpy(void* dstPtr, const void* srcPtr, size_t byteSize)
   {
-    lastEvent = queue.memcpy(dstPtr, srcPtr, byteSize, getDepEvents());
-  }
-
-  Storage SYCLEngine::getPointerStorage(const void* ptr)
-  {
-    switch (sycl::get_pointer_type(ptr, syclContext))
-    {
-      case sycl::usm::alloc::host:
-        return Storage::Host;
-      case sycl::usm::alloc::device:
-        return Storage::Device;
-      case sycl::usm::alloc::shared:
-        return Storage::Managed;
-      default:
-        return Storage::Undefined;
-    }
+    lastEvent = syclQueue.memcpy(dstPtr, srcPtr, byteSize, getDepEvents());
   }
 
   void SYCLEngine::submitHostFunc(std::function<void()>&& f)
   {
-    lastEvent = queue.submit([&](sycl::handler& cgh) {
+    lastEvent = syclQueue.submit([&](sycl::handler& cgh) {
       cgh.depends_on(getDepEvents()),
       cgh.host_task(f);
     });
@@ -143,7 +126,7 @@ namespace oidn {
   
   void SYCLEngine::submitBarrier()
   { 
-    lastEvent = queue.submit([&](sycl::handler& cgh) {
+    lastEvent = syclQueue.submit([&](sycl::handler& cgh) {
       cgh.depends_on(getDepEvents()),
       //cgh.ext_oneapi_barrier(); // FIXME: hangs, workaround: SYCL_PI_LEVEL_ZERO_USE_MULTIPLE_COMMANDLIST_BARRIERS=0
       cgh.single_task([](){});    // FIXME: should switch to ext_oneapi_barrier when it gets fixed

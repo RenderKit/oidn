@@ -21,16 +21,18 @@ namespace oidn {
   { 
   public:
     static bool isSupported();
-    static bool isDeviceSupported(const sycl::device& device);
-    static SYCLArch getDeviceArch(const sycl::device& device);
+    static bool isDeviceSupported(const sycl::device& syclDevice);
+    static SYCLArch getDeviceArch(const sycl::device& syclDevice);
 
-    SYCLDevice(const std::vector<sycl::queue>& queues = {});
+    SYCLDevice(const std::vector<sycl::queue>& syclQueues = {});
     
     Engine* getEngine(int i) const override { return (Engine*)engines[i].get(); }
     int getNumEngines() const override { return int(engines.size()); }
     
     int get1i(const std::string& name) override;
     void set1i(const std::string& name, int value) override;
+
+    Storage getPointerStorage(const void* ptr) override;
 
     void submitBarrier() override;
     void wait() override;
@@ -46,9 +48,11 @@ namespace oidn {
   private:
     void init() override;
 
-    std::vector<sycl::queue> queues; // used only for initialization
+    sycl::context syclContext;
+    std::vector<sycl::queue> syclQueues; // used only for initialization
     std::vector<Ref<SYCLEngine>> engines;
     SYCLArch arch;
+    
     
     int numSubdevices = 0; // autodetect by default
   };

@@ -30,7 +30,7 @@ namespace oidn {
     // Check whether the image is accessible to the device
     if (src && *src)
     {
-      Storage storage = src->getBuffer() ? src->getBuffer()->getStorage() : device->getEngine()->getPointerStorage(src->getData());
+      Storage storage = src->getBuffer() ? src->getBuffer()->getStorage() : device->getPointerStorage(src->getData());
       if (storage == Storage::Undefined)
         throw Exception(Error::InvalidArgument, "the specified image is not accessible to the device, please use OIDNBuffer or native device malloc");
     }
@@ -56,7 +56,7 @@ namespace oidn {
   void Filter::setParam(Data& dst, const Data& src)
   {
     // Check whether the data is accessible to the host
-    if (src && device->getEngine()->getPointerStorage(src.ptr) == Storage::Device)
+    if (src && device->getPointerStorage(src.ptr) == Storage::Device)
       throw Exception(Error::InvalidArgument, "the specified data is not accessible to the host, please use host malloc");
 
     dirtyParam = dst || src;

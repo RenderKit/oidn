@@ -10,40 +10,40 @@ namespace oidn {
   class SYCLDeviceSelector
   {
   public:
-    int operator()(const sycl::device& device) const
+    int operator()(const sycl::device& syclDevice) const
     {
-      if (!SYCLDevice::isDeviceSupported(device))
+      if (!SYCLDevice::isDeviceSupported(syclDevice))
         return -1;
 
       // FIXME: improve detection of fastest discrete GPU
-      return device.get_info<sycl::info::device::max_compute_units>() * device.get_info<sycl::info::device::max_work_group_size>();
+      return syclDevice.get_info<sycl::info::device::max_compute_units>() * syclDevice.get_info<sycl::info::device::max_work_group_size>();
     }
   };
 
   bool SYCLDevice::isSupported()
   {
-    for (const auto& platform : sycl::platform::get_platforms())
-      for (const auto& device : platform.get_devices(sycl::info::device_type::gpu))
-        if (isDeviceSupported(device))
+    for (const auto& syclPlatform : sycl::platform::get_platforms())
+      for (const auto& syclDevice : syclPlatform.get_devices(sycl::info::device_type::gpu))
+        if (isDeviceSupported(syclDevice))
           return true;
     return false;
   }
 
-  bool SYCLDevice::isDeviceSupported(const sycl::device& device)
+  bool SYCLDevice::isDeviceSupported(const sycl::device& syclDevice)
   {
-    return device.is_gpu() &&
-           device.get_info<sycl::info::device::vendor_id>() == 0x8086 && // Intel
-           device.has(sycl::aspect::usm_host_allocations) &&
-           device.has(sycl::aspect::usm_device_allocations) &&
-           device.has(sycl::aspect::usm_shared_allocations);
+    return syclDevice.is_gpu() &&
+           syclDevice.get_info<sycl::info::device::vendor_id>() == 0x8086 && // Intel
+           syclDevice.has(sycl::aspect::usm_host_allocations) &&
+           syclDevice.has(sycl::aspect::usm_device_allocations) &&
+           syclDevice.has(sycl::aspect::usm_shared_allocations);
   }
 
-  SYCLArch SYCLDevice::getDeviceArch(const sycl::device& device)
+  SYCLArch SYCLDevice::getDeviceArch(const sycl::device& syclDevice)
   {
     // FIXME: improve robustness
-    if (device.get_info<sycl::info::device::max_work_group_size>() >= 1024)
+    if (syclDevice.get_info<sycl::info::device::max_work_group_size>() >= 1024)
     {
-      if (device.has(sycl::aspect::fp64))
+      if (syclDevice.has(sycl::aspect::fp64))
         return SYCLArch::XeHPC;
       else
         return SYCLArch::XeHPG;
@@ -52,8 +52,8 @@ namespace oidn {
       return SYCLArch::Gen9;
   }
 
-  SYCLDevice::SYCLDevice(const std::vector<sycl::queue>& queues)
-    : queues(queues)
+  SYCLDevice::SYCLDevice(const std::vector<sycl::queue>& syclQueues)
+    : syclQueues(syclQueues)
   {
     // Get default values from environment variables
     getEnvVar("OIDN_NUM_SUBDEVICES", numSubdevices);
@@ -61,31 +61,31 @@ namespace oidn {
 
   void SYCLDevice::init()
   {
-    if (queues.empty())
+    if (syclQueues.empty())
     {
       try
       {
-        sycl::device device {SYCLDeviceSelector()};
+        sycl::device syclDevice {SYCLDeviceSelector()};
 
-        arch = getDeviceArch(device);
+        arch = getDeviceArch(syclDevice);
 
         // Try to split the device into sub-devices per NUMA domain (tile)
         const auto partition = sycl::info::partition_property::partition_by_affinity_domain;
-        const auto supportedPartitions = device.get_info<sycl::info::device::partition_properties>();
+        const auto supportedPartitions = syclDevice.get_info<sycl::info::device::partition_properties>();
         if (std::find(supportedPartitions.begin(), supportedPartitions.end(), partition) != supportedPartitions.end())
         {
           const auto domain = sycl::info::partition_affinity_domain::numa;
-          const auto supportedDomains = device.get_info<sycl::info::device::partition_affinity_domains>();
+          const auto supportedDomains = syclDevice.get_info<sycl::info::device::partition_affinity_domains>();
           if (std::find(supportedDomains.begin(), supportedDomains.end(), domain) != supportedDomains.end())
           {
-            auto subDevices = device.create_sub_devices<partition>(domain);
-            for (auto& subDevice : subDevices)
-              queues.emplace_back(subDevice);
+            auto syclSubDevices = syclDevice.create_sub_devices<partition>(domain);
+            for (auto& syclSubDevice : syclSubDevices)
+              syclQueues.emplace_back(syclSubDevice);
           }
         }
 
-        if (queues.empty())
-          queues.emplace_back(device);
+        if (syclQueues.empty())
+          syclQueues.emplace_back(syclDevice);
       }
       catch (sycl::exception& e)
       {
@@ -97,41 +97,43 @@ namespace oidn {
     }
     else
     {
-      for (size_t i = 0; i < queues.size(); ++i)
+      for (size_t i = 0; i < syclQueues.size(); ++i)
       {
-        if (!isDeviceSupported(queues[i].get_device()))
+        if (!isDeviceSupported(syclQueues[i].get_device()))
           throw Exception(Error::UnsupportedHardware, "unsupported SYCL device");
 
         if (i == 0)
         {
-          arch = getDeviceArch(queues[i].get_device());
+          arch = getDeviceArch(syclQueues[i].get_device());
         }
         else
         {
-          if (queues[i].get_context() != queues[0].get_context())
+          if (syclQueues[i].get_context() != syclQueues[0].get_context())
             throw Exception(Error::InvalidArgument, "queues belong to different SYCL contexts");
-          if (getDeviceArch(queues[i].get_device()) != arch)
+          if (getDeviceArch(syclQueues[i].get_device()) != arch)
             throw Exception(Error::UnsupportedHardware, "unsupported mixture of SYCL devices");
         }
       }
     }
+
+    syclContext = syclQueues[0].get_context();
     
     // Limit the number of subdevices/engines if requested
-    if (numSubdevices > 0 && numSubdevices < int(queues.size()))
-      queues.resize(numSubdevices);
-    numSubdevices = int(queues.size());
+    if (numSubdevices > 0 && numSubdevices < int(syclQueues.size()))
+      syclQueues.resize(numSubdevices);
+    numSubdevices = int(syclQueues.size());
 
     if (isVerbose())
     {
-      std::cout << "  Platform  : " << queues[0].get_device().get_platform().get_info<sycl::info::platform::name>() << std::endl;
+      std::cout << "  Platform  : " << syclContext.get_platform().get_info<sycl::info::platform::name>() << std::endl;
       
-      for (size_t i = 0; i < queues.size(); ++i)
+      for (size_t i = 0; i < syclQueues.size(); ++i)
       { 
-        if (queues.size() > 1)
+        if (syclQueues.size() > 1)
            std::cout << "  Device " << std::setw(2) << i << " : ";
         else
           std::cout << "  Device    : ";
-        std::cout << queues[i].get_device().get_info<sycl::info::device::name>() << std::endl;
+        std::cout << syclQueues[i].get_device().get_info<sycl::info::device::name>() << std::endl;
         
         std::cout << "    Arch    : ";
         switch (arch)
@@ -143,15 +145,15 @@ namespace oidn {
         }
         std::cout << std::endl;
         
-        std::cout << "    EUs     : " << queues[i].get_device().get_info<sycl::info::device::max_compute_units>() << std::endl;
+        std::cout << "    EUs     : " << syclQueues[i].get_device().get_info<sycl::info::device::max_compute_units>() << std::endl;
       }
     }
 
     // Create the engines
-    for (auto& queue : queues)
-      engines.push_back(makeRef<SYCLEngine>(this, queue));
+    for (auto& syclQueue : syclQueues)
+      engines.push_back(makeRef<SYCLEngine>(this, syclQueue));
 
-    queues.clear(); // not needed anymore
+    syclQueues.clear(); // not needed anymore
 
     tensorDataType  = DataType::Float16;
     tensorLayout    = TensorLayout::Chw16c;
@@ -191,6 +193,21 @@ namespace oidn {
       Device::set1i(name, value);
 
     dirty = true;
+  }
+
+  Storage SYCLDevice::getPointerStorage(const void* ptr)
+  {
+    switch (sycl::get_pointer_type(ptr, syclContext))
+    {
+      case sycl::usm::alloc::host:
+        return Storage::Host;
+      case sycl::usm::alloc::device:
+        return Storage::Device;
+      case sycl::usm::alloc::shared:
+        return Storage::Managed;
+      default:
+        return Storage::Undefined;
+    }
   }
   
   void SYCLDevice::submitBarrier()

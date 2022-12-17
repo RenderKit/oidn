@@ -111,28 +111,6 @@ namespace oidn {
     checkError(hipMemcpyAsync(dstPtr, srcPtr, byteSize, hipMemcpyDefault, stream));
   }
 
-  Storage HIPEngine::getPointerStorage(const void* ptr)
-  {
-    hipPointerAttribute_t attrib;
-    if (hipPointerGetAttributes(&attrib, ptr) != hipSuccess)
-      return Storage::Undefined;
-
-    if (attrib.isManaged)
-      return Storage::Managed;
-
-    switch (attrib.memoryType)
-    {
-    case hipMemoryTypeHost:
-      return Storage::Host;
-    case hipMemoryTypeDevice:
-      return Storage::Device;
-    case hipMemoryTypeUnified:
-      return Storage::Managed;
-    default:
-      return Storage::Undefined;
-    }
-  }
-
   namespace
   {
     void hostFuncCallback(hipStream_t stream, hipError_t status, void* fPtr)

@@ -15,7 +15,7 @@ namespace oidn {
 
   public:
     SYCLEngine(const Ref<SYCLDevice>& device,
-               const sycl::queue& queue);
+               const sycl::queue& syclQueue);
 
     Device* getDevice() const override { return device; }
 
@@ -34,13 +34,12 @@ namespace oidn {
     void free(void* ptr, Storage storage) override;
     void memcpy(void* dstPtr, const void* srcPtr, size_t byteSize) override;
     void submitMemcpy(void* dstPtr, const void* srcPtr, size_t byteSize) override;
-    Storage getPointerStorage(const void* ptr) override;
 
     // Enqueues a basic kernel
     template<int N, typename F>
     OIDN_INLINE void submitKernel(WorkDim<N> globalSize, const F& f)
     {
-      lastEvent = queue.parallel_for<F>(
+      lastEvent = syclQueue.parallel_for<F>(
         globalSize,
         getDepEvents(),
         [=](sycl::item<N> it) { f(it); });
@@ -50,7 +49,7 @@ namespace oidn {
     template<int N, typename F>
     OIDN_INLINE void submitKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const F& f)
     {
-      lastEvent = queue.parallel_for<F>(
+      lastEvent = syclQueue.parallel_for<F>(
         sycl::nd_range<N>(numGroups * groupSize, groupSize),
         getDepEvents(),
         [=](sycl::nd_item<N> it) { f(it); });
@@ -60,7 +59,7 @@ namespace oidn {
     template<int N, typename F>
     OIDN_INLINE void submitESIMDKernel(WorkDim<N> globalSize, const F& f)
     {
-      lastEvent = queue.parallel_for<F>(
+      lastEvent = syclQueue.parallel_for<F>(
         globalSize,
         getDepEvents(),
         [=](sycl::item<N> it) SYCL_ESIMD_KERNEL { f(it); });
@@ -70,7 +69,7 @@ namespace oidn {
     template<int N, typename F>
     OIDN_INLINE void submitESIMDKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const F& f)
     {
-      lastEvent = queue.parallel_for<F>(
+      lastEvent = syclQueue.parallel_for<F>(
         sycl::nd_range<N>(numGroups * groupSize, groupSize),
         getDepEvents(),
         [=](sycl::nd_item<N> it) SYCL_ESIMD_KERNEL { f(it); });
@@ -96,11 +95,7 @@ namespace oidn {
     }
   
     SYCLDevice* device;
-
-    sycl::context syclContext;
-    sycl::device  syclDevice;
-
-    sycl::queue queue;                    // all commands are submitted to this queue
+    sycl::queue syclQueue;                // all commands are submitted to this queue
     std::optional<sycl::event> lastEvent; // the last submitted command, implicit dependency of the next command
     std::vector<sycl::event> depEvents;   // explicit dependencies of the next command, if not empty
 

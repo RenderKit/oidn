@@ -42,6 +42,8 @@ namespace oidn {
     TensorLayout getWeightsLayout() const { return weightsLayout; }
     int getTensorBlockC() const { return tensorBlockSize; }
 
+    // Memory
+    virtual Storage getPointerStorage(const void* ptr) = 0;
     ExternalMemoryTypeFlags getExternalMemoryTypes() const { return externalMemoryTypes; }
 
     // Synchronizes all engines (does not block)

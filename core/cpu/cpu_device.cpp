@@ -116,6 +116,11 @@ namespace oidn {
     }
   }
 
+  Storage CPUDevice::getPointerStorage(const void* ptr)
+  {
+    return Storage::Host;
+  }
+
   int CPUDevice::get1i(const std::string& name)
   {
     if (name == "numThreads")
