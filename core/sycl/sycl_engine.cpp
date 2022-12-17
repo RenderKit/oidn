@@ -24,6 +24,18 @@ namespace oidn {
     maxWorkGroupSize = syclDevice.get_info<sycl::info::device::max_work_group_size>();
   }
 
+  Ref<Buffer> SYCLEngine::newExternalBuffer(ExternalMemoryTypeFlag fdType,
+                                            int fd, size_t byteSize)
+  {
+    return makeRef<SYCLExternalBuffer>(this, fdType, fd, byteSize);
+  }
+
+  Ref<Buffer> SYCLEngine::newExternalBuffer(ExternalMemoryTypeFlag handleType,
+                                            void* handle, const void* name, size_t byteSize)
+  {
+    return makeRef<SYCLExternalBuffer>(this, handleType, handle, name, byteSize);
+  }
+
   bool SYCLEngine::isConvSupported(PostOp postOp)
   {
     return postOp == PostOp::None ||
@@ -77,18 +89,6 @@ namespace oidn {
   std::shared_ptr<ImageCopy> SYCLEngine::newImageCopy()
   {
     return std::make_shared<GPUImageCopy<SYCLEngine>>(this);
-  }
-
-  Ref<Buffer> SYCLEngine::newExternalBuffer(ExternalMemoryTypeFlag fdType,
-                                            int fd, size_t byteSize)
-  {
-    return makeRef<SYCLExternalBuffer>(this, fdType, fd, byteSize);
-  }
-
-  Ref<Buffer> SYCLEngine::newExternalBuffer(ExternalMemoryTypeFlag handleType,
-                                            void* handle, const void* name, size_t byteSize)
-  {
-    return makeRef<SYCLExternalBuffer>(this, handleType, handle, name, byteSize);
   }
 
   void* SYCLEngine::malloc(size_t byteSize, Storage storage)

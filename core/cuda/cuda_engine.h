@@ -56,8 +56,6 @@ namespace oidn {
 
     Device* getDevice() const override { return device; }
     cudaStream_t getCUDAStream() const { return stream; }
-    
-    void wait() override;
 
     // Buffer
     Ref<Buffer> newExternalBuffer(ExternalMemoryTypeFlag fdType,
@@ -111,6 +109,8 @@ namespace oidn {
 
     // Enqueues a host function
     void submitHostFunc(std::function<void()>&& f) override;
+
+    void wait() override;
 
     int getMaxWorkGroupSize() const override { return device->maxWorkGroupSize; }
     int getComputeCapability() const { return device->computeCapability; }

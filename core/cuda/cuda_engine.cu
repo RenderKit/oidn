@@ -21,11 +21,6 @@ namespace oidn {
       deviceId(deviceId),
       stream(stream) {}
 
-  void CUDAEngine::wait()
-  {
-    checkError(cudaStreamSynchronize(stream));
-  }
-
   Ref<Buffer> CUDAEngine::newExternalBuffer(ExternalMemoryTypeFlag fdType,
                                             int fd, size_t byteSize)
   {
@@ -137,5 +132,10 @@ namespace oidn {
   {
     auto fPtr = new std::function<void()>(std::move(f));
     checkError(cudaStreamAddCallback(stream, hostFuncCallback, fPtr, 0));
+  }
+
+  void CUDAEngine::wait()
+  {
+    checkError(cudaStreamSynchronize(stream));
   }
 }

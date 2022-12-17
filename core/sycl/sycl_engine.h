@@ -20,6 +20,13 @@ namespace oidn {
     Device* getDevice() const override { return device; }
     ze_device_handle_t getZeDevice() const { return zeDevice; }
 
+    // Buffer
+    Ref<Buffer> newExternalBuffer(ExternalMemoryTypeFlag fdType,
+                                  int fd, size_t byteSize) override;
+
+    Ref<Buffer> newExternalBuffer(ExternalMemoryTypeFlag handleType,
+                                  void* handle, const void* name, size_t byteSize) override;
+
     // Ops
     bool isConvSupported(PostOp postOp) override;
     std::shared_ptr<Conv> newConv(const ConvDesc& desc) override;
@@ -29,13 +36,6 @@ namespace oidn {
     std::shared_ptr<InputProcess> newInputProcess(const InputProcessDesc& desc) override;
     std::shared_ptr<OutputProcess> newOutputProcess(const OutputProcessDesc& desc) override;
     std::shared_ptr<ImageCopy> newImageCopy() override;
-
-    // Buffer
-    Ref<Buffer> newExternalBuffer(ExternalMemoryTypeFlag fdType,
-                                  int fd, size_t byteSize) override;
-
-    Ref<Buffer> newExternalBuffer(ExternalMemoryTypeFlag handleType,
-                                  void* handle, const void* name, size_t byteSize) override;
 
     // Memory
     void* malloc(size_t byteSize, Storage storage) override;

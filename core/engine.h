@@ -45,6 +45,7 @@ namespace oidn {
 
     virtual Device* getDevice() const = 0;
 
+    // Buffer
     virtual Ref<Buffer> newBuffer(size_t byteSize, Storage storage);
     virtual Ref<Buffer> newBuffer(void* ptr, size_t byteSize);
 
@@ -56,6 +57,7 @@ namespace oidn {
                                           
     Ref<ScratchBuffer> newScratchBuffer(size_t byteSize);
 
+    // Tensor
     virtual std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, Storage storage = Storage::Device);
     virtual std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, void* data);
     virtual std::shared_ptr<Tensor> newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset = 0);
