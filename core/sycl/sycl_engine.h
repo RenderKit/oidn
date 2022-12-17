@@ -18,6 +18,7 @@ namespace oidn {
                const sycl::queue& syclQueue);
 
     Device* getDevice() const override { return device; }
+    ze_device_handle_t getZeDevice() const { return zeDevice; }
 
     // Ops
     bool isConvSupported(PostOp postOp) override;
@@ -28,6 +29,13 @@ namespace oidn {
     std::shared_ptr<InputProcess> newInputProcess(const InputProcessDesc& desc) override;
     std::shared_ptr<OutputProcess> newOutputProcess(const OutputProcessDesc& desc) override;
     std::shared_ptr<ImageCopy> newImageCopy() override;
+
+    // Buffer
+    Ref<Buffer> newExternalBuffer(ExternalMemoryTypeFlag fdType,
+                                  int fd, size_t byteSize) override;
+
+    Ref<Buffer> newExternalBuffer(ExternalMemoryTypeFlag handleType,
+                                  void* handle, const void* name, size_t byteSize) override;
 
     // Memory
     void* malloc(size_t byteSize, Storage storage) override;
@@ -95,9 +103,10 @@ namespace oidn {
     }
   
     SYCLDevice* device;
-    sycl::queue syclQueue;                // all commands are submitted to this queue
-    std::optional<sycl::event> lastEvent; // the last submitted command, implicit dependency of the next command
-    std::vector<sycl::event> depEvents;   // explicit dependencies of the next command, if not empty
+    ze_device_handle_t zeDevice = nullptr; // Level Zero device
+    sycl::queue syclQueue;                 // all commands are submitted to this queue
+    std::optional<sycl::event> lastEvent;  // the last submitted command, implicit dependency of the next command
+    std::vector<sycl::event> depEvents;    // explicit dependencies of the next command, if not empty
 
     int maxWorkGroupSize = 0;
   };

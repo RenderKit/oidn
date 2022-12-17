@@ -342,6 +342,8 @@ if(OIDN_DEVICE_SYCL)
     core/sycl/sycl_device.cpp
     core/sycl/sycl_engine.h
     core/sycl/sycl_engine.cpp
+    core/sycl/sycl_external_buffer.h
+    core/sycl/sycl_external_buffer.cpp
   )
 
   set_source_files_properties(${CORE_SOURCES} PROPERTIES COMPILE_FLAGS "${OIDN_CXX_FLAGS_SYCL}")
@@ -427,6 +429,7 @@ endif()
 
 if(OIDN_DEVICE_SYCL)
   target_link_options(${PROJECT_NAME} PRIVATE "-fsycl")
+  target_link_libraries(${PROJECT_NAME} PRIVATE ze_loader)
 endif()
 
 if(OIDN_DEVICE_CUDA)

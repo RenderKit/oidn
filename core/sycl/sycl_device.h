@@ -4,6 +4,7 @@
 #pragma once
 
 #include "../device.h"
+#include <level_zero/ze_api.h>
 
 namespace oidn {
 
@@ -25,6 +26,8 @@ namespace oidn {
     static SYCLArch getDeviceArch(const sycl::device& syclDevice);
 
     SYCLDevice(const std::vector<sycl::queue>& syclQueues = {});
+
+    ze_context_handle_t getZeContext() const { return zeContext; }
     
     Engine* getEngine(int i) const override { return (Engine*)engines[i].get(); }
     int getNumEngines() const override { return int(engines.size()); }
@@ -49,10 +52,11 @@ namespace oidn {
     void init() override;
 
     sycl::context syclContext;
-    std::vector<sycl::queue> syclQueues; // used only for initialization
+    ze_context_handle_t zeContext = nullptr; // Level Zero context
+    std::vector<sycl::queue> syclQueues;     // used only for initialization
     std::vector<Ref<SYCLEngine>> engines;
     SYCLArch arch;
-    
+
     
     int numSubdevices = 0; // autodetect by default
   };

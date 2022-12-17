@@ -7,6 +7,7 @@
 #include "../gpu/gpu_output_process.h"
 #include "../gpu/gpu_image_copy.h"
 #include "sycl_conv.h"
+#include "sycl_external_buffer.h"
 
 namespace oidn {
 
@@ -15,7 +16,12 @@ namespace oidn {
     : device(device.get()),
       syclQueue(syclQueue)
   {
-    maxWorkGroupSize = syclQueue.get_device().get_info<sycl::info::device::max_work_group_size>();
+    auto syclDevice = syclQueue.get_device();
+    
+    if (syclDevice.get_platform().get_backend() == sycl::backend::ext_oneapi_level_zero)
+      zeDevice = sycl::get_native<sycl::backend::ext_oneapi_level_zero>(syclDevice);
+
+    maxWorkGroupSize = syclDevice.get_info<sycl::info::device::max_work_group_size>();
   }
 
   bool SYCLEngine::isConvSupported(PostOp postOp)
@@ -71,6 +77,18 @@ namespace oidn {
   std::shared_ptr<ImageCopy> SYCLEngine::newImageCopy()
   {
     return std::make_shared<GPUImageCopy<SYCLEngine>>(this);
+  }
+
+  Ref<Buffer> SYCLEngine::newExternalBuffer(ExternalMemoryTypeFlag fdType,
+                                            int fd, size_t byteSize)
+  {
+    return makeRef<SYCLExternalBuffer>(this, fdType, fd, byteSize);
+  }
+
+  Ref<Buffer> SYCLEngine::newExternalBuffer(ExternalMemoryTypeFlag handleType,
+                                            void* handle, const void* name, size_t byteSize)
+  {
+    return makeRef<SYCLExternalBuffer>(this, handleType, handle, name, byteSize);
   }
 
   void* SYCLEngine::malloc(size_t byteSize, Storage storage)

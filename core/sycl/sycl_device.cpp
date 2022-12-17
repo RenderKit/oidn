@@ -117,6 +117,9 @@ namespace oidn {
     }
 
     syclContext = syclQueues[0].get_context();
+
+    if (syclContext.get_platform().get_backend() == sycl::backend::ext_oneapi_level_zero)
+      zeContext = sycl::get_native<sycl::backend::ext_oneapi_level_zero>(syclContext);
     
     // Limit the number of subdevices/engines if requested
     if (numSubdevices > 0 && numSubdevices < int(syclQueues.size()))
@@ -169,6 +172,15 @@ namespace oidn {
       break;
     default:
       weightsLayout = TensorLayout::OIhw16i16o;
+    }
+
+    if (zeContext)
+    {
+    #if defined(_WIN32)
+      externalMemoryTypes = ExternalMemoryTypeFlag::OpaqueWin32;
+    #else
+      externalMemoryTypes = ExternalMemoryTypeFlag::DMABuf;
+    #endif
     }
   }
   
