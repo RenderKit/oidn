@@ -20,6 +20,8 @@ namespace oidn {
     static bool isSupported();
 
     explicit CUDADevice(cudaStream_t stream = nullptr);
+    
+    DeviceType getType() const override { return DeviceType::CUDA; }
 
     Engine* getEngine(int i) const override
     {

@@ -215,6 +215,7 @@ int main(int argc, char* argv[])
 
     const double deviceInitTime = timer.query();
 
+    deviceType = device.get<DeviceType>("type");
     const int versionMajor = device.get<int>("versionMajor");
     const int versionMinor = device.get<int>("versionMinor");
     const int versionPatch = device.get<int>("versionPatch");

@@ -22,6 +22,8 @@ namespace oidn {
     CPUDevice();
     ~CPUDevice();
 
+    DeviceType getType() const override { return DeviceType::CPU; }
+
     Engine* getEngine(int i) const override
     {
       assert(i == 0);

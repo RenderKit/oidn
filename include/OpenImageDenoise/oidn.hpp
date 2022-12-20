@@ -702,6 +702,13 @@ OIDN_NAMESPACE_BEGIN
     return oidnGetDevice1i(handle, name);
   }
 
+  // Gets a DeviceType parameter of the device ("type").
+  template<>
+  inline DeviceType DeviceRef::get(const char* name) const
+  {
+    return DeviceType(oidnGetDevice1i(handle, name));
+  }
+
   // Gets an ExternalMemoryTypeFlags parameter of the device ("externalMemoryTypes").
   template<>
   inline ExternalMemoryTypeFlags DeviceRef::get(const char* name) const

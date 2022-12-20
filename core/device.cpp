@@ -97,8 +97,8 @@ namespace oidn {
 
   int Device::get1i(const std::string& name)
   {
-    if (name == "verbose")
-      return verbose;
+    if (name == "type")
+      return static_cast<int>(getType());
     else if (name == "version")
       return OIDN_VERSION;
     else if (name == "versionMajor")
@@ -107,6 +107,8 @@ namespace oidn {
       return OIDN_VERSION_MINOR;
     else if (name == "versionPatch")
       return OIDN_VERSION_PATCH;
+    else if (name == "verbose")
+      return verbose;
     else if (name == "externalMemoryTypes")
       return static_cast<int>(externalMemoryTypes);
     else

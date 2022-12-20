@@ -21,6 +21,8 @@ namespace oidn {
     static bool isSupported();
 
     explicit HIPDevice(hipStream_t stream = nullptr);
+    
+    DeviceType getType() const override { return DeviceType::HIP; }
 
     Engine* getEngine(int i) const override
     {

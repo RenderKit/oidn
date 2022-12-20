@@ -197,6 +197,8 @@ parameters supported by devices.
 ----------- -------------- -------- --------------------------------------------
 Type        Name            Default Description
 ----------- -------------- -------- --------------------------------------------
+`const int` `type`                  device type (`OIDNDeviceType`)
+
 `const int` `version`               combined version number (major.minor.patch)
                                     with two decimal digits per component
 

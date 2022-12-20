@@ -27,6 +27,7 @@ namespace oidn {
 
     SYCLDevice(const std::vector<sycl::queue>& syclQueues = {});
 
+    DeviceType getType() const override { return DeviceType::SYCL; }
     ze_context_handle_t getZeContext() const { return zeContext; }
     
     Engine* getEngine(int i) const override { return (Engine*)engines[i].get(); }

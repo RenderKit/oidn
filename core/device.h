@@ -23,6 +23,8 @@ namespace oidn {
 
     void warning(const std::string& message);
 
+    virtual DeviceType getType() const = 0;
+
     virtual int get1i(const std::string& name);
     virtual void set1i(const std::string& name, int value);
 
