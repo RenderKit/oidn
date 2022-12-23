@@ -12,11 +12,12 @@ namespace oidn {
   public:
     int operator()(const sycl::device& syclDevice) const
     {
-      if (!SYCLDevice::isDeviceSupported(syclDevice))
+      const SYCLArch arch = SYCLDevice::getArch(syclDevice);
+      if (arch == SYCLArch::Unknown)
         return -1;
-
-      // FIXME: improve detection of fastest discrete GPU
-      return syclDevice.get_info<sycl::info::device::max_compute_units>() * syclDevice.get_info<sycl::info::device::max_work_group_size>();
+    
+      // Prefer the highest architecture device with the most compute units
+      return (int(arch) << 24) | syclDevice.get_info<sycl::info::device::max_compute_units>();
     }
   };
 
@@ -24,32 +25,32 @@ namespace oidn {
   {
     for (const auto& syclPlatform : sycl::platform::get_platforms())
       for (const auto& syclDevice : syclPlatform.get_devices(sycl::info::device_type::gpu))
-        if (isDeviceSupported(syclDevice))
+        if (getArch(syclDevice) != SYCLArch::Unknown)
           return true;
     return false;
   }
 
-  bool SYCLDevice::isDeviceSupported(const sycl::device& syclDevice)
+  SYCLArch SYCLDevice::getArch(const sycl::device& syclDevice)
   {
-    return syclDevice.is_gpu() &&
-           syclDevice.get_info<sycl::info::device::vendor_id>() == 0x8086 && // Intel
-           syclDevice.has(sycl::aspect::usm_host_allocations) &&
-           syclDevice.has(sycl::aspect::usm_device_allocations) &&
-           syclDevice.has(sycl::aspect::usm_shared_allocations);
-  }
+    if (!syclDevice.is_gpu() ||
+        syclDevice.get_info<sycl::info::device::vendor_id>() != 0x8086 || // Intel
+        !syclDevice.has(sycl::aspect::usm_host_allocations) ||
+        !syclDevice.has(sycl::aspect::usm_device_allocations) ||
+        !syclDevice.has(sycl::aspect::usm_shared_allocations) ||
+        !syclDevice.has(sycl::aspect::ext_intel_device_id))
+      return SYCLArch::Unknown;
 
-  SYCLArch SYCLDevice::getDeviceArch(const sycl::device& syclDevice)
-  {
-    // FIXME: improve robustness
-    if (syclDevice.get_info<sycl::info::device::max_work_group_size>() >= 1024)
-    {
-      if (syclDevice.has(sycl::aspect::fp64))
-        return SYCLArch::XeHPC;
-      else
-        return SYCLArch::XeHPG;
-    }
+    const unsigned int deviceId = syclDevice.get_info<sycl::ext::intel::info::device::device_id>();
+    const unsigned int maskedId = deviceId & 0xFF00;
+
+    if (maskedId == 0x1600)
+      return SYCLArch::Unknown; // unsupported: Gen8
+    else if (maskedId == 0x4F00 || maskedId == 0x5600)
+      return SYCLArch::XeHPG;
+    else if (maskedId == 0x0B00)
+      return SYCLArch::XeHPC;
     else
-      return SYCLArch::Gen9;
+      return SYCLArch::Gen9; // fallback: Gen9, Gen10, Gen11, Xe-LP, Xe-HP, ...
   }
 
   SYCLDevice::SYCLDevice(const std::vector<sycl::queue>& syclQueues)
@@ -67,7 +68,7 @@ namespace oidn {
       {
         sycl::device syclDevice {SYCLDeviceSelector()};
 
-        arch = getDeviceArch(syclDevice);
+        arch = getArch(syclDevice);
 
         // Try to split the device into sub-devices per NUMA domain (tile)
         const auto partition = sycl::info::partition_property::partition_by_affinity_domain;
@@ -99,18 +100,19 @@ namespace oidn {
     {
       for (size_t i = 0; i < syclQueues.size(); ++i)
       {
-        if (!isDeviceSupported(syclQueues[i].get_device()))
+        const SYCLArch curArch = getArch(syclQueues[i].get_device());
+        if (curArch == SYCLArch::Unknown)
           throw Exception(Error::UnsupportedHardware, "unsupported SYCL device");
 
         if (i == 0)
         {
-          arch = getDeviceArch(syclQueues[i].get_device());
+          arch = curArch;
         }
         else
         {
           if (syclQueues[i].get_context() != syclQueues[0].get_context())
             throw Exception(Error::InvalidArgument, "queues belong to different SYCL contexts");
-          if (getDeviceArch(syclQueues[i].get_device()) != arch)
+          if (curArch != arch)
             throw Exception(Error::UnsupportedHardware, "unsupported mixture of SYCL devices");
         }
       }
@@ -141,7 +143,7 @@ namespace oidn {
         std::cout << "    Arch    : ";
         switch (arch)
         {
-        case SYCLArch::Gen9:  std::cout << "Gen9/Gen10/Gen11/Xe-LP"; break;
+        case SYCLArch::Gen9:  std::cout << "Gen9/Gen10/Gen11/Xe-LP/Xe-HP"; break;
         case SYCLArch::XeHPG: std::cout << "Xe-HPG";     break;
         case SYCLArch::XeHPC: std::cout << "Xe-HPC";     break;
         default:              std::cout << "Unknown";

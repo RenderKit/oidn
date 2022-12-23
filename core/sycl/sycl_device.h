@@ -13,6 +13,7 @@ namespace oidn {
   // GPU architecture
   enum class SYCLArch
   {
+    Unknown,
     Gen9,
     XeHPG,
     XeHPC,
@@ -22,8 +23,7 @@ namespace oidn {
   { 
   public:
     static bool isSupported();
-    static bool isDeviceSupported(const sycl::device& syclDevice);
-    static SYCLArch getDeviceArch(const sycl::device& syclDevice);
+    static SYCLArch getArch(const sycl::device& syclDevice);
 
     SYCLDevice(const std::vector<sycl::queue>& syclQueues = {});
 
