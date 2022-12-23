@@ -86,6 +86,7 @@ OIDN_API_NAMESPACE_BEGIN
         OIDN_TRY
           checkHandle(obj);
           OIDN_LOCK(obj);
+          obj->getDevice()->wait(); // wait for all async operations to complete
           obj->destroy();
         OIDN_CATCH(obj)
       }
@@ -99,6 +100,7 @@ OIDN_API_NAMESPACE_BEGIN
         OIDN_TRY
           checkHandle(obj);
           // Do NOT lock the device because it owns the mutex
+          obj->wait(); // wait for all async operations to complete
           obj->destroy();
         OIDN_CATCH(obj)
       }
