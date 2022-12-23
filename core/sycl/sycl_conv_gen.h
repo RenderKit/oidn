@@ -43,7 +43,7 @@ namespace oidn::gen9 {
     OIDN_INLINE void operator ()(const WorkGroupItem<3>& it) const SYCL_ESIMD_FUNCTION
     {
     #if defined(OIDN_ARCH_XEHPG)
-      syclx::set_kernel_properties(syclx::kernel_properties::use_double_grf);
+      syclx::set_kernel_properties(syclx::kernel_properties::use_large_grf);
 
       // Accumulator rows
       simd<float, blockOW * blockAC> accumRows[blockOH][numBlockAC] = {}; // = 0
