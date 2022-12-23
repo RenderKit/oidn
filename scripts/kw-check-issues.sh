@@ -11,7 +11,7 @@ curl -f --data "action=search&project=$KW_PROJECT_NAME&query=build:'$KW_BUILD_NA
 getCriticalCount() {
     cat $KW_ISSUES_FILE | wc -l
 }
-if [ -f $KW_ISSUES_FILE ]; then
+if [ -f $KW_ISSUES_FILE ] && [ -s $KW_ISSUES_FILE ]; then
     echo "Issues found - $(getCriticalCount) in $KW_BUILD_NAME";
     while IFS= read -r line; do echo $line | python -m json.tool; done < $KW_ISSUES_FILE
     exit 1;
