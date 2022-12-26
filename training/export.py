@@ -33,6 +33,7 @@ def export_weights(cfg):
   result_dir = get_result_dir(cfg)
   if not os.path.isdir(result_dir):
     error('result does not exist')
+  result_cfg = load_config(result_dir)
   checkpoint = load_checkpoint(result_dir, device, cfg.num_epochs)
   epoch = checkpoint['epoch']
   model_state = checkpoint['model_state']
@@ -51,7 +52,9 @@ def export_weights(cfg):
 
   with tza.Writer(output_filename) as output_file:
     for name, value in model_state.items():
-      tensor = value.cpu().numpy()
+      # Export in FP16 if the model was trained with mixed precision
+      tensor = value.half() if result_cfg.precision == "mixed" else value
+      tensor = tensor.cpu().numpy()
       print(name, tensor.shape)
 
       if name.endswith('.weight') and len(value.shape) == 4:

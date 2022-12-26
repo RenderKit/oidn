@@ -366,7 +366,7 @@ int main(int argc, char* argv[])
       // Verify the output values
       std::cout << "Verifying output" << std::endl;
 
-      const float threshold = (deviceType == oidn::DeviceType::CPU) ? 1e-4f : 0.1f;
+      const float threshold = 0.1f;
       size_t numErrors;
       float maxError;
       std::tie(numErrors, maxError) = compareImage(*output, *ref, threshold);

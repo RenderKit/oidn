@@ -22,23 +22,27 @@ class Infer(object):
     result_dir = get_result_dir(cfg, result)
     if not os.path.isdir(result_dir):
       error('result does not exist')
-    result_cfg = load_config(result_dir)
-    self.features = result_cfg.features
+    self.result_cfg = load_config(result_dir)
+    self.features = self.result_cfg.features
     self.main_feature = get_main_feature(self.features)
     self.aux_features = get_aux_features(self.features)
     self.all_channels = get_dataset_channels(self.features)
     self.num_main_channels = len(get_dataset_channels(self.main_feature))
 
     # Initialize the model
-    self.model = get_model(result_cfg)
+    self.model = get_model(self.result_cfg)
     self.model.to(device)
 
     # Load the checkpoint
     checkpoint = load_checkpoint(result_dir, device, cfg.num_epochs, self.model)
     self.epoch = checkpoint['epoch']
 
+    # Infer in FP16 if the model was trained with mixed precision
+    if self.result_cfg.precision == 'mixed':
+      self.model.half()
+
     # Initialize the transfer function
-    self.transfer = get_transfer_function(result_cfg)
+    self.transfer = get_transfer_function(self.result_cfg)
 
     # Set the model to evaluation mode
     self.model.eval()
@@ -55,6 +59,8 @@ class Infer(object):
   # Inference function
   def __call__(self, input, exposure=1.):
     image = input.clone()
+    if self.result_cfg.precision == 'mixed':
+      image = image.half()
 
     # Apply the transfer function
     color = image[:, 0:self.num_main_channels, ...]

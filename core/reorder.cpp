@@ -70,18 +70,18 @@ namespace oidn {
   void reorder(const Tensor& src, Tensor& dst)
   {
     bool ok =
-      tryReorder<float, float, TensorLayout::x,    TensorLayout::x>(src, dst) ||
-      tryReorder<float, half,  TensorLayout::x,    TensorLayout::x>(src, dst) ||
-      tryReorder<float, float, TensorLayout::oihw, TensorLayout::oihw>(src, dst) ||
-      tryReorder<float, half,  TensorLayout::oihw, TensorLayout::oihw>(src, dst) ||
-      tryReorder<float, float, TensorLayout::oihw, TensorLayout::OIhw8i8o>(src, dst) ||
-      tryReorder<float, half,  TensorLayout::oihw, TensorLayout::OIhw8i8o>(src, dst) ||
-      tryReorder<float, float, TensorLayout::oihw, TensorLayout::OIhw16i16o>(src, dst) ||
-      tryReorder<float, half,  TensorLayout::oihw, TensorLayout::OIhw16i16o>(src, dst) ||
-      tryReorder<float, half,  TensorLayout::oihw, TensorLayout::OIhw2o8i8o2i>(src, dst) ||
-      tryReorder<float, half,  TensorLayout::oihw, TensorLayout::OIhw8i16o2i>(src, dst) ||
-      tryReorder<float, float, TensorLayout::oihw, TensorLayout::ohwi>(src, dst) ||
-      tryReorder<float, half,  TensorLayout::oihw, TensorLayout::ohwi>(src, dst);
+      tryReorder<half, half,  TensorLayout::x,    TensorLayout::x>(src, dst) ||
+      tryReorder<half, float, TensorLayout::x,    TensorLayout::x>(src, dst) ||
+      tryReorder<half, half,  TensorLayout::oihw, TensorLayout::oihw>(src, dst) ||
+      tryReorder<half, float, TensorLayout::oihw, TensorLayout::oihw>(src, dst) ||
+      tryReorder<half, half,  TensorLayout::oihw, TensorLayout::OIhw8i8o>(src, dst) ||
+      tryReorder<half, float, TensorLayout::oihw, TensorLayout::OIhw8i8o>(src, dst) ||
+      tryReorder<half, half,  TensorLayout::oihw, TensorLayout::OIhw16i16o>(src, dst) ||
+      tryReorder<half, float, TensorLayout::oihw, TensorLayout::OIhw16i16o>(src, dst) ||
+      tryReorder<half, half,  TensorLayout::oihw, TensorLayout::OIhw2o8i8o2i>(src, dst) ||
+      tryReorder<half, half,  TensorLayout::oihw, TensorLayout::OIhw8i16o2i>(src, dst) ||
+      tryReorder<half, half,  TensorLayout::oihw, TensorLayout::ohwi>(src, dst) ||
+      tryReorder<half, float, TensorLayout::oihw, TensorLayout::ohwi>(src, dst);
 
     if (!ok)
       throw std::logic_error("unsupported reorder");

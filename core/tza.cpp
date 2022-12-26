@@ -83,6 +83,8 @@ namespace oidn {
       const char dataType = read<char>(input, bufferEnd);
       if (dataType == 'f')
         tensorDesc.dataType = DataType::Float32;
+      else if (dataType == 'h')
+        tensorDesc.dataType = DataType::Float16;
       else
         throw Exception(Error::InvalidOperation, "invalid tensor data type");
 
