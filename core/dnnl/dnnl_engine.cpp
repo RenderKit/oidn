@@ -4,7 +4,6 @@
 #include "dnnl_engine.h"
 #include "dnnl_tensor.h"
 #include "dnnl_conv.h"
-#include "dnnl_pool.h"
 
 namespace oidn {
 
@@ -36,11 +35,6 @@ namespace oidn {
   std::shared_ptr<Conv> DNNLEngine::newConv(const ConvDesc& desc)
   {
     return std::make_shared<DNNLConv>(this, desc);
-  }
-
-  std::shared_ptr<Pool> DNNLEngine::newPool(const PoolDesc& desc)
-  {
-    return std::make_shared<DNNLPool>(this, desc);
   }
 
 } // namespace oidn

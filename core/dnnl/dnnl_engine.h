@@ -23,7 +23,6 @@ namespace oidn {
 
     // Ops
     std::shared_ptr<Conv> newConv(const ConvDesc& desc) override;
-    std::shared_ptr<Pool> newPool(const PoolDesc& desc) override;
   };
 
 } // namespace oidn

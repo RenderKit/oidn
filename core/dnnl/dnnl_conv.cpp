@@ -4,7 +4,6 @@
 #include "dnnl_conv.h"
 #include "../reorder.h"
 #include "dnnl_tensor.h"
-#include "dnnl_reorder.h"
 
 namespace oidn {
 
@@ -15,21 +14,11 @@ namespace oidn {
     const dnnl::memory::dims strides = {1, 1};
     const dnnl::memory::dims padding = {1, 1};
 
-    // Let the convolution primitive choose the weight format
-    auto anyWeightDesc = dnnl::memory::desc({ weightDesc.dims },
-                                             toDNNL(srcDesc.dataType),
-                                             dnnl::memory::format_tag::any);
-
-    // Let the convolution primitive choose the bias format
-    auto anyBiasDesc = dnnl::memory::desc({ biasDesc.dims },
-                                           toDNNL(srcDesc.dataType),
-                                           dnnl::memory::format_tag::any);
-
     auto convDesc = dnnl::convolution_forward::desc(
       dnnl::prop_kind::forward_inference, dnnl::algorithm::convolution_direct,
       toDNNL(srcDesc),
-      anyWeightDesc,
-      anyBiasDesc,
+      toDNNL(weightDesc),
+      toDNNL(biasDesc),
       toDNNL(dstDesc),
       strides, padding, padding);
 
@@ -90,24 +79,6 @@ namespace oidn {
       throw std::logic_error("convolution already finalized");
     if (!weight || !bias)
       throw std::logic_error("convolution weight/bias not set before finalization");
-
-    // Reorder the weight tensor to the final format, if necessary
-    if (getDNNL(weight).get_desc() != primDesc.weights_desc())
-    {
-      auto newWeight = std::make_shared<DNNLTensor>(engine, primDesc.weights_desc());
-      DNNLReorder(engine, {weight, newWeight}).submit();
-      engine->wait();
-      weight = newWeight;
-    }
-
-    // Reorder the bias tensor to the final format, if necessary
-    if (getDNNL(bias).get_desc() != primDesc.bias_desc())
-    {
-      auto newBias = std::make_shared<DNNLTensor>(engine, primDesc.bias_desc());
-      DNNLReorder(engine, {bias, newBias}).submit();
-      engine->wait();
-      bias = newBias;
-    }
 
     args[DNNL_ARG_WEIGHTS] = getDNNL(weight);
     args[DNNL_ARG_BIAS] = getDNNL(bias);

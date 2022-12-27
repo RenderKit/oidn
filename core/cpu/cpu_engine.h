@@ -16,6 +16,7 @@ namespace oidn {
     Device* getDevice() const override { return device; }
 
     // Ops
+    std::shared_ptr<Pool> newPool(const PoolDesc& desc) override;
     std::shared_ptr<Upsample> newUpsample(const UpsampleDesc& desc) override;
     std::shared_ptr<Autoexposure> newAutoexposure(const ImageDesc& srcDesc) override;
     std::shared_ptr<InputProcess> newInputProcess(const InputProcessDesc& desc) override;

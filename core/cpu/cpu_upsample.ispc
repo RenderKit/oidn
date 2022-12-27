@@ -21,10 +21,8 @@ export void CPUUpsampleKernel_run(uniform CPUUpsampleKernel* uniform self, unifo
 
   for (uniform size_t w = 0; w < W; ++w)
   {
-    // Load vector
     const float value = *((varying float* uniform)&srcPtr_line[w*B]);
 
-    // Store vector 2x2
     streaming_store(&dstPtr_line0[w*2*B  ], value);
     streaming_store(&dstPtr_line0[w*2*B+B], value);
     streaming_store(&dstPtr_line1[w*2*B  ], value);

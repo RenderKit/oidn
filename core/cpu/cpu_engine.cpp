@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "cpu_engine.h"
+#include "cpu_pool.h"
 #include "cpu_upsample.h"
 #include "cpu_autoexposure.h"
 #include "cpu_input_process.h"
@@ -20,6 +21,11 @@ namespace oidn {
       device->arena->execute(f);
     else
       f();
+  }
+
+  std::shared_ptr<Pool> CPUEngine::newPool(const PoolDesc& desc)
+  {
+    return std::make_shared<CPUPool>(this, desc);
   }
 
   std::shared_ptr<Upsample> CPUEngine::newUpsample(const UpsampleDesc& desc)

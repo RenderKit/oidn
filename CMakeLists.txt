@@ -268,6 +268,8 @@ if(OIDN_DEVICE_CPU)
     core/cpu/cpu_input_process.cpp
     core/cpu/cpu_output_process.h
     core/cpu/cpu_output_process.cpp
+    core/cpu/cpu_pool.h
+    core/cpu/cpu_pool.cpp
     core/cpu/cpu_upsample.h
     core/cpu/cpu_upsample.cpp
     core/cpu/tasking.h
@@ -279,6 +281,7 @@ if(OIDN_DEVICE_CPU)
     core/cpu/cpu_image_copy.ispc
     core/cpu/cpu_input_process.ispc
     core/cpu/cpu_output_process.ispc
+    core/cpu/cpu_pool.ispc
     core/cpu/cpu_upsample.ispc
     core/color.isph
     core/color.ispc
@@ -309,9 +312,6 @@ if(OIDN_DNNL)
     core/dnnl/dnnl_common.cpp
     core/dnnl/dnnl_engine.h
     core/dnnl/dnnl_engine.cpp
-    core/dnnl/dnnl_pool.h
-    core/dnnl/dnnl_pool.cpp
-    core/dnnl/dnnl_reorder.h
     core/dnnl/dnnl_tensor.h
     core/dnnl/dnnl_tensor.cpp
   )
