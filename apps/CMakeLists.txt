@@ -1,4 +1,4 @@
-## Copyright 2009-2021 Intel Corporation
+## Copyright 2009-2022 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 add_subdirectory(utils)
@@ -11,4 +11,4 @@ endmacro()
 
 oidn_add_app(oidnDenoise oidnDenoise.cpp)
 oidn_add_app(oidnBenchmark oidnBenchmark.cpp)
-oidn_add_app(oidnTest oidnTest.cpp catch.hpp)
+oidn_add_app(oidnTest oidnTest.cpp "${PROJECT_SOURCE_DIR}/external/catch.hpp")

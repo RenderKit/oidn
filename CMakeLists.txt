@@ -434,7 +434,10 @@ endif()
 
 if(OIDN_DEVICE_CUDA)
   target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-  target_include_directories(${PROJECT_NAME} PRIVATE "${PROJECT_SOURCE_DIR}/cutlass/include" "${PROJECT_SOURCE_DIR}/cutlass/tools/util/include")
+  target_include_directories(${PROJECT_NAME}
+    PRIVATE
+      "${PROJECT_SOURCE_DIR}/external/cutlass/include"
+      "${PROJECT_SOURCE_DIR}/external/cutlass/tools/util/include")
   set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_ARCHITECTURES OFF)
 endif()
 

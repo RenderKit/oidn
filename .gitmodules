@@ -1,9 +1,9 @@
 [submodule "mkl-dnn"]
-	path = mkl-dnn
+	path = external/mkl-dnn
 	url = ../mkl-dnn.git
 [submodule "weights"]
 	path = weights
 	url = ../oidn-weights.git
 [submodule "cutlass"]
-	path = cutlass
+	path = external/cutlass
 	url = https://github.com/NVIDIA/cutlass.git

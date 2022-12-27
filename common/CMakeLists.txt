@@ -1,4 +1,4 @@
-## Copyright 2009-2021 Intel Corporation
+## Copyright 2009-2022 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 add_library(common STATIC
@@ -16,6 +16,7 @@ add_library(common STATIC
 target_include_directories(common
   PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/external>
 )
 
 if(OIDN_STATIC_LIB)
