@@ -38,7 +38,7 @@ namespace oidn {
       const size_t H = src->getH();
       const size_t W = src->getW();
 
-      parallel_nd(C, H, [&](int c, int h)
+      parallel_nd(src->getC(), src->getH(), [&](int c, int h)
       {
         const size_t offset = (c*H + h) * W;
         const float* srcPtr_line = (float*)src->getData() + offset;
