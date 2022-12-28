@@ -14,30 +14,29 @@ namespace oidn {
     const dnnl::memory::dims strides = {1, 1};
     const dnnl::memory::dims padding = {1, 1};
 
-    auto convDesc = dnnl::convolution_forward::desc(
+    // Incorporate activation
+    dnnl::primitive_attr attr;
+    if (activation == Activation::ReLU)
+    {
+      dnnl::post_ops ops;
+      ops.append_eltwise(
+        dnnl::algorithm::eltwise_relu,
+        0.f, // alpha
+        0.f  // beta
+      );
+      attr.set_post_ops(ops);
+    }
+    attr.set_scratchpad_mode(dnnl::scratchpad_mode::user);
+
+    primDesc = dnnl::convolution_forward::primitive_desc(
+      engine->getDNNLEngine(),
       dnnl::prop_kind::forward_inference, dnnl::algorithm::convolution_direct,
       toDNNL(srcDesc),
       toDNNL(weightDesc),
       toDNNL(biasDesc),
       toDNNL(dstDesc),
-      strides, padding, padding);
-
-    // Incorporate activation
-    dnnl::primitive_attr convAttr;
-    if (activation == Activation::ReLU)
-    {
-      dnnl::post_ops ops;
-      ops.append_eltwise(
-        1.f,   // scale
-        dnnl::algorithm::eltwise_relu,
-        0.f,   // alpha
-        0.f    // beta
-      );
-      convAttr.set_post_ops(ops);
-    }
-    convAttr.set_scratchpad_mode(dnnl::scratchpad_mode::user);
-
-    primDesc = dnnl::convolution_forward::primitive_desc(convDesc, convAttr, engine->getDNNLEngine());
+      strides, padding, padding,
+      attr);
   }
 
   size_t DNNLConv::getScratchByteSize() const

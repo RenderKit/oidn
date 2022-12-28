@@ -56,16 +56,6 @@ namespace oidn {
       std::cout << "NEON";
     #endif
       std::cout << std::endl;
-      
-      std::cout << "  Neural    : ";
-    #if defined(OIDN_DNNL)
-      std::cout << "DNNL (oneDNN) " << DNNL_VERSION_MAJOR << "." <<
-                                       DNNL_VERSION_MINOR << "." <<
-                                       DNNL_VERSION_PATCH;
-    #elif defined(OIDN_BNNS)
-      std::cout << "BNNS";
-    #endif
-      std::cout << std::endl;
     }
 
   #if defined(OIDN_DNNL)

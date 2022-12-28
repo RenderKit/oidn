@@ -3,9 +3,9 @@
 
 set(DNNL_ROOT "external/mkl-dnn")
 
-set(DNNL_VERSION_MAJOR 2)
-set(DNNL_VERSION_MINOR 2)
-set(DNNL_VERSION_PATCH 4)
+set(DNNL_VERSION_MAJOR 3)
+set(DNNL_VERSION_MINOR 0)
+set(DNNL_VERSION_PATCH 0)
 set(DNNL_VERSION_HASH  "N/A")
 
 set(DNNL_CPU_RUNTIME "TBB")
@@ -26,6 +26,10 @@ option(DNNL_ENABLE_ITT_TASKS
   OFF)
 mark_as_advanced(DNNL_ENABLE_ITT_TASKS)
 
+set(BUILD_INFERENCE TRUE)
+set(BUILD_CONVOLUTION TRUE)
+set(BUILD_PRIMITIVE_CPU_ISA_ALL TRUE)
+
 configure_file(
   "${PROJECT_SOURCE_DIR}/${DNNL_ROOT}/include/oneapi/dnnl/dnnl_config.h.in"
   "${PROJECT_BINARY_DIR}/${DNNL_ROOT}/include/oneapi/dnnl/dnnl_config.h"
@@ -36,47 +40,59 @@ configure_file(
 )
 
 file(GLOB DNNL_SOURCES
-  ${DNNL_ROOT}/src/common/*.[ch]
   ${DNNL_ROOT}/src/common/*.[ch]pp
-  ${DNNL_ROOT}/src/cpu/bfloat16.cpp
-  ${DNNL_ROOT}/src/cpu/binary_injector_utils.[ch]pp
-  ${DNNL_ROOT}/src/cpu/cpu_concat.cpp
-  ${DNNL_ROOT}/src/cpu/cpu_concat_pd.hpp
-  ${DNNL_ROOT}/src/cpu/cpu_convolution_list.cpp
-  ${DNNL_ROOT}/src/cpu/cpu_convolution_pd.hpp
-  ${DNNL_ROOT}/src/cpu/cpu_engine.[ch]pp
-  ${DNNL_ROOT}/src/cpu/cpu_memory_storage.hpp
-  ${DNNL_ROOT}/src/cpu/cpu_pooling_list.cpp
-  ${DNNL_ROOT}/src/cpu/cpu_pooling_pd.hpp
-  ${DNNL_ROOT}/src/cpu/cpu_primitive.hpp
-  ${DNNL_ROOT}/src/cpu/cpu_stream.hpp
-  ${DNNL_ROOT}/src/cpu/cpu_sum.cpp
-  ${DNNL_ROOT}/src/cpu/platform.[ch]pp
-  ${DNNL_ROOT}/src/cpu/simple_q10n.hpp
   ${DNNL_ROOT}/src/cpu/jit_utils/*.[ch]pp
-  ${DNNL_ROOT}/src/cpu/reorder/cpu_reorder.[ch]pp
-  ${DNNL_ROOT}/src/cpu/reorder/cpu_reorder_regular_f32_f32.cpp
-  ${DNNL_ROOT}/src/cpu/reorder/simple_reorder.hpp
-  ${DNNL_ROOT}/src/cpu/x64/cpu_barrier.[ch]pp
-  ${DNNL_ROOT}/src/cpu/x64/cpu_isa_traits.[ch]pp
-  ${DNNL_ROOT}/src/cpu/x64/cpu_reducer.[ch]pp
-  ${DNNL_ROOT}/src/cpu/x64/jit_avx2_conv_kernel_f32.[ch]pp
-  ${DNNL_ROOT}/src/cpu/x64/jit_avx2_convolution.[ch]pp
-  ${DNNL_ROOT}/src/cpu/x64/jit_avx512_common_convolution.[ch]pp
-  ${DNNL_ROOT}/src/cpu/x64/jit_avx512_common_conv_kernel.[ch]pp
-  ${DNNL_ROOT}/src/cpu/x64/jit_avx512_core_bf16cvt.[ch]pp
-  ${DNNL_ROOT}/src/cpu/x64/jit_generator.hpp
-  ${DNNL_ROOT}/src/cpu/x64/jit_primitive_conf.hpp
-  ${DNNL_ROOT}/src/cpu/x64/jit_sse41_conv_kernel_f32.[ch]pp
-  ${DNNL_ROOT}/src/cpu/x64/jit_sse41_convolution.[ch]pp
-  ${DNNL_ROOT}/src/cpu/x64/jit_transpose_src_utils.[ch]pp
-  ${DNNL_ROOT}/src/cpu/x64/jit_uni_eltwise.[ch]pp
-  ${DNNL_ROOT}/src/cpu/x64/jit_uni_pooling.[ch]pp
-  ${DNNL_ROOT}/src/cpu/x64/jit_uni_pool_kernel.[ch]pp
-  ${DNNL_ROOT}/src/cpu/x64/jit_uni_reorder.[ch]pp
-  ${DNNL_ROOT}/src/cpu/x64/jit_uni_reorder_utils.cpp
   ${DNNL_ROOT}/src/cpu/x64/injectors/*.[ch]pp
   ${DNNL_ROOT}/src/cpu/x64/xbyak/*.h
+)
+
+list(APPEND DNNL_SOURCES
+  ${DNNL_ROOT}/src/cpu/bfloat16.cpp
+  ${DNNL_ROOT}/src/cpu/binary_injector_utils.cpp
+  ${DNNL_ROOT}/src/cpu/binary_injector_utils.hpp
+  ${DNNL_ROOT}/src/cpu/cpu_concat.cpp
+  ${DNNL_ROOT}/src/cpu/cpu_convolution_list.cpp
+  ${DNNL_ROOT}/src/cpu/cpu_convolution_pd.hpp
+  ${DNNL_ROOT}/src/cpu/cpu_eltwise_pd.hpp
+  ${DNNL_ROOT}/src/cpu/cpu_engine.cpp
+  ${DNNL_ROOT}/src/cpu/cpu_engine.hpp
+  ${DNNL_ROOT}/src/cpu/cpu_memory_storage.hpp
+  ${DNNL_ROOT}/src/cpu/cpu_stream.hpp
+  ${DNNL_ROOT}/src/cpu/cpu_sum.cpp
+  ${DNNL_ROOT}/src/cpu/float16.cpp
+  ${DNNL_ROOT}/src/cpu/platform.cpp
+  ${DNNL_ROOT}/src/cpu/platform.hpp
+  ${DNNL_ROOT}/src/cpu/primitive_attr_postops.cpp
+  ${DNNL_ROOT}/src/cpu/primitive_attr_postops.hpp
+  ${DNNL_ROOT}/src/cpu/scale_utils.cpp
+  ${DNNL_ROOT}/src/cpu/scale_utils.hpp
+  ${DNNL_ROOT}/src/cpu/simple_q10n.hpp
+  ${DNNL_ROOT}/src/cpu/zero_point_utils.cpp
+  ${DNNL_ROOT}/src/cpu/zero_point_utils.hpp
+  ${DNNL_ROOT}/src/cpu/x64/amx_tile_configure.cpp
+  ${DNNL_ROOT}/src/cpu/x64/amx_tile_configure.hpp
+  ${DNNL_ROOT}/src/cpu/x64/cpu_barrier.hpp
+  ${DNNL_ROOT}/src/cpu/x64/cpu_barrier.cpp
+  ${DNNL_ROOT}/src/cpu/x64/cpu_isa_traits.cpp
+  ${DNNL_ROOT}/src/cpu/x64/cpu_isa_traits.hpp
+  ${DNNL_ROOT}/src/cpu/x64/cpu_reducer.cpp
+  ${DNNL_ROOT}/src/cpu/x64/cpu_reducer.hpp
+  ${DNNL_ROOT}/src/cpu/x64/jit_avx2_conv_kernel_f32.cpp
+  ${DNNL_ROOT}/src/cpu/x64/jit_avx2_conv_kernel_f32.hpp
+  ${DNNL_ROOT}/src/cpu/x64/jit_avx2_convolution.cpp
+  ${DNNL_ROOT}/src/cpu/x64/jit_avx2_convolution.hpp
+  ${DNNL_ROOT}/src/cpu/x64/jit_avx512_common_convolution.cpp
+  ${DNNL_ROOT}/src/cpu/x64/jit_avx512_common_convolution.hpp
+  ${DNNL_ROOT}/src/cpu/x64/jit_avx512_common_conv_kernel.cpp
+  ${DNNL_ROOT}/src/cpu/x64/jit_avx512_common_conv_kernel.hpp
+  ${DNNL_ROOT}/src/cpu/x64/jit_generator.hpp
+  ${DNNL_ROOT}/src/cpu/x64/jit_primitive_conf.hpp
+  ${DNNL_ROOT}/src/cpu/x64/jit_sse41_conv_kernel_f32.cpp
+  ${DNNL_ROOT}/src/cpu/x64/jit_sse41_conv_kernel_f32.hpp
+  ${DNNL_ROOT}/src/cpu/x64/jit_sse41_convolution.cpp
+  ${DNNL_ROOT}/src/cpu/x64/jit_sse41_convolution.hpp
+  ${DNNL_ROOT}/src/cpu/x64/jit_transpose_utils.cpp
+  ${DNNL_ROOT}/src/cpu/x64/jit_transpose_utils.hpp
 )
 
 if(DNNL_ENABLE_JIT_PROFILING OR DNNL_ENABLE_ITT_TASKS)
@@ -90,14 +106,10 @@ if(DNNL_ENABLE_JIT_PROFILING)
   )
 endif()
 
-if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-  file(GLOB DNNL_SOURCES_BIGOBJ
-    ${DNNL_ROOT}/src/common/memory_zero_pad.cpp
-    ${DNNL_ROOT}/src/cpu/cpu_engine.cpp
-    ${DNNL_ROOT}/src/cpu/reorder/cpu_reorder_regular_f32_f32.cpp
-    ${DNNL_ROOT}/src/cpu/cpu_convolution_list.cpp
-  )
-  set_source_files_properties(${DNNL_SOURCES_BIGOBJ} PROPERTIES COMPILE_FLAGS "/bigobj")
+if(MSVC)
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC" OR CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+    set_source_files_properties(${DNNL_SOURCES} PROPERTIES COMPILE_FLAGS "/bigobj")
+  endif()
 endif()
 
 add_library(dnnl STATIC ${DNNL_SOURCES})
