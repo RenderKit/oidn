@@ -34,7 +34,6 @@ namespace oidn {
     }
     else
     {
-      const size_t C = src->getC();
       const size_t H = src->getH();
       const size_t W = src->getW();
 
