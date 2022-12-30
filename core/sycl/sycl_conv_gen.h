@@ -241,7 +241,7 @@ namespace oidn::gen9 {
       }
       else
       {
-        // Slow path: load the in-bounds columns of the row
+        // Slow path: load the in-bounds pixels of the row
         const simd<int, W> wVec(0, 1); // 0, 1, 2, ...
         simd_mask<W> predVec = (wVec >= -iw) & (wVec < src.W - iw);
 
@@ -255,7 +255,7 @@ namespace oidn::gen9 {
     }
 
     // Stores a row to the dst tensor
-    // Columns can be stored in chunks of K to improve performance
+    // Pixels can be stored in chunks of K to improve performance
     template<int K = 1, int N>
     OIDN_INLINE void storeRow(simd<T, N>& row, int oc, int oh, int ow) const
     {
@@ -275,7 +275,7 @@ namespace oidn::gen9 {
       }
       else
       {
-        // Slow path: store the in-bounds columns of the row
+        // Slow path: store the in-bounds pixels of the row
         constexpr int numChunks = W / K;
         constexpr int chunkSize = blockC * K;
         const simd<int, numChunks> wVec(0, K); // 0, 1*K, 2*K, ...
