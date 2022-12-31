@@ -38,7 +38,7 @@ namespace oidn {
 
     OIDN_HOST_DEVICE_INLINE T& operator ()(int c, int h, int w) const
     {
-      return *(T*)(ptr + this->getOffset(c, h, w));
+      return *(T*)(ptr + this->getByteOffset(c, h, w));
     }
     
     OIDN_HOST_DEVICE_INLINE vec3<T> get3(int c, int h, int w) const
@@ -70,7 +70,7 @@ namespace oidn {
 
     OIDN_HOST_DEVICE_INLINE T& operator ()(int o, int i, int h, int w) const
     {
-      return *(T*)(ptr + this->getOffset(o, i, h, w));
+      return *(T*)(ptr + this->getByteOffset(o, i, h, w));
     }
   };
 

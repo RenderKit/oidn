@@ -509,13 +509,13 @@ To bind images to the filter, you can use one of the following functions:
                             OIDNBuffer buffer, OIDNFormat format,
                             size_t width, size_t height,
                             size_t byteOffset,
-                            size_t bytePixelStride, size_t byteRowStride);
+                            size_t pixelByteStride, size_t rowByteStride);
 
     void oidnSetSharedFilterImage(OIDNFilter filter, const char* name,
                                   void* devPtr, OIDNFormat format,
                                   size_t width, size_t height,
                                   size_t byteOffset,
-                                  size_t bytePixelStride, size_t byteRowStride);
+                                  size_t pixelByteStride, size_t rowByteStride);
 
 It is possible to specify either a data buffer object (`buffer` argument) with
 the `oidnSetFilterImage` function, or directly a pointer to user-managed
@@ -528,11 +528,11 @@ In both cases, you must also specify the name of the image parameter to set
 (`name` argument, e.g. `"color"`, `"output"`), the pixel format (`format`
 argument), the width and height of the image in number of pixels (`width` and
 `height` arguments), the starting offset of the image data (`byteOffset`
-argument), the pixel stride (`bytePixelStride` argument) and the row stride
-(`byteRowStride` argument), in number of bytes.
+argument), the pixel stride (`pixelByteStride` argument) and the row stride
+(`rowByteStride` argument), in number of bytes.
 
 If the pixels and/or rows are stored contiguously (tightly packed without any
-gaps), you can set `bytePixelStride` and/or `byteRowStride` to 0 to let the
+gaps), you can set `pixelByteStride` and/or `rowByteStride` to 0 to let the
 library compute the actual strides automatically, as a convenience.
 
 Images support only the `OIDN_FORMAT_FLOAT3` and `OIDN_FORMAT_HALF3` pixel

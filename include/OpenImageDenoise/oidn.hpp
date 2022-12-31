@@ -375,13 +375,13 @@ OIDN_NAMESPACE_BEGIN
                   const BufferRef& buffer, Format format,
                   size_t width, size_t height,
                   size_t byteOffset = 0,
-                  size_t bytePixelStride = 0, size_t byteRowStride = 0)
+                  size_t pixelByteStride = 0, size_t rowByteStride = 0)
     {
       oidnSetFilterImage(handle, name,
                          buffer.getHandle(), (OIDNFormat)format,
                          width, height,
                          byteOffset,
-                         bytePixelStride, byteRowStride);
+                         pixelByteStride, rowByteStride);
     }
 
     // Sets an image parameter of the filter with data owned by the user and accessible to the device.
@@ -389,13 +389,13 @@ OIDN_NAMESPACE_BEGIN
                   void* devPtr, Format format,
                   size_t width, size_t height,
                   size_t byteOffset = 0,
-                  size_t bytePixelStride = 0, size_t byteRowStride = 0)
+                  size_t pixelByteStride = 0, size_t rowByteStride = 0)
     {
       oidnSetSharedFilterImage(handle, name,
                                devPtr, (OIDNFormat)format,
                                width, height,
                                byteOffset,
-                               bytePixelStride, byteRowStride);
+                               pixelByteStride, rowByteStride);
     }
 
     // Removes an image parameter of the filter that was previously set.

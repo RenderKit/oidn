@@ -261,20 +261,20 @@ OIDN_API void oidnRetainFilter(OIDNFilter filter);
 OIDN_API void oidnReleaseFilter(OIDNFilter filter);
 
 // Sets an image parameter of the filter with data stored in a buffer.
-// If bytePixelStride and/or byteRowStride are zero, these will be computed automatically.
+// If pixelByteStride and/or rowByteStride are zero, these will be computed automatically.
 OIDN_API void oidnSetFilterImage(OIDNFilter filter, const char* name,
                                  OIDNBuffer buffer, OIDNFormat format,
                                  size_t width, size_t height,
                                  size_t byteOffset,
-                                 size_t bytePixelStride, size_t byteRowStride);
+                                 size_t pixelByteStride, size_t rowByteStride);
 
 // Sets an image parameter of the filter with data owned by the user and accessible to the device.
-// If bytePixelStride and/or byteRowStride are zero, these will be computed automatically.
+// If pixelByteStride and/or rowByteStride are zero, these will be computed automatically.
 OIDN_API void oidnSetSharedFilterImage(OIDNFilter filter, const char* name,
                                        void* devPtr, OIDNFormat format,
                                        size_t width, size_t height,
                                        size_t byteOffset,
-                                       size_t bytePixelStride, size_t byteRowStride);
+                                       size_t pixelByteStride, size_t rowByteStride);
 
 // Removes an image parameter of the filter that was previously set.
 OIDN_API void oidnRemoveFilterImage(OIDNFilter filter, const char* name);

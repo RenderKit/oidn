@@ -5,7 +5,7 @@
 
 namespace oidn {
 
-  ImageDesc::ImageDesc(Format format, size_t width, size_t height, size_t bytePixelStride, size_t byteRowStride)
+  ImageDesc::ImageDesc(Format format, size_t width, size_t height, size_t pixelByteStride, size_t rowByteStride)
     : width(width),
       height(height),
       format(format)
@@ -13,32 +13,32 @@ namespace oidn {
     if (width > maxDim || height > maxDim || width * height * getC() > std::numeric_limits<int>::max())
       throw Exception(Error::InvalidArgument, "image size too large");
 
-    const size_t pixelSize = getFormatSize(format);
-    if (bytePixelStride != 0)
+    const size_t pixelByteSize = getFormatSize(format);
+    if (pixelByteStride != 0)
     {
-      if (bytePixelStride < pixelSize)
+      if (pixelByteStride < pixelByteSize)
         throw Exception(Error::InvalidArgument, "pixel stride smaller than pixel size");
-      wStride = bytePixelStride;
+      wByteStride = pixelByteStride;
     }
     else
-      wStride = pixelSize;
+      wByteStride = pixelByteSize;
 
-    if (byteRowStride != 0)
+    if (rowByteStride != 0)
     {
-      if (byteRowStride < width * wStride)
+      if (rowByteStride < width * wByteStride)
         throw Exception(Error::InvalidArgument, "row stride smaller than width * pixel stride");
-      hStride = byteRowStride;
+      hByteStride = rowByteStride;
     }
     else
-      hStride = width * wStride;
+      hByteStride = width * wByteStride;
   }
 
   Image::Image() :
     ImageDesc(Format::Undefined, 0, 0),
     ptr(nullptr) {}
 
-  Image::Image(void* ptr, Format format, size_t width, size_t height, size_t byteOffset, size_t bytePixelStride, size_t byteRowStride)
-    : ImageDesc(format, width, height, bytePixelStride, byteRowStride)
+  Image::Image(void* ptr, Format format, size_t width, size_t height, size_t byteOffset, size_t pixelByteStride, size_t rowByteStride)
+    : ImageDesc(format, width, height, pixelByteStride, rowByteStride)
   {
     if ((ptr == nullptr) && (byteOffset + getByteSize() > 0))
       throw Exception(Error::InvalidArgument, "buffer region out of range");
@@ -56,9 +56,9 @@ namespace oidn {
     this->ptr = buffer->getData() + byteOffset;
   }
 
-  Image::Image(const Ref<Buffer>& buffer, Format format, size_t width, size_t height, size_t byteOffset, size_t bytePixelStride, size_t byteRowStride)
+  Image::Image(const Ref<Buffer>& buffer, Format format, size_t width, size_t height, size_t byteOffset, size_t pixelByteStride, size_t rowByteStride)
     : Memory(buffer, byteOffset),
-      ImageDesc(format, width, height, bytePixelStride, byteRowStride)
+      ImageDesc(format, width, height, pixelByteStride, rowByteStride)
   {
     if (byteOffset + getByteSize() > buffer->getByteSize())
       throw Exception(Error::InvalidArgument, "buffer region out of range");
@@ -78,8 +78,8 @@ namespace oidn {
   {
     ispc::ImageAccessor acc;
     acc.ptr = (uint8_t*)ptr;
-    acc.hStride = hStride;
-    acc.wStride = wStride;
+    acc.hByteStride = hByteStride;
+    acc.wByteStride = wByteStride;
 
     if (format != Format::Undefined)
     {

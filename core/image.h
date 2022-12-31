@@ -16,14 +16,14 @@ namespace oidn {
   {
     static constexpr size_t maxDim = 65536;
 
-    size_t width;   // width in number of pixels
-    size_t height;  // height in number of pixels
-    size_t wStride; // pixel stride in number of bytes
-    size_t hStride; // row stride in number of bytes
-    Format format;  // pixel format
+    size_t width;       // width in number of pixels
+    size_t height;      // height in number of pixels
+    size_t wByteStride; // pixel stride in number of bytes
+    size_t hByteStride; // row stride in number of bytes
+    Format format;      // pixel format
 
     ImageDesc() = default;
-    ImageDesc(Format format, size_t width, size_t height, size_t bytePixelStride = 0, size_t byteRowStride = 0);
+    ImageDesc(Format format, size_t width, size_t height, size_t pixelByteStride = 0, size_t rowByteStride = 0);
 
     // Returns the number of channels
     OIDN_INLINE int getC() const
@@ -63,7 +63,7 @@ namespace oidn {
     {
       if (width == 0 || height == 0)
         return 0;
-      return (height - 1) * hStride + (width - 1) * wStride + getFormatSize(format);
+      return (height - 1) * hByteStride + (width - 1) * wByteStride + getFormatSize(format);
     }
 
     // Returns the aligned size in bytes of the image
@@ -82,9 +82,9 @@ namespace oidn {
   {
   public:
     Image();
-    Image(void* ptr, Format format, size_t width, size_t height, size_t byteOffset, size_t bytePixelStride, size_t byteRowStride);
+    Image(void* ptr, Format format, size_t width, size_t height, size_t byteOffset, size_t pixelByteStride, size_t rowByteStride);
     Image(const Ref<Buffer>& buffer, const ImageDesc& desc, size_t byteOffset);
-    Image(const Ref<Buffer>& buffer, Format format, size_t width, size_t height, size_t byteOffset, size_t bytePixelStride, size_t byteRowStride);
+    Image(const Ref<Buffer>& buffer, Format format, size_t width, size_t height, size_t byteOffset, size_t pixelByteStride, size_t rowByteStride);
     Image(const Ref<Engine>& engine, Format format, size_t width, size_t height);
 
     void updatePtr() override;
@@ -119,8 +119,8 @@ namespace oidn {
 
       ImageAccessor<T> acc;
       acc.ptr = (uint8_t*)ptr;
-      acc.hStride = hStride;
-      acc.wStride = wStride;
+      acc.hByteStride = hByteStride;
+      acc.wByteStride = wByteStride;
       acc.W = int(width);
       acc.H = int(height);
       return acc;

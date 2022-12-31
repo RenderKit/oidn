@@ -48,7 +48,7 @@ namespace oidn {
         cByteStride = size_t(H) * hByteStride;
       }
 
-      OIDN_HOST_DEVICE_INLINE size_t getOffset(int c, int h, int w) const
+      OIDN_HOST_DEVICE_INLINE size_t getByteOffset(int c, int h, int w) const
       {
         return size_t(c) * cByteStride +
                size_t(h) * hByteStride +
@@ -75,7 +75,7 @@ namespace oidn {
         hByteStride = size_t(W) * wByteStride;
       }
 
-      OIDN_HOST_DEVICE_INLINE size_t getOffset(int c, int h, int w) const
+      OIDN_HOST_DEVICE_INLINE size_t getByteOffset(int c, int h, int w) const
       {
         return size_t(c) * cByteStride +
                size_t(h) * hByteStride +
@@ -101,7 +101,7 @@ namespace oidn {
       CByteStride = size_t(H) * hByteStride;
     }
 
-    OIDN_HOST_DEVICE_INLINE size_t getOffset(int c, int h, int w) const
+    OIDN_HOST_DEVICE_INLINE size_t getByteOffset(int c, int h, int w) const
     {
       return size_t(c/B) * CByteStride +
              size_t(h)   * hByteStride +
@@ -144,7 +144,7 @@ namespace oidn {
         oByteStride = size_t(I) * iByteStride;
       }
 
-      OIDN_HOST_DEVICE_INLINE size_t getOffset(int o, int i, int h, int w) const
+      OIDN_HOST_DEVICE_INLINE size_t getByteOffset(int o, int i, int h, int w) const
       {
         return size_t(o) * oByteStride +
                size_t(i) * iByteStride +
@@ -175,7 +175,7 @@ namespace oidn {
       OByteStride = size_t(I / B) * IByteStride;
     }
 
-    OIDN_HOST_DEVICE_INLINE size_t getOffset(int o, int i, int h, int w) const
+    OIDN_HOST_DEVICE_INLINE size_t getByteOffset(int o, int i, int h, int w) const
     {
       return size_t(o / B) * OByteStride  +
              size_t(i / B) * IByteStride  +
@@ -226,7 +226,7 @@ namespace oidn {
       OByteStride = size_t(I / B) * IByteStride;
     }
 
-    OIDN_HOST_DEVICE_INLINE size_t getOffset(int o, int i, int h, int w) const
+    OIDN_HOST_DEVICE_INLINE size_t getByteOffset(int o, int i, int h, int w) const
     {
       return size_t(o / B)     * OByteStride  +
              size_t(i / B)     * IByteStride  +
@@ -273,7 +273,7 @@ namespace oidn {
         oByteStride = size_t(H) * hByteStride;
       }
 
-      OIDN_HOST_DEVICE_INLINE size_t getOffset(int o, int i, int h, int w) const
+      OIDN_HOST_DEVICE_INLINE size_t getByteOffset(int o, int i, int h, int w) const
       {
         return size_t(o) * oByteStride +
                size_t(i) * iByteStride +

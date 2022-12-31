@@ -476,7 +476,7 @@ OIDN_API_NAMESPACE_BEGIN
                                    OIDNBuffer hBuffer, OIDNFormat format,
                                    size_t width, size_t height,
                                    size_t byteOffset,
-                                   size_t bytePixelStride, size_t byteRowStride)
+                                   size_t pixelByteStride, size_t rowByteStride)
   {
     Filter* filter = (Filter*)hFilter;
     OIDN_TRY
@@ -486,7 +486,7 @@ OIDN_API_NAMESPACE_BEGIN
       Ref<Buffer> buffer = (Buffer*)hBuffer;
       if (buffer->getDevice() != filter->getDevice())
         throw Exception(Error::InvalidArgument, "the specified objects are bound to different devices");
-      auto image = std::make_shared<Image>(buffer, (Format)format, (int)width, (int)height, byteOffset, bytePixelStride, byteRowStride);
+      auto image = std::make_shared<Image>(buffer, (Format)format, (int)width, (int)height, byteOffset, pixelByteStride, rowByteStride);
       filter->setImage(name, image);
     OIDN_CATCH(filter)
   }
@@ -495,13 +495,13 @@ OIDN_API_NAMESPACE_BEGIN
                                          void* devPtr, OIDNFormat format,
                                          size_t width, size_t height,
                                          size_t byteOffset,
-                                         size_t bytePixelStride, size_t byteRowStride)
+                                         size_t pixelByteStride, size_t rowByteStride)
   {
     Filter* filter = (Filter*)hFilter;
     OIDN_TRY
       checkHandle(hFilter);
       OIDN_LOCK(filter);
-      auto image = std::make_shared<Image>(devPtr, (Format)format, (int)width, (int)height, byteOffset, bytePixelStride, byteRowStride);
+      auto image = std::make_shared<Image>(devPtr, (Format)format, (int)width, (int)height, byteOffset, pixelByteStride, rowByteStride);
       filter->setImage(name, image);
     OIDN_CATCH(filter)
   }
