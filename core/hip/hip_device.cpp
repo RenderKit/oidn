@@ -56,10 +56,10 @@ namespace oidn {
     if (!prop.managedMemory)
       throw Exception(Error::UnsupportedHardware, "device does not support managed memory");
 
-    tensorDataType  = DataType::Float16;
-    tensorLayout    = TensorLayout::chw;
-    weightsLayout   = TensorLayout::oihw;
-    //tensorBlockSize = 8; // required by Tensor Core operations
+    tensorDataType = DataType::Float16;
+    tensorLayout   = TensorLayout::chw;
+    weightsLayout  = TensorLayout::oihw;
+    //tensorBlockC = 8; // required by Tensor Core operations
 
     engine = makeRef<HIPEngine>(this, deviceId, stream);
   }

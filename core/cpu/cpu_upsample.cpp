@@ -23,11 +23,13 @@ namespace oidn {
 
     if (srcDesc.layout != TensorLayout::chw)
     {
+      const int blockC = getTensorLayoutBlockC(srcDesc.layout);
+
       ispc::CPUUpsampleKernel kernel;
       kernel.src = *src;
       kernel.dst = *dst;
 
-      parallel_nd(src->getCB(), src->getH(), [&](int cb, int h)
+      parallel_nd(src->getC() / blockC, src->getH(), [&](int cb, int h)
       {
         ispc::CPUUpsampleKernel_run(&kernel, cb, h);
       });

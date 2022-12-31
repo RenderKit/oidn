@@ -42,7 +42,7 @@ namespace oidn {
     DataType getTensorDataType() const { return tensorDataType; }
     TensorLayout getTensorLayout() const { return tensorLayout; }
     TensorLayout getWeightsLayout() const { return weightsLayout; }
-    int getTensorBlockC() const { return tensorBlockSize; }
+    int getTensorBlockC() const { return tensorBlockC; }
 
     // Memory
     virtual Storage getPointerStorage(const void* ptr) = 0;
@@ -63,7 +63,7 @@ namespace oidn {
     DataType tensorDataType = DataType::Float32;
     TensorLayout tensorLayout = TensorLayout::chw;
     TensorLayout weightsLayout = TensorLayout::oihw;
-    int tensorBlockSize = 1;
+    int tensorBlockC = 1;
 
     ExternalMemoryTypeFlags externalMemoryTypes;
 

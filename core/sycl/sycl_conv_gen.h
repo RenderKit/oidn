@@ -347,7 +347,7 @@ namespace oidn::gen9 {
       kernel.bias   = *bias;
       kernel.dst    = *dst;
 
-      WorkDim<3> globalSize = {dst->getCB(),
+      WorkDim<3> globalSize = {dst->getC() / Kernel::blockC,
                                ceil_div(src->getH(), Kernel::blockOH),
                                ceil_div(src->getW(), Kernel::blockOW)};
 

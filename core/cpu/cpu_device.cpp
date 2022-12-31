@@ -32,13 +32,25 @@ namespace oidn {
     dnnl_set_verbose(clamp(verbose - 2, 0, 2)); // unfortunately this is not per-device but global
     dnnlEngine = dnnl::engine(dnnl::engine::kind::cpu, 0);
     dnnlStream = dnnl::stream(dnnlEngine);
-    tensorBlockSize = isISASupported(ISA::AVX512_CORE) ? 16 : 8;
-  #else
-    tensorBlockSize = 1;
-  #endif
-    tensorLayout   = tensorBlockSize == 16 ? TensorLayout::Chw16c : (tensorBlockSize == 8 ? TensorLayout::Chw8c : TensorLayout::chw);
-    weightsLayout  = tensorBlockSize == 16 ? TensorLayout::OIhw16i16o : (tensorBlockSize == 8 ? TensorLayout::OIhw8i8o : TensorLayout::oihw);
+
     tensorDataType = DataType::Float32;
+    if (isISASupported(ISA::AVX512_CORE))
+    {
+      tensorLayout  = TensorLayout::Chw16c;
+      weightsLayout = TensorLayout::OIhw16i16o;
+      tensorBlockC  = 16;
+    }
+    else
+    {
+      tensorLayout  = TensorLayout::Chw8c;
+      weightsLayout = TensorLayout::OIhw8i8o;
+      tensorBlockC  = 8;
+    }
+  #else
+    tensorLayout  = TensorLayout::chw;
+    weightsLayout = TensorLayout::oihw;
+    tensorBlockC  = 1;
+  #endif
 
     if (isVerbose())
     {

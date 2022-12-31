@@ -160,9 +160,9 @@ namespace oidn {
 
     syclQueues.clear(); // not needed anymore
 
-    tensorDataType  = DataType::Float16;
-    tensorLayout    = TensorLayout::Chw16c;
-    tensorBlockSize = 16;
+    tensorDataType = DataType::Float16;
+    tensorLayout   = TensorLayout::Chw16c;
+    tensorBlockC   = 16;
 
     switch (arch)
     {

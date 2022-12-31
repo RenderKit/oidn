@@ -63,12 +63,6 @@ namespace oidn {
       return int(dims[dims.size()-3]);
     }
 
-    // Returns the number of channel blocks in the tensor
-    OIDN_INLINE int getCB() const
-    {
-      return getC() / getBlockC();
-    }
-
     // Returns the height of the tensor
     OIDN_INLINE int getH() const
     {
@@ -81,20 +75,6 @@ namespace oidn {
     {
       assert(dims.size() >= 2);
       return int(dims[dims.size()-1]);
-    }
-
-    // Returns the block size of the layout
-    OIDN_INLINE int getBlockC() const
-    {
-      switch (layout)
-      {
-      case TensorLayout::Chw8c:
-        return 8;
-      case TensorLayout::Chw16c:
-        return 16;
-      default:
-        return 1;
-      }
     }
 
     // Returns the number of elements in the tensor
@@ -149,10 +129,8 @@ namespace oidn {
     using TensorDesc::getO;
     using TensorDesc::getI;
     using TensorDesc::getC;
-    using TensorDesc::getCB;
     using TensorDesc::getH;
     using TensorDesc::getW;
-    using TensorDesc::getBlockC;
     using TensorDesc::getNumElements;
     using TensorDesc::getByteSize;
     using TensorDesc::getAlignedSize;

@@ -20,11 +20,13 @@ namespace oidn {
     if (!src || !dst)
       throw std::logic_error("pooling source/destination not set");
 
+    const int blockC = getTensorLayoutBlockC(dstDesc.layout);
+
     ispc::CPUPoolKernel kernel;
     kernel.src = *src;
     kernel.dst = *dst;
 
-    parallel_nd(dst->getCB(), dst->getH(), [&](int cb, int h)
+    parallel_nd(dst->getC() / blockC, dst->getH(), [&](int cb, int h)
     {
       ispc::CPUPoolKernel_run(&kernel, cb, h);
     });

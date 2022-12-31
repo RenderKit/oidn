@@ -69,10 +69,10 @@ namespace oidn {
     if (!prop.managedMemory)
       throw Exception(Error::UnsupportedHardware, "device does not support managed memory");
 
-    tensorDataType  = DataType::Float16;
-    tensorLayout    = TensorLayout::hwc;
-    weightsLayout   = TensorLayout::ohwi;
-    tensorBlockSize = 8; // required by Tensor Core operations
+    tensorDataType = DataType::Float16;
+    tensorLayout   = TensorLayout::hwc;
+    weightsLayout  = TensorLayout::ohwi;
+    tensorBlockC   = 8; // required by Tensor Core operations
 
 #if defined(_WIN32)
     externalMemoryTypes = ExternalMemoryTypeFlag::OpaqueWin32 |

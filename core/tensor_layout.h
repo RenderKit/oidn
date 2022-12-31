@@ -25,6 +25,8 @@ namespace oidn {
     ohwi,
   };
 
+  // ---------------------------------------------------------------------------
+
   template<TensorLayout layout>
   struct TensorLayoutTraits;
 
@@ -283,5 +285,25 @@ namespace oidn {
 
   template<typename T, TensorLayout layout>
   using TensorAddressing = typename TensorLayoutTraits<layout>::template Addressing<T>;
+
+  // ---------------------------------------------------------------------------
+
+  // Returns the channel block size of the layout
+  OIDN_INLINE int getTensorLayoutBlockC(TensorLayout layout)
+  {
+    switch (layout)
+    {
+    case TensorLayout::Chw8c:
+    case TensorLayout::OIhw8i8o:
+      return 8;
+    case TensorLayout::Chw16c:
+    case TensorLayout::OIhw16i16o:
+    case TensorLayout::OIhw2o8i8o2i:
+    case TensorLayout::OIhw8i16o2i:
+      return 16;
+    default:
+      return 1;
+    }
+  }
 
 } // namespace oidn
