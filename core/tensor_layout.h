@@ -16,10 +16,10 @@ namespace oidn {
     Chw8c,  // blocked
     Chw16c, // blocked
     oihw,
-    OIhw8i8o,   // blocked
-    OIhw16i16o, // blocked
-    OIhw2o8i8o2i, // blocked (DG2)
-    OIhw8i16o2i, // blocked (PVC)
+    OIhw8i8o,     // blocked
+    OIhw16i16o,   // blocked
+    OIhw2o8i8o2i, // blocked (Xe-HPG DPAS)
+    OIhw8i16o2i,  // blocked (Xe-HPC DPAS)
 
     hwc,
     ohwi,
@@ -34,23 +34,23 @@ namespace oidn {
     template<typename T>
     struct Addressing
     {
-      static constexpr size_t wStride = sizeof(T);
-      size_t hStride;
-      size_t cStride;
+      static constexpr size_t wByteStride = sizeof(T);
+      size_t hByteStride;
+      size_t cByteStride;
 
       Addressing() = default;
 
       OIDN_HOST_DEVICE_INLINE Addressing(int C, int H, int W)
       {
-        hStride = size_t(W) * wStride;
-        cStride = size_t(H) * hStride;
+        hByteStride = size_t(W) * wByteStride;
+        cByteStride = size_t(H) * hByteStride;
       }
 
       OIDN_HOST_DEVICE_INLINE size_t getOffset(int c, int h, int w) const
       {
-        return size_t(c) * cStride +
-               size_t(h) * hStride +
-               size_t(w) * wStride;
+        return size_t(c) * cByteStride +
+               size_t(h) * hByteStride +
+               size_t(w) * wByteStride;
       }
     };
   };
@@ -61,23 +61,23 @@ namespace oidn {
     template<typename T>
     struct Addressing
     {
-      static constexpr size_t cStride = sizeof(T);
-      size_t wStride;
-      size_t hStride;
+      static constexpr size_t cByteStride = sizeof(T);
+      size_t wByteStride;
+      size_t hByteStride;
 
       Addressing() = default;
 
       OIDN_HOST_DEVICE_INLINE Addressing(int C, int H, int W)
       {
-        wStride = size_t(C) * cStride;
-        hStride = size_t(W) * wStride;
+        wByteStride = size_t(C) * cByteStride;
+        hByteStride = size_t(W) * wByteStride;
       }
 
       OIDN_HOST_DEVICE_INLINE size_t getOffset(int c, int h, int w) const
       {
-        return size_t(c) * cStride +
-               size_t(h) * hStride +
-               size_t(w) * wStride;
+        return size_t(c) * cByteStride +
+               size_t(h) * hByteStride +
+               size_t(w) * wByteStride;
       }
     };
   };
@@ -87,23 +87,23 @@ namespace oidn {
   {
     static constexpr int blockC = B; // block channels
 
-    static constexpr size_t wStride = B * sizeof(T);
-    size_t hStride;
-    size_t CStride;
+    static constexpr size_t wByteStride = B * sizeof(T);
+    size_t hByteStride;
+    size_t CByteStride;
 
     TensorAddressingChwBc() = default;
 
     OIDN_HOST_DEVICE_INLINE TensorAddressingChwBc(int C, int H, int W)
     {
-      hStride = size_t(W) * wStride;
-      CStride = size_t(H) * hStride;
+      hByteStride = size_t(W) * wByteStride;
+      CByteStride = size_t(H) * hByteStride;
     }
 
     OIDN_HOST_DEVICE_INLINE size_t getOffset(int c, int h, int w) const
     {
-      return size_t(c/B) * CStride +
-             size_t(h)   * hStride +
-             size_t(w)   * wStride +
+      return size_t(c/B) * CByteStride +
+             size_t(h)   * hByteStride +
+             size_t(w)   * wByteStride +
              size_t(c%B) * sizeof(T);
     }
   };
@@ -128,26 +128,26 @@ namespace oidn {
     template<typename T>
     struct Addressing
     {
-      static constexpr size_t wStride = sizeof(T);
-      size_t hStride;
-      size_t iStride;
-      size_t oStride;
+      static constexpr size_t wByteStride = sizeof(T);
+      size_t hByteStride;
+      size_t iByteStride;
+      size_t oByteStride;
 
       Addressing() = default;
 
       OIDN_HOST_DEVICE_INLINE Addressing(int O, int I, int H, int W)
       {
-        hStride = size_t(W) * wStride;
-        iStride = size_t(H) * hStride;
-        oStride = size_t(I) * iStride;
+        hByteStride = size_t(W) * wByteStride;
+        iByteStride = size_t(H) * hByteStride;
+        oByteStride = size_t(I) * iByteStride;
       }
 
       OIDN_HOST_DEVICE_INLINE size_t getOffset(int o, int i, int h, int w) const
       {
-        return size_t(o) * oStride +
-               size_t(i) * iStride +
-               size_t(h) * hStride +
-               size_t(w) * wStride;
+        return size_t(o) * oByteStride +
+               size_t(i) * iByteStride +
+               size_t(h) * hByteStride +
+               size_t(w) * wByteStride;
       }
     };
   };
@@ -157,30 +157,30 @@ namespace oidn {
   {
     static constexpr int blockC = B; // block channels
 
-    static constexpr size_t BoStride = sizeof(T);
-    static constexpr size_t BiStride = B * BoStride;
-    static constexpr size_t wStride  = B * BiStride;
-    size_t hStride;
-    size_t IStride;
-    size_t OStride;
+    static constexpr size_t BoByteStride = sizeof(T);
+    static constexpr size_t BiByteStride = B * BoByteStride;
+    static constexpr size_t wByteStride  = B * BiByteStride;
+    size_t hByteStride;
+    size_t IByteStride;
+    size_t OByteStride;
 
     TensorAddressingOIhwBiBo() = default;
 
     OIDN_HOST_DEVICE_INLINE TensorAddressingOIhwBiBo(int O, int I, int H, int W)
     {
-      hStride = size_t(W)     * wStride;
-      IStride = size_t(H)     * hStride;
-      OStride = size_t(I / B) * IStride;
+      hByteStride = size_t(W)     * wByteStride;
+      IByteStride = size_t(H)     * hByteStride;
+      OByteStride = size_t(I / B) * IByteStride;
     }
 
     OIDN_HOST_DEVICE_INLINE size_t getOffset(int o, int i, int h, int w) const
     {
-      return size_t(o / B) * OStride  +
-             size_t(i / B) * IStride  +
-             size_t(h)     * hStride  +
-             size_t(w)     * wStride  +
-             size_t(i % B) * BiStride +
-             size_t(o % B) * BoStride;
+      return size_t(o / B) * OByteStride  +
+             size_t(i / B) * IByteStride  +
+             size_t(h)     * hByteStride  +
+             size_t(w)     * wByteStride  +
+             size_t(i % B) * BiByteStride +
+             size_t(o % B) * BoByteStride;
     }
   };
 
@@ -206,34 +206,34 @@ namespace oidn {
     static constexpr int B = P * R;
     static constexpr int blockC = B; // block channels
 
-    static constexpr size_t SiStride = sizeof(T);
-    static constexpr size_t RoStride = S * SiStride;
-    static constexpr size_t QiStride = R * RoStride;
-    static constexpr size_t PoStride = Q * QiStride;
-    static constexpr size_t wStride  = P * PoStride;
-    size_t hStride;
-    size_t IStride;
-    size_t OStride;
+    static constexpr size_t SiByteStride = sizeof(T);
+    static constexpr size_t RoByteStride = S * SiByteStride;
+    static constexpr size_t QiByteStride = R * RoByteStride;
+    static constexpr size_t PoByteStride = Q * QiByteStride;
+    static constexpr size_t wByteStride  = P * PoByteStride;
+    size_t hByteStride;
+    size_t IByteStride;
+    size_t OByteStride;
 
     TensorAddressingOIhwPoQiRoSi() = default;
 
     OIDN_HOST_DEVICE_INLINE TensorAddressingOIhwPoQiRoSi(int O, int I, int H, int W)
     {
-      hStride = size_t(W)     * wStride;
-      IStride = size_t(H)     * hStride;
-      OStride = size_t(I / B) * IStride;
+      hByteStride = size_t(W)     * wByteStride;
+      IByteStride = size_t(H)     * hByteStride;
+      OByteStride = size_t(I / B) * IByteStride;
     }
 
     OIDN_HOST_DEVICE_INLINE size_t getOffset(int o, int i, int h, int w) const
     {
-      return size_t(o / B)     * OStride  +
-             size_t(i / B)     * IStride  +
-             size_t(h)         * hStride  +
-             size_t(w)         * wStride  +
-             size_t(o % B / R) * PoStride +
-             size_t(i % B / S) * QiStride +
-             size_t(o % R)     * RoStride +
-             size_t(i % S)     * SiStride;
+      return size_t(o / B)     * OByteStride  +
+             size_t(i / B)     * IByteStride  +
+             size_t(h)         * hByteStride  +
+             size_t(w)         * wByteStride  +
+             size_t(o % B / R) * PoByteStride +
+             size_t(i % B / S) * QiByteStride +
+             size_t(o % R)     * RoByteStride +
+             size_t(i % S)     * SiByteStride;
     }
   };
 
@@ -257,26 +257,26 @@ namespace oidn {
     template<typename T>
     struct Addressing
     {
-      static constexpr size_t iStride = sizeof(T);
-      size_t wStride;
-      size_t hStride;
-      size_t oStride;
+      static constexpr size_t iByteStride = sizeof(T);
+      size_t wByteStride;
+      size_t hByteStride;
+      size_t oByteStride;
 
       Addressing() = default;
 
       OIDN_HOST_DEVICE_INLINE Addressing(int O, int I, int H, int W)
       {
-        wStride = size_t(I) * iStride;
-        hStride = size_t(W) * wStride;
-        oStride = size_t(H) * hStride;
+        wByteStride = size_t(I) * iByteStride;
+        hByteStride = size_t(W) * wByteStride;
+        oByteStride = size_t(H) * hByteStride;
       }
 
       OIDN_HOST_DEVICE_INLINE size_t getOffset(int o, int i, int h, int w) const
       {
-        return size_t(o) * oStride +
-               size_t(i) * iStride +
-               size_t(h) * hStride +
-               size_t(w) * wStride;
+        return size_t(o) * oByteStride +
+               size_t(i) * iByteStride +
+               size_t(h) * hByteStride +
+               size_t(w) * wByteStride;
       }
     };
   };
