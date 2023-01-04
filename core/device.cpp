@@ -11,11 +11,6 @@ namespace oidn {
 
   Device::Device()
   {
-  #if defined(OIDN_ARCH_X64)
-    if (!isISASupported(ISA::SSE41))
-      throw Exception(Error::UnsupportedHardware, "SSE4.1 support is required at minimum");
-  #endif
-
     // Get default values from environment variables
     if (getEnvVar("OIDN_VERBOSE", verbose))
       error.verbose = verbose;

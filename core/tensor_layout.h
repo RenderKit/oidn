@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "common/platform.h"
+#include "common/common.h"
 
 namespace oidn {
 

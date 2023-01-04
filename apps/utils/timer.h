@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "platform.h"
+#include "common/platform.h"
 #include <chrono>
 
 namespace oidn {

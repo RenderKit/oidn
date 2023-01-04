@@ -3,8 +3,8 @@
 
 #pragma once
 
+#include "common/platform.h"
 #include <exception>
-#include "platform.h"
 
 namespace oidn {
 

@@ -109,7 +109,7 @@
 #include <cassert>
 
 #if defined(OIDN_COMPILE_SYCL)
-  #include <CL/sycl.hpp>
+  #include <sycl/sycl.hpp>
   #include <sycl/ext/intel/esimd.hpp>
 #endif
 
@@ -118,19 +118,18 @@
 #elif defined(OIDN_COMPILE_HIP)
   #include <hip/hip_runtime.h>
   #include <hip/hip_fp16.h>
+#elif !defined(OIDN_COMPILE_SYCL)
+  #include "half.h"
 #endif
 
-#include "include/OpenImageDenoise/oidn.hpp"
-
 namespace oidn {
-
-  // Introduce all names from the API namespace
-  OIDN_NAMESPACE_USING
 
 #if defined(OIDN_COMPILE_SYCL)
   namespace syclx  = sycl::ext::intel::experimental;
   namespace esimd  = sycl::ext::intel::esimd;
   namespace esimdx = sycl::ext::intel::experimental::esimd;
+
+  using sycl::half;
 #endif
 
   template<bool B, class T = void>
@@ -196,9 +195,6 @@ namespace oidn {
   // String functions
   // ---------------------------------------------------------------------------
 
-  std::ostream& operator <<(std::ostream& sm, DeviceType deviceType);
-  std::istream& operator >>(std::istream& sm, DeviceType& deviceType);
-
   template<typename T>
   inline std::string toString(const T& a)
   {
@@ -254,47 +250,8 @@ namespace oidn {
   }
 
   // ---------------------------------------------------------------------------
-  // FP16
-  // ---------------------------------------------------------------------------
-
-  float half_to_float(int16_t x);
-  int16_t float_to_half(float x);
-
-  #if defined(OIDN_COMPILE_SYCL)
-    using sycl::half;
-  #elif !defined(OIDN_COMPILE_CUDA) && !defined(OIDN_COMPILE_HIP)
-    // Minimal half data type
-    class half
-    {
-    public:
-      half() = default;
-      half(const half& h) : x(h.x) {}
-      half(float f) : x(float_to_half(f)) {}
-
-      half& operator =(const half& h) { x = h.x; return *this; }
-      half& operator =(float f) { x = float_to_half(f); return *this; }
-      
-      operator float() const { return half_to_float(x); }
-
-    private:
-      int16_t x;
-    };
-  #endif
-
-  // ---------------------------------------------------------------------------
   // System information
   // ---------------------------------------------------------------------------
-
-#if defined(OIDN_ARCH_X64)
-  enum class ISA
-  {
-    SSE41,
-    AVX2,
-    AVX512_CORE
-  };
-
-  bool isISASupported(ISA isa);
-#endif
 
   std::string getOSName();
   std::string getCompilerName();

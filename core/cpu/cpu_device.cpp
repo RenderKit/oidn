@@ -8,7 +8,40 @@
   #include "../bnns/bnns_engine.h"
 #endif
 
+#if defined(OIDN_ARCH_X64)
+  #include "mkl-dnn/src/cpu/x64/xbyak/xbyak_util.h"
+#endif
+
 namespace oidn {
+
+  bool CPUDevice::isSupported()
+  {
+    return getArch() != CPUArch::Unknown;
+  }
+
+  CPUArch CPUDevice::getArch()
+  {
+  #if defined(OIDN_ARCH_X64)
+    using Xbyak::util::Cpu;
+    static Cpu cpu;
+
+    if (cpu.has(Cpu::tAVX512F)  && cpu.has(Cpu::tAVX512BW) &&
+        cpu.has(Cpu::tAVX512VL) && cpu.has(Cpu::tAVX512DQ))
+        return CPUArch::AVX512_CORE;
+
+    if (cpu.has(Cpu::tAVX2))
+      return CPUArch::AVX2;
+
+    if (cpu.has(Cpu::tSSE41))
+      return CPUArch::SSE41;
+
+    return CPUArch::Unknown;
+  #elif defined(OIDN_ARCH_ARM64)
+    return CPUArch::NEON;
+  #else
+    return CPUArch::Unknown;
+  #endif
+  }
 
   CPUDevice::CPUDevice()
   {
@@ -24,17 +57,12 @@ namespace oidn {
 
   void CPUDevice::init()
   {
-    // Initialize TBB
+    arch = getArch();
     initTasking();
 
-    // Initialize the neural network runtime
   #if defined(OIDN_DNNL)
-    dnnl_set_verbose(clamp(verbose - 2, 0, 2)); // unfortunately this is not per-device but global
-    dnnlEngine = dnnl::engine(dnnl::engine::kind::cpu, 0);
-    dnnlStream = dnnl::stream(dnnlEngine);
-
     tensorDataType = DataType::Float32;
-    if (isISASupported(ISA::AVX512_CORE))
+    if (arch == CPUArch::AVX512_CORE)
     {
       tensorLayout  = TensorLayout::Chw16c;
       weightsLayout = TensorLayout::OIhw16i16o;
@@ -56,17 +84,24 @@ namespace oidn {
     {
       // FIXME: detect CPU name
       std::cout << "  Device    : CPU" << std::endl;
-      std::cout << "    ISA     : ";
-    #if defined(OIDN_ARCH_X64)
-      if (isISASupported(ISA::AVX512_CORE))
+      std::cout << "    Arch    : ";
+      switch (arch)
+      {
+      case CPUArch::AVX512_CORE:
         std::cout << "AVX512";
-      else if (isISASupported(ISA::AVX2))
+        break;
+      case CPUArch::AVX2:
         std::cout << "AVX2";
-      else if (isISASupported(ISA::SSE41))
+        break;
+      case CPUArch::SSE41:
         std::cout << "SSE4.1";
-    #elif defined(OIDN_ARCH_ARM64)
-      std::cout << "NEON";
-    #endif
+        break;
+      case CPUArch::NEON:
+        std::cout << "NEON";
+        break;
+      default:
+        std::cout << "Unknown";
+      }
       std::cout << std::endl;
     }
 

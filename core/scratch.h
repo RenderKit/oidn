@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "common.h"
 #include "buffer.h"
 #include "tensor.h"
 #include "image.h"

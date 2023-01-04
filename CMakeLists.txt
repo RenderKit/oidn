@@ -201,8 +201,6 @@ set(CORE_SOURCES
   core/buffer.cpp
   core/color.h
   core/color.cpp
-  core/common.h
-  core/common.cpp
   core/concat_conv.h
   core/concat_conv.cpp
   core/conv.cpp
@@ -213,6 +211,7 @@ set(CORE_SOURCES
   core/device.cpp
   core/engine.h
   core/engine.cpp
+  core/exception.h
   core/filter.h
   core/filter.cpp
   core/image_accessor.h
@@ -221,6 +220,7 @@ set(CORE_SOURCES
   core/image.cpp
   core/input_process.h
   core/input_process.cpp
+  core/math.h
   core/network.h
   core/network.cpp
   core/op.h
@@ -230,6 +230,7 @@ set(CORE_SOURCES
   core/pool.cpp
   core/progress.h
   core/progress.cpp
+  core/ref.h
   core/reorder.h
   core/reorder.cpp
   core/rt_filter.h
@@ -242,6 +243,8 @@ set(CORE_SOURCES
   core/tensor.cpp
   core/tensor_accessor.h
   core/tensor_layout.h
+  core/thread.h
+  core/thread.cpp
   core/tile.h
   core/tza.h
   core/tza.cpp
@@ -408,7 +411,7 @@ target_include_directories(${PROJECT_NAME}
     ${CMAKE_CURRENT_BINARY_DIR}
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE common)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_common)
 
 if(OIDN_DNNL)
   target_compile_definitions(${PROJECT_NAME} PRIVATE OIDN_DNNL)

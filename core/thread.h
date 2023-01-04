@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "platform.h"
+#include "common/platform.h"
 
 #if !defined(_WIN32)
   #include <pthread.h>

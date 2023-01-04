@@ -1,26 +1,21 @@
 // Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
+#include "common/common.h"
+#include "utils/arg_parser.h"
+#include "utils/image_buffer.h"
+#include "utils/random.h"
+#include "utils/timer.h"
 #include <iostream>
 #include <cassert>
 #include <cmath>
 #include <regex>
 #include <chrono>
 #include <thread>
-
 #ifdef VTUNE
 #include <ittnotify.h>
 #endif
 
-#include <OpenImageDenoise/oidn.hpp>
-
-#include "common/math.h"
-#include "common/timer.h"
-#include "apps/utils/image_io.h"
-#include "apps/utils/random.h"
-#include "apps/utils/arg_parser.h"
-
-OIDN_NAMESPACE_USING
 using namespace oidn;
 
 int width  = -1;
@@ -160,7 +155,7 @@ double runBenchmark(DeviceRef& device, const Benchmark& bench)
   int numBenchmarkRuns = 0;
   if (numRuns > 0)
   {
-    numBenchmarkRuns = max(numRuns - 1, 1);
+    numBenchmarkRuns = std::max(numRuns - 1, 1);
     const int numWarmupRuns = numRuns - numBenchmarkRuns;
     for (int i = 0; i < numWarmupRuns; ++i)
       filter.execute();
@@ -176,7 +171,7 @@ double runBenchmark(DeviceRef& device, const Benchmark& bench)
     double warmupTime = timer.query();
 
     // Benchmark for at least 0.5 seconds or 3 times
-    numBenchmarkRuns = max(int(0.5 / warmupTime), 3);
+    numBenchmarkRuns = std::max(int(0.5 / warmupTime), 3);
   }
 
   // Benchmark loop

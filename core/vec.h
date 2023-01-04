@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "common/math.h"
+#include "math.h"
 
 namespace oidn {
 namespace math {
@@ -34,11 +34,10 @@ namespace math {
     OIDN_HOST_DEVICE_INLINE vec3(const vec3<U>& v) : x(v.x), y(v.y), z(v.z) {}
   };
 
-  using vec2i = vec2<int>;
   using vec2f = vec2<float>;
-
-  using vec3i = vec3<int>;
+  using vec2i = vec2<int>;
   using vec3f = vec3<float>;
+  using vec3i = vec3<int>;
 
   #define define_vec_binary_op(name, op)                                       \
     template<typename T>                                                       \
@@ -150,4 +149,12 @@ namespace math {
   }
 
 } // namespace math
+
+using math::vec2;
+using math::vec2f;
+using math::vec2i;
+using math::vec3;
+using math::vec3f;
+using math::vec3i;
+
 } // namespace oidn

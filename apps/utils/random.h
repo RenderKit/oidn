@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "common/math.h"
+#include "common/platform.h"
 
 namespace oidn {
 
@@ -43,7 +43,7 @@ namespace oidn {
     OIDN_INLINE float get1f()
     {
       next();
-      return math::to_float_unorm(state);
+      return float(state) * 2.3283064365386962890625e-10f; // x / 2^32
     }
   };
 

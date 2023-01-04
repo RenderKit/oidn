@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "common.h"
 #include "device.h"
 #include "image.h"
 #include "data.h"

@@ -35,7 +35,7 @@
     Device::setError(obj ? obj->getDevice() : nullptr, Error::Unknown, "unknown exception caught"); \
   }
 
-#include "common/platform.h"
+#include "common/common.h"
 #if defined(OIDN_DEVICE_CPU)
   #include "cpu/cpu_device.h"
 #endif
@@ -127,7 +127,7 @@ OIDN_API_NAMESPACE_BEGIN
       else
     #endif
     #if defined(OIDN_DEVICE_CPU)
-      if (type == OIDN_DEVICE_TYPE_CPU || type == OIDN_DEVICE_TYPE_DEFAULT)
+      if (type == OIDN_DEVICE_TYPE_CPU || (type == OIDN_DEVICE_TYPE_DEFAULT && CPUDevice::isSupported()))
         device = makeRef<CPUDevice>();
       else
     #endif

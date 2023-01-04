@@ -1,17 +1,16 @@
 // Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
+#include "common/common.h"
+#include "utils/image_buffer.h"
 #include <cassert>
 #include <cmath>
 #include <limits>
-#include <OpenImageDenoise/oidn.hpp>
-#include "apps/utils/image_io.h"
 
 #define CATCH_CONFIG_RUNNER
 #define CATCH_CONFIG_FAST_COMPILE
 #include "catch.hpp"
 
-OIDN_NAMESPACE_USING
 using namespace oidn;
 
 DeviceType deviceType = DeviceType::Default;
@@ -560,7 +559,7 @@ int main(int argc, char* argv[])
   using namespace Catch::clara;
   auto cli
     = session.cli()
-    | Opt(deviceTypeStr, "default|cpu|sycl|cuda")
+    | Opt(deviceTypeStr, "default|cpu|sycl|cuda|hip")
         ["--device"]
         ("Open Image Denoise device to use");
 

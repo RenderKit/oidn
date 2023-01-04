@@ -1,21 +1,9 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "common.h"
+#include "oidn_utils.h"
 
 namespace oidn {
-
-  size_t getDataTypeSize(DataType dataType)
-  {
-    switch (dataType)
-    {
-    case DataType::Float32: return sizeof(float);
-    case DataType::Float16: return sizeof(int16_t);
-    case DataType::UInt8:   return 1;
-    default:
-      throw std::invalid_argument("invalid data type");
-    }
-  }
 
   size_t getFormatSize(Format format)
   {
@@ -35,25 +23,6 @@ namespace oidn {
     }
   }
 
-  DataType getFormatDataType(Format format)
-  {
-    switch (format)
-    {
-    case Format::Float:
-    case Format::Float2:
-    case Format::Float3:
-    case Format::Float4:
-      return DataType::Float32;
-    case Format::Half:
-    case Format::Half2:
-    case Format::Half3:
-    case Format::Half4:
-      return DataType::Float16;
-    default:
-      throw std::invalid_argument("invalid format");
-    }
-  }
-
   std::ostream& operator <<(std::ostream& sm, Format format)
   {
     switch (format)
@@ -68,6 +37,43 @@ namespace oidn {
     case Format::Half4:  sm << "h4"; break;
     default:             sm << "?";  break;
     }
+    return sm;
+  }
+
+  std::ostream& operator <<(std::ostream& sm, DeviceType deviceType)
+  {
+    switch (deviceType)
+    {
+    case DeviceType::Default: sm << "default"; break;
+    case DeviceType::CPU:     sm << "cpu";     break;
+    case DeviceType::SYCL:    sm << "sycl";    break;
+    case DeviceType::CUDA:    sm << "cuda";    break;
+    case DeviceType::HIP:     sm << "hip";     break;
+    default:
+      throw std::invalid_argument("invalid device type");
+    }
+    
+    return sm;
+  }
+
+  std::istream& operator >>(std::istream& sm, DeviceType& deviceType)
+  {
+    std::string str;
+    sm >> str;
+
+    if (str == "default" || str == "Default")
+      deviceType = DeviceType::Default;
+    else if (str == "cpu" || str == "CPU")
+      deviceType = DeviceType::CPU;
+    else if (str == "sycl" || str == "SYCL")
+      deviceType = DeviceType::SYCL;
+    else if (str == "cuda" || str == "CUDA")
+      deviceType = DeviceType::CUDA;
+    else if (str == "hip" || str == "HIP")
+      deviceType = DeviceType::HIP;
+    else
+      throw std::invalid_argument("invalid device type");
+
     return sm;
   }
 

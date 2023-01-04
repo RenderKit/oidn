@@ -3,7 +3,10 @@
 
 #pragma once
 
-#include "common.h"
+#include "common/common.h"
+#include "ref.h"
+#include "exception.h"
+#include "thread.h"
 #include "tensor_layout.h"
 
 namespace oidn {
@@ -11,6 +14,13 @@ namespace oidn {
   class Engine;
   class Buffer;
   class Filter;
+
+  // Synchronization mode for operations
+  enum class SyncMode
+  {
+    Sync, // synchronous
+    Async // asynchronous
+  };
 
   class Device : public RefCount, public Verbose
   {

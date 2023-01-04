@@ -4,6 +4,7 @@
 #pragma once
 
 #include "tensor_layout.h"
+#include "vec.h"
 
 namespace oidn {
 

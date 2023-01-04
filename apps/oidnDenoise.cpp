@@ -1,6 +1,10 @@
 // Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
+#include "common/common.h"
+#include "utils/arg_parser.h"
+#include "utils/image_io.h"
+#include "utils/timer.h"
 #include <iostream>
 #include <fstream>
 #include <iomanip>
@@ -8,18 +12,10 @@
 #include <limits>
 #include <cmath>
 #include <signal.h>
-
 #ifdef VTUNE
 #include <ittnotify.h>
 #endif
 
-#include <OpenImageDenoise/oidn.hpp>
-
-#include "common/timer.h"
-#include "apps/utils/image_io.h"
-#include "apps/utils/arg_parser.h"
-
-OIDN_NAMESPACE_USING
 using namespace oidn;
 
 void printUsage()

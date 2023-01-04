@@ -57,7 +57,6 @@ namespace oidn {
     std::vector<sycl::queue> syclQueues;     // used only for initialization
     std::vector<Ref<SYCLEngine>> engines;
     SYCLArch arch;
-
     
     int numSubdevices = 0; // autodetect by default
   };

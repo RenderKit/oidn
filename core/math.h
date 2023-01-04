@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "platform.h"
+#include "common/platform.h"
 
 namespace oidn {
 namespace math {

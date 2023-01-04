@@ -13,12 +13,25 @@ namespace oidn {
 
   class CPUEngine;
 
+  // CPU instruction set
+  enum class CPUArch
+  {
+    Unknown,
+    SSE41,
+    AVX2,
+    AVX512_CORE,
+    NEON
+  };
+
   class CPUDevice final : public Device
   { 
     friend class CPUEngine;
     friend class DNNLEngine;
 
   public:
+    static bool isSupported();
+    static CPUArch getArch();
+
     CPUDevice();
     ~CPUDevice();
 
@@ -45,11 +58,7 @@ namespace oidn {
 
   private:
     Ref<CPUEngine> engine;
-
-  #if defined(OIDN_DNNL)
-    dnnl::engine dnnlEngine;
-    dnnl::stream dnnlStream;
-  #endif
+    CPUArch arch;
 
     // Tasking
     std::shared_ptr<tbb::task_arena> arena;

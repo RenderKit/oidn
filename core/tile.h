@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "common.h"
+#include "common/common.h"
 #if defined(OIDN_DEVICE_CPU)
   #include "cpu_input_process_ispc.h" // ispc::Tile
 #endif

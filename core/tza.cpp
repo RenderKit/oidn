@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "tza.h"
-#include "common/exception.h"
+#include "exception.h"
 
 namespace oidn {
 

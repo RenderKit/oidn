@@ -12,8 +12,8 @@ namespace oidn {
   public:
     explicit DNNLEngine(const Ref<CPUDevice>& device);
 
-    OIDN_INLINE dnnl::engine& getDNNLEngine() { return device->dnnlEngine; }
-    OIDN_INLINE dnnl::stream& getDNNLStream() { return device->dnnlStream; }
+    OIDN_INLINE dnnl::engine& getDNNLEngine() { return dnnlEngine; }
+    OIDN_INLINE dnnl::stream& getDNNLStream() { return dnnlStream; }
 
     void wait() override;
 
@@ -23,6 +23,10 @@ namespace oidn {
 
     // Ops
     std::shared_ptr<Conv> newConv(const ConvDesc& desc) override;
+
+  private:
+    dnnl::engine dnnlEngine;
+    dnnl::stream dnnlStream;
   };
 
 } // namespace oidn
