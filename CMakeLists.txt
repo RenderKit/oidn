@@ -309,25 +309,25 @@ endif()
 
 if(OIDN_DNNL)
   list(APPEND CORE_SOURCES
-    core/dnnl/dnnl_conv.h
-    core/dnnl/dnnl_conv.cpp
-    core/dnnl/dnnl_common.h
-    core/dnnl/dnnl_common.cpp
-    core/dnnl/dnnl_engine.h
-    core/dnnl/dnnl_engine.cpp
-    core/dnnl/dnnl_tensor.h
-    core/dnnl/dnnl_tensor.cpp
+    core/cpu/dnnl/dnnl_conv.h
+    core/cpu/dnnl/dnnl_conv.cpp
+    core/cpu/dnnl/dnnl_common.h
+    core/cpu/dnnl/dnnl_common.cpp
+    core/cpu/dnnl/dnnl_engine.h
+    core/cpu/dnnl/dnnl_engine.cpp
+    core/cpu/dnnl/dnnl_tensor.h
+    core/cpu/dnnl/dnnl_tensor.cpp
   )
 elseif(OIDN_BNNS)
   list(APPEND CORE_SOURCES
-    core/bnns/bnns_common.h
-    core/bnns/bnns_common.cpp
-    core/bnns/bnns_conv.h
-    core/bnns/bnns_conv.cpp
-    core/bnns/bnns_engine.h
-    core/bnns/bnns_engine.cpp
-    core/bnns/bnns_pool.h
-    core/bnns/bnns_pool.cpp
+    core/cpu/bnns/bnns_common.h
+    core/cpu/bnns/bnns_common.cpp
+    core/cpu/bnns/bnns_conv.h
+    core/cpu/bnns/bnns_conv.cpp
+    core/cpu/bnns/bnns_engine.h
+    core/cpu/bnns/bnns_engine.cpp
+    core/cpu/bnns/bnns_pool.h
+    core/cpu/bnns/bnns_pool.cpp
   )
 endif()
 

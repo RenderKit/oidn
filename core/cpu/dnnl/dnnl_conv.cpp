@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "dnnl_conv.h"
-#include "../reorder.h"
+#include "core/reorder.h"
 #include "dnnl_tensor.h"
 
 namespace oidn {

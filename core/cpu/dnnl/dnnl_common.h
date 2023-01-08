@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "../tensor.h"
+#include "core/tensor.h"
 #include "dnnl_engine.h"
 
 namespace oidn {

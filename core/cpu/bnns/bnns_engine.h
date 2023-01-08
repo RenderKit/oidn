@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "../cpu/cpu_engine.h"
+#include "core/cpu/cpu_engine.h"
 
 namespace oidn {
 

@@ -4,7 +4,7 @@
 #pragma once
 
 #include <Accelerate/Accelerate.h>
-#include "../tensor.h"
+#include "core/tensor.h"
 #include "bnns_engine.h"
 
 namespace oidn {

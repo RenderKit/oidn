@@ -3,24 +3,21 @@
 
 #pragma once
 
-#include "../conv.h"
+#include "core/pool.h"
 #include "bnns_common.h"
 
 namespace oidn {
 
-  class BNNSConv : public Conv
+  class BNNSPool : public Pool
   {
   public:
-    BNNSConv(const Ref<BNNSEngine>& engine, const ConvDesc& desc);
-    ~BNNSConv();
+    BNNSPool(const Ref<BNNSEngine>& engine, const PoolDesc& desc);
+    ~BNNSPool();
 
     void finalize() override;
     void submit() override;
 
   private:
-    void updateWeight() override;
-    void updateBias() override;
-
     Ref<BNNSEngine> engine;
     BNNSFilter filter = nullptr;
   };

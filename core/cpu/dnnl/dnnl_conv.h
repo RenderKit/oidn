@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "../conv.h"
+#include "core/conv.h"
 #include "dnnl_common.h"
 
 namespace oidn {

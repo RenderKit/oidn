@@ -3,9 +3,9 @@
 
 #include "cpu_device.h"
 #if defined(OIDN_DNNL)
-  #include "../dnnl/dnnl_engine.h"
+  #include "dnnl/dnnl_engine.h"
 #elif defined(OIDN_BNNS)
-  #include "../bnns/bnns_engine.h"
+  #include "bnns/bnns_engine.h"
 #endif
 
 #if defined(OIDN_ARCH_X64)
