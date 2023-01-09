@@ -9,8 +9,15 @@
 
 #include "config.h"
 
-#if defined(OIDN_DEVICE_SYCL) && defined(SYCL_LANGUAGE_VERSION)
-  #include <CL/sycl.hpp>
+#if defined(OIDN_DEVICE_SYCL)
+  #if defined(SYCL_LANGUAGE_VERSION)
+    #include <CL/sycl.hpp>
+  #else
+    namespace sycl {
+      class queue;
+      class event;
+    }
+  #endif
 #endif
 
 #if defined(OIDN_DEVICE_CUDA)
@@ -59,7 +66,7 @@ typedef struct OIDNDeviceImpl* OIDNDevice;
 // Creates a device of the specified type.
 OIDN_API OIDNDevice oidnNewDevice(OIDNDeviceType type);
 
-#if defined(OIDN_DEVICE_SYCL) && defined(SYCL_LANGUAGE_VERSION)
+#if defined(OIDN_DEVICE_SYCL)
 // Creates a SYCL device from the specified list of SYCL queues.
 // The queues should belong to SYCL sub-devices (Xe-Stacks/Tiles) of the same SYCL root-device (Xe GPU).
 OIDN_API OIDNDevice oidnNewSYCLDevice(const sycl::queue* queues, int numQueues);
@@ -320,7 +327,7 @@ OIDN_API void oidnExecuteFilter(OIDNFilter filter);
 // Executes the filter asynchronously.
 OIDN_API void oidnExecuteFilterAsync(OIDNFilter filter);
 
-#if defined(OIDN_DEVICE_SYCL) && defined(SYCL_LANGUAGE_VERSION)
+#if defined(OIDN_DEVICE_SYCL)
 // Executes the SYCL filter asynchronously using the specified dependent events,
 // and optionally returns an event for completion.
 OIDN_API void oidnExecuteSYCLFilterAsync(OIDNFilter filter,
