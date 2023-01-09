@@ -1,7 +1,7 @@
 // Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "../image_accessor.isph"
+#include "image_accessor.isph"
 
 struct CPUImageCopyKernel
 {

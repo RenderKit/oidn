@@ -3,7 +3,7 @@
 
 #include "cpu_autoexposure.h"
 #include "cpu_autoexposure_ispc.h"
-#include "../color.h"
+#include "cpu_common.h"
 
 namespace oidn {
 
@@ -18,7 +18,7 @@ namespace oidn {
       throw std::logic_error("autoexposure source not set");
 
     // Downsample the image to minimize sensitivity to noise
-    ispc::ImageAccessor srcAcc = *src;
+    ispc::ImageAccessor srcAcc = toISPC(*src);
 
     // Compute the average log luminance of the downsampled image
     using Sum = std::pair<float, int>;

@@ -73,41 +73,6 @@ namespace oidn {
     this->ptr = buffer->getData();
   }
 
-#if defined(OIDN_DEVICE_CPU)
-  Image::operator ispc::ImageAccessor() const
-  {
-    ispc::ImageAccessor acc;
-    acc.ptr = (uint8_t*)ptr;
-    acc.hByteStride = hByteStride;
-    acc.wByteStride = wByteStride;
-
-    if (format != Format::Undefined)
-    {
-      switch (getDataType())
-      {
-      case DataType::Float32:
-        acc.dataType = ispc::DataType_Float32;
-        break;
-      case DataType::Float16:
-        acc.dataType = ispc::DataType_Float16;
-        break;
-      case DataType::UInt8:
-        acc.dataType = ispc::DataType_UInt8;
-        break;
-      default:
-        throw std::logic_error("unsupported data type");
-      }
-    }
-    else
-      acc.dataType = ispc::DataType_Float32;
-
-    acc.W = int(width);
-    acc.H = int(height);
-
-    return acc;
-  }
-#endif
-
   void Image::updatePtr()
   {
     if (buffer)

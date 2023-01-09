@@ -3,6 +3,7 @@
 
 #include "cpu_upsample.h"
 #include "cpu_upsample_ispc.h"
+#include "cpu_common.h"
 
 namespace oidn {
 
@@ -26,8 +27,8 @@ namespace oidn {
       const int blockC = getTensorLayoutBlockC(srcDesc.layout);
 
       ispc::CPUUpsampleKernel kernel;
-      kernel.src = *src;
-      kernel.dst = *dst;
+      kernel.src = toISPC(*src);
+      kernel.dst = toISPC(*dst);
 
       parallel_nd(src->getC() / blockC, src->getH(), [&](int cb, int h)
       {

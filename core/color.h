@@ -4,9 +4,6 @@
 #pragma once
 
 #include "image.h"
-#if defined(OIDN_DEVICE_CPU)
-  #include "color_ispc.h"
-#endif
 
 namespace oidn {
 
@@ -95,6 +92,8 @@ namespace oidn {
   public:
     explicit TransferFunction(Type type = Type::Linear);
 
+    Type getType() const { return type; }
+
     void setInputScale(float inputScale)
     {
       this->inputScalePtr = nullptr;
@@ -165,10 +164,6 @@ namespace oidn {
         return 0;
       }
     }
-
-  #if defined(OIDN_DEVICE_CPU)
-    operator ispc::TransferFunction() const;
-  #endif
   };
 
   // Computes the luminance of an RGB color

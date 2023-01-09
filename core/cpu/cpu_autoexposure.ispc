@@ -1,8 +1,8 @@
 // Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "../image_accessor.isph"
-#include "../color.isph"
+#include "image_accessor.isph"
+#include "color.isph"
 
 // Returns the average luminance of the specified image bin
 export uniform float autoexposureDownsample(const uniform ImageAccessor& color,

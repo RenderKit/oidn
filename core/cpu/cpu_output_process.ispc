@@ -1,10 +1,10 @@
 // Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "../tensor_accessor.isph"
-#include "../image_accessor.isph"
-#include "../color.isph"
-#include "../tile.isph"
+#include "tensor_accessor.isph"
+#include "image_accessor.isph"
+#include "color.isph"
+#include "tile.isph"
 
 struct CPUOutputProcessKernel
 {

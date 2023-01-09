@@ -3,6 +3,7 @@
 
 #include "cpu_image_copy.h"
 #include "cpu_image_copy_ispc.h"
+#include "cpu_common.h"
 
 namespace oidn {
 
@@ -17,8 +18,8 @@ namespace oidn {
       throw std::out_of_range("image copy destination smaller than the source");
 
     ispc::CPUImageCopyKernel kernel;
-    kernel.src = *src;
-    kernel.dst = *dst;
+    kernel.src = toISPC(*src);
+    kernel.dst = toISPC(*dst);
 
     parallel_nd(dst->getH(), [&](int h)
     {

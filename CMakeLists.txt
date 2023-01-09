@@ -81,25 +81,20 @@ if(OIDN_ARCH STREQUAL "X64")
   option(OIDN_DEVICE_SYCL "Enable SYCL device." OFF)
 endif()
 
-if(OIDN_DEVICE_CPU)
-  # TBB
-  find_package(Threads REQUIRED)
-  find_package(TBB 2017.0 REQUIRED tbb CONFIG)
-
-  # DNNL
-  if(OIDN_ARCH STREQUAL "X64")
-    set(OIDN_DNNL ON)
-    include(oidn_dnnl)
-  endif()
-endif()
-
 # Platform-specific settings
 include(oidn_platform)
 
 # CPU device
 if(OIDN_DEVICE_CPU)
-  # BNNS
-  if(APPLE AND OIDN_ARCH STREQUAL "ARM64")
+  find_package(Threads REQUIRED)
+  find_package(TBB 2017.0 REQUIRED tbb CONFIG)
+
+  if(OIDN_ARCH STREQUAL "X64")
+    # oneDNN
+    set(OIDN_DNNL ON)
+    include(oidn_dnnl)
+  elseif(APPLE AND OIDN_ARCH STREQUAL "ARM64")
+    # BNNS
     set(OIDN_BNNS ON)
     include(oidn_bnns)
   endif()
@@ -261,6 +256,8 @@ if(OIDN_DEVICE_CPU)
   list(APPEND CORE_SOURCES
     core/cpu/cpu_autoexposure.h
     core/cpu/cpu_autoexposure.cpp
+    core/cpu/cpu_common.h
+    core/cpu/cpu_common.cpp
     core/cpu/cpu_device.h
     core/cpu/cpu_device.cpp
     core/cpu/cpu_engine.h
@@ -286,13 +283,13 @@ if(OIDN_DEVICE_CPU)
     core/cpu/cpu_output_process.ispc
     core/cpu/cpu_pool.ispc
     core/cpu/cpu_upsample.ispc
-    core/color.isph
-    core/color.ispc
-    core/image_accessor.isph
-    core/math.isph
-    core/tensor_accessor.isph
-    core/tile.isph
-    core/vec.isph
+    core/cpu/color.isph
+    core/cpu/color.ispc
+    core/cpu/image_accessor.isph
+    core/cpu/math.isph
+    core/cpu/tensor_accessor.isph
+    core/cpu/tile.isph
+    core/cpu/vec.isph
   )
 endif()
 

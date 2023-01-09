@@ -28,21 +28,6 @@ namespace oidn {
       TensorDesc(desc),
       engine(buffer->getEngine()) {}
 
-#if defined(OIDN_DEVICE_CPU)
-  Tensor::operator ispc::TensorAccessor3D() const
-  {
-    if (getRank() != 3 || dataType != DataType::Float32)
-      throw std::logic_error("incompatible tensor accessor");
-
-    ispc::TensorAccessor3D result;
-    result.ptr = (float*)getData();
-    result.C = getC();
-    result.H = getH();
-    result.W = getW();
-    return result;
-  }
-#endif
-
   std::shared_ptr<Tensor> Tensor::map(Access access)
   {
     if (!buffer)

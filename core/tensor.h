@@ -8,9 +8,6 @@
 #include "engine.h"
 #include "buffer.h"
 #include "tensor_accessor.h"
-#if defined(OIDN_DEVICE_CPU)
-  #include "cpu_input_process_ispc.h" // ispc::TensorAccessor3D
-#endif
 
 namespace oidn {
 
@@ -160,10 +157,6 @@ namespace oidn {
         throw std::logic_error("incompatible tensor accessor");
       return TensorAccessor4D<T, accessorLayout>(getData(), getO(), getI(), getH(), getW());
     }
-
-  #if defined(OIDN_DEVICE_CPU)
-    operator ispc::TensorAccessor3D() const;
-  #endif
 
     std::shared_ptr<Tensor> map(Access access);
 

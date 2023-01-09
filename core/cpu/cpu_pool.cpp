@@ -3,6 +3,7 @@
 
 #include "cpu_pool.h"
 #include "cpu_pool_ispc.h"
+#include "cpu_common.h"
 
 namespace oidn {
 
@@ -23,8 +24,8 @@ namespace oidn {
     const int blockC = getTensorLayoutBlockC(dstDesc.layout);
 
     ispc::CPUPoolKernel kernel;
-    kernel.src = *src;
-    kernel.dst = *dst;
+    kernel.src = toISPC(*src);
+    kernel.dst = toISPC(*dst);
 
     parallel_nd(dst->getC() / blockC, dst->getH(), [&](int cb, int h)
     {

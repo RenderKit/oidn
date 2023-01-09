@@ -3,6 +3,7 @@
 
 #include "cpu_input_process.h"
 #include "cpu_input_process_ispc.h"
+#include "cpu_common.h"
 
 namespace oidn {
 
@@ -22,12 +23,12 @@ namespace oidn {
 
     ispc::CPUInputProcessKernel kernel;
 
-    kernel.color  = color  ? *color  : Image();
-    kernel.albedo = albedo ? *albedo : Image();
-    kernel.normal = normal ? *normal : Image();
-    kernel.dst = *dst;
-    kernel.tile = tile;
-    kernel.transferFunc = *transferFunc;
+    kernel.color  = toISPC(color  ? *color  : Image());
+    kernel.albedo = toISPC(albedo ? *albedo : Image());
+    kernel.normal = toISPC(normal ? *normal : Image());
+    kernel.dst = toISPC(*dst);
+    kernel.tile = toISPC(tile);
+    kernel.transferFunc = toISPC(*transferFunc);
     kernel.hdr = hdr;
     kernel.snorm = snorm;
 

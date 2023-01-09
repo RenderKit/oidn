@@ -1,7 +1,7 @@
 // Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "../tensor_accessor.isph"
+#include "tensor_accessor.isph"
 
 struct CPUUpsampleKernel
 {

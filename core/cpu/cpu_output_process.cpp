@@ -3,6 +3,7 @@
 
 #include "cpu_output_process.h"
 #include "cpu_output_process_ispc.h"
+#include "cpu_common.h"
 
 namespace oidn {
 
@@ -22,10 +23,10 @@ namespace oidn {
 
     ispc::CPUOutputProcessKernel kernel;
 
-    kernel.src = *src;
-    kernel.dst = *dst;
-    kernel.tile = tile;
-    kernel.transferFunc = *transferFunc;
+    kernel.src = toISPC(*src);
+    kernel.dst = toISPC(*dst);
+    kernel.tile = toISPC(tile);
+    kernel.transferFunc = toISPC(*transferFunc);
     kernel.hdr = hdr;
     kernel.snorm = snorm;
 
