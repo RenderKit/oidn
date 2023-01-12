@@ -39,7 +39,7 @@ namespace oidn {
     void init() override;
 
     static constexpr int minComputeCapability = 70;
-    static constexpr int maxComputeCapability = 87;
+    static constexpr int maxComputeCapability = 89;
 
     Ref<CUDAEngine> engine;
     cudaStream_t stream = nullptr;
