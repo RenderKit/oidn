@@ -40,8 +40,8 @@ namespace oidn {
     cudaDeviceProp prop;
     if (cudaGetDeviceProperties(&prop, deviceId) != cudaSuccess)
       return false;
-    const int computeCapability = prop.major * 10 + prop.minor;
-    return computeCapability >= minComputeCapability && computeCapability <= maxComputeCapability &&
+    const int smArch = prop.major * 10 + prop.minor;
+    return smArch >= minSMArch && smArch <= maxSMArch &&
            prop.unifiedAddressing && prop.managedMemory;
   }
 
@@ -56,13 +56,17 @@ namespace oidn {
     cudaDeviceProp prop;
     checkError(cudaGetDeviceProperties(&prop, deviceId));
     maxWorkGroupSize = prop.maxThreadsPerBlock;
-    computeCapability = prop.major * 10 + prop.minor;
+    smArch = prop.major * 10 + prop.minor;
 
     if (isVerbose())
+    {
       std::cout << "  Device    : " << prop.name << std::endl;
+      std::cout << "    Arch    : SM " << prop.major << "." << prop.minor << std::endl;
+      std::cout << "    SMs     : " << prop.multiProcessorCount << std::endl;
+    }
 
     // Check required hardware features
-    if (computeCapability < minComputeCapability || computeCapability > maxComputeCapability)
+    if (smArch < minSMArch || smArch > maxSMArch)
       throw Exception(Error::UnsupportedHardware, "device has unsupported compute capability");
     if (!prop.unifiedAddressing)
       throw Exception(Error::UnsupportedHardware, "device does not support unified addressing");

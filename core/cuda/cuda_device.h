@@ -38,14 +38,15 @@ namespace oidn {
   private:
     void init() override;
 
-    static constexpr int minComputeCapability = 70;
-    static constexpr int maxComputeCapability = 99;
+    // Supported compute capabilities
+    static constexpr int minSMArch = 70;
+    static constexpr int maxSMArch = 99;
 
     Ref<CUDAEngine> engine;
     cudaStream_t stream = nullptr;
 
     int maxWorkGroupSize = 0;
-    int computeCapability = 0;
+    int smArch = 0; // compute capability
   };
 
 } // namespace oidn

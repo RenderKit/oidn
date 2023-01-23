@@ -275,7 +275,7 @@ namespace oidn {
     std::shared_ptr<Conv> (*make)(const Ref<CUDAEngine>&, const ConvDesc&);
 
     DataType dataType;
-    int sm;                     // compute capability
+    int smArch;                 // compute capability
     int blockM, blockN, blockK; // threadblock size
   };
 
@@ -318,7 +318,7 @@ namespace oidn {
     }
   };
 
-  template<int sm>
+  template<int smArch>
   std::vector<CutlassConvFactory> getCutlassConvInstances();
 
 } // namespace oidn

@@ -113,7 +113,7 @@ namespace oidn {
     void wait() override;
 
     int getMaxWorkGroupSize() const override { return device->maxWorkGroupSize; }
-    int getComputeCapability() const { return device->computeCapability; }
+    int getSMArch() const { return device->smArch; }
 
   private:
     WorkDim<1> suggestWorkGroupSize(WorkDim<1> globalSize) { return 256; }

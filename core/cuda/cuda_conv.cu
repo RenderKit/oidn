@@ -10,12 +10,12 @@ namespace oidn {
   {
     // Get the list of kernels supported by the engine
     std::vector<CutlassConvFactory> kernels;
-    const int sm = engine->getComputeCapability();
-    if (sm >= 80)
+    const int smArch = engine->getSMArch();
+    if (smArch >= 80)
       kernels = getCutlassConvInstances<80>();
-    else if (sm >= 75)
+    else if (smArch >= 75)
       kernels = getCutlassConvInstances<75>();
-    else if (sm >= 70)
+    else if (smArch >= 70)
       kernels = getCutlassConvInstances<70>();
     else
       throw std::runtime_error("could not find a supported convolution kernel");
