@@ -5,7 +5,7 @@
 
 namespace oidn {
 
-// Turing
+// Turing (SM 7.5)
 template<>
 std::vector<CutlassConvFactory> getCutlassConvInstances<75>()
 {

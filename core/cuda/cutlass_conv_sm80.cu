@@ -5,7 +5,7 @@
 
 namespace oidn {
 
-// Ampere
+// Ampere (SM 8.0), Ada Lovelace (SM 8.9), Hopper (SM 9.0)
 template<>
 std::vector<CutlassConvFactory> getCutlassConvInstances<80>()
 {

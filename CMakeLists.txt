@@ -125,8 +125,8 @@ if(NOT APPLE)
     endif()
 
     enable_language(CUDA)
-    if (${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS "11.1")
-      message(FATAL_ERROR "Building with CUDA support requires NVIDIA CUDA Toolkit 11.1 or newer")
+    if (${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS "11.8")
+      message(FATAL_ERROR "Building with CUDA support requires NVIDIA CUDA Toolkit 11.8 or newer")
     endif()
   endif()
 endif()
@@ -371,18 +371,27 @@ if(OIDN_DEVICE_CUDA)
   set(OIDN_NVCC_SM70_FLAGS "-gencode arch=compute_70,code=sm_70")
   set(OIDN_NVCC_SM75_FLAGS "-gencode arch=compute_75,code=sm_75")
   set(OIDN_NVCC_SM80_FLAGS "-gencode arch=compute_80,code=sm_80")
+  set(OIDN_NVCC_SM90_FLAGS "-gencode arch=compute_90,code=sm_90")
 
   set_source_files_properties(
     core/cuda/cuda_conv.cu
     core/cuda/cuda_device.cu
     core/cuda/cuda_engine.cu
     PROPERTIES COMPILE_FLAGS
-      "${OIDN_NVCC_SM70_FLAGS} ${OIDN_NVCC_SM75_FLAGS} ${OIDN_NVCC_SM80_FLAGS}"
+      "${OIDN_NVCC_SM70_FLAGS} ${OIDN_NVCC_SM75_FLAGS} ${OIDN_NVCC_SM80_FLAGS} ${OIDN_NVCC_SM90_FLAGS}"
   )
 
-  set_source_files_properties(core/cuda/cutlass_conv_sm70.cu PROPERTIES COMPILE_FLAGS ${OIDN_NVCC_SM70_FLAGS})
-  set_source_files_properties(core/cuda/cutlass_conv_sm75.cu PROPERTIES COMPILE_FLAGS ${OIDN_NVCC_SM75_FLAGS})
-  set_source_files_properties(core/cuda/cutlass_conv_sm80.cu PROPERTIES COMPILE_FLAGS ${OIDN_NVCC_SM80_FLAGS})
+  set_source_files_properties(
+    core/cuda/cutlass_conv_sm70.cu
+    PROPERTIES COMPILE_FLAGS ${OIDN_NVCC_SM70_FLAGS})
+
+  set_source_files_properties(
+    core/cuda/cutlass_conv_sm75.cu
+    PROPERTIES COMPILE_FLAGS ${OIDN_NVCC_SM75_FLAGS})
+
+  set_source_files_properties(
+    core/cuda/cutlass_conv_sm80.cu
+    PROPERTIES COMPILE_FLAGS "${OIDN_NVCC_SM80_FLAGS} ${OIDN_NVCC_SM90_FLAGS}")
 endif()
 
 if(OIDN_DEVICE_HIP)

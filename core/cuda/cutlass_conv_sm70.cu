@@ -5,7 +5,7 @@
 
 namespace oidn {
 
-// Volta
+// Volta (SM 7.0)
 template<>
 std::vector<CutlassConvFactory> getCutlassConvInstances<70>()
 {
