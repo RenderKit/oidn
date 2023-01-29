@@ -1,9 +1,9 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
 
-#include "common/platform.h"
+#include "common/common.h"
 #include <exception>
 
 namespace oidn {
@@ -19,10 +19,7 @@ namespace oidn {
       return error;
     }
 
-    const char* what() const noexcept override
-    {
-      return message;
-    }
+    const char* what() const noexcept override;
 
   private:
     Error error;

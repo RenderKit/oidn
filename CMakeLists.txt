@@ -70,97 +70,21 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 
+# Devices
+option(OIDN_DEVICE_CPU "Enable CPU device." ON)
+if(NOT APPLE)
+  if(OIDN_ARCH STREQUAL "X64")
+    option(OIDN_DEVICE_SYCL "Enable SYCL device." OFF)
+  endif()
+  option(OIDN_DEVICE_CUDA "Enable CUDA device." OFF)
+  option(OIDN_DEVICE_HIP "Enable HIP device." OFF)
+endif()
+
 # Packaging
 include(oidn_package)
 
-# CPU device
-option(OIDN_DEVICE_CPU "Enable CPU device." ON)
-
-# SYCL device
-if(OIDN_ARCH STREQUAL "X64")
-  option(OIDN_DEVICE_SYCL "Enable SYCL device." OFF)
-endif()
-
 # Platform-specific settings
 include(oidn_platform)
-
-# CPU device
-if(OIDN_DEVICE_CPU)
-  find_package(Threads REQUIRED)
-  find_package(TBB 2017.0 REQUIRED tbb CONFIG)
-
-  if(OIDN_ARCH STREQUAL "X64")
-    # oneDNN
-    set(OIDN_DNNL ON)
-    include(oidn_dnnl)
-  elseif(APPLE AND OIDN_ARCH STREQUAL "ARM64")
-    # BNNS
-    set(OIDN_BNNS ON)
-    include(oidn_bnns)
-  endif()
-
-  # ISPC
-  if(OIDN_ARCH STREQUAL "X64")
-    set(OIDN_ISPC_TARGET_LIST sse4-i32x8;avx2-i32x8;avx512skx-i32x16)
-  elseif(OIDN_ARCH STREQUAL "ARM64")
-    set(OIDN_ISPC_TARGET_LIST neon-i32x8)
-  endif()
-  set(OIDN_ISPC_ADDRESSING 64)
-  include(oidn_ispc)
-endif()
-
-# CUDA device
-if(NOT APPLE)
-  option(OIDN_DEVICE_CUDA "Enable CUDA device." OFF)
-  if(OIDN_DEVICE_CUDA)
-    if(CMAKE_GENERATOR MATCHES "Visual Studio" AND ${CMAKE_VERSION} VERSION_LESS "3.23.2")
-      message(FATAL_ERROR "Building with CUDA support requires CMake 3.23.2 or newer if using a Visual Studio generator or 3.18.0 or newer otherwise (e.g. if using Ninja)")
-    elseif(${CMAKE_VERSION} VERSION_LESS "3.18.0")
-      message(FATAL_ERROR "Building with CUDA support requires CMake 3.18.0 or newer")
-    endif()
-
-    # Set the NVCC host compiler to make sure the same C++ compiler is used for all host code (except DPC++, which is not supported yet)
-    if(NOT WIN32 AND (NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_VERSION VERSION_LESS 15))
-      set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
-    endif()
-
-    enable_language(CUDA)
-    if (${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS "11.8")
-      message(FATAL_ERROR "Building with CUDA support requires NVIDIA CUDA Toolkit 11.8 or newer")
-    endif()
-  endif()
-endif()
-
-# HIP device
-if(NOT APPLE)
-  option(OIDN_DEVICE_HIP "Enable HIP device." OFF)
-  if(OIDN_DEVICE_HIP)
-    # FIXME
-    if(WIN32)
-      message(FATAL_ERROR "The HIP device requires ROCm, which is not available on Windows yet.")
-    endif()
-    if(OIDN_DEVICE_SYCL OR OIDN_DEVICE_CUDA)
-      message(FATAL_ERROR "Due to a CMake/ROCm bug, it is currently not possible to enable HIP with other GPU devices at the same time. This will be fixed in a future version.")
-    endif()
-    
-    if(NOT DEFINED ROCM_PATH)
-      set(ROCM_PATH "/opt/rocm" CACHE STRING "Default ROCM installation directory.")
-    endif()
-
-    # Search for rocm in common locations
-    list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/hip ${ROCM_PATH})
-
-    # Find hip
-    find_package(hip)
-
-    # Set compiler and linker
-    set(CMAKE_CXX_COMPILER ${HIP_HIPCC_EXECUTABLE})
-    set(CMAKE_CXX_LINKER   ${HIP_HIPCC_EXECUTABLE})
-
-    # Find MIOpen
-    find_package(miopen)
-  endif()
-endif()
 
 ## -----------------------------------------------------------------------------
 ## Library
@@ -190,7 +114,6 @@ set(CORE_SOURCES
   include/OpenImageDenoise/oidn.h
   include/OpenImageDenoise/oidn.hpp
   include/OpenImageDenoise/config.h
-  core/api.cpp
   core/autoexposure.h
   core/buffer.h
   core/buffer.cpp
@@ -198,15 +121,19 @@ set(CORE_SOURCES
   core/color.cpp
   core/concat_conv.h
   core/concat_conv.cpp
+  core/context.h
+  core/context.cpp
   core/conv.cpp
   core/conv.h
   core/conv.cpp
   core/data.h
+  core/device_factory.h
   core/device.h
   core/device.cpp
   core/engine.h
   core/engine.cpp
   core/exception.h
+  core/exception.cpp
   core/filter.h
   core/filter.cpp
   core/image_accessor.h
@@ -216,6 +143,8 @@ set(CORE_SOURCES
   core/input_process.h
   core/input_process.cpp
   core/math.h
+  core/module.h
+  core/module.cpp
   core/network.h
   core/network.cpp
   core/op.h
@@ -252,207 +181,24 @@ set(CORE_SOURCES
   core/weights.cpp
 )
 
-if(OIDN_DEVICE_CPU)
-  list(APPEND CORE_SOURCES
-    core/cpu/cpu_autoexposure.h
-    core/cpu/cpu_autoexposure.cpp
-    core/cpu/cpu_common.h
-    core/cpu/cpu_common.cpp
-    core/cpu/cpu_device.h
-    core/cpu/cpu_device.cpp
-    core/cpu/cpu_engine.h
-    core/cpu/cpu_engine.cpp
-    core/cpu/cpu_image_copy.h
-    core/cpu/cpu_image_copy.cpp
-    core/cpu/cpu_input_process.h
-    core/cpu/cpu_input_process.cpp
-    core/cpu/cpu_output_process.h
-    core/cpu/cpu_output_process.cpp
-    core/cpu/cpu_pool.h
-    core/cpu/cpu_pool.cpp
-    core/cpu/cpu_upsample.h
-    core/cpu/cpu_upsample.cpp
-    core/cpu/tasking.h
-    core/cpu/tasking.cpp
-  )
-
-  list(APPEND CORE_SOURCES_ISPC
-    core/cpu/cpu_autoexposure.ispc
-    core/cpu/cpu_image_copy.ispc
-    core/cpu/cpu_input_process.ispc
-    core/cpu/cpu_output_process.ispc
-    core/cpu/cpu_pool.ispc
-    core/cpu/cpu_upsample.ispc
-    core/cpu/color.isph
-    core/cpu/color.ispc
-    core/cpu/image_accessor.isph
-    core/cpu/math.isph
-    core/cpu/tensor_accessor.isph
-    core/cpu/tile.isph
-    core/cpu/vec.isph
-  )
-endif()
-
-if(OIDN_DEVICE_SYCL OR OIDN_DEVICE_CUDA OR OIDN_DEVICE_HIP)
-  list(APPEND CORE_SOURCES
-    core/gpu/gpu_autoexposure.h
-    core/gpu/gpu_image_copy.h
-    core/gpu/gpu_input_process.h
-    core/gpu/gpu_output_process.h
-    core/gpu/gpu_pool.h
-    core/gpu/gpu_upsample.h
-  )
-endif()
-
-if(OIDN_DNNL)
-  list(APPEND CORE_SOURCES
-    core/cpu/dnnl/dnnl_conv.h
-    core/cpu/dnnl/dnnl_conv.cpp
-    core/cpu/dnnl/dnnl_common.h
-    core/cpu/dnnl/dnnl_common.cpp
-    core/cpu/dnnl/dnnl_engine.h
-    core/cpu/dnnl/dnnl_engine.cpp
-    core/cpu/dnnl/dnnl_tensor.h
-    core/cpu/dnnl/dnnl_tensor.cpp
-  )
-elseif(OIDN_BNNS)
-  list(APPEND CORE_SOURCES
-    core/cpu/bnns/bnns_common.h
-    core/cpu/bnns/bnns_common.cpp
-    core/cpu/bnns/bnns_conv.h
-    core/cpu/bnns/bnns_conv.cpp
-    core/cpu/bnns/bnns_engine.h
-    core/cpu/bnns/bnns_engine.cpp
-    core/cpu/bnns/bnns_pool.h
-    core/cpu/bnns/bnns_pool.cpp
-  )
-endif()
-
-if(OIDN_DEVICE_SYCL)
-  set(CMAKE_CXX_STANDARD 17)
-
-  list(APPEND CORE_SOURCES
-    core/sycl/sycl_common.h
-    core/sycl/sycl_conv_gen.h
-    core/sycl/sycl_conv_gen9.cpp
-    core/sycl/sycl_conv_xehpc.cpp
-    core/sycl/sycl_conv_xehpg.cpp
-    core/sycl/sycl_conv.h
-    core/sycl/sycl_device.h
-    core/sycl/sycl_device.cpp
-    core/sycl/sycl_engine.h
-    core/sycl/sycl_engine.cpp
-    core/sycl/sycl_external_buffer.h
-    core/sycl/sycl_external_buffer.cpp
-  )
-
-  set_source_files_properties(${CORE_SOURCES} PROPERTIES COMPILE_FLAGS "${OIDN_CXX_FLAGS_SYCL}")
-endif()
-
-if(OIDN_DEVICE_CUDA)
-  list(APPEND CORE_SOURCES
-    core/cuda/cuda_conv.h
-    core/cuda/cuda_conv.cu
-    core/cuda/cuda_concat_conv.h
-    core/cuda/cuda_concat_conv.cpp
-    core/cuda/cuda_device.h
-    core/cuda/cuda_device.cu
-    core/cuda/cuda_engine.h
-    core/cuda/cuda_engine.cu
-    core/cuda/cuda_external_buffer.h
-    core/cuda/cuda_external_buffer.cu
-    core/cuda/cutlass_conv.h
-    core/cuda/cutlass_conv_sm70.cu
-    core/cuda/cutlass_conv_sm75.cu
-    core/cuda/cutlass_conv_sm80.cu
-  )
-
-  # We do not generate PTX to avoid excessive JIT compile times
-  set(OIDN_NVCC_SM70_FLAGS "-gencode arch=compute_70,code=sm_70")
-  set(OIDN_NVCC_SM75_FLAGS "-gencode arch=compute_75,code=sm_75")
-  set(OIDN_NVCC_SM80_FLAGS "-gencode arch=compute_80,code=sm_80")
-  set(OIDN_NVCC_SM90_FLAGS "-gencode arch=compute_90,code=sm_90")
-
-  set_source_files_properties(
-    core/cuda/cuda_conv.cu
-    core/cuda/cuda_device.cu
-    core/cuda/cuda_engine.cu
-    PROPERTIES COMPILE_FLAGS
-      "${OIDN_NVCC_SM70_FLAGS} ${OIDN_NVCC_SM75_FLAGS} ${OIDN_NVCC_SM80_FLAGS} ${OIDN_NVCC_SM90_FLAGS}"
-  )
-
-  set_source_files_properties(
-    core/cuda/cutlass_conv_sm70.cu
-    PROPERTIES COMPILE_FLAGS ${OIDN_NVCC_SM70_FLAGS})
-
-  set_source_files_properties(
-    core/cuda/cutlass_conv_sm75.cu
-    PROPERTIES COMPILE_FLAGS ${OIDN_NVCC_SM75_FLAGS})
-
-  set_source_files_properties(
-    core/cuda/cutlass_conv_sm80.cu
-    PROPERTIES COMPILE_FLAGS "${OIDN_NVCC_SM80_FLAGS} ${OIDN_NVCC_SM90_FLAGS}")
-endif()
-
-if(OIDN_DEVICE_HIP)
-  list(APPEND CORE_SOURCES
-    core/hip/hip_common.h
-    core/hip/hip_common.cpp
-    core/hip/hip_conv.h
-    core/hip/hip_conv.cpp
-    core/hip/hip_device.h
-    core/hip/hip_device.cpp
-    core/hip/hip_engine.h
-    core/hip/hip_engine.cpp
-  )
-endif()
-
-add_library(${PROJECT_NAME} ${OIDN_LIB_TYPE} ${CORE_SOURCES} ${OIDN_RESOURCE})
-
-target_include_directories(${PROJECT_NAME}
-  PUBLIC
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-  PRIVATE
-    ${CMAKE_CURRENT_BINARY_DIR}
+set(GPU_SOURCES
+  ${PROJECT_SOURCE_DIR}/core/gpu/gpu_autoexposure.h
+  ${PROJECT_SOURCE_DIR}/core/gpu/gpu_image_copy.h
+  ${PROJECT_SOURCE_DIR}/core/gpu/gpu_input_process.h
+  ${PROJECT_SOURCE_DIR}/core/gpu/gpu_output_process.h
+  ${PROJECT_SOURCE_DIR}/core/gpu/gpu_pool.h
+  ${PROJECT_SOURCE_DIR}/core/gpu/gpu_upsample.h
 )
 
-target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_common)
-
-if(OIDN_DNNL)
-  target_compile_definitions(${PROJECT_NAME} PRIVATE OIDN_DNNL)
-  if(OIDN_DEVICE_CPU)
-    ispc_add_definitions(-DOIDN_DNNL)
-  endif()
-  target_link_libraries(${PROJECT_NAME} PRIVATE dnnl)
-elseif(OIDN_BNNS)
-  target_compile_definitions(${PROJECT_NAME} PRIVATE OIDN_BNNS)
-  ispc_add_definitions(-DOIDN_BNNS)
-  target_link_libraries(${PROJECT_NAME} PRIVATE "-framework Accelerate")
+add_library(${PROJECT_NAME}_core SHARED ${CORE_SOURCES})
+set_property(TARGET ${PROJECT_NAME}_core PROPERTY VERSION ${PROJECT_VERSION})
+if(WIN32)
+  set_property(TARGET ${PROJECT_NAME}_core PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
 endif()
 
-if(OIDN_DEVICE_CPU)
-  ispc_target_add_sources(${PROJECT_NAME} ${CORE_SOURCES_ISPC})
-  target_link_libraries(${PROJECT_NAME} PRIVATE ${CMAKE_THREAD_LIBS_INIT} TBB::tbb)
-endif()
-
-if(OIDN_DEVICE_SYCL)
-  target_link_options(${PROJECT_NAME} PRIVATE "-fsycl")
-  target_link_libraries(${PROJECT_NAME} PRIVATE ze_loader)
-endif()
-
-if(OIDN_DEVICE_CUDA)
-  target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
-  target_include_directories(${PROJECT_NAME}
-    PRIVATE
-      "${PROJECT_SOURCE_DIR}/external/cutlass/include"
-      "${PROJECT_SOURCE_DIR}/external/cutlass/tools/util/include")
-  set_target_properties(${PROJECT_NAME} PROPERTIES CUDA_ARCHITECTURES OFF)
-endif()
-
-if(OIDN_DEVICE_HIP)
-  target_link_libraries(${PROJECT_NAME} PRIVATE hip::device MIOpen)
-endif()
+set(API_SOURCES
+  core/api.cpp
+)
 
 # Include weights
 option(OIDN_FILTER_RT "Include trained weights of the RT filter." ON)
@@ -461,7 +207,7 @@ option(OIDN_FILTER_RTLIGHTMAP "Include trained weights of the RTLightmap filter.
 set(WEIGHTS)
 
 if(OIDN_FILTER_RT)
-  target_compile_definitions(${PROJECT_NAME} PUBLIC OIDN_FILTER_RT)
+  target_compile_definitions(${PROJECT_NAME}_common PUBLIC OIDN_FILTER_RT)
   list(APPEND WEIGHTS
     weights/rt_alb.tza
     weights/rt_hdr.tza
@@ -477,29 +223,46 @@ if(OIDN_FILTER_RT)
 endif()
 
 if(OIDN_FILTER_RTLIGHTMAP)
-  target_compile_definitions(${PROJECT_NAME} PUBLIC OIDN_FILTER_RTLIGHTMAP)
+  target_compile_definitions(${PROJECT_NAME}_common PUBLIC OIDN_FILTER_RTLIGHTMAP)
   list(APPEND WEIGHTS
     weights/rtlightmap_hdr.tza
     weights/rtlightmap_dir.tza
   )
 endif()
 
-generate_cpp_from_blob(WEIGHTS_SOURCES "oidn::blobs::weights" ${WEIGHTS})
-target_sources(${PROJECT_NAME} PRIVATE ${WEIGHTS_SOURCES})
+oidn_generate_cpp_from_blob(WEIGHTS_SOURCES "oidn::blobs::weights" ${WEIGHTS})
+target_sources(${PROJECT_NAME}_core PRIVATE ${WEIGHTS_SOURCES})
 
-# Specify list of symbols to export
-if(WIN32)
-elseif(APPLE)
-  set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS -Wl,-exported_symbols_list,${PROJECT_SOURCE_DIR}/core/export.macos.map)
-  set_source_files_properties(core/api.cpp PROPERTIES OBJECT_DEPENDS ${PROJECT_SOURCE_DIR}/core/export.macos.map) 
-else()
-  set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS -Wl,--version-script=${PROJECT_SOURCE_DIR}/core/export.linux.map)
-  set_source_files_properties(core/api.cpp PROPERTIES OBJECT_DEPENDS ${PROJECT_SOURCE_DIR}/core/export.linux.map)
-endif()
+target_include_directories(${PROJECT_NAME}_core
+  PUBLIC
+    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+  #PRIVATE
+    ${CMAKE_CURRENT_BINARY_DIR}
+)
+
+target_link_libraries(${PROJECT_NAME}_core PUBLIC ${PROJECT_NAME}_common)
 
 message(STATUS "Setting target version ${PROJECT_VERSION}")
+
+add_library(${PROJECT_NAME} ${OIDN_LIB_TYPE} ${API_SOURCES} ${OIDN_RESOURCE})
 set_property(TARGET ${PROJECT_NAME} PROPERTY VERSION ${PROJECT_VERSION})
 set_property(TARGET ${PROJECT_NAME} PROPERTY SOVERSION ${PROJECT_VERSION_MAJOR})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_core)
+oidn_export_symbols(${PROJECT_NAME})
+
+if(OIDN_DEVICE_CPU)
+  add_subdirectory(core/cpu)
+endif()
+if(OIDN_DEVICE_SYCL)
+  add_subdirectory(core/sycl)
+endif()
+if(OIDN_DEVICE_CUDA)
+  add_subdirectory(core/cuda)
+endif()
+if(OIDN_DEVICE_HIP)
+  add_subdirectory(core/hip)
+endif()
 
 ## -----------------------------------------------------------------------------
 ## Apps
@@ -514,7 +277,7 @@ endif()
 ## Install and packaging
 ## -----------------------------------------------------------------------------
 
-include(oidn_install)
+#include(oidn_install)
 
 # Has to be last
 include(CPack)

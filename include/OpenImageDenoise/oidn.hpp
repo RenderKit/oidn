@@ -262,7 +262,7 @@ OIDN_NAMESPACE_BEGIN
     // If byteSize is 0, the maximum available amount of memory will be mapped.
     void* map(Access access = Access::ReadWrite, size_t byteOffset = 0, size_t byteSize = 0) const
     {
-      return oidnMapBuffer(handle, (OIDNAccess)access, byteOffset, byteSize);
+      return oidnMapBuffer(handle, static_cast<OIDNAccess>(access), byteOffset, byteSize);
     }
 
     // Unmaps a region of the buffer.
@@ -305,7 +305,7 @@ OIDN_NAMESPACE_BEGIN
   // ---------------------------------------------------------------------------
 
   // Progress monitor callback function
-  typedef bool (*ProgressMonitorFunction)(void* userPtr, double n);
+  using ProgressMonitorFunction = OIDNProgressMonitorFunction;
 
   // Filter object with automatic reference counting
   class FilterRef
@@ -378,7 +378,7 @@ OIDN_NAMESPACE_BEGIN
                   size_t pixelByteStride = 0, size_t rowByteStride = 0)
     {
       oidnSetFilterImage(handle, name,
-                         buffer.getHandle(), (OIDNFormat)format,
+                         buffer.getHandle(), static_cast<OIDNFormat>(format),
                          width, height,
                          byteOffset,
                          pixelByteStride, rowByteStride);
@@ -392,7 +392,7 @@ OIDN_NAMESPACE_BEGIN
                   size_t pixelByteStride = 0, size_t rowByteStride = 0)
     {
       oidnSetSharedFilterImage(handle, name,
-                               devPtr, (OIDNFormat)format,
+                               devPtr, static_cast<OIDNFormat>(format),
                                width, height,
                                byteOffset,
                                pixelByteStride, rowByteStride);
@@ -449,7 +449,7 @@ OIDN_NAMESPACE_BEGIN
     // Sets the progress monitor callback function of the filter.
     void setProgressMonitorFunction(ProgressMonitorFunction func, void* userPtr = nullptr)
     {
-      oidnSetFilterProgressMonitorFunction(handle, (OIDNProgressMonitorFunction)func, userPtr);
+      oidnSetFilterProgressMonitorFunction(handle, func, userPtr);
     }
 
     // Commits all previous changes to the filter.
@@ -470,7 +470,7 @@ OIDN_NAMESPACE_BEGIN
       oidnExecuteFilterAsync(handle);
     }
 
-  #if defined(OIDN_DEVICE_SYCL) && defined(SYCL_LANGUAGE_VERSION)
+  #if defined(SYCL_LANGUAGE_VERSION)
     // Executes the SYCL filter asynchronously using the specified dependent events,
     // and returns an event for completion.
     sycl::event executeAsync(const std::vector<sycl::event>& depEvents)
@@ -618,21 +618,21 @@ OIDN_NAMESPACE_BEGIN
     // Sets the error callback function of the device.
     void setErrorFunction(ErrorFunction func, void* userPtr = nullptr)
     {
-      oidnSetDeviceErrorFunction(handle, (OIDNErrorFunction)func, userPtr);
+      oidnSetDeviceErrorFunction(handle, reinterpret_cast<OIDNErrorFunction>(func), userPtr);
     }
 
     // Returns the first unqueried error code and clears the stored error.
     // Can be called for a null device as well to check why a device creation failed.
     Error getError()
     {
-      return (Error)oidnGetDeviceError(handle, nullptr);
+      return static_cast<Error>(oidnGetDeviceError(handle, nullptr));
     }
 
     // Returns the first unqueried error code and string message, and clears the stored error.
     // Can be called for a null device as well to check why a device creation failed.
     Error getError(const char*& outMessage)
     {
-      return (Error)oidnGetDeviceError(handle, &outMessage);
+      return static_cast<Error>(oidnGetDeviceError(handle, &outMessage));
     }
 
     // Commits all previous changes to the device.
@@ -657,7 +657,7 @@ OIDN_NAMESPACE_BEGIN
     // Creates a buffer with the specified storage mode.
     BufferRef newBuffer(size_t byteSize, Storage storage) const
     {
-      return oidnNewBufferWithStorage(handle, byteSize, (OIDNStorage)storage);
+      return oidnNewBufferWithStorage(handle, byteSize, static_cast<OIDNStorage>(storage));
     }
 
     // Creates a shared buffer from memory allocated and owned by the user and accessible to the device.
@@ -669,13 +669,15 @@ OIDN_NAMESPACE_BEGIN
     // Creates a shared buffer by importing external memory from a POSIX file descriptor.
     BufferRef newBuffer(ExternalMemoryTypeFlag fdType, int fd, size_t byteSize) const
     {
-      return oidnNewSharedBufferFromFD(handle, (OIDNExternalMemoryTypeFlag)fdType, fd, byteSize);
+      return oidnNewSharedBufferFromFD(
+        handle, static_cast<OIDNExternalMemoryTypeFlag>(fdType), fd, byteSize);
     }
 
     // Creates a shared buffer by importing external memory from a Win32 handle.
     BufferRef newBuffer(ExternalMemoryTypeFlag handleType, void* handle, const void* name, size_t byteSize) const
     {
-      return oidnNewSharedBufferFromWin32Handle(this->handle, (OIDNExternalMemoryTypeFlag)handleType, handle, name, byteSize);
+      return oidnNewSharedBufferFromWin32Handle(
+        this->handle, static_cast<OIDNExternalMemoryTypeFlag>(handleType), handle, name, byteSize);
     }
 
     // Creates a filter of the specified type (e.g. "RT").
@@ -722,7 +724,7 @@ OIDN_NAMESPACE_BEGIN
     return DeviceRef(oidnNewDevice((OIDNDeviceType)type));
   }
 
-#if defined(OIDN_DEVICE_SYCL) && defined(SYCL_LANGUAGE_VERSION)
+#if defined(SYCL_LANGUAGE_VERSION)
   // Creates a SYCL device from the specified SYCL queue.
   inline DeviceRef newSYCLDevice(const sycl::queue& queue)
   {
@@ -737,7 +739,7 @@ OIDN_NAMESPACE_BEGIN
   }
 #endif
 
-#if defined(OIDN_DEVICE_CUDA)
+#if 0 // FIXME
   // Creates a CUDA device from the specified CUDA stream.
   inline DeviceRef newCUDADevice(cudaStream_t stream)
   {
@@ -745,7 +747,7 @@ OIDN_NAMESPACE_BEGIN
   }
 #endif
 
-#if defined(OIDN_DEVICE_HIP)
+#if 0 // FIXME
   // Creates a HIP device from the specified HIP stream.
   inline DeviceRef newHIPDevice(hipStream_t stream)
   {

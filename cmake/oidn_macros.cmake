@@ -35,7 +35,7 @@ endmacro()
 
 # Generates C++ files from the specified binary blobs
 find_package(PythonInterp REQUIRED)
-function(generate_cpp_from_blob out_sources namespace)
+function(oidn_generate_cpp_from_blob out_sources namespace)
   set(${out_sources})
   foreach(in_file ${ARGN})
     get_filename_component(in_file_we ${in_file} NAME_WE)

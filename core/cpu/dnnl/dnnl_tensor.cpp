@@ -23,7 +23,7 @@ namespace oidn {
     if (byteOffset + getByteSize() > buffer->getByteSize())
       throw Exception(Error::InvalidArgument, "buffer region out of range");
 
-    init(dynamicRefCast<DNNLEngine>(engine), buffer->getData() + byteOffset);
+    init(staticRefCast<DNNLEngine>(engine), buffer->getData() + byteOffset);
   }
 
   void DNNLTensor::init(const Ref<DNNLEngine>& engine, void* data)

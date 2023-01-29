@@ -1,6 +1,7 @@
 {
 global:
   oidn[A-Z]*;
+  oidn_*;
   _ZN[0-9]@OIDN_API_NAMESPACE@[0-9]oidn[A-Z]*;
   _ZN[0-9]@OIDN_API_NAMESPACE@[0-9][0-9]oidn[A-Z]*;
   _ZN[0-9][0-9]@OIDN_API_NAMESPACE@[0-9]oidn[A-Z]*;

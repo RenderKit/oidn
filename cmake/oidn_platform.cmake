@@ -79,8 +79,6 @@ elseif(UNIX OR MINGW)
   endif()
   append(OIDN_C_CXX_FLAGS "-Wall -Wno-unknown-pragmas")
   append_if(OIDN_WARN_AS_ERRORS OIDN_C_CXX_FLAGS "-Werror")
-  append(OIDN_C_CXX_FLAGS "-fvisibility=internal")
-  append(OIDN_CXX_FLAGS "-fvisibility-inlines-hidden")
   if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     # Disable warning: cannot vectorize some loops with #pragma omp simd
     append(OIDN_C_CXX_FLAGS "-Wno-pass-failed")
@@ -150,6 +148,20 @@ if(APPLE)
   # Link against libc++ which supports C++11 features
   append(OIDN_CXX_FLAGS "-stdlib=libc++")
 endif()
+
+function(oidn_export_symbols target)
+  if(UNIX OR MINGW)
+    set_target_properties(${target} PROPERTIES COMPILE_FLAGS "-fvisibility=internal -fvisibility-inlines-hidden")
+  endif()
+
+  if(APPLE)
+    set_target_properties(${target} PROPERTIES LINK_FLAGS -Wl,-exported_symbols_list,${PROJECT_SOURCE_DIR}/core/export.macos.map)
+    set_target_properties(${target} PROPERTIES LINK_DEPENDS ${PROJECT_SOURCE_DIR}/core/export.macos.map)
+  elseif(UNIX)
+    set_target_properties(${target} PROPERTIES LINK_FLAGS -Wl,--version-script=${PROJECT_SOURCE_DIR}/core/export.linux.map)
+    set_target_properties(${target} PROPERTIES LINK_DEPENDS ${PROJECT_SOURCE_DIR}/core/export.linux.map)
+  endif()
+endfunction()
 
 ## -----------------------------------------------------------------------------
 ## SYCL

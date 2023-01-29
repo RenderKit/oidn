@@ -88,7 +88,7 @@ namespace oidn {
         if (syclQueues.empty())
           syclQueues.emplace_back(syclDevice);
       }
-      catch (sycl::exception& e)
+      catch (const sycl::exception& e)
       {
         if (e.code() == sycl::errc::runtime)
           throw Exception(Error::UnsupportedHardware, "no supported SYCL device found");
@@ -253,13 +253,18 @@ namespace oidn {
       engine->lastEvent.reset();
   }
   
-  void SYCLDevice::setDepEvents(const std::vector<sycl::event>& depEvents)
+  void SYCLDevice::setDepEvents(const std::vector<sycl::event>& events)
   {
     for (auto& engine : engines)
     {
       engine->lastEvent.reset();
-      engine->depEvents = depEvents;
+      engine->depEvents = events;
     }
+  }
+
+  void SYCLDevice::setDepEvents(const sycl::event* events, int numEvents)
+  {
+    setDepEvents({events, events + numEvents});
   }
   
   std::vector<sycl::event> SYCLDevice::getDoneEvents()
@@ -271,6 +276,17 @@ namespace oidn {
         events.push_back(engine->lastEvent.value());
     }
     return events;
+  }
+
+  void SYCLDevice::getDoneEvent(sycl::event& event)
+  {
+    auto doneEvents = getDoneEvents();
+    if (doneEvents.size() == 1)
+      event = doneEvents[0];
+    else if (doneEvents.size() == 0)
+      event = {}; // no kernels were executed
+    else
+      throw std::logic_error("missing barrier after kernels");
   }
 
 } // namespace oidn

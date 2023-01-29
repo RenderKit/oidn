@@ -69,6 +69,9 @@
   #define OIDN_SHARED
 #endif
 
+#define OIDN_CONCAT2(a, b) a##b
+#define OIDN_CONCAT(a, b) OIDN_CONCAT2(a, b)
+
 // ---------------------------------------------------------------------------
 // Includes
 // ---------------------------------------------------------------------------
@@ -80,7 +83,7 @@
   #if !defined(NOMINMAX)
     #define NOMINMAX
   #endif
-  #include <windows.h>
+  #include <Windows.h>
 #elif defined(__APPLE__)
   #include <sys/sysctl.h>
 #endif

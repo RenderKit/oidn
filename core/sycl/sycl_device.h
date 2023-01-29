@@ -19,7 +19,7 @@ namespace oidn {
     XeHPC,
   };
 
-  class SYCLDevice : public Device
+  class SYCLDevice : public SYCLDeviceBase
   { 
   public:
     static bool isSupported();
@@ -42,10 +42,12 @@ namespace oidn {
     void wait() override;
     
     // Manually sets the dependent events for the next command on all engines
-    void setDepEvents(const std::vector<sycl::event>& depEvents);
+    void setDepEvents(const std::vector<sycl::event>& events);
+    void setDepEvents(const sycl::event* events, int numEvents) override;
     
     // Gets the list of events corresponding to the completion of all commands
     std::vector<sycl::event> getDoneEvents();
+    void getDoneEvent(sycl::event& event) override;
 
     SYCLArch getArch() const { return arch; }
 

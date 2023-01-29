@@ -98,4 +98,12 @@ namespace oidn {
     void* errorUserPtr = nullptr;
   };
 
+  // SYCL devices require additional methods exposed for the API implementation
+  class SYCLDeviceBase : public Device
+  {
+  public:
+    virtual void setDepEvents(const sycl::event* events, int numEvents) = 0;
+    virtual void getDoneEvent(sycl::event& event) = 0;
+  };
+
 } // namespace oidn
