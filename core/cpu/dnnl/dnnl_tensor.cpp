@@ -17,10 +17,6 @@ namespace oidn {
     init(engine, data);
   }
 
-  DNNLTensor::DNNLTensor(const Ref<DNNLEngine>& engine, const dnnl::memory::desc& desc)
-    : Tensor(engine, TensorDesc({int64_t(desc.get_size())}, TensorLayout::x, DataType::UInt8)),
-      mem(desc, engine->getDNNLEngine()) {}
-
   DNNLTensor::DNNLTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
     : Tensor(buffer, desc, byteOffset)
   {
