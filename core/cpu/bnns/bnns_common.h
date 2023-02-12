@@ -7,9 +7,9 @@
 #include "core/tensor.h"
 #include "bnns_engine.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   BNNSNDArrayDescriptor toBNNS(const TensorDesc& td);
   BNNSNDArrayDescriptor toBNNS(const std::shared_ptr<Tensor>& t);
 
-} // namespace oidn
+OIDN_NAMESPACE_END

@@ -6,7 +6,7 @@
 #include "../engine.h"
 #include "cuda_device.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
 #if defined(OIDN_COMPILE_CUDA)
   // Main kernel functions
@@ -125,4 +125,4 @@ namespace oidn {
     cudaStream_t stream;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

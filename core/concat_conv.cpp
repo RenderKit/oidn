@@ -3,7 +3,7 @@
 
 #include "concat_conv.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   ConcatConv::ConcatConv(const ConcatConvDesc& desc)
     : ConcatConvDesc(desc)
@@ -87,4 +87,4 @@ namespace oidn {
     conv->setSrc(src);
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

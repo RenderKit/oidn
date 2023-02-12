@@ -6,7 +6,7 @@
 #include "core/conv.h"
 #include "dnnl_common.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   class DNNLConv final : public Conv
   {
@@ -32,4 +32,4 @@ namespace oidn {
     std::shared_ptr<Tensor> scratch;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

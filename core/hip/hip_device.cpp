@@ -5,7 +5,7 @@
 #include "hip_engine.h"
 #include "hip_common.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   void checkError(hipError_t error)
   {
@@ -90,4 +90,5 @@ namespace oidn {
   {
     engine->wait();
   }
-}
+
+OIDN_NAMESPACE_END

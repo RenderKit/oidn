@@ -7,7 +7,7 @@
 #include "sycl_device.h"
 #include <optional>
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   class SYCLEngine : public Engine
   {
@@ -111,4 +111,4 @@ namespace oidn {
     int maxWorkGroupSize = 0;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

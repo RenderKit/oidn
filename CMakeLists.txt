@@ -21,6 +21,8 @@ project(OpenImageDenoise
   LANGUAGES C CXX
 )
 
+message(STATUS "Setting target version ${PROJECT_VERSION}")
+
 # CMake modules
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
@@ -64,6 +66,11 @@ endif()
 
 # API namespace
 set(OIDN_API_NAMESPACE "" CACHE STRING "C++ namespace to put API symbols into.")
+if(OIDN_API_NAMESPACE)
+  set(OIDN_NAMESPACE ${OIDN_API_NAMESPACE}::oidn)
+else()
+  set(OIDN_NAMESPACE oidn)
+endif()
 
 # Output paths
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
@@ -86,34 +93,26 @@ include(oidn_package)
 # Platform-specific settings
 include(oidn_platform)
 
-## -----------------------------------------------------------------------------
-## Library
-## -----------------------------------------------------------------------------
-
-# Generate config.h
-configure_file(
-  "${PROJECT_SOURCE_DIR}/include/OpenImageDenoise/config.h.in"
-  "${PROJECT_SOURCE_DIR}/include/OpenImageDenoise/config.h"
-)
-
 # Generate list of symbols to export
 configure_file(
-  "${PROJECT_SOURCE_DIR}/core/export.linux.map.in"
-  "${PROJECT_SOURCE_DIR}/core/export.linux.map"
+  "${PROJECT_SOURCE_DIR}/common/export.linux.map.in"
+  "${PROJECT_SOURCE_DIR}/common/export.linux.map"
 )
 configure_file(
-  "${PROJECT_SOURCE_DIR}/core/export.macos.map.in"
-  "${PROJECT_SOURCE_DIR}/core/export.macos.map"
+  "${PROJECT_SOURCE_DIR}/common/export.macos.map.in"
+  "${PROJECT_SOURCE_DIR}/common/export.macos.map"
 )
 
 set(OIDN_RESOURCE ${PROJECT_SOURCE_DIR}/common/oidn.rc)
 
+# Common static library
 add_subdirectory(common)
 
+## -----------------------------------------------------------------------------
+## Core library
+## -----------------------------------------------------------------------------
+
 set(CORE_SOURCES
-  include/OpenImageDenoise/oidn.h
-  include/OpenImageDenoise/oidn.hpp
-  include/OpenImageDenoise/config.h
   core/autoexposure.h
   core/buffer.h
   core/buffer.cpp
@@ -192,13 +191,6 @@ set(GPU_SOURCES
 
 add_library(${PROJECT_NAME}_core SHARED ${CORE_SOURCES})
 set_property(TARGET ${PROJECT_NAME}_core PROPERTY VERSION ${PROJECT_VERSION})
-if(WIN32)
-  set_property(TARGET ${PROJECT_NAME}_core PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
-endif()
-
-set(API_SOURCES
-  core/api.cpp
-)
 
 # Include weights
 option(OIDN_FILTER_RT "Include trained weights of the RT filter." ON)
@@ -230,26 +222,37 @@ if(OIDN_FILTER_RTLIGHTMAP)
   )
 endif()
 
-oidn_generate_cpp_from_blob(WEIGHTS_SOURCES "oidn::blobs::weights" ${WEIGHTS})
+oidn_generate_cpp_from_blob(WEIGHTS_SOURCES "${OIDN_NAMESPACE}::blobs::weights" ${WEIGHTS})
 target_sources(${PROJECT_NAME}_core PRIVATE ${WEIGHTS_SOURCES})
 
 target_include_directories(${PROJECT_NAME}_core
   PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-  #PRIVATE
+  #PRIVATE # FIXME: why is this needed?
     ${CMAKE_CURRENT_BINARY_DIR}
 )
 
 target_link_libraries(${PROJECT_NAME}_core PUBLIC ${PROJECT_NAME}_common)
+oidn_export_all_symbols(${PROJECT_NAME}_core)
 
-message(STATUS "Setting target version ${PROJECT_VERSION}")
+## -----------------------------------------------------------------------------
+## Main library (API)
+## -----------------------------------------------------------------------------
+
+set(API_SOURCES
+  core/api.cpp
+)
 
 add_library(${PROJECT_NAME} ${OIDN_LIB_TYPE} ${API_SOURCES} ${OIDN_RESOURCE})
 set_property(TARGET ${PROJECT_NAME} PROPERTY VERSION ${PROJECT_VERSION})
 set_property(TARGET ${PROJECT_NAME} PROPERTY SOVERSION ${PROJECT_VERSION_MAJOR})
 target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_core)
-oidn_export_symbols(${PROJECT_NAME})
+oidn_strip_symbols(${PROJECT_NAME})
+
+## -----------------------------------------------------------------------------
+## Modules
+## -----------------------------------------------------------------------------
 
 if(OIDN_DEVICE_CPU)
   add_subdirectory(core/cpu)
@@ -277,7 +280,7 @@ endif()
 ## Install and packaging
 ## -----------------------------------------------------------------------------
 
-#include(oidn_install)
+#include(oidn_install) # FIXME
 
 # Has to be last
 include(CPack)

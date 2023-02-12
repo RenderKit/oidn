@@ -7,7 +7,7 @@
 #include "kernel.h"
 #include <functional>
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   struct TensorDesc;
   class Tensor;
@@ -98,4 +98,4 @@ namespace oidn {
     std::weak_ptr<ScratchBufferManager> scratchManagerWp;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

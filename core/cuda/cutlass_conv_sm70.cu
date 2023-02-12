@@ -3,7 +3,7 @@
 
 #include "cutlass_conv.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
 // Volta (SM 7.0)
 template<>
@@ -18,4 +18,4 @@ std::vector<CutlassConvFactory> getCutlassConvInstances<70>()
   };
 }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

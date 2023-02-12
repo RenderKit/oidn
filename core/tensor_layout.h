@@ -5,7 +5,7 @@
 
 #include "common/common.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   // Tensor memory layout
   enum class TensorLayout
@@ -306,4 +306,4 @@ namespace oidn {
     }
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

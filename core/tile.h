@@ -5,7 +5,7 @@
 
 #include "common/common.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   struct Tile
   {
@@ -17,4 +17,4 @@ namespace oidn {
     int W;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

@@ -6,7 +6,7 @@
 #include "../buffer.h"
 #include "sycl_engine.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   class SYCLExternalBuffer : public USMBuffer
   {
@@ -25,4 +25,4 @@ namespace oidn {
     void init(const Ref<SYCLEngine>& engine, const void* importDesc, size_t byteSize);
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

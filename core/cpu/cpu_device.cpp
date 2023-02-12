@@ -12,7 +12,7 @@
   #include "mkl-dnn/src/cpu/x64/xbyak/xbyak_util.h"
 #endif
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   bool CPUDevice::isSupported()
   {
@@ -195,4 +195,4 @@ namespace oidn {
     engine->wait();
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

@@ -5,7 +5,7 @@
 #include "bnns_conv.h"
 #include "bnns_pool.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   BNNSEngine::BNNSEngine(const Ref<CPUDevice>& device)
     : CPUEngine(device)
@@ -21,4 +21,4 @@ namespace oidn {
     return std::make_shared<BNNSPool>(this, desc);
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

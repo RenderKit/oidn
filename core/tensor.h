@@ -9,7 +9,7 @@
 #include "buffer.h"
 #include "tensor_accessor.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   // Tensor dimensions
   // Canonical order: CHW / OIHW
@@ -192,4 +192,4 @@ namespace oidn {
     void* ptr;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

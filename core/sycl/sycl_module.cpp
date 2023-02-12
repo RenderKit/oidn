@@ -4,7 +4,7 @@
 #include "../context.h"
 #include "sycl_device.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   class SYCLDeviceFactory : public SYCLDeviceFactoryBase
   {
@@ -28,4 +28,4 @@ namespace oidn {
       Context::registerDeviceFactory<SYCLDeviceFactory>(DeviceType::SYCL);
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

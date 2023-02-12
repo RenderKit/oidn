@@ -6,7 +6,7 @@
 #include "core/tensor.h"
 #include "dnnl_common.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
   
   // Native DNNL tensor
   class DNNLTensor final : public Tensor
@@ -28,4 +28,4 @@ namespace oidn {
     dnnl::memory mem;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

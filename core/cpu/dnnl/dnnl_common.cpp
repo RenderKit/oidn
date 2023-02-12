@@ -4,7 +4,7 @@
 #include "dnnl_common.h"
 #include "dnnl_tensor.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   dnnl::memory::data_type toDNNL(DataType dataType)
   {
@@ -82,4 +82,4 @@ namespace oidn {
       throw std::invalid_argument("not DNNLTensor");
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

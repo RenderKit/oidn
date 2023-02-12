@@ -8,7 +8,7 @@
   #include <fstream>
 #endif
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   ModuleLoader::ModuleLoader()
   {
@@ -54,7 +54,8 @@ namespace oidn {
       return false;
 
     // Get the address of the module init function
-    const std::string initSymbol = "oidn_init_module_" + name + "_v" + toString(OIDN_VERSION);
+    const std::string initSymbol =
+      (OIDN_TO_STRING(OIDN_NAMESPACE_C) "_init_module_") + name + ("_v" OIDN_TO_STRING(OIDN_VERSION));
     void* initAddress = getSymbolAddress(module, initSymbol);
     if (initAddress == nullptr)
       return false;
@@ -180,4 +181,4 @@ namespace oidn {
   }
 
 
-} // namespace oidn
+OIDN_NAMESPACE_END

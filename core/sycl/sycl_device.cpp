@@ -5,7 +5,7 @@
 #include "sycl_engine.h"
 #include <iomanip>
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   class SYCLDeviceSelector
   {
@@ -289,4 +289,4 @@ namespace oidn {
       throw std::logic_error("missing barrier after kernels");
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

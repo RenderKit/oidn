@@ -3,7 +3,7 @@
 
 #include "oidn_utils.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   size_t getFormatSize(Format format)
   {
@@ -77,4 +77,4 @@ namespace oidn {
     return sm;
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

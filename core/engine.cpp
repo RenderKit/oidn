@@ -5,7 +5,7 @@
 #include "scratch.h"
 #include "concat_conv.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   Ref<Buffer> Engine::newBuffer(size_t byteSize, Storage storage)
   {
@@ -65,4 +65,4 @@ namespace oidn {
     return std::make_shared<CHWConcatConv>(this, desc);
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

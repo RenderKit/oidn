@@ -6,7 +6,7 @@
 #include "../upsample.h"
 #include "../tensor_accessor.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   template<typename T, TensorLayout layout>
   struct GPUUpsampleKernel
@@ -79,4 +79,4 @@ namespace oidn {
     Ref<EngineT> engine;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

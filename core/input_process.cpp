@@ -3,7 +3,7 @@
 
 #include "input_process.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   InputProcess::InputProcess(const Ref<Engine>& engine, const InputProcessDesc& desc)
     : InputProcessDesc(desc)
@@ -61,4 +61,4 @@ namespace oidn {
     tile.W = W;
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

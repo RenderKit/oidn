@@ -5,7 +5,7 @@
 
 #include "op.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   struct ReorderDesc
   {
@@ -16,4 +16,4 @@ namespace oidn {
   // Reorder with zero padding
   void reorder(const Tensor& src, Tensor& dst);
 
-} // namespace oidn
+OIDN_NAMESPACE_END

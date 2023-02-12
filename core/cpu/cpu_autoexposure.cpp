@@ -5,7 +5,7 @@
 #include "cpu_autoexposure_ispc.h"
 #include "cpu_common.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   CPUAutoexposure::CPUAutoexposure(const Ref<CPUEngine>& engine, const ImageDesc& srcDesc)
     : Autoexposure(srcDesc),
@@ -59,4 +59,4 @@ namespace oidn {
     result = (sum.second > 0) ? (key / math::exp2(sum.first / float(sum.second))) : 1.f;
   }
 
-}
+OIDN_NAMESPACE_END

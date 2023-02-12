@@ -6,7 +6,7 @@
 #include "common/common.h"
 #include <exception>
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   class Exception : public std::exception
   {
@@ -26,4 +26,4 @@ namespace oidn {
     const char* message;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

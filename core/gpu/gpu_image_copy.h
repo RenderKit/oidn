@@ -5,7 +5,7 @@
 
 #include "../image_copy.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   template<typename T>
   struct GPUImageCopyKernel
@@ -60,4 +60,4 @@ namespace oidn {
     Ref<EngineT> engine;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

@@ -41,4 +41,4 @@ set(HIP_SOURCES
 add_library(${PROJECT_NAME}_device_hip SHARED ${HIP_SOURCES} ${GPU_SOURCES})
 set_property(TARGET ${PROJECT_NAME}_device_hip PROPERTY VERSION ${PROJECT_VERSION})
 target_link_libraries(${PROJECT_NAME}_device_hip PRIVATE ${PROJECT_NAME}_core hip::device MIOpen)
-oidn_export_symbols(${PROJECT_NAME}_device_hip)
+oidn_strip_symbols(${PROJECT_NAME}_device_hip)

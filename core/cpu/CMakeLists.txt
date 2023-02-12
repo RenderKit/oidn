@@ -102,4 +102,4 @@ endif()
 
 ispc_target_add_sources(${PROJECT_NAME}_device_cpu ${CPU_SOURCES_ISPC})
 target_link_libraries(${PROJECT_NAME}_device_cpu PRIVATE ${PROJECT_NAME}_core ${CMAKE_THREAD_LIBS_INIT} TBB::tbb)
-oidn_export_symbols(${PROJECT_NAME}_device_cpu)
+oidn_strip_symbols(${PROJECT_NAME}_device_cpu)

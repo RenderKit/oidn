@@ -9,7 +9,7 @@
 #include "../color.h"
 #include "../tile.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   template<typename ImageDataT, typename TensorDataT, TensorLayout tensorLayout>
   struct GPUOutputProcessKernel
@@ -109,4 +109,4 @@ namespace oidn {
     Ref<EngineT> engine;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

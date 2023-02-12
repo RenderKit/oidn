@@ -4,7 +4,7 @@
 #include "unet_filter.h"
 #include "autoexposure.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   UNetFilter::UNetFilter(const Ref<Device>& device)
     : Filter(device)
@@ -876,4 +876,4 @@ namespace oidn {
     outputTemp.reset();
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

@@ -8,7 +8,7 @@
 #include "image.h"
 #include <unordered_set>
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   class ScratchBuffer;
 
@@ -57,4 +57,4 @@ namespace oidn {
     size_t localSize; // size of this buffer
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

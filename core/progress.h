@@ -5,7 +5,7 @@
 
 #include "engine.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   // Asynchronous progress monitoring
   class Progress
@@ -42,4 +42,4 @@ namespace oidn {
     std::mutex mutex; // for thread safety
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

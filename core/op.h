@@ -5,7 +5,7 @@
 
 #include "tensor.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   // Abstract operation class
   class Op
@@ -35,4 +35,4 @@ namespace oidn {
     std::string name;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

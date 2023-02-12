@@ -3,7 +3,7 @@
 
 #include "cuda_concat_conv.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   CUDAConcatConv::CUDAConcatConv(const Ref<CUDAEngine>& engine, const ConcatConvDesc& desc)
     : ConcatConv(desc),
@@ -114,4 +114,4 @@ namespace oidn {
     conv2->submit();
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

@@ -8,7 +8,7 @@
 #include <mutex>
 #include <map>
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
 // Global library context
 class Context
@@ -40,4 +40,4 @@ private:
   std::map<DeviceType, std::unique_ptr<DeviceFactory>> deviceFactories;
 };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

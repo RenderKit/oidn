@@ -6,7 +6,7 @@
 #include "../device.h"
 #include <level_zero/ze_api.h>
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   class SYCLEngine;
 
@@ -63,4 +63,4 @@ namespace oidn {
     int numSubdevices = 0; // autodetect by default
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

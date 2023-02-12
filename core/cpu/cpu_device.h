@@ -9,7 +9,7 @@
 #endif
 #include "tasking.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   class CPUEngine;
 
@@ -69,4 +69,4 @@ namespace oidn {
     bool setAffinity = true;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

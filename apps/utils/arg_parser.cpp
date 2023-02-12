@@ -4,7 +4,7 @@
 #include <stdexcept>
 #include "arg_parser.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   ArgParser::ArgParser(int argc, char* argv[])
     : argc(argc), argv(argv),
@@ -41,5 +41,5 @@ namespace oidn {
     return str;
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END
 

@@ -5,7 +5,7 @@
 
 #include "image.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   class TransferFunction
   {
@@ -172,4 +172,4 @@ namespace oidn {
     return 0.212671f * c.x + 0.715160f * c.y + 0.072169f * c.z;
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

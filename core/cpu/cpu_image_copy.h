@@ -6,7 +6,7 @@
 #include "../image_copy.h"
 #include "cpu_engine.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   class CPUImageCopy final : public ImageCopy
   {
@@ -18,4 +18,4 @@ namespace oidn {
     Ref<CPUEngine> engine;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

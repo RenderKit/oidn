@@ -3,7 +3,7 @@
 
 #include "bnns_pool.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   BNNSPool::BNNSPool(const Ref<BNNSEngine>& engine, const PoolDesc& desc)
     : Pool(desc),
@@ -45,4 +45,4 @@ namespace oidn {
     BNNSFilterApply(filter, src->getData(), dst->getData());
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

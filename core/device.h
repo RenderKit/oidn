@@ -9,7 +9,7 @@
 #include "thread.h"
 #include "tensor_layout.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
   
   class Engine;
   class Buffer;
@@ -106,4 +106,4 @@ namespace oidn {
     virtual void getDoneEvent(sycl::event& event) = 0;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

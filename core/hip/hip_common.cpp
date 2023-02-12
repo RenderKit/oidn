@@ -3,7 +3,7 @@
 
 #include "hip_common.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   void checkError(miopenStatus_t status)
   {
@@ -75,4 +75,4 @@ namespace oidn {
     return miDesc;
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

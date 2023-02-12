@@ -16,7 +16,7 @@
 #include <ittnotify.h>
 #endif
 
-using namespace oidn;
+OIDN_NAMESPACE_USING
 
 int width  = -1;
 int height = -1;

@@ -5,7 +5,7 @@
 
 #include "common/platform.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   // Opaque data
   struct Data
@@ -35,4 +35,4 @@ namespace oidn {
     }
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

@@ -6,7 +6,7 @@
 #include "common/platform.h"
 #include <chrono>
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   class Timer
   {
@@ -33,4 +33,4 @@ namespace oidn {
     std::chrono::time_point<clock> start;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

@@ -4,7 +4,7 @@
 #include "tza.h"
 #include "exception.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   // Checks for buffer overrun
   OIDN_INLINE void checkBounds(char* ptr, char* end, size_t size)
@@ -101,4 +101,4 @@ namespace oidn {
     return tensorMap;
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

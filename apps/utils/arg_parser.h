@@ -5,7 +5,7 @@
 
 #include "common/platform.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   // Command-line argument parser
   class ArgParser
@@ -32,5 +32,5 @@ namespace oidn {
   template<>
   std::string ArgParser::getNextValue();
 
-} // namespace oidn
+OIDN_NAMESPACE_END
 

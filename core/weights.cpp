@@ -5,7 +5,7 @@
 #include "tza.h"
 #include "reorder.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   Weights::Weights(const Ref<Engine>& engine, const Data& blob)
     : tensors(parseTZA(engine, blob.ptr, blob.size)),
@@ -71,4 +71,4 @@ namespace oidn {
     return scratchByteSize;
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

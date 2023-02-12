@@ -3,7 +3,7 @@
 
 #include "cuda_external_buffer.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   CUDAExternalBuffer::CUDAExternalBuffer(const Ref<Engine>& engine,
                                          ExternalMemoryTypeFlag fdType,
@@ -85,4 +85,4 @@ namespace oidn {
     checkError(cudaDestroyExternalMemory(extMem));
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

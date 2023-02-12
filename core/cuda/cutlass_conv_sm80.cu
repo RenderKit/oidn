@@ -3,7 +3,7 @@
 
 #include "cutlass_conv.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
 // Ampere (SM 8.0), Ada Lovelace (SM 8.9), Hopper (SM 9.0)
 template<>
@@ -18,4 +18,4 @@ std::vector<CutlassConvFactory> getCutlassConvInstances<80>()
   };
 }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

@@ -5,7 +5,7 @@
 #include "dnnl_tensor.h"
 #include "dnnl_conv.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   DNNLEngine::DNNLEngine(const Ref<CPUDevice>& device)
     : CPUEngine(device)
@@ -41,4 +41,4 @@ namespace oidn {
     return std::make_shared<DNNLConv>(this, desc);
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

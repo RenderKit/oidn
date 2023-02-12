@@ -12,7 +12,7 @@
 #include "cuda_concat_conv.h"
 #include "cuda_external_buffer.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   CUDAEngine::CUDAEngine(const Ref<CUDADevice>& device,
                          int deviceId,
@@ -138,4 +138,5 @@ namespace oidn {
   {
     checkError(cudaStreamSynchronize(stream));
   }
-}
+
+OIDN_NAMESPACE_END

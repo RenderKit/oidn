@@ -3,7 +3,7 @@
 
 #include "dnnl_tensor.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   DNNLTensor::DNNLTensor(const Ref<DNNLEngine>& engine, const TensorDesc& desc, Storage storage)
     : Tensor(engine->newBuffer(desc.getByteSize(), storage), desc)
@@ -42,4 +42,4 @@ namespace oidn {
     }
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

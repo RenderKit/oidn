@@ -3,7 +3,7 @@
 
 #include "cutlass_conv.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
 // Turing (SM 7.5)
 template<>
@@ -18,4 +18,4 @@ std::vector<CutlassConvFactory> getCutlassConvInstances<75>()
   };
 }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

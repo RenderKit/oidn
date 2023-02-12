@@ -5,7 +5,7 @@
 #include "cpu_pool_ispc.h"
 #include "cpu_common.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   CPUPool::CPUPool(const Ref<CPUEngine>& engine, const PoolDesc& desc)
     : Pool(desc),
@@ -33,4 +33,4 @@ namespace oidn {
     });
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

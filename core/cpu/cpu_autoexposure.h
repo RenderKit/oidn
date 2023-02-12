@@ -6,7 +6,7 @@
 #include "../autoexposure.h"
 #include "cpu_engine.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   class CPUAutoexposure final : public Autoexposure
   {
@@ -20,4 +20,4 @@ namespace oidn {
     float result;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

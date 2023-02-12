@@ -3,7 +3,7 @@
 
 #include "context.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   Context& Context::get()
   {
@@ -45,4 +45,4 @@ namespace oidn {
     return it->second.get();
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

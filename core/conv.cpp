@@ -3,7 +3,7 @@
 
 #include "conv.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   Conv::Conv(const ConvDesc& desc)
     : ConvDesc(desc)
@@ -77,4 +77,4 @@ namespace oidn {
     updateDst();
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

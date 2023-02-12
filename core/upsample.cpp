@@ -3,7 +3,7 @@
 
 #include "upsample.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   Upsample::Upsample(const UpsampleDesc& desc)
     : UpsampleDesc(desc)
@@ -33,4 +33,4 @@ namespace oidn {
     updateDst();
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

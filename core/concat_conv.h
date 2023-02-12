@@ -5,7 +5,7 @@
 
 #include "conv.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   // Concatenation + 3x3 convolution descriptor
   struct ConcatConvDesc
@@ -68,4 +68,4 @@ namespace oidn {
     std::shared_ptr<Conv> conv;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

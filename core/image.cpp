@@ -3,7 +3,7 @@
 
 #include "image.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   ImageDesc::ImageDesc(Format format, size_t width, size_t height, size_t pixelByteStride, size_t rowByteStride)
     : width(width),
@@ -102,4 +102,4 @@ namespace oidn {
     return begin1 < end2 && begin2 < end1;
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

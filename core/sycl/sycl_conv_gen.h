@@ -5,12 +5,13 @@
 #include "sycl_common.h"
 #include <sycl/ext/intel/experimental/kernel_properties.hpp>
 
+OIDN_NAMESPACE_BEGIN
 #if defined(OIDN_ARCH_XEHPG)
-namespace oidn::xehpg {
+namespace xehpg {
 #elif defined(OIDN_ARCH_XEHPC)
-namespace oidn::xehpc {
+namespace xehpc {
 #else
-namespace oidn::gen9 {
+namespace gen9 {
 #endif
 
   template<typename T, TensorLayout tensorLayout, TensorLayout weightLayout, PostOp postOp>
@@ -408,4 +409,5 @@ namespace oidn::gen9 {
     return std::make_shared<SYCLConv>(engine, desc);
   }
 
-} // namespace oidn::arch
+} // namespace arch
+OIDN_NAMESPACE_END

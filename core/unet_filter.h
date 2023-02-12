@@ -8,7 +8,7 @@
 #include "scratch.h"
 #include "color.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   // U-Net based denoising filter
   class UNetFilter : public Filter
@@ -101,4 +101,4 @@ namespace oidn {
     Progress progress;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

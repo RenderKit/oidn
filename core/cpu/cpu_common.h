@@ -10,11 +10,11 @@
 #include "cpu_input_process_ispc.h"
 #include "color_ispc.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   ispc::ImageAccessor toISPC(const Image& image);
   ispc::TensorAccessor3D toISPC(const Tensor& tensor);
   ispc::Tile toISPC(const Tile& tile);
   ispc::TransferFunction toISPC(const TransferFunction& tf);
 
-} // namespace oidn
+OIDN_NAMESPACE_END

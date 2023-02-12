@@ -6,7 +6,7 @@
 #include "device.h"
 #include <map>
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   class DeviceFactory : public RefCount
   {
@@ -22,4 +22,4 @@ namespace oidn {
     virtual Ref<Device> newDevice(const sycl::queue* queues, int numQueues) = 0;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

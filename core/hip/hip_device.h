@@ -5,7 +5,7 @@
 
 #include "../device.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
 #if defined(OIDN_COMPILE_HIP)
   void checkError(hipError_t error);
@@ -44,4 +44,4 @@ namespace oidn {
     int maxWorkGroupSize = 0;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

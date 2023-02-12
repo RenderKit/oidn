@@ -7,7 +7,7 @@
 #include "../tensor.h"
 #include "cuda_conv.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   template<> struct DataTypeOf<cutlass::half_t> { static constexpr DataType value = DataType::Float16; };
 
@@ -321,4 +321,4 @@ namespace oidn {
   template<int smArch>
   std::vector<CutlassConvFactory> getCutlassConvInstances();
 
-} // namespace oidn
+OIDN_NAMESPACE_END

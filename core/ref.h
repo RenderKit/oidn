@@ -5,7 +5,7 @@
 
 #include "common/platform.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   class RefCount
   {
@@ -150,4 +150,4 @@ namespace oidn {
     return Ref<T>(dynamic_cast<T*>(a.get()));
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

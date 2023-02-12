@@ -12,16 +12,17 @@
 #if !defined(OIDN_STATIC_LIB)
   #cmakedefine OIDN_STATIC_LIB
 #endif
-#cmakedefine OIDN_API_NAMESPACE
+#cmakedefine OIDN_API_NAMESPACE @OIDN_API_NAMESPACE@
 
 #if defined(OIDN_API_NAMESPACE)
   #define OIDN_API_NAMESPACE_BEGIN namespace @OIDN_API_NAMESPACE@ {
   #define OIDN_API_NAMESPACE_END }
   #define OIDN_API_NAMESPACE_USING using namespace @OIDN_API_NAMESPACE@;
   #define OIDN_API_EXTERN_C
-  #define OIDN_NAMESPACE_BEGIN namespace @OIDN_API_NAMESPACE@ {
-  #define OIDN_NAMESPACE_END }
-  #define OIDN_NAMESPACE_USING using namespace @OIDN_API_NAMESPACE@;
+  #define OIDN_NAMESPACE @OIDN_API_NAMESPACE@::oidn
+  #define OIDN_NAMESPACE_C @OIDN_API_NAMESPACE@_oidn
+  #define OIDN_NAMESPACE_BEGIN namespace @OIDN_API_NAMESPACE@ { namespace oidn {
+  #define OIDN_NAMESPACE_END }}
 #else
   #define OIDN_API_NAMESPACE_BEGIN
   #define OIDN_API_NAMESPACE_END
@@ -31,10 +32,13 @@
   #else
     #define OIDN_API_EXTERN_C
   #endif
+  #define OIDN_NAMESPACE oidn
+  #define OIDN_NAMESPACE_C oidn
   #define OIDN_NAMESPACE_BEGIN namespace oidn {
   #define OIDN_NAMESPACE_END }
-  #define OIDN_NAMESPACE_USING using namespace oidn;
 #endif
+
+#define OIDN_NAMESPACE_USING using namespace OIDN_NAMESPACE;
 
 #if defined(OIDN_STATIC_LIB)
   #define OIDN_API_IMPORT OIDN_API_EXTERN_C
@@ -47,7 +51,7 @@
   #define OIDN_API_EXPORT OIDN_API_EXTERN_C __attribute__ ((visibility ("default")))
 #endif
 
-#if defined(OIDN_EXPORT_API)
+#if defined(OIDN_EXPORTS)
   #define OIDN_API OIDN_API_EXPORT
 #else
   #define OIDN_API OIDN_API_IMPORT

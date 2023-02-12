@@ -5,7 +5,7 @@
 #include "core/reorder.h"
 #include "dnnl_tensor.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   DNNLConv::DNNLConv(const Ref<DNNLEngine>& engine, const ConvDesc& desc)
     : Conv(desc),
@@ -95,4 +95,4 @@ namespace oidn {
     prim.execute(engine->getDNNLStream(), args);
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

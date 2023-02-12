@@ -8,7 +8,7 @@
 #include "data.h"
 #include "tensor.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   // Parses, reorders and caches network weights and biases from a blob
   class Weights final
@@ -30,4 +30,4 @@ namespace oidn {
     Ref<Engine> engine;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

@@ -8,7 +8,7 @@
 
 typedef struct miopenHandle* miopenHandle_t;
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
 #if defined(OIDN_COMPILE_HIP)
   // Main kernel functions
@@ -117,4 +117,4 @@ namespace oidn {
     miopenHandle_t miopenHandle = nullptr;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

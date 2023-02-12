@@ -6,7 +6,7 @@
 #include "common/common.h"
 #include "vec.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   template<typename T>
   struct ImageAccessor
@@ -38,4 +38,4 @@ namespace oidn {
     }
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

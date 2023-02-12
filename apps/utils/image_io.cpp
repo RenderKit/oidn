@@ -8,7 +8,7 @@
   #include <OpenImageIO/imageio.h>
 #endif
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   namespace
   {
@@ -441,4 +441,4 @@ namespace oidn {
     }
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

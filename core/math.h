@@ -5,7 +5,7 @@
 
 #include "common/platform.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 namespace math {
 
 #if defined(OIDN_COMPILE_SYCL_DEVICE)
@@ -31,8 +31,8 @@ namespace math {
   using ::exp;
   using ::exp2;
 #else
-  using oidn::min;
-  using oidn::max;
+  using OIDN_NAMESPACE::min;
+  using OIDN_NAMESPACE::max;
   using std::isfinite;
   using std::isnan;
   using std::pow;
@@ -69,4 +69,4 @@ namespace math {
   }
 
 } // namespace math
-} // namespace oidn
+OIDN_NAMESPACE_END

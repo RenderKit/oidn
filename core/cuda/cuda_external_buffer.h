@@ -6,7 +6,7 @@
 #include "../buffer.h"
 #include "cuda_engine.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   class CUDAExternalBuffer : public USMBuffer
   {
@@ -27,4 +27,4 @@ namespace oidn {
     void init(const cudaExternalMemoryHandleDesc& handleDesc);
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

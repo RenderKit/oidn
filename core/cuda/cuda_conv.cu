@@ -4,7 +4,7 @@
 #include "cuda_conv.h"
 #include "cutlass_conv.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   std::shared_ptr<Conv> newCUDAConv(const Ref<CUDAEngine>& engine, const ConvDesc& desc)
   {
@@ -53,4 +53,4 @@ namespace oidn {
     return bestKernel->make(engine, desc);
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

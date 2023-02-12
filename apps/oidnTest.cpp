@@ -11,7 +11,7 @@
 #define CATCH_CONFIG_FAST_COMPILE
 #include "catch.hpp"
 
-using namespace oidn;
+OIDN_NAMESPACE_USING
 
 DeviceType deviceType = DeviceType::Default;
 

@@ -6,10 +6,16 @@
 #include "common/common.h"
 #include <unordered_set>
 
-#define OIDN_DECLARE_INIT_MODULE(name) \
-  OIDN_API_EXPORT void OIDN_CONCAT(oidn_init_module_##name##_v, OIDN_VERSION)()
+#if defined(_WIN32)
+  #define OIDN_MODULE_EXPORT extern "C" __declspec(dllexport)
+#else
+  #define OIDN_MODULE_EXPORT extern "C" __attribute__ ((visibility ("default")))
+#endif
 
-namespace oidn {
+#define OIDN_DECLARE_INIT_MODULE(name) \
+  OIDN_MODULE_EXPORT void OIDN_CONCAT(OIDN_NAMESPACE_C, OIDN_CONCAT(_init_module_##name##_v, OIDN_VERSION))()
+
+OIDN_NAMESPACE_BEGIN
 
   class ModuleLoader
   {
@@ -30,4 +36,4 @@ namespace oidn {
     std::unordered_set<std::string> modules; // loaded module names
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

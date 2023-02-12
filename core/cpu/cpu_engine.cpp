@@ -9,7 +9,7 @@
 #include "cpu_output_process.h"
 #include "cpu_image_copy.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   CPUEngine::CPUEngine(const Ref<CPUDevice>& device)
     : device(device.get())
@@ -78,4 +78,4 @@ namespace oidn {
     std::memcpy(dstPtr, srcPtr, byteSize);
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

@@ -3,7 +3,7 @@
 
 #include "pool.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   Pool::Pool(const PoolDesc& desc)
     : PoolDesc(desc)
@@ -33,4 +33,4 @@ namespace oidn {
     updateDst();
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

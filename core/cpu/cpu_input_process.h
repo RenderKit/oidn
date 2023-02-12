@@ -6,7 +6,7 @@
 #include "../input_process.h"
 #include "cpu_engine.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   class CPUInputProcess final : public InputProcess
   {
@@ -18,4 +18,4 @@ namespace oidn {
     Ref<CPUEngine> engine;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

@@ -6,7 +6,7 @@
 #include "tensor_layout.h"
 #include "vec.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   template<typename T>
   struct TensorAccessor1D
@@ -75,4 +75,4 @@ namespace oidn {
     }
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

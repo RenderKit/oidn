@@ -6,9 +6,9 @@
 #include "tensor.h"
 #include <unordered_map>
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   // Parses tensors from a Tensor Archive (TZA)
   std::unordered_map<std::string, std::shared_ptr<Tensor>> parseTZA(const Ref<Engine>& engine, void* buffer, size_t size);
 
-} // namespace oidn
+OIDN_NAMESPACE_END

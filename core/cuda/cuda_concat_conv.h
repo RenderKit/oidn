@@ -6,7 +6,7 @@
 #include "../concat_conv.h"
 #include "cuda_conv.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   class CUDAConcatConv final : public ConcatConv
   {
@@ -37,4 +37,4 @@ namespace oidn {
     std::shared_ptr<Conv> conv2;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

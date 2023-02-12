@@ -6,7 +6,7 @@
 #include "op.h"
 #include "image.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   class Autoexposure : public Op
   {
@@ -43,4 +43,4 @@ namespace oidn {
     int numBins;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

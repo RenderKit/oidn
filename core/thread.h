@@ -16,7 +16,7 @@
 #include <vector>
 #include <mutex>
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   // ---------------------------------------------------------------------------
   // ThreadLocal
@@ -186,4 +186,4 @@ namespace oidn {
 
 #endif
 
-} // namespace oidn
+OIDN_NAMESPACE_END

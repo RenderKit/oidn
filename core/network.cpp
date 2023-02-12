@@ -7,7 +7,7 @@
 #include "upsample.h"
 #include "color.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   Network::Network(const Ref<Engine>& engine, const std::shared_ptr<Weights>& weights)
     : engine(engine),
@@ -158,4 +158,4 @@ namespace oidn {
     }
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

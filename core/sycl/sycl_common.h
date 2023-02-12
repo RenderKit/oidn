@@ -3,7 +3,7 @@
 
 #include "common/platform.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
   
   using namespace esimd;
   using namespace esimdx;
@@ -117,4 +117,4 @@ namespace oidn {
       storeLargeBlock<T, N, blockSize / 2, offset>(ptr, src);
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

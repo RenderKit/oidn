@@ -4,7 +4,7 @@
 #include "tensor.h"
 #include <fstream>
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   std::ostream& operator <<(std::ostream& sm, const TensorDims& dims)
   {
@@ -126,4 +126,4 @@ namespace oidn {
     }
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

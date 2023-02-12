@@ -5,7 +5,7 @@
 #include "cpu_output_process_ispc.h"
 #include "cpu_common.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   CPUOutputProcess::CPUOutputProcess(const Ref<CPUEngine>& engine, const OutputProcessDesc& desc)
     : OutputProcess(desc),
@@ -36,4 +36,4 @@ namespace oidn {
     });
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

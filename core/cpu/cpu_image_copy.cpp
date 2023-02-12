@@ -5,7 +5,7 @@
 #include "cpu_image_copy_ispc.h"
 #include "cpu_common.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   CPUImageCopy::CPUImageCopy(const Ref<CPUEngine>& engine)
     : engine(engine) {}
@@ -27,4 +27,4 @@ namespace oidn {
     });
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

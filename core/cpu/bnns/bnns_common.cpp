@@ -3,7 +3,7 @@
 
 #include "bnns_common.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   BNNSNDArrayDescriptor toBNNS(const TensorDesc& td)
   {
@@ -62,4 +62,4 @@ namespace oidn {
     return res;
   }
 
-} // namespace oidnt,
+OIDN_NAMESPACE_END

@@ -35,7 +35,7 @@
 #include "tbb/blocked_range.h"
 #include "tbb/blocked_range2d.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   // ---------------------------------------------------------------------------
   // PinningObserver
@@ -82,4 +82,4 @@ namespace oidn {
     });
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

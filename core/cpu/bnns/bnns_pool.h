@@ -6,7 +6,7 @@
 #include "core/pool.h"
 #include "bnns_common.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   class BNNSPool : public Pool
   {
@@ -22,4 +22,4 @@ namespace oidn {
     BNNSFilter filter = nullptr;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

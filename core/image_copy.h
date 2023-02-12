@@ -6,7 +6,7 @@
 #include "op.h"
 #include "image.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   class ImageCopy : public Op
   {
@@ -19,4 +19,4 @@ namespace oidn {
     std::shared_ptr<Image> dst;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

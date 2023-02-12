@@ -7,7 +7,7 @@
 #include "../color.h"
 #include "../kernel.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   template<typename ImageDataT, int maxBinSize>
   struct GPUAutoexposureDownsampleKernel : WorkGroup<2>
@@ -226,4 +226,4 @@ namespace oidn {
     std::shared_ptr<Tensor> scratch;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

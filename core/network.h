@@ -12,7 +12,7 @@
 #include "weights.h"
 #include "scratch.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   // Neural network consisting of operations
   class Network
@@ -67,4 +67,4 @@ namespace oidn {
     std::shared_ptr<Weights> weights;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

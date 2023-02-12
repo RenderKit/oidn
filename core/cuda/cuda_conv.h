@@ -6,8 +6,8 @@
 #include "../conv.h"
 #include "cuda_engine.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   std::shared_ptr<Conv> newCUDAConv(const Ref<CUDAEngine>& engine, const ConvDesc& desc);
 
-} // namespace oidn
+OIDN_NAMESPACE_END

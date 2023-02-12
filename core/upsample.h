@@ -5,7 +5,7 @@
 
 #include "op.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   struct UpsampleDesc
   {
@@ -33,4 +33,4 @@ namespace oidn {
     std::shared_ptr<Tensor> dst;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

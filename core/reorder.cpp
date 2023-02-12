@@ -3,7 +3,7 @@
 
 #include "tensor.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   namespace
   {
@@ -87,4 +87,4 @@ namespace oidn {
       throw std::logic_error("unsupported reorder");
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

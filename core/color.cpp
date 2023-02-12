@@ -3,7 +3,7 @@
 
 #include "color.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   constexpr float TransferFunction::yMax;
 
@@ -15,4 +15,4 @@ namespace oidn {
     rcpNormScale = xMax;
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

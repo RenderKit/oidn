@@ -3,7 +3,7 @@
 
 #include "platform.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   // ---------------------------------------------------------------------------
   // Common functions
@@ -108,4 +108,4 @@ namespace oidn {
   #endif
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

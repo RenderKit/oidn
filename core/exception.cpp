@@ -3,7 +3,7 @@
 
 #include "exception.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   // We *must* define this function here because Exception must have a key function, which is the
   // first non-pure out-of-line virtual function of a type. Otherwise, the type_info would be
@@ -14,4 +14,4 @@ namespace oidn {
     return message;
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

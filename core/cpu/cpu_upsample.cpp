@@ -5,7 +5,7 @@
 #include "cpu_upsample_ispc.h"
 #include "cpu_common.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   CPUUpsample::CPUUpsample(const Ref<CPUEngine>& engine, const UpsampleDesc& desc)
     : Upsample(desc),
@@ -62,4 +62,4 @@ namespace oidn {
       });
     }
   }
-} // namespace oidn
+OIDN_NAMESPACE_END

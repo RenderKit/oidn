@@ -6,12 +6,7 @@
 #include "include/OpenImageDenoise/oidn.hpp"
 #include <iostream>
 
-namespace oidn {
-
-#if defined(OIDN_API_NAMESPACE)
-  // Introduce all names from the custom API namespace
-  OIDN_NAMESPACE_USING
-#endif
+OIDN_NAMESPACE_BEGIN
 
   // Returns the size of a format in bytes
   size_t getFormatSize(Format format);
@@ -21,4 +16,4 @@ namespace oidn {
   std::ostream& operator <<(std::ostream& sm, DeviceType deviceType);
   std::istream& operator >>(std::istream& sm, DeviceType& deviceType);
 
-} // namespace oidn
+OIDN_NAMESPACE_END

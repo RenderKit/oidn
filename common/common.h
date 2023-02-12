@@ -6,7 +6,7 @@
 #include "oidn_utils.h" // must be included before platform.h
 #include "platform.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   enum class DataType
   {
@@ -28,4 +28,4 @@ namespace oidn {
   // Returns the data type of a format
   DataType getFormatDataType(Format format);
 
-} // namespace oidn
+OIDN_NAMESPACE_END

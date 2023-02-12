@@ -3,7 +3,7 @@
 
 #include "scratch.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   ScratchBufferManager::ScratchBufferManager(const Ref<Engine>& engine)
     : buffer(engine->newBuffer(0, Storage::Device))
@@ -68,4 +68,4 @@ namespace oidn {
     mems.erase(mem);
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

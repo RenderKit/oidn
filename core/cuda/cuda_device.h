@@ -6,7 +6,7 @@
 #include "../device.h"
 #include <cuda_runtime.h>
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   void checkError(cudaError_t error);
 
@@ -49,4 +49,4 @@ namespace oidn {
     int smArch = 0; // compute capability
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

@@ -6,7 +6,7 @@
 #include "../engine.h"
 #include "cpu_device.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   class CPUEngine : public Engine
   { 
@@ -41,4 +41,4 @@ namespace oidn {
     CPUDevice* device;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

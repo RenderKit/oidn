@@ -7,7 +7,7 @@
 #include "../tensor.h"
 #include "hip_engine.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   void checkError(miopenStatus_t status);
 
@@ -18,4 +18,4 @@ namespace oidn {
   // Returns nullptr if tensor dimensions exceed limit supported by MIOpen
   miopenTensorDescriptor_t toMIOpen(const TensorDesc& td);
 
-} // namespace oidn
+OIDN_NAMESPACE_END

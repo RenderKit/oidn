@@ -3,7 +3,7 @@
 
 #include "progress.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   Progress::Progress()
     : enabled(false),
@@ -91,4 +91,4 @@ namespace oidn {
       throw Exception(Error::Cancelled, "execution was cancelled");
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

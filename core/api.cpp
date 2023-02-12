@@ -1,7 +1,7 @@
 // Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#define OIDN_EXPORT_API
+#define OIDN_EXPORTS
 
 // Locks the device that owns the specified object
 // Use *only* inside OIDN_TRY/CATCH!
@@ -28,8 +28,7 @@
 #include "filter.h"
 #include <mutex>
 
-using namespace oidn;
-
+OIDN_NAMESPACE_USING
 OIDN_API_NAMESPACE_BEGIN
 
   namespace

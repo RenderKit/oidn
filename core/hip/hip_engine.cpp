@@ -11,7 +11,7 @@
 #include "hip_common.h"
 #include "hip_conv.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   HIPEngine::HIPEngine(const Ref<HIPDevice>& device,
                        int deviceId,
@@ -126,4 +126,5 @@ namespace oidn {
     auto fPtr = new std::function<void()>(std::move(f));
     checkError(hipStreamAddCallback(stream, hostFuncCallback, fPtr, 0));
   }
-}
+
+OIDN_NAMESPACE_END

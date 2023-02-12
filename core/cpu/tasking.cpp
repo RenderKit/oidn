@@ -3,7 +3,7 @@
 
 #include "tasking.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   // ---------------------------------------------------------------------------
   // PinningObserver
@@ -39,4 +39,4 @@ namespace oidn {
     affinity->restore(threadIndex);
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

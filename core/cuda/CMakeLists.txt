@@ -72,4 +72,4 @@ target_include_directories(${PROJECT_NAME}_device_cuda
 set_target_properties(${PROJECT_NAME}_device_cuda PROPERTIES CUDA_ARCHITECTURES OFF)
 
 target_link_libraries(${PROJECT_NAME}_device_cuda PRIVATE ${PROJECT_NAME}_core)
-oidn_export_symbols(${PROJECT_NAME}_device_cuda)
+oidn_strip_symbols(${PROJECT_NAME}_device_cuda)

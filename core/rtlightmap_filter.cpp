@@ -8,7 +8,7 @@
   #include "weights/rtlightmap_dir.h"
 #endif
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   RTLightmapFilter::RTLightmapFilter(const Ref<Device>& device)
     : UNetFilter(device)
@@ -82,4 +82,4 @@ namespace oidn {
       throw Exception(Error::InvalidArgument, "unknown filter parameter");
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

@@ -5,7 +5,7 @@
 
 #include "common/platform.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   // Simple and very fast LCG random number generator
   class Random
@@ -47,4 +47,4 @@ namespace oidn {
     }
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

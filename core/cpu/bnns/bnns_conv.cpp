@@ -3,7 +3,7 @@
 
 #include "bnns_conv.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   BNNSConv::BNNSConv(const Ref<BNNSEngine>& engine, const ConvDesc& desc)
     : Conv(desc),
@@ -67,4 +67,4 @@ namespace oidn {
     BNNSFilterApply(filter, src->getData(), dst->getData());
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

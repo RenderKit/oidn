@@ -24,4 +24,4 @@ set_property(TARGET ${PROJECT_NAME}_device_sycl PROPERTY VERSION ${PROJECT_VERSI
 set_property(TARGET ${PROJECT_NAME}_device_sycl PROPERTY CXX_STANDARD 17)
 target_link_options(${PROJECT_NAME}_device_sycl PRIVATE "-fsycl")
 target_link_libraries(${PROJECT_NAME}_device_sycl PRIVATE ${PROJECT_NAME}_core ze_loader)
-oidn_export_symbols(${PROJECT_NAME}_device_sycl)
+oidn_strip_symbols(${PROJECT_NAME}_device_sycl)

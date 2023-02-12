@@ -4,7 +4,7 @@
 #include "../context.h"
 #include "cpu_device.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   class CPUDeviceFactory : public DeviceFactory
   {
@@ -21,4 +21,4 @@ namespace oidn {
       Context::registerDeviceFactory<CPUDeviceFactory>(DeviceType::CPU);
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

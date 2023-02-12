@@ -11,7 +11,7 @@
 #include "cuda_conv.h"
 #include "cuda_concat_conv.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   void checkError(cudaError_t error)
   {
@@ -117,4 +117,5 @@ namespace oidn {
   {
     engine->wait();
   }
-}
+
+OIDN_NAMESPACE_END

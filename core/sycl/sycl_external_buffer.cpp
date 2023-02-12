@@ -3,7 +3,7 @@
 
 #include "sycl_external_buffer.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   SYCLExternalBuffer::SYCLExternalBuffer(const Ref<SYCLEngine>& engine,
                                          ExternalMemoryTypeFlag fdType,
@@ -74,4 +74,4 @@ namespace oidn {
     zeMemFree(static_cast<SYCLDevice*>(getDevice())->getZeContext(), ptr);
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

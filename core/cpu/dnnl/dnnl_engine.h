@@ -5,7 +5,7 @@
 
 #include "core/cpu/cpu_engine.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   class DNNLEngine final : public CPUEngine
   {
@@ -29,4 +29,4 @@ namespace oidn {
     dnnl::stream dnnlStream;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

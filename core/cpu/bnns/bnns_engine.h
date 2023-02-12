@@ -5,7 +5,7 @@
 
 #include "core/cpu/cpu_engine.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   class BNNSEngine final : public CPUEngine
   {
@@ -17,4 +17,4 @@ namespace oidn {
     std::shared_ptr<Pool> newPool(const PoolDesc& desc) override;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

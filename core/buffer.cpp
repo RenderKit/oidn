@@ -5,7 +5,7 @@
 #include "tensor.h"
 #include "image.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   // ---------------------------------------------------------------------------
   // Buffer
@@ -187,4 +187,4 @@ namespace oidn {
     byteSize = newByteSize;
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

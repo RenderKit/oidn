@@ -3,6 +3,8 @@
 
 #pragma once
 
+#include "include/OpenImageDenoise/config.h"
+
 // ---------------------------------------------------------------------------
 // Macros
 // ---------------------------------------------------------------------------
@@ -69,6 +71,10 @@
   #define OIDN_SHARED
 #endif
 
+// Helper string macros
+#define OIDN_TO_STRING2(a) #a
+#define OIDN_TO_STRING(a) OIDN_TO_STRING2(a)
+
 #define OIDN_CONCAT2(a, b) a##b
 #define OIDN_CONCAT(a, b) OIDN_CONCAT2(a, b)
 
@@ -125,7 +131,7 @@
   #include "half.h"
 #endif
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
 #if defined(OIDN_COMPILE_SYCL)
   namespace syclx  = sycl::ext::intel::experimental;
@@ -260,5 +266,5 @@ namespace oidn {
   std::string getCompilerName();
   std::string getBuildName();
 
-} // namespace oidn
+OIDN_NAMESPACE_END
 

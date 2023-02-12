@@ -3,7 +3,7 @@
 
 #include "filter.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   Filter::Filter(const Ref<Device>& device) : device(device) {}
 
@@ -69,4 +69,4 @@ namespace oidn {
     dst = Data();
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

@@ -3,7 +3,7 @@
 
 #include "half.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   // https://gist.github.com/rygorous/2156668
   namespace
@@ -113,4 +113,4 @@ namespace oidn {
     return (int16_t)float_to_half(fp32).u;
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

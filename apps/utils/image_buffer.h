@@ -10,7 +10,7 @@
 #include <array>
 #include <tuple>
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   class ImageBuffer
   {
@@ -141,4 +141,4 @@ namespace oidn {
                                          const ImageBuffer& ref,
                                          float threshold);
 
-} // namespace oidn
+OIDN_NAMESPACE_END

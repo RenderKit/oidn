@@ -1,7 +1,16 @@
-## Copyright 2009-2022 Intel Corporation
+## Copyright 2009-2023 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
+# Generate config.h
+configure_file(
+  "${PROJECT_SOURCE_DIR}/include/OpenImageDenoise/config.h.in"
+  "${PROJECT_SOURCE_DIR}/include/OpenImageDenoise/config.h"
+)
+
 add_library(${PROJECT_NAME}_common STATIC
+  ${PROJECT_SOURCE_DIR}/include/OpenImageDenoise/config.h
+  ${PROJECT_SOURCE_DIR}/include/OpenImageDenoise/oidn.h
+  ${PROJECT_SOURCE_DIR}/include/OpenImageDenoise/oidn.hpp
   common.h
   common.cpp
   half.h

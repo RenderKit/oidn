@@ -9,7 +9,7 @@
 #include "sycl_conv.h"
 #include "sycl_external_buffer.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   SYCLEngine::SYCLEngine(const Ref<SYCLDevice>& device,
                          const sycl::queue& syclQueue)
@@ -160,4 +160,4 @@ namespace oidn {
     }
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

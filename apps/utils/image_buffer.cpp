@@ -3,7 +3,7 @@
 
 #include "image_io.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   ImageBuffer::ImageBuffer()
     : devPtr(nullptr),
@@ -91,4 +91,4 @@ namespace oidn {
     return std::make_tuple(numErrors, maxError);
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

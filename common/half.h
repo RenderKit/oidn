@@ -3,9 +3,10 @@
 
 #pragma once
 
+#include "include/OpenImageDenoise/config.h"
 #include <cstdint>
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
   
   float half_to_float(int16_t x);
   int16_t float_to_half(float x);
@@ -27,4 +28,4 @@ namespace oidn {
     int16_t x;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

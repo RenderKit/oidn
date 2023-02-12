@@ -6,7 +6,7 @@
 #include "engine.h"
 #include <unordered_map>
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   struct TensorDesc;
   struct ImageDesc;
@@ -157,4 +157,4 @@ namespace oidn {
     size_t byteOffset;  // offset in the buffer
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

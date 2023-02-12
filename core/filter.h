@@ -7,7 +7,7 @@
 #include "image.h"
 #include "data.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   class Filter : public RefCount
   {
@@ -48,4 +48,4 @@ namespace oidn {
     bool dirtyParam = true;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

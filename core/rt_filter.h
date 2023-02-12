@@ -5,7 +5,7 @@
 
 #include "unet_filter.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   // RT: Generic ray tracing denoiser
   class RTFilter final : public UNetFilter
@@ -22,4 +22,4 @@ namespace oidn {
     std::shared_ptr<TransferFunction> newTransferFunc() override;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

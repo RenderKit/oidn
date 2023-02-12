@@ -13,7 +13,7 @@
 #include "thread.h"
 #include <fstream>
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
 #if defined(_WIN32)
 
@@ -281,4 +281,4 @@ namespace oidn {
 
 #endif
 
-} // namespace oidn
+OIDN_NAMESPACE_END

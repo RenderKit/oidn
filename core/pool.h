@@ -5,7 +5,7 @@
 
 #include "op.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   // 2x2 max pooling descriptor
   struct PoolDesc
@@ -34,4 +34,4 @@ namespace oidn {
     std::shared_ptr<Tensor> dst;
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

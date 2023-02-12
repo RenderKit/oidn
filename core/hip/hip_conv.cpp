@@ -3,7 +3,7 @@
 
 #include "hip_conv.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   HIPConv::HIPConv(const Ref<HIPEngine>& engine, const ConvDesc& desc)
     : Conv(desc),
@@ -144,4 +144,4 @@ namespace oidn {
     }
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

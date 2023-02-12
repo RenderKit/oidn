@@ -5,7 +5,7 @@
 
 #include "math.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 namespace math {
 
   template<typename T>
@@ -157,4 +157,4 @@ using math::vec3;
 using math::vec3f;
 using math::vec3i;
 
-} // namespace oidn
+OIDN_NAMESPACE_END

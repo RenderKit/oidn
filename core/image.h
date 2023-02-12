@@ -7,7 +7,7 @@
 #include "buffer.h"
 #include "image_accessor.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   struct ImageDesc
   {
@@ -130,4 +130,4 @@ namespace oidn {
     char* ptr; // pointer to the first pixel
   };
 
-} // namespace oidn
+OIDN_NAMESPACE_END

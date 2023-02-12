@@ -5,7 +5,7 @@
 #include "rt_filter.h"
 #include "rtlightmap_filter.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   thread_local Device::ErrorState Device::globalError;
 
@@ -174,4 +174,4 @@ namespace oidn {
     return filter;
   }
 
-} // namespace oidn
+OIDN_NAMESPACE_END

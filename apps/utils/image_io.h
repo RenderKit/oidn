@@ -5,7 +5,7 @@
 
 #include "image_buffer.h"
 
-namespace oidn {
+OIDN_NAMESPACE_BEGIN
 
   // Loads an image with optionally specified number of channels and data type
   std::shared_ptr<ImageBuffer> loadImage(const DeviceRef& device,
@@ -26,4 +26,4 @@ namespace oidn {
   // Saves an image with/without linear to sRGB conversion
   void saveImage(const std::string& filename, const ImageBuffer& image, bool srgb);
 
-} // namespace oidn
+OIDN_NAMESPACE_END
