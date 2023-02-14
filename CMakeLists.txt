@@ -1,4 +1,4 @@
-## Copyright 2009-2022 Intel Corporation
+## Copyright 2009-2023 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 cmake_minimum_required(VERSION 3.1)
@@ -87,6 +87,10 @@ if(NOT APPLE)
   option(OIDN_DEVICE_HIP "Enable HIP device." OFF)
 endif()
 
+# Filters
+option(OIDN_FILTER_RT "Include trained weights of the RT filter." ON)
+option(OIDN_FILTER_RTLIGHTMAP "Include trained weights of the RTLightmap filter." ON)
+
 # Packaging
 include(oidn_package)
 
@@ -105,101 +109,13 @@ configure_file(
 
 set(OIDN_RESOURCE ${PROJECT_SOURCE_DIR}/common/oidn.rc)
 
-# Common static library
-add_subdirectory(common)
-
 ## -----------------------------------------------------------------------------
-## Core library
+## Weights
 ## -----------------------------------------------------------------------------
-
-set(CORE_SOURCES
-  core/autoexposure.h
-  core/buffer.h
-  core/buffer.cpp
-  core/color.h
-  core/color.cpp
-  core/concat_conv.h
-  core/concat_conv.cpp
-  core/context.h
-  core/context.cpp
-  core/conv.cpp
-  core/conv.h
-  core/conv.cpp
-  core/data.h
-  core/device_factory.h
-  core/device.h
-  core/device.cpp
-  core/engine.h
-  core/engine.cpp
-  core/exception.h
-  core/exception.cpp
-  core/filter.h
-  core/filter.cpp
-  core/image_accessor.h
-  core/image_copy.h
-  core/image.h
-  core/image.cpp
-  core/input_process.h
-  core/input_process.cpp
-  core/math.h
-  core/module.h
-  core/module.cpp
-  core/network.h
-  core/network.cpp
-  core/op.h
-  core/output_process.h
-  core/output_process.cpp
-  core/pool.h
-  core/pool.cpp
-  core/progress.h
-  core/progress.cpp
-  core/ref.h
-  core/reorder.h
-  core/reorder.cpp
-  core/rt_filter.h
-  core/rt_filter.cpp
-  core/rtlightmap_filter.h
-  core/rtlightmap_filter.cpp
-  core/scratch.h
-  core/scratch.cpp
-  core/tensor.h
-  core/tensor.cpp
-  core/tensor_accessor.h
-  core/tensor_layout.h
-  core/thread.h
-  core/thread.cpp
-  core/tile.h
-  core/tza.h
-  core/tza.cpp
-  core/unet_filter.h
-  core/unet_filter.cpp
-  core/upsample.h
-  core/upsample.cpp
-  core/vec.h
-  core/weights.h
-  core/weights.cpp
-)
-
-set(GPU_SOURCES
-  ${PROJECT_SOURCE_DIR}/core/gpu/gpu_autoexposure.h
-  ${PROJECT_SOURCE_DIR}/core/gpu/gpu_image_copy.h
-  ${PROJECT_SOURCE_DIR}/core/gpu/gpu_input_process.h
-  ${PROJECT_SOURCE_DIR}/core/gpu/gpu_output_process.h
-  ${PROJECT_SOURCE_DIR}/core/gpu/gpu_pool.h
-  ${PROJECT_SOURCE_DIR}/core/gpu/gpu_upsample.h
-)
-
-add_library(${PROJECT_NAME}_core SHARED ${CORE_SOURCES})
-set_property(TARGET ${PROJECT_NAME}_core PROPERTY VERSION ${PROJECT_VERSION})
-
-# Include weights
-option(OIDN_FILTER_RT "Include trained weights of the RT filter." ON)
-option(OIDN_FILTER_RTLIGHTMAP "Include trained weights of the RTLightmap filter." ON)
 
 set(WEIGHTS)
 
 if(OIDN_FILTER_RT)
-  target_compile_definitions(${PROJECT_NAME}_common PUBLIC OIDN_FILTER_RT)
   list(APPEND WEIGHTS
     weights/rt_alb.tza
     weights/rt_hdr.tza
@@ -215,7 +131,6 @@ if(OIDN_FILTER_RT)
 endif()
 
 if(OIDN_FILTER_RTLIGHTMAP)
-  target_compile_definitions(${PROJECT_NAME}_common PUBLIC OIDN_FILTER_RTLIGHTMAP)
   list(APPEND WEIGHTS
     weights/rtlightmap_hdr.tza
     weights/rtlightmap_dir.tza
@@ -223,49 +138,16 @@ if(OIDN_FILTER_RTLIGHTMAP)
 endif()
 
 oidn_generate_cpp_from_blob(WEIGHTS_SOURCES "${OIDN_NAMESPACE}::blobs::weights" ${WEIGHTS})
-target_sources(${PROJECT_NAME}_core PRIVATE ${WEIGHTS_SOURCES})
-
-target_include_directories(${PROJECT_NAME}_core
-  PUBLIC
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-  #PRIVATE # FIXME: why is this needed?
-    ${CMAKE_CURRENT_BINARY_DIR}
-)
-
-target_link_libraries(${PROJECT_NAME}_core PUBLIC ${PROJECT_NAME}_common)
-oidn_export_all_symbols(${PROJECT_NAME}_core)
+add_library(${PROJECT_NAME}_weights STATIC ${WEIGHTS_SOURCES})
 
 ## -----------------------------------------------------------------------------
-## Main library (API)
+## Libraries
 ## -----------------------------------------------------------------------------
 
-set(API_SOURCES
-  core/api.cpp
-)
-
-add_library(${PROJECT_NAME} ${OIDN_LIB_TYPE} ${API_SOURCES} ${OIDN_RESOURCE})
-set_property(TARGET ${PROJECT_NAME} PROPERTY VERSION ${PROJECT_VERSION})
-set_property(TARGET ${PROJECT_NAME} PROPERTY SOVERSION ${PROJECT_VERSION_MAJOR})
-target_link_libraries(${PROJECT_NAME} PRIVATE ${PROJECT_NAME}_core)
-oidn_strip_symbols(${PROJECT_NAME})
-
-## -----------------------------------------------------------------------------
-## Modules
-## -----------------------------------------------------------------------------
-
-if(OIDN_DEVICE_CPU)
-  add_subdirectory(core/cpu)
-endif()
-if(OIDN_DEVICE_SYCL)
-  add_subdirectory(core/sycl)
-endif()
-if(OIDN_DEVICE_CUDA)
-  add_subdirectory(core/cuda)
-endif()
-if(OIDN_DEVICE_HIP)
-  add_subdirectory(core/hip)
-endif()
+add_subdirectory(common)
+add_subdirectory(core)
+add_subdirectory(api)
+add_subdirectory(devices)
 
 ## -----------------------------------------------------------------------------
 ## Apps
