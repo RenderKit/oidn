@@ -1,8 +1,6 @@
 // Copyright 2009-2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#define OIDN_EXPORTS
-
 // Locks the device that owns the specified object
 // Use *only* inside OIDN_TRY/CATCH!
 #define OIDN_LOCK(obj) \

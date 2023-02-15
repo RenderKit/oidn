@@ -1,14 +1,6 @@
 ## Copyright 2009-2023 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
-# FIXME
-if(WIN32)
-  message(FATAL_ERROR "The HIP device requires ROCm, which is not available on Windows yet.")
-endif()
-if(OIDN_DEVICE_SYCL OR OIDN_DEVICE_hip)
-  message(FATAL_ERROR "Due to a CMake/ROCm bug, it is currently not possible to enable HIP with other GPU devices at the same time. This will be fixed in a future version.")
-endif()
-
 if(NOT DEFINED ROCM_PATH)
   set(ROCM_PATH "/opt/rocm" CACHE STRING "Default ROCM installation directory.")
 endif()

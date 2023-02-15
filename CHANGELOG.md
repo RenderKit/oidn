@@ -10,8 +10,9 @@ Version History
        improved GPU buffer support
     -  `oidnExecuteFilterAsync` and `oidnSyncDevice` for asynchronous
        filter execution
--   Added `type` device parameter for querying the type of the created device 
+-   Added `type` device parameter for querying the type of the created device
 -   Fixed over-conservative buffer bounds checking for images with custom strides
+-   Removed `OIDN_STATIC_LIB` CMake option due to technical limitations
 
 ### Changes in v1.4.3:
 

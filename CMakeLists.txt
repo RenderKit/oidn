@@ -39,15 +39,6 @@ else()
   set(OIDN_ARCH "X64")
 endif()
 
-# Build as shared or static library
-option(OIDN_STATIC_LIB "Build Intel(R) Open Image Denoise as a static library.")
-mark_as_advanced(CLEAR OIDN_STATIC_LIB)
-if(OIDN_STATIC_LIB)
-  set(OIDN_LIB_TYPE STATIC)
-else()
-  set(OIDN_LIB_TYPE SHARED)
-endif()
-
 # Configuration types
 set(CONFIGURATION_TYPES "Debug;Release;RelWithDebInfo")
 if(win32)

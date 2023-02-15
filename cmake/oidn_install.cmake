@@ -46,15 +46,6 @@ install(
 ## Install dependencies: TBB
 ## -----------------------------------------------------------------------------
 
-if(OIDN_STATIC_LIB)
-  install(TARGETS TBB EXPORT TBB_Export)
-  install(EXPORT TBB_Export
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}-${OIDN_VERSION}
-    FILE TBBConfig.cmake
-    COMPONENT devel
-  )
-endif()
-
 if(OIDN_ZIP_MODE)
   foreach(C IN ITEMS "tbb")
     if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")

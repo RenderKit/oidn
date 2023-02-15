@@ -27,12 +27,3 @@ target_include_directories(${PROJECT_NAME}_common
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/external>
     $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
 )
-
-if(OIDN_STATIC_LIB)
-  install(TARGETS {PROJECT_NAME}_common
-    EXPORT
-      ${PROJECT_NAME}_Export
-    ARCHIVE
-      DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT devel
-  )
-endif()
