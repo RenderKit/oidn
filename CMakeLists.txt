@@ -1,7 +1,7 @@
 ## Copyright 2009-2023 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.12)
 
 # Policy: find_package() uses <PackageName>_ROOT variables
 if(POLICY CMP0074)
@@ -129,7 +129,7 @@ if(OIDN_FILTER_RTLIGHTMAP)
 endif()
 
 oidn_generate_cpp_from_blob(WEIGHTS_SOURCES "${OIDN_NAMESPACE}::blobs::weights" ${WEIGHTS})
-add_library(${PROJECT_NAME}_weights STATIC ${WEIGHTS_SOURCES})
+add_library(${PROJECT_NAME}_weights OBJECT ${WEIGHTS_SOURCES})
 
 ## -----------------------------------------------------------------------------
 ## Libraries
@@ -153,7 +153,40 @@ endif()
 ## Install and packaging
 ## -----------------------------------------------------------------------------
 
-#include(oidn_install) # FIXME
+# Install headers
+install(DIRECTORY include/OpenImageDenoise
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  COMPONENT devel
+  PATTERN "*.in" EXCLUDE
+)
+
+# Install documentation
+install(
+  FILES
+    ${PROJECT_SOURCE_DIR}/README.md
+    ${PROJECT_SOURCE_DIR}/readme.pdf
+    ${PROJECT_SOURCE_DIR}/CHANGELOG.md
+    ${PROJECT_SOURCE_DIR}/LICENSE.txt
+    ${PROJECT_SOURCE_DIR}/third-party-programs.txt
+  DESTINATION ${CMAKE_INSTALL_DOCDIR}
+  COMPONENT lib
+)
+
+# Install CMake configuration files
+install(EXPORT ${PROJECT_NAME}_Export
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}-${OIDN_VERSION}
+  #NAMESPACE ${PROJECT_NAME}::
+  FILE ${PROJECT_NAME}Config.cmake
+  COMPONENT devel
+)
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(${PROJECT_NAME}ConfigVersion.cmake
+  COMPATIBILITY SameMajorVersion)
+install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}-${OIDN_VERSION}
+  COMPONENT devel
+)
 
 # Has to be last
 include(CPack)

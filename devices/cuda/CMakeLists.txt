@@ -61,7 +61,7 @@ set_source_files_properties(
   cutlass_conv_sm80.cu
   PROPERTIES COMPILE_FLAGS "${OIDN_NVCC_SM80_FLAGS} ${OIDN_NVCC_SM90_FLAGS}")
 
-add_library(${PROJECT_NAME}_device_cuda SHARED ${CUDA_SOURCES} ${GPU_SOURCES})
+add_library(${PROJECT_NAME}_device_cuda SHARED ${CUDA_SOURCES} ${GPU_SOURCES} ${OIDN_RESOURCE})
 set_property(TARGET ${PROJECT_NAME}_device_cuda PROPERTY VERSION ${PROJECT_VERSION})
 
 target_include_directories(${PROJECT_NAME}_device_cuda
@@ -73,3 +73,4 @@ set_target_properties(${PROJECT_NAME}_device_cuda PROPERTIES CUDA_ARCHITECTURES 
 
 target_link_libraries(${PROJECT_NAME}_device_cuda PRIVATE ${PROJECT_NAME}_core)
 oidn_strip_symbols(${PROJECT_NAME}_device_cuda)
+oidn_install_module(${PROJECT_NAME}_device_cuda)

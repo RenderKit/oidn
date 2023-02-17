@@ -69,14 +69,8 @@ set(CORE_SOURCES
   weights.cpp
 )
 
-add_library(${PROJECT_NAME}_core SHARED ${CORE_SOURCES})
+add_library(${PROJECT_NAME}_core SHARED ${CORE_SOURCES} ${OIDN_RESOURCE})
 set_property(TARGET ${PROJECT_NAME}_core PROPERTY VERSION ${PROJECT_VERSION})
-
-target_include_directories(${PROJECT_NAME}_core
-  PUBLIC
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
-)
 
 target_link_libraries(${PROJECT_NAME}_core
   PUBLIC
@@ -86,3 +80,13 @@ target_link_libraries(${PROJECT_NAME}_core
 )
 
 oidn_export_all_symbols(${PROJECT_NAME}_core)
+
+install(TARGETS ${PROJECT_NAME}_core
+  EXPORT
+    ${PROJECT_NAME}_Export
+  LIBRARY
+    DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT devel
+    NAMELINK_SKIP
+  RUNTIME
+    DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT lib
+)

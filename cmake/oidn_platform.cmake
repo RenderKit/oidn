@@ -250,29 +250,3 @@ append(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${OIDN_C_CXX_FLAGS_RELEASE}")
 
 append(CMAKE_C_FLAGS_DEBUG   "${OIDN_C_CXX_FLAGS_DEBUG}")
 append(CMAKE_CXX_FLAGS_DEBUG "${OIDN_C_CXX_FLAGS_DEBUG}")
-
-## -----------------------------------------------------------------------------
-## Symbols
-## -----------------------------------------------------------------------------
-
-# Export all symbols in the specified target
-function(oidn_export_all_symbols target)
-  if(WIN32)
-    set_property(TARGET ${target} PROPERTY WINDOWS_EXPORT_ALL_SYMBOLS TRUE)
-  endif()
-endfunction()
-
-# Strip all non-API symbols from the specified target
-function(oidn_strip_symbols target)
-  if(UNIX OR MINGW)
-    set_target_properties(${target} PROPERTIES COMPILE_FLAGS "-fvisibility=internal -fvisibility-inlines-hidden")
-  endif()
-
-  if(APPLE)
-    set_target_properties(${target} PROPERTIES LINK_FLAGS -Wl,-exported_symbols_list,${PROJECT_SOURCE_DIR}/common/export.macos.map)
-    set_target_properties(${target} PROPERTIES LINK_DEPENDS ${PROJECT_SOURCE_DIR}/common/export.macos.map)
-  elseif(UNIX)
-    set_target_properties(${target} PROPERTIES LINK_FLAGS -Wl,--version-script=${PROJECT_SOURCE_DIR}/common/export.linux.map)
-    set_target_properties(${target} PROPERTIES LINK_DEPENDS ${PROJECT_SOURCE_DIR}/common/export.linux.map)
-  endif()
-endfunction()

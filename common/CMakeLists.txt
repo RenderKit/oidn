@@ -7,7 +7,7 @@ configure_file(
   "${PROJECT_SOURCE_DIR}/include/OpenImageDenoise/config.h"
 )
 
-add_library(${PROJECT_NAME}_common STATIC
+add_library(${PROJECT_NAME}_common OBJECT
   ${PROJECT_SOURCE_DIR}/include/OpenImageDenoise/config.h
   ${PROJECT_SOURCE_DIR}/include/OpenImageDenoise/oidn.h
   ${PROJECT_SOURCE_DIR}/include/OpenImageDenoise/oidn.hpp
@@ -27,3 +27,5 @@ target_include_directories(${PROJECT_NAME}_common
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/external>
     $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
 )
+
+install(TARGETS ${PROJECT_NAME}_common EXPORT ${PROJECT_NAME}_Export)
