@@ -3,7 +3,6 @@
 
 #include "cuda_device.h"
 #include "cuda_conv.h"
-#include "cuda_concat_conv.h"
 #include "../gpu/gpu_autoexposure.h"
 #include "../gpu/gpu_input_process.h"
 #include "../gpu/gpu_output_process.h"

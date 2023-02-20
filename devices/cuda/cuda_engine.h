@@ -66,7 +66,6 @@ OIDN_NAMESPACE_BEGIN
 
     // Ops
     std::shared_ptr<Conv> newConv(const ConvDesc& desc) override;
-    std::shared_ptr<ConcatConv> newConcatConv(const ConcatConvDesc& desc) override;
     std::shared_ptr<Pool> newPool(const PoolDesc& desc) override;
     std::shared_ptr<Upsample> newUpsample(const UpsampleDesc& desc) override;
     std::shared_ptr<Autoexposure> newAutoexposure(const ImageDesc& srcDesc) override;

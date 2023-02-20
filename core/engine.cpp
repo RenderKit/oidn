@@ -3,7 +3,8 @@
 
 #include "engine.h"
 #include "scratch.h"
-#include "concat_conv.h"
+#include "concat_conv_chw.h"
+#include "concat_conv_hwc.h"
 
 OIDN_NAMESPACE_BEGIN
 
@@ -62,7 +63,10 @@ OIDN_NAMESPACE_BEGIN
 
   std::shared_ptr<ConcatConv> Engine::newConcatConv(const ConcatConvDesc& desc)
   {
-    return std::make_shared<CHWConcatConv>(this, desc);
+    if (getDevice()->getTensorLayout() == TensorLayout::hwc)
+      return std::make_shared<ConcatConvHWC>(this, desc);
+    else
+      return std::make_shared<ConcatConvCHW>(this, desc);
   }
 
 OIDN_NAMESPACE_END

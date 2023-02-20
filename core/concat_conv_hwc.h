@@ -1,17 +1,16 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
 
-#include "core/concat_conv.h"
-#include "cuda_conv.h"
+#include "concat_conv.h"
 
 OIDN_NAMESPACE_BEGIN
 
-  class CUDAConcatConv final : public ConcatConv
+  class ConcatConvHWC final : public ConcatConv
   {
   public:
-    CUDAConcatConv(const Ref<CUDAEngine>& engine, const ConcatConvDesc& desc);
+    ConcatConvHWC(const Ref<Engine>& engine, const ConcatConvDesc& desc);
 
     bool isSupported() const override;
 
@@ -27,7 +26,7 @@ OIDN_NAMESPACE_BEGIN
     void updateBias() override;
     void updateDst() override;
 
-    Ref<CUDAEngine> engine;
+    Ref<Engine> engine;
     bool finalized = false;
 
     TensorDesc weight1Desc;

@@ -3,7 +3,6 @@
 
 #include "cuda_engine.h"
 #include "cuda_conv.h"
-#include "cuda_concat_conv.h"
 #include "cuda_external_buffer.h"
 #include "../gpu/gpu_autoexposure.h"
 #include "../gpu/gpu_input_process.h"
@@ -36,14 +35,6 @@ OIDN_NAMESPACE_BEGIN
   std::shared_ptr<Conv> CUDAEngine::newConv(const ConvDesc& desc)
   {
     return newCUDAConv(this, desc);
-  }
-
-  std::shared_ptr<ConcatConv> CUDAEngine::newConcatConv(const ConcatConvDesc& desc)
-  {
-    if (device->tensorLayout == TensorLayout::hwc)
-      return std::make_shared<CUDAConcatConv>(this, desc);
-    else
-      return std::make_shared<CHWConcatConv>(this, desc);
   }
 
   std::shared_ptr<Pool> CUDAEngine::newPool(const PoolDesc& desc)

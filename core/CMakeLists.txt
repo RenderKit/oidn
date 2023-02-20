@@ -9,6 +9,10 @@ set(CORE_SOURCES
   color.cpp
   concat_conv.h
   concat_conv.cpp
+  concat_conv_chw.h
+  concat_conv_chw.cpp
+  concat_conv_hwc.h
+  concat_conv_hwc.cpp
   context.h
   context.cpp
   conv.cpp

@@ -1,11 +1,11 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "cuda_concat_conv.h"
+#include "concat_conv_hwc.h"
 
 OIDN_NAMESPACE_BEGIN
 
-  CUDAConcatConv::CUDAConcatConv(const Ref<CUDAEngine>& engine, const ConcatConvDesc& desc)
+  ConcatConvHWC::ConcatConvHWC(const Ref<Engine>& engine, const ConcatConvDesc& desc)
     : ConcatConv(desc),
       engine(engine)
   {
@@ -14,48 +14,48 @@ OIDN_NAMESPACE_BEGIN
     weight2Desc = {{weightDesc.getO(), src2Desc.getC(), weightDesc.getH(), weightDesc.getW()}, weightDesc.layout, weightDesc.dataType};
 
     // Convolution 1: dst = conv(src1, weight1) + bias
-    conv1 = newCUDAConv(engine, {src1Desc, weight1Desc, biasDesc, Activation::None, PostOp::None});
+    conv1 = engine->newConv({src1Desc, weight1Desc, biasDesc, Activation::None, PostOp::None});
 
     // Convolution 2: dst = activation(conv(src2, weight2) + dst)
     // We use dst as bias, which is supported by CUTLASS
-    conv2 = newCUDAConv(engine, {src2Desc, weight2Desc, dstDesc, activation, PostOp::None});
+    conv2 = engine->newConv({src2Desc, weight2Desc, dstDesc, activation, PostOp::None});
   }
 
-  bool CUDAConcatConv::isSupported() const
+  bool ConcatConvHWC::isSupported() const
   {
     return conv1->isSupported() && conv2->isSupported();
   }
 
-  size_t CUDAConcatConv::getScratchByteSize() const
+  size_t ConcatConvHWC::getScratchByteSize() const
   {
     assert(isSupported());
     return max(conv1->getScratchByteSize(), conv2->getScratchByteSize());
   }
 
-  void CUDAConcatConv::setScratch(const std::shared_ptr<Tensor>& scratch)
+  void ConcatConvHWC::setScratch(const std::shared_ptr<Tensor>& scratch)
   {
     conv1->setScratch(scratch);
     conv2->setScratch(scratch);
   }
 
-  void CUDAConcatConv::updateSrc()
+  void ConcatConvHWC::updateSrc()
   {
     conv1->setSrc(src1);
     conv2->setSrc(src2);
   }
 
-  void CUDAConcatConv::updateWeight()
+  void ConcatConvHWC::updateWeight()
   {
     if (finalized)
       throw std::logic_error("concatenation+convolution weight cannot be set after finalization");
   }
 
-  void CUDAConcatConv::updateBias()
+  void ConcatConvHWC::updateBias()
   {
     conv1->setBias(bias);
   }
   
-  void CUDAConcatConv::updateDst()
+  void ConcatConvHWC::updateDst()
   {
     conv1->setDst(dst);
 
@@ -63,7 +63,7 @@ OIDN_NAMESPACE_BEGIN
     conv2->setDst(dst);
   }
 
-  void CUDAConcatConv::finalize()
+  void ConcatConvHWC::finalize()
   {
     assert(isSupported());
 
@@ -105,7 +105,7 @@ OIDN_NAMESPACE_BEGIN
     finalized = true;
   }
 
-  void CUDAConcatConv::submit()
+  void ConcatConvHWC::submit()
   {
     if (!finalized)
       throw std::logic_error("concatenation+convolution not finalized");

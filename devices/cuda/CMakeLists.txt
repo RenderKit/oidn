@@ -20,8 +20,6 @@ endif()
 set(CUDA_SOURCES
   cuda_conv.h
   cuda_conv.cu
-  cuda_concat_conv.h
-  cuda_concat_conv.cpp
   cuda_device.h
   cuda_device.cu
   cuda_engine.h
