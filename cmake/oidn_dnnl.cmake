@@ -1,4 +1,4 @@
-## Copyright 2009-2022 Intel Corporation
+## Copyright 2009-2023 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 set(DNNL_SOURCE_DIR "${PROJECT_SOURCE_DIR}/external/mkl-dnn")
@@ -6,7 +6,7 @@ set(DNNL_BINARY_DIR "${PROJECT_BINARY_DIR}/external/mkl-dnn")
 
 set(DNNL_VERSION_MAJOR 3)
 set(DNNL_VERSION_MINOR 0)
-set(DNNL_VERSION_PATCH 0)
+set(DNNL_VERSION_PATCH 1)
 set(DNNL_VERSION_HASH  "N/A")
 
 set(DNNL_CPU_RUNTIME "TBB")
