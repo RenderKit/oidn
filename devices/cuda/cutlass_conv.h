@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "cutlass/gemm/device/gemm.h"
@@ -88,9 +88,9 @@ OIDN_NAMESPACE_BEGIN
     switch (td.layout)
     {
     case TensorLayout::hwc:
-      return {1, td.getH(), td.getW(), td.getC()};
+      return {1, td.getH(), td.getW(), td.getPaddedC()};
     case TensorLayout::ohwi:
-      return {td.getO(), td.getH(), td.getW(), td.getI()};
+      return {td.getPaddedO(), td.getH(), td.getW(), td.getPaddedI()};
     default:
       throw std::invalid_argument("unsupported tensor layout");
     }
@@ -220,7 +220,6 @@ OIDN_NAMESPACE_BEGIN
 
     size_t getScratchByteSize() const override
     {
-      assert(isSupported());
       return gemm.get_workspace_size(initialArguments);
     }
 
@@ -240,7 +239,6 @@ OIDN_NAMESPACE_BEGIN
 
     void submit() override
     {
-      assert(isSupported());
       if (!finalized)
         throw std::logic_error("convolution not finalized");
       if (!src || !weight || !bias || !dst)

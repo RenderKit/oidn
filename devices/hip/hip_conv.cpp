@@ -68,7 +68,6 @@ OIDN_NAMESPACE_BEGIN
 
   void HIPConv::finalize()
   {
-    assert(isSupported());
     if (finalized)
       throw std::logic_error("convolution already finalized");
     if (!src || !weight || !dst)

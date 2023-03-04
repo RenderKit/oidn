@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -51,7 +51,7 @@ OIDN_NAMESPACE_BEGIN
     // Native tensor layout
     DataType getTensorDataType() const { return tensorDataType; }
     TensorLayout getTensorLayout() const { return tensorLayout; }
-    TensorLayout getWeightsLayout() const { return weightsLayout; }
+    TensorLayout getWeightLayout() const { return weightLayout; }
     int getTensorBlockC() const { return tensorBlockC; }
 
     // Memory
@@ -72,7 +72,7 @@ OIDN_NAMESPACE_BEGIN
     // Native tensor layout
     DataType tensorDataType = DataType::Float32;
     TensorLayout tensorLayout = TensorLayout::chw;
-    TensorLayout weightsLayout = TensorLayout::oihw;
+    TensorLayout weightLayout = TensorLayout::oihw;
     int tensorBlockC = 1;
 
     ExternalMemoryTypeFlags externalMemoryTypes;

@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "tensor.h"
@@ -21,12 +21,18 @@ OIDN_NAMESPACE_BEGIN
 
   Tensor::Tensor(const Ref<Engine>& engine, const TensorDesc& desc)
     : TensorDesc(desc),
-      engine(engine) {}
+      engine(engine)
+  {
+    assert(desc.isValid());
+  }
 
   Tensor::Tensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
     : Memory(buffer, byteOffset),
       TensorDesc(desc),
-      engine(buffer->getEngine()) {}
+      engine(buffer->getEngine())
+  {
+    assert(desc.isValid());
+  }
 
   std::shared_ptr<Tensor> Tensor::map(Access access)
   {

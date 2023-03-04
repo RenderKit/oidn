@@ -47,7 +47,7 @@ OIDN_NAMESPACE_BEGIN
 
     ispc::TensorAccessor3D acc;
     acc.ptr = (float*)tensor.getData();
-    acc.C = tensor.getC();
+    acc.C = tensor.getPaddedC();
     acc.H = tensor.getH();
     acc.W = tensor.getW();
     return acc;

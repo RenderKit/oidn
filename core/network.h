@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "input_process.h"
@@ -9,8 +9,9 @@
 #include "upsample.h"
 #include "image_copy.h"
 #include "progress.h"
-#include "weights.h"
 #include "scratch.h"
+#include "data.h"
+#include <unordered_map>
 
 OIDN_NAMESPACE_BEGIN
 
@@ -18,7 +19,7 @@ OIDN_NAMESPACE_BEGIN
   class Network
   {
   public:
-    Network(const Ref<Engine>& engine, const std::shared_ptr<Weights>& weights);
+    Network(const Ref<Engine>& engine, const Data& weightsBlob);
 
     std::shared_ptr<InputProcess> addInputProcess(const std::string& name,
                                                   const TensorDims& srcDims,
@@ -49,12 +50,12 @@ OIDN_NAMESPACE_BEGIN
     std::shared_ptr<Upsample> addUpsample(const std::string& name,
                                           const TensorDesc& srcDesc);
 
-    const std::shared_ptr<Weights>& getWeights() const { return weights; }
-
     bool isSupported() const;
 
     size_t getScratchAlignedSize() const;
     void setScratch(const std::shared_ptr<Tensor>& scratch);
+
+    size_t getPrivateByteSize() const { return privateByteSize; }
 
     double getWorkAmount() const;
     void clear();
@@ -62,9 +63,23 @@ OIDN_NAMESPACE_BEGIN
     void run(Progress& progress);
 
   private:
+    template<typename SrcT, typename DstT, TensorLayout srcLayout, TensorLayout dstLayout>
+    bool tryReorderWeight(const Tensor& src, int srcBeginI, int srcI, Tensor& dst, int dstBeginI, int dstI);
+
+    void reorderWeight(const Tensor& src, int srcBeginI, int srcI, Tensor& dst, int dstBeginI, int dstI);
+
+    template<typename SrcT, typename DstT>
+    bool tryReorderBias(const Tensor& src, Tensor& dst);
+
+    void reorderBias(const Tensor& src, Tensor& dst);
+
     Ref<Engine> engine;
     std::vector<std::shared_ptr<Op>> ops;
-    std::shared_ptr<Weights> weights;
+    size_t privateByteSize = 0;
+
+    // Used only while building the network
+    std::vector<std::function<void()>> lazyInits; // lazy initialization for some ops
+    std::unordered_map<std::string, std::shared_ptr<Tensor>> weights;
   };
 
 OIDN_NAMESPACE_END

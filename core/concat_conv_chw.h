@@ -7,7 +7,7 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  // Concatenation + 3x3 convolution for CHW tensors (including blocked) stored consecutively in memory
+  // Concatenation + convolution for CHW tensors (including blocked) stored consecutively in memory
   // Since the tensors are pre-concatenated in memory, only the convolution needs to be executed
   class ConcatConvCHW final : public ConcatConv
   {
@@ -17,18 +17,19 @@ OIDN_NAMESPACE_BEGIN
     size_t getScratchByteSize() const override { return conv->getScratchByteSize(); }
     void setScratch(const std::shared_ptr<Tensor>& scratch) override { conv->setScratch(scratch); }
 
+    void setWeight(const std::shared_ptr<Tensor>& weight) { conv->setWeight(weight); }
+
     void finalize() override { conv->finalize(); }
     void submit() override { conv->submit(); }
 
   private:
     void updateSrc() override;
-    void updateWeight() override { conv->setWeight(weight); }
     void updateBias() override { conv->setBias(bias); }
     void updateDst() override { conv->setDst(dst); }
 
-    Ref<Engine> engine;
-    TensorDesc srcDesc; // concatenated source
+    TensorDesc srcDesc;         // pre-concatenated source
     std::shared_ptr<Conv> conv;
+    Ref<Engine> engine;
   };
 
 OIDN_NAMESPACE_END

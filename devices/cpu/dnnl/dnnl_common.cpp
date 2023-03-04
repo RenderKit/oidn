@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "dnnl_common.h"
@@ -29,42 +29,42 @@ OIDN_NAMESPACE_BEGIN
     {
     case TensorLayout::x:
       assert(td.getRank() == 1);
-      dnnlDims   = {td.dims[0]};
+      dnnlDims   = {td.getPaddedX()};
       dnnlFormat = dnnl::memory::format_tag::x;
       break;
     case TensorLayout::chw:
       assert(td.getRank() == 3);
-      dnnlDims   = {1, td.dims[0], td.dims[1], td.dims[2]};
+      dnnlDims   = {1, td.getPaddedC(), td.getH(), td.getW()};
       dnnlFormat = dnnl::memory::format_tag::nchw;
       break;
     case TensorLayout::Chw8c:
       assert(td.getRank() == 3);
-      dnnlDims   = {1, td.dims[0], td.dims[1], td.dims[2]};
+      dnnlDims   = {1, td.getPaddedC(), td.getH(), td.getW()};
       dnnlFormat = dnnl::memory::format_tag::nChw8c;
       break;
     case TensorLayout::Chw16c:
       assert(td.getRank() == 3);
-      dnnlDims   = {1, td.dims[0], td.dims[1], td.dims[2]};
+      dnnlDims   = {1, td.getPaddedC(), td.getH(), td.getW()};
       dnnlFormat = dnnl::memory::format_tag::nChw16c;
       break;
     case TensorLayout::oihw:
       assert(td.getRank() == 4);
-      dnnlDims   = {td.dims[0], td.dims[1], td.dims[2], td.dims[3]};
+      dnnlDims   = {td.getPaddedO(), td.getPaddedI(), td.getH(), td.getW()};
       dnnlFormat = dnnl::memory::format_tag::oihw;
       break;
     case TensorLayout::OIhw8i8o:
       assert(td.getRank() == 4);
-      dnnlDims   = {td.dims[0], td.dims[1], td.dims[2], td.dims[3]};
+      dnnlDims   = {td.getPaddedO(), td.getPaddedI(), td.getH(), td.getW()};
       dnnlFormat = dnnl::memory::format_tag::OIhw8i8o;
       break;
     case TensorLayout::OIhw16i16o:
       assert(td.getRank() == 4);
-      dnnlDims   = {td.dims[0], td.dims[1], td.dims[2], td.dims[3]};
+      dnnlDims   = {td.getPaddedO(), td.getPaddedI(), td.getH(), td.getW()};
       dnnlFormat = dnnl::memory::format_tag::OIhw16i16o;
       break;
     case TensorLayout::OIhw2o8i8o2i:
       assert(td.getRank() == 4);
-      dnnlDims   = {td.dims[0], td.dims[1], td.dims[2], td.dims[3]};
+      dnnlDims   = {td.getPaddedO(), td.getPaddedI(), td.getH(), td.getW()};
       dnnlFormat = dnnl::memory::format_tag::OIhw2o8i8o2i;
       break;
     default:

@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "tza.h"
@@ -26,7 +26,7 @@ OIDN_NAMESPACE_BEGIN
 
   std::unordered_map<std::string, std::shared_ptr<Tensor>> parseTZA(const Ref<Engine>& engine, void* buffer, size_t size)
   {
-    char* input = (char*)buffer;
+    char* input = static_cast<char*>(buffer);
     char* const bufferEnd = input + size;
 
     // Parse the magic value
@@ -43,7 +43,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Parse the table offset and jump to the table
     const uint64_t tableOffset = read<uint64_t>(input, bufferEnd);
-    input = (char*)buffer + tableOffset;
+    input = static_cast<char*>(buffer) + tableOffset;
 
     // Parse the number of tensors
     const size_t numTensors = read<uint32_t>(input, bufferEnd);
@@ -67,6 +67,7 @@ OIDN_NAMESPACE_BEGIN
       tensorDesc.dims.resize(ndims);
       for (int j = 0; j < ndims; ++j)
         tensorDesc.dims[j] = read<uint32_t>(input, bufferEnd);
+      tensorDesc.paddedDims = tensorDesc.dims;
 
       // Parse the layout of the tensor
       checkBounds(input, bufferEnd, ndims);
@@ -90,7 +91,7 @@ OIDN_NAMESPACE_BEGIN
 
       // Parse the offset to the tensor data
       const uint64_t tensorOffset = read<uint64_t>(input, bufferEnd);
-      char* tensorData = (char*)buffer + tensorOffset;
+      char* tensorData = static_cast<char*>(buffer) + tensorOffset;
       checkBounds(tensorData, bufferEnd, tensorDesc.getByteSize());
 
       // Add the tensor to the map

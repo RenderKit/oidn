@@ -1,8 +1,7 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "dnnl_conv.h"
-#include "core/reorder.h"
 #include "dnnl_tensor.h"
 
 OIDN_NAMESPACE_BEGIN
@@ -57,14 +56,12 @@ OIDN_NAMESPACE_BEGIN
 
   void DNNLConv::updateWeight()
   {
-    if (prim)
-      throw std::logic_error("convolution weight cannot be set after finalization");
+    args[DNNL_ARG_WEIGHTS] = getDNNL(weight);
   }
 
   void DNNLConv::updateBias()
   {
-    if (prim)
-      throw std::logic_error("convolution bias cannot be set after finalization");
+    args[DNNL_ARG_BIAS] = getDNNL(bias);
   }
 
   void DNNLConv::updateDst()
@@ -74,14 +71,6 @@ OIDN_NAMESPACE_BEGIN
 
   void DNNLConv::finalize()
   {
-    if (prim)
-      throw std::logic_error("convolution already finalized");
-    if (!weight || !bias)
-      throw std::logic_error("convolution weight/bias not set before finalization");
-
-    args[DNNL_ARG_WEIGHTS] = getDNNL(weight);
-    args[DNNL_ARG_BIAS] = getDNNL(bias);
-
     prim = dnnl::convolution_forward(primDesc);
   }
 
@@ -89,8 +78,8 @@ OIDN_NAMESPACE_BEGIN
   {
     if (!prim)
       throw std::logic_error("convolution not finalized");
-    if (!src || !dst)
-      throw std::logic_error("convolution source/destination not set");
+    if (!src || !dst || !weight || !bias)
+      throw std::logic_error("convolution source/weight/bias/destination not set");
 
     prim.execute(engine->getDNNLStream(), args);
   }

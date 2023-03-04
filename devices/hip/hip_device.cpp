@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "hip_device.h"
@@ -58,7 +58,7 @@ OIDN_NAMESPACE_BEGIN
 
     tensorDataType = DataType::Float16;
     tensorLayout   = TensorLayout::chw;
-    weightsLayout  = TensorLayout::oihw;
+    weightLayout   = TensorLayout::oihw;
     //tensorBlockC = 8; // required by Tensor Core operations
 
     engine = makeRef<HIPEngine>(this, deviceId, stream);

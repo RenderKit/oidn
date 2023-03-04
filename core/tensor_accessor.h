@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -12,7 +12,7 @@ OIDN_NAMESPACE_BEGIN
   struct TensorAccessor1D
   {
     T* ptr;
-    int X;
+    int X; // padded dimensions
 
     TensorAccessor1D() = default;
 
@@ -29,7 +29,7 @@ OIDN_NAMESPACE_BEGIN
   struct TensorAccessor3D : TensorAddressing<T, layout>
   {
     char* ptr;
-    int C, H, W;
+    int C, H, W; // padded dimensions
 
     TensorAccessor3D() = default;
 
@@ -61,7 +61,7 @@ OIDN_NAMESPACE_BEGIN
   struct TensorAccessor4D : TensorAddressing<T, layout>
   {
     char* ptr;
-    int O, I, H, W;
+    int O, I, H, W; // padded dimensions
 
     TensorAccessor4D() = default;
 

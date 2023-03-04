@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "cpu_pool.h"
@@ -21,13 +21,13 @@ OIDN_NAMESPACE_BEGIN
     if (!src || !dst)
       throw std::logic_error("pooling source/destination not set");
 
-    const int blockC = getTensorLayoutBlockC(dstDesc.layout);
+    const int blockC = getTensorLayoutInfo(dstDesc.layout).blockC;
 
     ispc::CPUPoolKernel kernel;
     kernel.src = toISPC(*src);
     kernel.dst = toISPC(*dst);
 
-    parallel_nd(dst->getC() / blockC, dst->getH(), [&](int cb, int h)
+    parallel_nd(dst->getPaddedC() / blockC, dst->getH(), [&](int cb, int h)
     {
       ispc::CPUPoolKernel_run(&kernel, cb, h);
     });

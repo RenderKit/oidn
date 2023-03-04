@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "unet_filter.h"
@@ -211,7 +211,7 @@ OIDN_NAMESPACE_BEGIN
     {
       auto engine = device->getEngine(i);
       instances.emplace_back();
-      instances.back().net.reset(new Network(engine, std::make_shared<Weights>(engine, weightsBlob)));
+      instances.back().net.reset(new Network(engine, weightsBlob));
     }
 
     transferFunc = newTransferFunc();
@@ -219,7 +219,7 @@ OIDN_NAMESPACE_BEGIN
     // Divide the image into tiles until the number of tiles is a multiple of the number of engines
     // and the memory usage gets below the specified threshold
     const int minTileSize = 3*overlap;
-    const size_t maxScratchByteSize = size_t(maxMemoryMB)*1024*1024;
+    const size_t maxMemoryByteSize = size_t(maxMemoryMB)*1024*1024;
 
     H = output->getH();
     W = output->getW();
@@ -228,7 +228,7 @@ OIDN_NAMESPACE_BEGIN
     tileH = round_up(H, alignment);
     tileW = round_up(W, alignment);
 
-    while ((tileCountH * tileCountW) % device->getNumEngines() != 0 || !buildModel(maxScratchByteSize))
+    while ((tileCountH * tileCountW) % device->getNumEngines() != 0 || !buildModel(maxMemoryByteSize))
     {
       if (tileH > minTileSize && tileH > tileW)
       {
@@ -363,17 +363,17 @@ OIDN_NAMESPACE_BEGIN
     return weightsBlob;
   }
 
-  // Tries to build the model without exceeding the specified amount of scratch memory
-  bool UNetFilter::buildModel(size_t maxScratchByteSize)
+  // Tries to build the model without exceeding the specified amount of memory
+  bool UNetFilter::buildModel(size_t maxMemoryByteSize)
   {
     auto engine = device->getEngine();
     if (engine->isConvSupported(PostOp::Pool) && engine->isConvSupported(PostOp::Upsample))
-      return buildFusedModel(maxScratchByteSize);
+      return buildFusedModel(maxMemoryByteSize);
     else
-      return buildUnfusedModel(maxScratchByteSize);
+      return buildUnfusedModel(maxMemoryByteSize);
   }
 
-  bool UNetFilter::buildUnfusedModel(size_t maxScratchByteSize)
+  bool UNetFilter::buildUnfusedModel(size_t maxMemoryByteSize)
   {
     // If the image size is zero, there is nothing else to do
     if (H <= 0 || W <= 0)
@@ -392,7 +392,7 @@ OIDN_NAMESPACE_BEGIN
 
     const bool snorm = directional || (!color && normal);
     TensorDims inputDims {inputC, tileH, tileW};
-    size_t totalScratchByteSize = 0;
+    size_t totalMemoryByteSize = 0;
 
     for (int instanceId = 0; instanceId < device->getNumEngines(); ++instanceId)
     {
@@ -510,10 +510,9 @@ OIDN_NAMESPACE_BEGIN
       // Check the total memory usage
       if (instanceId == 0)
       {
-        const size_t weightsByteSize = net->getWeights()->getScratchByteSize();
-        totalScratchByteSize = scratchByteSize + weightsByteSize +
-                               (netScratchByteSize + weightsByteSize) * (device->getNumEngines() - 1);
-        if (totalScratchByteSize > maxScratchByteSize)
+        totalMemoryByteSize = scratchByteSize + net->getPrivateByteSize() +
+                               (netScratchByteSize + net->getPrivateByteSize()) * (device->getNumEngines() - 1);
+        if (totalMemoryByteSize > maxMemoryByteSize)
         {
           resetModel();
           return false;
@@ -607,7 +606,7 @@ OIDN_NAMESPACE_BEGIN
       // Set the scratch buffer for the operations
       if (opScratchByteSize > 0)
       {
-        TensorDesc opScratchDesc {{int64_t(opScratchByteSize)}, TensorLayout::x, DataType::UInt8};
+        const TensorDesc opScratchDesc{{int64_t(opScratchByteSize)}, TensorLayout::x, DataType::UInt8};
         auto opScratch = scratch->newTensor(opScratchDesc, opScratchOfs);
         net->setScratch(opScratch);
         if (instanceId == 0 && hdr)
@@ -634,12 +633,12 @@ OIDN_NAMESPACE_BEGIN
 
     // Print statistics
     if (device->isVerbose(2))
-      std::cout << "Scratch bytes: " << totalScratchByteSize << std::endl;
+      std::cout << "Memory usage: " << totalMemoryByteSize << std::endl;
 
     return true;
   }
 
-  bool UNetFilter::buildFusedModel(size_t maxScratchByteSize)
+  bool UNetFilter::buildFusedModel(size_t maxMemoryByteSize)
   {
     // If the image size is zero, there is nothing else to do
     if (H <= 0 || W <= 0)
@@ -658,7 +657,7 @@ OIDN_NAMESPACE_BEGIN
 
     const bool snorm = directional || (!color && normal);
     TensorDims inputDims {inputC, tileH, tileW};
-    size_t totalScratchByteSize = 0;
+    size_t totalMemoryByteSize = 0;
 
     for (int instanceId = 0; instanceId < device->getNumEngines(); ++instanceId)
     {
@@ -757,10 +756,9 @@ OIDN_NAMESPACE_BEGIN
       // Check the total memory usage
       if (instanceId == 0)
       {
-        const size_t weightsByteSize = net->getWeights()->getScratchByteSize();
-        totalScratchByteSize = scratchByteSize + weightsByteSize +
-                               (netScratchByteSize + weightsByteSize) * (device->getNumEngines() - 1);
-        if (totalScratchByteSize > maxScratchByteSize)
+        totalMemoryByteSize = scratchByteSize + net->getPrivateByteSize() +
+                               (netScratchByteSize + net->getPrivateByteSize()) * (device->getNumEngines() - 1);
+        if (totalMemoryByteSize > maxMemoryByteSize)
         {
           resetModel();
           return false;
@@ -830,7 +828,7 @@ OIDN_NAMESPACE_BEGIN
       // Set the scratch buffer for the operations
       if (opScratchByteSize > 0)
       {
-        TensorDesc opScratchDesc {{int64_t(opScratchByteSize)}, TensorLayout::x, DataType::UInt8};
+        const TensorDesc opScratchDesc{{int64_t(opScratchByteSize)}, TensorLayout::x, DataType::UInt8};
         auto opScratch = scratch->newTensor(opScratchDesc, opScratchOfs);
         net->setScratch(opScratch);
         if (instanceId == 0 && hdr)
@@ -857,7 +855,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Print statistics
     if (device->isVerbose(2))
-      std::cout << "Scratch bytes: " << totalScratchByteSize << std::endl;
+      std::cout << "Memory usage: " << totalMemoryByteSize << std::endl;
 
     return true;
   }

@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "input_process.h"
@@ -12,11 +12,18 @@ OIDN_NAMESPACE_BEGIN
       throw std::invalid_argument("invalid input processing source shape");
 
     TensorDims dstDims {
-      round_up(srcDims[0], engine->getDevice()->getTensorBlockC()), // round up C
+      srcDims[0],
       round_up(srcDims[1], int64_t(alignment)), // round up H
       round_up(srcDims[2], int64_t(alignment))  // round up W
     };
-    dstDesc = {dstDims, engine->getDevice()->getTensorLayout(), engine->getDevice()->getTensorDataType()};
+
+    TensorDims dstPaddedDims {
+      round_up(srcDims[0], engine->getDevice()->getTensorBlockC()), // round up C
+      dstDims[1],
+      dstDims[2]
+    };
+
+    dstDesc = {dstDims, dstPaddedDims, engine->getDevice()->getTensorLayout(), engine->getDevice()->getTensorDataType()};
 
     setTile(0, 0, 0, 0, 0, 0);
   }

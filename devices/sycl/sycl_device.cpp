@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "sycl_device.h"
@@ -167,13 +167,13 @@ OIDN_NAMESPACE_BEGIN
     switch (arch)
     {
     case SYCLArch::XeHPG:
-      weightsLayout = TensorLayout::OIhw2o8i8o2i;
+      weightLayout = TensorLayout::OIhw2o8i8o2i;
       break;
     case SYCLArch::XeHPC:
-      weightsLayout = TensorLayout::OIhw8i16o2i;
+      weightLayout = TensorLayout::OIhw8i16o2i;
       break;
     default:
-      weightsLayout = TensorLayout::OIhw16i16o;
+      weightLayout = TensorLayout::OIhw16i16o;
     }
 
     if (zeContext)

@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "sycl_conv.h"
@@ -348,7 +348,7 @@ namespace gen9 {
       kernel.bias   = *bias;
       kernel.dst    = *dst;
 
-      WorkDim<3> globalSize = {dst->getC() / Kernel::blockC,
+      WorkDim<3> globalSize = {dst->getPaddedC() / Kernel::blockC,
                                ceil_div(src->getH(), Kernel::blockOH),
                                ceil_div(src->getW(), Kernel::blockOW)};
 

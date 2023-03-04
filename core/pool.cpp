@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "pool.h"
@@ -11,8 +11,9 @@ OIDN_NAMESPACE_BEGIN
     if (srcDesc.getRank() != 3 || srcDesc.getH() % 2 != 0 || srcDesc.getW() % 2 != 0)
       throw std::invalid_argument("invalid pooling source shape");
   
-    TensorDims dstDims {srcDesc.getC(), srcDesc.getH() / 2, srcDesc.getW() / 2};
-    dstDesc = TensorDesc(dstDims, srcDesc.layout, srcDesc.dataType);
+    TensorDims dstDims{srcDesc.getC(), srcDesc.getH() / 2, srcDesc.getW() / 2};
+    TensorDims dstPaddedDims{srcDesc.getPaddedC(), dstDims[1], dstDims[2]};
+    dstDesc = {dstDims, dstPaddedDims, srcDesc.layout, srcDesc.dataType};
   }
 
   void Pool::setSrc(const std::shared_ptr<Tensor>& src)

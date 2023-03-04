@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "conv.h"
@@ -10,7 +10,9 @@ OIDN_NAMESPACE_BEGIN
   {
     if (srcDesc.getRank() != 3)
       throw std::invalid_argument("invalid convolution source shape");
-    if (weightDesc.getRank() != 4 || weightDesc.getI() != srcDesc.getC())
+    if (weightDesc.getRank() != 4 ||
+        weightDesc.getI() != srcDesc.getC() ||
+        weightDesc.getPaddedI() != srcDesc.getPaddedC())
       throw std::invalid_argument("invalid convolution weight shape");
 
     TensorDims dstDims;
@@ -31,13 +33,18 @@ OIDN_NAMESPACE_BEGIN
       break;
 
     default:
-      throw std::invalid_argument("invalid postop");
-    } 
+      throw std::invalid_argument("unsupported convolution postop");
+    }
 
-    dstDesc = TensorDesc(dstDims, srcDesc.layout, srcDesc.dataType);
+    TensorDims dstPaddedDims = dstDims;
+    dstPaddedDims[0] = weightDesc.getPaddedO();
 
-    if (!((biasDesc.getRank() == 1 && biasDesc.getX() == weightDesc.getO()) ||
-          (biasDesc.getRank() == 3 && biasDesc.dims == dstDesc.dims)))
+    dstDesc = {dstDims, dstPaddedDims, srcDesc.layout, srcDesc.dataType};
+
+    if (!((biasDesc.getRank() == 1 && biasDesc.getX() == weightDesc.getO()
+                                   && biasDesc.getPaddedX() == weightDesc.getPaddedO()) ||
+          (biasDesc.getRank() == 3 && biasDesc.dims == dstDesc.dims
+                                   && biasDesc.paddedDims == dstDesc.paddedDims)))
       throw std::invalid_argument("invalid convolution bias shape");
   }
 

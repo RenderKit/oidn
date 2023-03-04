@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "cpu_device.h"
@@ -64,20 +64,20 @@ OIDN_NAMESPACE_BEGIN
     tensorDataType = DataType::Float32;
     if (arch == CPUArch::AVX512_CORE)
     {
-      tensorLayout  = TensorLayout::Chw16c;
-      weightsLayout = TensorLayout::OIhw16i16o;
-      tensorBlockC  = 16;
+      tensorLayout = TensorLayout::Chw16c;
+      weightLayout = TensorLayout::OIhw16i16o;
+      tensorBlockC = 16;
     }
     else
     {
-      tensorLayout  = TensorLayout::Chw8c;
-      weightsLayout = TensorLayout::OIhw8i8o;
-      tensorBlockC  = 8;
+      tensorLayout = TensorLayout::Chw8c;
+      weightLayout = TensorLayout::OIhw8i8o;
+      tensorBlockC = 8;
     }
   #else
-    tensorLayout  = TensorLayout::chw;
-    weightsLayout = TensorLayout::oihw;
-    tensorBlockC  = 1;
+    tensorLayout = TensorLayout::chw;
+    weightLayout = TensorLayout::oihw;
+    tensorBlockC = 1;
   #endif
 
     if (isVerbose())

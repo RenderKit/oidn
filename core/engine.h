@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -65,7 +65,6 @@ OIDN_NAMESPACE_BEGIN
     // Ops
     virtual bool isConvSupported(PostOp postOp);
     virtual std::shared_ptr<Conv> newConv(const ConvDesc& desc) = 0;
-    virtual std::shared_ptr<ConcatConv> newConcatConv(const ConcatConvDesc& desc);
     virtual std::shared_ptr<Pool> newPool(const PoolDesc& desc) = 0;
     virtual std::shared_ptr<Upsample> newUpsample(const UpsampleDesc& desc) = 0;
     virtual std::shared_ptr<Autoexposure> newAutoexposure(const ImageDesc& srcDesc) = 0;

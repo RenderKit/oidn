@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -68,9 +68,9 @@ OIDN_NAMESPACE_BEGIN
     void cleanup();
     void checkParams();
     Data getWeights();
-    bool buildModel(size_t maxScratchByteSize = std::numeric_limits<size_t>::max());
-    bool buildUnfusedModel(size_t maxScratchByteSize);
-    bool buildFusedModel(size_t maxScratchByteSize);
+    bool buildModel(size_t maxMemoryByteSize = std::numeric_limits<size_t>::max());
+    bool buildUnfusedModel(size_t maxMemoryByteSize);
+    bool buildFusedModel(size_t maxMemoryByteSize);
     void resetModel();
 
     // Image dimensions

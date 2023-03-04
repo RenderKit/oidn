@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -70,9 +70,9 @@ OIDN_NAMESPACE_BEGIN
       kernel.dst = *dst;
 
       if (tensorLayout == TensorLayout::hwc)
-        engine->submitKernel(WorkDim<3>(dst->getH(), dst->getW(), dst->getC()), kernel);
+        engine->submitKernel(WorkDim<3>(dst->getH(), dst->getW(), dst->getPaddedC()), kernel);
       else
-        engine->submitKernel(WorkDim<3>(dst->getC(), dst->getH(), dst->getW()), kernel);
+        engine->submitKernel(WorkDim<3>(dst->getPaddedC(), dst->getH(), dst->getW()), kernel);
     }
 
   private:

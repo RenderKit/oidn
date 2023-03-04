@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -288,21 +288,37 @@ OIDN_NAMESPACE_BEGIN
 
   // ---------------------------------------------------------------------------
 
-  // Returns the channel block size of the layout
-  OIDN_INLINE int getTensorLayoutBlockC(TensorLayout layout)
+  struct TensorLayoutInfo
+  {
+    int rank;
+    int blockC;
+  };
+
+  // Returns information about the tensor layout
+  OIDN_INLINE TensorLayoutInfo getTensorLayoutInfo(TensorLayout layout)
   {
     switch (layout)
     {
+    case TensorLayout::x:
+      return {1, 1};
+    case TensorLayout::chw:
+    case TensorLayout::hwc:
+      return {3, 1};
     case TensorLayout::Chw8c:
-    case TensorLayout::OIhw8i8o:
-      return 8;
+      return {3, 8};
     case TensorLayout::Chw16c:
+      return {3, 16};
+    case TensorLayout::oihw:
+    case TensorLayout::ohwi:
+      return {4, 1};
+    case TensorLayout::OIhw8i8o:
+      return {4, 8};
     case TensorLayout::OIhw16i16o:
     case TensorLayout::OIhw2o8i8o2i:
     case TensorLayout::OIhw8i16o2i:
-      return 16;
+      return {4, 16};
     default:
-      return 1;
+      throw std::invalid_argument("invalid tensor layout");
     }
   }
 

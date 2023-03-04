@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -20,14 +20,37 @@ OIDN_NAMESPACE_BEGIN
   // Tensor descriptor
   struct TensorDesc
   {
-    TensorDims   dims;
-    TensorLayout layout;
-    DataType     dataType;
+    TensorDims   dims;       // logical dimensions
+    TensorDims   paddedDims; // storage dimensions with zero-padding
+    TensorLayout layout;     // storage layout
+    DataType     dataType;   // element data type
 
     TensorDesc() = default;
 
+    TensorDesc(TensorDims dims, TensorDims paddedDims, TensorLayout layout, DataType dataType)
+      : dims(dims), paddedDims(paddedDims), layout(layout), dataType(dataType)
+    {
+      assert(isValid());
+    }
+
     TensorDesc(TensorDims dims, TensorLayout layout, DataType dataType)
-      : dims(dims), layout(layout), dataType(dataType) {}
+      : dims(dims), paddedDims(dims), layout(layout), dataType(dataType)
+    {
+      assert(isValid());
+    }
+
+    bool isValid() const
+    {
+      const auto info = getTensorLayoutInfo(layout);
+
+      return getRank() == info.rank &&
+             dims.size() == paddedDims.size() &&
+             std::mismatch(dims.begin(), dims.end(), paddedDims.begin(),
+                           std::less_equal<int64_t>()).first == dims.end() &&
+             (info.blockC == 1 ||
+               (getRank() == 3 && getPaddedC() % info.blockC == 0) ||
+               (getRank() == 4 && getPaddedO() % info.blockC == 0 && getPaddedI() % info.blockC == 0));
+    }
 
     // Returns the number of dimensions
     OIDN_INLINE int getRank() const { return int(dims.size()); }
@@ -39,11 +62,23 @@ OIDN_NAMESPACE_BEGIN
       return int(dims[0]);
     }
 
+    OIDN_INLINE int getPaddedX() const
+    {
+      assert(paddedDims.size() == 1);
+      return int(paddedDims[0]);
+    }
+
     // Returns the number of output channels in the tensor
     OIDN_INLINE int getO() const
     {
       assert(dims.size() >= 4);
       return int(dims[dims.size()-4]);
+    }
+
+    OIDN_INLINE int getPaddedO() const
+    {
+      assert(paddedDims.size() >= 4);
+      return int(paddedDims[paddedDims.size()-4]);
     }
 
     // Returns the number of input channels in the tensor
@@ -53,11 +88,23 @@ OIDN_NAMESPACE_BEGIN
       return int(dims[dims.size()-3]);
     }
 
+    OIDN_INLINE int getPaddedI() const
+    {
+      assert(paddedDims.size() >= 3);
+      return int(paddedDims[paddedDims.size()-3]);
+    }
+
     // Returns the number of channels in the tensor
     OIDN_INLINE int getC() const
     {
       assert(dims.size() >= 3);
       return int(dims[dims.size()-3]);
+    }
+
+    OIDN_INLINE int getPaddedC() const
+    {
+      assert(paddedDims.size() >= 3);
+      return int(paddedDims[paddedDims.size()-3]);
     }
 
     // Returns the height of the tensor
@@ -79,17 +126,21 @@ OIDN_NAMESPACE_BEGIN
     {
       if (dims.empty())
         return 0;
-
       size_t num = 1;
       for (size_t i = 0; i < dims.size(); ++i)
-        num *= dims[i];
+        num *= size_t(dims[i]);
       return num;
     }
 
     // Returns the size in bytes of the tensor
     OIDN_INLINE size_t getByteSize() const
     {
-      return getNumElements() * getDataTypeSize(dataType);
+      if (paddedDims.empty())
+        return 0;
+      size_t num = 1;
+      for (size_t i = 0; i < paddedDims.size(); ++i)
+        num *= size_t(paddedDims[i]);
+      return num * getDataTypeSize(dataType);
     }
 
     // Returns the aligned size in bytes of the tensor
@@ -100,12 +151,14 @@ OIDN_NAMESPACE_BEGIN
 
     bool operator ==(const TensorDesc& other) const
     {
-      return (dims == other.dims) && (layout == other.layout) && (dataType == other.dataType);
+      return (dims == other.dims) && (paddedDims == other.paddedDims) &&
+             (layout == other.layout) && (dataType == other.dataType);
     }
 
     bool operator !=(const TensorDesc& other) const
     {
-      return (dims != other.dims) || (layout != other.layout) || (dataType != other.dataType);
+      return (dims != other.dims) || (paddedDims != other.paddedDims) ||
+             (layout != other.layout) || (dataType != other.dataType);
     }
   };
 
@@ -123,9 +176,13 @@ OIDN_NAMESPACE_BEGIN
 
     using TensorDesc::getRank;
     using TensorDesc::getX;
+    using TensorDesc::getPaddedX;
     using TensorDesc::getO;
+    using TensorDesc::getPaddedO;
     using TensorDesc::getI;
+    using TensorDesc::getPaddedI;
     using TensorDesc::getC;
+    using TensorDesc::getPaddedC;
     using TensorDesc::getH;
     using TensorDesc::getW;
     using TensorDesc::getNumElements;
@@ -147,7 +204,7 @@ OIDN_NAMESPACE_BEGIN
     {
       if (layout != accessorLayout || dataType != DataTypeOf<T>::value)
         throw std::logic_error("incompatible tensor accessor");
-      return TensorAccessor3D<T, accessorLayout>(getData(), getC(), getH(), getW());
+      return TensorAccessor3D<T, accessorLayout>(getData(), getPaddedC(), getH(), getW());
     }
 
     template<typename T, TensorLayout accessorLayout>
@@ -155,7 +212,7 @@ OIDN_NAMESPACE_BEGIN
     {
       if (layout != accessorLayout || dataType != DataTypeOf<T>::value)
         throw std::logic_error("incompatible tensor accessor");
-      return TensorAccessor4D<T, accessorLayout>(getData(), getO(), getI(), getH(), getW());
+      return TensorAccessor4D<T, accessorLayout>(getData(), getPaddedO(), getPaddedI(), getH(), getW());
     }
 
     std::shared_ptr<Tensor> map(Access access);

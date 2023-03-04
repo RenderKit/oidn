@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "cpu_upsample.h"
@@ -24,13 +24,13 @@ OIDN_NAMESPACE_BEGIN
 
     if (srcDesc.layout != TensorLayout::chw)
     {
-      const int blockC = getTensorLayoutBlockC(srcDesc.layout);
+      const int blockC = getTensorLayoutInfo(srcDesc.layout).blockC;
 
       ispc::CPUUpsampleKernel kernel;
       kernel.src = toISPC(*src);
       kernel.dst = toISPC(*dst);
 
-      parallel_nd(src->getC() / blockC, src->getH(), [&](int cb, int h)
+      parallel_nd(src->getPaddedC() / blockC, src->getH(), [&](int cb, int h)
       {
         ispc::CPUUpsampleKernel_run(&kernel, cb, h);
       });
@@ -40,7 +40,7 @@ OIDN_NAMESPACE_BEGIN
       const size_t H = src->getH();
       const size_t W = src->getW();
 
-      parallel_nd(src->getC(), src->getH(), [&](int c, int h)
+      parallel_nd(src->getPaddedC(), src->getH(), [&](int c, int h)
       {
         const size_t offset = (c*H + h) * W;
         const float* srcPtr_line = (float*)src->getData() + offset;

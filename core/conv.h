@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -21,7 +21,7 @@ OIDN_NAMESPACE_BEGIN
     Upsample
   };
 
-  // 3x3 convolution descriptor
+  // Convolution descriptor
   struct ConvDesc
   {
     TensorDesc srcDesc;
@@ -31,7 +31,7 @@ OIDN_NAMESPACE_BEGIN
     PostOp postOp;
   };
 
-  // 3x3 convolution
+  // Convolution
   class Conv : public Op, protected ConvDesc
   {
   public:

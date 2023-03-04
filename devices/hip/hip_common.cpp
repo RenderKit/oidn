@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "hip_common.h"
@@ -58,14 +58,14 @@ OIDN_NAMESPACE_BEGIN
       checkError(miopenSet4dTensorDescriptor(
         miDesc,
         toMIOpen(td.dataType),
-        1, td.getC(), td.getH(), td.getW()));
+        1, td.getPaddedC(), td.getH(), td.getW()));
       break;
 
     case TensorLayout::oihw:
       checkError(miopenSet4dTensorDescriptor(
         miDesc,
         toMIOpen(td.dataType),
-        td.getO(), td.getI(), td.getH(), td.getW()));
+        td.getPaddedO(), td.getPaddedI(), td.getH(), td.getW()));
       break;
 
     default:

@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "engine.h"
@@ -59,14 +59,6 @@ OIDN_NAMESPACE_BEGIN
   bool Engine::isConvSupported(PostOp postOp)
   {
     return postOp == PostOp::None;
-  }
-
-  std::shared_ptr<ConcatConv> Engine::newConcatConv(const ConcatConvDesc& desc)
-  {
-    if (getDevice()->getTensorLayout() == TensorLayout::hwc)
-      return std::make_shared<ConcatConvHWC>(this, desc);
-    else
-      return std::make_shared<ConcatConvCHW>(this, desc);
   }
 
 OIDN_NAMESPACE_END

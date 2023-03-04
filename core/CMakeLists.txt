@@ -47,8 +47,6 @@ set(CORE_SOURCES
   progress.h
   progress.cpp
   ref.h
-  reorder.h
-  reorder.cpp
   rt_filter.h
   rt_filter.cpp
   rtlightmap_filter.h
@@ -69,8 +67,6 @@ set(CORE_SOURCES
   upsample.h
   upsample.cpp
   vec.h
-  weights.h
-  weights.cpp
 )
 
 add_library(${PROJECT_NAME}_core SHARED ${CORE_SOURCES} ${OIDN_RESOURCE})
