@@ -196,10 +196,12 @@ OIDN_NAMESPACE_BEGIN
       : Conv(desc),
         engine(engine)
     {
-      if (activation != builtinActivation)
-        throw std::logic_error("incompatible convolution activation function");
+      if (srcDesc.dataType != DataTypeOf<T>::value)
+        throw std::invalid_argument("unexpected convolution source data type");
       if (weightDesc.dataType != srcDesc.dataType || biasDesc.dataType != srcDesc.dataType)
-        throw std::invalid_argument("unsupported combination of convolution argument data types");
+        throw std::invalid_argument("unsupported convolution weight/bias data type");
+      if (activation != builtinActivation)
+        throw std::invalid_argument("unexpected convolution activation function");
 
       problemSize = toCutlassProblemSize(desc);
 

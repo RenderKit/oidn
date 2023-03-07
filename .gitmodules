@@ -7,3 +7,6 @@
 [submodule "cutlass"]
 	path = external/cutlass
 	url = https://github.com/NVIDIA/cutlass.git
+[submodule "external/composable_kernel"]
+	path = external/composable_kernel
+	url = https://github.com/ROCmSoftwarePlatform/composable_kernel.git

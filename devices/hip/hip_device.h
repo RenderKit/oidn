@@ -13,12 +13,22 @@ OIDN_NAMESPACE_BEGIN
 
   class HIPEngine;
 
+  // GPU matrix architecture
+  enum class HIPArch
+  {
+    Unknown,
+    DL,      // RDNA2
+    XDL,     // CDNA1, CDNA2
+    WMMA,    // RDNA3
+  };
+
   class HIPDevice final : public Device
   {
     friend class HIPEngine;
 
   public:
     static bool isSupported();
+    static HIPArch getArch(const std::string& archStr);
 
     explicit HIPDevice(hipStream_t stream = nullptr);
     
@@ -41,6 +51,7 @@ OIDN_NAMESPACE_BEGIN
 
     Ref<HIPEngine> engine;
     hipStream_t stream = nullptr;
+    HIPArch arch = HIPArch::Unknown;
     int maxWorkGroupSize = 0;
   };
 

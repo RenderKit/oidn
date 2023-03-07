@@ -6,8 +6,6 @@
 #include "core/engine.h"
 #include "hip_device.h"
 
-typedef struct miopenHandle* miopenHandle_t;
-
 OIDN_NAMESPACE_BEGIN
 
 #if defined(OIDN_COMPILE_HIP)
@@ -56,11 +54,8 @@ OIDN_NAMESPACE_BEGIN
               int deviceId,
               hipStream_t stream);
 
-    ~HIPEngine();
-
     Device* getDevice() const override { return device; }
     hipStream_t getHIPStream() const { return stream; }
-    miopenHandle_t getMIOpenHandle() const { return miopenHandle; }
 
     void wait() override;
 
@@ -114,7 +109,6 @@ OIDN_NAMESPACE_BEGIN
     HIPDevice* device;
     int deviceId;
     hipStream_t stream;
-    miopenHandle_t miopenHandle = nullptr;
   };
 
 OIDN_NAMESPACE_END

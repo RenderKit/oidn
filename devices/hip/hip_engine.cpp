@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "hip_engine.h"
-#include "hip_common.h"
 #include "hip_conv.h"
 #include "../gpu/gpu_autoexposure.h"
 #include "../gpu/gpu_input_process.h"
@@ -18,16 +17,7 @@ OIDN_NAMESPACE_BEGIN
                        hipStream_t stream)
     : device(device.get()),
       deviceId(deviceId),
-      stream(stream)
-  {
-    checkError(miopenCreateWithStream(&miopenHandle, stream));
-    //miopenEnableProfiling(miopenHandle, true);
-  }
-
-  HIPEngine::~HIPEngine()
-  {
-    checkError(miopenDestroy(miopenHandle));
-  }
+      stream(stream) {}
 
   void HIPEngine::wait()
   {
@@ -36,17 +26,27 @@ OIDN_NAMESPACE_BEGIN
 
   std::shared_ptr<Conv> HIPEngine::newConv(const ConvDesc& desc)
   {
-    return std::make_shared<HIPConv>(this, desc);
+    switch (device->arch)
+    {
+    case HIPArch::DL:
+      return newHIPConvDL(this, desc);
+    case HIPArch::XDL:
+      return newHIPConvXDL(this, desc);   
+    case HIPArch::WMMA:
+      return newHIPConvWMMA(this, desc); 
+    default:
+      throw std::logic_error("unsupported HIP device architecture");
+    }
   }
 
   std::shared_ptr<Pool> HIPEngine::newPool(const PoolDesc& desc)
   {
-    return std::make_shared<GPUPool<HIPEngine, half, TensorLayout::chw>>(this, desc);
+    return std::make_shared<GPUPool<HIPEngine, half, TensorLayout::hwc>>(this, desc);
   }
 
   std::shared_ptr<Upsample> HIPEngine::newUpsample(const UpsampleDesc& desc)
   {
-    return std::make_shared<GPUUpsample<HIPEngine, half, TensorLayout::chw>>(this, desc);
+    return std::make_shared<GPUUpsample<HIPEngine, half, TensorLayout::hwc>>(this, desc);
   }
 
   std::shared_ptr<Autoexposure> HIPEngine::newAutoexposure(const ImageDesc& srcDesc)
@@ -56,12 +56,12 @@ OIDN_NAMESPACE_BEGIN
 
   std::shared_ptr<InputProcess> HIPEngine::newInputProcess(const InputProcessDesc& desc)
   {
-    return std::make_shared<GPUInputProcess<HIPEngine, half, TensorLayout::chw>>(this, desc);
+    return std::make_shared<GPUInputProcess<HIPEngine, half, TensorLayout::hwc>>(this, desc);
   }
 
   std::shared_ptr<OutputProcess> HIPEngine::newOutputProcess(const OutputProcessDesc& desc)
   {
-    return std::make_shared<GPUOutputProcess<HIPEngine, half, TensorLayout::chw>>(this, desc);
+    return std::make_shared<GPUOutputProcess<HIPEngine, half, TensorLayout::hwc>>(this, desc);
   }
 
   std::shared_ptr<ImageCopy> HIPEngine::newImageCopy()

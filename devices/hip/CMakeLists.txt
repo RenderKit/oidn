@@ -8,6 +8,8 @@ endif()
 # Search for rocm in common locations
 list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/hip ${ROCM_PATH})
 
+set(GPU_TARGETS "gfx908,gfx90a,gfx1030,gfx1100,gfx1101,gfx1102")
+
 # Find hip
 find_package(hip)
 
@@ -15,14 +17,12 @@ find_package(hip)
 set(CMAKE_CXX_COMPILER ${HIP_HIPCC_EXECUTABLE})
 set(CMAKE_CXX_LINKER   ${HIP_HIPCC_EXECUTABLE})
 
-# Find MIOpen
-find_package(miopen)
-
 set(HIP_SOURCES
-  hip_common.h
-  hip_common.cpp
+  ck_conv.h
+  ck_conv_dl.cpp
+  ck_conv_wmma.cpp
+  ck_conv_xdl.cpp
   hip_conv.h
-  hip_conv.cpp
   hip_device.h
   hip_device.cpp
   hip_engine.h
@@ -32,6 +32,16 @@ set(HIP_SOURCES
 
 add_library(${PROJECT_NAME}_device_hip SHARED ${HIP_SOURCES} ${GPU_SOURCES} ${OIDN_RESOURCE})
 set_property(TARGET ${PROJECT_NAME}_device_hip PROPERTY VERSION ${PROJECT_VERSION})
-target_link_libraries(${PROJECT_NAME}_device_hip PRIVATE ${PROJECT_NAME}_core hip::device MIOpen)
+set_property(TARGET ${PROJECT_NAME}_device_hip PROPERTY CXX_STANDARD 17)
+
+target_include_directories(${PROJECT_NAME}_device_hip
+  PRIVATE
+    "${PROJECT_SOURCE_DIR}/external/composable_kernel/include"
+    "${PROJECT_SOURCE_DIR}/external/composable_kernel/library/include"
+)
+
+target_compile_definitions(${PROJECT_NAME}_device_hip PRIVATE __HIP_PLATFORM_HCC__=1)
+
+target_link_libraries(${PROJECT_NAME}_device_hip PRIVATE ${PROJECT_NAME}_core hip::device)
 oidn_strip_symbols(${PROJECT_NAME}_device_hip)
 oidn_install_module(${PROJECT_NAME}_device_hip)

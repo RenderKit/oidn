@@ -18,7 +18,7 @@ OIDN_NAMESPACE_BEGIN
     else if (smArch >= 70)
       kernels = getCutlassConvInstances<70>();
     else
-      throw std::runtime_error("could not find a supported convolution kernel");
+      throw std::runtime_error("unsupported convolution");
 
     // Select the likely fastest compatible kernel
     const auto problemSize = toCutlassProblemSize(desc);
@@ -48,7 +48,7 @@ OIDN_NAMESPACE_BEGIN
     }
 
     if (!bestKernel)
-      throw std::runtime_error("could not find a compatible convolution kernel");
+      throw std::runtime_error("unsupported convolution");
 
     return bestKernel->make(engine, desc);
   }

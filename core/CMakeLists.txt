@@ -1,6 +1,8 @@
 ## Copyright 2009-2023 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
+find_package(Threads REQUIRED)
+
 set(CORE_SOURCES
   autoexposure.h
   buffer.h
@@ -76,7 +78,7 @@ target_link_libraries(${PROJECT_NAME}_core
   PUBLIC
     ${PROJECT_NAME}_common
   PRIVATE
-    ${PROJECT_NAME}_weights
+    ${PROJECT_NAME}_weights Threads::Threads ${CMAKE_DL_LIBS}
 )
 
 oidn_export_all_symbols(${PROJECT_NAME}_core)
