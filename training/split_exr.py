@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-## Copyright 2018-2021 Intel Corporation
+## Copyright 2018-2023 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 import os
@@ -56,6 +56,7 @@ def main():
             ],
     'nrm' : [
               ('normal.R', 'normal.G', 'normal.B'),
+              ('normal.X', 'normal.Y', 'normal.Z'),
               ('N.R', 'N.G', 'N.B'),
               ('Denoising Normal.X', 'Denoising Normal.Y', 'Denoising Normal.Z'),
               ('Normals.R', 'Normals.G', 'Normals.B'),
