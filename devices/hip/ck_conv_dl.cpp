@@ -57,11 +57,11 @@ OIDN_NAMESPACE_BEGIN
         GemmSpec,                // GEMMSpecialization
         256,                     // BlockSize
         128,                     // MPerBlock
-        128,                     // NPerBlock
+        64,                      // NPerBlock
         16,                      // K0PerBlock
         2,                       // K1
         4,                       // M1PerThreadM111
-        4,                       // N1PerThreadN111
+        2,                       // N1PerThreadN111
         1,                       // KPerThread
         S<8, 2>,                 // M11N11ThreadClusterM110Xs
         S<8, 2>,                 // M11N11ThreadClusterN110Xs
@@ -73,7 +73,7 @@ OIDN_NAMESPACE_BEGIN
         S<1, 2, 0, 3>,           // ABlockTransferSrcVectorTensorContiguousDimOrder
         S<1, 1, 1, 2>,           // ABlockTransferDstVectorTensorLengths_K0_M0_M1_K1
         S<8, 1, 1, 2>,           // BBlockTransferThreadSliceLengthsK0_N0_N1_K1
-        S<2, 1, 128, 1>,         // BBlockTransferThreadClusterLengthsK0_N0_N1_K1
+        S<2, 1, 64, 1>,          // BBlockTransferThreadClusterLengthsK0_N0_N1_K1
         S<1, 2, 0, 3>,           // BBlockTransferThreadClusterArrangeOrder
         S<1, 2, 0, 3>,           // BBlockTransferSrcAccessOrder
         S<4, 1, 1, 2>,           // BBlockTransferSrcVectorTensorLengths_K0_N0_N1_K1
@@ -81,7 +81,7 @@ OIDN_NAMESPACE_BEGIN
         S<1, 1, 1, 2>,           // BBlockTransferDstVectorTensorLengths_K0_N0_N1_K1
         S<0, 1, 2, 3, 4, 5>,     // CThreadTransferSrcDstAccessOrder
         5,                       // CThreadTransferSrcDstVectorDim
-        4                        // CThreadTransferDstScalarPerVector
+        2                        // CThreadTransferDstScalarPerVector
       >;
   
   public:
