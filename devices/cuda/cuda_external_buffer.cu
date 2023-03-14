@@ -72,7 +72,7 @@ OIDN_NAMESPACE_BEGIN
     bufferDesc.flags  = 0;
     checkError(cudaExternalMemoryGetMappedBuffer(&devPtr, extMem, &bufferDesc));
 
-    ptr      = (char*)devPtr;
+    ptr      = static_cast<char*>(devPtr);
     byteSize = handleDesc.size;
     shared   = true;
     storage  = Storage::Device;

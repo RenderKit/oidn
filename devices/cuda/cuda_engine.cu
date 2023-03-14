@@ -1,9 +1,9 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "cuda_engine.h"
-#include "cuda_conv.h"
 #include "cuda_external_buffer.h"
+#include "cuda_conv.h"
 #include "../gpu/gpu_autoexposure.h"
 #include "../gpu/gpu_input_process.h"
 #include "../gpu/gpu_output_process.h"
