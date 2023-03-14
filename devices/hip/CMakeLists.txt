@@ -27,6 +27,8 @@ set(HIP_SOURCES
   hip_device.cpp
   hip_engine.h
   hip_engine.cpp
+  hip_external_buffer.h
+  hip_external_buffer.cpp
   hip_module.cpp
 )
 

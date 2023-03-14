@@ -85,6 +85,19 @@ OIDN_NAMESPACE_BEGIN
     weightLayout   = TensorLayout::ohwi;
     tensorBlockC   = (arch == HIPArch::XDL) ? 8 : 32;
 
+  #if defined(_WIN32)
+    externalMemoryTypes = ExternalMemoryTypeFlag::OpaqueWin32 |
+                          ExternalMemoryTypeFlag::OpaqueWin32KMT |
+                          ExternalMemoryTypeFlag::D3D11Texture |
+                          ExternalMemoryTypeFlag::D3D11TextureKMT |
+                          ExternalMemoryTypeFlag::D3D11Resource |
+                          ExternalMemoryTypeFlag::D3D11ResourceKMT |
+                          ExternalMemoryTypeFlag::D3D12Heap |
+                          ExternalMemoryTypeFlag::D3D12Resource;
+  #else
+    externalMemoryTypes = ExternalMemoryTypeFlag::OpaqueFD;
+  #endif
+
     engine = makeRef<HIPEngine>(this, deviceId, stream);
   }
 

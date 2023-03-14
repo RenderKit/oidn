@@ -1,7 +1,8 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "hip_engine.h"
+#include "hip_external_buffer.h"
 #include "hip_conv.h"
 #include "../gpu/gpu_autoexposure.h"
 #include "../gpu/gpu_input_process.h"
@@ -19,9 +20,16 @@ OIDN_NAMESPACE_BEGIN
       deviceId(deviceId),
       stream(stream) {}
 
-  void HIPEngine::wait()
+  Ref<Buffer> HIPEngine::newExternalBuffer(ExternalMemoryTypeFlag fdType,
+                                           int fd, size_t byteSize)
   {
-    checkError(hipStreamSynchronize(stream));
+    return makeRef<HIPExternalBuffer>(this, fdType, fd, byteSize);
+  }
+
+  Ref<Buffer> HIPEngine::newExternalBuffer(ExternalMemoryTypeFlag handleType,
+                                           void* handle, const void* name, size_t byteSize)
+  {
+    return makeRef<HIPExternalBuffer>(this, handleType, handle, name, byteSize);
   }
 
   std::shared_ptr<Conv> HIPEngine::newConv(const ConvDesc& desc)
@@ -125,6 +133,11 @@ OIDN_NAMESPACE_BEGIN
   {
     auto fPtr = new std::function<void()>(std::move(f));
     checkError(hipStreamAddCallback(stream, hostFuncCallback, fPtr, 0));
+  }
+
+  void HIPEngine::wait()
+  {
+    checkError(hipStreamSynchronize(stream));
   }
 
 OIDN_NAMESPACE_END

@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -57,7 +57,12 @@ OIDN_NAMESPACE_BEGIN
     Device* getDevice() const override { return device; }
     hipStream_t getHIPStream() const { return stream; }
 
-    void wait() override;
+    // Buffer
+    Ref<Buffer> newExternalBuffer(ExternalMemoryTypeFlag fdType,
+                                  int fd, size_t byteSize) override;
+
+    Ref<Buffer> newExternalBuffer(ExternalMemoryTypeFlag handleType,
+                                  void* handle, const void* name, size_t byteSize) override;
 
     // Ops
     std::shared_ptr<Conv> newConv(const ConvDesc& desc) override;
@@ -98,6 +103,8 @@ OIDN_NAMESPACE_BEGIN
 
     // Enqueues a host function
     void submitHostFunc(std::function<void()>&& f) override;
+
+    void wait() override;
 
     int getMaxWorkGroupSize() const override { return device->maxWorkGroupSize; }
 
