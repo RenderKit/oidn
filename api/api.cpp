@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 // Locks the device that owns the specified object
@@ -92,11 +92,13 @@ OIDN_API_NAMESPACE_BEGIN
       if (type == DeviceType::Default)
       {
         for (auto curType : {DeviceType::CUDA, DeviceType::HIP, DeviceType::SYCL, DeviceType::CPU})
+        {
           if (ctx.isDeviceSupported(curType))
           {
             type = curType;
             break;
           }
+        }
       }
 
       device = ctx.getDeviceFactory(type)->newDevice();
@@ -250,7 +252,7 @@ OIDN_API_NAMESPACE_BEGIN
       OIDN_LOCK(device);
       device->checkCommitted();
       Ref<Buffer> buffer = device->getEngine()->newBuffer(byteSize, Storage::Host);
-      return (OIDNBuffer)buffer.detach();
+      return reinterpret_cast<OIDNBuffer>(buffer.detach());
     OIDN_CATCH(device)
     return nullptr;
   }
@@ -263,7 +265,7 @@ OIDN_API_NAMESPACE_BEGIN
       OIDN_LOCK(device);
       device->checkCommitted();
       Ref<Buffer> buffer = device->getEngine()->newBuffer(byteSize, static_cast<Storage>(storage));
-      return (OIDNBuffer)buffer.detach();
+      return reinterpret_cast<OIDNBuffer>(buffer.detach());
     OIDN_CATCH(device)
     return nullptr;
   }
@@ -276,7 +278,7 @@ OIDN_API_NAMESPACE_BEGIN
       OIDN_LOCK(device);
       device->checkCommitted();
       Ref<Buffer> buffer = device->getEngine()->newBuffer(devPtr, byteSize);
-      return (OIDNBuffer)buffer.detach();
+      return reinterpret_cast<OIDNBuffer>(buffer.detach());
     OIDN_CATCH(device)
     return nullptr;
   }
@@ -422,7 +424,7 @@ OIDN_API_NAMESPACE_BEGIN
       OIDN_LOCK(device);
       device->checkCommitted();
       Ref<Filter> filter = device->newFilter(type);
-      return (OIDNFilter)filter.detach();
+      return reinterpret_cast<OIDNFilter>(filter.detach());
     OIDN_CATCH(device)
     return nullptr;
   }
@@ -450,10 +452,12 @@ OIDN_API_NAMESPACE_BEGIN
       checkHandle(hFilter);
       checkHandle(hBuffer);
       OIDN_LOCK(filter);
-      Ref<Buffer> buffer = (Buffer*)hBuffer;
+      Ref<Buffer> buffer = reinterpret_cast<Buffer*>(hBuffer);
       if (buffer->getDevice() != filter->getDevice())
         throw Exception(Error::InvalidArgument, "the specified objects are bound to different devices");
-      auto image = std::make_shared<Image>(buffer, (Format)format, (int)width, (int)height, byteOffset, pixelByteStride, rowByteStride);
+      auto image = std::make_shared<Image>(buffer, static_cast<Format>(format),
+                                           static_cast<int>(width), static_cast<int>(height),
+                                           byteOffset, pixelByteStride, rowByteStride);
       filter->setImage(name, image);
     OIDN_CATCH(filter)
   }
@@ -468,7 +472,9 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_TRY
       checkHandle(hFilter);
       OIDN_LOCK(filter);
-      auto image = std::make_shared<Image>(devPtr, (Format)format, (int)width, (int)height, byteOffset, pixelByteStride, rowByteStride);
+      auto image = std::make_shared<Image>(devPtr, static_cast<Format>(format),
+                                           static_cast<int>(width), static_cast<int>(height),
+                                           byteOffset, pixelByteStride, rowByteStride);
       filter->setImage(name, image);
     OIDN_CATCH(filter)
   }
