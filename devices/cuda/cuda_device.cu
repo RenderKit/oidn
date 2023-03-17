@@ -38,14 +38,46 @@ OIDN_NAMESPACE_BEGIN
            prop.unifiedAddressing && prop.managedMemory;
   }
 
-  CUDADevice::CUDADevice(cudaStream_t stream)
-    : stream(stream) {}
+  CUDADevice::CUDADevice(int deviceId, cudaStream_t stream)
+    : deviceId(deviceId),
+      stream(stream)
+  {
+    if (deviceId < 0)
+      checkError(cudaGetDevice(&this->deviceId));
+  }
+
+  CUDADevice::~CUDADevice()
+  {
+    // Make sure to free up all resources inside a begin/end block
+    begin();
+    engine = nullptr;
+    end();
+  }
+
+  void CUDADevice::begin()
+  {
+    assert(prevDeviceId < 0);
+
+    // Save the current CUDA device
+    checkError(cudaGetDevice(&prevDeviceId));
+
+    // Set the current CUDA device
+    if (deviceId != prevDeviceId)
+      checkError(cudaSetDevice(deviceId));
+  }
+
+  void CUDADevice::end()
+  {
+    assert(prevDeviceId >= 0);
+
+    // Restore the previous CUDA device
+    if (deviceId != prevDeviceId)
+      checkError(cudaSetDevice(prevDeviceId));
+    prevDeviceId = -1;
+  }
 
   void CUDADevice::init()
   {
-    int deviceId = 0;
-    checkError(cudaGetDevice(&deviceId));
-
     cudaDeviceProp prop;
     checkError(cudaGetDeviceProperties(&prop, deviceId));
     maxWorkGroupSize = prop.maxThreadsPerBlock;
@@ -84,7 +116,7 @@ OIDN_NAMESPACE_BEGIN
     externalMemoryTypes = ExternalMemoryTypeFlag::OpaqueFD;
 #endif
 
-    engine = makeRef<CUDAEngine>(this, deviceId, stream);
+    engine = makeRef<CUDAEngine>(this, stream);
   }
 
   Storage CUDADevice::getPointerStorage(const void* ptr)

@@ -14,10 +14,8 @@
 OIDN_NAMESPACE_BEGIN
 
   CUDAEngine::CUDAEngine(const Ref<CUDADevice>& device,
-                         int deviceId,
                          cudaStream_t stream)
     : device(device.get()),
-      deviceId(deviceId),
       stream(stream) {}
 
   Ref<Buffer> CUDAEngine::newExternalBuffer(ExternalMemoryTypeFlag fdType,

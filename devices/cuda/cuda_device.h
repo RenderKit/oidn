@@ -19,7 +19,11 @@ OIDN_NAMESPACE_BEGIN
   public:
     static bool isSupported();
 
-    explicit CUDADevice(cudaStream_t stream = nullptr);
+    CUDADevice(int deviceId = -1, cudaStream_t stream = nullptr);
+    ~CUDADevice();
+
+    void begin() override;
+    void end() override;
     
     DeviceType getType() const override { return DeviceType::CUDA; }
 
@@ -43,6 +47,9 @@ OIDN_NAMESPACE_BEGIN
     static constexpr int maxSMArch = 99;
 
     Ref<CUDAEngine> engine;
+
+    int deviceId = 0;
+    int prevDeviceId = -1;
     cudaStream_t stream = nullptr;
 
     int maxWorkGroupSize = 0;

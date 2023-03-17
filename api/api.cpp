@@ -1,10 +1,10 @@
 // Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-// Locks the device that owns the specified object
+// Locks the device that owns the specified object and saves/restores state
 // Use *only* inside OIDN_TRY/CATCH!
 #define OIDN_LOCK(obj) \
-  std::lock_guard<std::mutex> lock(obj->getDevice()->getMutex());
+  DeviceGuard guard(obj);
 
 // Try/catch for converting exceptions to errors
 #define OIDN_TRY \
@@ -28,6 +28,27 @@
 
 OIDN_NAMESPACE_USING
 OIDN_API_NAMESPACE_BEGIN
+
+  class DeviceGuard
+  {
+  public:
+    template<typename T>
+    DeviceGuard(T* obj)
+      : device(obj->getDevice()),
+        lock(device->getMutex())
+    {
+      device->begin(); // save state
+    }
+
+    ~DeviceGuard()
+    {
+      device->end(); // restore state
+    }
+
+  private:
+    Device* device;
+    std::lock_guard<std::mutex> lock;
+  };
 
   namespace
   {
@@ -74,7 +95,9 @@ OIDN_API_NAMESPACE_BEGIN
         OIDN_TRY
           checkHandle(obj);
           // Do NOT lock the device because it owns the mutex
-          obj->wait(); // wait for all async operations to complete
+          obj->begin(); // save stase
+          obj->wait();  // wait for all async operations to complete
+          obj->end();   // restore state
           obj->destroy();
         OIDN_CATCH(obj)
       }
@@ -118,21 +141,16 @@ OIDN_API_NAMESPACE_BEGIN
     return reinterpret_cast<OIDNDevice>(device.detach());
   }
 
-#if 0 // FIXME
-  OIDN_API OIDNDevice oidnNewCUDADevice(const cudaStream_t* streams, int numStreams)
+  OIDN_API OIDNDevice oidnNewCUDADevice(const int* deviceIds, const cudaStream_t* streams, int num)
   {
     Ref<Device> device = nullptr;
     OIDN_TRY
-      if (numStreams == 1)
-        device = makeRef<CUDADevice>(streams[0]);
-      else if (numStreams == 0)
-        device = makeRef<CUDADevice>();
-      else
-        throw Exception(Error::InvalidArgument, "unsupported number of streams");
+      Context& ctx = Context::get();
+      auto factory = static_cast<CUDADeviceFactoryBase*>(ctx.getDeviceFactory(DeviceType::CUDA));
+      device = factory->newDevice(deviceIds, streams, num);
     OIDN_CATCH(device)
-    return (OIDNDevice)device.detach();
+    return reinterpret_cast<OIDNDevice>(device.detach());
   }
-#endif
 
 #if 0 // FIXME
   OIDN_API OIDNDevice oidnNewHIPDevice(const hipStream_t* streams, int numStreams)

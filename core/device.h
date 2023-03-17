@@ -33,6 +33,11 @@ OIDN_NAMESPACE_BEGIN
 
     void warning(const std::string& message);
 
+    // Some devices (e.g. CUDA, HIP) need to change some per-thread state, which must be later restored
+    // Most device calls must be between begin() and end() calls
+    virtual void begin() {}
+    virtual void end() {}
+
     virtual DeviceType getType() const = 0;
 
     virtual int get1i(const std::string& name);

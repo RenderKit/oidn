@@ -59,18 +59,18 @@ typedef struct OIDNDeviceImpl* OIDNDevice;
 // Creates a device of the specified type.
 OIDN_API OIDNDevice oidnNewDevice(OIDNDeviceType type);
 
-// Creates a SYCL device from the specified list of SYCL queues.
-// The queues should belong to SYCL sub-devices (Xe-Stacks/Tiles) of the same SYCL root-device (Xe GPU).
+// Creates a device from the specified list of SYCL queues.
+// The queues should belong to SYCL sub-devices (Xe-Stacks/Tiles) of the same
+// SYCL root-device (Xe GPU).
 OIDN_API OIDNDevice oidnNewSYCLDevice(const sycl::queue* queues, int numQueues);
 
-#if 0 // FIXME
-// Creates a CUDA device from the specified list of CUDA streams.
-// Currently only one stream is supported.
-OIDN_API OIDNDevice oidnNewCUDADevice(const cudaStream_t* streams, int numStreams);
-#endif
+// Creates a device from the specified pairs of CUDA device IDs (negative value
+// maps to the current device) and streams (null maps to the default stream).
+// Currently only one device ID/stream is supported.
+OIDN_API OIDNDevice oidnNewCUDADevice(const int* deviceIds, const cudaStream_t* streams, int num);
 
 #if 0 // FIXME
-// Creates a HIP device from the specified list of HIP streams.
+// Creates a device from the specified list of HIP streams.
 // Currently only one stream is supported.
 OIDN_API OIDNDevice oidnNewHIPDevice(const hipStream_t* streams, int numStreams);
 #endif

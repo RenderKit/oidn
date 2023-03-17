@@ -51,7 +51,6 @@ OIDN_NAMESPACE_BEGIN
   {
   public:
     CUDAEngine(const Ref<CUDADevice>& device,
-               int deviceId,
                cudaStream_t stream);
 
     Device* getDevice() const override { return device; }
@@ -120,7 +119,6 @@ OIDN_NAMESPACE_BEGIN
     WorkDim<3> suggestWorkGroupSize(WorkDim<3> globalSize) { return {1, 16, 16}; }
 
     CUDADevice* device;
-    int deviceId;
     cudaStream_t stream;
   };
 
