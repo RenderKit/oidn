@@ -100,10 +100,11 @@ Image Denoise you need the following prerequisites:
     Compiler](https://software.intel.com/en-us/c-compilers) 17.0 or
     later)
 
-  - [Intel® SPMD Program Compiler (ISPC)](http://ispc.github.io),
-    version 1.14.1 or later. Please obtain a release of ISPC from the
-    [ISPC downloads page](https://ispc.github.io/downloads.html). The
-    build system looks for ISPC in the `PATH` and in the directory right
+  - [Intel® SPMD Program Compiler (ISPC)](http://ispc.github.io).
+    Please obtain a release of ISPC from the [ISPC downloads page](https://ispc.github.io/downloads.html). 
+    The compatible versions can be found within the cmake files:
+    https://github.com/OpenImageDenoise/oidn/blob/d959bac5b7130b31c41095811ddfbe58c4cf03f4/cmake/oidn_ispc.cmake#L5
+    The build system looks for ISPC in the `PATH` and in the directory right
     “next to” the checked-out Intel Open Image Denoise sources.\[1\]
     Alternatively set the CMake variable `ISPC_EXECUTABLE` to the
     location of the ISPC compiler.
