@@ -82,8 +82,28 @@ OIDN_NAMESPACE_BEGIN
 
     if (isVerbose())
     {
-      // FIXME: detect CPU name
-      std::cout << "  Device    : CPU" << std::endl;
+    #if defined(__APPLE__)
+      char name[256] = {};
+      size_t nameSize = sizeof(name)-1;
+      if (sysctlbyname("machdep.cpu.brand_string", &name, &nameSize, nullptr, 0) != 0)
+        strcpy(name, "CPU");
+    #else
+      unsigned int regs[12];
+      char name[sizeof(regs)+1] = {};
+
+      __cpuid(0x80000000, regs[0], regs[1], regs[2], regs[3]);
+      if (regs[0] >= 0x80000004)
+      {
+        __cpuid(0x80000002, regs[0], regs[1], regs[2],  regs[3]);
+        __cpuid(0x80000003, regs[4], regs[5], regs[6],  regs[7]);
+        __cpuid(0x80000004, regs[8], regs[9], regs[10], regs[11]);
+        memcpy(name, regs, sizeof(regs));
+      }
+      else
+        strcpy(name, "CPU");
+    #endif
+
+      std::cout << "  Device    : " << name << std::endl;
       std::cout << "    Arch    : ";
       switch (arch)
       {
