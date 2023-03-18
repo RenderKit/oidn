@@ -6,12 +6,19 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  class HIPDeviceFactory : public DeviceFactory
+  class HIPDeviceFactory : public HIPDeviceFactoryBase
   {
   public:
     Ref<Device> newDevice() override
     {
       return makeRef<HIPDevice>();
+    }
+
+    Ref<Device> newDevice(const int* deviceIds, const hipStream_t* streams, int num) override
+    {
+      if (num != 1)
+        throw Exception(Error::InvalidArgument, "invalid number of HIP devices/streams");
+      return makeRef<HIPDevice>(deviceIds[0], streams[0]);
     }
   };
 

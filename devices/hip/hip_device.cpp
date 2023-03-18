@@ -51,14 +51,46 @@ OIDN_NAMESPACE_BEGIN
     return HIPArch::Unknown;
   }
 
-  HIPDevice::HIPDevice(hipStream_t stream)
-    : stream(stream) {}
+  HIPDevice::HIPDevice(int deviceId, hipStream_t stream)
+    : deviceId(deviceId),
+      stream(stream)
+  {
+    if (deviceId < 0)
+      checkError(hipGetDevice(&this->deviceId));
+  }
+
+  HIPDevice::~HIPDevice()
+  {
+    // Make sure to free up all resources inside a begin/end block
+    begin();
+    engine = nullptr;
+    end();
+  }
+
+  void HIPDevice::begin()
+  {
+    assert(prevDeviceId < 0);
+
+    // Save the current CUDA device
+    checkError(hipGetDevice(&prevDeviceId));
+
+    // Set the current CUDA device
+    if (deviceId != prevDeviceId)
+      checkError(hipSetDevice(deviceId));
+  }
+
+  void HIPDevice::end()
+  {
+    assert(prevDeviceId >= 0);
+
+    // Restore the previous CUDA device
+    if (deviceId != prevDeviceId)
+      checkError(hipSetDevice(prevDeviceId));
+    prevDeviceId = -1;
+  }
 
   void HIPDevice::init()
   {
-    int deviceId = 0;
-    checkError(hipGetDevice(&deviceId));
-
     const std::string archStr = ck::get_device_name();
     arch = getArch(archStr);
 
@@ -98,7 +130,7 @@ OIDN_NAMESPACE_BEGIN
     externalMemoryTypes = ExternalMemoryTypeFlag::OpaqueFD;
   #endif
 
-    engine = makeRef<HIPEngine>(this, deviceId, stream);
+    engine = makeRef<HIPEngine>(this, stream);
   }
 
   Storage HIPDevice::getPointerStorage(const void* ptr)

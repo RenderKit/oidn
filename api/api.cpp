@@ -152,21 +152,16 @@ OIDN_API_NAMESPACE_BEGIN
     return reinterpret_cast<OIDNDevice>(device.detach());
   }
 
-#if 0 // FIXME
-  OIDN_API OIDNDevice oidnNewHIPDevice(const hipStream_t* streams, int numStreams)
+  OIDN_API OIDNDevice oidnNewHIPDevice(const int* deviceIds, const hipStream_t* streams, int num)
   {
     Ref<Device> device = nullptr;
     OIDN_TRY
-      if (numStreams == 1)
-        device = makeRef<HIPDevice>(streams[0]);
-      else if (numStreams == 0)
-        device = makeRef<HIPDevice>();
-      else
-        throw Exception(Error::InvalidArgument, "unsupported number of streams");
+      Context& ctx = Context::get();
+      auto factory = static_cast<HIPDeviceFactoryBase*>(ctx.getDeviceFactory(DeviceType::HIP));
+      device = factory->newDevice(deviceIds, streams, num);
     OIDN_CATCH(device)
-    return (OIDNDevice)device.detach();
+    return reinterpret_cast<OIDNDevice>(device.detach());
   }
-#endif
 
   OIDN_API void oidnRetainDevice(OIDNDevice hDevice)
   {

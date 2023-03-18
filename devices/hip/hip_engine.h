@@ -51,7 +51,6 @@ OIDN_NAMESPACE_BEGIN
   { 
   public:
     HIPEngine(const Ref<HIPDevice>& device,
-              int deviceId,
               hipStream_t stream);
 
     Device* getDevice() const override { return device; }
@@ -114,7 +113,6 @@ OIDN_NAMESPACE_BEGIN
     WorkDim<3> suggestWorkGroupSize(WorkDim<3> globalSize) { return {1, 32, 32}; }
 
     HIPDevice* device;
-    int deviceId;
     hipStream_t stream;
   };
 

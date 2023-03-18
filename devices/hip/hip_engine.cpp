@@ -14,10 +14,8 @@
 OIDN_NAMESPACE_BEGIN
 
   HIPEngine::HIPEngine(const Ref<HIPDevice>& device,
-                       int deviceId,
                        hipStream_t stream)
     : device(device.get()),
-      deviceId(deviceId),
       stream(stream) {}
 
   Ref<Buffer> HIPEngine::newExternalBuffer(ExternalMemoryTypeFlag fdType,

@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -12,7 +12,8 @@
 #if defined(SYCL_LANGUAGE_VERSION)
   #include <CL/sycl.hpp>
 #else
-  namespace sycl {
+  namespace sycl
+  {
     class queue;
     class event;
   }
@@ -69,11 +70,10 @@ OIDN_API OIDNDevice oidnNewSYCLDevice(const sycl::queue* queues, int numQueues);
 // Currently only one device ID/stream is supported.
 OIDN_API OIDNDevice oidnNewCUDADevice(const int* deviceIds, const cudaStream_t* streams, int num);
 
-#if 0 // FIXME
-// Creates a device from the specified list of HIP streams.
-// Currently only one stream is supported.
-OIDN_API OIDNDevice oidnNewHIPDevice(const hipStream_t* streams, int numStreams);
-#endif
+// Creates a device from the specified pairs of HIP device IDs (negative value
+// maps to the current device) and streams (null maps to the default stream).
+// Currently only one device ID/stream is supported.
+OIDN_API OIDNDevice oidnNewHIPDevice(const int* deviceIds, const hipStream_t* streams, int num);
 
 // Retains the device (increments the reference count).
 OIDN_API void oidnRetainDevice(OIDNDevice device);

@@ -30,7 +30,11 @@ OIDN_NAMESPACE_BEGIN
     static bool isSupported();
     static HIPArch getArch(const std::string& archStr);
 
-    explicit HIPDevice(hipStream_t stream = nullptr);
+    HIPDevice(int deviceId = -1, hipStream_t stream = nullptr);
+    ~HIPDevice();
+
+    void begin() override;
+    void end() override;
     
     DeviceType getType() const override { return DeviceType::HIP; }
 
@@ -50,7 +54,11 @@ OIDN_NAMESPACE_BEGIN
     void init() override;
 
     Ref<HIPEngine> engine;
+
+    int deviceId = 0;
+    int prevDeviceId = -1;
     hipStream_t stream = nullptr;
+
     HIPArch arch = HIPArch::Unknown;
     int maxWorkGroupSize = 0;
   };
