@@ -1,10 +1,12 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
 
 #include <algorithm>
 #include <type_traits>
+#include <vector>
+#include <cassert>
 #include "oidn.h"
 
 OIDN_NAMESPACE_BEGIN
@@ -725,34 +727,51 @@ OIDN_NAMESPACE_BEGIN
   }
 
 #if defined(SYCL_LANGUAGE_VERSION)
-  // Creates a SYCL device from the specified SYCL queue.
+  // Creates a device from the specified SYCL queue.
   inline DeviceRef newSYCLDevice(const sycl::queue& queue)
   {
     return DeviceRef(oidnNewSYCLDevice(&queue, 1));
   }
 
-  // Creates a SYCL device from the specified list of SYCL queues.
-  // The queues should belong to SYCL sub-devices (Xe-Stacks/Tiles) of the same SYCL root-device (GPU).
+  // Creates a device from the specified list of SYCL queues.
+  // The queues should belong to SYCL sub-devices (Xe-Stacks/Tiles) of the same
+  // SYCL root-device (Xe GPU).
   inline DeviceRef newSYCLDevice(const std::vector<sycl::queue>& queues)
   {
     return DeviceRef(oidnNewSYCLDevice(queues.data(), int(queues.size())));
   }
 #endif
 
-#if 0 // FIXME
-  // Creates a CUDA device from the specified CUDA stream.
-  inline DeviceRef newCUDADevice(cudaStream_t stream)
+  // Creates a device from the specified CUDA device ID (negative value
+  // maps to the current device) and stream.
+  inline DeviceRef newCUDADevice(int deviceId, cudaStream_t stream)
   {
-    return DeviceRef(oidnNewCUDADevice(&stream, 1));
+    return DeviceRef(oidnNewCUDADevice(&deviceId, &stream, 1));
   }
-#endif
 
-#if 0 // FIXME
-  // Creates a HIP device from the specified HIP stream.
-  inline DeviceRef newHIPDevice(hipStream_t stream)
+  // Creates a device from the specified pairs of CUDA device IDs (negative value
+  // maps to the current device) and streams (null maps to the default stream).
+  // Currently only one device ID/stream is supported.
+  inline DeviceRef newCUDADevice(const std::vector<int>& deviceIds, const std::vector<cudaStream_t>& streams)
   {
-    return DeviceRef(oidnNewHIPDevice(&stream, 1));
+    assert(deviceIds.size() == streams.size());
+    return DeviceRef(oidnNewCUDADevice(deviceIds.data(), streams.data(), int(streams.size())));
   }
-#endif
+
+  // Creates a device from the specified HIP device ID (negative value
+  // maps to the current device) and stream.
+  inline DeviceRef newHIPDevice(int deviceId, hipStream_t stream)
+  {
+    return DeviceRef(oidnNewHIPDevice(&deviceId, &stream, 1));
+  }
+
+  // Creates a device from the specified pairs of HIP device IDs (negative value
+  // maps to the current device) and streams (null maps to the default stream).
+  // Currently only one device ID/stream is supported.
+  inline DeviceRef newHIPDevice(const std::vector<int>& deviceIds, const std::vector<hipStream_t>& streams)
+  {
+    assert(deviceIds.size() == streams.size());
+    return DeviceRef(oidnNewHIPDevice(deviceIds.data(), streams.data(), int(streams.size())));
+  }
 
 OIDN_NAMESPACE_END
