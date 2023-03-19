@@ -14,9 +14,58 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  bool CPUDevice::isSupported()
+#if defined(OIDN_ARCH_X64) && !defined(__APPLE__)
+  OIDN_INLINE void cpuid(int cpuInfo[4], int functionID)
   {
-    return getArch() != CPUArch::Unknown;
+  #if defined(_WIN32)
+    __cpuid(cpuInfo, functionID);
+  #else
+    __cpuid(functionID, cpuInfo[0], cpuInfo[1], cpuInfo[2], cpuInfo[3]);
+  #endif
+  }
+#endif
+
+  CPUPhysicalDevice::CPUPhysicalDevice(int score)
+    : PhysicalDevice(DeviceType::CPU, score)
+  {
+    name = CPUDevice::getName();
+  }
+
+  std::vector<Ref<PhysicalDevice>> CPUDevice::getPhysicalDevices()
+  {
+    CPUArch arch = getArch();
+    if (arch == CPUArch::Unknown)
+      return {};
+
+    // Prefer AVX512 CPUs over low-power GPUs
+    int score = (arch == CPUArch::AVX512 ? 500 : 1) << 16;
+    return {makeRef<CPUPhysicalDevice>(score)};
+  }
+
+  std::string CPUDevice::getName()
+  {
+  #if defined(__APPLE__)
+    char name[256] = {};
+    size_t nameSize = sizeof(name)-1;
+    if (sysctlbyname("machdep.cpu.brand_string", &name, &nameSize, nullptr, 0) == 0 && strlen(name) > 0)
+      return name;
+  #else
+    int regs[3][4];
+    char name[sizeof(regs)+1] = {};
+
+    cpuid(regs[0], 0x80000000);
+    if (static_cast<unsigned int>(regs[0][0]) >= 0x80000004)
+    {
+      cpuid(regs[0], 0x80000002);
+      cpuid(regs[1], 0x80000003);
+      cpuid(regs[2], 0x80000004);
+      memcpy(name, regs, sizeof(regs));
+      if (strlen(name) > 0)
+        return name;
+    }
+  #endif
+
+    return "CPU"; // fallback
   }
 
   CPUArch CPUDevice::getArch()
@@ -27,7 +76,7 @@ OIDN_NAMESPACE_BEGIN
 
     if (cpu.has(Cpu::tAVX512F)  && cpu.has(Cpu::tAVX512BW) &&
         cpu.has(Cpu::tAVX512VL) && cpu.has(Cpu::tAVX512DQ))
-        return CPUArch::AVX512_CORE;
+        return CPUArch::AVX512;
 
     if (cpu.has(Cpu::tAVX2))
       return CPUArch::AVX2;
@@ -62,7 +111,7 @@ OIDN_NAMESPACE_BEGIN
 
   #if defined(OIDN_DNNL)
     tensorDataType = DataType::Float32;
-    if (arch == CPUArch::AVX512_CORE)
+    if (arch == CPUArch::AVX512)
     {
       tensorLayout = TensorLayout::Chw16c;
       weightLayout = TensorLayout::OIhw16i16o;
@@ -82,32 +131,11 @@ OIDN_NAMESPACE_BEGIN
 
     if (isVerbose())
     {
-    #if defined(__APPLE__)
-      char name[256] = {};
-      size_t nameSize = sizeof(name)-1;
-      if (sysctlbyname("machdep.cpu.brand_string", &name, &nameSize, nullptr, 0) != 0)
-        strcpy(name, "CPU");
-    #else
-      unsigned int regs[12];
-      char name[sizeof(regs)+1] = {};
-
-      __cpuid(0x80000000, regs[0], regs[1], regs[2], regs[3]);
-      if (regs[0] >= 0x80000004)
-      {
-        __cpuid(0x80000002, regs[0], regs[1], regs[2],  regs[3]);
-        __cpuid(0x80000003, regs[4], regs[5], regs[6],  regs[7]);
-        __cpuid(0x80000004, regs[8], regs[9], regs[10], regs[11]);
-        memcpy(name, regs, sizeof(regs));
-      }
-      else
-        strcpy(name, "CPU");
-    #endif
-
-      std::cout << "  Device    : " << name << std::endl;
+      std::cout << "  Device    : " << getName() << std::endl;
       std::cout << "    Arch    : ";
       switch (arch)
       {
-      case CPUArch::AVX512_CORE:
+      case CPUArch::AVX512:
         std::cout << "AVX512";
         break;
       case CPUArch::AVX2:
@@ -178,17 +206,17 @@ OIDN_NAMESPACE_BEGIN
     return Storage::Host;
   }
 
-  int CPUDevice::get1i(const std::string& name)
+  int CPUDevice::getInt(const std::string& name)
   {
     if (name == "numThreads")
       return numThreads;
     else if (name == "setAffinity")
       return setAffinity;
     else
-      return Device::get1i(name);
+      return Device::getInt(name);
   }
 
-  void CPUDevice::set1i(const std::string& name, int value)
+  void CPUDevice::setInt(const std::string& name, int value)
   {
     if (name == "numThreads")
     {
@@ -205,14 +233,15 @@ OIDN_NAMESPACE_BEGIN
         warning("OIDN_SET_AFFINITY environment variable overrides device parameter");
     }
     else
-      Device::set1i(name, value);
+      Device::setInt(name, value);
 
     dirty = true;
   }
 
   void CPUDevice::wait()
   {
-    engine->wait();
+    if (engine)
+      engine->wait();
   }
 
 OIDN_NAMESPACE_END

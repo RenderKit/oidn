@@ -9,6 +9,50 @@ OIDN_NAMESPACE_BEGIN
 
   thread_local Device::ErrorState Device::globalError;
 
+  int PhysicalDevice::getInt(const std::string& name) const
+  {
+    if (name == "type")
+      return static_cast<int>(type);
+    else if (name == "uuidValid")
+      return uuidValid;
+    else if (name == "luidValid")
+      return luidValid;
+    else if (name == "nodeMask")
+    {
+      if (!luidValid)
+        throw Exception(Error::InvalidArgument, "physical device node mask unavailable, check luidValid first");
+      return nodeMask;
+    }
+    else
+      throw Exception(Error::InvalidArgument, "unknown physical device parameter or type mismatch");
+  }
+
+  const char* PhysicalDevice::getString(const std::string& name) const
+  {
+    if (name == "name")
+      return this->name.c_str();
+    else
+      throw Exception(Error::InvalidArgument, "unknown physical device parameter or type mismatch");
+  }
+
+  Data PhysicalDevice::getData(const std::string& name) const
+  {
+    if (name == "uuid")
+    {
+      if (!uuidValid)
+        throw Exception(Error::InvalidArgument, "physical device UUID unavailable, check uuidValid first");
+      return {uuid.bytes, sizeof(uuid.bytes)};
+    }
+    else if (name == "luid")
+    {
+      if (!luidValid)
+        throw Exception(Error::InvalidArgument, "physical device LUID unavailable, check luidValid first");
+      return {luid.bytes, sizeof(luid.bytes)};
+    }
+    else
+      throw Exception(Error::InvalidArgument, "unknown physical device parameter or type mismatch");
+  }
+
   Device::Device()
   {
     // Get default values from environment variables
@@ -90,7 +134,7 @@ OIDN_NAMESPACE_BEGIN
     OIDN_WARNING(message);
   }
 
-  int Device::get1i(const std::string& name)
+  int Device::getInt(const std::string& name)
   {
     if (name == "type")
       return static_cast<int>(getType());
@@ -107,10 +151,10 @@ OIDN_NAMESPACE_BEGIN
     else if (name == "externalMemoryTypes")
       return static_cast<int>(externalMemoryTypes);
     else
-      throw Exception(Error::InvalidArgument, "unknown device parameter");
+      throw Exception(Error::InvalidArgument, "unknown device parameter or type mismatch");
   }
 
-  void Device::set1i(const std::string& name, int value)
+  void Device::setInt(const std::string& name, int value)
   {
     if (name == "verbose")
     {
@@ -123,7 +167,7 @@ OIDN_NAMESPACE_BEGIN
         warning("OIDN_VERBOSE environment variable overrides device parameter");
     }
     else
-      warning("unknown device parameter");
+      warning("unknown device parameter or type mismatch");
 
     dirty = true;
   }

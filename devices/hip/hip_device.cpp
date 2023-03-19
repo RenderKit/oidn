@@ -3,7 +3,6 @@
 
 #include "hip_device.h"
 #include "hip_engine.h"
-#include "ck/host_utility/device_prop.hpp"
 
 OIDN_NAMESPACE_BEGIN
 
@@ -26,18 +25,46 @@ OIDN_NAMESPACE_BEGIN
     }
   }
 
-  bool HIPDevice::isSupported()
+  HIPPhysicalDevice::HIPPhysicalDevice(int deviceID, const hipDeviceProp_t& prop, int score)
+    : PhysicalDevice(DeviceType::HIP, score),
+      deviceID(deviceID)
   {
-    int deviceId = 0;
-    if (hipGetDevice(&deviceId) != hipSuccess)
-      return false;
+    name = prop.name;
 
-    hipDeviceProp_t prop;
-    if (hipGetDeviceProperties(&prop, deviceId) != hipSuccess)
-      return false;
+    hipUUID_t uuid{};
+    if (hipDeviceGetUuid(&uuid, deviceID) == hipSuccess)
+    {
+      memcpy(this->uuid.bytes, uuid.bytes, sizeof(this->uuid.bytes));
+      uuidValid = true;
+    }
 
-    const std::string archStr = ck::get_device_name();
-    return getArch(archStr) != HIPArch::Unknown && prop.managedMemory;
+    // FIXME: HIP does not seem to support querying the LUID
+  }
+
+  std::vector<Ref<PhysicalDevice>> HIPDevice::getPhysicalDevices()
+  {
+    int numDevices = 0;
+    if (hipGetDeviceCount(&numDevices) != hipSuccess)
+      return {};
+
+    std::vector<Ref<PhysicalDevice>> devices;
+    for (int deviceID = 0; deviceID < numDevices; ++deviceID)
+    {
+      hipDeviceProp_t prop{};
+      if (hipGetDeviceProperties(&prop, deviceID) != hipSuccess)
+        continue;
+
+      HIPArch arch = getArch(prop.gcnArchName);
+      bool isSupported = arch != HIPArch::Unknown && prop.managedMemory;
+
+      if (isSupported)
+      {
+        int score = (801 << 16) - deviceID - 1;
+        devices.push_back(makeRef<HIPPhysicalDevice>(deviceID, prop, score));
+      }
+    }
+
+    return devices;
   }
 
   HIPArch HIPDevice::getArch(const std::string& archStr)
@@ -51,13 +78,17 @@ OIDN_NAMESPACE_BEGIN
     return HIPArch::Unknown;
   }
 
-  HIPDevice::HIPDevice(int deviceId, hipStream_t stream)
-    : deviceId(deviceId),
+  HIPDevice::HIPDevice(int deviceID, hipStream_t stream)
+    : deviceID(deviceID),
       stream(stream)
   {
-    if (deviceId < 0)
-      checkError(hipGetDevice(&this->deviceId));
+    if (deviceID < 0)
+      checkError(hipGetDevice(&this->deviceID));
   }
+
+  HIPDevice::HIPDevice(const Ref<HIPPhysicalDevice>& physicalDevice)
+    : deviceID(physicalDevice->deviceID)
+  {}
 
   HIPDevice::~HIPDevice()
   {
@@ -69,33 +100,31 @@ OIDN_NAMESPACE_BEGIN
 
   void HIPDevice::begin()
   {
-    assert(prevDeviceId < 0);
+    assert(prevDeviceID < 0);
 
     // Save the current CUDA device
-    checkError(hipGetDevice(&prevDeviceId));
+    checkError(hipGetDevice(&prevDeviceID));
 
     // Set the current CUDA device
-    if (deviceId != prevDeviceId)
-      checkError(hipSetDevice(deviceId));
+    if (deviceID != prevDeviceID)
+      checkError(hipSetDevice(deviceID));
   }
 
   void HIPDevice::end()
   {
-    assert(prevDeviceId >= 0);
+    assert(prevDeviceID >= 0);
 
     // Restore the previous CUDA device
-    if (deviceId != prevDeviceId)
-      checkError(hipSetDevice(prevDeviceId));
-    prevDeviceId = -1;
+    if (deviceID != prevDeviceID)
+      checkError(hipSetDevice(prevDeviceID));
+    prevDeviceID = -1;
   }
 
   void HIPDevice::init()
   {
-    const std::string archStr = ck::get_device_name();
-    arch = getArch(archStr);
-
-    hipDeviceProp_t prop;
-    checkError(hipGetDeviceProperties(&prop, deviceId));
+    hipDeviceProp_t prop{};
+    checkError(hipGetDeviceProperties(&prop, deviceID));
+    arch = getArch(prop.gcnArchName);
     maxWorkGroupSize = prop.maxThreadsPerBlock;
 
     const std::string name = strlen(prop.name) > 0 ? prop.name : "AMD GPU";
@@ -103,7 +132,7 @@ OIDN_NAMESPACE_BEGIN
     if (isVerbose())
     {
       std::cout << "  Device    : " << name << std::endl;
-      std::cout << "    Arch    : " << archStr << std::endl;
+      std::cout << "    Arch    : " << prop.gcnArchName << std::endl;
       std::cout << "    CUs     : " << prop.multiProcessorCount << std::endl;
     }
 
@@ -157,7 +186,8 @@ OIDN_NAMESPACE_BEGIN
 
   void HIPDevice::wait()
   {
-    engine->wait();
+    if (engine)
+      engine->wait();
   }
 
 OIDN_NAMESPACE_END

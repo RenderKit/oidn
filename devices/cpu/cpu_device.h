@@ -19,8 +19,14 @@ OIDN_NAMESPACE_BEGIN
     Unknown,
     SSE41,
     AVX2,
-    AVX512_CORE,
+    AVX512,
     NEON
+  };
+
+  class CPUPhysicalDevice final : public PhysicalDevice
+  {
+  public:
+    explicit CPUPhysicalDevice(int score);
   };
 
   class CPUDevice final : public Device
@@ -29,7 +35,8 @@ OIDN_NAMESPACE_BEGIN
     friend class DNNLEngine;
 
   public:
-    static bool isSupported();
+    static std::vector<Ref<PhysicalDevice>> getPhysicalDevices();
+    static std::string getName();
     static CPUArch getArch();
 
     CPUDevice();
@@ -47,8 +54,8 @@ OIDN_NAMESPACE_BEGIN
 
     Storage getPointerStorage(const void* ptr) override;
 
-    int get1i(const std::string& name) override;
-    void set1i(const std::string& name, int value) override;
+    int getInt(const std::string& name) override;
+    void setInt(const std::string& name, int value) override;
 
     void wait() override;
 

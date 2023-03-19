@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "oidn_utils.h"
+#include "platform.h"
 
 OIDN_NAMESPACE_BEGIN
 
@@ -45,10 +46,10 @@ OIDN_NAMESPACE_BEGIN
     switch (deviceType)
     {
     case DeviceType::Default: sm << "default"; break;
-    case DeviceType::CPU:     sm << "cpu";     break;
-    case DeviceType::SYCL:    sm << "sycl";    break;
-    case DeviceType::CUDA:    sm << "cuda";    break;
-    case DeviceType::HIP:     sm << "hip";     break;
+    case DeviceType::CPU:     sm << "CPU";     break;
+    case DeviceType::SYCL:    sm << "SYCL";    break;
+    case DeviceType::CUDA:    sm << "CUDA";    break;
+    case DeviceType::HIP:     sm << "HIP";     break;
     default:
       throw std::invalid_argument("invalid device type");
     }
@@ -60,20 +61,39 @@ OIDN_NAMESPACE_BEGIN
   {
     std::string str;
     sm >> str;
+    str = toLower(str);
 
-    if (str == "default" || str == "Default")
+    if (str == "default")
       deviceType = DeviceType::Default;
-    else if (str == "cpu" || str == "CPU")
+    else if (str == "cpu")
       deviceType = DeviceType::CPU;
-    else if (str == "sycl" || str == "SYCL")
+    else if (str == "sycl")
       deviceType = DeviceType::SYCL;
-    else if (str == "cuda" || str == "CUDA")
+    else if (str == "cuda")
       deviceType = DeviceType::CUDA;
-    else if (str == "hip" || str == "HIP")
+    else if (str == "hip")
       deviceType = DeviceType::HIP;
     else
       throw std::invalid_argument("invalid device type");
 
+    return sm;
+  }
+
+  std::ostream& operator <<(std::ostream& sm, const UUID& uuid)
+  {
+    std::ios_base::fmtflags flags = sm.flags();
+    for (size_t i = 0; i < sizeof(uuid.bytes); ++i)
+      sm << std::hex << std::setw(2) << std::setfill('0') << int(uuid.bytes[i]);
+    sm.flags(flags);
+    return sm;
+  }
+
+  std::ostream& operator <<(std::ostream& sm, const LUID& luid)
+  {
+    std::ios_base::fmtflags flags = sm.flags();
+    for (size_t i = 0; i < sizeof(luid.bytes); ++i)
+      sm << std::hex << std::setw(2) << std::setfill('0') << int(luid.bytes[i]);
+    sm.flags(flags);
     return sm;
   }
 

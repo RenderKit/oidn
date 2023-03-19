@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "common/common.h"
@@ -14,10 +14,75 @@
 OIDN_NAMESPACE_USING
 
 DeviceType deviceType = DeviceType::Default;
+PhysicalDeviceRef physicalDevice;
+
+DeviceRef makeDevice()
+{
+  return physicalDevice ? physicalDevice.newDevice() : newDevice(deviceType);
+}
+
+// -------------------------------------------------------------------------------------------------
+
+TEST_CASE("physical device", "[physical_device]")
+{
+  int numDevices = getNumPhysicalDevices();
+  REQUIRE(getError() == Error::None);
+  REQUIRE(numDevices >= 0);
+
+  for (int i = 0; i < numDevices; ++i)
+  {
+    PhysicalDeviceRef physicalDevice(i);
+  
+    DeviceType type = physicalDevice.get<DeviceType>("type");
+    REQUIRE(getError() == Error::None);
+    REQUIRE(type != DeviceType::Default);
+
+    physicalDevice.get<int>("qwertyuiop");
+    REQUIRE(getError() == Error::InvalidArgument);
+
+    std::string name = physicalDevice.get<std::string>("name");
+    REQUIRE(getError() == Error::None);
+    REQUIRE(!name.empty());
+
+    bool uuidValid = physicalDevice.get<bool>("uuidValid");
+    REQUIRE(getError() == Error::None);
+    physicalDevice.get<oidn::UUID>("uuid");
+    if (uuidValid)
+      REQUIRE(getError() == Error::None);
+    else
+      REQUIRE(getError() == Error::InvalidArgument);
+
+    bool luidValid = physicalDevice.get<bool>("luidValid");
+    REQUIRE(getError() == Error::None);
+
+    physicalDevice.get<oidn::LUID>("luid");
+    if (luidValid)
+      REQUIRE(getError() == Error::None);
+    else
+      REQUIRE(getError() == Error::InvalidArgument);
+
+    uint32_t nodeMask = physicalDevice.get<uint32_t>("nodeMask");
+    if (luidValid)
+    {
+      REQUIRE(getError() == Error::None);
+      REQUIRE(nodeMask != 0);
+    }
+    else
+      REQUIRE(getError() == Error::InvalidArgument);
+
+    DeviceRef device = physicalDevice.newDevice();
+    REQUIRE(device.getError() == Error::None);
+    device.commit();
+    REQUIRE(device.getError() == Error::None);
+  }
+}
+
+// -------------------------------------------------------------------------------------------------
 
 #if defined(OIDN_FILTER_RT)
 
-void setFilterImage(FilterRef& filter, const char* name, const std::shared_ptr<ImageBuffer>& image, bool useBuffer = false)
+void setFilterImage(FilterRef& filter, const char* name, const std::shared_ptr<ImageBuffer>& image,
+                    bool useBuffer = false)
 {
   Format format = Format::Undefined;
   switch (image->getC())
@@ -60,14 +125,14 @@ bool isBetween(const std::shared_ptr<ImageBuffer>& image, float a, float b)
   return true;
 }
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 TEST_CASE("single filter", "[single_filter]")
 {
   const int W = 257;
   const int H = 89;
 
-  DeviceRef device = newDevice(deviceType);
+  DeviceRef device = makeDevice();
   REQUIRE(bool(device));
   device.commit();
   REQUIRE(device.getError() == Error::None);
@@ -98,7 +163,7 @@ TEST_CASE("single filter", "[single_filter]")
   }
 }
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 void multiFilter1PerDeviceTest(DeviceRef& device, const std::vector<int>& sizes)
 {
@@ -146,7 +211,7 @@ void multiFilterNPerDeviceTest(DeviceRef& device, const std::vector<int>& sizes)
 
 TEST_CASE("multiple filters", "[multi_filter]")
 {
-  DeviceRef device = newDevice(deviceType);
+  DeviceRef device = makeDevice();
   REQUIRE(bool(device));
   device.commit();
   REQUIRE(device.getError() == Error::None);
@@ -172,7 +237,7 @@ TEST_CASE("multiple filters", "[multi_filter]")
   }
 }
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 TEST_CASE("multiple devices", "[multi_device]")
 {
@@ -184,7 +249,7 @@ TEST_CASE("multiple devices", "[multi_device]")
 
   for (size_t i = 0; i < sizes.size(); ++i)
   {
-    devices.push_back(newDevice(deviceType));
+    devices.push_back(makeDevice());
     REQUIRE(devices[i]);
     devices[i].commit();
     REQUIRE(devices[i].getError() == Error::None);
@@ -207,14 +272,14 @@ TEST_CASE("multiple devices", "[multi_device]")
   }
 }
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 TEST_CASE("image buffers", "[image_buffers]")
 {
   const int W = 198;
   const int H = 300;
 
-  DeviceRef device = newDevice(deviceType);
+  DeviceRef device = makeDevice();
   REQUIRE(bool(device));
   device.commit();
   REQUIRE(device.getError() == Error::None);
@@ -234,14 +299,14 @@ TEST_CASE("image buffers", "[image_buffers]")
   REQUIRE(device.getError() == Error::None);
 }
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 TEST_CASE("filter update", "[filter_update]")
 {
   const int W = 211;
   const int H = 599;
 
-  DeviceRef device = newDevice(deviceType);
+  DeviceRef device = makeDevice();
   REQUIRE(bool(device));
   device.commit();
   REQUIRE(device.getError() == Error::None);
@@ -307,14 +372,14 @@ TEST_CASE("filter update", "[filter_update]")
   REQUIRE(device.getError() == Error::None);
 }
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 TEST_CASE("async filter", "[async_filter]")
 {
   const int W = 799;
   const int H = 601;
 
-  DeviceRef device = newDevice(deviceType);
+  DeviceRef device = makeDevice();
   REQUIRE(bool(device));
   device.commit();
   REQUIRE(device.getError() == Error::None);
@@ -354,7 +419,7 @@ TEST_CASE("async filter", "[async_filter]")
   REQUIRE(device.getError() == Error::None);
 }
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 void imageSizeTest(DeviceRef& device, int W, int H, bool execute = true)
 {
@@ -378,7 +443,7 @@ void imageSizeTest(DeviceRef& device, int W, int H, bool execute = true)
 
 TEST_CASE("image size", "[size]")
 {
-  DeviceRef device = newDevice(deviceType);
+  DeviceRef device = makeDevice();
   REQUIRE(bool(device));
   device.commit();
   REQUIRE(device.getError() == Error::None);
@@ -408,7 +473,7 @@ TEST_CASE("image size", "[size]")
   }
 }
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 void sanitizationTest(DeviceRef& device, bool hdr, float value)
 {
@@ -440,7 +505,7 @@ void sanitizationTest(DeviceRef& device, bool hdr, float value)
 
 TEST_CASE("image sanitization", "[sanitization]")
 {
-  DeviceRef device = newDevice(deviceType);
+  DeviceRef device = makeDevice();
   REQUIRE(bool(device));
   device.commit();
   REQUIRE(device.getError() == Error::None);
@@ -462,7 +527,7 @@ TEST_CASE("image sanitization", "[sanitization]")
   }
 }
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 struct Progress
 {
@@ -522,7 +587,7 @@ void progressTest(DeviceRef& device, double nMax = 1000)
 
 TEST_CASE("progress monitor", "[progress]")
 {
-  DeviceRef device = newDevice(deviceType);
+  DeviceRef device = makeDevice();
   REQUIRE(bool(device));
   device.commit();
   REQUIRE(device.getError() == Error::None);
@@ -554,12 +619,12 @@ int main(int argc, char* argv[])
 {
   Catch::Session session;
 
-  std::string deviceTypeStr = "default";
+  std::string deviceStr = "default";
 
   using namespace Catch::clara;
   auto cli
     = session.cli()
-    | Opt(deviceTypeStr, "default|cpu|sycl|cuda|hip")
+    | Opt(deviceStr, "[0-9]+|default|cpu|sycl|cuda|hip")
         ["--device"]
         ("Open Image Denoise device to use");
 
@@ -571,7 +636,10 @@ int main(int argc, char* argv[])
 
   try
   {
-    deviceType = fromString<DeviceType>(deviceTypeStr);
+    if (isdigit(deviceStr[0]))
+      physicalDevice = fromString<int>(deviceStr);
+    else
+      deviceType = fromString<DeviceType>(deviceStr);
   }
   catch (const std::exception& e)
   {

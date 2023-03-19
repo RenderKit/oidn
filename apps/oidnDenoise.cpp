@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "common/common.h"
@@ -21,7 +21,7 @@ OIDN_NAMESPACE_USING
 void printUsage()
 {
   std::cout << "Intel(R) Open Image Denoise" << std::endl;
-  std::cout << "usage: oidnDenoise [-d/--device default|cpu|sycl|cuda|hip]" << std::endl
+  std::cout << "usage: oidnDenoise [-d/--device [0-9]+|default|cpu|sycl|cuda|hip]" << std::endl
             << "                   [-f/--filter RT|RTLightmap]" << std::endl
             << "                   [--hdr color.pfm] [--ldr color.pfm] [--srgb] [--dir directional.pfm]" << std::endl
             << "                   [--alb albedo.pfm] [--nrm normal.pfm] [--clean_aux]" << std::endl
@@ -31,7 +31,7 @@ void printUsage()
             << "                   [-w/--weights weights.tza]" << std::endl
             << "                   [--threads n] [--affinity 0|1] [--maxmem MB] [--inplace]" << std::endl
             << "                   [--bench ntimes] [-v/--verbose 0-3]" << std::endl
-            << "                   [-h/--help]" << std::endl;
+            << "                   [--ld|--listdevices] [-h/--help]" << std::endl;
 }
 
 void errorCallback(void* userPtr, Error error, const char* message)
@@ -75,6 +75,7 @@ std::vector<char> loadFile(const std::string& filename)
 int main(int argc, char* argv[])
 {
   DeviceType deviceType = DeviceType::Default;
+  PhysicalDeviceRef physicalDevice;
   std::string filterType = "RT";
   std::string colorFilename, albedoFilename, normalFilename;
   std::string outputFilename, refFilename;
@@ -106,7 +107,13 @@ int main(int argc, char* argv[])
     {
       std::string opt = args.getNextOpt();
       if (opt == "d" || opt == "dev" || opt == "device")
-        deviceType = args.getNextValue<DeviceType>();
+      {
+        std::string value = args.getNext();
+        if (isdigit(value[0]))
+          physicalDevice = fromString<int>(value);
+        else
+          deviceType = fromString<DeviceType>(value);
+      }
       else if (opt == "f" || opt == "filter")
         filterType = args.getNextValue();
       else if (opt == "hdr")
@@ -162,6 +169,31 @@ int main(int argc, char* argv[])
         inplace = true;
       else if (opt == "v" || opt == "verbose")
         verbose = args.getNextValue<int>();
+      else if (opt == "ld" || opt == "listdevices" || opt == "listDevices" || opt == "list-devices")
+      {
+        int numDevices = getNumPhysicalDevices();
+        for (int i = 0; i < numDevices; ++i)
+        {
+          int numDevices = getNumPhysicalDevices();
+          for (int i = 0; i < numDevices; ++i)
+          {
+            PhysicalDeviceRef physicalDevice(i);
+            std::cout << "Device " << i << std::endl;
+            std::cout << "  Name: " << physicalDevice.get<std::string>("name") << std::endl;
+            std::cout << "  Type: " << physicalDevice.get<DeviceType>("type") << std::endl;
+            if (physicalDevice.get<bool>("uuidValid"))
+              std::cout << "  UUID: " << physicalDevice.get<oidn::UUID>("uuid") << std::endl;
+            if (physicalDevice.get<bool>("luidValid"))
+            {
+              std::cout << "  LUID: " << physicalDevice.get<oidn::LUID>("luid") << std::endl;
+              std::cout << "  Node: " << physicalDevice.get<uint32_t>("nodeMask") << std::endl;
+            }
+            if (i < numDevices-1)
+              std::cout << std::endl;
+          }
+        }
+        return 1;
+      }
       else if (opt == "h" || opt == "help")
       {
         printUsage();
@@ -194,7 +226,11 @@ int main(int argc, char* argv[])
     std::cout << "Initializing device" << std::endl;
     Timer timer;
 
-    DeviceRef device = newDevice(deviceType);
+    DeviceRef device;
+    if (physicalDevice)
+      device = physicalDevice.newDevice();
+    else
+      device = newDevice(deviceType);
 
     const char* errorMessage;
     if (device.getError(errorMessage) != Error::None)

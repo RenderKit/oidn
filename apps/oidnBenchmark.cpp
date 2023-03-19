@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "common/common.h"
@@ -28,13 +28,13 @@ bool inplace = false;
 void printUsage()
 {
   std::cout << "Intel(R) Open Image Denoise - Benchmark" << std::endl;
-  std::cout << "usage: oidnBenchmark [-d/--device default|cpu|sycl|cuda|hip]" << std::endl
+  std::cout << "usage: oidnBenchmark [-d/--device [0-9]+|default|cpu|sycl|cuda|hip]" << std::endl
             << "                     [-r/--run regex] [-n times]" << std::endl
             << "                     [-s/--size width height]" << std::endl
             << "                     [-t/--type float|half]" << std::endl
             << "                     [--threads n] [--affinity 0|1] [--maxmem MB] [--inplace]" << std::endl
             << "                     [-v/--verbose 0-3]" << std::endl
-            << "                     [-l/--list] [-h/--help]" << std::endl;
+            << "                     [--ld|--listdevices] [-l/--list] [-h/--help]" << std::endl;
 }
 
 void errorCallback(void* userPtr, Error error, const char* message)
@@ -92,7 +92,7 @@ void initImage(ImageBuffer& image, Random& rng, float minValue, float maxValue)
 {
   image.map(Access::WriteDiscard);
   for (size_t i = 0; i < image.getSize(); ++i)
-    image.set(i, minValue + rng.get1f() * (maxValue - minValue));
+    image.set(i, minValue + rng.getFloat() * (maxValue - minValue));
   image.unmap();
 }
 
@@ -232,6 +232,7 @@ void addAllBenchmarks()
 int main(int argc, char* argv[])
 {
   DeviceType deviceType = DeviceType::Default;
+  PhysicalDeviceRef physicalDevice;
   std::string run = ".*";
   int numThreads = -1;
   int setAffinity = -1;
@@ -244,7 +245,13 @@ int main(int argc, char* argv[])
     {
       std::string opt = args.getNextOpt();
       if (opt == "d" || opt == "dev" || opt == "device")
-        deviceType = args.getNextValue<DeviceType>();
+      {
+        std::string value = args.getNext();
+        if (isdigit(value[0]))
+          physicalDevice = fromString<int>(value);
+        else
+          deviceType = fromString<DeviceType>(value);
+      }
       else if (opt == "r" || opt == "run")
         run = args.getNextValue();
       else if (opt == "n")
@@ -280,6 +287,27 @@ int main(int argc, char* argv[])
         inplace = true;
       else if (opt == "v" || opt == "verbose")
         verbose = args.getNextValue<int>();
+      else if (opt == "ld" || opt == "listdevices" || opt == "listDevices" || opt == "list-devices")
+      {
+        int numDevices = getNumPhysicalDevices();
+        for (int i = 0; i < numDevices; ++i)
+        {
+          PhysicalDeviceRef physicalDevice(i);
+          std::cout << "Device " << i << std::endl;
+          std::cout << "  Name: " << physicalDevice.get<std::string>("name") << std::endl;
+          std::cout << "  Type: " << physicalDevice.get<DeviceType>("type") << std::endl;
+          if (physicalDevice.get<bool>("uuidValid"))
+            std::cout << "  UUID: " << physicalDevice.get<oidn::UUID>("uuid") << std::endl;
+          if (physicalDevice.get<bool>("luidValid"))
+          {
+            std::cout << "  LUID: " << physicalDevice.get<oidn::LUID>("luid") << std::endl;
+            std::cout << "  Node: " << physicalDevice.get<uint32_t>("nodeMask") << std::endl;
+          }
+          if (i < numDevices-1)
+            std::cout << std::endl;
+        }
+        return 1;
+      }
       else if (opt == "l" || opt == "list")
         run = "";
       else if (opt == "h" || opt == "help")
@@ -309,7 +337,11 @@ int main(int argc, char* argv[])
   #endif
 
     // Initialize the device
-    DeviceRef device = newDevice(deviceType);
+    DeviceRef device;
+    if (physicalDevice)
+      device = physicalDevice.newDevice();
+    else
+      device = newDevice(deviceType);
 
     if (verbose >= 0)
       device.set("verbose", verbose);

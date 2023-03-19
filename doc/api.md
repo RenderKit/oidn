@@ -185,10 +185,10 @@ Name                       Description
 
 Once a device is created, you can call
 
-    void oidnSetDevice1b(OIDNDevice device, const char* name, bool value);
-    void oidnSetDevice1i(OIDNDevice device, const char* name, int  value);
-    bool oidnGetDevice1b(OIDNDevice device, const char* name);
-    int  oidnGetDevice1i(OIDNDevice device, const char* name);
+    bool oidnGetDeviceBool(OIDNDevice device, const char* name);
+    void oidnSetDeviceBool(OIDNDevice device, const char* name, bool value);
+    int  oidnGetDeviceInt (OIDNDevice device, const char* name);
+    void oidnSetDeviceInt (OIDNDevice device, const char* name, int  value);
 
 to set and get parameter values on the device. Note that some parameters are
 constants, thus trying to set them is an error. See the tables below for the
@@ -568,12 +568,12 @@ Unbinding opaque data from the filter can be performed with
 Filters may have parameters other than buffers as well, which you can set and
 get using the following functions:
 
-    void  oidnSetFilter1b(OIDNFilter filter, const char* name, bool  value);
-    void  oidnSetFilter1i(OIDNFilter filter, const char* name, int   value);
-    void  oidnSetFilter1f(OIDNFilter filter, const char* name, float value);
-    bool  oidnGetFilter1b(OIDNFilter filter, const char* name);
-    int   oidnGetFilter1i(OIDNFilter filter, const char* name);
-    float oidnGetFilter1f(OIDNFilter filter, const char* name);
+    bool  oidnGetFilterBool (OIDNFilter filter, const char* name);
+    void  oidnSetFilterBool (OIDNFilter filter, const char* name, bool  value);
+    int   oidnGetFilterInt  (OIDNFilter filter, const char* name);
+    void  oidnSetFilterInt  (OIDNFilter filter, const char* name, int   value);
+    float oidnGetFilterFloat(OIDNFilter filter, const char* name);
+    void  oidnSetFilterFloat(OIDNFilter filter, const char* name, float value);
 
 Filters support a progress monitor callback mechanism that can be used to report
 progress of filter operations and to cancel them as well. Calling

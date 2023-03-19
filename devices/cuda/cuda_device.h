@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -12,14 +12,23 @@ OIDN_NAMESPACE_BEGIN
 
   class CUDAEngine;
 
+  class CUDAPhysicalDevice : public PhysicalDevice
+  {
+  public:
+    int deviceID;
+
+    CUDAPhysicalDevice(int deviceID, const cudaDeviceProp& prop, int score);
+  };
+
   class CUDADevice final : public Device
   {
     friend class CUDAEngine;
 
   public:
-    static bool isSupported();
+    static std::vector<Ref<PhysicalDevice>> getPhysicalDevices();
 
-    CUDADevice(int deviceId = -1, cudaStream_t stream = nullptr);
+    CUDADevice(int deviceID = -1, cudaStream_t stream = nullptr);
+    explicit CUDADevice(const Ref<CUDAPhysicalDevice>& physicalDevice);
     ~CUDADevice();
 
     void begin() override;
@@ -48,8 +57,8 @@ OIDN_NAMESPACE_BEGIN
 
     Ref<CUDAEngine> engine;
 
-    int deviceId = 0;
-    int prevDeviceId = -1;
+    int deviceID = 0;
+    int prevDeviceID = -1;
     cudaStream_t stream = nullptr;
 
     int maxWorkGroupSize = 0;

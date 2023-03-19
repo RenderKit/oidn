@@ -21,10 +21,10 @@ OIDN_NAMESPACE_BEGIN
     virtual void setData(const std::string& name, const Data& data) = 0;
     virtual void updateData(const std::string& name) = 0;
     virtual void removeData(const std::string& name) = 0;
-    virtual void set1i(const std::string& name, int value) = 0;
-    virtual int get1i(const std::string& name) = 0;
-    virtual void set1f(const std::string& name, float value) = 0;
-    virtual float get1f(const std::string& name) = 0;
+    virtual void setInt(const std::string& name, int value) = 0;
+    virtual int getInt(const std::string& name) = 0;
+    virtual void setFloat(const std::string& name, float value) = 0;
+    virtual float getFloat(const std::string& name) = 0;
 
     void setProgressMonitorFunction(ProgressMonitorFunction func, void* userPtr);
 

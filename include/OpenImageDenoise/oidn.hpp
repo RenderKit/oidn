@@ -3,17 +3,21 @@
 
 #pragma once
 
+#include "oidn.h"
+#include <cstdint>
+#include <cassert>
+#include <cstring>
 #include <algorithm>
 #include <type_traits>
 #include <vector>
-#include <cassert>
-#include "oidn.h"
+#include <array>
+#include <string>
 
 OIDN_NAMESPACE_BEGIN
 
-  // ---------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
   // Flags helper type
-  // ---------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
 
   template<typename FlagT>
   struct IsFlag
@@ -106,9 +110,9 @@ OIDN_NAMESPACE_BEGIN
     return Flags<FlagT>(a) ^ b;
   }
 
-  // ---------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
   // Buffer
-  // ---------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
 
   // Formats for images and other data stored in buffers
   enum class Format
@@ -163,22 +167,28 @@ OIDN_NAMESPACE_BEGIN
     // a global share (KMT) handle
     OpaqueWin32KMT = OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32_KMT,
 
-    // an NT handle returned by IDXGIResource1::CreateSharedHandle referring to a Direct3D 11 texture resource
+    // an NT handle returned by IDXGIResource1::CreateSharedHandle referring to a Direct3D 11
+    // texture resource
     D3D11Texture = OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_TEXTURE,
 
-    // a global share (KMT) handle returned by IDXGIResource::GetSharedHandle referring to a Direct3D 11 texture resource
+    // a global share (KMT) handle returned by IDXGIResource::GetSharedHandle referring to a
+    // Direct3D 11 texture resource
     D3D11TextureKMT = OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_TEXTURE_KMT,
 
-    // an NT handle returned by IDXGIResource1::CreateSharedHandle referring to a Direct3D 11 resource
+    // an NT handle returned by IDXGIResource1::CreateSharedHandle referring to a Direct3D 11
+    // resource
     D3D11Resource = OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_RESOURCE,
 
-    // a global share (KMT) handle returned by IDXGIResource::GetSharedHandle referring to a Direct3D 11 resource
+    // a global share (KMT) handle returned by IDXGIResource::GetSharedHandle referring to a
+    // Direct3D 11 resource
     D3D11ResourceKMT = OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_RESOURCE_KMT,
 
-    // an NT handle returned by ID3D12Device::CreateSharedHandle referring to a Direct3D 12 heap resource
+    // an NT handle returned by ID3D12Device::CreateSharedHandle referring to a Direct3D 12
+    // heap resource
     D3D12Heap = OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D12_HEAP,
 
-    // an NT handle returned by ID3D12Device::CreateSharedHandle referring to a Direct3D 12 committed resource
+    // an NT handle returned by ID3D12Device::CreateSharedHandle referring to a Direct3D 12
+    // committed resource
     D3D12Resource = OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D12_RESOURCE,
   };
 
@@ -254,7 +264,8 @@ OIDN_NAMESPACE_BEGIN
       return oidnGetBufferSize(handle);
     }
 
-    // Gets a pointer to the buffer data, which is accessible to the device but not necessarily to the host as well.
+    // Gets a pointer to the buffer data, which is accessible to the device but not necessarily to
+    // the host as well.
     void* getData() const
     {
       return oidnGetBufferData(handle);
@@ -302,9 +313,9 @@ OIDN_NAMESPACE_BEGIN
     OIDNBuffer handle;
   };
 
-  // ---------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
   // Filter
-  // ---------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
 
   // Progress monitor callback function
   using ProgressMonitorFunction = OIDNProgressMonitorFunction;
@@ -407,11 +418,9 @@ OIDN_NAMESPACE_BEGIN
     }
 
     // Sets an opaque data parameter of the filter owned by the user and accessible to the host.
-    void setData(const char* name,
-                 void* hostPtr, size_t byteSize)
+    void setData(const char* name, void* hostPtr, size_t byteSize)
     {
-      oidnSetSharedFilterData(handle, name,
-                              hostPtr, byteSize);
+      oidnSetSharedFilterData(handle, name, hostPtr, byteSize);
     }
 
     // Notifies the filter that the contents of an opaque data parameter has been changed.
@@ -429,19 +438,19 @@ OIDN_NAMESPACE_BEGIN
     // Sets a boolean parameter of the filter.
     void set(const char* name, bool value)
     {
-      oidnSetFilter1b(handle, name, value);
+      oidnSetFilterBool(handle, name, value);
     }
 
     // Sets an integer parameter of the filter.
     void set(const char* name, int value)
     {
-      oidnSetFilter1i(handle, name, value);
+      oidnSetFilterInt(handle, name, value);
     }
 
     // Sets a float parameter of the filter.
     void set(const char* name, float value)
     {
-      oidnSetFilter1f(handle, name, value);
+      oidnSetFilterFloat(handle, name, value);
     }
 
     // Gets a parameter of the filter.
@@ -491,26 +500,26 @@ OIDN_NAMESPACE_BEGIN
   template<>
   inline bool FilterRef::get(const char* name) const
   {
-    return oidnGetFilter1b(handle, name);
+    return oidnGetFilterBool(handle, name);
   }
 
   // Gets an integer parameter of the filter.
   template<>
   inline int FilterRef::get(const char* name) const
   {
-    return oidnGetFilter1i(handle, name);
+    return oidnGetFilterInt(handle, name);
   }
 
   // Gets a float parameter of the filter.
   template<>
   inline float FilterRef::get(const char* name) const
   {
-    return oidnGetFilter1f(handle, name);
+    return oidnGetFilterFloat(handle, name);
   }
 
-  // ---------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
   // Device
-  // ---------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
 
   // Device types
   enum class DeviceType
@@ -537,6 +546,26 @@ OIDN_NAMESPACE_BEGIN
 
   // Error callback function
   typedef void (*ErrorFunction)(void* userPtr, Error code, const char* message);
+
+  // Opaque universally unique identifier (UUID) of a physical device
+  struct UUID
+  {
+    uint8_t bytes[OIDN_UUID_SIZE];
+  };
+
+  // Opaque locally unique identifier (LUID) of a physical device
+  struct LUID
+  {
+    union
+    {
+      struct
+      {
+        uint32_t low;
+        int32_t  high;
+      };
+      uint8_t bytes[OIDN_LUID_SIZE];
+    };
+  };
 
   // Device object with automatic reference counting
   class DeviceRef
@@ -604,13 +633,13 @@ OIDN_NAMESPACE_BEGIN
     // Sets a boolean parameter of the device.
     void set(const char* name, bool value)
     {
-      oidnSetDevice1b(handle, name, value);
+      oidnSetDeviceBool(handle, name, value);
     }
 
     // Sets an integer parameter of the device.
     void set(const char* name, int value)
     {
-      oidnSetDevice1i(handle, name, value);
+      oidnSetDeviceInt(handle, name, value);
     }
 
     // Gets a parameter of the device.
@@ -624,7 +653,8 @@ OIDN_NAMESPACE_BEGIN
     }
 
     // Returns the first unqueried error code and clears the stored error.
-    // Can be called for a null device as well to check why a device creation failed.
+    // Can be called for a null device as well to check for global errors (e.g. why a device
+    // creation or physical device query has failed.
     Error getError()
     {
       return static_cast<Error>(oidnGetDeviceError(handle, nullptr));
@@ -662,7 +692,8 @@ OIDN_NAMESPACE_BEGIN
       return oidnNewBufferWithStorage(handle, byteSize, static_cast<OIDNStorage>(storage));
     }
 
-    // Creates a shared buffer from memory allocated and owned by the user and accessible to the device.
+    // Creates a shared buffer from memory allocated and owned by the user and accessible to the
+    // device.
     BufferRef newBuffer(void* ptr, size_t byteSize) const
     {
       return oidnNewSharedBuffer(handle, ptr, byteSize);
@@ -692,38 +723,71 @@ OIDN_NAMESPACE_BEGIN
     OIDNDevice handle;
   };
 
-  // Gets a boolean parameter of the device.
   template<>
   inline bool DeviceRef::get(const char* name) const
   {
-    return oidnGetDevice1b(handle, name);
+    return oidnGetDeviceBool(handle, name);
   }
 
-  // Gets an integer parameter of the device (e.g. "version").
   template<>
   inline int DeviceRef::get(const char* name) const
   {
-    return oidnGetDevice1i(handle, name);
+    return oidnGetDeviceInt(handle, name);
   }
 
-  // Gets a DeviceType parameter of the device ("type").
+  template<>
+  inline unsigned int DeviceRef::get(const char* name) const
+  {
+    return oidnGetDeviceUInt(handle, name);
+  }
+
   template<>
   inline DeviceType DeviceRef::get(const char* name) const
   {
-    return DeviceType(oidnGetDevice1i(handle, name));
+    return DeviceType(oidnGetDeviceInt(handle, name));
   }
 
-  // Gets an ExternalMemoryTypeFlags parameter of the device ("externalMemoryTypes").
   template<>
   inline ExternalMemoryTypeFlags DeviceRef::get(const char* name) const
   {
-    return ExternalMemoryTypeFlags(oidnGetDevice1i(handle, name));
+    return ExternalMemoryTypeFlags(oidnGetDeviceInt(handle, name));
+  }
+
+  // Returns the first unqueried per-thread global error code and clears the stored error.
+  inline Error getError()
+  {
+    return static_cast<Error>(oidnGetDeviceError(nullptr, nullptr));
+  }
+
+  // Returns the first unqueried per-thread global error code and string message, and clears the
+  // stored error.
+  inline Error getError(const char*& outMessage)
+  {
+    return static_cast<Error>(oidnGetDeviceError(nullptr, &outMessage));
   }
 
   // Creates a device of the specified type.
   inline DeviceRef newDevice(DeviceType type = DeviceType::Default)
   {
-    return DeviceRef(oidnNewDevice((OIDNDeviceType)type));
+    return DeviceRef(oidnNewDevice(static_cast<OIDNDeviceType>(type)));
+  }
+
+  // Creates a device from the physical device specified by its ID (0 to numPhysicalDevices-1).
+  inline DeviceRef newDevice(int physicalDeviceID)
+  {
+    return DeviceRef(oidnNewDeviceByID(physicalDeviceID));
+  }
+
+  // Creates a device from the physical device specified by its UUID.
+  inline DeviceRef newDevice(const UUID& uuid)
+  {
+    return DeviceRef(oidnNewDeviceByUUID(uuid.bytes));
+  }
+
+  // Creates a device from the physical device specified by its LUID.
+  inline DeviceRef newDevice(const LUID& luid)
+  {
+    return DeviceRef(oidnNewDeviceByLUID(luid.bytes));
   }
 
 #if defined(SYCL_LANGUAGE_VERSION)
@@ -734,44 +798,166 @@ OIDN_NAMESPACE_BEGIN
   }
 
   // Creates a device from the specified list of SYCL queues.
-  // The queues should belong to SYCL sub-devices (Xe-Stacks/Tiles) of the same
-  // SYCL root-device (Xe GPU).
+  // The queues should belong to SYCL sub-devices (Xe-Stacks/Tiles) of the same SYCL root-device
+  // (Xe GPU).
   inline DeviceRef newSYCLDevice(const std::vector<sycl::queue>& queues)
   {
     return DeviceRef(oidnNewSYCLDevice(queues.data(), int(queues.size())));
   }
 #endif
 
-  // Creates a device from the specified CUDA device ID (negative value
-  // maps to the current device) and stream.
-  inline DeviceRef newCUDADevice(int deviceId, cudaStream_t stream)
+  // Creates a device from the specified CUDA device ID (negative value maps to the current device)
+  // and stream.
+  inline DeviceRef newCUDADevice(int deviceID, cudaStream_t stream)
   {
-    return DeviceRef(oidnNewCUDADevice(&deviceId, &stream, 1));
+    return DeviceRef(oidnNewCUDADevice(&deviceID, &stream, 1));
   }
 
-  // Creates a device from the specified pairs of CUDA device IDs (negative value
-  // maps to the current device) and streams (null maps to the default stream).
+  // Creates a device from the specified pairs of CUDA device IDs (negative ID corresponds to the
+  // current device) and streams (null stream corresponds to the default stream).
   // Currently only one device ID/stream is supported.
-  inline DeviceRef newCUDADevice(const std::vector<int>& deviceIds, const std::vector<cudaStream_t>& streams)
+  inline DeviceRef newCUDADevice(const std::vector<int>& deviceIDs,
+                                 const std::vector<cudaStream_t>& streams)
   {
-    assert(deviceIds.size() == streams.size());
-    return DeviceRef(oidnNewCUDADevice(deviceIds.data(), streams.data(), int(streams.size())));
+    assert(deviceIDs.size() == streams.size());
+    return DeviceRef(oidnNewCUDADevice(deviceIDs.data(), streams.data(), int(streams.size())));
   }
 
-  // Creates a device from the specified HIP device ID (negative value
-  // maps to the current device) and stream.
-  inline DeviceRef newHIPDevice(int deviceId, hipStream_t stream)
+  // Creates a device from the specified HIP device ID (negative ID corresponds to the current
+  // device) and stream (null stream corresponds to the default stream).
+  inline DeviceRef newHIPDevice(int deviceID, hipStream_t stream)
   {
-    return DeviceRef(oidnNewHIPDevice(&deviceId, &stream, 1));
+    return DeviceRef(oidnNewHIPDevice(&deviceID, &stream, 1));
   }
 
-  // Creates a device from the specified pairs of HIP device IDs (negative value
-  // maps to the current device) and streams (null maps to the default stream).
+  // Creates a device from the specified pairs of HIP device IDs (negative ID corresponds to the
+  // current device) and streams (null stream corresponds to the default stream).
   // Currently only one device ID/stream is supported.
-  inline DeviceRef newHIPDevice(const std::vector<int>& deviceIds, const std::vector<hipStream_t>& streams)
+  inline DeviceRef newHIPDevice(const std::vector<int>& deviceIDs,
+                                const std::vector<hipStream_t>& streams)
   {
-    assert(deviceIds.size() == streams.size());
-    return DeviceRef(oidnNewHIPDevice(deviceIds.data(), streams.data(), int(streams.size())));
+    assert(deviceIDs.size() == streams.size());
+    return DeviceRef(oidnNewHIPDevice(deviceIDs.data(), streams.data(), int(streams.size())));
+  }
+
+  // -----------------------------------------------------------------------------------------------
+  // Physical Device
+  // -----------------------------------------------------------------------------------------------
+
+  class PhysicalDeviceRef
+  {
+  public:
+    PhysicalDeviceRef() : id(-1) {}
+    PhysicalDeviceRef(int id) : id(id) {}
+
+    PhysicalDeviceRef& operator =(int other)
+    {
+      id = other;
+      return *this;
+    }
+
+    int getID() const
+    {
+      return id;
+    }
+
+    operator bool() const
+    {
+      return id >= 0;
+    }
+
+    // Gets a paramter of the physical device.
+    template<typename T>
+    T get(const char* name) const;
+
+    // Gets an opaque data parameter of the physical device.
+    std::pair<const void*, size_t> getData(const char* name) const
+    {
+      size_t byteSize = 0;
+      const void* ptr = oidnGetPhysicalDeviceData(id, name, &byteSize);
+      return {ptr, byteSize};
+    }
+
+    // Creates a device from the physical device.
+    DeviceRef newDevice()
+    {
+      return DeviceRef(oidnNewDeviceByID(id));
+    }
+
+  private:
+    int id;
+  };
+
+  // Returns the number of supported physical devices.
+  inline int getNumPhysicalDevices()
+  {
+    return oidnGetNumPhysicalDevices();
+  }
+
+  template<>
+  inline bool PhysicalDeviceRef::get(const char* name) const
+  {
+    return oidnGetPhysicalDeviceBool(id, name);
+  }
+
+  template<>
+  inline int PhysicalDeviceRef::get(const char* name) const
+  {
+    return oidnGetPhysicalDeviceInt(id, name);
+  }
+
+  template<>
+  inline unsigned int PhysicalDeviceRef::get(const char* name) const
+  {
+    return oidnGetPhysicalDeviceUInt(id, name);
+  }
+
+  template<>
+  inline DeviceType PhysicalDeviceRef::get(const char* name) const
+  {
+    return static_cast<DeviceType>(oidnGetPhysicalDeviceInt(id, name));
+  }
+
+  template<>
+  inline const char* PhysicalDeviceRef::get(const char* name) const
+  {
+    return oidnGetPhysicalDeviceString(id, name);
+  }
+
+  template<>
+  inline std::string PhysicalDeviceRef::get(const char* name) const
+  {
+    return oidnGetPhysicalDeviceString(id, name);
+  }
+
+  template<>
+  inline UUID PhysicalDeviceRef::get(const char* name) const
+  {
+    UUID uuid{};
+    auto data = getData(name);
+    if (data.first != nullptr)
+    {
+      if (data.second == sizeof(uuid.bytes))
+        std::memcpy(uuid.bytes, data.first, sizeof(uuid.bytes));
+      else
+        getData(""); // invoke an error
+    }
+    return uuid;
+  }
+
+  template<>
+  inline LUID PhysicalDeviceRef::get(const char* name) const
+  {
+    LUID luid{};
+    auto data = getData(name);
+    if (data.first != nullptr)
+    {
+      if (data.second == sizeof(luid.bytes))
+        std::memcpy(luid.bytes, data.first, sizeof(luid.bytes));
+      else
+        getData(""); // invoke an error
+    }
+    return luid;
   }
 
 OIDN_NAMESPACE_END

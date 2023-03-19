@@ -29,6 +29,11 @@ OIDN_NAMESPACE_BEGIN
       modules.load("device_cuda");
       modules.load("device_hip");
     #endif
+
+      // Sort the physical devices by score
+      std::sort(physicalDevices.begin(), physicalDevices.end(),
+                [](const Ref<PhysicalDevice>& a, const Ref<PhysicalDevice>& b)
+                { return a->score > b->score; });
     });
   }
 
@@ -43,6 +48,13 @@ OIDN_NAMESPACE_BEGIN
     if (it == deviceFactories.end())
       throw Exception(Error::UnsupportedHardware, "unsupported device type");
     return it->second.get();
+  }
+
+  const Ref<PhysicalDevice>& Context::getPhysicalDevice(int id) const
+  {
+    if (id < 0 || static_cast<size_t>(id) >= physicalDevices.size())
+      throw Exception(Error::InvalidArgument, "invalid physical device ID");
+    return physicalDevices[id];
   }
 
 OIDN_NAMESPACE_END

@@ -25,26 +25,63 @@ OIDN_NAMESPACE_BEGIN
     }
   }
 
-  bool CUDADevice::isSupported()
+  CUDAPhysicalDevice::CUDAPhysicalDevice(int deviceID, const cudaDeviceProp& prop, int score)
+    : PhysicalDevice(DeviceType::CUDA, score),
+      deviceID(deviceID)
   {
-    int deviceId = 0;
-    if (cudaGetDevice(&deviceId) != cudaSuccess)
-      return false;
-    cudaDeviceProp prop;
-    if (cudaGetDeviceProperties(&prop, deviceId) != cudaSuccess)
-      return false;
-    const int smArch = prop.major * 10 + prop.minor;
-    return smArch >= minSMArch && smArch <= maxSMArch &&
-           prop.unifiedAddressing && prop.managedMemory;
+    name = prop.name;
+
+    memcpy(uuid.bytes, prop.uuid.bytes, sizeof(uuid.bytes));
+    uuidValid = true;
+
+  #if defined(_WIN32)
+    if (prop.tccDriver == 0)
+    {
+      memcpy(luid.bytes, prop.luid, sizeof(luid.bytes));
+      nodeMask = prop.luidDeviceNodeMask;
+      luidValid = true;
+    }
+  #endif
   }
 
-  CUDADevice::CUDADevice(int deviceId, cudaStream_t stream)
-    : deviceId(deviceId),
+  std::vector<Ref<PhysicalDevice>> CUDADevice::getPhysicalDevices()
+  {
+    int numDevices = 0;
+    if (cudaGetDeviceCount(&numDevices) != cudaSuccess)
+      return {};
+
+    std::vector<Ref<PhysicalDevice>> devices;
+    for (int deviceID = 0; deviceID < numDevices; ++deviceID)
+    {
+      cudaDeviceProp prop{};
+      if (cudaGetDeviceProperties(&prop, deviceID) != cudaSuccess)
+        continue;
+
+      int smArch = prop.major * 10 + prop.minor;
+      bool isSupported = smArch >= minSMArch && smArch <= maxSMArch &&
+                         prop.unifiedAddressing && prop.managedMemory;
+
+      if (isSupported)
+      {
+        int score = (901 << 16) - deviceID - 1;
+        devices.push_back(makeRef<CUDAPhysicalDevice>(deviceID, prop, score));
+      }
+    }
+
+    return devices;
+  }
+
+  CUDADevice::CUDADevice(int deviceID, cudaStream_t stream)
+    : deviceID(deviceID),
       stream(stream)
   {
-    if (deviceId < 0)
-      checkError(cudaGetDevice(&this->deviceId));
+    if (deviceID < 0)
+      checkError(cudaGetDevice(&this->deviceID));
   }
+
+  CUDADevice::CUDADevice(const Ref<CUDAPhysicalDevice>& physicalDevice)
+    : deviceID(physicalDevice->deviceID)
+  {}
 
   CUDADevice::~CUDADevice()
   {
@@ -56,39 +93,32 @@ OIDN_NAMESPACE_BEGIN
 
   void CUDADevice::begin()
   {
-    assert(prevDeviceId < 0);
+    assert(prevDeviceID < 0);
 
     // Save the current CUDA device
-    checkError(cudaGetDevice(&prevDeviceId));
+    checkError(cudaGetDevice(&prevDeviceID));
 
     // Set the current CUDA device
-    if (deviceId != prevDeviceId)
-      checkError(cudaSetDevice(deviceId));
+    if (deviceID != prevDeviceID)
+      checkError(cudaSetDevice(deviceID));
   }
 
   void CUDADevice::end()
   {
-    assert(prevDeviceId >= 0);
+    assert(prevDeviceID >= 0);
 
     // Restore the previous CUDA device
-    if (deviceId != prevDeviceId)
-      checkError(cudaSetDevice(prevDeviceId));
-    prevDeviceId = -1;
+    if (deviceID != prevDeviceID)
+      checkError(cudaSetDevice(prevDeviceID));
+    prevDeviceID = -1;
   }
 
   void CUDADevice::init()
   {
-    cudaDeviceProp prop;
-    checkError(cudaGetDeviceProperties(&prop, deviceId));
+    cudaDeviceProp prop{};
+    checkError(cudaGetDeviceProperties(&prop, deviceID));
     maxWorkGroupSize = prop.maxThreadsPerBlock;
     smArch = prop.major * 10 + prop.minor;
-
-    if (isVerbose())
-    {
-      std::cout << "  Device    : " << prop.name << std::endl;
-      std::cout << "    Arch    : SM " << prop.major << "." << prop.minor << std::endl;
-      std::cout << "    SMs     : " << prop.multiProcessorCount << std::endl;
-    }
 
     // Check required hardware features
     if (smArch < minSMArch || smArch > maxSMArch)
@@ -98,6 +128,15 @@ OIDN_NAMESPACE_BEGIN
     if (!prop.managedMemory)
       throw Exception(Error::UnsupportedHardware, "device does not support managed memory");
 
+    // Print device info
+    if (isVerbose())
+    {
+      std::cout << "  Device    : " << prop.name << std::endl;
+      std::cout << "    Arch    : SM " << prop.major << "." << prop.minor << std::endl;
+      std::cout << "    SMs     : " << prop.multiProcessorCount << std::endl;
+    }
+
+    // Set device properties
     tensorDataType = DataType::Float16;
     tensorLayout   = TensorLayout::hwc;
     weightLayout   = TensorLayout::ohwi;
@@ -140,7 +179,8 @@ OIDN_NAMESPACE_BEGIN
 
   void CUDADevice::wait()
   {
-    engine->wait();
+    if (engine)
+      engine->wait();
   }
 
 OIDN_NAMESPACE_END

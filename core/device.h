@@ -8,6 +8,7 @@
 #include "exception.h"
 #include "thread.h"
 #include "tensor_layout.h"
+#include "data.h"
 
 OIDN_NAMESPACE_BEGIN
   
@@ -20,6 +21,28 @@ OIDN_NAMESPACE_BEGIN
   {
     Sync, // synchronous
     Async // asynchronous
+  };
+
+  class PhysicalDevice : public RefCount
+  {
+  public:
+    DeviceType type = DeviceType::Default;
+    int score = -1; // higher score *probably* means faster device
+
+    std::string name = "Unknown";
+
+    UUID uuid{};
+    bool uuidValid = false;
+    
+    LUID luid{};
+    bool luidValid = false;
+    uint32_t nodeMask = 0;
+
+    PhysicalDevice(DeviceType type, int score) : type(type), score(score) {}
+
+    virtual int getInt(const std::string& name) const;
+    virtual const char* getString(const std::string& name) const;
+    virtual Data getData(const std::string& name) const;
   };
 
   class Device : public RefCount, public Verbose
@@ -40,8 +63,8 @@ OIDN_NAMESPACE_BEGIN
 
     virtual DeviceType getType() const = 0;
 
-    virtual int get1i(const std::string& name);
-    virtual void set1i(const std::string& name, int value);
+    virtual int getInt(const std::string& name);
+    virtual void setInt(const std::string& name, int value);
 
     bool isCommitted() const { return committed; }
     void checkCommitted();

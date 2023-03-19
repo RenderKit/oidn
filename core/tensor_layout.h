@@ -25,7 +25,7 @@ OIDN_NAMESPACE_BEGIN
     ohwi,
   };
 
-  // ---------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
 
   template<TensorLayout layout>
   struct TensorLayoutTraits;
@@ -286,7 +286,7 @@ OIDN_NAMESPACE_BEGIN
   template<typename T, TensorLayout layout>
   using TensorAddressing = typename TensorLayoutTraits<layout>::template Addressing<T>;
 
-  // ---------------------------------------------------------------------------
+  // -----------------------------------------------------------------------------------------------
 
   struct TensorLayoutInfo
   {

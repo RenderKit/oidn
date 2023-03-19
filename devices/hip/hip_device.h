@@ -22,15 +22,24 @@ OIDN_NAMESPACE_BEGIN
     WMMA,    // RDNA3
   };
 
+  class HIPPhysicalDevice : public PhysicalDevice
+  {
+  public:
+    int deviceID;
+
+    HIPPhysicalDevice(int deviceID, const hipDeviceProp_t& prop, int score);
+  };
+
   class HIPDevice final : public Device
   {
     friend class HIPEngine;
 
   public:
-    static bool isSupported();
+    static std::vector<Ref<PhysicalDevice>> getPhysicalDevices();
     static HIPArch getArch(const std::string& archStr);
 
-    HIPDevice(int deviceId = -1, hipStream_t stream = nullptr);
+    HIPDevice(int deviceID = -1, hipStream_t stream = nullptr);
+    explicit HIPDevice(const Ref<HIPPhysicalDevice>& physicalDevice);
     ~HIPDevice();
 
     void begin() override;
@@ -55,8 +64,8 @@ OIDN_NAMESPACE_BEGIN
 
     Ref<HIPEngine> engine;
 
-    int deviceId = 0;
-    int prevDeviceId = -1;
+    int deviceID = 0;
+    int prevDeviceID = -1;
     hipStream_t stream = nullptr;
 
     HIPArch arch = HIPArch::Unknown;

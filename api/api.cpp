@@ -95,13 +95,66 @@ OIDN_API_NAMESPACE_BEGIN
         OIDN_TRY
           checkHandle(obj);
           // Do NOT lock the device because it owns the mutex
-          obj->begin(); // save stase
+          obj->begin(); // save state
           obj->wait();  // wait for all async operations to complete
           obj->end();   // restore state
           obj->destroy();
         OIDN_CATCH(obj)
       }
     }
+  }
+
+  OIDN_API int oidnGetNumPhysicalDevices()
+  {
+    Ref<Device> device = nullptr; // dummy
+    OIDN_TRY
+      Context& ctx = Context::get();
+      return ctx.getNumPhysicalDevices();
+    OIDN_CATCH(device)
+    return 0;
+  }
+
+  OIDN_API bool oidnGetPhysicalDeviceBool(int physicalDeviceID, const char* name)
+  {
+    Ref<Device> device = nullptr; // dummy
+    OIDN_TRY
+      Context& ctx = Context::get();
+      return ctx.getPhysicalDevice(physicalDeviceID)->getInt(name);
+    OIDN_CATCH(device)
+    return 0;
+  }
+
+  OIDN_API int oidnGetPhysicalDeviceInt(int physicalDeviceID, const char* name)
+  {
+    Ref<Device> device = nullptr; // dummy
+    OIDN_TRY
+      Context& ctx = Context::get();
+      return ctx.getPhysicalDevice(physicalDeviceID)->getInt(name);
+    OIDN_CATCH(device)
+    return 0;
+  }
+
+  OIDN_API const char* oidnGetPhysicalDeviceString(int physicalDeviceID, const char* name)
+  {
+    Ref<Device> device = nullptr; // dummy
+    OIDN_TRY
+      Context& ctx = Context::get();
+      return ctx.getPhysicalDevice(physicalDeviceID)->getString(name);
+    OIDN_CATCH(device)
+    return nullptr;
+  }
+
+  OIDN_API const void* oidnGetPhysicalDeviceData(int physicalDeviceID, const char* name, size_t* byteSize)
+  {
+    Ref<Device> device = nullptr; // dummy
+    OIDN_TRY
+      Context& ctx = Context::get();
+      Data data = ctx.getPhysicalDevice(physicalDeviceID)->getData(name);
+      if (byteSize != nullptr)
+        *byteSize = data.size;
+      return data.ptr;
+    OIDN_CATCH(device)
+    return nullptr;
   }
 
   OIDN_API OIDNDevice oidnNewDevice(OIDNDeviceType inType)
@@ -111,20 +164,126 @@ OIDN_API_NAMESPACE_BEGIN
 
     OIDN_TRY
       Context& ctx = Context::get();
-
       if (type == DeviceType::Default)
       {
-        for (auto curType : {DeviceType::CUDA, DeviceType::HIP, DeviceType::SYCL, DeviceType::CPU})
+        if (ctx.getNumPhysicalDevices() == 0)
+          throw Exception(Error::UnsupportedHardware, "no supported device found");
+        const auto& physicalDevice = ctx.getPhysicalDevice(0);
+        DeviceType type = physicalDevice->type;
+        device = ctx.getDeviceFactory(type)->newDevice(physicalDevice);
+      }
+      else
+      {
+        device = ctx.getDeviceFactory(type)->newDevice();
+      }
+    OIDN_CATCH(device)
+    
+    return reinterpret_cast<OIDNDevice>(device.detach());
+  }
+
+  OIDN_API OIDNDevice oidnNewDeviceByID(int physicalDeviceID)
+  {
+    Ref<Device> device = nullptr;
+
+    OIDN_TRY
+      Context& ctx = Context::get();
+      const auto& physicalDevice = ctx.getPhysicalDevice(physicalDeviceID);
+      DeviceType type = physicalDevice->type;
+      device = ctx.getDeviceFactory(type)->newDevice(physicalDevice);
+    OIDN_CATCH(device)
+    
+    return reinterpret_cast<OIDNDevice>(device.detach());
+  }
+
+  OIDN_API OIDNDevice oidnNewDeviceByUUID(const void* uuid)
+  {
+    Ref<Device> device = nullptr;
+
+    OIDN_TRY
+      Context& ctx = Context::get();
+
+      // Find the physical device with the specified UUID
+      const int numDevices = ctx.getNumPhysicalDevices();
+      int foundID = -1;
+      int unknownID = -1;
+      int numUnknownDevices = 0;
+
+      for (int i = 0; i < numDevices; ++i)
+      {
+        const auto& physicalDevice = ctx.getPhysicalDevice(i);
+        if (physicalDevice->uuidValid &&
+            memcmp(uuid, physicalDevice->uuid.bytes, sizeof(physicalDevice->uuid.bytes)) == 0)
         {
-          if (ctx.isDeviceSupported(curType))
-          {
-            type = curType;
-            break;
-          }
+          foundID = i;
+          break;
+        }
+        else if (physicalDevice->type == DeviceType::HIP)
+        {
+          // FIXME: HIP reports inconsistent UUID, so we'll try to guess the device
+          unknownID = i;
+          ++numUnknownDevices;
         }
       }
 
-      device = ctx.getDeviceFactory(type)->newDevice();
+      // FIXME: UUID might be missing or inconsistent, so if there is no match but only one unknown
+      // device, pick that one
+      if (foundID < 0 && numUnknownDevices == 1)
+        foundID = unknownID;
+
+      if (foundID < 0)
+        throw Exception(Error::InvalidArgument, "no physical device found with specified UUID");
+
+      const auto& physicalDevice = ctx.getPhysicalDevice(foundID);
+      const DeviceType type = physicalDevice->type;
+      device = ctx.getDeviceFactory(type)->newDevice(physicalDevice);
+    OIDN_CATCH(device)
+    
+    return reinterpret_cast<OIDNDevice>(device.detach());
+  }
+
+  OIDN_API OIDNDevice oidnNewDeviceByLUID(const void* luid)
+  {
+    Ref<Device> device = nullptr;
+
+    OIDN_TRY
+      Context& ctx = Context::get();
+
+      // Find the physical device with the specified LUID
+      const int numDevices = ctx.getNumPhysicalDevices();
+      int foundID = -1;
+      int unknownID = -1;
+      int numUnknownDevices = 0;
+
+      for (int i = 0; i < numDevices; ++i)
+      {
+        const auto& physicalDevice = ctx.getPhysicalDevice(i);
+        if (physicalDevice->luidValid &&
+            memcmp(luid, physicalDevice->luid.bytes, sizeof(physicalDevice->luid.bytes)) == 0)
+        {
+          foundID = i;
+          break;
+        }
+      #if defined(_WIN32)
+        else if (!physicalDevice->luidValid && physicalDevice->type == DeviceType::HIP)
+        {
+          // FIXME: HIP does not support LUID, so we'll try to guess the device
+          unknownID = i;
+          ++numUnknownDevices;
+        }
+      #endif
+      }
+
+      // FIXME: LUID might be missing or inconsistent, so if there is no match but only one unknown
+      // device, pick that one
+      if (foundID < 0 && numUnknownDevices == 1)
+        foundID = unknownID;
+
+      if (foundID < 0)
+        throw Exception(Error::InvalidArgument, "no physical device found with specified LUID");
+
+      const auto& physicalDevice = ctx.getPhysicalDevice(foundID);
+      const DeviceType type = physicalDevice->type;
+      device = ctx.getDeviceFactory(type)->newDevice(physicalDevice);
     OIDN_CATCH(device)
     
     return reinterpret_cast<OIDNDevice>(device.detach());
@@ -133,32 +292,34 @@ OIDN_API_NAMESPACE_BEGIN
   OIDN_API OIDNDevice oidnNewSYCLDevice(const sycl::queue* queues, int numQueues)
   {
     Ref<Device> device = nullptr;
+
     OIDN_TRY
       Context& ctx = Context::get();
       auto factory = static_cast<SYCLDeviceFactoryBase*>(ctx.getDeviceFactory(DeviceType::SYCL));
       device = factory->newDevice(queues, numQueues);
     OIDN_CATCH(device)
+    
     return reinterpret_cast<OIDNDevice>(device.detach());
   }
 
-  OIDN_API OIDNDevice oidnNewCUDADevice(const int* deviceIds, const cudaStream_t* streams, int num)
+  OIDN_API OIDNDevice oidnNewCUDADevice(const int* deviceIDs, const cudaStream_t* streams, int num)
   {
     Ref<Device> device = nullptr;
     OIDN_TRY
       Context& ctx = Context::get();
       auto factory = static_cast<CUDADeviceFactoryBase*>(ctx.getDeviceFactory(DeviceType::CUDA));
-      device = factory->newDevice(deviceIds, streams, num);
+      device = factory->newDevice(deviceIDs, streams, num);
     OIDN_CATCH(device)
     return reinterpret_cast<OIDNDevice>(device.detach());
   }
 
-  OIDN_API OIDNDevice oidnNewHIPDevice(const int* deviceIds, const hipStream_t* streams, int num)
+  OIDN_API OIDNDevice oidnNewHIPDevice(const int* deviceIDs, const hipStream_t* streams, int num)
   {
     Ref<Device> device = nullptr;
     OIDN_TRY
       Context& ctx = Context::get();
       auto factory = static_cast<HIPDeviceFactoryBase*>(ctx.getDeviceFactory(DeviceType::HIP));
-      device = factory->newDevice(deviceIds, streams, num);
+      device = factory->newDevice(deviceIDs, streams, num);
     OIDN_CATCH(device)
     return reinterpret_cast<OIDNDevice>(device.detach());
   }
@@ -175,44 +336,44 @@ OIDN_API_NAMESPACE_BEGIN
     releaseObject(device);
   }
 
-  OIDN_API void oidnSetDevice1b(OIDNDevice hDevice, const char* name, bool value)
+  OIDN_API void oidnSetDeviceBool(OIDNDevice hDevice, const char* name, bool value)
   {
     Device* device = reinterpret_cast<Device*>(hDevice);
     OIDN_TRY
       checkHandle(hDevice);
       OIDN_LOCK(device);
-      device->set1i(name, value);
+      device->setInt(name, value);
     OIDN_CATCH(device)
   }
 
-  OIDN_API void oidnSetDevice1i(OIDNDevice hDevice, const char* name, int value)
+  OIDN_API void oidnSetDeviceInt(OIDNDevice hDevice, const char* name, int value)
   {
     Device* device = reinterpret_cast<Device*>(hDevice);
     OIDN_TRY
       checkHandle(hDevice);
       OIDN_LOCK(device);
-      device->set1i(name, value);
+      device->setInt(name, value);
     OIDN_CATCH(device)
   }
 
-  OIDN_API bool oidnGetDevice1b(OIDNDevice hDevice, const char* name)
+  OIDN_API bool oidnGetDeviceBool(OIDNDevice hDevice, const char* name)
   {
     Device* device = reinterpret_cast<Device*>(hDevice);
     OIDN_TRY
       checkHandle(hDevice);
       OIDN_LOCK(device);
-      return device->get1i(name);
+      return device->getInt(name);
     OIDN_CATCH(device)
     return false;
   }
 
-  OIDN_API int oidnGetDevice1i(OIDNDevice hDevice, const char* name)
+  OIDN_API int oidnGetDeviceInt(OIDNDevice hDevice, const char* name)
   {
     Device* device = reinterpret_cast<Device*>(hDevice);
     OIDN_TRY
       checkHandle(hDevice);
       OIDN_LOCK(device);
-      return device->get1i(name);
+      return device->getInt(name);
     OIDN_CATCH(device)
     return 0;
   }
@@ -253,6 +414,7 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_TRY
       checkHandle(hDevice);
       OIDN_LOCK(device);
+      device->checkCommitted();
       device->wait();
     OIDN_CATCH(device)
   }
@@ -377,7 +539,8 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_CATCH(buffer);
   }
 
-  OIDN_API void oidnReadBufferAsync(OIDNBuffer hBuffer, size_t byteOffset, size_t byteSize, void* dstHostPtr)
+  OIDN_API void oidnReadBufferAsync(OIDNBuffer hBuffer,
+                                    size_t byteOffset, size_t byteSize, void* dstHostPtr)
   {
     Buffer* buffer = reinterpret_cast<Buffer*>(hBuffer);
     OIDN_TRY
@@ -387,7 +550,8 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_CATCH(buffer);
   }
 
-  OIDN_API void oidnWriteBuffer(OIDNBuffer hBuffer, size_t byteOffset, size_t byteSize, const void* srcHostPtr)
+  OIDN_API void oidnWriteBuffer(OIDNBuffer hBuffer,
+                                size_t byteOffset, size_t byteSize, const void* srcHostPtr)
   {
     Buffer* buffer = reinterpret_cast<Buffer*>(hBuffer);
     OIDN_TRY
@@ -397,7 +561,8 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_CATCH(buffer);
   }
 
-  OIDN_API void oidnWriteBufferAsync(OIDNBuffer hBuffer, size_t byteOffset, size_t byteSize, const void* srcHostPtr)
+  OIDN_API void oidnWriteBufferAsync(OIDNBuffer hBuffer,
+                                     size_t byteOffset, size_t byteSize, const void* srcHostPtr)
   {
     Buffer* buffer = reinterpret_cast<Buffer*>(hBuffer);
     OIDN_TRY
@@ -534,70 +699,71 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_CATCH(filter)
   }
 
-  OIDN_API void oidnSetFilter1b(OIDNFilter hFilter, const char* name, bool value)
+  OIDN_API void oidnSetFilterBool(OIDNFilter hFilter, const char* name, bool value)
   {
     Filter* filter = reinterpret_cast<Filter*>(hFilter);
     OIDN_TRY
       checkHandle(hFilter);
       OIDN_LOCK(filter);
-      filter->set1i(name, int(value));
+      filter->setInt(name, int(value));
     OIDN_CATCH(filter)
   }
 
-  OIDN_API bool oidnGetFilter1b(OIDNFilter hFilter, const char* name)
+  OIDN_API bool oidnGetFilterBool(OIDNFilter hFilter, const char* name)
   {
     Filter* filter = reinterpret_cast<Filter*>(hFilter);
     OIDN_TRY
       checkHandle(hFilter);
       OIDN_LOCK(filter);
-      return filter->get1i(name);
+      return filter->getInt(name);
     OIDN_CATCH(filter)
     return false;
   }
 
-  OIDN_API void oidnSetFilter1i(OIDNFilter hFilter, const char* name, int value)
+  OIDN_API void oidnSetFilterInt(OIDNFilter hFilter, const char* name, int value)
   {
     Filter* filter = reinterpret_cast<Filter*>(hFilter);
     OIDN_TRY
       checkHandle(hFilter);
       OIDN_LOCK(filter);
-      filter->set1i(name, value);
+      filter->setInt(name, value);
     OIDN_CATCH(filter)
   }
 
-  OIDN_API int oidnGetFilter1i(OIDNFilter hFilter, const char* name)
+  OIDN_API int oidnGetFilterInt(OIDNFilter hFilter, const char* name)
   {
     Filter* filter = reinterpret_cast<Filter*>(hFilter);
     OIDN_TRY
       checkHandle(hFilter);
       OIDN_LOCK(filter);
-      return filter->get1i(name);
-    OIDN_CATCH(filter)
-    return 0;
-  }
-
-  OIDN_API void oidnSetFilter1f(OIDNFilter hFilter, const char* name, float value)
-  {
-    Filter* filter = reinterpret_cast<Filter*>(hFilter);
-    OIDN_TRY
-      checkHandle(hFilter);
-      OIDN_LOCK(filter);
-      filter->set1f(name, value);
-    OIDN_CATCH(filter)
-  }
-
-  OIDN_API float oidnGetFilter1f(OIDNFilter hFilter, const char* name)
-  {
-    Filter* filter = reinterpret_cast<Filter*>(hFilter);
-    OIDN_TRY
-      checkHandle(hFilter);
-      OIDN_LOCK(filter);
-      return filter->get1f(name);
+      return filter->getInt(name);
     OIDN_CATCH(filter)
     return 0;
   }
 
-  OIDN_API void oidnSetFilterProgressMonitorFunction(OIDNFilter hFilter, OIDNProgressMonitorFunction func, void* userPtr)
+  OIDN_API void oidnSetFilterFloat(OIDNFilter hFilter, const char* name, float value)
+  {
+    Filter* filter = reinterpret_cast<Filter*>(hFilter);
+    OIDN_TRY
+      checkHandle(hFilter);
+      OIDN_LOCK(filter);
+      filter->setFloat(name, value);
+    OIDN_CATCH(filter)
+  }
+
+  OIDN_API float oidnGetFilterFloat(OIDNFilter hFilter, const char* name)
+  {
+    Filter* filter = reinterpret_cast<Filter*>(hFilter);
+    OIDN_TRY
+      checkHandle(hFilter);
+      OIDN_LOCK(filter);
+      return filter->getFloat(name);
+    OIDN_CATCH(filter)
+    return 0;
+  }
+
+  OIDN_API void oidnSetFilterProgressMonitorFunction(OIDNFilter hFilter,
+                                                     OIDNProgressMonitorFunction func, void* userPtr)
   {
     Filter* filter = reinterpret_cast<Filter*>(hFilter);
     OIDN_TRY
@@ -638,8 +804,7 @@ OIDN_API_NAMESPACE_BEGIN
   }
 
   OIDN_API void oidnExecuteSYCLFilterAsync(OIDNFilter hFilter,
-                                           const sycl::event* depEvents,
-                                           int numDepEvents,
+                                           const sycl::event* depEvents, int numDepEvents,
                                            sycl::event* doneEvent)
   {
     Filter* filter = reinterpret_cast<Filter*>(hFilter);

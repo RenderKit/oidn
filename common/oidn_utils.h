@@ -5,6 +5,7 @@
 
 #include "include/OpenImageDenoise/oidn.hpp"
 #include <iostream>
+#include <iomanip>
 
 OIDN_NAMESPACE_BEGIN
 
@@ -15,5 +16,8 @@ OIDN_NAMESPACE_BEGIN
 
   std::ostream& operator <<(std::ostream& sm, DeviceType deviceType);
   std::istream& operator >>(std::istream& sm, DeviceType& deviceType);
+
+  std::ostream& operator <<(std::ostream& sm, const UUID& uuid);
+  std::ostream& operator <<(std::ostream& sm, const LUID& luid);
 
 OIDN_NAMESPACE_END

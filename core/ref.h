@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -110,6 +110,13 @@ OIDN_NAMESPACE_BEGIN
     OIDN_INLINE T* operator ->() const noexcept { return  ptr; }
 
     OIDN_INLINE T* get() const noexcept { return ptr; }
+
+    OIDN_INLINE void reset()
+    {
+      if (ptr)
+        ptr->decRef();
+      ptr = nullptr;
+    }
 
     OIDN_INLINE T* detach() noexcept
     {

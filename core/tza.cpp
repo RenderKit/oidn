@@ -7,7 +7,7 @@
 OIDN_NAMESPACE_BEGIN
 
   // Checks for buffer overrun
-  OIDN_INLINE void checkBounds(char* ptr, char* end, size_t size)
+  OIDN_INLINE void checkBounds(const char* ptr, const char* end, size_t size)
   {
     if (end - ptr < (ptrdiff_t)size)
       throw Exception(Error::InvalidOperation, "invalid or corrupted weights blob");
@@ -15,7 +15,7 @@ OIDN_NAMESPACE_BEGIN
 
   // Reads a value from a buffer (with bounds checking) and advances the pointer
   template<typename T>
-  OIDN_INLINE T read(char*& ptr, char* end)
+  OIDN_INLINE T read(const char*& ptr, const char* end)
   {
     checkBounds(ptr, end, sizeof(T));
     T value;
@@ -24,10 +24,10 @@ OIDN_NAMESPACE_BEGIN
     return value;
   }
 
-  std::unordered_map<std::string, std::shared_ptr<Tensor>> parseTZA(const Ref<Engine>& engine, void* buffer, size_t size)
+  std::unordered_map<std::string, std::shared_ptr<Tensor>> parseTZA(const Ref<Engine>& engine, const void* buffer, size_t size)
   {
-    char* input = static_cast<char*>(buffer);
-    char* const bufferEnd = input + size;
+    const char* input = static_cast<const char*>(buffer);
+    const char* const bufferEnd = input + size;
 
     // Parse the magic value
     const int magic = read<uint16_t>(input, bufferEnd);
@@ -43,7 +43,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Parse the table offset and jump to the table
     const uint64_t tableOffset = read<uint64_t>(input, bufferEnd);
-    input = static_cast<char*>(buffer) + tableOffset;
+    input = static_cast<const char*>(buffer) + tableOffset;
 
     // Parse the number of tensors
     const size_t numTensors = read<uint32_t>(input, bufferEnd);
@@ -91,11 +91,11 @@ OIDN_NAMESPACE_BEGIN
 
       // Parse the offset to the tensor data
       const uint64_t tensorOffset = read<uint64_t>(input, bufferEnd);
-      char* tensorData = static_cast<char*>(buffer) + tensorOffset;
+      const char* tensorData = static_cast<const char*>(buffer) + tensorOffset;
       checkBounds(tensorData, bufferEnd, tensorDesc.getByteSize());
 
       // Add the tensor to the map
-      auto tensor = engine->newTensor(tensorDesc, tensorData);
+      auto tensor = engine->newTensor(tensorDesc, const_cast<char*>(tensorData));
       tensorMap.emplace(name, tensor);
     }
 

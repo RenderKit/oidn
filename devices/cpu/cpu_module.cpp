@@ -13,12 +13,17 @@ OIDN_NAMESPACE_BEGIN
     {
       return makeRef<CPUDevice>();
     }
+
+    Ref<Device> newDevice(const Ref<PhysicalDevice>& physicalDevice) override
+    {
+      assert(physicalDevice->type == DeviceType::CPU);
+      return makeRef<CPUDevice>();
+    }
   };
 
   OIDN_DECLARE_INIT_MODULE(device_cpu)
   {
-    if (CPUDevice::isSupported())
-      Context::registerDeviceFactory<CPUDeviceFactory>(DeviceType::CPU);
+    Context::registerDeviceType<CPUDeviceFactory>(DeviceType::CPU, CPUDevice::getPhysicalDevices());
   }
 
 OIDN_NAMESPACE_END

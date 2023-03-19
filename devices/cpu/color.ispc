@@ -5,9 +5,9 @@
 
 static const uniform float HDR_Y_MAX = 65504.f; // maximum HDR value
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Transfer function
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 static void TransferFunction_Constructor(uniform TransferFunction* uniform self)
 {
@@ -27,9 +27,9 @@ static void TransferFunction_initNormalization(uniform TransferFunction* uniform
   self->rcpNormScale = xMax;
 }
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Transfer function: Linear
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 static vec3f LinearTransferFunction_forward(const uniform TransferFunction* uniform self, vec3f y)
 {
@@ -48,9 +48,9 @@ export void LinearTransferFunction_Constructor(uniform TransferFunction* uniform
   self->inverse = LinearTransferFunction_inverse;
 }
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Transfer function: sRGB
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 static const uniform float SRGB_A  =  12.92f;
 static const uniform float SRGB_B  =  1.055f;
@@ -92,9 +92,9 @@ export void SRGBTransferFunction_Constructor(uniform TransferFunction* uniform s
   self->inverse = SRGBTransferFunction_inverse;
 }
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Transfer function: PU
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 // Fit of PU2 curve normalized at 100 cd/m^2
 // [Aydin et al., 2008, "Extending Quality Metrics to Full Luminance Range Images"]
@@ -149,9 +149,9 @@ export void PUTransferFunction_Constructor(uniform TransferFunction* uniform sel
   TransferFunction_initNormalization(self, HDR_Y_MAX);
 }
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Transfer function: Log
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 static vec3f LogTransferFunction_forward(const uniform TransferFunction* uniform self, vec3f y)
 {

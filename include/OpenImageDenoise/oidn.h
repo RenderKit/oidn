@@ -24,9 +24,37 @@ typedef struct ihipStream_t* hipStream_t;
 
 OIDN_API_NAMESPACE_BEGIN
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
+// Physical Device
+// -------------------------------------------------------------------------------------------------
+
+#define OIDN_UUID_SIZE 16u // size of a universally unique identifier (UUID) of a physical device
+#define OIDN_LUID_SIZE 8u  // size of a locally unique identifier (LUID) of a physical device
+
+// Returns the number of supported physical devices.
+OIDN_API int oidnGetNumPhysicalDevices();
+
+// Gets a boolean parameter of the physical device.
+OIDN_API bool oidnGetPhysicalDeviceBool(int physicalDeviceID, const char* name);
+
+// Gets an integer parameter of the physical device.
+OIDN_API int oidnGetPhysicalDeviceInt(int physicalDeviceID, const char* name);
+
+// Gets an unsigned integer parameter of the physical device.
+inline unsigned int oidnGetPhysicalDeviceUInt(int physicalDeviceID, const char* name)
+{
+  return (unsigned int)oidnGetPhysicalDeviceInt(physicalDeviceID, name);
+}
+
+// Gets a string parameter of the physical device.
+OIDN_API const char* oidnGetPhysicalDeviceString(int physicalDeviceID, const char* name);
+
+// Gets an opaque data parameter of the physical device.
+OIDN_API const void* oidnGetPhysicalDeviceData(int physicalDeviceID, const char* name, size_t* byteSize);
+
+// -------------------------------------------------------------------------------------------------
 // Device
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 // Device types
 typedef enum
@@ -60,20 +88,29 @@ typedef struct OIDNDeviceImpl* OIDNDevice;
 // Creates a device of the specified type.
 OIDN_API OIDNDevice oidnNewDevice(OIDNDeviceType type);
 
+// Creates a device from the physical device specified by its ID (0 to numPhysicalDevices-1).
+OIDN_API OIDNDevice oidnNewDeviceByID(int physicalDeviceID);
+
+// Creates a device from the physical device specified by its UUID.
+OIDN_API OIDNDevice oidnNewDeviceByUUID(const void* uuid);
+
+// Creates a device from the physical device specified by its LUID.
+OIDN_API OIDNDevice oidnNewDeviceByLUID(const void* luid);
+
 // Creates a device from the specified list of SYCL queues.
-// The queues should belong to SYCL sub-devices (Xe-Stacks/Tiles) of the same
-// SYCL root-device (Xe GPU).
+// The queues should belong to SYCL sub-devices (Xe-Stacks/Tiles) of the same SYCL root-device
+// (Xe GPU).
 OIDN_API OIDNDevice oidnNewSYCLDevice(const sycl::queue* queues, int numQueues);
 
-// Creates a device from the specified pairs of CUDA device IDs (negative value
-// maps to the current device) and streams (null maps to the default stream).
+// Creates a device from the specified pairs of CUDA device IDs (negative ID corresponds to the
+// current device) and streams (null stream corresponds to the default stream).
 // Currently only one device ID/stream is supported.
-OIDN_API OIDNDevice oidnNewCUDADevice(const int* deviceIds, const cudaStream_t* streams, int num);
+OIDN_API OIDNDevice oidnNewCUDADevice(const int* deviceIDs, const cudaStream_t* streams, int num);
 
-// Creates a device from the specified pairs of HIP device IDs (negative value
-// maps to the current device) and streams (null maps to the default stream).
+// Creates a device from the specified pairs of HIP device IDs (negative ID corresponds to the
+// current device) and streams (null stream corresponds to the default stream).
 // Currently only one device ID/stream is supported.
-OIDN_API OIDNDevice oidnNewHIPDevice(const int* deviceIds, const hipStream_t* streams, int num);
+OIDN_API OIDNDevice oidnNewHIPDevice(const int* deviceIDs, const hipStream_t* streams, int num);
 
 // Retains the device (increments the reference count).
 OIDN_API void oidnRetainDevice(OIDNDevice device);
@@ -82,24 +119,50 @@ OIDN_API void oidnRetainDevice(OIDNDevice device);
 OIDN_API void oidnReleaseDevice(OIDNDevice device);
 
 // Sets a boolean parameter of the device.
-OIDN_API void oidnSetDevice1b(OIDNDevice device, const char* name, bool value);
+OIDN_API void oidnSetDeviceBool(OIDNDevice device, const char* name, bool value);
+
+OIDN_DEPRECATED inline void oidnSetDevice1b(OIDNDevice device, const char* name, bool value)
+{
+  oidnSetDeviceBool(device, name, value);
+}
 
 // Sets an integer parameter of the device.
-OIDN_API void oidnSetDevice1i(OIDNDevice device, const char* name, int value);
+OIDN_API void oidnSetDeviceInt(OIDNDevice device, const char* name, int value);
+
+OIDN_DEPRECATED inline void oidnSetDevice1i(OIDNDevice device, const char* name, int value)
+{
+  oidnSetDeviceInt(device, name, value);
+}
 
 // Gets a boolean parameter of the device.
-OIDN_API bool oidnGetDevice1b(OIDNDevice device, const char* name);
+OIDN_API bool oidnGetDeviceBool(OIDNDevice device, const char* name);
 
-// Gets an integer parameter of the device (e.g. "version").
-OIDN_API int oidnGetDevice1i(OIDNDevice device, const char* name);
+OIDN_DEPRECATED inline bool oidnGetDevice1b(OIDNDevice device, const char* name)
+{
+  return oidnGetDeviceBool(device, name);
+}
+
+// Gets an integer parameter of the device.
+OIDN_API int oidnGetDeviceInt(OIDNDevice device, const char* name);
+
+// Gets an unsigned integer parameter of the device.
+inline unsigned int oidnGetDeviceUInt(OIDNDevice device, const char* name)
+{
+  return (unsigned int)oidnGetDeviceInt(device, name);
+}
+
+OIDN_DEPRECATED inline int oidnGetDevice1i(OIDNDevice device, const char* name)
+{
+  return oidnGetDeviceInt(device, name);
+}
 
 // Sets the error callback function of the device.
 OIDN_API void oidnSetDeviceErrorFunction(OIDNDevice device, OIDNErrorFunction func, void* userPtr);
 
-// Returns the first unqueried error code stored in the device for the current
-// thread, optionally also returning a string message (if not NULL), and clears
-// the stored error. Can be called with a NULL device as well to check why a
-// device creation failed.
+// Returns the first unqueried error code stored in the device for the current thread, optionally
+// also returning a string message (if not NULL), and clears the stored error. Can be called with
+// a NULL device as well to check for per-thread global errors (e.g. why a device creation or
+// physical device query has failed).
 OIDN_API OIDNError oidnGetDeviceError(OIDNDevice device, const char** outMessage);
 
 // Commits all previous changes to the device.
@@ -109,9 +172,9 @@ OIDN_API void oidnCommitDevice(OIDNDevice device);
 // Waits for all asynchronous operations running on the device to complete.
 OIDN_API void oidnSyncDevice(OIDNDevice device);
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Buffer
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 // Formats for images and other data stored in buffers
 typedef enum
@@ -166,22 +229,27 @@ typedef enum
   // a global share (KMT) handle
   OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32_KMT = 1 << 3,
 
-  // an NT handle returned by IDXGIResource1::CreateSharedHandle referring to a Direct3D 11 texture resource
+  // an NT handle returned by IDXGIResource1::CreateSharedHandle referring to a Direct3D 11 texture
+  // resource
   OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_TEXTURE = 1 << 4,
 
-  // a global share (KMT) handle returned by IDXGIResource::GetSharedHandle referring to a Direct3D 11 texture resource
+  // a global share (KMT) handle returned by IDXGIResource::GetSharedHandle referring to a Direct3D 11
+  // texture resource
   OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_TEXTURE_KMT = 1 << 5,
 
   // an NT handle returned by IDXGIResource1::CreateSharedHandle referring to a Direct3D 11 resource
   OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_RESOURCE = 1 << 6,
 
-  // a global share (KMT) handle returned by IDXGIResource::GetSharedHandle referring to a Direct3D 11 resource
+  // a global share (KMT) handle returned by IDXGIResource::GetSharedHandle referring to a Direct3D 11
+  // resource
   OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_RESOURCE_KMT = 1 << 7,
 
-  // an NT handle returned by ID3D12Device::CreateSharedHandle referring to a Direct3D 12 heap resource
+  // an NT handle returned by ID3D12Device::CreateSharedHandle referring to a Direct3D 12 heap
+  // resource
   OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D12_HEAP = 1 << 8,
 
-  // an NT handle returned by ID3D12Device::CreateSharedHandle referring to a Direct3D 12 committed resource
+  // an NT handle returned by ID3D12Device::CreateSharedHandle referring to a Direct3D 12 committed
+  // resource
   OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D12_RESOURCE = 1 << 9,
 } OIDNExternalMemoryTypeFlag;
 
@@ -210,7 +278,8 @@ OIDN_API OIDNBuffer oidnNewSharedBufferFromWin32Handle(OIDNDevice device,
 // Gets the size of the buffer in bytes.
 OIDN_API size_t oidnGetBufferSize(OIDNBuffer buffer);
 
-// Gets a pointer to the buffer data, which is accessible to the device but not necessarily to the host as well.
+// Gets a pointer to the buffer data, which is accessible to the device but not necessarily to the
+// host as well.
 OIDN_API void* oidnGetBufferData(OIDNBuffer buffer);
 
 // Maps a region of the buffer to the host memory.
@@ -225,13 +294,16 @@ OIDN_API void oidnUnmapBuffer(OIDNBuffer buffer, void* mappedPtr);
 OIDN_API void oidnReadBuffer(OIDNBuffer buffer, size_t byteOffset, size_t byteSize, void* dstHostPtr);
 
 // Reads data from a region of the buffer to host memory asynchronously.
-OIDN_API void oidnReadBufferAsync(OIDNBuffer buffer, size_t byteOffset, size_t byteSize, void* dstHostPtr);
+OIDN_API void oidnReadBufferAsync(OIDNBuffer buffer,
+                                  size_t byteOffset, size_t byteSize, void* dstHostPtr);
 
 // Writes data to a region of the buffer from host memory.
-OIDN_API void oidnWriteBuffer(OIDNBuffer buffer, size_t byteOffset, size_t byteSize, const void* srcHostPtr);
+OIDN_API void oidnWriteBuffer(OIDNBuffer buffer,
+                              size_t byteOffset, size_t byteSize, const void* srcHostPtr);
 
 // Writes data to a region of the buffer from host memory asynchronously.
-OIDN_API void oidnWriteBufferAsync(OIDNBuffer buffer, size_t byteOffset, size_t byteSize, const void* srcHostPtr);
+OIDN_API void oidnWriteBufferAsync(OIDNBuffer buffer,
+                                   size_t byteOffset, size_t byteSize, const void* srcHostPtr);
 
 // Retains the buffer (increments the reference count).
 OIDN_API void oidnRetainBuffer(OIDNBuffer buffer);
@@ -239,9 +311,9 @@ OIDN_API void oidnRetainBuffer(OIDNBuffer buffer);
 // Releases the buffer (decrements the reference count).
 OIDN_API void oidnReleaseBuffer(OIDNBuffer buffer);
 
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 // Filter
-// -----------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------
 
 // Progress monitor callback function
 typedef bool (*OIDNProgressMonitorFunction)(void* userPtr, double n);
@@ -288,25 +360,56 @@ OIDN_API void oidnUpdateFilterData(OIDNFilter filter, const char* name);
 OIDN_API void oidnRemoveFilterData(OIDNFilter filter, const char* name);
 
 // Sets a boolean parameter of the filter.
-OIDN_API void oidnSetFilter1b(OIDNFilter filter, const char* name, bool value);
+OIDN_API void oidnSetFilterBool(OIDNFilter filter, const char* name, bool value);
+
+OIDN_DEPRECATED inline void oidnSetFilter1b(OIDNFilter filter, const char* name, bool value)
+{
+  oidnSetFilterBool(filter, name, value);
+}
 
 // Gets a boolean parameter of the filter.
-OIDN_API bool oidnGetFilter1b(OIDNFilter filter, const char* name);
+OIDN_API bool oidnGetFilterBool(OIDNFilter filter, const char* name);
+
+OIDN_DEPRECATED inline bool oidnGetFilter1b(OIDNFilter filter, const char* name)
+{
+  return oidnGetFilterBool(filter, name);
+}
 
 // Sets an integer parameter of the filter.
-OIDN_API void oidnSetFilter1i(OIDNFilter filter, const char* name, int value);
+OIDN_API void oidnSetFilterInt(OIDNFilter filter, const char* name, int value);
+
+OIDN_DEPRECATED inline void oidnSetFilter1i(OIDNFilter filter, const char* name, int value)
+{
+  oidnSetFilterInt(filter, name, value);
+}
 
 // Gets an integer parameter of the filter.
-OIDN_API int oidnGetFilter1i(OIDNFilter filter, const char* name);
+OIDN_API int oidnGetFilterInt(OIDNFilter filter, const char* name);
+
+OIDN_DEPRECATED inline int oidnGetFilter1i(OIDNFilter filter, const char* name)
+{
+  return oidnGetFilterInt(filter, name);
+}
 
 // Sets a float parameter of the filter.
-OIDN_API void oidnSetFilter1f(OIDNFilter filter, const char* name, float value);
+OIDN_API void oidnSetFilterFloat(OIDNFilter filter, const char* name, float value);
+
+OIDN_DEPRECATED inline void oidnSetFilter1f(OIDNFilter filter, const char* name, float value)
+{
+  oidnSetFilterFloat(filter, name, value);
+}
 
 // Gets a float parameter of the filter.
-OIDN_API float oidnGetFilter1f(OIDNFilter filter, const char* name);
+OIDN_API float oidnGetFilterFloat(OIDNFilter filter, const char* name);
+
+OIDN_DEPRECATED inline float oidnGetFilter1f(OIDNFilter filter, const char* name)
+{
+  return oidnGetFilterFloat(filter, name);
+}
 
 // Sets the progress monitor callback function of the filter.
-OIDN_API void oidnSetFilterProgressMonitorFunction(OIDNFilter filter, OIDNProgressMonitorFunction func, void* userPtr);
+OIDN_API void oidnSetFilterProgressMonitorFunction(OIDNFilter filter,
+                                                   OIDNProgressMonitorFunction func, void* userPtr);
 
 // Commits all previous changes to the filter.
 // Must be called before first executing the filter.
@@ -321,8 +424,7 @@ OIDN_API void oidnExecuteFilterAsync(OIDNFilter filter);
 // Executes the SYCL filter asynchronously using the specified dependent events,
 // and optionally returns an event for completion.
 OIDN_API void oidnExecuteSYCLFilterAsync(OIDNFilter filter,
-                                         const sycl::event* depEvents,
-                                         int numDepEvents,
+                                         const sycl::event* depEvents, int numDepEvents,
                                          sycl::event* doneEvent);
 
 OIDN_API_NAMESPACE_END

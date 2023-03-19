@@ -17,8 +17,8 @@ OIDN_NAMESPACE_BEGIN
     void setData(const std::string& name, const Data& data) override;
     void updateData(const std::string& name) override;
     void removeData(const std::string& name) override;
-    void set1f(const std::string& name, float value) override;
-    float get1f(const std::string& name) override;
+    void setFloat(const std::string& name, float value) override;
+    float getFloat(const std::string& name) override;
 
     void commit() override;
     void execute(SyncMode sync) override;

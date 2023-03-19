@@ -36,7 +36,7 @@ OIDN_NAMESPACE_BEGIN
     else if (name == "output")
       setParam(output, image);
     else
-      device->warning("unknown filter parameter");
+      device->warning("unknown filter parameter or type mismatch");
 
     dirty = true;
   }
@@ -48,12 +48,12 @@ OIDN_NAMESPACE_BEGIN
     else if (name == "output")
       removeParam(output);
     else
-      device->warning("unknown filter parameter");
+      device->warning("unknown filter parameter or type mismatch");
 
     dirty = true;
   }
 
-  void RTLightmapFilter::set1i(const std::string& name, int value)
+  void RTLightmapFilter::setInt(const std::string& name, int value)
   {
     if (name == "directional")
     {
@@ -63,12 +63,12 @@ OIDN_NAMESPACE_BEGIN
     else if (name == "maxMemoryMB")
       setParam(maxMemoryMB, value);
     else
-      device->warning("unknown filter parameter");
+      device->warning("unknown filter parameter or type mismatch");
 
     dirty = true;
   }
 
-  int RTLightmapFilter::get1i(const std::string& name)
+  int RTLightmapFilter::getInt(const std::string& name)
   {
     if (name == "directional")
       return directional;
@@ -79,7 +79,7 @@ OIDN_NAMESPACE_BEGIN
     else if (name == "overlap")
       return overlap;
     else
-      throw Exception(Error::InvalidArgument, "unknown filter parameter");
+      throw Exception(Error::InvalidArgument, "unknown filter parameter or type mismatch");
   }
 
 OIDN_NAMESPACE_END

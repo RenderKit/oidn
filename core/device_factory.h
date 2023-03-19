@@ -12,6 +12,7 @@ OIDN_NAMESPACE_BEGIN
   {
   public:
     virtual Ref<Device> newDevice() = 0;
+    virtual Ref<Device> newDevice(const Ref<PhysicalDevice>& physicalDevice) = 0;
   };
 
   class SYCLDeviceFactoryBase : public DeviceFactory
@@ -25,14 +26,14 @@ OIDN_NAMESPACE_BEGIN
   {
   public:
     using DeviceFactory::newDevice;
-    virtual Ref<Device> newDevice(const int* deviceIds, const cudaStream_t* streams, int num) = 0;
+    virtual Ref<Device> newDevice(const int* deviceIDs, const cudaStream_t* streams, int num) = 0;
   };
 
   class HIPDeviceFactoryBase : public DeviceFactory
   {
   public:
     using DeviceFactory::newDevice;
-    virtual Ref<Device> newDevice(const int* deviceIds, const hipStream_t* streams, int num) = 0;
+    virtual Ref<Device> newDevice(const int* deviceIDs, const hipStream_t* streams, int num) = 0;
   };
 
 OIDN_NAMESPACE_END

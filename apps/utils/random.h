@@ -28,19 +28,19 @@ OIDN_NAMESPACE_BEGIN
       state = multiplier * state + increment;
     }
 
-    OIDN_INLINE uint32_t get1ui()
+    OIDN_INLINE uint32_t getUInt()
     {
       next();
       return state;
     }
 
-    OIDN_INLINE int get1i()
+    OIDN_INLINE int getInt()
     {
       next();
       return state;
     }
 
-    OIDN_INLINE float get1f()
+    OIDN_INLINE float getFloat()
     {
       next();
       return float(state) * 2.3283064365386962890625e-10f; // x / 2^32

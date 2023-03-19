@@ -57,7 +57,7 @@ OIDN_NAMESPACE_BEGIN
     else if (name == "output")
       setParam(output, image);
     else
-      device->warning("unknown filter parameter");
+      device->warning("unknown filter parameter or type mismatch");
 
     dirty = true;
   }
@@ -73,12 +73,12 @@ OIDN_NAMESPACE_BEGIN
     else if (name == "output")
       removeParam(output);
     else
-      device->warning("unknown filter parameter");
+      device->warning("unknown filter parameter or type mismatch");
 
     dirty = true;
   }
 
-  void RTFilter::set1i(const std::string& name, int value)
+  void RTFilter::setInt(const std::string& name, int value)
   {
     if (name == "hdr")
       setParam(hdr, value);
@@ -89,12 +89,12 @@ OIDN_NAMESPACE_BEGIN
     else if (name == "maxMemoryMB")
       setParam(maxMemoryMB, value);
     else
-      device->warning("unknown filter parameter");
+      device->warning("unknown filter parameter or type mismatch");
 
     dirty = true;
   }
 
-  int RTFilter::get1i(const std::string& name)
+  int RTFilter::getInt(const std::string& name)
   {
     if (name == "hdr")
       return hdr;
@@ -109,7 +109,7 @@ OIDN_NAMESPACE_BEGIN
     else if (name == "overlap")
       return overlap;
     else
-      throw Exception(Error::InvalidArgument, "unknown filter parameter");
+      throw Exception(Error::InvalidArgument, "unknown filter parameter or type mismatch");
   }
 
 OIDN_NAMESPACE_END

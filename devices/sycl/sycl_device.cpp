@@ -12,22 +12,81 @@ OIDN_NAMESPACE_BEGIN
   public:
     int operator()(const sycl::device& syclDevice) const
     {
-      const SYCLArch arch = SYCLDevice::getArch(syclDevice);
-      if (arch == SYCLArch::Unknown)
-        return -1;
-    
-      // Prefer the highest architecture device with the most compute units
-      return (int(arch) << 24) | syclDevice.get_info<sycl::info::device::max_compute_units>();
+      return SYCLDevice::getScore(syclDevice);
     }
   };
 
-  bool SYCLDevice::isSupported()
+  SYCLPhysicalDevice::SYCLPhysicalDevice(const sycl::device& syclDevice, int score)
+    : PhysicalDevice(DeviceType::SYCL, score),
+      syclDevice(syclDevice)
   {
+    name = syclDevice.get_info<sycl::info::device::name>();
+
+    if (syclDevice.get_backend() != sycl::backend::ext_oneapi_level_zero)
+      return;
+
+    // Check the supported Level Zero extensions
+    ze_driver_handle_t zeDriver =
+      sycl::get_native<sycl::backend::ext_oneapi_level_zero>(syclDevice.get_platform());
+
+    uint32_t numExtensions = 0;
+    std::vector<ze_driver_extension_properties_t> extensions;
+    if (zeDriverGetExtensionProperties(zeDriver, &numExtensions, extensions.data()) != ZE_RESULT_SUCCESS)
+      return;
+    extensions.resize(numExtensions);
+    if (zeDriverGetExtensionProperties(zeDriver, &numExtensions, extensions.data()) != ZE_RESULT_SUCCESS)
+      return;
+
+    bool luidSupport = false;
+    for (const auto& extension : extensions)
+    {
+      if (strcmp(extension.name, ZE_DEVICE_LUID_EXT_NAME) == 0)
+        luidSupport = true;
+    }
+
+    // Get the device UUID and LUID
+    ze_device_handle_t zeDevice = sycl::get_native<sycl::backend::ext_oneapi_level_zero>(syclDevice);
+
+    ze_device_properties_t zeDeviceProps{ZE_STRUCTURE_TYPE_DEVICE_PROPERTIES};
+    ze_device_luid_ext_properties_t zeDeviceLUIDProps{ZE_STRUCTURE_TYPE_DEVICE_LUID_EXT_PROPERTIES};
+    if (luidSupport)
+      zeDeviceProps.pNext = &zeDeviceLUIDProps;
+
+    if (zeDeviceGetProperties(zeDevice, &zeDeviceProps) != ZE_RESULT_SUCCESS)
+      return;
+
+    static_assert(ZE_MAX_DEVICE_UUID_SIZE == OIDN_UUID_SIZE, "unexpected UUID size");
+    memcpy(uuid.bytes, zeDeviceProps.uuid.id, sizeof(uuid.bytes));
+    uuidValid = true;
+
+    if (luidSupport)
+    {
+      static_assert(ZE_MAX_DEVICE_LUID_SIZE_EXT == OIDN_LUID_SIZE, "unexpected LUID size");
+      memcpy(luid.bytes, zeDeviceLUIDProps.luid.id, sizeof(luid.bytes));
+      nodeMask = zeDeviceLUIDProps.nodeMask;
+      luidValid = true;
+    }
+  }
+
+  std::vector<Ref<PhysicalDevice>> SYCLDevice::getPhysicalDevices()
+  {
+    std::vector<Ref<PhysicalDevice>> devices;
+
     for (const auto& syclPlatform : sycl::platform::get_platforms())
+    {
+      // Include only Level Zero devices
+      if (syclPlatform.get_backend() != sycl::backend::ext_oneapi_level_zero)
+        continue;
+
       for (const auto& syclDevice : syclPlatform.get_devices(sycl::info::device_type::gpu))
-        if (getArch(syclDevice) != SYCLArch::Unknown)
-          return true;
-    return false;
+      {
+        int score = getScore(syclDevice);
+        if (score >= 0) // if supported          
+          devices.push_back(makeRef<SYCLPhysicalDevice>(syclDevice, score));
+      }
+    }
+    
+    return devices;
   }
 
   SYCLArch SYCLDevice::getArch(const sycl::device& syclDevice)
@@ -40,8 +99,8 @@ OIDN_NAMESPACE_BEGIN
         !syclDevice.has(sycl::aspect::ext_intel_device_id))
       return SYCLArch::Unknown;
 
-    const unsigned int deviceId = syclDevice.get_info<sycl::ext::intel::info::device::device_id>();
-    const unsigned int maskedId = deviceId & 0xFF00;
+    const unsigned int deviceID = syclDevice.get_info<sycl::ext::intel::info::device::device_id>();
+    const unsigned int maskedId = deviceID & 0xFF00;
 
     if (maskedId == 0x1600)
       return SYCLArch::Unknown; // unsupported: Gen8
@@ -53,8 +112,29 @@ OIDN_NAMESPACE_BEGIN
       return SYCLArch::Gen9; // fallback: Gen9, Gen10, Gen11, Xe-LP, Xe-HP, ...
   }
 
+  int SYCLDevice::getScore(const sycl::device& syclDevice)
+  {
+    SYCLArch arch = getArch(syclDevice);
+    if (arch == SYCLArch::Unknown)
+      return -1;
+
+    // Prefer the highest architecture GPU with the most compute units
+    return (int(arch) << 16) + syclDevice.get_info<sycl::info::device::max_compute_units>();
+  }
+
   SYCLDevice::SYCLDevice(const std::vector<sycl::queue>& syclQueues)
     : syclQueues(syclQueues)
+  {
+    preinit();
+  }
+
+  SYCLDevice::SYCLDevice(const Ref<SYCLPhysicalDevice>& physicalDevice)
+    : physicalDevice(physicalDevice)
+  {
+    preinit();
+  }
+
+  void SYCLDevice::preinit()
   {
     // Get default values from environment variables
     getEnvVar("OIDN_NUM_SUBDEVICES", numSubdevices);
@@ -64,10 +144,10 @@ OIDN_NAMESPACE_BEGIN
   {
     if (syclQueues.empty())
     {
+      // Create SYCL queues(s)
       try
       {
-        sycl::device syclDevice {SYCLDeviceSelector()};
-
+        sycl::device syclDevice = physicalDevice ? physicalDevice->syclDevice : sycl::device{SYCLDeviceSelector()};
         arch = getArch(syclDevice);
 
         // Try to split the device into sub-devices per NUMA domain (tile)
@@ -98,6 +178,7 @@ OIDN_NAMESPACE_BEGIN
     }
     else
     {
+      // Check the specified SYCL queues
       for (size_t i = 0; i < syclQueues.size(); ++i)
       {
         const SYCLArch curArch = getArch(syclQueues[i].get_device());
@@ -105,21 +186,19 @@ OIDN_NAMESPACE_BEGIN
           throw Exception(Error::UnsupportedHardware, "unsupported SYCL device");
 
         if (i == 0)
-        {
           arch = curArch;
-        }
         else
         {
           if (syclQueues[i].get_context() != syclQueues[0].get_context())
-            throw Exception(Error::InvalidArgument, "queues belong to different SYCL contexts");
+            throw Exception(Error::InvalidArgument, "SYCL queues belong to different SYCL contexts");
           if (curArch != arch)
-            throw Exception(Error::UnsupportedHardware, "unsupported mixture of SYCL devices");
+            throw Exception(Error::InvalidArgument, "SYCL queues belong to devices with different architectures");
         }
       }
     }
 
+    // Get the SYCL / Level Zero context
     syclContext = syclQueues[0].get_context();
-
     if (syclContext.get_platform().get_backend() == sycl::backend::ext_oneapi_level_zero)
       zeContext = sycl::get_native<sycl::backend::ext_oneapi_level_zero>(syclContext);
     
@@ -128,6 +207,7 @@ OIDN_NAMESPACE_BEGIN
       syclQueues.resize(numSubdevices);
     numSubdevices = int(syclQueues.size());
 
+    // Print device info
     if (isVerbose())
     {
       std::cout << "  Platform  : " << syclContext.get_platform().get_info<sycl::info::platform::name>() << std::endl;
@@ -144,8 +224,8 @@ OIDN_NAMESPACE_BEGIN
         switch (arch)
         {
         case SYCLArch::Gen9:  std::cout << "Gen9/Gen10/Gen11/Xe-LP/Xe-HP"; break;
-        case SYCLArch::XeHPG: std::cout << "Xe-HPG";     break;
-        case SYCLArch::XeHPC: std::cout << "Xe-HPC";     break;
+        case SYCLArch::XeHPG: std::cout << "Xe-HPG"; break;
+        case SYCLArch::XeHPC: std::cout << "Xe-HPC"; break;
         default:              std::cout << "Unknown";
         }
         std::cout << std::endl;
@@ -158,8 +238,11 @@ OIDN_NAMESPACE_BEGIN
     for (auto& syclQueue : syclQueues)
       engines.push_back(makeRef<SYCLEngine>(this, syclQueue));
 
-    syclQueues.clear(); // not needed anymore
+    // Cleanup
+    syclQueues.clear();
+    physicalDevice.reset();
 
+    // Set device properties
     tensorDataType = DataType::Float16;
     tensorLayout   = TensorLayout::Chw16c;
     tensorBlockC   = 16;
@@ -186,15 +269,15 @@ OIDN_NAMESPACE_BEGIN
     }
   }
   
-  int SYCLDevice::get1i(const std::string& name)
+  int SYCLDevice::getInt(const std::string& name)
   {
     if (name == "numSubdevices")
       return numSubdevices;
     else
-      return Device::get1i(name);
+      return Device::getInt(name);
   }
 
-  void SYCLDevice::set1i(const std::string& name, int value)
+  void SYCLDevice::setInt(const std::string& name, int value)
   {
     if (name == "numSubdevices")
     {
@@ -204,7 +287,7 @@ OIDN_NAMESPACE_BEGIN
         warning("OIDN_NUM_SUBDEVICES environment variable overrides device parameter");
     }
     else
-      Device::set1i(name, value);
+      Device::setInt(name, value);
 
     dirty = true;
   }

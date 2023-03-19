@@ -7,24 +7,24 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  // Opaque data
+  // Opaque read-only data
   struct Data
   {
-    char* ptr;
+    const void* ptr;
     size_t size;
 
     Data() : ptr(nullptr), size(0) {}
 
     template<typename T>
-    Data(T* ptr, size_t size) : ptr((char*)ptr), size(size) {}
+    Data(T* ptr, size_t size) : ptr(ptr), size(size) {}
 
     template<typename T, size_t N>
-    Data(T (&array)[N]) : ptr((char*)array), size(sizeof(array)) {}
+    Data(T (&array)[N]) : ptr(array), size(sizeof(array)) {}
 
     template<typename T, size_t N>
     Data& operator =(T (&array)[N])
     {
-      ptr = (char*)array;
+      ptr = array;
       size = sizeof(array);
       return *this;
     }
