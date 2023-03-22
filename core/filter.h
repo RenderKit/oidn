@@ -17,10 +17,10 @@ OIDN_NAMESPACE_BEGIN
     Device* getDevice() const { return device.get(); }
 
     virtual void setImage(const std::string& name, const std::shared_ptr<Image>& image) = 0;
-    virtual void removeImage(const std::string& name) = 0;
+    virtual void unsetImage(const std::string& name) = 0;
     virtual void setData(const std::string& name, const Data& data) = 0;
     virtual void updateData(const std::string& name) = 0;
-    virtual void removeData(const std::string& name) = 0;
+    virtual void unsetData(const std::string& name) = 0;
     virtual void setInt(const std::string& name, int value) = 0;
     virtual int getInt(const std::string& name) = 0;
     virtual void setFloat(const std::string& name, float value) = 0;

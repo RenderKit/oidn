@@ -16,7 +16,7 @@ OIDN_NAMESPACE_BEGIN
   public:
     void setData(const std::string& name, const Data& data) override;
     void updateData(const std::string& name) override;
-    void removeData(const std::string& name) override;
+    void unsetData(const std::string& name) override;
     void setFloat(const std::string& name, float value) override;
     float getFloat(const std::string& name) override;
 

@@ -58,9 +58,9 @@
 #endif
 
 #if defined(_WIN32)
-  #define OIDN_DEPRECATED __declspec(deprecated)
+  #define OIDN_DEPRECATED(msg) __declspec(deprecated(msg))
 #else
-  #define OIDN_DEPRECATED __attribute__((deprecated))
+  #define OIDN_DEPRECATED(msg) __attribute__((deprecated(msg)))
 #endif
 
 #if !defined(OIDN_DEVICE_CPU)

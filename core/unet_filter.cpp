@@ -32,7 +32,7 @@ OIDN_NAMESPACE_BEGIN
     dirty = true;
   }
 
-  void UNetFilter::removeData(const std::string& name)
+  void UNetFilter::unsetData(const std::string& name)
   {
     if (name == "weights")
       removeParam(userWeightsBlob);

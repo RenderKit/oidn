@@ -350,12 +350,12 @@ TEST_CASE("filter update", "[filter_update]")
     setFilterImage(filter, "output", output);
   }
 
-  SECTION("filter update: remove image")
+  SECTION("filter update: unset image")
   {
-    filter.removeImage("albedo");
+    filter.unsetImage("albedo");
   }
 
-  SECTION("filter update: remove image by setting to null")
+  SECTION("filter update: unset image by setting to null")
   {
     filter.setImage("albedo", nullptr, Format::Float3, 0, 0);
   }

@@ -503,7 +503,7 @@ Once created, filter objects can be retained and released with
 After creating a filter, it needs to be set up by specifying the input and
 output images, and potentially setting other parameter values as well.
 
-To bind images to the filter, you can use one of the following functions:
+To set image paramaters of a filter, you can use one of the following functions:
 
     void oidnSetFilterImage(OIDNFilter filter, const char* name,
                             OIDNBuffer buffer, OIDNFormat format,
@@ -541,7 +541,8 @@ data are supported as well by specifying a non-zero pixel stride. This way,
 expensive image layout conversion and copying can be avoided but the extra data
 will be ignored by the filter.
 
-To unbind a previously set image from the filter, call
+To unset a previously set image parameter, returning it to a state as if it had
+not been set, call
 
     void oidnRemoveFilterImage(OIDNFilter filter, const char* name);
 
@@ -555,13 +556,13 @@ This data (`hostPtr`) must be accessible to the *host*, therefore system memory
 allocation is suitable (i.e., there is no reason to use buffer objects for
 allocation).
 
-Modifying the contents of an opaque data parameter after binding it to a filter
-is allowed but the filter needs to be notified that the data has been updated by
-calling
+Modifying the contents of an opaque data parameter after setting it as a filter
+parameter is allowed but the filter needs to be notified that the data has been
+updated by calling
 
     void oidnUpdateFilterData(OIDNFilter filter, const char* name);
 
-Unbinding opaque data from the filter can be performed with
+Unsetting an opaque data paramater can be performed with
 
     void oidnRemoveFilterData(OIDNFilter filter, const char* name);
 

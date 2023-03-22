@@ -14,7 +14,7 @@ OIDN_NAMESPACE_BEGIN
     explicit RTFilter(const Ref<Device>& device);
 
     void setImage(const std::string& name, const std::shared_ptr<Image>& image) override;
-    void removeImage(const std::string& name) override;
+    void unsetImage(const std::string& name) override;
     void setInt(const std::string& name, int value) override;
     int getInt(const std::string& name) override;
   

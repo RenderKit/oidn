@@ -657,13 +657,13 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_CATCH(filter)
   }
 
-  OIDN_API void oidnRemoveFilterImage(OIDNFilter hFilter, const char* name)
+  OIDN_API void oidnUnsetFilterImage(OIDNFilter hFilter, const char* name)
   {
     Filter* filter = reinterpret_cast<Filter*>(hFilter);
     OIDN_TRY
       checkHandle(hFilter);
       OIDN_LOCK(filter);
-      filter->removeImage(name);
+      filter->unsetImage(name);
     OIDN_CATCH(filter)
   }
 
@@ -689,13 +689,13 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_CATCH(filter)
   }
 
-  OIDN_API void oidnRemoveFilterData(OIDNFilter hFilter, const char* name)
+  OIDN_API void oidnUnsetFilterData(OIDNFilter hFilter, const char* name)
   {
     Filter* filter = reinterpret_cast<Filter*>(hFilter);
     OIDN_TRY
       checkHandle(hFilter);
       OIDN_LOCK(filter);
-      filter->removeData(name);
+      filter->unsetData(name);
     OIDN_CATCH(filter)
   }
 

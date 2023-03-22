@@ -13,6 +13,8 @@ Version History
 -   Added `type` device parameter for querying the type of the created device
 -   Added oidn(Get|Set)(Device|Filter)(Bool|Int|Float) API functions and deprecated
     oidn(Get|Set)(Device|Filter)(1b|1i|1f) functions
+-   Added oidnUnsetFilter(Image|Data) API functions and deprecated
+    oidnRemoveFilter(Image|Data) functions
 -   Fixed over-conservative buffer bounds checking for images with custom strides
 -   Removed `OIDN_STATIC_LIB` CMake option due to technical limitations
 

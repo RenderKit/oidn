@@ -121,7 +121,8 @@ OIDN_API void oidnReleaseDevice(OIDNDevice device);
 // Sets a boolean parameter of the device.
 OIDN_API void oidnSetDeviceBool(OIDNDevice device, const char* name, bool value);
 
-OIDN_DEPRECATED inline void oidnSetDevice1b(OIDNDevice device, const char* name, bool value)
+OIDN_DEPRECATED("oidnSetDevice1b is deprecated. Use oidnSetDeviceBool instead.")
+inline void oidnSetDevice1b(OIDNDevice device, const char* name, bool value)
 {
   oidnSetDeviceBool(device, name, value);
 }
@@ -129,7 +130,8 @@ OIDN_DEPRECATED inline void oidnSetDevice1b(OIDNDevice device, const char* name,
 // Sets an integer parameter of the device.
 OIDN_API void oidnSetDeviceInt(OIDNDevice device, const char* name, int value);
 
-OIDN_DEPRECATED inline void oidnSetDevice1i(OIDNDevice device, const char* name, int value)
+OIDN_DEPRECATED("oidnSetDevice1i is deprecated. Use oidnSetDeviceInt instead.")
+inline void oidnSetDevice1i(OIDNDevice device, const char* name, int value)
 {
   oidnSetDeviceInt(device, name, value);
 }
@@ -137,7 +139,8 @@ OIDN_DEPRECATED inline void oidnSetDevice1i(OIDNDevice device, const char* name,
 // Gets a boolean parameter of the device.
 OIDN_API bool oidnGetDeviceBool(OIDNDevice device, const char* name);
 
-OIDN_DEPRECATED inline bool oidnGetDevice1b(OIDNDevice device, const char* name)
+OIDN_DEPRECATED("oidnGetDevice1b is deprecated. Use oidnGetDeviceBool instead.")
+inline bool oidnGetDevice1b(OIDNDevice device, const char* name)
 {
   return oidnGetDeviceBool(device, name);
 }
@@ -151,7 +154,8 @@ inline unsigned int oidnGetDeviceUInt(OIDNDevice device, const char* name)
   return (unsigned int)oidnGetDeviceInt(device, name);
 }
 
-OIDN_DEPRECATED inline int oidnGetDevice1i(OIDNDevice device, const char* name)
+OIDN_DEPRECATED("oidnGetDevice1i is deprecated. Use oidnGetDeviceInt instead.")
+inline int oidnGetDevice1i(OIDNDevice device, const char* name)
 {
   return oidnGetDeviceInt(device, name);
 }
@@ -346,8 +350,14 @@ OIDN_API void oidnSetSharedFilterImage(OIDNFilter filter, const char* name,
                                        size_t byteOffset,
                                        size_t pixelByteStride, size_t rowByteStride);
 
-// Removes an image parameter of the filter that was previously set.
-OIDN_API void oidnRemoveFilterImage(OIDNFilter filter, const char* name);
+// Unsets an image parameter of the filter that was previously set.
+OIDN_API void oidnUnsetFilterImage(OIDNFilter filter, const char* name);
+
+OIDN_DEPRECATED("oidnRemoveFilterImage is deprecated. Use oidnUnsetFilterImage instead.")
+inline void oidnRemoveFilterImage(OIDNFilter filter, const char* name)
+{
+  oidnUnsetFilterImage(filter, name);
+}
 
 // Sets an opaque data parameter of the filter owned by the user and accessible to the host.
 OIDN_API void oidnSetSharedFilterData(OIDNFilter filter, const char* name,
@@ -356,13 +366,20 @@ OIDN_API void oidnSetSharedFilterData(OIDNFilter filter, const char* name,
 // Notifies the filter that the contents of an opaque data parameter has been changed.
 OIDN_API void oidnUpdateFilterData(OIDNFilter filter, const char* name);
 
-// Removes an opaque data parameter of the filter that was previously set.
-OIDN_API void oidnRemoveFilterData(OIDNFilter filter, const char* name);
+// Unsets an opaque data parameter of the filter that was previously set.
+OIDN_API void oidnUnsetFilterData(OIDNFilter filter, const char* name);
+
+OIDN_DEPRECATED("oidnRemoveFilterData is deprecated. Use oidnUnsetFilterData instead.")
+inline void oidnRemoveFilterData(OIDNFilter filter, const char* name)
+{
+  oidnUnsetFilterData(filter, name);
+}
 
 // Sets a boolean parameter of the filter.
 OIDN_API void oidnSetFilterBool(OIDNFilter filter, const char* name, bool value);
 
-OIDN_DEPRECATED inline void oidnSetFilter1b(OIDNFilter filter, const char* name, bool value)
+OIDN_DEPRECATED("oidnSetFilter1b is deprecated. Use oidnSetFilterBool instead.")
+inline void oidnSetFilter1b(OIDNFilter filter, const char* name, bool value)
 {
   oidnSetFilterBool(filter, name, value);
 }
@@ -370,7 +387,8 @@ OIDN_DEPRECATED inline void oidnSetFilter1b(OIDNFilter filter, const char* name,
 // Gets a boolean parameter of the filter.
 OIDN_API bool oidnGetFilterBool(OIDNFilter filter, const char* name);
 
-OIDN_DEPRECATED inline bool oidnGetFilter1b(OIDNFilter filter, const char* name)
+OIDN_DEPRECATED("oidnGetFilter1b is deprecated. Use oidnGetFilterBool instead.")
+inline bool oidnGetFilter1b(OIDNFilter filter, const char* name)
 {
   return oidnGetFilterBool(filter, name);
 }
@@ -378,7 +396,8 @@ OIDN_DEPRECATED inline bool oidnGetFilter1b(OIDNFilter filter, const char* name)
 // Sets an integer parameter of the filter.
 OIDN_API void oidnSetFilterInt(OIDNFilter filter, const char* name, int value);
 
-OIDN_DEPRECATED inline void oidnSetFilter1i(OIDNFilter filter, const char* name, int value)
+OIDN_DEPRECATED("oidnSetFilter1i is deprecated. Use oidnSetFilterInt instead.")
+inline void oidnSetFilter1i(OIDNFilter filter, const char* name, int value)
 {
   oidnSetFilterInt(filter, name, value);
 }
@@ -386,7 +405,8 @@ OIDN_DEPRECATED inline void oidnSetFilter1i(OIDNFilter filter, const char* name,
 // Gets an integer parameter of the filter.
 OIDN_API int oidnGetFilterInt(OIDNFilter filter, const char* name);
 
-OIDN_DEPRECATED inline int oidnGetFilter1i(OIDNFilter filter, const char* name)
+OIDN_DEPRECATED("oidnGetFilter1i is deprecated. Use oidnGetFilterInt instead.")
+inline int oidnGetFilter1i(OIDNFilter filter, const char* name)
 {
   return oidnGetFilterInt(filter, name);
 }
@@ -394,7 +414,8 @@ OIDN_DEPRECATED inline int oidnGetFilter1i(OIDNFilter filter, const char* name)
 // Sets a float parameter of the filter.
 OIDN_API void oidnSetFilterFloat(OIDNFilter filter, const char* name, float value);
 
-OIDN_DEPRECATED inline void oidnSetFilter1f(OIDNFilter filter, const char* name, float value)
+OIDN_DEPRECATED("oidnSetFilter1f is deprecated. Use oidnSetFilterFloat instead.")
+inline void oidnSetFilter1f(OIDNFilter filter, const char* name, float value)
 {
   oidnSetFilterFloat(filter, name, value);
 }
@@ -402,7 +423,8 @@ OIDN_DEPRECATED inline void oidnSetFilter1f(OIDNFilter filter, const char* name,
 // Gets a float parameter of the filter.
 OIDN_API float oidnGetFilterFloat(OIDNFilter filter, const char* name);
 
-OIDN_DEPRECATED inline float oidnGetFilter1f(OIDNFilter filter, const char* name)
+OIDN_DEPRECATED("oidnGetFilter1f is deprecated. Use oidnGetFilterFloat instead.")
+inline float oidnGetFilter1f(OIDNFilter filter, const char* name)
 {
   return oidnGetFilterFloat(filter, name);
 }

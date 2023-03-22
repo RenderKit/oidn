@@ -411,10 +411,16 @@ OIDN_NAMESPACE_BEGIN
                                pixelByteStride, rowByteStride);
     }
 
-    // Removes an image parameter of the filter that was previously set.
+    // Unsets an image parameter of the filter that was previously set.
+    void unsetImage(const char* name)
+    {
+      oidnUnsetFilterImage(handle, name);
+    }
+
+    OIDN_DEPRECATED("removeImage is deprecated. Use unsetImage instead.")
     void removeImage(const char* name)
     {
-      oidnRemoveFilterImage(handle, name);
+      oidnUnsetFilterImage(handle, name);
     }
 
     // Sets an opaque data parameter of the filter owned by the user and accessible to the host.
@@ -429,10 +435,16 @@ OIDN_NAMESPACE_BEGIN
       oidnUpdateFilterData(handle, name);
     }
 
-    // Removes an opaque data parameter of the filter that was previously set.
+    // Unsets an opaque data parameter of the filter that was previously set.
+    void unsetData(const char* name)
+    {
+      oidnUnsetFilterData(handle, name);
+    }
+
+    OIDN_DEPRECATED("removeData is deprecated. Use unsetData instead.")
     void removeData(const char* name)
     {
-      oidnRemoveFilterData(handle, name);
+      oidnUnsetFilterData(handle, name);
     }
 
     // Sets a boolean parameter of the filter.

@@ -41,7 +41,7 @@ OIDN_NAMESPACE_BEGIN
     dirty = true;
   }
 
-  void RTLightmapFilter::removeImage(const std::string& name)
+  void RTLightmapFilter::unsetImage(const std::string& name)
   {
     if (name == "color")
       removeParam(color);

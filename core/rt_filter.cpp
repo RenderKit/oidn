@@ -62,7 +62,7 @@ OIDN_NAMESPACE_BEGIN
     dirty = true;
   }
 
-  void RTFilter::removeImage(const std::string& name)
+  void RTFilter::unsetImage(const std::string& name)
   {
     if (name == "color")
       removeParam(color);
