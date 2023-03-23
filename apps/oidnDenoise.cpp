@@ -171,26 +171,22 @@ int main(int argc, char* argv[])
         verbose = args.getNextValue<int>();
       else if (opt == "ld" || opt == "listdevices" || opt == "listDevices" || opt == "list-devices")
       {
-        int numDevices = getNumPhysicalDevices();
+        const int numDevices = getNumPhysicalDevices();
         for (int i = 0; i < numDevices; ++i)
         {
-          int numDevices = getNumPhysicalDevices();
-          for (int i = 0; i < numDevices; ++i)
+          PhysicalDeviceRef physicalDevice(i);
+          std::cout << "Device " << i << std::endl;
+          std::cout << "  Name: " << physicalDevice.get<std::string>("name") << std::endl;
+          std::cout << "  Type: " << physicalDevice.get<DeviceType>("type") << std::endl;
+          if (physicalDevice.get<bool>("uuidValid"))
+            std::cout << "  UUID: " << physicalDevice.get<oidn::UUID>("uuid") << std::endl;
+          if (physicalDevice.get<bool>("luidValid"))
           {
-            PhysicalDeviceRef physicalDevice(i);
-            std::cout << "Device " << i << std::endl;
-            std::cout << "  Name: " << physicalDevice.get<std::string>("name") << std::endl;
-            std::cout << "  Type: " << physicalDevice.get<DeviceType>("type") << std::endl;
-            if (physicalDevice.get<bool>("uuidValid"))
-              std::cout << "  UUID: " << physicalDevice.get<oidn::UUID>("uuid") << std::endl;
-            if (physicalDevice.get<bool>("luidValid"))
-            {
-              std::cout << "  LUID: " << physicalDevice.get<oidn::LUID>("luid") << std::endl;
-              std::cout << "  Node: " << physicalDevice.get<uint32_t>("nodeMask") << std::endl;
-            }
-            if (i < numDevices-1)
-              std::cout << std::endl;
+            std::cout << "  LUID: " << physicalDevice.get<oidn::LUID>("luid") << std::endl;
+            std::cout << "  Node: " << physicalDevice.get<uint32_t>("nodeMask") << std::endl;
           }
+          if (i < numDevices-1)
+            std::cout << std::endl;
         }
         return 1;
       }

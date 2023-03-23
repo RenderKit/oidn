@@ -289,7 +289,7 @@ int main(int argc, char* argv[])
         verbose = args.getNextValue<int>();
       else if (opt == "ld" || opt == "listdevices" || opt == "listDevices" || opt == "list-devices")
       {
-        int numDevices = getNumPhysicalDevices();
+        const int numDevices = getNumPhysicalDevices();
         for (int i = 0; i < numDevices; ++i)
         {
           PhysicalDeviceRef physicalDevice(i);
