@@ -26,6 +26,9 @@ OIDN_NAMESPACE_BEGIN
       return;
 
     // Check the supported Level Zero extensions
+    bool luidSupport = false;
+
+  #if defined(_WIN32)
     ze_driver_handle_t zeDriver =
       sycl::get_native<sycl::backend::ext_oneapi_level_zero>(syclDevice.get_platform());
 
@@ -37,12 +40,12 @@ OIDN_NAMESPACE_BEGIN
     if (zeDriverGetExtensionProperties(zeDriver, &numExtensions, extensions.data()) != ZE_RESULT_SUCCESS)
       return;
 
-    bool luidSupport = false;
     for (const auto& extension : extensions)
     {
       if (strcmp(extension.name, ZE_DEVICE_LUID_EXT_NAME) == 0)
         luidSupport = true;
     }
+  #endif
 
     // Get the device UUID and LUID
     ze_device_handle_t zeDevice = sycl::get_native<sycl::backend::ext_oneapi_level_zero>(syclDevice);
