@@ -12,6 +12,15 @@
   #include "mkl-dnn/src/cpu/x64/xbyak/xbyak_util.h"
 #endif
 
+/*
+// Not needed thanks to xbyak_util.h
+#if defined(_WIN32)
+  #include <intrin.h> // __cpuid
+#elif !defined(__APPLE__)
+  #include <cpuid.h>
+#endif
+*/
+
 OIDN_NAMESPACE_BEGIN
 
 #if defined(OIDN_ARCH_X64) && !defined(__APPLE__)

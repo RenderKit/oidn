@@ -95,12 +95,6 @@
 #endif
 
 #if defined(OIDN_ARCH_X64)
-  #if defined(_WIN32)
-    #include <intrin.h>
-  #elif !defined(__APPLE__)
-    #include <cpuid.h>
-  #endif
-
   #include <xmmintrin.h>
   #include <pmmintrin.h>
 #endif
