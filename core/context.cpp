@@ -23,10 +23,16 @@ OIDN_NAMESPACE_BEGIN
     std::call_once(initFlag, [this]()
     {
       // Load the modules
+    #if defined(OIDN_DEVICE_CPU)
       modules.load("device_cpu");
-    #if !defined(__APPLE__)
+    #endif
+    #if defined(OIDN_DEVICE_SYCL)
       modules.load("device_sycl");
+    #endif
+    #if defined(OIDN_DEVICE_CUDA)
       modules.load("device_cuda");
+    #endif
+    #if defined(OIDN_DEVICE_HIP)
       modules.load("device_hip");
     #endif
 
