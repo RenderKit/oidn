@@ -41,7 +41,7 @@ OIDN_NAMESPACE_BEGIN
   {
     using MMAOp = cutlass::arch::OpClassTensorOp;
     using InstructionShape = cutlass::gemm::GemmShape<8, 8, 4>;
-    static constexpr int alignment = 8;
+    static constexpr int alignment = 4;
   };
 
   template<typename Element, int alignment>
