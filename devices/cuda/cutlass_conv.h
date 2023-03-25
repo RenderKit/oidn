@@ -52,28 +52,28 @@ OIDN_NAMESPACE_BEGIN
     static constexpr int vectorLength = min(alignmentC * elementBits, 128) / elementBits;
   };
 
-  template<typename Element, Activation, int alignment>
+  template<typename Element, typename ElementAccumulator, Activation, int alignment>
   struct CutlassEpilogue;
 
-  template<typename Element, int alignment>
-  struct CutlassEpilogue<Element, Activation::None, alignment>
+  template<typename Element, typename ElementAccumulator, int alignment>
+  struct CutlassEpilogue<Element, ElementAccumulator, Activation::None, alignment>
   {
     using Op = cutlass::epilogue::thread::LinearCombination<
       Element, // ElementOutput
       CutlassEpilogueTraits<Element, alignment>::vectorLength,
-      Element, // ElementAccumulator
-      Element, // ElementCompute
+      ElementAccumulator,
+      ElementAccumulator, // ElementComputeEpilogue
       cutlass::epilogue::thread::ScaleType::NoBetaScaling>; // alpha * C + D
   };
 
-  template<typename Element, int alignment>
-  struct CutlassEpilogue<Element, Activation::ReLU, alignment>
+  template<typename Element, typename ElementAccumulator, int alignment>
+  struct CutlassEpilogue<Element, ElementAccumulator, Activation::ReLU, alignment>
   {
     using Op = cutlass::epilogue::thread::LinearCombinationRelu<
       Element, // ElementOutput
       CutlassEpilogueTraits<Element, alignment>::vectorLength,
-      Element, // ElementAccumulator
-      Element, // ElementCompute
+      ElementAccumulator,
+      ElementAccumulator, // ElementComputeEpilogue
       cutlass::epilogue::thread::ScaleType::NoBetaScaling>; // alpha * C + D
   };
 
@@ -147,6 +147,7 @@ OIDN_NAMESPACE_BEGIN
 
   template<
     typename T,
+    typename AccumT,
     typename SmArch,
     typename ThreadblockShape,
     typename WarpShape,
@@ -156,7 +157,7 @@ OIDN_NAMESPACE_BEGIN
   {
   private:
     using Element = typename CutlassElement<T>::Type;
-    using ElementAccumulator = Element;
+    using ElementAccumulator = typename CutlassElement<AccumT>::Type;
     using ElementComputeEpilogue = ElementAccumulator;
     using ElementInputA = Element;
     using ElementInputB = Element;
@@ -170,7 +171,8 @@ OIDN_NAMESPACE_BEGIN
     using MMAOp = typename MathInstruction::MMAOp;
     using InstructionShape = typename CutlassMathInstruction<Element, SmArch>::InstructionShape;
     using SwizzleThreadBlock = cutlass::gemm::threadblock::GemmIdentityThreadblockSwizzle<>;
-    using EpilogueOp = typename CutlassEpilogue<Element, builtinActivation, MathInstruction::alignment>::Op;
+    using EpilogueOp = typename CutlassEpilogue<Element, ElementAccumulator,
+                                                builtinActivation, MathInstruction::alignment>::Op;
 
     using Conv2dFpropKernel = typename cutlass::conv::kernel::DefaultConv2dFprop<
       ElementInputA, LayoutInputA,
@@ -281,6 +283,7 @@ OIDN_NAMESPACE_BEGIN
 
   template<
     typename T,
+    typename AccumT,
     typename SmArch,
     typename ThreadblockShape,
     typename WarpShape,
@@ -302,7 +305,7 @@ OIDN_NAMESPACE_BEGIN
 
   private:
     template<Activation activation>
-    using CutlassConvType = CutlassConv<T, SmArch, ThreadblockShape, WarpShape, numStages, activation>;
+    using CutlassConvType = CutlassConv<T, AccumT, SmArch, ThreadblockShape, WarpShape, numStages, activation>;
 
     static std::shared_ptr<Conv> make(const Ref<CUDAEngine>& engine, const ConvDesc& desc)
     {
