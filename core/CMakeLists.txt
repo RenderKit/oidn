@@ -30,6 +30,8 @@ set(CORE_SOURCES
   exception.cpp
   filter.h
   filter.cpp
+  graph.h
+  graph.cpp
   image_accessor.h
   image_copy.h
   image.h
@@ -39,8 +41,6 @@ set(CORE_SOURCES
   math.h
   module.h
   module.cpp
-  network.h
-  network.cpp
   op.h
   output_process.h
   output_process.cpp

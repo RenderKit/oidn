@@ -15,11 +15,11 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  // Neural network consisting of operations
-  class Network
+  // Graph consisting of operations
+  class Graph
   {
   public:
-    Network(const Ref<Engine>& engine, const Data& weightsBlob);
+    Graph(const Ref<Engine>& engine, const Data& weightsBlob);
 
     std::shared_ptr<InputProcess> addInputProcess(const std::string& name,
                                                   const TensorDims& srcDims,

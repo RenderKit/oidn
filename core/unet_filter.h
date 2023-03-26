@@ -4,7 +4,7 @@
 #pragma once
 
 #include "filter.h"
-#include "network.h"
+#include "graph.h"
 #include "scratch.h"
 #include "color.h"
 
@@ -85,7 +85,7 @@ OIDN_NAMESPACE_BEGIN
     // Per-engine model instance
     struct Instance
     {
-      std::unique_ptr<Network> net;
+      std::unique_ptr<Graph> graph;
       std::shared_ptr<InputProcess> inputProcess;
       std::shared_ptr<OutputProcess> outputProcess;
     };

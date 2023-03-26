@@ -24,7 +24,7 @@ OIDN_NAMESPACE_BEGIN
     // Finalization is required before running
     virtual void finalize() {}
 
-    // Runs the operation which may be asynchronous
+    // Runs the operation whicch may be asynchronous
     virtual void submit() = 0;
 
     // Name for debugging purposes

@@ -1,7 +1,7 @@
 // Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "network.h"
+#include "graph.h"
 #include "conv.h"
 #include "concat_conv_chw.h"
 #include "concat_conv_hwc.h"
@@ -12,16 +12,16 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  Network::Network(const Ref<Engine>& engine, const Data& weightsBlob)
+  Graph::Graph(const Ref<Engine>& engine, const Data& weightsBlob)
     : engine(engine),
       weights(parseTZA(engine, weightsBlob.ptr, weightsBlob.size)) {}
 
-  std::shared_ptr<InputProcess> Network::addInputProcess(const std::string& name,
-                                                         const TensorDims& srcDims,
-                                                         int alignment,
-                                                         const std::shared_ptr<TransferFunction>& transferFunc,
-                                                         bool hdr,
-                                                         bool snorm)
+  std::shared_ptr<InputProcess> Graph::addInputProcess(const std::string& name,
+                                                       const TensorDims& srcDims,
+                                                       int alignment,
+                                                       const std::shared_ptr<TransferFunction>& transferFunc,
+                                                       bool hdr,
+                                                       bool snorm)
   {
     auto op = engine->newInputProcess({srcDims, alignment, transferFunc, hdr, snorm});
     op->setName(name);
@@ -29,11 +29,11 @@ OIDN_NAMESPACE_BEGIN
     return op;
   }
 
-  std::shared_ptr<OutputProcess> Network::addOutputProcess(const std::string& name,
-                                                           const TensorDesc& srcDesc,
-                                                           const std::shared_ptr<TransferFunction>& transferFunc,
-                                                           bool hdr,
-                                                           bool snorm)
+  std::shared_ptr<OutputProcess> Graph::addOutputProcess(const std::string& name,
+                                                         const TensorDesc& srcDesc,
+                                                         const std::shared_ptr<TransferFunction>& transferFunc,
+                                                         bool hdr,
+                                                         bool snorm)
   {
     auto op = engine->newOutputProcess({srcDesc, transferFunc, hdr, snorm});
     op->setName(name);
@@ -41,10 +41,10 @@ OIDN_NAMESPACE_BEGIN
     return op;
   }
 
-  std::shared_ptr<Conv> Network::addConv(const std::string& name,
-                                         const TensorDesc& srcDesc,
-                                         Activation activation,
-                                         PostOp postOp)
+  std::shared_ptr<Conv> Graph::addConv(const std::string& name,
+                                       const TensorDesc& srcDesc,
+                                       Activation activation,
+                                       PostOp postOp)
   {
     auto weight = weights[name + ".weight"];
     auto bias   = weights[name + ".bias"];
@@ -91,10 +91,10 @@ OIDN_NAMESPACE_BEGIN
     return conv;
   }
 
-  std::shared_ptr<ConcatConv> Network::addConcatConv(const std::string& name,
-                                                     const TensorDesc& src1Desc,
-                                                     const TensorDesc& src2Desc,
-                                                     Activation activation)
+  std::shared_ptr<ConcatConv> Graph::addConcatConv(const std::string& name,
+                                                   const TensorDesc& src1Desc,
+                                                   const TensorDesc& src2Desc,
+                                                   Activation activation)
   {
     auto weight = weights[name + ".weight"];
     auto bias   = weights[name + ".bias"];
@@ -183,8 +183,8 @@ OIDN_NAMESPACE_BEGIN
     }
   }
 
-  std::shared_ptr<Pool> Network::addPool(const std::string& name,
-                                         const TensorDesc& srcDesc)
+  std::shared_ptr<Pool> Graph::addPool(const std::string& name,
+                                       const TensorDesc& srcDesc)
   {
     auto op = engine->newPool({srcDesc});
     op->setName(name);
@@ -192,8 +192,8 @@ OIDN_NAMESPACE_BEGIN
     return op;
   }
 
-  std::shared_ptr<Upsample> Network::addUpsample(const std::string& name,
-                                                 const TensorDesc& srcDesc)
+  std::shared_ptr<Upsample> Graph::addUpsample(const std::string& name,
+                                               const TensorDesc& srcDesc)
   {
     auto op = engine->newUpsample({srcDesc});
     op->setName(name);
@@ -201,12 +201,12 @@ OIDN_NAMESPACE_BEGIN
     return op;
   }
 
-  double Network::getWorkAmount() const
+  double Graph::getWorkAmount() const
   {
     return double(ops.size());
   }
 
-  bool Network::isSupported() const
+  bool Graph::isSupported() const
   {
     for (const auto& op : ops)
       if (!op->isSupported())
@@ -214,7 +214,7 @@ OIDN_NAMESPACE_BEGIN
     return true;
   }
 
-  size_t Network::getScratchAlignedSize() const
+  size_t Graph::getScratchAlignedSize() const
   {
     size_t scratchAlignedSize = 0;
     for (const auto& op : ops)
@@ -222,20 +222,20 @@ OIDN_NAMESPACE_BEGIN
     return scratchAlignedSize;
   }
 
-  void Network::setScratch(const std::shared_ptr<Tensor>& scratch)
+  void Graph::setScratch(const std::shared_ptr<Tensor>& scratch)
   {
     for (auto& op : ops)
       op->setScratch(scratch);
   }
 
-  void Network::clear()
+  void Graph::clear()
   {
     ops.clear();
     lazyInits.clear();
     privateByteSize = 0;
   }
 
-  void Network::finalize()
+  void Graph::finalize()
   {
     for (auto& lazyInit : lazyInits)
       lazyInit();
@@ -247,7 +247,7 @@ OIDN_NAMESPACE_BEGIN
     weights.clear();
   }
 
-  void Network::run(Progress& progress)
+  void Graph::run(Progress& progress)
   {
     for (size_t i = 0; i < ops.size(); ++i)
     {
@@ -276,7 +276,7 @@ OIDN_NAMESPACE_BEGIN
   }
 
   template<typename SrcT, typename DstT, TensorLayout srcLayout, TensorLayout dstLayout>
-  bool Network::tryReorderWeight(const Tensor& src, int srcBeginI, int srcI, Tensor& dst, int dstBeginI, int dstI)
+  bool Graph::tryReorderWeight(const Tensor& src, int srcBeginI, int srcI, Tensor& dst, int dstBeginI, int dstI)
   {   
     assert(srcBeginI + srcI <= src.getPaddedI());
     assert(dstBeginI + dstI <= dst.getPaddedI());
@@ -311,7 +311,7 @@ OIDN_NAMESPACE_BEGIN
     return true;
   }
 
-  void Network::reorderWeight(const Tensor& src, int srcBeginI, int srcI, Tensor& dst, int dstBeginI, int dstI)
+  void Graph::reorderWeight(const Tensor& src, int srcBeginI, int srcI, Tensor& dst, int dstBeginI, int dstI)
   {
     bool ok =
       tryReorderWeight<half, half,  TensorLayout::oihw, TensorLayout::oihw>        (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
@@ -330,7 +330,7 @@ OIDN_NAMESPACE_BEGIN
   }
 
   template<typename SrcT, typename DstT>
-  bool Network::tryReorderBias(const Tensor& src, Tensor& dst)
+  bool Graph::tryReorderBias(const Tensor& src, Tensor& dst)
   {
     if (src.getDataType() != DataTypeOf<SrcT>::value ||
         dst.getDataType() != DataTypeOf<DstT>::value)
@@ -350,7 +350,7 @@ OIDN_NAMESPACE_BEGIN
     return true;
   }
 
-  void Network::reorderBias(const Tensor& src, Tensor& dst)
+  void Graph::reorderBias(const Tensor& src, Tensor& dst)
   {
     bool ok = src.getLayout() == TensorLayout::x && dst.getLayout() == TensorLayout::x &&
       (tryReorderBias<half, half> (src, dst) ||
