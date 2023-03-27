@@ -59,13 +59,13 @@ OIDN_NAMESPACE_BEGIN
         GemmSpec,                // GemmSpecialization
         256,                     // BlockSize
         128,                     // MPerBlock
-        128,                     // NPerBlock
+        64,                      // NPerBlock
         4,                       // K0PerBlock
         8,                       // K1
         16,                      // MPerWMMA
         16,                      // NPerWMMA
         4,                       // MRepeat
-        2,                       // NRepeat
+        1,                       // NRepeat
         S<4, 64, 1>,             // ABlockTransferThreadClusterLengths_AK0_M_AK1
         S<1, 0, 2>,              // ABlockTransferThreadClusterArrangeOrder
         S<1, 0, 2>,              // ABlockTransferSrcAccessOrder

@@ -144,7 +144,7 @@ OIDN_NAMESPACE_BEGIN
     tensorDataType = DataType::Float16;
     tensorLayout   = TensorLayout::hwc;
     weightLayout   = TensorLayout::ohwi;
-    tensorBlockC   = (arch == HIPArch::XDL) ? 8 : 32;
+    tensorBlockC   = (arch == HIPArch::DL) ? 32 : 8;
 
   #if defined(_WIN32)
     externalMemoryTypes = ExternalMemoryTypeFlag::OpaqueWin32 |
