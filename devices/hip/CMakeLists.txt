@@ -44,6 +44,10 @@ target_include_directories(${PROJECT_NAME}_device_hip
     "${PROJECT_SOURCE_DIR}/external/composable_kernel/library/include"
 )
 
+set_source_files_properties(
+  ck_conv_wmma.cpp
+  PROPERTIES COMPILE_FLAGS "-mcumode -mno-wavefrontsize64") # Navi3x optimizations
+
 target_link_libraries(${PROJECT_NAME}_device_hip PRIVATE ${PROJECT_NAME}_core hip::device)
 oidn_strip_symbols(${PROJECT_NAME}_device_hip)
 oidn_install_module(${PROJECT_NAME}_device_hip)
