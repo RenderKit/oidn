@@ -44,8 +44,6 @@ target_include_directories(${PROJECT_NAME}_device_hip
     "${PROJECT_SOURCE_DIR}/external/composable_kernel/library/include"
 )
 
-target_compile_definitions(${PROJECT_NAME}_device_hip PRIVATE __HIP_PLATFORM_HCC__=1)
-
 target_link_libraries(${PROJECT_NAME}_device_hip PRIVATE ${PROJECT_NAME}_core hip::device)
 oidn_strip_symbols(${PROJECT_NAME}_device_hip)
 oidn_install_module(${PROJECT_NAME}_device_hip)
