@@ -1,9 +1,9 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
 
-#include "tensor.h"
+#include "buffer.h"
 
 OIDN_NAMESPACE_BEGIN
 
@@ -19,7 +19,7 @@ OIDN_NAMESPACE_BEGIN
     // Scratch memory
     virtual size_t getScratchByteSize() const { return 0; }
     size_t getScratchAlignedSize() const { return round_up(getScratchByteSize(), memoryAlignment); }
-    virtual void setScratch(const std::shared_ptr<Tensor>& scratch) {}
+    virtual void setScratch(const Ref<Buffer>& scratch) {}
 
     // Finalization is required before running
     virtual void finalize() {}

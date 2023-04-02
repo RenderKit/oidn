@@ -366,15 +366,6 @@ OIDN_NAMESPACE_BEGIN
   // Tries to build the model without exceeding the specified amount of memory
   bool UNetFilter::buildModel(size_t maxMemoryByteSize)
   {
-    auto engine = device->getEngine();
-    if (engine->isConvSupported(PostOp::Pool) && engine->isConvSupported(PostOp::Upsample))
-      return buildFusedModel(maxMemoryByteSize);
-    else
-      return buildUnfusedModel(maxMemoryByteSize);
-  }
-
-  bool UNetFilter::buildUnfusedModel(size_t maxMemoryByteSize)
-  {
     // If the image size is zero, there is nothing else to do
     if (H <= 0 || W <= 0)
       return true;
@@ -385,133 +376,82 @@ OIDN_NAMESPACE_BEGIN
     if (albedo) inputC += albedo->getC();
     if (normal) inputC += normal->getC();
 
-    // Create the ops
+    // Create global operations (not part of any model instance or graph)
     std::shared_ptr<Autoexposure> autoexposure;
     if (hdr)
       autoexposure = device->getEngine()->newAutoexposure(color->getDesc());
 
     const bool snorm = directional || (!color && normal);
-    TensorDims inputDims {inputC, tileH, tileW};
+    TensorDims inputDims{inputC, tileH, tileW};
     size_t totalMemoryByteSize = 0;
 
+    // Create model instances for each engine of the device
     for (int instanceId = 0; instanceId < device->getNumEngines(); ++instanceId)
     {
       auto& instance = instances[instanceId];
       auto& graph = instance.graph;
 
+      // Create the model graph
       auto inputProcess = graph->addInputProcess("input", inputDims, alignment, transferFunc, hdr, snorm);
 
-      auto encConv0 = graph->addConv("enc_conv0", inputProcess->getDstDesc());
+      auto encConv0 = graph->addConv("enc_conv0", inputProcess);
 
-      auto encConv1 = graph->addConv("enc_conv1", encConv0->getDstDesc());
-      auto pool1    = graph->addPool("pool1", encConv1->getDstDesc());
+      auto pool1 = graph->addConv("enc_conv1", encConv0, Activation::ReLU, PostOp::Pool);
 
-      auto encConv2 = graph->addConv("enc_conv2", pool1->getDstDesc());
-      auto pool2    = graph->addPool("pool2", encConv2->getDstDesc());
+      auto pool2 = graph->addConv("enc_conv2", pool1, Activation::ReLU, PostOp::Pool);
 
-      auto encConv3 = graph->addConv("enc_conv3", pool2->getDstDesc());
-      auto pool3    = graph->addPool("pool3", encConv3->getDstDesc());
+      auto pool3 = graph->addConv("enc_conv3", pool2, Activation::ReLU, PostOp::Pool);
 
-      auto encConv4 = graph->addConv("enc_conv4", pool3->getDstDesc());
-      auto pool4    = graph->addPool("pool4", encConv4->getDstDesc());
+      auto pool4 = graph->addConv("enc_conv4", pool3, Activation::ReLU, PostOp::Pool);
 
-      auto encConv5a = graph->addConv("enc_conv5a", pool4->getDstDesc());
-      auto encConv5b = graph->addConv("enc_conv5b", encConv5a->getDstDesc());
+      auto encConv5a = graph->addConv("enc_conv5a", pool4);
 
-      auto upsample4 = graph->addUpsample("upsample4", encConv5b->getDstDesc());
-      auto decConv4a = graph->addConcatConv("dec_conv4a", upsample4->getDstDesc(), pool3->getDstDesc());
-      auto decConv4b = graph->addConv("dec_conv4b", decConv4a->getDstDesc());
+      auto upsample4 = graph->addConv("enc_conv5b", encConv5a, Activation::ReLU, PostOp::Upsample);
+      auto decConv4a = graph->addConcatConv("dec_conv4a", upsample4, pool3);
 
-      auto upsample3 = graph->addUpsample("upsample3", decConv4b->getDstDesc());
-      auto decConv3a = graph->addConcatConv("dec_conv3a", upsample3->getDstDesc(), pool2->getDstDesc());
-      auto decConv3b = graph->addConv("dec_conv3b", decConv3a->getDstDesc());
+      auto upsample3 = graph->addConv("dec_conv4b", decConv4a, Activation::ReLU, PostOp::Upsample);
+      auto decConv3a = graph->addConcatConv("dec_conv3a", upsample3, pool2);
 
-      auto upsample2 = graph->addUpsample("upsample2", decConv3b->getDstDesc());
-      auto decConv2a = graph->addConcatConv("dec_conv2a", upsample2->getDstDesc(), pool1->getDstDesc());
-      auto decConv2b = graph->addConv("dec_conv2b", decConv2a->getDstDesc());
+      auto upsample2 = graph->addConv("dec_conv3b", decConv3a, Activation::ReLU, PostOp::Upsample);
+      auto decConv2a = graph->addConcatConv("dec_conv2a", upsample2, pool1);
 
-      auto upsample1 = graph->addUpsample("upsample1", decConv2b->getDstDesc());
-      auto decConv1a = graph->addConcatConv("dec_conv1a", upsample1->getDstDesc(), inputProcess->getDstDesc());
-      auto decConv1b = graph->addConv("dec_conv1b", decConv1a->getDstDesc());
+      auto upsample1 = graph->addConv("dec_conv2b", decConv2a, Activation::ReLU, PostOp::Upsample);
+      auto decConv1a = graph->addConcatConv("dec_conv1a", upsample1, inputProcess);
+      auto decConv1b = graph->addConv("dec_conv1b", decConv1a);
       
-      auto decConv0 = graph->addConv("dec_conv0", decConv1b->getDstDesc(), Activation::None);
+      auto decConv0 = graph->addConv("dec_conv0", decConv1b, Activation::None);
 
-      auto outputProcess = graph->addOutputProcess("output", decConv0->getDstDesc(), transferFunc, hdr, snorm);
+      auto outputProcess = graph->addOutputProcess("output", decConv0, transferFunc, hdr, snorm);
 
+      // Check whether all operations in the graph are supported
       if (!graph->isSupported())
       {
         resetModel();
         return false;
       }
 
-      // Compute the tensor offsets
-      ptrdiff_t endOfs = 0; // we'll have negative offsets relative to the end of the buffer
-      ptrdiff_t inputOfs     = endOfs - inputProcess->getDstDesc().getAlignedSize();
-      ptrdiff_t encConv0Ofs  = inputOfs - encConv0->getDstDesc().getAlignedSize();
-      ptrdiff_t pool1Ofs     = inputOfs - pool1->getDstDesc().getAlignedSize();
-      ptrdiff_t encConv1Ofs  = min(encConv0Ofs, pool1Ofs) - encConv1->getDstDesc().getAlignedSize();
-      ptrdiff_t pool2Ofs     = pool1Ofs - pool2->getDstDesc().getAlignedSize();
-      ptrdiff_t encConv2Ofs  = pool2Ofs - encConv2->getDstDesc().getAlignedSize();
-      ptrdiff_t pool3Ofs     = pool2Ofs - pool3->getDstDesc().getAlignedSize();
-      ptrdiff_t encConv3Ofs  = pool3Ofs - encConv3->getDstDesc().getAlignedSize();
-      ptrdiff_t encConv4Ofs  = pool3Ofs - encConv4->getDstDesc().getAlignedSize();
-      ptrdiff_t encConv5aOfs = pool3Ofs - encConv5a->getDstDesc().getAlignedSize();
-      ptrdiff_t pool4Ofs     = min(encConv4Ofs, encConv5aOfs) - pool4->getDstDesc().getAlignedSize();
-      ptrdiff_t upsample4Ofs = pool3Ofs - upsample4->getDstDesc().getAlignedSize();
-      ptrdiff_t encConv5bOfs = min(encConv5aOfs, upsample4Ofs) - encConv5b->getDstDesc().getAlignedSize();
-      ptrdiff_t upsample3Ofs = pool2Ofs - upsample3->getDstDesc().getAlignedSize();
-      ptrdiff_t decConv4bOfs = upsample3Ofs - decConv4b->getDstDesc().getAlignedSize();
-      ptrdiff_t decConv4aOfs = min(upsample4Ofs, decConv4bOfs) - decConv4a->getDstDesc().getAlignedSize();
-      ptrdiff_t upsample2Ofs = pool1Ofs - upsample2->getDstDesc().getAlignedSize();
-      ptrdiff_t decConv3bOfs = upsample2Ofs - decConv3b->getDstDesc().getAlignedSize();
-      ptrdiff_t decConv3aOfs = min(upsample3Ofs, decConv3bOfs) - decConv3a->getDstDesc().getAlignedSize();
-      ptrdiff_t upsample1Ofs = inputOfs - upsample1->getDstDesc().getAlignedSize();
-      ptrdiff_t decConv2bOfs = upsample1Ofs - decConv2b->getDstDesc().getAlignedSize();
-      ptrdiff_t decConv2aOfs = min(upsample2Ofs, decConv2bOfs) - decConv2a->getDstDesc().getAlignedSize();
-      ptrdiff_t decConv1bOfs = endOfs - decConv1b->getDstDesc().getAlignedSize();
-      ptrdiff_t decConv1aOfs = min(upsample1Ofs, decConv1bOfs) - decConv1a->getDstDesc().getAlignedSize();
-      ptrdiff_t decConv0Ofs  = decConv1bOfs - decConv0->getDstDesc().getAlignedSize();
+      // Get the scratch size of the graph
+      const size_t graphScratchByteSize = graph->getScratchAlignedSize();
+      size_t scratchByteSize = graphScratchByteSize;
 
-      const std::vector<ptrdiff_t> minOfsList = {
-        encConv1Ofs,
-        encConv2Ofs,
-        encConv3Ofs,
-        pool4Ofs,
-        encConv5bOfs,
-        decConv4aOfs,
-        decConv3aOfs,
-        decConv2aOfs,
-        decConv1aOfs,
-        decConv0Ofs
-      };
-
-      ptrdiff_t minOfs = *std::min_element(minOfsList.begin(), minOfsList.end());
+      // Allocate scratch for global operations
+      if (instanceId == 0 && hdr)
+        scratchByteSize = max(scratchByteSize, autoexposure->getScratchAlignedSize());
 
       // If doing in-place _tiled_ filtering, allocate a temporary output image
       ImageDesc outputTempDesc(output->getFormat(), W, H);
-      ptrdiff_t outputTempOfs = 0;
+      size_t outputTempByteOffset = SIZE_MAX;
       if (instanceId == 0 && inplace && (tileCountH * tileCountW) > 1)
       {
-        outputTempOfs = minOfs - outputTempDesc.getAlignedSize();
-        minOfs = outputTempOfs;
+        outputTempByteOffset = scratchByteSize;
+        scratchByteSize += outputTempDesc.getAlignedSize();
       }
-
-      // Allocate scratch space for the operations
-      const size_t netScratchByteSize = graph->getScratchAlignedSize();
-      size_t opScratchByteSize = netScratchByteSize;
-      if (instanceId == 0 && hdr)
-        opScratchByteSize = max(opScratchByteSize, autoexposure->getScratchAlignedSize());
-      ptrdiff_t opScratchOfs = minOfs - opScratchByteSize;
-      minOfs = opScratchOfs;
-
-      // Compute the size of the scratch buffer
-      const size_t scratchByteSize = -minOfs;
 
       // Check the total memory usage
       if (instanceId == 0)
       {
         totalMemoryByteSize = scratchByteSize + graph->getPrivateByteSize() +
-                               (netScratchByteSize + graph->getPrivateByteSize()) * (device->getNumEngines() - 1);
+                              (graphScratchByteSize + graph->getPrivateByteSize()) * (device->getNumEngines() - 1);
         if (totalMemoryByteSize > maxMemoryByteSize)
         {
           resetModel();
@@ -522,326 +462,23 @@ OIDN_NAMESPACE_BEGIN
       // Allocate the scratch buffer
       auto scratch = device->getEngine(instanceId)->newScratchBuffer(scratchByteSize);
 
-      // Connect the network layers
-      inputProcess->setDst(scratch->newTensor(inputProcess->getDstDesc(), inputOfs));
-
-      encConv0->setSrc(inputProcess->getDst());
-      encConv0->setDst(scratch->newTensor(encConv0->getDstDesc(), encConv0Ofs));
-
-      encConv1->setSrc(encConv0->getDst());
-      encConv1->setDst(scratch->newTensor(encConv1->getDstDesc(), encConv1Ofs));
-
-      pool1->setSrc(encConv1->getDst());
-      pool1->setDst(scratch->newTensor(pool1->getDstDesc(), pool1Ofs));
-
-      encConv2->setSrc(pool1->getDst());
-      encConv2->setDst(scratch->newTensor(encConv2->getDstDesc(), encConv2Ofs));
-
-      pool2->setSrc(encConv2->getDst());
-      pool2->setDst(scratch->newTensor(pool2->getDstDesc(), pool2Ofs));
-
-      encConv3->setSrc(pool2->getDst());
-      encConv3->setDst(scratch->newTensor(encConv3->getDstDesc(), encConv3Ofs));
-
-      pool3->setSrc(encConv3->getDst());
-      pool3->setDst(scratch->newTensor(pool3->getDstDesc(), pool3Ofs));
-
-      encConv4->setSrc(pool3->getDst());
-      encConv4->setDst(scratch->newTensor(encConv4->getDstDesc(), encConv4Ofs));
-
-      pool4->setSrc(encConv4->getDst());
-      pool4->setDst(scratch->newTensor(pool4->getDstDesc(), pool4Ofs));
-
-      encConv5a->setSrc(pool4->getDst());
-      encConv5a->setDst(scratch->newTensor(encConv5a->getDstDesc(), encConv5aOfs));
-
-      encConv5b->setSrc(encConv5a->getDst());
-      encConv5b->setDst(scratch->newTensor(encConv5b->getDstDesc(), encConv5bOfs));
-
-      upsample4->setSrc(encConv5b->getDst());
-      upsample4->setDst(scratch->newTensor(upsample4->getDstDesc(), upsample4Ofs));
-
-      decConv4a->setSrc(upsample4->getDst(), pool3->getDst());
-      decConv4a->setDst(scratch->newTensor(decConv4a->getDstDesc(), decConv4aOfs));
-
-      decConv4b->setSrc(decConv4a->getDst());
-      decConv4b->setDst(scratch->newTensor(decConv4b->getDstDesc(), decConv4bOfs));
-
-      upsample3->setSrc(decConv4b->getDst());
-      upsample3->setDst(scratch->newTensor(upsample3->getDstDesc(), upsample3Ofs));
-
-      decConv3a->setSrc(upsample3->getDst(), pool2->getDst());
-      decConv3a->setDst(scratch->newTensor(decConv3a->getDstDesc(), decConv3aOfs));
-
-      decConv3b->setSrc(decConv3a->getDst());
-      decConv3b->setDst(scratch->newTensor(decConv3b->getDstDesc(), decConv3bOfs));
-
-      upsample2->setSrc(decConv3b->getDst());
-      upsample2->setDst(scratch->newTensor(upsample2->getDstDesc(), upsample2Ofs));
-
-      decConv2a->setSrc(upsample2->getDst(), pool1->getDst());
-      decConv2a->setDst(scratch->newTensor(decConv2a->getDstDesc(), decConv2aOfs));
-
-      decConv2b->setSrc(decConv2a->getDst());
-      decConv2b->setDst(scratch->newTensor(decConv2b->getDstDesc(), decConv2bOfs));
-
-      upsample1->setSrc(decConv2b->getDst());
-      upsample1->setDst(scratch->newTensor(upsample1->getDstDesc(), upsample1Ofs));
-
-      decConv1a->setSrc(upsample1->getDst(), inputProcess->getDst());
-      decConv1a->setDst(scratch->newTensor(decConv1a->getDstDesc(), decConv1aOfs));
-
-      decConv1b->setSrc(decConv1a->getDst());
-      decConv1b->setDst(scratch->newTensor(decConv1b->getDstDesc(), decConv1bOfs));
-
-      decConv0->setSrc(decConv1b->getDst());
-      decConv0->setDst(scratch->newTensor(decConv0->getDstDesc(), decConv0Ofs));
-
-      outputProcess->setSrc(decConv0->getDst());
-
-      // Create the temporary output
-      if (instanceId == 0 && outputTempOfs)
-        outputTemp = scratch->newImage(outputTempDesc, outputTempOfs);
-
-      // Set the scratch buffer for the operations
-      if (opScratchByteSize > 0)
-      {
-        const TensorDesc opScratchDesc{{int64_t(opScratchByteSize)}, TensorLayout::x, DataType::UInt8};
-        auto opScratch = scratch->newTensor(opScratchDesc, opScratchOfs);
-        graph->setScratch(opScratch);
-        if (instanceId == 0 && hdr)
-          autoexposure->setScratch(opScratch);
-      }
-
-      // Finalize the network
-      graph->finalize();
-
-      instance.inputProcess  = inputProcess;
-      instance.outputProcess = outputProcess;
-    }
-
-    if (hdr)
-      autoexposure->finalize();
-    this->autoexposure = autoexposure;
-    
-    if (outputTemp)
-    {
-      imageCopy = device->getEngine()->newImageCopy();
-      imageCopy->setSrc(outputTemp);
-      imageCopy->finalize();
-    }
-
-    // Print statistics
-    if (device->isVerbose(2))
-      std::cout << "Memory usage: " << totalMemoryByteSize << std::endl;
-
-    return true;
-  }
-
-  bool UNetFilter::buildFusedModel(size_t maxMemoryByteSize)
-  {
-    // If the image size is zero, there is nothing else to do
-    if (H <= 0 || W <= 0)
-      return true;
-
-    // Get the number of input channels
-    int inputC = 0;
-    if (color)  inputC += color->getC();
-    if (albedo) inputC += albedo->getC();
-    if (normal) inputC += normal->getC();
-
-    // Create the ops
-    std::shared_ptr<Autoexposure> autoexposure;
-    if (hdr)
-      autoexposure = device->getEngine()->newAutoexposure(color->getDesc());
-
-    const bool snorm = directional || (!color && normal);
-    TensorDims inputDims {inputC, tileH, tileW};
-    size_t totalMemoryByteSize = 0;
-
-    for (int instanceId = 0; instanceId < device->getNumEngines(); ++instanceId)
-    {
-      auto& instance = instances[instanceId];
-      auto& graph = instance.graph;
-
-      auto inputProcess = graph->addInputProcess("input", inputDims, alignment, transferFunc, hdr, snorm);
-
-      auto encConv0 = graph->addConv("enc_conv0", inputProcess->getDstDesc());
-
-      auto pool1 = graph->addConv("enc_conv1", encConv0->getDstDesc(), Activation::ReLU, PostOp::Pool);
-
-      auto pool2 = graph->addConv("enc_conv2", pool1->getDstDesc(), Activation::ReLU, PostOp::Pool);
-
-      auto pool3 = graph->addConv("enc_conv3", pool2->getDstDesc(), Activation::ReLU, PostOp::Pool);
-
-      auto pool4 = graph->addConv("enc_conv4", pool3->getDstDesc(), Activation::ReLU, PostOp::Pool);
-
-      auto encConv5a = graph->addConv("enc_conv5a", pool4->getDstDesc());
-
-      auto upsample4 = graph->addConv("enc_conv5b", encConv5a->getDstDesc(), Activation::ReLU, PostOp::Upsample);
-      auto decConv4a = graph->addConcatConv("dec_conv4a", upsample4->getDstDesc(), pool3->getDstDesc());
-
-      auto upsample3 = graph->addConv("dec_conv4b", decConv4a->getDstDesc(), Activation::ReLU, PostOp::Upsample);
-      auto decConv3a = graph->addConcatConv("dec_conv3a", upsample3->getDstDesc(), pool2->getDstDesc());
-
-      auto upsample2 = graph->addConv("dec_conv3b", decConv3a->getDstDesc(), Activation::ReLU, PostOp::Upsample);
-      auto decConv2a = graph->addConcatConv("dec_conv2a", upsample2->getDstDesc(), pool1->getDstDesc());
-
-      auto upsample1 = graph->addConv("dec_conv2b", decConv2a->getDstDesc(), Activation::ReLU, PostOp::Upsample);
-      auto decConv1a = graph->addConcatConv("dec_conv1a", upsample1->getDstDesc(), inputProcess->getDstDesc());
-      auto decConv1b = graph->addConv("dec_conv1b", decConv1a->getDstDesc());
-      
-      auto decConv0 = graph->addConv("dec_conv0", decConv1b->getDstDesc(), Activation::None);
-
-      auto outputProcess = graph->addOutputProcess("output", decConv0->getDstDesc(), transferFunc, hdr, snorm);
-
-      if (!graph->isSupported())
-      {
-        resetModel();
-        return false;
-      }
-
-      // Compute the tensor offsets
-      ptrdiff_t endOfs = 0; // we'll have negative offsets relative to the end of the buffer
-      ptrdiff_t inputOfs     = endOfs - inputProcess->getDstDesc().getAlignedSize();
-      ptrdiff_t pool1Ofs     = inputOfs - pool1->getDstDesc().getAlignedSize();
-      ptrdiff_t encConv0Ofs  = pool1Ofs - encConv0->getDstDesc().getAlignedSize();
-      ptrdiff_t pool2Ofs     = pool1Ofs - pool2->getDstDesc().getAlignedSize();
-      ptrdiff_t pool3Ofs     = pool2Ofs - pool3->getDstDesc().getAlignedSize();
-      ptrdiff_t pool4Ofs     = pool3Ofs - pool4->getDstDesc().getAlignedSize();
-      ptrdiff_t upsample4Ofs = pool3Ofs - upsample4->getDstDesc().getAlignedSize();
-      ptrdiff_t encConv5aOfs = min(pool4Ofs, upsample4Ofs) - encConv5a->getDstDesc().getAlignedSize();
-      ptrdiff_t upsample3Ofs = pool2Ofs - upsample3->getDstDesc().getAlignedSize();
-      ptrdiff_t decConv4aOfs = min(upsample4Ofs, upsample3Ofs) - decConv4a->getDstDesc().getAlignedSize();
-      ptrdiff_t upsample2Ofs = pool1Ofs - upsample2->getDstDesc().getAlignedSize();
-      ptrdiff_t decConv3aOfs = min(upsample3Ofs, upsample2Ofs) - decConv3a->getDstDesc().getAlignedSize();
-      ptrdiff_t upsample1Ofs = inputOfs - upsample1->getDstDesc().getAlignedSize();
-      ptrdiff_t decConv2aOfs = min(upsample2Ofs, upsample1Ofs) - decConv2a->getDstDesc().getAlignedSize();
-      ptrdiff_t decConv1bOfs = endOfs - decConv1b->getDstDesc().getAlignedSize();
-      ptrdiff_t decConv1aOfs = min(upsample1Ofs, decConv1bOfs) - decConv1a->getDstDesc().getAlignedSize();
-      ptrdiff_t decConv0Ofs  = decConv1bOfs - decConv0->getDstDesc().getAlignedSize();
-
-      const std::vector<ptrdiff_t> minOfsList = {
-        encConv0Ofs,
-        encConv5aOfs,
-        decConv4aOfs,
-        decConv3aOfs,
-        decConv2aOfs,
-        decConv1aOfs,
-        decConv0Ofs
-      };
-
-      ptrdiff_t minOfs = *std::min_element(minOfsList.begin(), minOfsList.end());
-
-      // If doing in-place _tiled_ filtering, allocate a temporary output image
-      ImageDesc outputTempDesc(output->getFormat(), W, H);
-      ptrdiff_t outputTempOfs = 0;
-      if (instanceId == 0 && inplace && (tileCountH * tileCountW) > 1)
-      {
-        outputTempOfs = minOfs - outputTempDesc.getAlignedSize();
-        minOfs = outputTempOfs;
-      }
-
-      // Allocate scratch space for the operations
-      const size_t netScratchByteSize = graph->getScratchAlignedSize();
-      size_t opScratchByteSize = netScratchByteSize;
+      // Set the scratch buffer for the graph and the global operations
+      graph->setScratch(scratch);
       if (instanceId == 0 && hdr)
-        opScratchByteSize = max(opScratchByteSize, autoexposure->getScratchAlignedSize());
-      ptrdiff_t opScratchOfs = minOfs - opScratchByteSize;
-      minOfs = opScratchOfs;
-
-      // Compute the size of the scratch buffer
-      const size_t scratchByteSize = -minOfs;
-
-      // Check the total memory usage
-      if (instanceId == 0)
-      {
-        totalMemoryByteSize = scratchByteSize + graph->getPrivateByteSize() +
-                               (netScratchByteSize + graph->getPrivateByteSize()) * (device->getNumEngines() - 1);
-        if (totalMemoryByteSize > maxMemoryByteSize)
-        {
-          resetModel();
-          return false;
-        }
-      }
-
-      // Allocate the scratch buffer
-      auto scratch = device->getEngine(instanceId)->newScratchBuffer(scratchByteSize);
-
-      // Connect the network layers
-      inputProcess->setDst(scratch->newTensor(inputProcess->getDstDesc(), inputOfs));
-
-      encConv0->setSrc(inputProcess->getDst());
-      encConv0->setDst(scratch->newTensor(encConv0->getDstDesc(), encConv0Ofs));
-
-      pool1->setSrc(encConv0->getDst());
-      pool1->setDst(scratch->newTensor(pool1->getDstDesc(), pool1Ofs));
-
-      pool2->setSrc(pool1->getDst());
-      pool2->setDst(scratch->newTensor(pool2->getDstDesc(), pool2Ofs));
-
-      pool3->setSrc(pool2->getDst());
-      pool3->setDst(scratch->newTensor(pool3->getDstDesc(), pool3Ofs));
-
-      pool4->setSrc(pool3->getDst());
-      pool4->setDst(scratch->newTensor(pool4->getDstDesc(), pool4Ofs));
-
-      encConv5a->setSrc(pool4->getDst());
-      encConv5a->setDst(scratch->newTensor(encConv5a->getDstDesc(), encConv5aOfs));
-
-      upsample4->setSrc(encConv5a->getDst());
-      upsample4->setDst(scratch->newTensor(upsample4->getDstDesc(), upsample4Ofs));
-
-      decConv4a->setSrc(upsample4->getDst(), pool3->getDst());
-      decConv4a->setDst(scratch->newTensor(decConv4a->getDstDesc(), decConv4aOfs));
-
-      upsample3->setSrc(decConv4a->getDst());
-      upsample3->setDst(scratch->newTensor(upsample3->getDstDesc(), upsample3Ofs));
-
-      decConv3a->setSrc(upsample3->getDst(), pool2->getDst());
-      decConv3a->setDst(scratch->newTensor(decConv3a->getDstDesc(), decConv3aOfs));
-
-      upsample2->setSrc(decConv3a->getDst());
-      upsample2->setDst(scratch->newTensor(upsample2->getDstDesc(), upsample2Ofs));
-
-      decConv2a->setSrc(upsample2->getDst(), pool1->getDst());
-      decConv2a->setDst(scratch->newTensor(decConv2a->getDstDesc(), decConv2aOfs));
-
-      upsample1->setSrc(decConv2a->getDst());
-      upsample1->setDst(scratch->newTensor(upsample1->getDstDesc(), upsample1Ofs));
-
-      decConv1a->setSrc(upsample1->getDst(), inputProcess->getDst());
-      decConv1a->setDst(scratch->newTensor(decConv1a->getDstDesc(), decConv1aOfs));
-
-      decConv1b->setSrc(decConv1a->getDst());
-      decConv1b->setDst(scratch->newTensor(decConv1b->getDstDesc(), decConv1bOfs));
-
-      decConv0->setSrc(decConv1b->getDst());
-      decConv0->setDst(scratch->newTensor(decConv0->getDstDesc(), decConv0Ofs));
-
-      outputProcess->setSrc(decConv0->getDst());
-
-      // Create the temporary output
-      if (instanceId == 0 && outputTempOfs)
-        outputTemp = scratch->newImage(outputTempDesc, outputTempOfs);
-
-      // Set the scratch buffer for the operations
-      if (opScratchByteSize > 0)
-      {
-        const TensorDesc opScratchDesc{{int64_t(opScratchByteSize)}, TensorLayout::x, DataType::UInt8};
-        auto opScratch = scratch->newTensor(opScratchDesc, opScratchOfs);
-        graph->setScratch(opScratch);
-        if (instanceId == 0 && hdr)
-          autoexposure->setScratch(opScratch);
-      }
+        autoexposure->setScratch(scratch);
 
       // Finalize the network
       graph->finalize();
+
+      // Create the temporary output image
+      if (instanceId == 0 && outputTempByteOffset < SIZE_MAX)
+        outputTemp = scratch->newImage(outputTempDesc, outputTempByteOffset);
 
       instance.inputProcess  = inputProcess;
       instance.outputProcess = outputProcess;
     }
 
+    // Finalize the global operations
     if (hdr)
       autoexposure->finalize();
     this->autoexposure = autoexposure;

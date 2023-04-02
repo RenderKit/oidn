@@ -36,15 +36,13 @@ OIDN_NAMESPACE_BEGIN
     throw std::logic_error("reallocating the buffer is not supported");
   }
 
-  std::shared_ptr<Tensor> Buffer::newTensor(const TensorDesc& desc, ptrdiff_t relByteOffset)
+  std::shared_ptr<Tensor> Buffer::newTensor(const TensorDesc& desc, size_t byteOffset)
   {
-    size_t byteOffset = relByteOffset >= 0 ? relByteOffset : getByteSize() + relByteOffset;
     return getEngine()->newTensor(this, desc, byteOffset);
   }
 
-  std::shared_ptr<Image> Buffer::newImage(const ImageDesc& desc, ptrdiff_t relByteOffset)
+  std::shared_ptr<Image> Buffer::newImage(const ImageDesc& desc, size_t byteOffset)
   {
-    size_t byteOffset = relByteOffset >= 0 ? relByteOffset : getByteSize() + relByteOffset;
     return std::make_shared<Image>(this, desc, byteOffset);
   }
 

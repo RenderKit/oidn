@@ -41,7 +41,7 @@ OIDN_NAMESPACE_BEGIN
     return max(conv1->getScratchByteSize(), conv2->getScratchByteSize());
   }
 
-  void ConcatConvHWC::setScratch(const std::shared_ptr<Tensor>& scratch)
+  void ConcatConvHWC::setScratch(const Ref<Buffer>& scratch)
   {
     conv1->setScratch(scratch);
     conv2->setScratch(scratch);

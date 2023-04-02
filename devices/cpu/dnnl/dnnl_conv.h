@@ -14,7 +14,7 @@ OIDN_NAMESPACE_BEGIN
     DNNLConv(const Ref<DNNLEngine>& engine, const ConvDesc& desc);
 
     size_t getScratchByteSize() const override;
-    void setScratch(const std::shared_ptr<Tensor>& scratch) override;
+    void setScratch(const Ref<Buffer>& scratch) override;
 
     void finalize() override;
     void submit() override;
@@ -29,7 +29,7 @@ OIDN_NAMESPACE_BEGIN
     dnnl::convolution_forward::primitive_desc primDesc;
     dnnl::convolution_forward prim;
     std::unordered_map<int, dnnl::memory> args;
-    std::shared_ptr<Tensor> scratch;
+    Ref<Buffer> scratch;
   };
 
 OIDN_NAMESPACE_END

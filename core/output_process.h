@@ -5,6 +5,7 @@
 
 #include "op.h"
 #include "image.h"
+#include "tensor.h"
 #include "color.h"
 #include "tile.h"
 

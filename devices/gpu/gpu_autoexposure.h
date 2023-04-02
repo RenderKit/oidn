@@ -166,7 +166,7 @@ OIDN_NAMESPACE_BEGIN
       return scratchByteSize;
     }
 
-    void setScratch(const std::shared_ptr<Tensor>& scratch) override
+    void setScratch(const Ref<Buffer>& scratch) override
     {
       if (!scratch || scratch->getByteSize() < scratchByteSize)
         throw std::invalid_argument("invalid autoexposure scratch");
@@ -223,7 +223,7 @@ OIDN_NAMESPACE_BEGIN
     int numGroups;
     Ref<Buffer> resultBuffer;
     size_t scratchByteSize;
-    std::shared_ptr<Tensor> scratch;
+    Ref<Buffer> scratch;
   };
 
 OIDN_NAMESPACE_END

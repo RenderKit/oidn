@@ -43,10 +43,10 @@ OIDN_NAMESPACE_BEGIN
     return primDesc.scratchpad_desc().get_size();
   }
 
-  void DNNLConv::setScratch(const std::shared_ptr<Tensor>& scratch)
+  void DNNLConv::setScratch(const Ref<Buffer>& scratch)
   {
     this->scratch = scratch;
-    args[DNNL_ARG_SCRATCHPAD] = getDNNL(scratch);
+    args[DNNL_ARG_SCRATCHPAD] = toDNNL(scratch);
   }
 
   void DNNLConv::updateSrc()

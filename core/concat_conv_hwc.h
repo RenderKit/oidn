@@ -18,7 +18,7 @@ OIDN_NAMESPACE_BEGIN
     bool isSupported() const override;
 
     size_t getScratchByteSize() const override;
-    void setScratch(const std::shared_ptr<Tensor>& scratch) override;
+    void setScratch(const Ref<Buffer>& scratch) override;
 
     TensorDesc getWeight1Desc() const { return weight1Desc; }
     TensorDesc getWeight2Desc() const { return weight2Desc; }

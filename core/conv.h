@@ -4,6 +4,7 @@
 #pragma once
 
 #include "op.h"
+#include "tensor.h"
 
 OIDN_NAMESPACE_BEGIN
 

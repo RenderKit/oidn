@@ -227,7 +227,7 @@ OIDN_NAMESPACE_BEGIN
       return gemm.get_workspace_size(initialArguments);
     }
 
-    void setScratch(const std::shared_ptr<Tensor>& scratch) override
+    void setScratch(const Ref<Buffer>& scratch) override
     {
       // FIXME: check size
       this->scratch = scratch;
@@ -269,7 +269,7 @@ OIDN_NAMESPACE_BEGIN
     cutlass::conv::Conv2dProblemSize problemSize;
     typename ImplicitGemm::Arguments initialArguments;
     ImplicitGemm gemm;
-    std::shared_ptr<Tensor> scratch;
+    Ref<Buffer> scratch;
   };
 
   struct CutlassConvFactory

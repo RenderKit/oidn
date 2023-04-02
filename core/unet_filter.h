@@ -69,8 +69,6 @@ OIDN_NAMESPACE_BEGIN
     void checkParams();
     Data getWeights();
     bool buildModel(size_t maxMemoryByteSize = std::numeric_limits<size_t>::max());
-    bool buildUnfusedModel(size_t maxMemoryByteSize);
-    bool buildFusedModel(size_t maxMemoryByteSize);
     void resetModel();
 
     // Image dimensions
