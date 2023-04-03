@@ -14,7 +14,7 @@ OIDN_NAMESPACE_BEGIN
 
   // Tensor dimensions
   // Canonical order: CHW / OIHW
-  using TensorDims = std::vector<int64_t>;
+  using TensorDims = std::vector<int>;
 
   std::ostream& operator <<(std::ostream& sm, const TensorDims& dims);
 
@@ -47,7 +47,7 @@ OIDN_NAMESPACE_BEGIN
       return getRank() == info.rank &&
              dims.size() == paddedDims.size() &&
              std::mismatch(dims.begin(), dims.end(), paddedDims.begin(),
-                           std::less_equal<int64_t>()).first == dims.end() &&
+                           std::less_equal<int>()).first == dims.end() &&
              (info.blockC == 1 ||
                (getRank() == 3 && getPaddedC() % info.blockC == 0) ||
                (getRank() == 4 && getPaddedO() % info.blockC == 0 && getPaddedI() % info.blockC == 0));
@@ -60,66 +60,66 @@ OIDN_NAMESPACE_BEGIN
     OIDN_INLINE int getX() const
     {
       assert(dims.size() == 1);
-      return int(dims[0]);
+      return dims[0];
     }
 
     OIDN_INLINE int getPaddedX() const
     {
       assert(paddedDims.size() == 1);
-      return int(paddedDims[0]);
+      return paddedDims[0];
     }
 
     // Returns the number of output channels in the tensor
     OIDN_INLINE int getO() const
     {
       assert(dims.size() >= 4);
-      return int(dims[dims.size()-4]);
+      return dims[dims.size()-4];
     }
 
     OIDN_INLINE int getPaddedO() const
     {
       assert(paddedDims.size() >= 4);
-      return int(paddedDims[paddedDims.size()-4]);
+      return paddedDims[paddedDims.size()-4];
     }
 
     // Returns the number of input channels in the tensor
     OIDN_INLINE int getI() const
     {
       assert(dims.size() >= 3);
-      return int(dims[dims.size()-3]);
+      return dims[dims.size()-3];
     }
 
     OIDN_INLINE int getPaddedI() const
     {
       assert(paddedDims.size() >= 3);
-      return int(paddedDims[paddedDims.size()-3]);
+      return paddedDims[paddedDims.size()-3];
     }
 
     // Returns the number of channels in the tensor
     OIDN_INLINE int getC() const
     {
       assert(dims.size() >= 3);
-      return int(dims[dims.size()-3]);
+      return dims[dims.size()-3];
     }
 
     OIDN_INLINE int getPaddedC() const
     {
       assert(paddedDims.size() >= 3);
-      return int(paddedDims[paddedDims.size()-3]);
+      return paddedDims[paddedDims.size()-3];
     }
 
     // Returns the height of the tensor
     OIDN_INLINE int getH() const
     {
       assert(dims.size() >= 2);
-      return int(dims[dims.size()-2]);
+      return dims[dims.size()-2];
     }
 
     // Returns the width of the tensor
     OIDN_INLINE int getW() const
     {
       assert(dims.size() >= 2);
-      return int(dims[dims.size()-1]);
+      return dims[dims.size()-1];
     }
 
     // Returns the number of elements in the tensor

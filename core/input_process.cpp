@@ -13,8 +13,8 @@ OIDN_NAMESPACE_BEGIN
 
     TensorDims dstDims {
       srcDims[0],
-      round_up(srcDims[1], int64_t(alignment)), // round up H
-      round_up(srcDims[2], int64_t(alignment))  // round up W
+      round_up(srcDims[1], alignment), // round up H
+      round_up(srcDims[2], alignment)  // round up W
     };
 
     TensorDims dstPaddedDims {
