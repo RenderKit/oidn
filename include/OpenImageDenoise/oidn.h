@@ -282,8 +282,11 @@ OIDN_API OIDNBuffer oidnNewSharedBufferFromWin32Handle(OIDNDevice device,
 // Gets the size of the buffer in bytes.
 OIDN_API size_t oidnGetBufferSize(OIDNBuffer buffer);
 
+// Gets the storage mode of the buffer.
+OIDN_API OIDNStorage oidnGetBufferStorage(OIDNBuffer buffer);
+
 // Gets a pointer to the buffer data, which is accessible to the device but not necessarily to the
-// host as well.
+// host as well, depending on the storage mode.
 OIDN_API void* oidnGetBufferData(OIDNBuffer buffer);
 
 // Maps a region of the buffer to the host memory.

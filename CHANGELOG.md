@@ -6,8 +6,8 @@ Version History
 -   Added CUDA device for NVIDIA Volta architecture and later GPUs
 -   Added HIP device for AMD RDNA2 architecture and later GPUs (*experimental*)
 -   Added new API functions for advanced GPU support:
-    -  `oidnNewBufferWithStorage`, `oidnReadBuffer`, and `oidnWriteBuffer` for
-       improved GPU buffer support
+    -  `oidnNewBufferWithStorage`, `oidnGetBufferStorage`, `oidnReadBuffer`, and
+       `oidnWriteBuffer` for more performant GPU buffer support
     -  `oidnExecuteFilterAsync` and `oidnSyncDevice` for asynchronous
        filter execution
 -   Added `type` device parameter for querying the type of the created device

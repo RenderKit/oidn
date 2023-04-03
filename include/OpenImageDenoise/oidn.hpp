@@ -264,8 +264,14 @@ OIDN_NAMESPACE_BEGIN
       return oidnGetBufferSize(handle);
     }
 
+    // Gets the storage mode of the buffer.
+    Storage getStorage() const
+    {
+      return static_cast<Storage>(oidnGetBufferStorage(handle));
+    }
+
     // Gets a pointer to the buffer data, which is accessible to the device but not necessarily to
-    // the host as well.
+    // the host as well, depending on the storage mode.
     void* getData() const
     {
       return oidnGetBufferData(handle);

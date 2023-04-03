@@ -514,7 +514,7 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_TRY
       checkHandle(hBuffer);
       OIDN_LOCK(buffer);
-      return buffer->map(byteOffset, byteSize, (Access)access);
+      return buffer->map(byteOffset, byteSize, static_cast<Access>(access));
     OIDN_CATCH(buffer)
     return nullptr;
   }
@@ -572,17 +572,6 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_CATCH(buffer);
   }
 
-  OIDN_API void* oidnGetBufferData(OIDNBuffer hBuffer)
-  {
-    Buffer* buffer = reinterpret_cast<Buffer*>(hBuffer);
-    OIDN_TRY
-      checkHandle(hBuffer);
-      OIDN_LOCK(buffer);
-      return buffer->getData();
-    OIDN_CATCH(buffer)
-    return nullptr;
-  }
-
   OIDN_API size_t oidnGetBufferSize(OIDNBuffer hBuffer)
   {
     Buffer* buffer = reinterpret_cast<Buffer*>(hBuffer);
@@ -592,6 +581,28 @@ OIDN_API_NAMESPACE_BEGIN
       return buffer->getByteSize();
     OIDN_CATCH(buffer)
     return 0;
+  }
+
+  OIDN_API OIDNStorage oidnGetBufferStorage(OIDNBuffer hBuffer)
+  {
+    Buffer* buffer = reinterpret_cast<Buffer*>(hBuffer);
+    OIDN_TRY
+      checkHandle(hBuffer);
+      OIDN_LOCK(buffer);
+      return static_cast<OIDNStorage>(buffer->getStorage());
+    OIDN_CATCH(buffer)
+    return OIDN_STORAGE_UNDEFINED;
+  }
+
+  OIDN_API void* oidnGetBufferData(OIDNBuffer hBuffer)
+  {
+    Buffer* buffer = reinterpret_cast<Buffer*>(hBuffer);
+    OIDN_TRY
+      checkHandle(hBuffer);
+      OIDN_LOCK(buffer);
+      return buffer->getData();
+    OIDN_CATCH(buffer)
+    return nullptr;
   }
 
   OIDN_API OIDNFilter oidnNewFilter(OIDNDevice hDevice, const char* type)
