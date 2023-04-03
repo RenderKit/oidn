@@ -21,16 +21,13 @@ OIDN_NAMESPACE_BEGIN
 
   void ConcatConvCHW::updateSrc()
   {
+    if (!src1->getBuffer() || !src2->getBuffer())
+      throw std::invalid_argument("concat+conv sources must be backed by buffers");
     if (src1->getBuffer() != src2->getBuffer() ||
         (static_cast<char*>(src1->getData()) + src1->getByteSize()) != static_cast<char*>(src2->getData()))
       throw std::invalid_argument("concat+conv sources are not pre-concatenated in memory");
 
-    std::shared_ptr<Tensor> src;
-    if (src1->getBuffer())
-      src = src1->getBuffer()->newTensor(srcDesc, src1->getByteOffset());
-    else
-      src = engine->newTensor(srcDesc, src1->getData());
-    
+    auto src = src1->getBuffer()->newTensor(srcDesc, src1->getByteOffset());
     conv->setSrc(src);
   }
 

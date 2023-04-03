@@ -45,11 +45,6 @@ OIDN_NAMESPACE_BEGIN
     return std::make_shared<GenericTensor>(this, desc, storage);
   }
 
-  std::shared_ptr<Tensor> Engine::newTensor(const TensorDesc& desc, void* data)
-  {
-    return std::make_shared<GenericTensor>(this, desc, data);
-  }
-
   std::shared_ptr<Tensor> Engine::newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
   {
     assert(buffer->getEngine() == this);

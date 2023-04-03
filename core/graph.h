@@ -19,7 +19,7 @@ OIDN_NAMESPACE_BEGIN
   class Graph
   {
   public:
-    Graph(const Ref<Engine>& engine, const Data& weightsBlob);
+    Graph(const Ref<Engine>& engine, const std::shared_ptr<TensorMap>& constTensors);
 
     std::shared_ptr<InputProcess> addInputProcess(const std::string& name,
                                                   const TensorDims& srcDims,
@@ -119,7 +119,7 @@ OIDN_NAMESPACE_BEGIN
     std::vector<std::unique_ptr<TensorAlloc>> tensorAllocs;
     std::unordered_map<Op*, TensorAlloc*> tensorAllocsByOp;
     std::vector<std::function<void()>> lazyInits; // lazy initialization for ops
-    std::unordered_map<std::string, std::shared_ptr<Tensor>> weights;
+    std::shared_ptr<TensorMap> constTensors;
   };
 
 OIDN_NAMESPACE_END

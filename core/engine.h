@@ -59,7 +59,6 @@ OIDN_NAMESPACE_BEGIN
 
     // Tensor
     virtual std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, Storage storage = Storage::Device);
-    virtual std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, void* data);
     virtual std::shared_ptr<Tensor> newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset = 0);
 
     // Ops

@@ -8,13 +8,12 @@
 #include "pool.h"
 #include "upsample.h"
 #include "color.h"
-#include "tza.h"
 
 OIDN_NAMESPACE_BEGIN
 
-  Graph::Graph(const Ref<Engine>& engine, const Data& weightsBlob)
+  Graph::Graph(const Ref<Engine>& engine, const std::shared_ptr<TensorMap>& constTensors)
     : engine(engine),
-      weights(parseTZA(engine, weightsBlob.ptr, weightsBlob.size)) {}
+      constTensors(constTensors) {}
 
   std::shared_ptr<InputProcess> Graph::addInputProcess(const std::string& name,
                                                        const TensorDims& srcDims,
@@ -75,8 +74,8 @@ OIDN_NAMESPACE_BEGIN
       }
     }
 
-    auto weight = weights[name + ".weight"];
-    auto bias   = weights[name + ".bias"];
+    auto weight = (*constTensors)[name + ".weight"];
+    auto bias   = (*constTensors)[name + ".bias"];
 
     if (weight->getRank() != 4 || bias->getRank() != 1)
       throw std::invalid_argument("invalid convolution weight/bias");
@@ -130,8 +129,8 @@ OIDN_NAMESPACE_BEGIN
                                                    const std::shared_ptr<Op>& src2Op,
                                                    Activation activation)
   {
-    auto weight = weights[name + ".weight"];
-    auto bias   = weights[name + ".bias"];
+    auto weight = (*constTensors)[name + ".weight"];
+    auto bias   = (*constTensors)[name + ".bias"];
 
     if (weight->getRank() != 4 || bias->getRank() != 1)
       throw std::invalid_argument("invalid convolution weight/bias");
@@ -469,7 +468,7 @@ OIDN_NAMESPACE_BEGIN
     }
 
     cleanup();
-    weights.clear();
+    constTensors.reset();
     
     finalized = true;
   }

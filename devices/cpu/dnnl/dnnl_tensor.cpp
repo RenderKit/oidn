@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "dnnl_tensor.h"
@@ -8,13 +8,7 @@ OIDN_NAMESPACE_BEGIN
   DNNLTensor::DNNLTensor(const Ref<DNNLEngine>& engine, const TensorDesc& desc, Storage storage)
     : Tensor(engine->newBuffer(desc.getByteSize(), storage), desc)
   {
-    init(engine, buffer->getData());
-  }
-
-  DNNLTensor::DNNLTensor(const Ref<DNNLEngine>& engine, const TensorDesc& desc, void* data)
-    : Tensor(engine, desc)
-  {
-    init(engine, data);
+    mem = dnnl::memory(toDNNL(getDesc()), engine->getDNNLEngine(), buffer->getData());
   }
 
   DNNLTensor::DNNLTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
@@ -23,12 +17,9 @@ OIDN_NAMESPACE_BEGIN
     if (byteOffset + getByteSize() > buffer->getByteSize())
       throw Exception(Error::InvalidArgument, "buffer region out of range");
 
-    init(staticRefCast<DNNLEngine>(engine), buffer->getData() + byteOffset);
-  }
-
-  void DNNLTensor::init(const Ref<DNNLEngine>& engine, void* data)
-  {
-    mem = dnnl::memory(toDNNL(getDesc()), engine->getDNNLEngine(), data);
+    mem = dnnl::memory(toDNNL(getDesc()),
+                       static_cast<DNNLEngine*>(buffer->getEngine())->getDNNLEngine(),
+                       buffer->getData() + byteOffset);
   }
 
   void DNNLTensor::updatePtr()

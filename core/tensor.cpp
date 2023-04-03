@@ -19,17 +19,15 @@ OIDN_NAMESPACE_BEGIN
     return sm;
   }
 
-  Tensor::Tensor(const Ref<Engine>& engine, const TensorDesc& desc)
-    : TensorDesc(desc),
-      engine(engine)
+  Tensor::Tensor(const TensorDesc& desc)
+    : TensorDesc(desc)
   {
     assert(desc.isValid());
   }
 
   Tensor::Tensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
     : Memory(buffer, byteOffset),
-      TensorDesc(desc),
-      engine(buffer->getEngine())
+      TensorDesc(desc)
   {
     assert(desc.isValid());
   }
@@ -38,7 +36,7 @@ OIDN_NAMESPACE_BEGIN
   {
     if (!buffer)
       throw std::logic_error("tensor not backed by a buffer cannot be mapped");
-    return engine->newTensor(makeRef<MappedBuffer>(buffer, byteOffset, getByteSize(), access), getDesc());
+    return buffer->getEngine()->newTensor(makeRef<MappedBuffer>(buffer, byteOffset, getByteSize(), access), getDesc());
   }
 
   void Tensor::dump(const std::string& filenamePrefix) const
@@ -89,16 +87,15 @@ OIDN_NAMESPACE_BEGIN
     }
   }
 
-  GenericTensor::GenericTensor(const Ref<Engine>& engine, const TensorDesc& desc, Storage storage)
-    : Tensor(engine, desc)
-  {
-    init(engine, storage);
-  }
+  GenericTensor::GenericTensor(const TensorDesc& desc, void* data)
+    : Tensor(desc),
+      ptr(data) {}
 
-  GenericTensor::GenericTensor(const Ref<Engine>& engine, const TensorDesc& desc, void* data)
-    : Tensor(engine, desc)
+  GenericTensor::GenericTensor(const Ref<Engine>& engine, const TensorDesc& desc, Storage storage)
+    : Tensor(desc)
   {
-    init(engine, data);
+    buffer = engine->newBuffer(getByteSize(), storage);
+    ptr = buffer->getData();
   }
 
   GenericTensor::GenericTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
@@ -107,18 +104,7 @@ OIDN_NAMESPACE_BEGIN
     if (byteOffset + getByteSize() > buffer->getByteSize())
       throw Exception(Error::InvalidArgument, "buffer region out of range");
 
-    init(engine, buffer->getData() + byteOffset);
-  }
-
-  void GenericTensor::init(const Ref<Engine>& engine, Storage storage)
-  {
-    buffer = engine->newBuffer(getByteSize(), storage);
-    ptr = buffer->getData();
-  }
-
-  void GenericTensor::init(const Ref<Engine>& engine, void* data)
-  {
-    ptr = data;
+    ptr = buffer->getData() + byteOffset;
   }
 
   void GenericTensor::updatePtr()

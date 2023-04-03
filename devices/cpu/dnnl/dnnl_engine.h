@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -18,7 +18,6 @@ OIDN_NAMESPACE_BEGIN
     void wait() override;
 
     std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, Storage storage) override;
-    std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, void* data) override;
     std::shared_ptr<Tensor> newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset) override;
 
     // Ops

@@ -24,7 +24,7 @@ OIDN_NAMESPACE_BEGIN
     return value;
   }
 
-  std::unordered_map<std::string, std::shared_ptr<Tensor>> parseTZA(const Ref<Engine>& engine, const void* buffer, size_t size)
+  std::shared_ptr<TensorMap> parseTZA(const void* buffer, size_t size)
   {
     const char* input = static_cast<const char*>(buffer);
     const char* const bufferEnd = input + size;
@@ -49,7 +49,7 @@ OIDN_NAMESPACE_BEGIN
     const size_t numTensors = read<uint32_t>(input, bufferEnd);
 
     // Parse the tensors
-    std::unordered_map<std::string, std::shared_ptr<Tensor>> tensorMap;
+    std::shared_ptr<TensorMap> tensorMap = std::make_shared<TensorMap>();
     for (size_t i = 0; i < numTensors; ++i)
     {
       TensorDesc tensorDesc;
@@ -95,8 +95,8 @@ OIDN_NAMESPACE_BEGIN
       checkBounds(tensorData, bufferEnd, tensorDesc.getByteSize());
 
       // Add the tensor to the map
-      auto tensor = engine->newTensor(tensorDesc, const_cast<char*>(tensorData));
-      tensorMap.emplace(name, tensor);
+      auto tensor = std::make_shared<GenericTensor>(tensorDesc, const_cast<char*>(tensorData));
+      tensorMap->emplace(name, tensor);
     }
 
     return tensorMap;

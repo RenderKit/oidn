@@ -3,6 +3,7 @@
 
 #include "unet_filter.h"
 #include "autoexposure.h"
+#include "tza.h"
 
 OIDN_NAMESPACE_BEGIN
 
@@ -207,11 +208,12 @@ OIDN_NAMESPACE_BEGIN
 
     // Build the model
     Data weightsBlob = getWeights();
+    std::shared_ptr<TensorMap> weightsMap = parseTZA(weightsBlob.ptr, weightsBlob.size);
     for (int i = 0; i < device->getNumEngines(); ++i)
     {
       auto engine = device->getEngine(i);
       instances.emplace_back();
-      instances.back().graph.reset(new Graph(engine, weightsBlob));
+      instances.back().graph.reset(new Graph(engine, weightsMap));
     }
 
     transferFunc = newTransferFunc();

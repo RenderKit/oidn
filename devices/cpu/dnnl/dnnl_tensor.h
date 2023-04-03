@@ -13,7 +13,6 @@ OIDN_NAMESPACE_BEGIN
   {
   public:
     DNNLTensor(const Ref<DNNLEngine>& engine, const TensorDesc& desc, Storage storage);
-    DNNLTensor(const Ref<DNNLEngine>& engine, const TensorDesc& desc, void* data);
     DNNLTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset);
 
     void* getData() override { return mem.get_data_handle(); }
@@ -22,7 +21,6 @@ OIDN_NAMESPACE_BEGIN
     const dnnl::memory& getDNNLMemory() const { return mem; }
 
   private:
-    void init(const Ref<DNNLEngine>& engine, void* data);
     void updatePtr() override;
 
     dnnl::memory mem;
