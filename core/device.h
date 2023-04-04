@@ -85,6 +85,7 @@ OIDN_NAMESPACE_BEGIN
     // Memory
     virtual Storage getPointerStorage(const void* ptr) = 0;
     ExternalMemoryTypeFlags getExternalMemoryTypes() const { return externalMemoryTypes; }
+    virtual bool isMemoryUsageLimitSupported() const { return true; }
 
     // Synchronizes all engines (does not block)
     virtual void submitBarrier() {}

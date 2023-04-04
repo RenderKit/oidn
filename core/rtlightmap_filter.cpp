@@ -74,10 +74,10 @@ OIDN_NAMESPACE_BEGIN
       return directional;
     else if (name == "maxMemoryMB")
       return maxMemoryMB;
-    else if (name == "alignment")
-      return alignment;
-    else if (name == "overlap")
-      return overlap;
+    else if (name == "tileAlignment" || name == "alignment")
+      return tileAlignment;
+    else if (name == "tileOverlap" || name == "overlap")
+      return tileOverlap;
     else
       throw Exception(Error::InvalidArgument, "unknown filter parameter or type mismatch");
   }

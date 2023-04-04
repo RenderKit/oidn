@@ -17,12 +17,12 @@ OIDN_NAMESPACE_BEGIN
 
   std::shared_ptr<InputProcess> Graph::addInputProcess(const std::string& name,
                                                        const TensorDims& srcDims,
-                                                       int alignment,
+                                                       int tileAlignment,
                                                        const std::shared_ptr<TransferFunction>& transferFunc,
                                                        bool hdr,
                                                        bool snorm)
   {
-    auto op = engine->newInputProcess({srcDims, alignment, transferFunc, hdr, snorm});
+    auto op = engine->newInputProcess({srcDims, tileAlignment, transferFunc, hdr, snorm});
     op->setName(name);
     TensorAlloc* dstAlloc = addOp(op, {}, op->getDstDesc());
 

@@ -694,7 +694,7 @@ Type        Name             Default Description
                                      (3 channels, world-space or view-space vectors with arbitrary
                                      length, values in [-1, 1])
 
-`Image`     `output`                 output image (3 channels); can be one of the input images
+`Image`     `output`      *required* output image (3 channels); can be one of the input images
 
 `bool`      `hdr`              false whether the main input image is HDR
 
@@ -716,17 +716,19 @@ Type        Name             Default Description
 
 `Data`      `weights`     *optional* trained model weights blob
 
-`int`       `maxMemoryMB`  1200–2400 approximate maximum scratch memory to use in megabytes (actual
-                                     memory usage may be higher); limiting memory usage may cause
-                                     slower denoising due to internally splitting the image into
-                                     overlapping tiles
+`int`       `maxMemoryMB`         -1 if set to >= 0, an attempt will be made to limit the memory
+                                     usage below the specified amount in megabytes at the potential
+                                     cost of slower performance but actual memory usage may be higher
+                                     (the target may not be achievable or the device may not support
+                                     this feature at all); otherwise memory usage will be limited to
+                                     an unspecified device-dependent amount
 
-`const int` `alignment`              when manually denoising in tiles, the tile size and offsets
+`const int` `tileAlignment`          when manually denoising in tiles, the tile size and offsets
                                      should be multiples of this amount of pixels to avoid
                                      artifacts; when denoising HDR images `inputScale` *must* be set
                                      by the user to avoid seam artifacts
 
-`const int` `overlap`                when manually denoising in tiles, the tiles should overlap by
+`const int` `tileOverlap`            when manually denoising in tiles, the tiles should overlap by
                                      this amount of pixels
 
 ----------- ------------- ---------- ---------------------------------------------------------------
@@ -858,12 +860,12 @@ function as the filter type. The filter supports the following parameters:
 ----------- ------------- ---------- ---------------------------------------------------------------
 Type        Name             Default Description
 ----------- ------------- ---------- ---------------------------------------------------------------
-`Image`     `color`                  input beauty image (3 channels, HDR values in [0, +∞),
+`Image`     `color`       *required* input beauty image (3 channels, HDR values in [0, +∞),
                                      interpreted such that, after scaling with the `inputScale`
                                      parameter, a value of 1 corresponds to a luminance level of 100
                                      cd/m²; directional values in [-1, 1])
 
-`Image`     `output`                 output image (3 channels); can be one of the input images
+`Image`     `output`      *required* output image (3 channels); can be one of the input images
 
 `bool`      `directional`      false whether the input contains normalized coefficients (in [-1, 1])
                                      of a directional lightmap (e.g. normalized L1 or higher
@@ -881,17 +883,19 @@ Type        Name             Default Description
 
 `Data`      `weights`     *optional* trained model weights blob
 
-`int`       `maxMemoryMB`  1200–2400 approximate maximum scratch memory to use in megabytes (actual
-                                     memory usage may be higher); limiting memory usage may cause
-                                     slower denoising due to internally splitting the image into
-                                     overlapping tiles
+`int`       `maxMemoryMB`         -1 if set to >= 0, an attempt will be made to limit the memory
+                                     usage below the specified amount in megabytes at the potential
+                                     cost of slower performance but actual memory usage may be higher
+                                     (the target may not be achievable or the device may not support
+                                     this feature at all); otherwise memory usage will be limited to
+                                     an unspecified device-dependent amount
 
-`const int` `alignment`              when manually denoising in tiles, the tile size and offsets
+`const int` `tileAlignment`          when manually denoising in tiles, the tile size and offsets
                                      should be multiples of this amount of pixels to avoid
                                      artifacts; when denoising HDR images `inputScale` *must* be set
                                      by the user to avoid seam artifacts
 
-`const int` `overlap`                when manually denoising in tiles, the tiles should overlap by
+`const int` `tileOverlap`            when manually denoising in tiles, the tiles should overlap by
                                      this amount of pixels
 
 ----------- ------------- ---------- ---------------------------------------------------------------

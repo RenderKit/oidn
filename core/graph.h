@@ -23,7 +23,7 @@ OIDN_NAMESPACE_BEGIN
 
     std::shared_ptr<InputProcess> addInputProcess(const std::string& name,
                                                   const TensorDims& srcDims,
-                                                  int alignment,
+                                                  int tileAlignment,
                                                   const std::shared_ptr<TransferFunction>& transferFunc,
                                                   bool hdr,
                                                   bool snorm);
@@ -54,7 +54,6 @@ OIDN_NAMESPACE_BEGIN
 
     size_t getScratchAlignedSize();
     void setScratch(const Ref<Buffer>& scratch);
-
     size_t getPrivateByteSize() const { return constByteSize; }
 
     double getWorkAmount() const;

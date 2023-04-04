@@ -28,9 +28,11 @@ OIDN_NAMESPACE_BEGIN
     virtual std::shared_ptr<TransferFunction> newTransferFunc() = 0;
 
     // Network constants
-    static constexpr int alignment       = 16;  // required spatial alignment in pixels (padding may be necessary)
+    // TODO: autodetect these values from the model
     static constexpr int receptiveField  = 174; // receptive field in pixels
-    static constexpr int overlap         = round_up(receptiveField / 2, alignment); // required spatial overlap between tiles in pixels
+    static constexpr int tileAlignment   = 16;  // required spatial alignment in pixels (padding may be necessary)
+    static constexpr int tileOverlap     = round_up(receptiveField / 2, tileAlignment); // required spatial overlap between tiles in pixels
+    static constexpr int defaultMaxTileSize = 2160*2160; // default maximum number of pixels per tile
 
     // Images
     std::shared_ptr<Image> color;
@@ -44,7 +46,7 @@ OIDN_NAMESPACE_BEGIN
     bool directional = false;
     float inputScale = std::numeric_limits<float>::quiet_NaN();
     bool cleanAux = false;
-    int maxMemoryMB = 0; // approximate maximum memory usage in MBs
+    int maxMemoryMB = -1; // maximum memory usage limit in MBs, disabled if < 0
 
     // Weights
     struct

@@ -8,10 +8,7 @@
 OIDN_NAMESPACE_BEGIN
 
   UNetFilter::UNetFilter(const Ref<Device>& device)
-    : Filter(device)
-  {
-    maxMemoryMB = int(600 * getDataTypeSize(device->getTensorDataType()));
-  }
+    : Filter(device) {}
 
   void UNetFilter::setData(const std::string& name, const Data& data)
   {
@@ -144,21 +141,21 @@ OIDN_NAMESPACE_BEGIN
 
       for (int i = 0; i < tileCountH; ++i)
       {
-        const int h = i * (tileH - 2*overlap); // input tile position (including overlap)
-        const int overlapBeginH = i > 0            ? overlap : 0; // overlap on the top
-        const int overlapEndH   = i < tileCountH-1 ? overlap : 0; // overlap on the bottom
+        const int h = i * (tileH - 2*tileOverlap); // input tile position (including overlap)
+        const int overlapBeginH = i > 0            ? tileOverlap : 0; // overlap on the top
+        const int overlapEndH   = i < tileCountH-1 ? tileOverlap : 0; // overlap on the bottom
         const int tileH1 = min(H - h, tileH); // input tile size (including overlap)
         const int tileH2 = tileH1 - overlapBeginH - overlapEndH; // output tile size
-        const int alignOffsetH = tileH - round_up(tileH1, alignment); // align to the bottom in the tile buffer
+        const int alignOffsetH = tileH - round_up(tileH1, tileAlignment); // align to the bottom in the tile buffer
 
         for (int j = 0; j < tileCountW; ++j)
         {
-          const int w = j * (tileW - 2*overlap); // input tile position (including overlap)
-          const int overlapBeginW = j > 0            ? overlap : 0; // overlap on the left
-          const int overlapEndW   = j < tileCountW-1 ? overlap : 0; // overlap on the right
+          const int w = j * (tileW - 2*tileOverlap); // input tile position (including overlap)
+          const int overlapBeginW = j > 0            ? tileOverlap : 0; // overlap on the left
+          const int overlapEndW   = j < tileCountW-1 ? tileOverlap : 0; // overlap on the right
           const int tileW1 = min(W - w, tileW); // input tile size (including overlap)
           const int tileW2 = tileW1 - overlapBeginW - overlapEndW; // output tile size
-          const int alignOffsetW = tileW - round_up(tileW1, alignment); // align to the right in the tile buffer
+          const int alignOffsetW = tileW - round_up(tileW1, tileAlignment); // align to the right in the tile buffer
 
           auto& instance = instances[tileIndex % device->getNumEngines()];
 
@@ -220,27 +217,32 @@ OIDN_NAMESPACE_BEGIN
     
     // Divide the image into tiles until the number of tiles is a multiple of the number of engines
     // and the memory usage gets below the specified threshold
-    const int minTileSize = 3*overlap;
-    const size_t maxMemoryByteSize = size_t(maxMemoryMB)*1024*1024;
+    const int minTileDim = 3*tileOverlap;
+    const int maxTileSize = (maxMemoryMB < 0 || !device->isMemoryUsageLimitSupported()) ? defaultMaxTileSize : INT_MAX;
+    const size_t maxMemoryByteSize = (maxMemoryMB >= 0) ? size_t(maxMemoryMB)*1024*1024 : SIZE_MAX;
 
     H = output->getH();
     W = output->getW();
     tileCountH = 1;
     tileCountW = 1;
-    tileH = round_up(H, alignment);
-    tileW = round_up(W, alignment);
+    tileH = round_up(H, tileAlignment);
+    tileW = round_up(W, tileAlignment);
 
-    while ((tileCountH * tileCountW) % device->getNumEngines() != 0 || !buildModel(maxMemoryByteSize))
+    while ((tileCountH * tileCountW) % device->getNumEngines() != 0 ||
+           (tileH * tileW) > maxTileSize ||
+           !buildModel(maxMemoryByteSize))
     {
-      if (tileH > minTileSize && tileH > tileW)
+      if (tileH > minTileDim && tileH > tileW)
       {
         tileCountH++;
-        tileH = max(round_up(ceil_div(H - 2*overlap, tileCountH), alignment) + 2*overlap, minTileSize);
+        tileH = max(round_up(ceil_div(H - 2*tileOverlap, tileCountH), tileAlignment) + 2*tileOverlap,
+                    minTileDim);
       }
-      else if (tileW > minTileSize)
+      else if (tileW > minTileDim)
       {
         tileCountW++;
-        tileW = max(round_up(ceil_div(W - 2*overlap, tileCountW), alignment) + 2*overlap, minTileSize);
+        tileW = max(round_up(ceil_div(W - 2*tileOverlap, tileCountW), tileAlignment) + 2*tileOverlap,
+                    minTileDim);
       }
       else
       {
@@ -252,8 +254,8 @@ OIDN_NAMESPACE_BEGIN
     }
 
     // Compute the final number of tiles
-    tileCountH = (H > tileH) ? ceil_div(H - 2*overlap, tileH - 2*overlap) : 1;
-    tileCountW = (W > tileW) ? ceil_div(W - 2*overlap, tileW - 2*overlap) : 1;
+    tileCountH = (H > tileH) ? ceil_div(H - 2*tileOverlap, tileH - 2*tileOverlap) : 1;
+    tileCountW = (W > tileW) ? ceil_div(W - 2*tileOverlap, tileW - 2*tileOverlap) : 1;
 
     if (device->isVerbose(2))
     {
@@ -394,7 +396,7 @@ OIDN_NAMESPACE_BEGIN
       auto& graph = instance.graph;
 
       // Create the model graph
-      auto inputProcess = graph->addInputProcess("input", inputDims, alignment, transferFunc, hdr, snorm);
+      auto inputProcess = graph->addInputProcess("input", inputDims, tileAlignment, transferFunc, hdr, snorm);
 
       auto encConv0 = graph->addConv("enc_conv0", inputProcess);
 

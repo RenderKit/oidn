@@ -4,19 +4,22 @@ Version History
 ### Changes in v2.0.0:
 
 -   Added CUDA device for NVIDIA Volta architecture and later GPUs
--   Added HIP device for AMD RDNA2 architecture and later GPUs (*experimental*)
+-   Added HIP device for AMD RDNA 2 and CDNA architectures and later GPUs
 -   Added new API functions for advanced GPU support:
     -  `oidnNewBufferWithStorage`, `oidnGetBufferStorage`, `oidnReadBuffer`, and
        `oidnWriteBuffer` for more performant GPU buffer support
     -  `oidnExecuteFilterAsync` and `oidnSyncDevice` for asynchronous
        filter execution
 -   Added `type` device parameter for querying the type of the created device
--   Added oidn(Get|Set)(Device|Filter)(Bool|Int|Float) API functions and deprecated
-    oidn(Get|Set)(Device|Filter)(1b|1i|1f) functions
--   Added oidnUnsetFilter(Image|Data) API functions and deprecated
-    oidnRemoveFilter(Image|Data) functions
--   Fixed over-conservative buffer bounds checking for images with custom strides
+-   Minor API changes with backward compatibility:
+    -   Added oidn(Get|Set)(Device|Filter)(Bool|Int|Float) API functions and
+        deprecated oidn(Get|Set)(Device|Filter)(1b|1i|1f) functions
+    -   Added oidnUnsetFilter(Image|Data) API functions and deprecated
+        oidnRemoveFilter(Image|Data) functions
+    -   Renamed `alignment` and `overlap` filter parameters to `tileAlignment`
+        and `tileOverlap` but the old names remain supported
 -   Removed `OIDN_STATIC_LIB` CMake option due to technical limitations
+-   Fixed over-conservative buffer bounds checking for images with custom strides
 
 ### Changes in v1.4.3:
 

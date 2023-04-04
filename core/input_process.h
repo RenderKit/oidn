@@ -14,7 +14,7 @@ OIDN_NAMESPACE_BEGIN
   struct InputProcessDesc
   {
     TensorDims srcDims;
-    int alignment;
+    int tileAlignment;
     std::shared_ptr<TransferFunction> transferFunc;
     bool hdr;
     bool snorm;
