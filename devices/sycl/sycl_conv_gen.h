@@ -46,11 +46,14 @@ namespace gen9 {
     #if defined(OIDN_ARCH_XEHPG)
       syclx::set_kernel_properties(syclx::kernel_properties::use_large_grf);
 
-      // Accumulator rows
+      // Accumulator rows (only 32-bit is supported by DPAS on Xe-HPG)
       simd<float, blockOW * blockAC> accumRows[blockOH][numBlockAC] = {}; // = 0
-    #else
-      // Output rows
+    #elif defined(OIDN_ARCH_XEHPC)
+      // Output rows (16-bit is precise enough thanks to DPAS)
       simd<T, blockOW * blockC> outRows[blockOH] = {}; // = 0
+    #elif defined(OIDN_ARCH_GEN9)
+      // Accumulator rows (32-bit is necessary because precision is too low with pure 16-bit FMAs)
+      simd<float, blockOW * blockC> accumRows[blockOH] = {}; // = 0
     #endif
 
       const int oc = it.getLocalId<0>()  * blockC;
@@ -122,18 +125,22 @@ namespace gen9 {
                 weightMat,
                 inRows[(kh + boh) % blockOH].template select<blockOW * blockC, 1>(kw * blockC).read());
             }
-          #else
+          #elif defined(OIDN_ARCH_GEN9)
             #pragma unroll
-            for (int i = 0; i < blockC; ++i)
+            for (int boh = 0; boh < blockOH; ++boh)
             {
               #pragma unroll
-              for (int boh = 0; boh < blockOH; ++boh)
+              for (int bow = 0; bow < blockOW; ++bow)
               {
+                simd<T, blockC> accum = 0; // intermediate 16-bit accumulator to use FMAs
+
                 #pragma unroll
-                for (int bow = 0; bow < blockOW; ++bow)
-                  outRows[boh].template select<blockC, 1>(bow * blockC) +=
+                for (int i = 0; i < blockC; ++i)
+                  accum +=
                     inRows[(kh + boh) % blockOH].template replicate_w<blockC, 1>((kw + bow) * blockC + i) *
                     weightMat.template select<blockC, 1>(i * blockC);
+
+                accumRows[boh].template select<blockC, 1>(bow * blockC) += accum;
               }
             }
           #endif
@@ -142,7 +149,7 @@ namespace gen9 {
       }
 
     #if defined(OIDN_ARCH_XEHPG)
-      // Shuffle and convert accumulator rows to output rows
+      // Shuffle and down-convert accumulator rows to output rows
       simd<T, blockOW * blockC> outRows[blockOH];
       
       #pragma unroll
@@ -153,6 +160,13 @@ namespace gen9 {
         for (int i = 0; i < numBlockAC; ++i)
           outRowView.template select<blockOW, 1, blockAC, 1>(0, i * blockAC) = accumRows[boh][i];
       }
+    #elif defined(OIDN_ARCH_GEN9)
+      // Down-convert accumulator rows to output rows
+      simd<T, blockOW * blockC> outRows[blockOH];
+      
+      #pragma unroll
+      for (int boh = 0; boh < blockOH; ++boh)
+        outRows[boh] = accumRows[boh];
     #endif
 
       // Load bias vector
