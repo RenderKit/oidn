@@ -62,7 +62,7 @@ OIDN_NAMESPACE_BEGIN
     memcpy(uuid.bytes, zeDeviceProps.uuid.id, sizeof(uuid.bytes));
     uuidValid = true;
 
-    if (luidSupport)
+    if (luidSupport && zeDeviceLUIDProps.nodeMask != 0)
     {
       static_assert(ZE_MAX_DEVICE_LUID_SIZE_EXT == OIDN_LUID_SIZE, "unexpected LUID size");
       memcpy(luid.bytes, zeDeviceLUIDProps.luid.id, sizeof(luid.bytes));
