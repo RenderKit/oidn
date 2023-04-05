@@ -4,12 +4,18 @@
 #include "buffer.h"
 #include "tensor.h"
 #include "image.h"
+#include "engine.h"
 
 OIDN_NAMESPACE_BEGIN
 
   // -----------------------------------------------------------------------------------------------
   // Buffer
   // -----------------------------------------------------------------------------------------------
+
+  Device* Buffer::getDevice() const
+  {
+    return getEngine()->getDevice();
+  }
 
   void* Buffer::map(size_t byteOffset, size_t byteSize, Access access)
   {

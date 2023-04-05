@@ -1,13 +1,15 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
 
-#include "engine.h"
 #include "buffer.h"
 #include "image_accessor.h"
+#include "exception.h"
 
 OIDN_NAMESPACE_BEGIN
+
+  class Engine;
 
   struct ImageDesc
   {

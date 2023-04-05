@@ -1,26 +1,24 @@
 // Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "graph.h"
-#include "conv.h"
+#include "generic_graph.h"
 #include "concat_conv_chw.h"
 #include "concat_conv_hwc.h"
-#include "pool.h"
-#include "upsample.h"
-#include "color.h"
+#include "tensor_reorder.h"
 
 OIDN_NAMESPACE_BEGIN
 
-  Graph::Graph(const Ref<Engine>& engine, const std::shared_ptr<TensorMap>& constTensors)
+  GenericGraph::GenericGraph(const Ref<Engine>& engine,
+                             const std::shared_ptr<TensorMap>& constTensors)
     : engine(engine),
       constTensors(constTensors) {}
 
-  std::shared_ptr<InputProcess> Graph::addInputProcess(const std::string& name,
-                                                       const TensorDims& srcDims,
-                                                       int tileAlignment,
-                                                       const std::shared_ptr<TransferFunction>& transferFunc,
-                                                       bool hdr,
-                                                       bool snorm)
+  std::shared_ptr<InputProcess> GenericGraph::addInputProcess(const std::string& name,
+                                                              const TensorDims& srcDims,
+                                                              int tileAlignment,
+                                                              const std::shared_ptr<TransferFunction>& transferFunc,
+                                                              bool hdr,
+                                                              bool snorm)
   {
     auto op = engine->newInputProcess({srcDims, tileAlignment, transferFunc, hdr, snorm});
     op->setName(name);
@@ -34,11 +32,11 @@ OIDN_NAMESPACE_BEGIN
     return op;
   }
 
-  std::shared_ptr<OutputProcess> Graph::addOutputProcess(const std::string& name,
-                                                         const std::shared_ptr<Op>& srcOp,
-                                                         const std::shared_ptr<TransferFunction>& transferFunc,
-                                                         bool hdr,
-                                                         bool snorm)
+  std::shared_ptr<OutputProcess> GenericGraph::addOutputProcess(const std::string& name,
+                                                                const std::shared_ptr<Op>& srcOp,
+                                                                const std::shared_ptr<TransferFunction>& transferFunc,
+                                                                bool hdr,
+                                                                bool snorm)
   {
     TensorAlloc* srcAlloc = tensorAllocsByOp[srcOp.get()];
     const TensorDesc srcDesc = srcAlloc->desc;
@@ -54,15 +52,15 @@ OIDN_NAMESPACE_BEGIN
     return op;
   }
 
-  std::shared_ptr<Op> Graph::addConv(const std::string& name,
-                                     const std::shared_ptr<Op>& srcOp,
-                                     Activation activation,
-                                     PostOp postOp)
+  std::shared_ptr<Op> GenericGraph::addConv(const std::string& name,
+                                            const std::shared_ptr<Op>& srcOp,
+                                            Activation activation,
+                                            PostOp postOp)
   {
     if (postOp != PostOp::None && !engine->isConvSupported(postOp))
     {
       // If the engine does not support the specified fused convolution, split it into two ops
-      auto conv = addConv(name, srcOp, activation);
+      auto conv = addConv(name, srcOp, activation, PostOp::None);
       switch (postOp)
       {
       case PostOp::Pool:
@@ -82,13 +80,13 @@ OIDN_NAMESPACE_BEGIN
 
     const int blockC = engine->getDevice()->getTensorBlockC();
 
-    TensorDims paddedWeightDims{round_up(weight->getO(), blockC),
-                                round_up(weight->getI(), blockC),
-                                weight->getH(),
-                                weight->getW()};
+    TensorDims finalWeightDims{round_up(weight->getO(), blockC),
+                               round_up(weight->getI(), blockC),
+                               weight->getH(),
+                               weight->getW()};
 
     TensorDesc finalWeightDesc = {weight->getDims(),
-                                  paddedWeightDims,
+                                  finalWeightDims,
                                   engine->getDevice()->getWeightLayout(),
                                   engine->getDevice()->getTensorDataType()};
 
@@ -124,10 +122,10 @@ OIDN_NAMESPACE_BEGIN
     return conv;
   }
 
-  std::shared_ptr<ConcatConv> Graph::addConcatConv(const std::string& name,
-                                                   const std::shared_ptr<Op>& src1Op,
-                                                   const std::shared_ptr<Op>& src2Op,
-                                                   Activation activation)
+  std::shared_ptr<ConcatConv> GenericGraph::addConcatConv(const std::string& name,
+                                                          const std::shared_ptr<Op>& src1Op,
+                                                          const std::shared_ptr<Op>& src2Op,
+                                                          Activation activation)
   {
     auto weight = (*constTensors)[name + ".weight"];
     auto bias   = (*constTensors)[name + ".bias"];
@@ -142,13 +140,13 @@ OIDN_NAMESPACE_BEGIN
     const TensorDesc src1Desc = src1Alloc->desc;
     const TensorDesc src2Desc = src2Alloc->desc;
 
-    TensorDims paddedWeightDims{round_up(weight->getO(), blockC),
+    TensorDims finalWeightDims{round_up(weight->getO(), blockC),
                                 src1Desc.getPaddedC() + src2Desc.getPaddedC(),
                                 weight->getH(),
                                 weight->getW()};
 
     TensorDesc finalWeightDesc = {weight->getDims(),
-                                  paddedWeightDims,
+                                  finalWeightDims,
                                   engine->getDevice()->getWeightLayout(),
                                   engine->getDevice()->getTensorDataType()};
 
@@ -227,8 +225,8 @@ OIDN_NAMESPACE_BEGIN
     }
   }
 
-  std::shared_ptr<Pool> Graph::addPool(const std::string& name,
-                                       const std::shared_ptr<Op>& srcOp)
+  std::shared_ptr<Pool> GenericGraph::addPool(const std::string& name,
+                                              const std::shared_ptr<Op>& srcOp)
   {
     TensorAlloc* srcAlloc = tensorAllocsByOp[srcOp.get()];
     const TensorDesc srcDesc = srcAlloc->desc;
@@ -245,8 +243,8 @@ OIDN_NAMESPACE_BEGIN
     return op;
   }
 
-  std::shared_ptr<Upsample> Graph::addUpsample(const std::string& name,
-                                               const std::shared_ptr<Op>& srcOp)
+  std::shared_ptr<Upsample> GenericGraph::addUpsample(const std::string& name,
+                                                      const std::shared_ptr<Op>& srcOp)
   {
     TensorAlloc* srcAlloc = tensorAllocsByOp[srcOp.get()];
     const TensorDesc srcDesc = srcAlloc->desc;
@@ -263,9 +261,9 @@ OIDN_NAMESPACE_BEGIN
     return op;
   }
   
-  void Graph::addOp(const std::shared_ptr<Op>& op,
-                    const std::vector<std::shared_ptr<Op>>& srcOps,
-                    bool concatSrcs)
+  void GenericGraph::addOp(const std::shared_ptr<Op>& op,
+                           const std::vector<std::shared_ptr<Op>>& srcOps,
+                           bool concatSrcs)
   {
     if (finalized)
       throw std::logic_error("graph cannot be changed after finalization");
@@ -293,9 +291,9 @@ OIDN_NAMESPACE_BEGIN
     dirty = true;
   }
 
-  Graph::TensorAlloc* Graph::addOp(const std::shared_ptr<Op>& op,
-                                   const std::vector<std::shared_ptr<Op>>& srcOps,
-                                   const TensorDesc& dstDesc, bool concatSrcs)
+  GenericGraph::TensorAlloc* GenericGraph::addOp(const std::shared_ptr<Op>& op,
+                                                 const std::vector<std::shared_ptr<Op>>& srcOps,
+                                                 const TensorDesc& dstDesc, bool concatSrcs)
   {
     const int opID = int(ops.size());
 
@@ -308,7 +306,7 @@ OIDN_NAMESPACE_BEGIN
     return dstAlloc;
   }
 
-  void Graph::planAllocations()
+  void GenericGraph::planAllocations()
   {
     // Determine the chunks to allocate. Each chunk contains one or more tensors consecutively
     struct Chunk
@@ -406,12 +404,12 @@ OIDN_NAMESPACE_BEGIN
     dirty = false;
   }
 
-  double Graph::getWorkAmount() const
+  double GenericGraph::getWorkAmount() const
   {
     return double(ops.size());
   }
 
-  bool Graph::isSupported() const
+  bool GenericGraph::isSupported() const
   {
     for (const auto& op : ops)
       if (!op->isSupported())
@@ -419,26 +417,26 @@ OIDN_NAMESPACE_BEGIN
     return true;
   }
 
-  size_t Graph::getScratchAlignedSize()
+  size_t GenericGraph::getScratchAlignedSize()
   {
     if (dirty)
       planAllocations();
     return opScratchByteSize + tensorScratchByteSize;
   }
 
-  void Graph::setScratch(const Ref<Buffer>& scratch)
+  void GenericGraph::setScratch(const Ref<Buffer>& scratch)
   {
     this->scratch = scratch;
   }
 
-  void Graph::cleanup()
+  void GenericGraph::cleanup()
   {
     lazyInits.clear();
     tensorAllocsByOp.clear();
     tensorAllocs.clear();
   }
 
-  void Graph::clear()
+  void GenericGraph::clear()
   {
     cleanup();
     ops.clear();
@@ -449,7 +447,7 @@ OIDN_NAMESPACE_BEGIN
     dirty = false;
   }
 
-  void Graph::finalize()
+  void GenericGraph::finalize()
   {
     if (dirty)
       planAllocations();
@@ -473,7 +471,7 @@ OIDN_NAMESPACE_BEGIN
     finalized = true;
   }
 
-  void Graph::run(Progress& progress)
+  void GenericGraph::run(Progress& progress)
   {
     for (size_t i = 0; i < ops.size(); ++i)
     {
@@ -499,91 +497,6 @@ OIDN_NAMESPACE_BEGIN
 
       progress.update(engine, 1);
     }
-  }
-
-  template<typename SrcT, typename DstT, TensorLayout srcLayout, TensorLayout dstLayout>
-  bool Graph::tryReorderWeight(const Tensor& src, int srcBeginI, int srcI, Tensor& dst, int dstBeginI, int dstI)
-  {   
-    assert(srcBeginI + srcI <= src.getPaddedI());
-    assert(dstBeginI + dstI <= dst.getPaddedI());
-
-    if (src.getDataType() != DataTypeOf<SrcT>::value || src.getLayout() != srcLayout ||
-        dst.getDataType() != DataTypeOf<DstT>::value || dst.getLayout() != dstLayout)
-      return false;
-  
-    TensorAccessor4D<SrcT, srcLayout> srcAcc = src;
-    TensorAccessor4D<DstT, dstLayout> dstAcc = dst;
-
-    for (int o = 0; o < dstAcc.O; ++o)
-    {
-      for (int i = 0; i < dstI; ++i)
-      {
-        for (int h = 0; h < dstAcc.H; ++h)
-        {
-          for (int w = 0; w < dstAcc.W; ++w)
-          {
-            SrcT value;
-            if (o < srcAcc.O && i < srcI)
-              value = srcAcc(o, srcBeginI + i, h, w);
-            else
-              value = 0; // padding
-
-            dstAcc(o, dstBeginI + i, h, w) = DstT(value);
-          }
-        }
-      }
-    }
-
-    return true;
-  }
-
-  void Graph::reorderWeight(const Tensor& src, int srcBeginI, int srcI, Tensor& dst, int dstBeginI, int dstI)
-  {
-    bool ok =
-      tryReorderWeight<half, half,  TensorLayout::oihw, TensorLayout::oihw>        (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
-      tryReorderWeight<half, float, TensorLayout::oihw, TensorLayout::oihw>        (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
-      tryReorderWeight<half, half,  TensorLayout::oihw, TensorLayout::OIhw8i8o>    (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
-      tryReorderWeight<half, float, TensorLayout::oihw, TensorLayout::OIhw8i8o>    (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
-      tryReorderWeight<half, half,  TensorLayout::oihw, TensorLayout::OIhw16i16o>  (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
-      tryReorderWeight<half, float, TensorLayout::oihw, TensorLayout::OIhw16i16o>  (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
-      tryReorderWeight<half, half,  TensorLayout::oihw, TensorLayout::OIhw2o8i8o2i>(src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
-      tryReorderWeight<half, half,  TensorLayout::oihw, TensorLayout::OIhw8i16o2i> (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
-      tryReorderWeight<half, half,  TensorLayout::oihw, TensorLayout::ohwi>        (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
-      tryReorderWeight<half, float, TensorLayout::oihw, TensorLayout::ohwi>        (src, srcBeginI, srcI, dst, dstBeginI, dstI);
-
-    if (!ok)
-      throw std::logic_error("unsupported weight layout or data type");
-  }
-
-  template<typename SrcT, typename DstT>
-  bool Graph::tryReorderBias(const Tensor& src, Tensor& dst)
-  {
-    if (src.getDataType() != DataTypeOf<SrcT>::value ||
-        dst.getDataType() != DataTypeOf<DstT>::value)
-      return false; 
-
-    TensorAccessor1D<SrcT> srcAcc = src;
-    TensorAccessor1D<DstT> dstAcc = dst;
-
-    const int srcX = src.getX();
-
-    for (int x = 0; x < srcX; ++x)
-      dstAcc(x) = srcAcc(x);
-
-    for (int x = srcX; x < dstAcc.X; ++x)
-      dstAcc(x) = 0; // padding
-
-    return true;
-  }
-
-  void Graph::reorderBias(const Tensor& src, Tensor& dst)
-  {
-    bool ok = src.getLayout() == TensorLayout::x && dst.getLayout() == TensorLayout::x &&
-      (tryReorderBias<half, half> (src, dst) ||
-       tryReorderBias<half, float>(src, dst));
-
-    if (!ok)
-      throw std::logic_error("unsupported bias layout or data type");
   }
 
 OIDN_NAMESPACE_END

@@ -3,7 +3,6 @@
 
 #pragma once
 
-#include "engine.h"
 #include "buffer.h"
 #include "tensor_accessor.h"
 #include <vector>
@@ -11,6 +10,8 @@
 #include <iostream>
 
 OIDN_NAMESPACE_BEGIN
+
+  class Engine;
 
   // Tensor dimensions
   // Canonical order: CHW / OIHW

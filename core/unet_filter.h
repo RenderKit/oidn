@@ -7,6 +7,7 @@
 #include "graph.h"
 #include "scratch.h"
 #include "color.h"
+#include "image_copy.h"
 
 OIDN_NAMESPACE_BEGIN
 
@@ -85,7 +86,7 @@ OIDN_NAMESPACE_BEGIN
     // Per-engine model instance
     struct Instance
     {
-      std::unique_ptr<Graph> graph;
+      std::shared_ptr<Graph> graph;
       std::shared_ptr<InputProcess> inputProcess;
       std::shared_ptr<OutputProcess> outputProcess;
     };

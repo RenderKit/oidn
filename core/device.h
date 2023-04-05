@@ -16,13 +16,6 @@ OIDN_NAMESPACE_BEGIN
   class Buffer;
   class Filter;
 
-  // Synchronization mode for operations
-  enum class SyncMode
-  {
-    Sync, // synchronous
-    Async // asynchronous
-  };
-
   class PhysicalDevice : public RefCount
   {
   public:

@@ -210,7 +210,7 @@ OIDN_NAMESPACE_BEGIN
     {
       auto engine = device->getEngine(i);
       instances.emplace_back();
-      instances.back().graph.reset(new Graph(engine, weightsMap));
+      instances.back().graph = engine->newGraph(weightsMap);
     }
 
     transferFunc = newTransferFunc();

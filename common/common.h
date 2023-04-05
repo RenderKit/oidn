@@ -8,6 +8,13 @@
 
 OIDN_NAMESPACE_BEGIN
 
+  // Synchronization mode for operations
+  enum class SyncMode
+  {
+    Sync, // synchronous
+    Async // asynchronous
+  };
+
   enum class DataType
   {
     Float32,

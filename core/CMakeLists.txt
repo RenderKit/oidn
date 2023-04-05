@@ -30,8 +30,9 @@ set(CORE_SOURCES
   exception.cpp
   filter.h
   filter.cpp
+  generic_graph.h
+  generic_graph.cpp
   graph.h
-  graph.cpp
   image_accessor.h
   image_copy.h
   image.h
@@ -59,6 +60,8 @@ set(CORE_SOURCES
   tensor.cpp
   tensor_accessor.h
   tensor_layout.h
+  tensor_reorder.h
+  tensor_reorder.cpp
   thread.h
   thread.cpp
   tile.h

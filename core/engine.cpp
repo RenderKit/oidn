@@ -3,8 +3,7 @@
 
 #include "engine.h"
 #include "scratch.h"
-#include "concat_conv_chw.h"
-#include "concat_conv_hwc.h"
+#include "generic_graph.h"
 
 OIDN_NAMESPACE_BEGIN
 
@@ -49,6 +48,11 @@ OIDN_NAMESPACE_BEGIN
   {
     assert(buffer->getEngine() == this);
     return std::make_shared<GenericTensor>(buffer, desc, byteOffset);
+  }
+
+  std::shared_ptr<Graph> Engine::newGraph(const std::shared_ptr<TensorMap>& constTensors)
+  {
+    return std::make_shared<GenericGraph>(this, constTensors);
   }
 
   bool Engine::isConvSupported(PostOp postOp)

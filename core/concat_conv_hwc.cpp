@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "concat_conv_hwc.h"
+#include "engine.h"
 
 OIDN_NAMESPACE_BEGIN
 

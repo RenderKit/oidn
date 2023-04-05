@@ -1,9 +1,10 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
 
-#include "engine.h"
+#include "common/common.h"
+#include "ref.h"
 #include <unordered_map>
 
 OIDN_NAMESPACE_BEGIN
@@ -14,6 +15,9 @@ OIDN_NAMESPACE_BEGIN
   class Memory;
   class Tensor;
   class Image;
+
+  class Device;
+  class Engine;
 
   // -----------------------------------------------------------------------------------------------
   // Buffer
@@ -26,7 +30,7 @@ OIDN_NAMESPACE_BEGIN
 
   public:
     virtual Engine* getEngine() const = 0;
-    Device* getDevice() const { return getEngine()->getDevice(); }
+    Device* getDevice() const;
 
     virtual char* getData() = 0;
     virtual const char* getData() const = 0;

@@ -23,6 +23,7 @@
 
 #include "common/common.h"
 #include "core/context.h"
+#include "core/engine.h"
 #include "core/filter.h"
 #include <mutex>
 
