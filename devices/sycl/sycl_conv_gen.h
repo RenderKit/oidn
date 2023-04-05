@@ -136,9 +136,11 @@ namespace gen9 {
 
                 #pragma unroll
                 for (int i = 0; i < blockC; ++i)
+                {
                   accum +=
                     inRows[(kh + boh) % blockOH].template replicate_w<blockC, 1>((kw + bow) * blockC + i) *
                     weightMat.template select<blockC, 1>(i * blockC);
+                }
 
                 accumRows[boh].template select<blockC, 1>(bow * blockC) += accum;
               }
