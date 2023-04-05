@@ -46,8 +46,8 @@ OIDN_NAMESPACE_BEGIN
     if (arch == CPUArch::Unknown)
       return {};
 
-    // Prefer AVX512 CPUs over low-power GPUs
-    int score = (arch == CPUArch::AVX512 ? 500 : 1) << 16;
+    // Prefer AVX512 CPUs over any integrated GPU, and prefer any CPU over low-power integrated GPUs
+    int score = (arch == CPUArch::AVX512) ? (2 << 16) : ((1 << 16) + 65);
     return {makeRef<CPUPhysicalDevice>(score)};
   }
 
