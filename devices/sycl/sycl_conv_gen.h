@@ -133,19 +133,19 @@ namespace gen9 {
               for (int bow = 0; bow < blockOW; ++bow)
               {
                 // Intermediate 16-bit accumulator to use FMAs
-                simd<T, blockC> accum =
+                simd<T, blockC> localAccum =
                   inRows[(kh + boh) % blockOH].template replicate_w<blockC, 1>((kw + bow) * blockC + 0) *
-                    weightMat.template select<blockC, 1>(0 * blockC);
+                  weightMat.template select<blockC, 1>(0 * blockC);
 
                 #pragma unroll
                 for (int i = 1; i < blockC; ++i)
                 {
-                  accum +=
+                  localAccum +=
                     inRows[(kh + boh) % blockOH].template replicate_w<blockC, 1>((kw + bow) * blockC + i) *
                     weightMat.template select<blockC, 1>(i * blockC);
                 }
 
-                accumRows[boh].template select<blockC, 1>(bow * blockC) += accum;
+                accumRows[boh].template select<blockC, 1>(bow * blockC) += localAccum;
               }
             }
           #endif
