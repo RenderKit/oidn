@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-## Copyright 2018-2021 Intel Corporation
+## Copyright 2018-2023 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 import os
@@ -59,8 +59,6 @@ class Infer(object):
   # Inference function
   def __call__(self, input, exposure=1.):
     image = input.clone()
-    if self.result_cfg.precision == 'mixed':
-      image = image.half()
 
     # Apply the transfer function
     color = image[:, 0:self.num_main_channels, ...]
@@ -83,11 +81,14 @@ class Infer(object):
       image[:, aux_channel_indices, ...] = aux
 
     # Filter the main feature
+    if self.result_cfg.precision == 'mixed':
+      image = image.half()
     if self.main_feature == 'sh1':
       # Iterate over x, y, z
       image = torch.cat([self.model(torch.cat((image[:, i:i+3, ...], image[:, 9:, ...]), 1)) for i in [0, 3, 6]], 1)
     else:
       image = self.model(image)
+    image = image.float()
 
     # Unpad the output
     image = image[:, :, :shape[2], :shape[3]]
