@@ -132,10 +132,13 @@ namespace gen9 {
               #pragma unroll
               for (int bow = 0; bow < blockOW; ++bow)
               {
-                simd<T, blockC> accum = 0; // intermediate 16-bit accumulator to use FMAs
+                // Intermediate 16-bit accumulator to use FMAs
+                simd<T, blockC> accum =
+                  inRows[(kh + boh) % blockOH].template replicate_w<blockC, 1>((kw + bow) * blockC + 0) *
+                    weightMat.template select<blockC, 1>(0 * blockC);
 
                 #pragma unroll
-                for (int i = 0; i < blockC; ++i)
+                for (int i = 1; i < blockC; ++i)
                 {
                   accum +=
                     inRows[(kh + boh) % blockOH].template replicate_w<blockC, 1>((kw + bow) * blockC + i) *
