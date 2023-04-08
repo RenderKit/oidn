@@ -62,33 +62,37 @@ OIDN_NAMESPACE_BEGIN
     return result;
   }
 
-  std::tuple<size_t, float> compareImage(const ImageBuffer& image,
-                                         const ImageBuffer& ref,
-                                         float threshold)
+  std::tuple<size_t, double> compareImage(const ImageBuffer& image,
+                                          const ImageBuffer& ref)
   {
     assert(ref.getDims() == image.getDims());    
 
     size_t numErrors = 0;
-    float maxError = 0;
+    double avgError  = 0; // SMAPE
 
     for (size_t i = 0; i < image.getSize(); ++i)
     {
-      const float actual = image.get(i);
-      const float expect = ref.get(i);
+      const double actual = image.get(i);
+      const double expect = ref.get(i);
 
-      float error = std::abs(expect - actual);
-      if (expect != 0)
-        error = std::min(error, error / expect);
+      const double absError = std::abs(expect - actual);
+      const double relError = absError / (std::abs(expect) + std::abs(actual) + 0.01);
 
-      maxError = std::max(maxError, error);
-      if (error > threshold)
+      if (absError > 0.01 && relError > 0.05)
       {
-        //std::cerr << "i=" << i << " expect=" << expect << " actual=" << actual;
+        if (numErrors < 5)
+          std::cerr << "  error i=" << i << ", expect=" << expect << ", actual=" << actual << std::endl;
         ++numErrors;
       }
+
+      avgError += relError;
     }
 
-    return std::make_tuple(numErrors, maxError);
+    avgError /= image.getSize();
+    if (avgError > 0.05)
+      numErrors = image.getSize();
+
+    return std::make_tuple(numErrors, avgError);
   }
 
 OIDN_NAMESPACE_END

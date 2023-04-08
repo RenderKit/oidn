@@ -137,9 +137,8 @@ OIDN_NAMESPACE_BEGIN
   }
 
   // Compares an image to a reference image and returns the number of errors
-  // and the maximum error value
-  std::tuple<size_t, float> compareImage(const ImageBuffer& image,
-                                         const ImageBuffer& ref,
-                                         float threshold);
+  // and the average error value
+  std::tuple<size_t, double> compareImage(const ImageBuffer& image,
+                                          const ImageBuffer& ref);
 
 OIDN_NAMESPACE_END

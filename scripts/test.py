@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-## Copyright 2009-2022 Intel Corporation
+## Copyright 2009-2023 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 import sys
@@ -17,7 +17,7 @@ MODEL_VERSION='v2.0.0'
 parser = argparse.ArgumentParser(description='Runs all tests, including comparing images produced by the library with generated baseline images.')
 parser.usage = '\rIntel(R) Open Image Denoise - Test\n' + parser.format_usage()
 parser.add_argument('command', type=str, nargs='?', choices=['baseline', 'run'], default='run')
-parser.add_argument('--device', '-d', type=str, choices=['default', 'cpu', 'sycl', 'cuda', 'hip'], default='cpu', help='device to test')
+parser.add_argument('--device', '-d', type=str, choices=['default', 'cpu', 'sycl', 'cuda', 'hip'], default='default', help='device to test')
 parser.add_argument('--filter', '-f', type=str, nargs='*', choices=['RT', 'RTLightmap'], default=None, help='filters to test')
 parser.add_argument('--build_dir', '-B', type=str, help='build directory')
 parser.add_argument('--data_dir', '-D', type=str, help='directory of datasets (e.g. training, validation, test)')
@@ -130,7 +130,7 @@ def test_regression(filter, feature_sets, dataset):
       # Generate the baseline images
       print_test(f'{filter}.{features_str}', 'Infer')
       infer_cmd = os.path.join(root_dir, 'training', 'infer.py')
-      infer_cmd += f' -D "{cfg.data_dir}" -R "{cfg.results_dir}" -O "{cfg.baseline_dir}" -i {dataset} -r {result} -F pfm -d cpu'
+      infer_cmd += f' -D "{cfg.data_dir}" -R "{cfg.results_dir}" -O "{cfg.baseline_dir}" -i {dataset} -r {result} -F pfm'
       run_test(infer_cmd)
 
     elif cfg.command == 'run':

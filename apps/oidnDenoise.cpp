@@ -394,20 +394,19 @@ int main(int argc, char* argv[])
       // Verify the output values
       std::cout << "Verifying output" << std::endl;
 
-      const float threshold = 0.1f;
       size_t numErrors;
-      float maxError;
-      std::tie(numErrors, maxError) = compareImage(*output, *ref, threshold);
+      double avgError;
+      std::tie(numErrors, avgError) = compareImage(*output, *ref);
 
-      std::cout << "  values=" << output->getSize() << ", errors=" << numErrors << ", maxerror=" << maxError << std::endl;
+      std::cout << "  values=" << output->getSize() << ", errors=" << numErrors << ", avgerror=" << avgError << std::endl;
 
       if (numErrors > 0)
       {
         // Save debug images
         std::cout << "Saving debug images" << std::endl;
-        saveImage("denoise_in.ppm",  *input,  srgb);
-        saveImage("denoise_out.ppm", *output, srgb);
-        saveImage("denoise_ref.ppm", *ref,    srgb);
+        saveImage("denoise_in.pfm",  *input,  srgb);
+        saveImage("denoise_out.pfm", *output, srgb);
+        saveImage("denoise_ref.pfm", *ref,    srgb);
 
         throw std::runtime_error("output does not match the reference");
       }
