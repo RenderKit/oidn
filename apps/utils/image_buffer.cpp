@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "image_io.h"
@@ -35,16 +35,16 @@ OIDN_NAMESPACE_BEGIN
       assert(0);
     }
   
-    size_t byteSize = std::max(numValues * valueByteSize, size_t(1)); // avoid zero-sized buffer
+    byteSize = std::max(numValues * valueByteSize, size_t(1)); // avoid zero-sized buffer
     buffer = (storage == Storage::Undefined) ? device.newBuffer(byteSize) : device.newBuffer(byteSize, storage);
-    devPtr = (char*)buffer.getData();
+    devPtr = static_cast<char*>(buffer.getData());
     hostPtr = (storage != Storage::Device) ? devPtr : nullptr;
   }
 
   void ImageBuffer::map(Access access)
   {
     assert(hostPtr == nullptr);
-    hostPtr = (char*)buffer.map(access);
+    hostPtr = static_cast<char*>(buffer.map(access));
   }
 
   void ImageBuffer::unmap()

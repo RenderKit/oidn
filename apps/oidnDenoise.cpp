@@ -30,7 +30,7 @@ void printUsage()
             << "                   [-t/--type float|half]" << std::endl
             << "                   [-w/--weights weights.tza]" << std::endl
             << "                   [--threads n] [--affinity 0|1] [--maxmem MB] [--inplace]" << std::endl
-            << "                   [--bench ntimes] [-v/--verbose 0-3]" << std::endl
+            << "                   [-n times_to_run] [-v/--verbose 0-3]" << std::endl
             << "                   [--ld|--listdevices] [-h/--help]" << std::endl;
 }
 
@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
   float inputScale = std::numeric_limits<float>::quiet_NaN();
   bool cleanAux = false;
   Format dataType = Format::Undefined;
-  int numBenchmarkRuns = 0;
+  int numRuns = 1;
   int numThreads = -1;
   int setAffinity = -1;
   int maxMemoryMB = -1;
@@ -157,8 +157,8 @@ int main(int argc, char* argv[])
       }
       else if (opt == "w" || opt == "weights")
         weightsFilename = args.getNextValue();
-      else if (opt == "bench" || opt == "benchmark")
-        numBenchmarkRuns = std::max(args.getNextValue<int>(), 0);
+      else if (opt == "n")
+        numRuns = std::max(args.getNextValue<int>(), 1);
       else if (opt == "threads")
         numThreads = args.getNextValue<int>();
       else if (opt == "affinity")
@@ -198,9 +198,6 @@ int main(int argc, char* argv[])
       else
         throw std::invalid_argument("invalid argument");
     }
-
-    if (!refFilename.empty() && numBenchmarkRuns > 0)
-      throw std::runtime_error("reference and benchmark modes cannot be enabled at the same time");
 
   #if defined(OIDN_ARCH_X64)
     // Set MXCSR flags
@@ -288,6 +285,10 @@ int main(int argc, char* argv[])
     else
       output = std::make_shared<ImageBuffer>(device, width, height, 3, input->getDataType());
 
+    std::shared_ptr<ImageBuffer> inputCopy;
+    if (inplace && numRuns > 1)
+      inputCopy = input->clone();
+
     // Load the filter weights if specified
     std::vector<char> weights;
     if (!weightsFilename.empty())
@@ -336,7 +337,7 @@ int main(int argc, char* argv[])
     if (!weights.empty())
       filter.setData("weights", weights.data(), weights.size());
 
-    const bool showProgress = !ref && numBenchmarkRuns == 0 && verbose <= 2;
+    const bool showProgress = verbose <= 1;
     if (showProgress)
     {
       filter.setProgressMonitorFunction(progressCallback);
@@ -351,30 +352,68 @@ int main(int argc, char* argv[])
               << ", msec=" << (1000. * filterInitTime) << std::endl;
 
     // Denoise the image
-    if (!showProgress)
-      std::cout << "Denoising" << std::endl;
-    timer.reset();
-
-    filter.execute();
-
-    const double denoiseTime = timer.query();
-
-    if (showProgress)
-      std::cout << std::endl;
-    std::cout << "  msec=" << (1000. * denoiseTime);
-    if (verbose >= 3)
+    uint32_t prevHash = 0;
+    for (int run = 0; run < numRuns; ++run)
     {
-      // Compute a hash of the output
-      const uint8_t* outputBytes = (const uint8_t*)output->getData();
-      uint32_t hash = 0x811c9dc5;
-      for (size_t i = 0; i < output->getByteSize(); ++i)
+      if (inplace && run > 0)
+        memcpy(input->getData(), inputCopy->getData(), inputCopy->getByteSize());
+
+      if (!showProgress)
+        std::cout << "Denoising" << std::endl;
+      timer.reset();
+
+      filter.execute();
+
+      const double denoiseTime = timer.query();
+
+      if (showProgress)
+        std::cout << std::endl;
+      std::cout << "  msec=" << (1000. * denoiseTime);
+
+      if (numRuns > 1 || verbose >= 2)
       {
-        hash ^= outputBytes[i];
-        hash *= 0x1000193;
+        // Compute a hash of the output
+        const size_t numBytes = output->getByteSize();
+        const uint8_t* outputBytes = (const uint8_t*)output->getData();
+        uint32_t hash = 0x811c9dc5;
+        for (size_t i = 0; i < numBytes; ++i)
+        {
+          hash ^= outputBytes[i];
+          hash *= 0x1000193;
+        }
+        std::cout << ", hash=" << std::hex << std::setfill('0') << std::setw(8) << hash << std::dec << std::endl;
+
+        if (run > 0 && hash != prevHash)
+          throw std::runtime_error("output hash mismatch (non-deterministic output)");
+        prevHash = hash;
       }
-      std::cout << ", hash=" << std::hex << std::setfill('0') << std::setw(8) << hash << std::dec;
+      else
+        std::cout << std::endl;
+
+      if (run == 0 && ref)
+      {
+        // Verify the output values
+        std::cout << "Verifying output" << std::endl;
+
+        size_t numErrors;
+        double avgError;
+        std::tie(numErrors, avgError) = compareImage(*output, *ref);
+
+        std::cout << "  values=" << output->getSize()
+                  << ", errors=" << numErrors << ", avgerror=" << avgError << std::endl;
+
+        if (numErrors > 0)
+        {
+          // Save debug images
+          std::cout << "Saving debug images" << std::endl;
+          saveImage("denoise_in.pfm",  *input,  srgb);
+          saveImage("denoise_out.pfm", *output, srgb);
+          saveImage("denoise_ref.pfm", *ref,    srgb);
+
+          throw std::runtime_error("output does not match the reference");
+        }
+      }
     }
-    std::cout << std::endl;
 
     if (showProgress)
     {
@@ -387,50 +426,6 @@ int main(int argc, char* argv[])
       // Save output image
       std::cout << "Saving output" << std::endl;
       saveImage(outputFilename, *output, srgb);
-    }
-
-    if (ref)
-    {
-      // Verify the output values
-      std::cout << "Verifying output" << std::endl;
-
-      size_t numErrors;
-      double avgError;
-      std::tie(numErrors, avgError) = compareImage(*output, *ref);
-
-      std::cout << "  values=" << output->getSize() << ", errors=" << numErrors << ", avgerror=" << avgError << std::endl;
-
-      if (numErrors > 0)
-      {
-        // Save debug images
-        std::cout << "Saving debug images" << std::endl;
-        saveImage("denoise_in.pfm",  *input,  srgb);
-        saveImage("denoise_out.pfm", *output, srgb);
-        saveImage("denoise_ref.pfm", *ref,    srgb);
-
-        throw std::runtime_error("output does not match the reference");
-      }
-    }
-
-    if (numBenchmarkRuns > 0)
-    {
-      // Benchmark loop
-    #ifdef VTUNE
-      __itt_resume();
-    #endif
-
-      std::cout << "Benchmarking: " << "ntimes=" << numBenchmarkRuns << std::endl;
-      timer.reset();
-
-      for (int i = 0; i < numBenchmarkRuns; ++i)
-        filter.execute();
-
-      const double totalTime = timer.query();
-      std::cout << "  sec=" << totalTime << ", msec/image=" << (1000.*totalTime / numBenchmarkRuns) << std::endl;
-
-    #ifdef VTUNE
-      __itt_pause();
-    #endif
     }
   }
   catch (const std::exception& e)

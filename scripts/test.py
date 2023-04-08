@@ -84,7 +84,10 @@ def test():
     # Iterate over architectures
     for arch in cfg.arch:
       print_test(f'oidnTest.{arch}')
-      run_test(os.path.join(bin_dir, 'oidnTest'), arch)
+      test_cmd = os.path.join(bin_dir, 'oidnTest')
+      if cfg.device != 'default':
+        test_cmd += f' --device {cfg.device}'
+      run_test(test_cmd, arch)
 
 # Gets the option name of a feature
 def get_feature_opt(feature):
@@ -160,13 +163,13 @@ def test_regression(filter, feature_sets, dataset):
 
               denoise_cmd = os.path.join(bin_dir, 'oidnDenoise')
               if cfg.device != 'default':
-                denoise_cmd += f' -d {cfg.device}'
+                denoise_cmd += f' --device {cfg.device}'
 
               ref_filename = os.path.join(cfg.baseline_dir, dataset, f'{image_name}.{result}.{main_feature_ext}.pfm')
               if not os.path.isfile(ref_filename):
                 print('Error: baseline output image missing (run with "baseline" first)')
                 exit(1)
-              denoise_cmd += f' -f {filter} -v 2 --ref "{ref_filename}"'
+              denoise_cmd += f' -f {filter} --ref "{ref_filename}" -n 3 -v 2'
 
               for feature in features:
                 feature_opt = get_feature_opt(feature)

@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -16,7 +16,9 @@ OIDN_NAMESPACE_BEGIN
   {
   public:
     ImageBuffer();
-    ImageBuffer(const DeviceRef& device, int width, int height, int numChannels, Format dataType = Format::Float, Storage storage = Storage::Undefined);
+    ImageBuffer(const DeviceRef& device, int width, int height, int numChannels,
+                Format dataType = Format::Float,
+                Storage storage = Storage::Undefined);
 
     OIDN_INLINE int getW() const { return width; }
     OIDN_INLINE int getH() const { return height; }
@@ -33,7 +35,7 @@ OIDN_NAMESPACE_BEGIN
     }
 
     OIDN_INLINE size_t getSize() const { return numValues; }
-    OIDN_INLINE size_t getByteSize() const { return buffer.getSize(); }
+    OIDN_INLINE size_t getByteSize() const { return byteSize; }
     
     OIDN_INLINE const void* getData() const { return hostPtr ? hostPtr : devPtr; }
     OIDN_INLINE void* getData() { return hostPtr ? hostPtr : devPtr; }
@@ -56,10 +58,10 @@ OIDN_NAMESPACE_BEGIN
       switch (dataType)
       {
       case Format::Float:
-        ((float*)hostPtr)[i] = x;
+        reinterpret_cast<float*>(hostPtr)[i] = x;
         break;
       case Format::Half:
-        ((half*)hostPtr)[i] = half(x);
+        reinterpret_cast<half*>(hostPtr)[i] = half(x);
         break;
       default:
         assert(0);
@@ -73,10 +75,10 @@ OIDN_NAMESPACE_BEGIN
       switch (dataType)
       {
       case Format::Float:
-        ((float*)hostPtr)[i] = float(x);
+        reinterpret_cast<float*>(hostPtr)[i] = float(x);
         break;
       case Format::Half:
-        ((half*)hostPtr)[i] = x;
+        reinterpret_cast<half*>(hostPtr)[i] = x;
         break;
       default:
         assert(0);
@@ -95,6 +97,7 @@ OIDN_NAMESPACE_BEGIN
     BufferRef buffer;
     char* devPtr;
     char* hostPtr;
+    size_t byteSize;
     size_t numValues;
     int width;
     int height;
@@ -110,9 +113,9 @@ OIDN_NAMESPACE_BEGIN
     switch (dataType)
     {
     case Format::Float:
-      return ((float*)hostPtr)[i];
+      return reinterpret_cast<float*>(hostPtr)[i];
     case Format::Half:
-      return float(((half*)hostPtr)[i]);
+      return float(reinterpret_cast<half*>(hostPtr)[i]);
     default:
       assert(0);
       return 0;
@@ -127,9 +130,9 @@ OIDN_NAMESPACE_BEGIN
     switch (dataType)
     {
     case Format::Float:
-      return half(((float*)hostPtr)[i]);
+      return half(reinterpret_cast<float*>(hostPtr)[i]);
     case Format::Half:
-      return ((half*)hostPtr)[i];
+      return reinterpret_cast<half*>(hostPtr)[i];
     default:
       assert(0);
       return 0;

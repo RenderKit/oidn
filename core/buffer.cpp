@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "buffer.h"
@@ -57,7 +57,7 @@ OIDN_NAMESPACE_BEGIN
   // -----------------------------------------------------------------------------------------------
 
   MappedBuffer::MappedBuffer(const Ref<Buffer>& buffer, size_t byteOffset, size_t byteSize, Access access)
-    : ptr((char*)buffer->map(byteOffset, byteSize, access)),
+    : ptr(static_cast<char*>(buffer->map(byteOffset, byteSize, access))),
       byteSize(byteSize),
       buffer(buffer) {}
 
@@ -85,11 +85,11 @@ OIDN_NAMESPACE_BEGIN
       storage(storage),
       engine(engine)
   {
-    ptr = (char*)engine->malloc(byteSize, storage);
+    ptr = static_cast<char*>(engine->malloc(byteSize, storage));
   }
 
   USMBuffer::USMBuffer(const Ref<Engine>& engine, void* data, size_t byteSize, Storage storage)
-    : ptr((char*)data),
+    : ptr(static_cast<char*>(data)),
       byteSize(byteSize),
       shared(true),
       storage(storage),
@@ -187,7 +187,7 @@ OIDN_NAMESPACE_BEGIN
       throw std::logic_error("mapped buffers cannot be reallocated");
 
     engine->free(ptr, storage);
-    ptr = (char*)engine->malloc(newByteSize, storage);
+    ptr = static_cast<char*>(engine->malloc(newByteSize, storage));
     byteSize = newByteSize;
   }
 
