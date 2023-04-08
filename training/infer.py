@@ -23,6 +23,7 @@ class Infer(object):
     if not os.path.isdir(result_dir):
       error('result does not exist')
     self.result_cfg = load_config(result_dir)
+    self.device = device
     self.features = self.result_cfg.features
     self.main_feature = get_main_feature(self.features)
     self.aux_features = get_aux_features(self.features)
@@ -40,6 +41,8 @@ class Infer(object):
     # Infer in FP16 if the model was trained with mixed precision
     if self.result_cfg.precision == 'mixed':
       self.model.half()
+    if device.type == 'cpu':
+      self.model.float() # CPU does not support FP16, so convert it back to FP32
 
     # Initialize the transfer function
     self.transfer = get_transfer_function(self.result_cfg)
@@ -81,7 +84,7 @@ class Infer(object):
       image[:, aux_channel_indices, ...] = aux
 
     # Filter the main feature
-    if self.result_cfg.precision == 'mixed':
+    if self.result_cfg.precision == 'mixed' and self.device.type != 'cpu':
       image = image.half()
     if self.main_feature == 'sh1':
       # Iterate over x, y, z
