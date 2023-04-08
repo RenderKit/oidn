@@ -24,7 +24,7 @@ OIDN_NAMESPACE_BEGIN
     using Sum = std::pair<float, int>;
 
     Sum sum =
-      tbb::parallel_reduce(
+      tbb::parallel_deterministic_reduce(
         tbb::blocked_range2d<int>(0, numBinsH, 0, numBinsW),
         Sum(0.f, 0),
         [&](const tbb::blocked_range2d<int>& r, Sum sum) -> Sum
