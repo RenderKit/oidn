@@ -36,6 +36,7 @@ OIDN_NAMESPACE_BEGIN
 
   public:
     static std::vector<Ref<PhysicalDevice>> getPhysicalDevices();
+    static std::string getArchName(const std::string& archStr);
     static HIPArch getArch(const std::string& archStr);
 
     HIPDevice(int deviceID = -1, hipStream_t stream = nullptr);

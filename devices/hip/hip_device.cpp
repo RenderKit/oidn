@@ -29,7 +29,7 @@ OIDN_NAMESPACE_BEGIN
     : PhysicalDevice(DeviceType::HIP, score),
       deviceID(deviceID)
   {
-    name = prop.name;
+    name = strlen(prop.name) > 0 ? prop.name : prop.gcnArchName;
 
     hipUUID_t uuid{};
     if (hipDeviceGetUuid(&uuid, deviceID) == hipSuccess)
@@ -67,15 +67,28 @@ OIDN_NAMESPACE_BEGIN
     return devices;
   }
 
+  std::string HIPDevice::getArchName(const std::string& archStr)
+  {
+    const std::string name = archStr.substr(0, archStr.find(':'));
+
+    if (name == "10.3.0 Sienna_Cichlid 18")
+      return "gfx1030";
+    else
+      return name;
+  }
+
   HIPArch HIPDevice::getArch(const std::string& archStr)
   {
-    if (archStr == "gfx908" || archStr == "gfx90a")
+    const std::string name = getArchName(archStr);
+
+    if (name == "gfx908" || name == "gfx90a")
       return HIPArch::XDL;
-    if (archStr == "gfx1030")
+    if (name == "gfx1030")
       return HIPArch::DL;
-    if (archStr == "gfx1100" || archStr == "gfx1101" || archStr == "gfx1102")
+    if (name == "gfx1100" || name == "gfx1101" || name == "gfx1102")
       return HIPArch::WMMA;
-    return HIPArch::Unknown;
+    else
+      return HIPArch::Unknown;
   }
 
   HIPDevice::HIPDevice(int deviceID, hipStream_t stream)
@@ -126,13 +139,13 @@ OIDN_NAMESPACE_BEGIN
     checkError(hipGetDeviceProperties(&prop, deviceID));
     arch = getArch(prop.gcnArchName);
     maxWorkGroupSize = prop.maxThreadsPerBlock;
-
-    const std::string name = strlen(prop.name) > 0 ? prop.name : "AMD GPU";
     
     if (isVerbose())
     {
+      const std::string name = strlen(prop.name) > 0 ? prop.name : prop.gcnArchName;
+      
       std::cout << "  Device    : " << name << std::endl;
-      std::cout << "    Arch    : " << prop.gcnArchName << std::endl;
+      std::cout << "    Arch    : " << getArchName(prop.gcnArchName) << std::endl;
       std::cout << "    CUs     : " << prop.multiProcessorCount << std::endl;
     }
 
