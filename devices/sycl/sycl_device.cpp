@@ -102,17 +102,17 @@ OIDN_NAMESPACE_BEGIN
         !syclDevice.has(sycl::aspect::ext_intel_device_id))
       return SYCLArch::Unknown;
 
-    const unsigned int deviceID = syclDevice.get_info<sycl::ext::intel::info::device::device_id>();
-    const unsigned int maskedId = deviceID & 0xFF00;
+    const unsigned int fullID = syclDevice.get_info<sycl::ext::intel::info::device::device_id>();
+    const unsigned int id = fullID & 0xFFF0;
 
-    if (maskedId == 0x1600)
+    if (id == 0x1600 || id == 0x1610 || id == 0x1620)
       return SYCLArch::Unknown; // unsupported: Gen8
-    else if (maskedId == 0x4F00 || maskedId == 0x5600)
+    else if (id == 0x4F80 || id == 0x5690 || id == 0x56A0 || id == 0x56B0 || id == 0x56C0)
       return SYCLArch::XeHPG;
-    else if (maskedId == 0x0B00)
+    else if (id == 0x0BD0 || id == 0x0B60 || id == 0x0BE0)
       return SYCLArch::XeHPC;
     else
-      return SYCLArch::Gen9; // fallback: Gen9, Gen10, Gen11, Xe-LP, Xe-HP, ...
+      return SYCLArch::Gen9; // fallback: Gen9, Gen11, Xe-LP, ...
   }
 
   int SYCLDevice::getScore(const sycl::device& syclDevice)
@@ -226,7 +226,7 @@ OIDN_NAMESPACE_BEGIN
         std::cout << "    Arch    : ";
         switch (arch)
         {
-        case SYCLArch::Gen9:  std::cout << "Gen9/Gen10/Gen11/Xe-LP/Xe-HP"; break;
+        case SYCLArch::Gen9:  std::cout << "Gen9/Gen11/Xe-LP"; break;
         case SYCLArch::XeHPG: std::cout << "Xe-HPG"; break;
         case SYCLArch::XeHPC: std::cout << "Xe-HPC"; break;
         default:              std::cout << "Unknown";
