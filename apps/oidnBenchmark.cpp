@@ -34,7 +34,7 @@ void printUsage()
             << "                     [-t/--type float|half]" << std::endl
             << "                     [--threads n] [--affinity 0|1] [--maxmem MB] [--inplace]" << std::endl
             << "                     [-v/--verbose 0-3]" << std::endl
-            << "                     [--ld|--listdevices] [-l/--list] [-h/--help]" << std::endl;
+            << "                     [--ld|--list_devices] [-l/--list] [-h/--help]" << std::endl;
 }
 
 void errorCallback(void* userPtr, Error error, const char* message)
@@ -287,9 +287,15 @@ int main(int argc, char* argv[])
         inplace = true;
       else if (opt == "v" || opt == "verbose")
         verbose = args.getNextValue<int>();
-      else if (opt == "ld" || opt == "listdevices" || opt == "listDevices" || opt == "list-devices")
+      else if (opt == "ld" || opt == "list_devices" || opt == "list-devices" || opt == "listDevices" || opt == "listdevices")
       {
         const int numDevices = getNumPhysicalDevices();
+        if (numDevices == 0)
+        {
+          std::cout << "No supported devices found" << std::endl;
+          return 1;
+        }
+
         for (int i = 0; i < numDevices; ++i)
         {
           PhysicalDeviceRef physicalDevice(i);
@@ -306,7 +312,8 @@ int main(int argc, char* argv[])
           if (i < numDevices-1)
             std::cout << std::endl;
         }
-        return 1;
+
+        return 0;
       }
       else if (opt == "l" || opt == "list")
         run = "";
