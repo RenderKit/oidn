@@ -81,8 +81,6 @@ OIDN_NAMESPACE_BEGIN
   {
     const std::string name = getArchName(archStr);
 
-    if (name == "gfx908" || name == "gfx90a")
-      return HIPArch::XDL;
     if (name == "gfx1030")
       return HIPArch::DL;
     if (name == "gfx1100" || name == "gfx1101" || name == "gfx1102")

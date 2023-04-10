@@ -17,9 +17,8 @@ OIDN_NAMESPACE_BEGIN
   enum class HIPArch
   {
     Unknown,
-    DL,      // RDNA2
-    XDL,     // CDNA1, CDNA2
-    WMMA,    // RDNA3
+    DL,      // RDNA 2
+    WMMA,    // RDNA 3
   };
 
   class HIPPhysicalDevice : public PhysicalDevice

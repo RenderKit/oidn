@@ -36,8 +36,6 @@ OIDN_NAMESPACE_BEGIN
     {
     case HIPArch::DL:
       return newHIPConvDL(this, desc);
-    case HIPArch::XDL:
-      return newHIPConvXDL(this, desc);   
     case HIPArch::WMMA:
       return newHIPConvWMMA(this, desc); 
     default:

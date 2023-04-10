@@ -9,7 +9,7 @@ endif()
 list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/hip ${ROCM_PATH})
 
 # Set the GPU targets
-set(GPU_TARGETS "gfx908,gfx90a,gfx1030,gfx1100,gfx1101,gfx1102" CACHE INTERNAL "")
+set(GPU_TARGETS "gfx1030,gfx1100,gfx1101,gfx1102" CACHE INTERNAL "")
 set(AMDGPU_TARGETS ${GPU_TARGETS} CACHE INTERNAL "")
 
 # Find hip
@@ -23,7 +23,6 @@ set(HIP_SOURCES
   ck_conv.h
   ck_conv_dl.cpp
   ck_conv_wmma.cpp
-  ck_conv_xdl.cpp
   hip_conv.h
   hip_device.h
   hip_device.cpp
