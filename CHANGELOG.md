@@ -3,14 +3,17 @@ Version History
 
 ### Changes in v2.0.0:
 
--   Added CUDA device for NVIDIA Volta architecture and later GPUs
--   Added HIP device for AMD RDNA 2 and CDNA architectures and later GPUs
+-   Added SYCL device for Intel Xe-HPG, Xe-HPC, Xe-LP, Gen11 and Gen9 GPU
+    architectures
+-   Added CUDA device for NVIDIA Volta, Turing, Ampere, Ada Lovelace and Hopper
+    GPU architectures
+-   Added HIP device for AMD Navi 21 and Navi 3x GPU architectures
 -   Added new API functions for advanced GPU support:
     -  `oidnNewBufferWithStorage`, `oidnGetBufferStorage`, `oidnReadBuffer`, and
        `oidnWriteBuffer` for more performant GPU buffer support
     -  `oidnExecuteFilterAsync` and `oidnSyncDevice` for asynchronous
        filter execution
--   Added `type` device parameter for querying the type of the created device
+-   Added `type` device parameter for querying the device type
 -   Minor API changes with backward compatibility:
     -   Added oidn(Get|Set)(Device|Filter)(Bool|Int|Float) API functions and
         deprecated oidn(Get|Set)(Device|Filter)(1b|1i|1f) functions
