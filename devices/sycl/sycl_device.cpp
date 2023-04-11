@@ -12,7 +12,15 @@ OIDN_NAMESPACE_BEGIN
   public:
     int operator()(const sycl::device& syclDevice) const
     {
-      return SYCLDevice::getScore(syclDevice);
+      const sycl::backend syclBackend = syclDevice.get_backend();
+      const int score = SYCLDevice::getScore(syclDevice);
+      
+      if (syclBackend == sycl::backend::ext_oneapi_level_zero)
+        return score * 2 + 1; // prefer Level Zero
+      else if (syclBackend == sycl::backend::opencl)
+        return score * 2;
+      else
+        return -1; // other backends are not supported
     }
   };
 
@@ -23,7 +31,7 @@ OIDN_NAMESPACE_BEGIN
     name = syclDevice.get_info<sycl::info::device::name>();
 
     if (syclDevice.get_backend() != sycl::backend::ext_oneapi_level_zero)
-      return;
+      return; // only Level Zero supports further features
 
     // Check the supported Level Zero extensions
     bool luidSupport = false;
@@ -75,15 +83,27 @@ OIDN_NAMESPACE_BEGIN
   {
     std::vector<Ref<PhysicalDevice>> devices;
 
-    for (const auto& syclPlatform : sycl::platform::get_platforms())
+    // Select the backend to use to avoid duplicate devices
+    const auto syclPlatforms = sycl::platform::get_platforms();
+    sycl::backend syclBackend = sycl::backend::opencl; // fallback
+    for (const auto& syclPlatform : syclPlatforms)
     {
-      // Include only Level Zero devices
-      if (syclPlatform.get_backend() != sycl::backend::ext_oneapi_level_zero)
+      if (syclPlatform.get_backend() == sycl::backend::ext_oneapi_level_zero &&
+          !syclPlatform.get_devices(sycl::info::device_type::gpu).empty())
+      {
+        syclBackend = sycl::backend::ext_oneapi_level_zero; // prefer Level Zero
+        break;
+      }
+    }
+
+    for (const auto& syclPlatform : syclPlatforms)
+    {
+      if (syclPlatform.get_backend() != syclBackend)
         continue;
 
       for (const auto& syclDevice : syclPlatform.get_devices(sycl::info::device_type::gpu))
       {
-        int score = getScore(syclDevice);
+        const int score = getScore(syclDevice);
         if (score >= 0) // if supported          
           devices.push_back(makeRef<SYCLPhysicalDevice>(syclDevice, score));
       }
@@ -94,7 +114,9 @@ OIDN_NAMESPACE_BEGIN
 
   SYCLArch SYCLDevice::getArch(const sycl::device& syclDevice)
   {
-    if (!syclDevice.is_gpu() ||
+    auto syclBackend = syclDevice.get_backend();
+    if ((syclBackend != sycl::backend::ext_oneapi_level_zero && syclBackend != sycl::backend::opencl) ||
+        !syclDevice.is_gpu() ||
         syclDevice.get_info<sycl::info::device::vendor_id>() != 0x8086 || // Intel
         !syclDevice.has(sycl::aspect::usm_host_allocations) ||
         !syclDevice.has(sycl::aspect::usm_device_allocations) ||
@@ -117,7 +139,7 @@ OIDN_NAMESPACE_BEGIN
 
   int SYCLDevice::getScore(const sycl::device& syclDevice)
   {
-    SYCLArch arch = getArch(syclDevice);
+    const SYCLArch arch = getArch(syclDevice);
     if (arch == SYCLArch::Unknown)
       return -1;
 
