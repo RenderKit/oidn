@@ -34,8 +34,6 @@ OIDN_NAMESPACE_BEGIN
       return; // only Level Zero supports further features
 
     // Check the supported Level Zero extensions
-    bool luidSupport = false;
-
   #if defined(_WIN32)
     ze_driver_handle_t zeDriver =
       sycl::get_native<sycl::backend::ext_oneapi_level_zero>(syclDevice.get_platform());
@@ -51,7 +49,7 @@ OIDN_NAMESPACE_BEGIN
     for (const auto& extension : extensions)
     {
       if (strcmp(extension.name, ZE_DEVICE_LUID_EXT_NAME) == 0)
-        luidSupport = true;
+        luidSupported = true;
     }
   #endif
 
@@ -60,7 +58,7 @@ OIDN_NAMESPACE_BEGIN
 
     ze_device_properties_t zeDeviceProps{ZE_STRUCTURE_TYPE_DEVICE_PROPERTIES};
     ze_device_luid_ext_properties_t zeDeviceLUIDProps{ZE_STRUCTURE_TYPE_DEVICE_LUID_EXT_PROPERTIES};
-    if (luidSupport)
+    if (luidSupported)
       zeDeviceProps.pNext = &zeDeviceLUIDProps;
 
     if (zeDeviceGetProperties(zeDevice, &zeDeviceProps) != ZE_RESULT_SUCCESS)
@@ -68,15 +66,16 @@ OIDN_NAMESPACE_BEGIN
 
     static_assert(ZE_MAX_DEVICE_UUID_SIZE == OIDN_UUID_SIZE, "unexpected UUID size");
     memcpy(uuid.bytes, zeDeviceProps.uuid.id, sizeof(uuid.bytes));
-    uuidValid = true;
+    uuidSupported = true;
 
-    if (luidSupport && zeDeviceLUIDProps.nodeMask != 0)
+    if (luidSupported && zeDeviceLUIDProps.nodeMask != 0)
     {
       static_assert(ZE_MAX_DEVICE_LUID_SIZE_EXT == OIDN_LUID_SIZE, "unexpected LUID size");
       memcpy(luid.bytes, zeDeviceLUIDProps.luid.id, sizeof(luid.bytes));
       nodeMask = zeDeviceLUIDProps.nodeMask;
-      luidValid = true;
     }
+    else
+      luidSupported = false; // LUID may be invalid
   }
 
   std::vector<Ref<PhysicalDevice>> SYCLDevice::getPhysicalDevices()

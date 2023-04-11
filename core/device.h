@@ -25,10 +25,10 @@ OIDN_NAMESPACE_BEGIN
     std::string name = "Unknown";
 
     UUID uuid{};
-    bool uuidValid = false;
+    bool uuidSupported = false;
     
     LUID luid{};
-    bool luidValid = false;
+    bool luidSupported = false;
     uint32_t nodeMask = 0;
 
     PhysicalDevice(DeviceType type, int score) : type(type), score(score) {}

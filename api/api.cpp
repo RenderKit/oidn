@@ -212,7 +212,7 @@ OIDN_API_NAMESPACE_BEGIN
       for (int i = 0; i < numDevices; ++i)
       {
         const auto& physicalDevice = ctx.getPhysicalDevice(i);
-        if (physicalDevice->uuidValid &&
+        if (physicalDevice->uuidSupported &&
             memcmp(uuid, physicalDevice->uuid.bytes, sizeof(physicalDevice->uuid.bytes)) == 0)
         {
           foundID = i;
@@ -258,14 +258,14 @@ OIDN_API_NAMESPACE_BEGIN
       for (int i = 0; i < numDevices; ++i)
       {
         const auto& physicalDevice = ctx.getPhysicalDevice(i);
-        if (physicalDevice->luidValid &&
+        if (physicalDevice->luidSupported &&
             memcmp(luid, physicalDevice->luid.bytes, sizeof(physicalDevice->luid.bytes)) == 0)
         {
           foundID = i;
           break;
         }
       #if defined(_WIN32)
-        else if (!physicalDevice->luidValid && physicalDevice->type == DeviceType::HIP)
+        else if (!physicalDevice->luidSupported && physicalDevice->type == DeviceType::HIP)
         {
           // FIXME: HIP does not support LUID, so we'll try to guess the device
           unknownID = i;

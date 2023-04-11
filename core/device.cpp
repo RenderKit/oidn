@@ -13,14 +13,14 @@ OIDN_NAMESPACE_BEGIN
   {
     if (name == "type")
       return static_cast<int>(type);
-    else if (name == "uuidValid")
-      return uuidValid;
-    else if (name == "luidValid")
-      return luidValid;
+    else if (name == "uuidSupported")
+      return uuidSupported;
+    else if (name == "luidSupported")
+      return luidSupported;
     else if (name == "nodeMask")
     {
-      if (!luidValid)
-        throw Exception(Error::InvalidArgument, "physical device node mask unavailable, check luidValid first");
+      if (!luidSupported)
+        throw Exception(Error::InvalidArgument, "physical device node mask unavailable, check luidSupported first");
       return nodeMask;
     }
     else
@@ -39,14 +39,14 @@ OIDN_NAMESPACE_BEGIN
   {
     if (name == "uuid")
     {
-      if (!uuidValid)
-        throw Exception(Error::InvalidArgument, "physical device UUID unavailable, check uuidValid first");
+      if (!uuidSupported)
+        throw Exception(Error::InvalidArgument, "physical device UUID unavailable, check uuidSupported first");
       return {uuid.bytes, sizeof(uuid.bytes)};
     }
     else if (name == "luid")
     {
-      if (!luidValid)
-        throw Exception(Error::InvalidArgument, "physical device LUID unavailable, check luidValid first");
+      if (!luidSupported)
+        throw Exception(Error::InvalidArgument, "physical device LUID unavailable, check luidSupported first");
       return {luid.bytes, sizeof(luid.bytes)};
     }
     else

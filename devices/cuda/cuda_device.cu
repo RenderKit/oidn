@@ -32,14 +32,14 @@ OIDN_NAMESPACE_BEGIN
     name = prop.name;
 
     memcpy(uuid.bytes, prop.uuid.bytes, sizeof(uuid.bytes));
-    uuidValid = true;
+    uuidSupported = true;
 
   #if defined(_WIN32)
     if (prop.tccDriver == 0)
     {
       memcpy(luid.bytes, prop.luid, sizeof(luid.bytes));
       nodeMask = prop.luidDeviceNodeMask;
-      luidValid = true;
+      luidSupported = true;
     }
   #endif
   }

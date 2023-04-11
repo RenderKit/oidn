@@ -302,9 +302,9 @@ int main(int argc, char* argv[])
           std::cout << "Device " << i << std::endl;
           std::cout << "  Name: " << physicalDevice.get<std::string>("name") << std::endl;
           std::cout << "  Type: " << physicalDevice.get<DeviceType>("type") << std::endl;
-          if (physicalDevice.get<bool>("uuidValid"))
+          if (physicalDevice.get<bool>("uuidSupported"))
             std::cout << "  UUID: " << physicalDevice.get<oidn::UUID>("uuid") << std::endl;
-          if (physicalDevice.get<bool>("luidValid"))
+          if (physicalDevice.get<bool>("luidSupported"))
           {
             std::cout << "  LUID: " << physicalDevice.get<oidn::LUID>("luid") << std::endl;
             std::cout << "  Node: " << physicalDevice.get<uint32_t>("nodeMask") << std::endl;

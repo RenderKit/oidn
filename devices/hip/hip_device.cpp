@@ -35,7 +35,7 @@ OIDN_NAMESPACE_BEGIN
     if (hipDeviceGetUuid(&uuid, deviceID) == hipSuccess)
     {
       memcpy(this->uuid.bytes, uuid.bytes, sizeof(this->uuid.bytes));
-      uuidValid = true;
+      uuidSupported = true;
     }
 
     // FIXME: HIP does not seem to support querying the LUID

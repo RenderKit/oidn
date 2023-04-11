@@ -44,25 +44,25 @@ TEST_CASE("physical device", "[physical_device]")
     REQUIRE(getError() == Error::None);
     REQUIRE(!name.empty());
 
-    bool uuidValid = physicalDevice.get<bool>("uuidValid");
+    bool uuidSupported = physicalDevice.get<bool>("uuidSupported");
     REQUIRE(getError() == Error::None);
     physicalDevice.get<oidn::UUID>("uuid");
-    if (uuidValid)
+    if (uuidSupported)
       REQUIRE(getError() == Error::None);
     else
       REQUIRE(getError() == Error::InvalidArgument);
 
-    bool luidValid = physicalDevice.get<bool>("luidValid");
+    bool luidSupported = physicalDevice.get<bool>("luidSupported");
     REQUIRE(getError() == Error::None);
 
     physicalDevice.get<oidn::LUID>("luid");
-    if (luidValid)
+    if (luidSupported)
       REQUIRE(getError() == Error::None);
     else
       REQUIRE(getError() == Error::InvalidArgument);
 
     uint32_t nodeMask = physicalDevice.get<uint32_t>("nodeMask");
-    if (luidValid)
+    if (luidSupported)
     {
       REQUIRE(getError() == Error::None);
       REQUIRE(nodeMask != 0);
