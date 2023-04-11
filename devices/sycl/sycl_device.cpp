@@ -14,7 +14,7 @@ OIDN_NAMESPACE_BEGIN
     {
       const sycl::backend syclBackend = syclDevice.get_backend();
       const int score = SYCLDevice::getScore(syclDevice);
-      
+
       if (syclBackend == sycl::backend::ext_oneapi_level_zero)
         return score * 2 + 1; // prefer Level Zero
       else if (syclBackend == sycl::backend::opencl)
@@ -76,6 +76,17 @@ OIDN_NAMESPACE_BEGIN
     }
     else
       luidSupported = false; // LUID may be invalid
+
+    // Get the PCI address
+    ze_pci_ext_properties_t zePCIProps{ZE_STRUCTURE_TYPE_PCI_EXT_PROPERTIES};
+    if (zeDevicePciGetPropertiesExt(zeDevice, &zePCIProps) == ZE_RESULT_SUCCESS)
+    {
+      pciDomain   = zePCIProps.address.domain;
+      pciBus      = zePCIProps.address.bus;
+      pciDevice   = zePCIProps.address.device;
+      pciFunction = zePCIProps.address.function;
+      pciAddressSupported = true;
+    }
   }
 
   std::vector<Ref<PhysicalDevice>> SYCLDevice::getPhysicalDevices()
@@ -103,11 +114,11 @@ OIDN_NAMESPACE_BEGIN
       for (const auto& syclDevice : syclPlatform.get_devices(sycl::info::device_type::gpu))
       {
         const int score = getScore(syclDevice);
-        if (score >= 0) // if supported          
+        if (score >= 0) // if supported
           devices.push_back(makeRef<SYCLPhysicalDevice>(syclDevice, score));
       }
     }
-    
+
     return devices;
   }
 
@@ -225,7 +236,7 @@ OIDN_NAMESPACE_BEGIN
     syclContext = syclQueues[0].get_context();
     if (syclContext.get_platform().get_backend() == sycl::backend::ext_oneapi_level_zero)
       zeContext = sycl::get_native<sycl::backend::ext_oneapi_level_zero>(syclContext);
-    
+
     // Limit the number of subdevices/engines if requested
     if (numSubdevices > 0 && numSubdevices < int(syclQueues.size()))
       syclQueues.resize(numSubdevices);
@@ -235,15 +246,15 @@ OIDN_NAMESPACE_BEGIN
     if (isVerbose())
     {
       std::cout << "  Platform  : " << syclContext.get_platform().get_info<sycl::info::platform::name>() << std::endl;
-      
+
       for (size_t i = 0; i < syclQueues.size(); ++i)
-      { 
+      {
         if (syclQueues.size() > 1)
            std::cout << "  Device " << std::setw(2) << i << " : ";
         else
           std::cout << "  Device    : ";
         std::cout << syclQueues[i].get_device().get_info<sycl::info::device::name>() << std::endl;
-        
+
         std::cout << "    Arch    : ";
         switch (arch)
         {
@@ -253,7 +264,7 @@ OIDN_NAMESPACE_BEGIN
         default:              std::cout << "Unknown";
         }
         std::cout << std::endl;
-        
+
         std::cout << "    EUs     : " << syclQueues[i].get_device().get_info<sycl::info::device::max_compute_units>() << std::endl;
       }
     }
@@ -292,7 +303,7 @@ OIDN_NAMESPACE_BEGIN
     #endif
     }
   }
-  
+
   int SYCLDevice::getInt(const std::string& name)
   {
     if (name == "numSubdevices")
@@ -330,7 +341,7 @@ OIDN_NAMESPACE_BEGIN
         return Storage::Undefined;
     }
   }
-  
+
   void SYCLDevice::submitBarrier()
   {
     // We need a barrier only if there are at least 2 engines
@@ -341,7 +352,7 @@ OIDN_NAMESPACE_BEGIN
     // The barrier depends on the commands on all engines
     engines[0]->depEvents = getDoneEvents();
     engines[0]->submitBarrier();
-    
+
     // The next commands on all the other engines also depend on the barrier
     for (size_t i = 1; i < engines.size(); ++i)
     {
@@ -354,12 +365,12 @@ OIDN_NAMESPACE_BEGIN
   {
     // Wait for the commands on all engines to complete
     sycl::event::wait_and_throw(getDoneEvents());
-    
+
     // We can now discard all events
     for (auto& engine : engines)
       engine->lastEvent.reset();
   }
-  
+
   void SYCLDevice::setDepEvents(const std::vector<sycl::event>& events)
   {
     for (auto& engine : engines)
@@ -373,7 +384,7 @@ OIDN_NAMESPACE_BEGIN
   {
     setDepEvents({events, events + numEvents});
   }
-  
+
   std::vector<sycl::event> SYCLDevice::getDoneEvents()
   {
     std::vector<sycl::event> events;

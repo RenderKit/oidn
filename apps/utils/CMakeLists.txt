@@ -1,4 +1,4 @@
-## Copyright 2009-2021 Intel Corporation
+## Copyright 2009-2023 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 include(CMakeDependentOption)
@@ -6,6 +6,7 @@ include(CMakeDependentOption)
 add_library(${PROJECT_NAME}_utils STATIC
   arg_parser.h
   arg_parser.cpp
+  device_info.h
   image_buffer.h
   image_buffer.cpp
   image_io.h

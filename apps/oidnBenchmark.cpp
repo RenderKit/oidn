@@ -4,6 +4,7 @@
 #include "common/common.h"
 #include "utils/arg_parser.h"
 #include "utils/image_buffer.h"
+#include "utils/device_info.h"
 #include "utils/random.h"
 #include "utils/timer.h"
 #include <iostream>
@@ -287,36 +288,10 @@ int main(int argc, char* argv[])
         inplace = true;
       else if (opt == "v" || opt == "verbose")
         verbose = args.getNextValue<int>();
-      else if (opt == "ld" || opt == "list_devices" || opt == "list-devices" || opt == "listDevices" || opt == "listdevices")
-      {
-        const int numDevices = getNumPhysicalDevices();
-        if (numDevices == 0)
-        {
-          std::cout << "No supported devices found" << std::endl;
-          return 1;
-        }
-
-        for (int i = 0; i < numDevices; ++i)
-        {
-          PhysicalDeviceRef physicalDevice(i);
-          std::cout << "Device " << i << std::endl;
-          std::cout << "  Name: " << physicalDevice.get<std::string>("name") << std::endl;
-          std::cout << "  Type: " << physicalDevice.get<DeviceType>("type") << std::endl;
-          if (physicalDevice.get<bool>("uuidSupported"))
-            std::cout << "  UUID: " << physicalDevice.get<oidn::UUID>("uuid") << std::endl;
-          if (physicalDevice.get<bool>("luidSupported"))
-          {
-            std::cout << "  LUID: " << physicalDevice.get<oidn::LUID>("luid") << std::endl;
-            std::cout << "  Node: " << physicalDevice.get<uint32_t>("nodeMask") << std::endl;
-          }
-          if (i < numDevices-1)
-            std::cout << std::endl;
-        }
-
-        return 0;
-      }
       else if (opt == "l" || opt == "list")
         run = "";
+      else if (opt == "ld" || opt == "list_devices" || opt == "list-devices" || opt == "listDevices" || opt == "listdevices")
+        return printPhysicalDevices();
       else if (opt == "h" || opt == "help")
       {
         printUsage();

@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "device.h"
@@ -20,8 +20,39 @@ OIDN_NAMESPACE_BEGIN
     else if (name == "nodeMask")
     {
       if (!luidSupported)
-        throw Exception(Error::InvalidArgument, "physical device node mask unavailable, check luidSupported first");
+        throw Exception(Error::InvalidArgument,
+                        "physical device node mask unavailable, check luidSupported first");
       return nodeMask;
+    }
+    else if (name == "pciAddressSupported")
+      return pciAddressSupported;
+    else if (name == "pciDomain")
+    {
+      if (!pciAddressSupported)
+        throw Exception(Error::InvalidArgument,
+                        "physical device PCI domain number unavailable, check pciAddressSupported first");
+      return pciDomain;
+    }
+    else if (name == "pciBus")
+    {
+      if (!pciAddressSupported)
+        throw Exception(Error::InvalidArgument,
+                        "physical device PCI bus number unavailable, check pciAddressSupported first");
+      return pciBus;
+    }
+    else if (name == "pciDevice")
+    {
+      if (!pciAddressSupported)
+        throw Exception(Error::InvalidArgument,
+                        "physical device PCI device number unavailable, check pciAddressSupported first");
+      return pciDevice;
+    }
+    else if (name == "pciFunction")
+    {
+      if (!pciAddressSupported)
+        throw Exception(Error::InvalidArgument,
+                        "physical device PCI function number unavailable, check pciAddressSupported first");
+      return pciFunction;
     }
     else
       throw Exception(Error::InvalidArgument, "unknown physical device parameter or type mismatch");

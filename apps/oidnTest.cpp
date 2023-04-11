@@ -25,26 +25,26 @@ DeviceRef makeDevice()
 
 TEST_CASE("physical device", "[physical_device]")
 {
-  int numDevices = getNumPhysicalDevices();
+  const int numDevices = getNumPhysicalDevices();
   REQUIRE(getError() == Error::None);
   REQUIRE(numDevices >= 0);
 
   for (int i = 0; i < numDevices; ++i)
   {
     PhysicalDeviceRef physicalDevice(i);
-  
-    DeviceType type = physicalDevice.get<DeviceType>("type");
+
+    const DeviceType type = physicalDevice.get<DeviceType>("type");
     REQUIRE(getError() == Error::None);
     REQUIRE(type != DeviceType::Default);
 
     physicalDevice.get<int>("qwertyuiop");
     REQUIRE(getError() == Error::InvalidArgument);
 
-    std::string name = physicalDevice.get<std::string>("name");
+    const std::string name = physicalDevice.get<std::string>("name");
     REQUIRE(getError() == Error::None);
     REQUIRE(!name.empty());
 
-    bool uuidSupported = physicalDevice.get<bool>("uuidSupported");
+    const bool uuidSupported = physicalDevice.get<bool>("uuidSupported");
     REQUIRE(getError() == Error::None);
     physicalDevice.get<oidn::UUID>("uuid");
     if (uuidSupported)
@@ -52,7 +52,7 @@ TEST_CASE("physical device", "[physical_device]")
     else
       REQUIRE(getError() == Error::InvalidArgument);
 
-    bool luidSupported = physicalDevice.get<bool>("luidSupported");
+    const bool luidSupported = physicalDevice.get<bool>("luidSupported");
     REQUIRE(getError() == Error::None);
 
     physicalDevice.get<oidn::LUID>("luid");
@@ -61,12 +61,23 @@ TEST_CASE("physical device", "[physical_device]")
     else
       REQUIRE(getError() == Error::InvalidArgument);
 
-    uint32_t nodeMask = physicalDevice.get<uint32_t>("nodeMask");
+    const uint32_t nodeMask = physicalDevice.get<uint32_t>("nodeMask");
     if (luidSupported)
     {
       REQUIRE(getError() == Error::None);
       REQUIRE(nodeMask != 0);
     }
+    else
+      REQUIRE(getError() == Error::InvalidArgument);
+
+    const bool pciAddressSupported = physicalDevice.get<bool>("pciAddressSupported");
+    REQUIRE(getError() == Error::None);
+    physicalDevice.get<int>("pciDomain");
+    physicalDevice.get<int>("pciBus");
+    physicalDevice.get<int>("pciDevice");
+    physicalDevice.get<int>("pciFunction");
+    if (pciAddressSupported)
+      REQUIRE(getError() == Error::None);
     else
       REQUIRE(getError() == Error::InvalidArgument);
 

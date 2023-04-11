@@ -11,7 +11,7 @@
 #include "data.h"
 
 OIDN_NAMESPACE_BEGIN
-  
+
   class Engine;
   class Buffer;
   class Filter;
@@ -24,12 +24,18 @@ OIDN_NAMESPACE_BEGIN
 
     std::string name = "Unknown";
 
-    UUID uuid{};
     bool uuidSupported = false;
-    
-    LUID luid{};
+    UUID uuid{};
+
     bool luidSupported = false;
+    LUID luid{};
     uint32_t nodeMask = 0;
+
+    bool pciAddressSupported = false;
+    int pciDomain   = 0;
+    int pciBus      = 0;
+    int pciDevice   = 0;
+    int pciFunction = 0;
 
     PhysicalDevice(DeviceType type, int score) : type(type), score(score) {}
 
@@ -87,7 +93,7 @@ OIDN_NAMESPACE_BEGIN
     virtual void wait() = 0;
 
     Ref<Filter> newFilter(const std::string& type);
-   
+
   protected:
     virtual void init() = 0;
 

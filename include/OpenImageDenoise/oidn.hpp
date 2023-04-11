@@ -808,6 +808,12 @@ OIDN_NAMESPACE_BEGIN
     return DeviceRef(oidnNewDeviceByLUID(luid.bytes));
   }
 
+  // Creates a device from the physical device specified by its PCI address.
+  inline DeviceRef newDevice(int pciDomain, int pciBus, int pciDevice, int pciFunction)
+  {
+    return DeviceRef(oidnNewDeviceByPCIAddress(pciDomain, pciBus, pciDevice, pciFunction));
+  }
+
 #if defined(SYCL_LANGUAGE_VERSION)
   // Creates a device from the specified SYCL queue.
   inline DeviceRef newSYCLDevice(const sycl::queue& queue)

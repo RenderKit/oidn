@@ -29,7 +29,7 @@ OIDN_NAMESPACE_BEGIN
     : PhysicalDevice(DeviceType::HIP, score),
       deviceID(deviceID)
   {
-    name = strlen(prop.name) > 0 ? prop.name : prop.gcnArchName;
+    name = HIPDevice::getName(prop);
 
     hipUUID_t uuid{};
     if (hipDeviceGetUuid(&uuid, deviceID) == hipSuccess)
@@ -37,6 +37,12 @@ OIDN_NAMESPACE_BEGIN
       memcpy(this->uuid.bytes, uuid.bytes, sizeof(this->uuid.bytes));
       uuidSupported = true;
     }
+
+    pciDomain   = prop.pciDomainID;
+    pciBus      = prop.pciBusID;
+    pciDevice   = prop.pciDeviceID;
+    pciFunction = 0; // implicit
+    pciAddressSupported = true;
 
     // FIXME: HIP does not seem to support querying the LUID
   }
@@ -54,7 +60,7 @@ OIDN_NAMESPACE_BEGIN
       if (hipGetDeviceProperties(&prop, deviceID) != hipSuccess)
         continue;
 
-      HIPArch arch = getArch(prop.gcnArchName);
+      HIPArch arch = getArch(prop);
       bool isSupported = arch != HIPArch::Unknown && prop.managedMemory;
 
       if (isSupported)
@@ -67,9 +73,15 @@ OIDN_NAMESPACE_BEGIN
     return devices;
   }
 
-  std::string HIPDevice::getArchName(const std::string& archStr)
+  std::string HIPDevice::getName(const hipDeviceProp_t& prop)
   {
-    const std::string name = archStr.substr(0, archStr.find(':'));
+    return strlen(prop.name) > 0 ? prop.name : prop.gcnArchName;
+  }
+
+  std::string HIPDevice::getArchName(const hipDeviceProp_t& prop)
+  {
+    const std::string fullName = prop.gcnArchName;
+    const std::string name = fullName.substr(0, fullName.find(':'));
 
     if (name == "10.3.0 Sienna_Cichlid 18")
       return "gfx1030";
@@ -77,9 +89,9 @@ OIDN_NAMESPACE_BEGIN
       return name;
   }
 
-  HIPArch HIPDevice::getArch(const std::string& archStr)
+  HIPArch HIPDevice::getArch(const hipDeviceProp_t& prop)
   {
-    const std::string name = getArchName(archStr);
+    const std::string name = getArchName(prop);
 
     if (name == "gfx1030")
       return HIPArch::DL;
@@ -135,15 +147,13 @@ OIDN_NAMESPACE_BEGIN
   {
     hipDeviceProp_t prop{};
     checkError(hipGetDeviceProperties(&prop, deviceID));
-    arch = getArch(prop.gcnArchName);
+    arch = getArch(prop);
     maxWorkGroupSize = prop.maxThreadsPerBlock;
-    
+
     if (isVerbose())
     {
-      const std::string name = strlen(prop.name) > 0 ? prop.name : prop.gcnArchName;
-      
-      std::cout << "  Device    : " << name << std::endl;
-      std::cout << "    Arch    : " << getArchName(prop.gcnArchName) << std::endl;
+      std::cout << "  Device    : " << getName(prop) << std::endl;
+      std::cout << "    Arch    : " << getArchName(prop) << std::endl;
       std::cout << "    CUs     : " << prop.multiProcessorCount << std::endl;
     }
 

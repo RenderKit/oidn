@@ -33,6 +33,8 @@ public:
   int getNumPhysicalDevices() const { return static_cast<int>(physicalDevices.size()); }
   const Ref<PhysicalDevice>& getPhysicalDevice(int id) const;
 
+  Ref<Device> newDevice(int physicalDeviceID);
+
 private:
   // Returns the global context without initialization
   static Context& getInstance();

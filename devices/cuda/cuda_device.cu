@@ -42,6 +42,12 @@ OIDN_NAMESPACE_BEGIN
       luidSupported = true;
     }
   #endif
+
+    pciDomain   = prop.pciDomainID;
+    pciBus      = prop.pciBusID;
+    pciDevice   = prop.pciDeviceID;
+    pciFunction = 0; // implicit
+    pciAddressSupported = true;
   }
 
   std::vector<Ref<PhysicalDevice>> CUDADevice::getPhysicalDevices()

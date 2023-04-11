@@ -81,7 +81,7 @@ OIDN_NAMESPACE_BEGIN
 
   std::ostream& operator <<(std::ostream& sm, const UUID& uuid)
   {
-    std::ios_base::fmtflags flags = sm.flags();
+    auto flags = sm.flags();
     for (size_t i = 0; i < sizeof(uuid.bytes); ++i)
       sm << std::hex << std::setw(2) << std::setfill('0') << int(uuid.bytes[i]);
     sm.flags(flags);
@@ -90,7 +90,7 @@ OIDN_NAMESPACE_BEGIN
 
   std::ostream& operator <<(std::ostream& sm, const LUID& luid)
   {
-    std::ios_base::fmtflags flags = sm.flags();
+    auto flags = sm.flags();
     for (size_t i = 0; i < sizeof(luid.bytes); ++i)
       sm << std::hex << std::setw(2) << std::setfill('0') << int(luid.bytes[i]);
     sm.flags(flags);

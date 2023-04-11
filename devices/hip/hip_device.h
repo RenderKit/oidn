@@ -7,9 +7,7 @@
 
 OIDN_NAMESPACE_BEGIN
 
-#if defined(OIDN_COMPILE_HIP)
   void checkError(hipError_t error);
-#endif
 
   class HIPEngine;
 
@@ -35,8 +33,9 @@ OIDN_NAMESPACE_BEGIN
 
   public:
     static std::vector<Ref<PhysicalDevice>> getPhysicalDevices();
-    static std::string getArchName(const std::string& archStr);
-    static HIPArch getArch(const std::string& archStr);
+    static std::string getName(const hipDeviceProp_t& prop);
+    static std::string getArchName(const hipDeviceProp_t& prop);
+    static HIPArch getArch(const hipDeviceProp_t& prop);
 
     HIPDevice(int deviceID = -1, hipStream_t stream = nullptr);
     explicit HIPDevice(const Ref<HIPPhysicalDevice>& physicalDevice);
@@ -44,7 +43,7 @@ OIDN_NAMESPACE_BEGIN
 
     void begin() override;
     void end() override;
-    
+
     DeviceType getType() const override { return DeviceType::HIP; }
 
     Engine* getEngine(int i) const override

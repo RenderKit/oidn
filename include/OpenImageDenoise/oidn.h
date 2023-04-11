@@ -97,6 +97,9 @@ OIDN_API OIDNDevice oidnNewDeviceByUUID(const void* uuid);
 // Creates a device from the physical device specified by its LUID.
 OIDN_API OIDNDevice oidnNewDeviceByLUID(const void* luid);
 
+// Creates a device from the physical device specified by its PCI address.
+OIDN_API OIDNDevice oidnNewDeviceByPCIAddress(int pciDomain, int pciBus, int pciDevice, int pciFunction);
+
 // Creates a device from the specified list of SYCL queues.
 // The queues should belong to SYCL sub-devices (Xe-Stacks/Tiles) of the same SYCL root-device
 // (Xe GPU).

@@ -178,7 +178,7 @@ OIDN_API_NAMESPACE_BEGIN
         device = ctx.getDeviceFactory(type)->newDevice();
       }
     OIDN_CATCH(device)
-    
+
     return reinterpret_cast<OIDNDevice>(device.detach());
   }
 
@@ -188,11 +188,9 @@ OIDN_API_NAMESPACE_BEGIN
 
     OIDN_TRY
       Context& ctx = Context::get();
-      const auto& physicalDevice = ctx.getPhysicalDevice(physicalDeviceID);
-      DeviceType type = physicalDevice->type;
-      device = ctx.getDeviceFactory(type)->newDevice(physicalDevice);
+      device = ctx.newDevice(physicalDeviceID);
     OIDN_CATCH(device)
-    
+
     return reinterpret_cast<OIDNDevice>(device.detach());
   }
 
@@ -234,11 +232,9 @@ OIDN_API_NAMESPACE_BEGIN
       if (foundID < 0)
         throw Exception(Error::InvalidArgument, "no physical device found with specified UUID");
 
-      const auto& physicalDevice = ctx.getPhysicalDevice(foundID);
-      const DeviceType type = physicalDevice->type;
-      device = ctx.getDeviceFactory(type)->newDevice(physicalDevice);
+      device = ctx.newDevice(foundID);
     OIDN_CATCH(device)
-    
+
     return reinterpret_cast<OIDNDevice>(device.detach());
   }
 
@@ -282,11 +278,43 @@ OIDN_API_NAMESPACE_BEGIN
       if (foundID < 0)
         throw Exception(Error::InvalidArgument, "no physical device found with specified LUID");
 
-      const auto& physicalDevice = ctx.getPhysicalDevice(foundID);
-      const DeviceType type = physicalDevice->type;
-      device = ctx.getDeviceFactory(type)->newDevice(physicalDevice);
+      device = ctx.newDevice(foundID);
     OIDN_CATCH(device)
-    
+
+    return reinterpret_cast<OIDNDevice>(device.detach());
+  }
+
+  OIDN_API OIDNDevice oidnNewDeviceByPCIAddress(int pciDomain, int pciBus, int pciDevice, int pciFunction)
+  {
+    Ref<Device> device = nullptr;
+
+    OIDN_TRY
+      Context& ctx = Context::get();
+
+      // Find the physical device with the specified PCI address
+      const int numDevices = ctx.getNumPhysicalDevices();
+      int foundID = -1;
+
+      for (int i = 0; i < numDevices; ++i)
+      {
+        const auto& physicalDevice = ctx.getPhysicalDevice(i);
+        if (physicalDevice->pciAddressSupported &&
+            physicalDevice->pciDomain   == pciDomain &&
+            physicalDevice->pciBus      == pciBus    &&
+            physicalDevice->pciDevice   == pciDevice &&
+            physicalDevice->pciFunction == pciFunction)
+        {
+          foundID = i;
+          break;
+        }
+      }
+
+      if (foundID < 0)
+        throw Exception(Error::InvalidArgument, "no physical device found with specified PCI address");
+
+      device = ctx.newDevice(foundID);
+    OIDN_CATCH(device)
+
     return reinterpret_cast<OIDNDevice>(device.detach());
   }
 
@@ -299,7 +327,7 @@ OIDN_API_NAMESPACE_BEGIN
       auto factory = static_cast<SYCLDeviceFactoryBase*>(ctx.getDeviceFactory(DeviceType::SYCL));
       device = factory->newDevice(queues, numQueues);
     OIDN_CATCH(device)
-    
+
     return reinterpret_cast<OIDNDevice>(device.detach());
   }
 

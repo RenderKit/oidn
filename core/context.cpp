@@ -63,4 +63,11 @@ OIDN_NAMESPACE_BEGIN
     return physicalDevices[id];
   }
 
+  Ref<Device> Context::newDevice(int physicalDeviceID)
+  {
+    const auto& physicalDevice = getPhysicalDevice(physicalDeviceID);
+    const DeviceType type = physicalDevice->type;
+    return getDeviceFactory(type)->newDevice(physicalDevice);
+  }
+
 OIDN_NAMESPACE_END
