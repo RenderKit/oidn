@@ -63,7 +63,8 @@ OIDN_NAMESPACE_BEGIN
   }
 
   std::tuple<size_t, double> compareImage(const ImageBuffer& image,
-                                          const ImageBuffer& ref)
+                                          const ImageBuffer& ref,
+                                          double errorThreshold)
   {
     assert(ref.getDims() == image.getDims());    
 
@@ -78,6 +79,7 @@ OIDN_NAMESPACE_BEGIN
       const double absError = std::abs(expect - actual);
       const double relError = absError / (std::abs(expect) + std::abs(actual) + 0.01);
 
+      // Detect severe outliers
       if (absError > 0.01 && relError > 0.05)
       {
         if (numErrors < 5)
@@ -89,7 +91,8 @@ OIDN_NAMESPACE_BEGIN
     }
 
     avgError /= image.getSize();
-    if (avgError > 0.05)
+
+    if (avgError > errorThreshold)
       numErrors = image.getSize();
 
     return std::make_tuple(numErrors, avgError);

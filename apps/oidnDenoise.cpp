@@ -377,9 +377,10 @@ int main(int argc, char* argv[])
         // Verify the output values
         std::cout << "Verifying output" << std::endl;
 
+        const double errorThreshold = (input == normal || directional) ? 0.05 : 0.003;
         size_t numErrors;
         double avgError;
-        std::tie(numErrors, avgError) = compareImage(*output, *ref);
+        std::tie(numErrors, avgError) = compareImage(*output, *ref, errorThreshold);
 
         std::cout << "  values=" << output->getSize()
                   << ", errors=" << numErrors << ", avgerror=" << avgError << std::endl;
