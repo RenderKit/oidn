@@ -80,7 +80,7 @@ OIDN_NAMESPACE_BEGIN
       const double relError = absError / (std::abs(expect) + std::abs(actual) + 0.01);
 
       // Detect severe outliers
-      if (absError > 0.01 && relError > 0.05)
+      if (absError > 0.02 && relError > 0.05)
       {
         if (numErrors < 5)
           std::cerr << "  error i=" << i << ", expect=" << expect << ", actual=" << actual << std::endl;

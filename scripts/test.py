@@ -133,7 +133,7 @@ def test_regression(filter, feature_sets, dataset):
       # Generate the baseline images
       print_test(f'{filter}.{features_str}', 'Infer')
       infer_cmd = os.path.join(root_dir, 'training', 'infer.py')
-      infer_cmd += f' -D "{cfg.data_dir}" -R "{cfg.results_dir}" -O "{cfg.baseline_dir}" -i {dataset} -r {result} -F pfm'
+      infer_cmd += f' -D "{cfg.data_dir}" -R "{cfg.results_dir}" -O "{cfg.baseline_dir}" -i {dataset} -r {result} -F pfm -d cpu'
       run_test(infer_cmd)
 
     elif cfg.command == 'run':
