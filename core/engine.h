@@ -51,10 +51,11 @@ OIDN_NAMESPACE_BEGIN
 
     virtual Ref<Buffer> newExternalBuffer(ExternalMemoryTypeFlag handleType,
                                           void* handle, const void* name, size_t byteSize);
-                                          
+
     Ref<ScratchBuffer> newScratchBuffer(size_t byteSize);
 
     // Tensor
+    virtual bool isSupported(const TensorDesc& desc) const { return true; }
     virtual std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, Storage storage = Storage::Device);
     virtual std::shared_ptr<Tensor> newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset = 0);
 

@@ -48,7 +48,7 @@ OIDN_NAMESPACE_BEGIN
 #endif
 
   class HIPEngine final : public Engine
-  { 
+  {
   public:
     HIPEngine(const Ref<HIPDevice>& device,
               hipStream_t stream);
@@ -62,6 +62,9 @@ OIDN_NAMESPACE_BEGIN
 
     Ref<Buffer> newExternalBuffer(ExternalMemoryTypeFlag handleType,
                                   void* handle, const void* name, size_t byteSize) override;
+
+    // Tensor
+    bool isSupported(const TensorDesc& desc) const override;
 
     // Ops
     std::shared_ptr<Conv> newConv(const ConvDesc& desc) override;

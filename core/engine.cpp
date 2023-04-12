@@ -41,12 +41,19 @@ OIDN_NAMESPACE_BEGIN
 
   std::shared_ptr<Tensor> Engine::newTensor(const TensorDesc& desc, Storage storage)
   {
+    if (!isSupported(desc))
+      throw std::invalid_argument("unsupported tensor descriptor");
+
     return std::make_shared<GenericTensor>(this, desc, storage);
   }
 
   std::shared_ptr<Tensor> Engine::newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
   {
-    assert(buffer->getEngine() == this);
+    if (!isSupported(desc))
+      throw std::invalid_argument("unsupported tensor descriptor");
+    if (buffer->getEngine() != this)
+      throw std::invalid_argument("buffer was not created by the engine");
+
     return std::make_shared<GenericTensor>(buffer, desc, byteOffset);
   }
 

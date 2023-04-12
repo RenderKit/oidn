@@ -30,6 +30,12 @@ OIDN_NAMESPACE_BEGIN
     return makeRef<HIPExternalBuffer>(this, handleType, handle, name, byteSize);
   }
 
+  bool HIPEngine::isSupported(const TensorDesc& desc) const
+  {
+    // CK tensors must be smaller than 2GB
+    return desc.getByteSize() <= INT32_MAX;
+  }
+
   std::shared_ptr<Conv> HIPEngine::newConv(const ConvDesc& desc)
   {
     switch (device->arch)
@@ -37,7 +43,7 @@ OIDN_NAMESPACE_BEGIN
     case HIPArch::DL:
       return newHIPConvDL(this, desc);
     case HIPArch::WMMA:
-      return newHIPConvWMMA(this, desc); 
+      return newHIPConvWMMA(this, desc);
     default:
       throw std::logic_error("unsupported HIP device architecture");
     }

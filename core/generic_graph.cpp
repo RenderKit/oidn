@@ -186,7 +186,7 @@ OIDN_NAMESPACE_BEGIN
       });
 
       constByteSize += concatConv->getWeight1Desc().getByteSize() +
-                       concatConv->getWeight2Desc().getByteSize() + 
+                       concatConv->getWeight2Desc().getByteSize() +
                        finalBiasDesc.getByteSize();
       return concatConv;
     }
@@ -260,7 +260,7 @@ OIDN_NAMESPACE_BEGIN
 
     return op;
   }
-  
+
   void GenericGraph::addOp(const std::shared_ptr<Op>& op,
                            const std::vector<std::shared_ptr<Op>>& srcOps,
                            bool concatSrcs)
@@ -275,7 +275,7 @@ OIDN_NAMESPACE_BEGIN
     {
       TensorAlloc* cur = tensorAllocsByOp[srcOp.get()];
       cur->lastOpID = opID;
-      
+
       if (concatSrcs && prev)
       {
         if (cur->prev || prev->next)
@@ -286,7 +286,7 @@ OIDN_NAMESPACE_BEGIN
 
       prev = cur;
     }
-    
+
     ops.push_back(op);
     dirty = true;
   }
@@ -318,7 +318,7 @@ OIDN_NAMESPACE_BEGIN
     };
 
     std::vector<Chunk> chunks;
-    
+
     // Iterate over all tensor allocations and find the first allocation in each chunk
     for (const auto& alloc : tensorAllocs)
     {
@@ -385,7 +385,7 @@ OIDN_NAMESPACE_BEGIN
       for (TensorAlloc* alloc = chunk.firstAlloc; alloc; alloc = alloc->next)
       {
         alloc->byteOffset = bestByteOffset;
-        
+
         auto it = std::upper_bound(activeAllocs.begin(), activeAllocs.end(), alloc,
                     [](const TensorAlloc* a, const TensorAlloc* b) { return a->byteOffset < b->byteOffset; });
         activeAllocs.insert(it, alloc);
@@ -411,9 +411,14 @@ OIDN_NAMESPACE_BEGIN
 
   bool GenericGraph::isSupported() const
   {
+    for (const auto& tensorAlloc : tensorAllocs)
+      if (!engine->isSupported(tensorAlloc->desc))
+        return false;
+
     for (const auto& op : ops)
       if (!op->isSupported())
         return false;
+
     return true;
   }
 
@@ -467,7 +472,7 @@ OIDN_NAMESPACE_BEGIN
 
     cleanup();
     constTensors.reset();
-    
+
     finalized = true;
   }
 
@@ -476,7 +481,7 @@ OIDN_NAMESPACE_BEGIN
     for (size_t i = 0; i < ops.size(); ++i)
     {
       ops[i]->submit();
-      
+
     #if 0
       // Dump
       engine->wait();

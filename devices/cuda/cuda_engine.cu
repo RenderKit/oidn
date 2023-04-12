@@ -30,6 +30,12 @@ OIDN_NAMESPACE_BEGIN
     return makeRef<CUDAExternalBuffer>(this, handleType, handle, name, byteSize);
   }
 
+  bool CUDAEngine::isSupported(const TensorDesc& desc) const
+  {
+    // CUTLASS stores the strides in 32-bit integers
+    return desc.getNumElements() <= INT32_MAX;
+  }
+
   std::shared_ptr<Conv> CUDAEngine::newConv(const ConvDesc& desc)
   {
     return newCUDAConv(this, desc);
