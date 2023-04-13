@@ -33,7 +33,7 @@ OIDN_NAMESPACE_BEGIN
   bool HIPEngine::isSupported(const TensorDesc& desc) const
   {
     // CK tensors must be smaller than 2GB
-    return desc.getByteSize() <= INT32_MAX;
+    return Engine::isSupported(desc) && desc.getByteSize() <= INT32_MAX;
   }
 
   std::shared_ptr<Conv> HIPEngine::newConv(const ConvDesc& desc)

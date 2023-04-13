@@ -55,7 +55,7 @@ OIDN_NAMESPACE_BEGIN
     Ref<ScratchBuffer> newScratchBuffer(size_t byteSize);
 
     // Tensor
-    virtual bool isSupported(const TensorDesc& desc) const { return true; }
+    virtual bool isSupported(const TensorDesc& desc) const;
     virtual std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, Storage storage = Storage::Device);
     virtual std::shared_ptr<Tensor> newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset = 0);
 

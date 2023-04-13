@@ -32,8 +32,8 @@ OIDN_NAMESPACE_BEGIN
 
   bool CUDAEngine::isSupported(const TensorDesc& desc) const
   {
-    // CUTLASS stores the strides in 32-bit integers
-    return desc.getNumElements() <= INT32_MAX;
+    // CUTLASS stores tensor strides in 32-bit signed integers
+    return Engine::isSupported(desc) && desc.getNumElements() <= INT32_MAX;
   }
 
   std::shared_ptr<Conv> CUDAEngine::newConv(const ConvDesc& desc)

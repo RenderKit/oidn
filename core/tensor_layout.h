@@ -11,7 +11,7 @@ OIDN_NAMESPACE_BEGIN
   enum class TensorLayout
   {
     x,
-    
+
     chw,
     Chw8c,  // blocked
     Chw16c, // blocked
@@ -36,23 +36,23 @@ OIDN_NAMESPACE_BEGIN
     template<typename T>
     struct Addressing
     {
-      static constexpr size_t wByteStride = sizeof(T);
-      size_t hByteStride;
-      size_t cByteStride;
+      static constexpr uint32_t wByteStride = sizeof(T);
+      uint32_t hByteStride;
+      uint32_t cByteStride;
 
       Addressing() = default;
 
       OIDN_HOST_DEVICE_INLINE Addressing(int C, int H, int W)
       {
-        hByteStride = size_t(W) * wByteStride;
-        cByteStride = size_t(H) * hByteStride;
+        hByteStride = uint32_t(W) * wByteStride;
+        cByteStride = uint32_t(H) * hByteStride;
       }
 
-      OIDN_HOST_DEVICE_INLINE size_t getByteOffset(int c, int h, int w) const
+      OIDN_HOST_DEVICE_INLINE uint32_t getByteOffset(int c, int h, int w) const
       {
-        return size_t(c) * cByteStride +
-               size_t(h) * hByteStride +
-               size_t(w) * wByteStride;
+        return uint32_t(c) * cByteStride +
+               uint32_t(h) * hByteStride +
+               uint32_t(w) * wByteStride;
       }
     };
   };
@@ -63,23 +63,23 @@ OIDN_NAMESPACE_BEGIN
     template<typename T>
     struct Addressing
     {
-      static constexpr size_t cByteStride = sizeof(T);
-      size_t wByteStride;
-      size_t hByteStride;
+      static constexpr uint32_t cByteStride = sizeof(T);
+      uint32_t wByteStride;
+      uint32_t hByteStride;
 
       Addressing() = default;
 
       OIDN_HOST_DEVICE_INLINE Addressing(int C, int H, int W)
       {
-        wByteStride = size_t(C) * cByteStride;
-        hByteStride = size_t(W) * wByteStride;
+        wByteStride = uint32_t(C) * cByteStride;
+        hByteStride = uint32_t(W) * wByteStride;
       }
 
-      OIDN_HOST_DEVICE_INLINE size_t getByteOffset(int c, int h, int w) const
+      OIDN_HOST_DEVICE_INLINE uint32_t getByteOffset(int c, int h, int w) const
       {
-        return size_t(c) * cByteStride +
-               size_t(h) * hByteStride +
-               size_t(w) * wByteStride;
+        return uint32_t(c) * cByteStride +
+               uint32_t(h) * hByteStride +
+               uint32_t(w) * wByteStride;
       }
     };
   };
@@ -89,24 +89,25 @@ OIDN_NAMESPACE_BEGIN
   {
     static constexpr int blockC = B; // block channels
 
-    static constexpr size_t wByteStride = B * sizeof(T);
-    size_t hByteStride;
-    size_t CByteStride;
+    static constexpr uint32_t cByteStride = sizeof(T);
+    static constexpr uint32_t wByteStride = B * cByteStride;
+    uint32_t hByteStride;
+    uint32_t CByteStride;
 
     TensorAddressingChwBc() = default;
 
     OIDN_HOST_DEVICE_INLINE TensorAddressingChwBc(int C, int H, int W)
     {
-      hByteStride = size_t(W) * wByteStride;
-      CByteStride = size_t(H) * hByteStride;
+      hByteStride = uint32_t(W) * wByteStride;
+      CByteStride = uint32_t(H) * hByteStride;
     }
 
-    OIDN_HOST_DEVICE_INLINE size_t getByteOffset(int c, int h, int w) const
+    OIDN_HOST_DEVICE_INLINE uint32_t getByteOffset(int c, int h, int w) const
     {
-      return size_t(c/B) * CByteStride +
-             size_t(h)   * hByteStride +
-             size_t(w)   * wByteStride +
-             size_t(c%B) * sizeof(T);
+      return uint32_t(c/B) * CByteStride +
+             uint32_t(h)   * hByteStride +
+             uint32_t(w)   * wByteStride +
+             uint32_t(c%B) * cByteStride;
     }
   };
 
@@ -116,7 +117,7 @@ OIDN_NAMESPACE_BEGIN
     template<typename T>
     using Addressing = TensorAddressingChwBc<T, 8>;
   };
-  
+
   template<>
   struct TensorLayoutTraits<TensorLayout::Chw16c>
   {
@@ -130,26 +131,26 @@ OIDN_NAMESPACE_BEGIN
     template<typename T>
     struct Addressing
     {
-      static constexpr size_t wByteStride = sizeof(T);
-      size_t hByteStride;
-      size_t iByteStride;
-      size_t oByteStride;
+      static constexpr uint32_t wByteStride = sizeof(T);
+      uint32_t hByteStride;
+      uint32_t iByteStride;
+      uint32_t oByteStride;
 
       Addressing() = default;
 
       OIDN_HOST_DEVICE_INLINE Addressing(int O, int I, int H, int W)
       {
-        hByteStride = size_t(W) * wByteStride;
-        iByteStride = size_t(H) * hByteStride;
-        oByteStride = size_t(I) * iByteStride;
+        hByteStride = uint32_t(W) * wByteStride;
+        iByteStride = uint32_t(H) * hByteStride;
+        oByteStride = uint32_t(I) * iByteStride;
       }
 
-      OIDN_HOST_DEVICE_INLINE size_t getByteOffset(int o, int i, int h, int w) const
+      OIDN_HOST_DEVICE_INLINE uint32_t getByteOffset(int o, int i, int h, int w) const
       {
-        return size_t(o) * oByteStride +
-               size_t(i) * iByteStride +
-               size_t(h) * hByteStride +
-               size_t(w) * wByteStride;
+        return uint32_t(o) * oByteStride +
+               uint32_t(i) * iByteStride +
+               uint32_t(h) * hByteStride +
+               uint32_t(w) * wByteStride;
       }
     };
   };
@@ -159,30 +160,30 @@ OIDN_NAMESPACE_BEGIN
   {
     static constexpr int blockC = B; // block channels
 
-    static constexpr size_t BoByteStride = sizeof(T);
-    static constexpr size_t BiByteStride = B * BoByteStride;
-    static constexpr size_t wByteStride  = B * BiByteStride;
-    size_t hByteStride;
-    size_t IByteStride;
-    size_t OByteStride;
+    static constexpr uint32_t BoByteStride = sizeof(T);
+    static constexpr uint32_t BiByteStride = B * BoByteStride;
+    static constexpr uint32_t wByteStride  = B * BiByteStride;
+    uint32_t hByteStride;
+    uint32_t IByteStride;
+    uint32_t OByteStride;
 
     TensorAddressingOIhwBiBo() = default;
 
     OIDN_HOST_DEVICE_INLINE TensorAddressingOIhwBiBo(int O, int I, int H, int W)
     {
-      hByteStride = size_t(W)     * wByteStride;
-      IByteStride = size_t(H)     * hByteStride;
-      OByteStride = size_t(I / B) * IByteStride;
+      hByteStride = uint32_t(W)     * wByteStride;
+      IByteStride = uint32_t(H)     * hByteStride;
+      OByteStride = uint32_t(I / B) * IByteStride;
     }
 
-    OIDN_HOST_DEVICE_INLINE size_t getByteOffset(int o, int i, int h, int w) const
+    OIDN_HOST_DEVICE_INLINE uint32_t getByteOffset(int o, int i, int h, int w) const
     {
-      return size_t(o / B) * OByteStride  +
-             size_t(i / B) * IByteStride  +
-             size_t(h)     * hByteStride  +
-             size_t(w)     * wByteStride  +
-             size_t(i % B) * BiByteStride +
-             size_t(o % B) * BoByteStride;
+      return uint32_t(o / B) * OByteStride  +
+             uint32_t(i / B) * IByteStride  +
+             uint32_t(h)     * hByteStride  +
+             uint32_t(w)     * wByteStride  +
+             uint32_t(i % B) * BiByteStride +
+             uint32_t(o % B) * BoByteStride;
     }
   };
 
@@ -192,7 +193,7 @@ OIDN_NAMESPACE_BEGIN
     template<typename T>
     using Addressing = TensorAddressingOIhwBiBo<T, 8>;
   };
-  
+
   template<>
   struct TensorLayoutTraits<TensorLayout::OIhw16i16o>
   {
@@ -208,34 +209,34 @@ OIDN_NAMESPACE_BEGIN
     static constexpr int B = P * R;
     static constexpr int blockC = B; // block channels
 
-    static constexpr size_t SiByteStride = sizeof(T);
-    static constexpr size_t RoByteStride = S * SiByteStride;
-    static constexpr size_t QiByteStride = R * RoByteStride;
-    static constexpr size_t PoByteStride = Q * QiByteStride;
-    static constexpr size_t wByteStride  = P * PoByteStride;
-    size_t hByteStride;
-    size_t IByteStride;
-    size_t OByteStride;
+    static constexpr uint32_t SiByteStride = sizeof(T);
+    static constexpr uint32_t RoByteStride = S * SiByteStride;
+    static constexpr uint32_t QiByteStride = R * RoByteStride;
+    static constexpr uint32_t PoByteStride = Q * QiByteStride;
+    static constexpr uint32_t wByteStride  = P * PoByteStride;
+    uint32_t hByteStride;
+    uint32_t IByteStride;
+    uint32_t OByteStride;
 
     TensorAddressingOIhwPoQiRoSi() = default;
 
     OIDN_HOST_DEVICE_INLINE TensorAddressingOIhwPoQiRoSi(int O, int I, int H, int W)
     {
-      hByteStride = size_t(W)     * wByteStride;
-      IByteStride = size_t(H)     * hByteStride;
-      OByteStride = size_t(I / B) * IByteStride;
+      hByteStride = uint32_t(W)     * wByteStride;
+      IByteStride = uint32_t(H)     * hByteStride;
+      OByteStride = uint32_t(I / B) * IByteStride;
     }
 
-    OIDN_HOST_DEVICE_INLINE size_t getByteOffset(int o, int i, int h, int w) const
+    OIDN_HOST_DEVICE_INLINE uint32_t getByteOffset(int o, int i, int h, int w) const
     {
-      return size_t(o / B)     * OByteStride  +
-             size_t(i / B)     * IByteStride  +
-             size_t(h)         * hByteStride  +
-             size_t(w)         * wByteStride  +
-             size_t(o % B / R) * PoByteStride +
-             size_t(i % B / S) * QiByteStride +
-             size_t(o % R)     * RoByteStride +
-             size_t(i % S)     * SiByteStride;
+      return uint32_t(o / B)     * OByteStride  +
+             uint32_t(i / B)     * IByteStride  +
+             uint32_t(h)         * hByteStride  +
+             uint32_t(w)         * wByteStride  +
+             uint32_t(o % B / R) * PoByteStride +
+             uint32_t(i % B / S) * QiByteStride +
+             uint32_t(o % R)     * RoByteStride +
+             uint32_t(i % S)     * SiByteStride;
     }
   };
 
@@ -259,26 +260,26 @@ OIDN_NAMESPACE_BEGIN
     template<typename T>
     struct Addressing
     {
-      static constexpr size_t iByteStride = sizeof(T);
-      size_t wByteStride;
-      size_t hByteStride;
-      size_t oByteStride;
+      static constexpr uint32_t iByteStride = sizeof(T);
+      uint32_t wByteStride;
+      uint32_t hByteStride;
+      uint32_t oByteStride;
 
       Addressing() = default;
 
       OIDN_HOST_DEVICE_INLINE Addressing(int O, int I, int H, int W)
       {
-        wByteStride = size_t(I) * iByteStride;
-        hByteStride = size_t(W) * wByteStride;
-        oByteStride = size_t(H) * hByteStride;
+        wByteStride = uint32_t(I) * iByteStride;
+        hByteStride = uint32_t(W) * wByteStride;
+        oByteStride = uint32_t(H) * hByteStride;
       }
 
-      OIDN_HOST_DEVICE_INLINE size_t getByteOffset(int o, int i, int h, int w) const
+      OIDN_HOST_DEVICE_INLINE uint32_t getByteOffset(int o, int i, int h, int w) const
       {
-        return size_t(o) * oByteStride +
-               size_t(i) * iByteStride +
-               size_t(h) * hByteStride +
-               size_t(w) * wByteStride;
+        return uint32_t(o) * oByteStride +
+               uint32_t(i) * iByteStride +
+               uint32_t(h) * hByteStride +
+               uint32_t(w) * wByteStride;
       }
     };
   };

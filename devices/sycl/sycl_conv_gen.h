@@ -25,7 +25,7 @@ namespace gen9 {
   #if defined(OIDN_ARCH_XEHPG)
     static constexpr int blockAC = 8;                   // block accumulator channels (exec width)
     static constexpr int numBlockAC = blockC / blockAC; // number of accumulator channel blocks
-    
+
     static constexpr int blockOH = (postOp == PostOp::Pool) ? 6 : 5; // block output height
   #elif defined(OIDN_ARCH_XEHPC)
     static constexpr int blockOH = 4; // block output height
@@ -35,7 +35,7 @@ namespace gen9 {
 
     static constexpr int blockOW = dpasRepeat;      // block output width
     static constexpr int blockIW = blockOW + 3 - 1; // block input width
-    
+
     TensorAccessor3D<T, tensorLayout> src;
     TensorAccessor4D<T, weightLayout> weight;
     TensorAccessor1D<T> bias;
@@ -156,7 +156,7 @@ namespace gen9 {
     #if defined(OIDN_ARCH_XEHPG)
       // Shuffle and down-convert accumulator rows to output rows
       simd<T, blockOW * blockC> outRows[blockOH];
-      
+
       #pragma unroll
       for (int boh = 0; boh < blockOH; ++boh)
       {
@@ -168,7 +168,7 @@ namespace gen9 {
     #elif defined(OIDN_ARCH_GEN9)
       // Down-convert accumulator rows to output rows
       simd<T, blockOW * blockC> outRows[blockOH];
-      
+
       #pragma unroll
       for (int boh = 0; boh < blockOH; ++boh)
         outRows[boh] = accumRows[boh];
@@ -186,7 +186,7 @@ namespace gen9 {
         // Apply ReLU
         outRows[boh] = max(outRows[boh], simd<T, blockOW * blockC>(0));
       }
-      
+
       // Store output rows
       if constexpr (postOp == PostOp::None)
       {
@@ -212,7 +212,7 @@ namespace gen9 {
           auto poolRow2x1 = max(outRows[boh], outRows[boh + 1]);
           auto poolRow2x2 = max(poolRow2x1.template replicate_vs_w<blockOW / 2, blockC * 2, blockC>(0),
                                 poolRow2x1.template replicate_vs_w<blockOW / 2, blockC * 2, blockC>(blockC));
-          
+
           // Store pooled row
           storeRow(poolRow2x2, oc, (oh + boh) / 2, ow / 2);
         }
@@ -252,24 +252,25 @@ namespace gen9 {
         return;
       }
 
-      const T* srcPtr = &src(ic, ih, iw);
-
       if (iw >= 0 && iw + W <= src.W)
       {
         // Fast path: load the entire row
+        const T* srcPtr = &src(ic, ih, iw);
         loadLargeBlock(srcPtr, row);
       }
       else
       {
         // Slow path: load the in-bounds pixels of the row
-        const simd<int, W> wVec(0, 1); // 0, 1, 2, ...
-        simd_mask<W> predVec = (wVec >= -iw) & (wVec < src.W - iw);
+        const simd<int, W> iwVec(iw, 1); // iw, iw+1, iw+2, ...
+        simd_mask<W> predVec = (iwVec >= 0) & (iwVec < src.W);
+        simd<uint32_t,  W> srcOffsetVec = src.getByteOffset(ic, ih, 0) + iwVec * src.wByteStride;
+        simd<uintptr_t, W> srcAddrVec   = reinterpret_cast<uintptr_t>(src.ptr) + srcOffsetVec;
 
         #pragma unroll
         for (int w = 0; w < W; ++w)
         {
+          const T* srcPtr = reinterpret_cast<const T*>(uintptr_t(srcAddrVec[w]));
           row.template select<blockC, 1>(w * blockC) = loadBlock<T, blockC>(srcPtr, predVec.template select<1, 1>(w));
-          srcPtr += blockC;
         }
       }
     }
@@ -286,11 +287,10 @@ namespace gen9 {
       //if (oh >= dst.H)
       //  return;
 
-      T* dstPtr = &dst(oc, oh, ow);
-
       if (ow + W <= dst.W)
       {
         // Fast path: store the entire row
+        T* dstPtr = &dst(oc, oh, ow);
         storeLargeBlock(dstPtr, row);
       }
       else
@@ -298,14 +298,17 @@ namespace gen9 {
         // Slow path: store the in-bounds pixels of the row
         constexpr int numChunks = W / K;
         constexpr int chunkSize = blockC * K;
-        const simd<int, numChunks> wVec(0, K); // 0, 1*K, 2*K, ...
-        simd_mask<numChunks> predVec = wVec < dst.W - ow;
+
+        const simd<int, numChunks> owVec(ow, K); // ow, ow+K, ow+2*K, ...
+        simd_mask<numChunks> predVec = owVec < dst.W;
+        simd<uint32_t,  numChunks> dstOffsetVec = dst.getByteOffset(oc, oh, 0) + owVec * dst.wByteStride;
+        simd<uintptr_t, numChunks> dstAddrVec   = reinterpret_cast<uintptr_t>(dst.ptr) + dstOffsetVec;
 
         #pragma unroll
         for (int i = 0; i < numChunks; ++i)
         {
+          T* dstPtr = reinterpret_cast<T*>(uintptr_t(dstAddrVec[i]));
           storeBlock(dstPtr, row.template select<chunkSize, 1>(i * chunkSize).read(), predVec.template select<1, 1>(i));
-          dstPtr += chunkSize;
         }
       }
     }
@@ -389,13 +392,13 @@ namespace gen9 {
     #else
       const int maxGroupSize = 16;
     #endif
-    
+
       for (; ;)
       {
         bool updated = false;
 
         // Try to increase one of the spatial dimensions (1 or 2), smallest first
-        int dim = (groupSize[1] * Kernel::blockOH < groupSize[2] * Kernel::blockOW) ? 1 : 2; 
+        int dim = (groupSize[1] * Kernel::blockOH < groupSize[2] * Kernel::blockOW) ? 1 : 2;
         for (int i = 0; i < 2 && !updated; ++i, dim = 3-dim)
         {
           const int maxDiv = maxGroupSize / (groupSize[0] * groupSize[3-dim]);
@@ -412,7 +415,7 @@ namespace gen9 {
             }
           }
         }
-        
+
         if (!updated)
           break;
       }

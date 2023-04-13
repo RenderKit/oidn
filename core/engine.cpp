@@ -39,6 +39,12 @@ OIDN_NAMESPACE_BEGIN
     return makeRef<ScratchBuffer>(scratchManager, byteSize);
   }
 
+  bool Engine::isSupported(const TensorDesc& desc) const
+  {
+    // We store tensor byte offsets in 32-bit unsigned integers
+    return desc.getByteSize() <= UINT32_MAX;
+  }
+
   std::shared_ptr<Tensor> Engine::newTensor(const TensorDesc& desc, Storage storage)
   {
     if (!isSupported(desc))
@@ -52,7 +58,7 @@ OIDN_NAMESPACE_BEGIN
     if (!isSupported(desc))
       throw std::invalid_argument("unsupported tensor descriptor");
     if (buffer->getEngine() != this)
-      throw std::invalid_argument("buffer was not created by the engine");
+      throw std::invalid_argument("buffer was created by a different engine");
 
     return std::make_shared<GenericTensor>(buffer, desc, byteOffset);
   }

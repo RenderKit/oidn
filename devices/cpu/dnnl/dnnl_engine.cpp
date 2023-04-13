@@ -22,12 +22,19 @@ OIDN_NAMESPACE_BEGIN
 
   std::shared_ptr<Tensor> DNNLEngine::newTensor(const TensorDesc& desc, Storage storage)
   {
+    if (!isSupported(desc))
+      throw std::invalid_argument("unsupported tensor descriptor");
+
     return std::make_shared<DNNLTensor>(this, desc, storage);
   }
 
   std::shared_ptr<Tensor> DNNLEngine::newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
   {
-    assert(buffer->getEngine() == this);
+    if (!isSupported(desc))
+      throw std::invalid_argument("unsupported tensor descriptor");
+    if (buffer->getEngine() != this)
+      throw std::invalid_argument("buffer was created by a different engine");
+
     return std::make_shared<DNNLTensor>(buffer, desc, byteOffset);
   }
 
