@@ -69,7 +69,7 @@ OIDN_NAMESPACE_BEGIN
 
       if (isSupported)
       {
-        int score = (901 << 16) - deviceID - 1;
+        int score = (19 << 16) - 1 - deviceID;
         devices.push_back(makeRef<CUDAPhysicalDevice>(deviceID, prop, score));
       }
     }

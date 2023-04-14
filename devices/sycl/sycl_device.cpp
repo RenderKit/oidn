@@ -154,7 +154,17 @@ OIDN_NAMESPACE_BEGIN
       return -1;
 
     // Prefer the highest architecture GPU with the most compute units
-    return (int(arch) << 16) + syclDevice.get_info<sycl::info::device::max_compute_units>();
+    int score = 0;
+    switch (arch)
+    {
+    case SYCLArch::Gen9:  score = 1;  break;
+    case SYCLArch::XeHPG: score = 20; break;
+    case SYCLArch::XeHPC: score = 30; break;
+    default:
+      return -1;
+    }
+
+    return (score << 16) + syclDevice.get_info<sycl::info::device::max_compute_units>();
   }
 
   SYCLDevice::SYCLDevice(const std::vector<sycl::queue>& syclQueues)

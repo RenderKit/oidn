@@ -13,10 +13,10 @@ OIDN_NAMESPACE_BEGIN
   // GPU architecture
   enum class SYCLArch
   {
-    Unknown = 0,
-    Gen9    = 1,
-    XeHPG   = 1000,
-    XeHPC   = 2000,
+    Unknown,
+    Gen9,
+    XeHPG,
+    XeHPC,
   };
 
   class SYCLPhysicalDevice : public PhysicalDevice
@@ -28,7 +28,7 @@ OIDN_NAMESPACE_BEGIN
   };
 
   class SYCLDevice : public SYCLDeviceBase
-  { 
+  {
   public:
     static std::vector<Ref<PhysicalDevice>> getPhysicalDevices();
     static SYCLArch getArch(const sycl::device& syclDevice);
@@ -39,10 +39,10 @@ OIDN_NAMESPACE_BEGIN
 
     DeviceType getType() const override { return DeviceType::SYCL; }
     ze_context_handle_t getZeContext() const { return zeContext; }
-    
+
     Engine* getEngine(int i) const override { return (Engine*)engines[i].get(); }
     int getNumEngines() const override { return int(engines.size()); }
-    
+
     int getInt(const std::string& name) override;
     void setInt(const std::string& name, int value) override;
 
@@ -50,11 +50,11 @@ OIDN_NAMESPACE_BEGIN
 
     void submitBarrier() override;
     void wait() override;
-    
+
     // Manually sets the dependent events for the next command on all engines
     void setDepEvents(const std::vector<sycl::event>& events);
     void setDepEvents(const sycl::event* events, int numEvents) override;
-    
+
     // Gets the list of events corresponding to the completion of all commands
     std::vector<sycl::event> getDoneEvents();
     void getDoneEvent(sycl::event& event) override;

@@ -65,7 +65,7 @@ OIDN_NAMESPACE_BEGIN
 
       if (isSupported)
       {
-        int score = (801 << 16) - deviceID - 1;
+        int score = (18 << 16) - 1 - deviceID;
         devices.push_back(makeRef<HIPPhysicalDevice>(deviceID, prop, score));
       }
     }
