@@ -9,19 +9,19 @@
 OIDN_NAMESPACE_BEGIN
 
   template<typename T>
-  struct TensorAccessor1D
+  struct TensorAccessor1D : TensorAddressing<T, TensorLayout::x>
   {
-    T* ptr;
+    char* ptr;
     int X; // padded dimensions
 
     TensorAccessor1D() = default;
 
-    OIDN_HOST_DEVICE_INLINE TensorAccessor1D(const void* data, int X)
-      : ptr((T*)data), X(X) {}
+    OIDN_HOST_DEVICE_INLINE TensorAccessor1D(void* data, int X)
+      : ptr(static_cast<char*>(data)), X(X) {}
 
     OIDN_HOST_DEVICE_INLINE T& operator ()(int x) const
     {
-      return ptr[x];
+      return *reinterpret_cast<T*>(ptr + this->getByteOffset(x));
     }
   };
 
@@ -33,15 +33,15 @@ OIDN_NAMESPACE_BEGIN
 
     TensorAccessor3D() = default;
 
-    OIDN_HOST_DEVICE_INLINE TensorAccessor3D(const void* data, int C, int H, int W)
+    OIDN_HOST_DEVICE_INLINE TensorAccessor3D(void* data, int C, int H, int W)
       : TensorAddressing<T, layout>(C, H, W),
-        ptr((char*)data), C(C), H(H), W(W) {}
+        ptr(static_cast<char*>(data)), C(C), H(H), W(W) {}
 
     OIDN_HOST_DEVICE_INLINE T& operator ()(int c, int h, int w) const
     {
-      return *(T*)(ptr + this->getByteOffset(c, h, w));
+      return *reinterpret_cast<T*>(ptr + this->getByteOffset(c, h, w));
     }
-    
+
     OIDN_HOST_DEVICE_INLINE vec3<T> get3(int c, int h, int w) const
     {
       return vec3<T>((*this)(c,   h, w),
@@ -65,13 +65,13 @@ OIDN_NAMESPACE_BEGIN
 
     TensorAccessor4D() = default;
 
-    OIDN_HOST_DEVICE_INLINE TensorAccessor4D(const void* data, int O, int I, int H, int W)
+    OIDN_HOST_DEVICE_INLINE TensorAccessor4D(void* data, int O, int I, int H, int W)
       : TensorAddressing<T, layout>(O, I, H, W),
-        ptr((char*)data), O(O), I(I), H(H), W(W) {}
+        ptr(static_cast<char*>(data)), O(O), I(I), H(H), W(W) {}
 
     OIDN_HOST_DEVICE_INLINE T& operator ()(int o, int i, int h, int w) const
     {
-      return *(T*)(ptr + this->getByteOffset(o, i, h, w));
+      return *reinterpret_cast<T*>(ptr + this->getByteOffset(o, i, h, w));
     }
   };
 

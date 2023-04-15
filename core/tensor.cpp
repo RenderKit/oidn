@@ -40,7 +40,7 @@ OIDN_NAMESPACE_BEGIN
     return buffer->getEngine()->newTensor(makeRef<MappedBuffer>(buffer, byteOffset, getByteSize(), access), getDesc());
   }
 
-  void Tensor::dump(const std::string& filenamePrefix) const
+  void Tensor::dump(const std::string& filenamePrefix)
   {
     if (dataType == DataType::Float32 && layout == TensorLayout::chw)
       dumpImpl<float, TensorLayout::chw>(filenamePrefix);
@@ -59,7 +59,7 @@ OIDN_NAMESPACE_BEGIN
   }
 
   template<typename T, TensorLayout accessorLayout>
-  void Tensor::dumpImpl(const std::string& filenamePrefix) const
+  void Tensor::dumpImpl(const std::string& filenamePrefix)
   {
     TensorAccessor3D<T, accessorLayout> acc = *this;
 

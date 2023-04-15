@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -29,7 +29,7 @@ OIDN_NAMESPACE_BEGIN
     TransferFunction transferFunc;
     bool hdr;
     bool snorm; // signed normalized ([-1..1])
-    
+
     OIDN_DEVICE_INLINE void storeZero(int c, int h, int w) const
     {
       dst(c, h, w) = 0.f;
@@ -96,7 +96,7 @@ OIDN_NAMESPACE_BEGIN
     {
       const int hDst = it.getId<0>();
       const int wDst = it.getId<1>();
-      
+
       const int h = hDst - tile.hDstBegin;
       const int w = wDst - tile.wDstBegin;
 
@@ -155,7 +155,7 @@ OIDN_NAMESPACE_BEGIN
           tile.hDstBegin + tile.H > dst->getH() ||
           tile.wDstBegin + tile.W > dst->getW())
         throw std::out_of_range("input processing source/destination out of range");
- 
+
       switch (getMainSrc()->getDataType())
       {
       case DataType::Float32: runImpl<float>(); break;
@@ -177,13 +177,15 @@ OIDN_NAMESPACE_BEGIN
     void runImpl()
     {
       GPUInputProcessKernel<ImageDataT, TensorDataT, tensorLayout> kernel;
-      kernel.color  = color  ? *color  : Image();
-      kernel.albedo = albedo ? *albedo : Image();
-      kernel.normal = normal ? *normal : Image();
-      kernel.dst = *dst;
-      kernel.tile = tile;
+      Image nullImage;
+
+      kernel.color  = color  ? *color  : nullImage;
+      kernel.albedo = albedo ? *albedo : nullImage;
+      kernel.normal = normal ? *normal : nullImage;
+      kernel.dst    = *dst;
+      kernel.tile   = tile;
       kernel.transferFunc = *transferFunc;
-      kernel.hdr = hdr;
+      kernel.hdr   = hdr;
       kernel.snorm = snorm;
 
       engine->submitKernel(WorkDim<2>(dst->getH(), dst->getW()), kernel);

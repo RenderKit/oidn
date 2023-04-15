@@ -5,12 +5,12 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  ispc::ImageAccessor toISPC(const Image& image)
+  ispc::ImageAccessor toISPC(Image& image)
   {
     const ImageDesc& desc = image.getDesc();
 
     ispc::ImageAccessor acc;
-    acc.ptr = (uint8_t*)image.getData();
+    acc.ptr = static_cast<uint8_t*>(image.getData());
     acc.hByteStride = desc.hByteStride;
     acc.wByteStride = desc.wByteStride;
 
@@ -40,13 +40,13 @@ OIDN_NAMESPACE_BEGIN
     return acc;
   }
 
-  ispc::TensorAccessor3D toISPC(const Tensor& tensor)
+  ispc::TensorAccessor3D toISPC(Tensor& tensor)
   {
     if (tensor.getRank() != 3 || tensor.getDataType() != DataType::Float32)
       throw std::logic_error("incompatible tensor accessor");
 
     ispc::TensorAccessor3D acc;
-    acc.ptr = (float*)tensor.getData();
+    acc.ptr = static_cast<float*>(tensor.getData());
     acc.C = tensor.getPaddedC();
     acc.H = tensor.getH();
     acc.W = tensor.getW();
@@ -81,7 +81,7 @@ OIDN_NAMESPACE_BEGIN
 
     res.inputScale  = tf.getInputScale();
     res.outputScale = tf.getOutputScale();
-    
+
     return res;
   }
 

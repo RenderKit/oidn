@@ -22,14 +22,15 @@ OIDN_NAMESPACE_BEGIN
       throw std::out_of_range("input processing source/destination out of range");
 
     ispc::CPUInputProcessKernel kernel;
+    Image nullImage;
 
-    kernel.color  = toISPC(color  ? *color  : Image());
-    kernel.albedo = toISPC(albedo ? *albedo : Image());
-    kernel.normal = toISPC(normal ? *normal : Image());
-    kernel.dst = toISPC(*dst);
-    kernel.tile = toISPC(tile);
+    kernel.color  = toISPC(color  ? *color  : nullImage);
+    kernel.albedo = toISPC(albedo ? *albedo : nullImage);
+    kernel.normal = toISPC(normal ? *normal : nullImage);
+    kernel.dst    = toISPC(*dst);
+    kernel.tile   = toISPC(tile);
     kernel.transferFunc = toISPC(*transferFunc);
-    kernel.hdr = hdr;
+    kernel.hdr   = hdr;
     kernel.snorm = snorm;
 
     parallel_nd(kernel.dst.H, [&](int hDst)

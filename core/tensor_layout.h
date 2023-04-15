@@ -31,6 +31,23 @@ OIDN_NAMESPACE_BEGIN
   struct TensorLayoutTraits;
 
   template<>
+  struct TensorLayoutTraits<TensorLayout::x>
+  {
+    template<typename T>
+    struct Addressing
+    {
+      static constexpr uint32_t xByteStride = sizeof(T);
+
+      Addressing() = default;
+
+      OIDN_HOST_DEVICE_INLINE uint32_t getByteOffset(int x) const
+      {
+        return uint32_t(x) * xByteStride;
+      }
+    };
+  };
+
+  template<>
   struct TensorLayoutTraits<TensorLayout::chw>
   {
     template<typename T>

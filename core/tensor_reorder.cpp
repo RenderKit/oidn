@@ -6,7 +6,7 @@
 OIDN_NAMESPACE_BEGIN
 
   template<typename SrcT, typename DstT, TensorLayout srcLayout, TensorLayout dstLayout>
-  bool tryReorderWeight(const Tensor& src, int srcBeginI, int srcI, Tensor& dst, int dstBeginI, int dstI)
+  bool tryReorderWeight(Tensor& src, int srcBeginI, int srcI, Tensor& dst, int dstBeginI, int dstI)
   {   
     assert(srcBeginI + srcI <= src.getPaddedI());
     assert(dstBeginI + dstI <= dst.getPaddedI());
@@ -41,7 +41,7 @@ OIDN_NAMESPACE_BEGIN
     return true;
   }
 
-  void reorderWeight(const Tensor& src, int srcBeginI, int srcI, Tensor& dst, int dstBeginI, int dstI)
+  void reorderWeight(Tensor& src, int srcBeginI, int srcI, Tensor& dst, int dstBeginI, int dstI)
   {
     bool ok =
       tryReorderWeight<half, half,  TensorLayout::oihw, TensorLayout::oihw>        (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
@@ -60,7 +60,7 @@ OIDN_NAMESPACE_BEGIN
   }
 
   template<typename SrcT, typename DstT>
-  bool tryReorderBias(const Tensor& src, Tensor& dst)
+  bool tryReorderBias(Tensor& src, Tensor& dst)
   {
     if (src.getDataType() != DataTypeOf<SrcT>::value ||
         dst.getDataType() != DataTypeOf<DstT>::value)
@@ -80,7 +80,7 @@ OIDN_NAMESPACE_BEGIN
     return true;
   }
 
-  void reorderBias(const Tensor& src, Tensor& dst)
+  void reorderBias(Tensor& src, Tensor& dst)
   {
     bool ok = src.getLayout() == TensorLayout::x && dst.getLayout() == TensorLayout::x &&
       (tryReorderBias<half, half> (src, dst) ||

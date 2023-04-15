@@ -38,7 +38,7 @@ OIDN_NAMESPACE_BEGIN
       case Format::Half2:
         return 2;
       case Format::Float3:
-      case Format::Half3: 
+      case Format::Half3:
         return 3;
       case Format::Float4:
       case Format::Half4:
@@ -111,17 +111,17 @@ OIDN_NAMESPACE_BEGIN
     OIDN_INLINE operator bool() const { return ptr != nullptr; }
 
     template<typename T>
-    operator ImageAccessor<T>() const
+    operator ImageAccessor<T>()
     {
       if (format != Format::Undefined && getDataType() != DataTypeOf<T>::value)
         throw std::logic_error("incompatible image accessor");
 
       ImageAccessor<T> acc;
-      acc.ptr = (uint8_t*)ptr;
+      acc.ptr = ptr;
       acc.hByteStride = hByteStride;
       acc.wByteStride = wByteStride;
-      acc.W = int(width);
-      acc.H = int(height);
+      acc.W = static_cast<int>(width);
+      acc.H = static_cast<int>(height);
       return acc;
     }
 

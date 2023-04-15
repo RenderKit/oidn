@@ -356,7 +356,7 @@ int main(int argc, char* argv[])
       {
         // Compute a hash of the output
         const size_t numBytes = output->getByteSize();
-        const uint8_t* outputBytes = (const uint8_t*)output->getData();
+        const uint8_t* outputBytes = static_cast<const uint8_t*>(output->getData());
         uint32_t hash = 0x811c9dc5;
         for (size_t i = 0; i < numBytes; ++i)
         {

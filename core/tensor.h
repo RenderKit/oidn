@@ -194,7 +194,7 @@ OIDN_NAMESPACE_BEGIN
     OIDN_INLINE operator bool() const { return getData() != nullptr; }
 
     template<typename T>
-    operator TensorAccessor1D<T>() const
+    operator TensorAccessor1D<T>()
     {
       if (layout != TensorLayout::x || dataType != DataTypeOf<T>::value)
         throw std::logic_error("incompatible tensor accessor");
@@ -202,7 +202,7 @@ OIDN_NAMESPACE_BEGIN
     }
 
     template<typename T, TensorLayout accessorLayout>
-    operator TensorAccessor3D<T, accessorLayout>() const
+    operator TensorAccessor3D<T, accessorLayout>()
     {
       if (layout != accessorLayout || dataType != DataTypeOf<T>::value)
         throw std::logic_error("incompatible tensor accessor");
@@ -210,7 +210,7 @@ OIDN_NAMESPACE_BEGIN
     }
 
     template<typename T, TensorLayout accessorLayout>
-    operator TensorAccessor4D<T, accessorLayout>() const
+    operator TensorAccessor4D<T, accessorLayout>()
     {
       if (layout != accessorLayout || dataType != DataTypeOf<T>::value)
         throw std::logic_error("incompatible tensor accessor");
@@ -219,7 +219,7 @@ OIDN_NAMESPACE_BEGIN
 
     std::shared_ptr<Tensor> map(Access access);
 
-    void dump(const std::string& filenamePrefix) const;
+    void dump(const std::string& filenamePrefix);
 
   protected:
     explicit Tensor(const TensorDesc& desc);
@@ -227,7 +227,7 @@ OIDN_NAMESPACE_BEGIN
 
   private:
     template<typename T, TensorLayout layout>
-    void dumpImpl(const std::string& filenamePrefix) const;
+    void dumpImpl(const std::string& filenamePrefix);
   };
 
   class GenericTensor final : public Tensor
