@@ -156,6 +156,8 @@ endif()
 if(OIDN_DEVICE_SYCL)
   append(OIDN_CXX_FLAGS_SYCL "-fsycl")
 
+  # Silence false positive "loop not unrolled" warnings
+  append(OIDN_CXX_FLAGS_SYCL "-Wno-pass-failed")
   # FIXME: DPCPP issues a warning when WINAPI is used:
   # warning: '__stdcall' calling convention is not supported for this target
   if(WIN32)
