@@ -7,8 +7,10 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+if(NOT CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM")
+  set(CMAKE_CXX_STANDARD 11)
+  set(CMAKE_CXX_STANDARD_REQUIRED ON)
+endif()
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Initialize the compile flags
@@ -23,7 +25,7 @@ set(OIDN_CXX_FLAGS_SYCL)
 add_definitions(-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS)
 
 if(MSVC)
-  if(CMAKE_BASE_NAME STREQUAL "icx" OR CMAKE_BASE_NAME STREQUAL "icpx")
+  if(CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM" OR CMAKE_BASE_NAME MATCHES "icp?x")
     # Default fp-model in icx and dpcpp (unlike clang) may be precise or fast=1 depending on the version
     append(OIDN_C_CXX_FLAGS "/fp:precise")
   endif()
@@ -73,7 +75,7 @@ if(MSVC)
     append(OIDN_C_CXX_FLAGS "-Wno-unneeded-internal-declaration")
   endif()
 elseif(UNIX OR MINGW)
-  if(CMAKE_BASE_NAME STREQUAL "icx" OR CMAKE_BASE_NAME STREQUAL "icpx")
+  if(CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM" OR CMAKE_BASE_NAME MATCHES "icp?x")
     # Default fp-model in icx and dpcpp (unlike clang) may be precise or fast=1 depending on the version
     append(OIDN_C_CXX_FLAGS "-ffp-model=precise -fno-reciprocal-math")
   endif()
