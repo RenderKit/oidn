@@ -249,6 +249,12 @@ OIDN_NAMESPACE_BEGIN
   }
 #endif
 
+  inline bool isEnvVar(const std::string& name)
+  {
+    auto* str = getenv(name.c_str());
+    return (str != nullptr);
+  }
+
   template<typename T>
   inline bool getEnvVar(const std::string& name, T& value)
   {
@@ -259,10 +265,11 @@ OIDN_NAMESPACE_BEGIN
     return found;
   }
 
-  inline bool isEnvVar(const std::string& name)
+  template<typename T>
+  inline bool setEnvVar(const std::string& name, const T& value, bool replace)
   {
-    auto* str = getenv(name.c_str());
-    return (str != nullptr);
+    const std::string valueStr = toString(value);
+    return setenv(name.c_str(), valueStr.c_str(), replace) == 0;
   }
 
   // -----------------------------------------------------------------------------------------------
