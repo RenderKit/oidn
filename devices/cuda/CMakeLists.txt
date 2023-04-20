@@ -21,11 +21,11 @@ set(CUDA_SOURCES
   cuda_conv.h
   cuda_conv.cu
   cuda_device.h
-  cuda_device.cu
+  cuda_device.cpp
   cuda_engine.h
   cuda_engine.cu
   cuda_external_buffer.h
-  cuda_external_buffer.cu
+  cuda_external_buffer.cpp
   cuda_module.cpp
   cutlass_conv.h
   cutlass_conv_sm70.cu
