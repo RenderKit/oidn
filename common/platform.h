@@ -266,10 +266,17 @@ OIDN_NAMESPACE_BEGIN
   }
 
   template<typename T>
-  inline bool setEnvVar(const std::string& name, const T& value, bool replace)
+  inline bool setEnvVar(const std::string& name, const T& value, bool overwrite)
   {
     const std::string valueStr = toString(value);
-    return setenv(name.c_str(), valueStr.c_str(), replace) == 0;
+  #if defined(_WIN32)
+    if (overwrite || !isEnvVar(name))
+      return _putenv_s(name.c_str(), valueStr.c_str()) == 0;
+    else
+      return true;
+  #else
+    return setenv(name.c_str(), valueStr.c_str(), overwrite) == 0;
+  #endif
   }
 
   // -----------------------------------------------------------------------------------------------
