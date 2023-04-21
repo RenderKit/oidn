@@ -7,7 +7,6 @@ set(SYCL_SOURCES
   sycl_common.h
   sycl_conv_gen.h
   sycl_conv_gen9.cpp
-  sycl_conv_xehpc.cpp
   sycl_conv_xehpg.cpp
   sycl_conv.h
   sycl_device.h
@@ -18,6 +17,10 @@ set(SYCL_SOURCES
   sycl_external_buffer.cpp
   sycl_module.cpp
 )
+
+if(UNIX)
+  set(SYCL_SOURCES ${SYCL_SOURCES} sycl_conv_xehpc.cpp)
+endif()
 
 set_source_files_properties(${SYCL_SOURCES} PROPERTIES COMPILE_FLAGS "${OIDN_CXX_FLAGS_SYCL}")
 

@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "sycl_engine.h"
@@ -17,7 +17,7 @@ OIDN_NAMESPACE_BEGIN
       syclQueue(syclQueue)
   {
     auto syclDevice = syclQueue.get_device();
-    
+
     if (syclDevice.get_platform().get_backend() == sycl::backend::ext_oneapi_level_zero)
       zeDevice = sycl::get_native<sycl::backend::ext_oneapi_level_zero>(syclDevice);
 
@@ -49,8 +49,10 @@ OIDN_NAMESPACE_BEGIN
     {
     case SYCLArch::XeHPG:
       return xehpg::newConv(this, desc);
+  #if defined(__linux__)
     case SYCLArch::XeHPC:
       return xehpc::newConv(this, desc);
+  #endif
     default:
       return gen9::newConv(this, desc);
     }
@@ -141,9 +143,9 @@ OIDN_NAMESPACE_BEGIN
       cgh.host_task(f);
     });
   }
-  
+
   void SYCLEngine::submitBarrier()
-  { 
+  {
     lastEvent = syclQueue.submit([&](sycl::handler& cgh) {
       cgh.depends_on(getDepEvents()),
       //cgh.ext_oneapi_barrier(); // FIXME: hangs, workaround: SYCL_PI_LEVEL_ZERO_USE_MULTIPLE_COMMANDLIST_BARRIERS=0
