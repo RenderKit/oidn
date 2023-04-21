@@ -104,10 +104,10 @@ set(OIDN_RESOURCE ${PROJECT_SOURCE_DIR}/common/oidn.rc)
 ## Weights
 ## -----------------------------------------------------------------------------
 
-set(WEIGHTS)
+set(OIDN_WEIGHTS)
 
 if(OIDN_FILTER_RT)
-  list(APPEND WEIGHTS
+  list(APPEND OIDN_WEIGHTS
     weights/rt_alb.tza
     weights/rt_hdr.tza
     weights/rt_hdr_alb.tza
@@ -122,14 +122,14 @@ if(OIDN_FILTER_RT)
 endif()
 
 if(OIDN_FILTER_RTLIGHTMAP)
-  list(APPEND WEIGHTS
+  list(APPEND OIDN_WEIGHTS
     weights/rtlightmap_hdr.tza
     weights/rtlightmap_dir.tza
   )
 endif()
 
-oidn_generate_cpp_from_blob(WEIGHTS_SOURCES "${OIDN_NAMESPACE}::blobs::weights" ${WEIGHTS})
-add_library(${PROJECT_NAME}_weights OBJECT ${WEIGHTS_SOURCES})
+oidn_generate_cpp_from_blob(OIDN_WEIGHTS_SOURCES "${OIDN_NAMESPACE}::blobs::weights" ${OIDN_WEIGHTS})
+add_library(${PROJECT_NAME}_weights OBJECT ${OIDN_WEIGHTS_SOURCES})
 
 ## -----------------------------------------------------------------------------
 ## Libraries

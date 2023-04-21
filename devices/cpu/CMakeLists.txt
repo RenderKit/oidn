@@ -23,7 +23,7 @@ endif()
 set(OIDN_ISPC_ADDRESSING 64)
 include(oidn_ispc)
 
-set(CPU_SOURCES
+set(OIDN_CPU_SOURCES
   cpu_autoexposure.h
   cpu_autoexposure.cpp
   cpu_common.h
@@ -64,7 +64,7 @@ set(CPU_SOURCES_ISPC
 )
 
 if(OIDN_DNNL)
-  list(APPEND CPU_SOURCES
+  list(APPEND OIDN_CPU_SOURCES
     dnnl/dnnl_conv.h
     dnnl/dnnl_conv.cpp
     dnnl/dnnl_common.h
@@ -75,7 +75,7 @@ if(OIDN_DNNL)
     dnnl/dnnl_tensor.cpp
   )
 elseif(OIDN_BNNS)
-  list(APPEND CPU_SOURCES
+  list(APPEND OIDN_CPU_SOURCES
     bnns/bnns_common.h
     bnns/bnns_common.cpp
     bnns/bnns_conv.h
@@ -87,7 +87,7 @@ elseif(OIDN_BNNS)
   )
 endif()
 
-add_library(${PROJECT_NAME}_device_cpu SHARED ${CPU_SOURCES} ${OIDN_RESOURCE})
+add_library(${PROJECT_NAME}_device_cpu SHARED ${OIDN_CPU_SOURCES} ${OIDN_RESOURCE})
 set_property(TARGET ${PROJECT_NAME}_device_cpu PROPERTY VERSION ${PROJECT_VERSION})
 
 if(OIDN_DNNL)

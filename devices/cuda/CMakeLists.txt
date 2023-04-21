@@ -17,7 +17,7 @@ if (${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS "11.8")
   message(FATAL_ERROR "Building with CUDA support requires NVIDIA CUDA Toolkit 11.8 or newer")
 endif()
 
-set(CUDA_SOURCES
+set(OIDN_CUDA_SOURCES
   cuda_conv.h
   cuda_conv.cu
   cuda_device.h
@@ -59,7 +59,7 @@ set_source_files_properties(
   cutlass_conv_sm80.cu
   PROPERTIES COMPILE_FLAGS "${OIDN_NVCC_SM80_FLAGS} ${OIDN_NVCC_SM90_FLAGS}")
 
-add_library(${PROJECT_NAME}_device_cuda SHARED ${CUDA_SOURCES} ${GPU_SOURCES} ${OIDN_RESOURCE})
+add_library(${PROJECT_NAME}_device_cuda SHARED ${OIDN_CUDA_SOURCES} ${OIDN_GPU_SOURCES} ${OIDN_RESOURCE})
 set_property(TARGET ${PROJECT_NAME}_device_cuda PROPERTY VERSION ${PROJECT_VERSION})
 
 target_include_directories(${PROJECT_NAME}_device_cuda

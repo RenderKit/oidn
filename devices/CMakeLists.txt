@@ -1,7 +1,7 @@
 ## Copyright 2009-2023 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
-set(GPU_SOURCES
+set(OIDN_GPU_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/gpu/gpu_autoexposure.h
   ${CMAKE_CURRENT_SOURCE_DIR}/gpu/gpu_image_copy.h
   ${CMAKE_CURRENT_SOURCE_DIR}/gpu/gpu_input_process.h

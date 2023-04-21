@@ -3,7 +3,7 @@
 
 find_package(Threads REQUIRED)
 
-set(CORE_SOURCES
+set(OIDN_CORE_SOURCES
   autoexposure.h
   buffer.h
   buffer.cpp
@@ -74,7 +74,7 @@ set(CORE_SOURCES
   vec.h
 )
 
-add_library(${PROJECT_NAME}_core SHARED ${CORE_SOURCES} ${OIDN_RESOURCE})
+add_library(${PROJECT_NAME}_core SHARED ${OIDN_CORE_SOURCES} ${OIDN_RESOURCE})
 set_property(TARGET ${PROJECT_NAME}_core PROPERTY VERSION ${PROJECT_VERSION})
 
 target_link_libraries(${PROJECT_NAME}_core

@@ -18,7 +18,6 @@ set(OIDN_C_CXX_FLAGS)
 set(OIDN_C_CXX_FLAGS_RELEASE)
 set(OIDN_C_CXX_FLAGS_DEBUG)
 set(OIDN_CXX_FLAGS)
-set(OIDN_CXX_FLAGS_SYCL)
 
 # UINT8_MAX-like macros are a part of the C99 standard and not a part of the
 # C++ standard (see C99 standard 7.18.2 and 7.18.4)
@@ -149,22 +148,6 @@ if(APPLE)
   set(CMAKE_OSX_DEPLOYMENT_TARGET 10.11)
   # Link against libc++ which supports C++11 features
   append(OIDN_CXX_FLAGS "-stdlib=libc++")
-endif()
-
-## -----------------------------------------------------------------------------
-## SYCL
-## -----------------------------------------------------------------------------
-
-if(OIDN_DEVICE_SYCL)
-  append(OIDN_CXX_FLAGS_SYCL "-fsycl")
-
-  # Silence false positive "loop not unrolled" warnings
-  append(OIDN_CXX_FLAGS_SYCL "-Wno-pass-failed")
-  # FIXME: DPCPP issues a warning when WINAPI is used:
-  # warning: '__stdcall' calling convention is not supported for this target
-  if(WIN32)
-    append(OIDN_CXX_FLAGS_SYCL "-Wno-ignored-attributes")
-  endif()
 endif()
 
 ## -----------------------------------------------------------------------------

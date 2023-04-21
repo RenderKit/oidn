@@ -19,7 +19,7 @@ find_package(hip)
 set(CMAKE_CXX_COMPILER ${HIP_HIPCC_EXECUTABLE})
 set(CMAKE_CXX_LINKER   ${HIP_HIPCC_EXECUTABLE})
 
-set(HIP_SOURCES
+set(OIDN_HIP_SOURCES
   ck_conv.h
   ck_conv_dl.cpp
   ck_conv_wmma.cpp
@@ -33,7 +33,7 @@ set(HIP_SOURCES
   hip_module.cpp
 )
 
-add_library(${PROJECT_NAME}_device_hip SHARED ${HIP_SOURCES} ${GPU_SOURCES} ${OIDN_RESOURCE})
+add_library(${PROJECT_NAME}_device_hip SHARED ${OIDN_HIP_SOURCES} ${OIDN_GPU_SOURCES} ${OIDN_RESOURCE})
 set_property(TARGET ${PROJECT_NAME}_device_hip PROPERTY VERSION ${PROJECT_VERSION})
 set_property(TARGET ${PROJECT_NAME}_device_hip PROPERTY CXX_STANDARD 17)
 
