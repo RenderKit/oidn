@@ -14,7 +14,7 @@ OIDN_NAMESPACE_BEGIN
   enum class SYCLArch
   {
     Unknown,
-    Gen9,
+    XeLP,
     XeHPG,
     XeHPC,
   };

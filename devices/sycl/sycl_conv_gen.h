@@ -6,12 +6,13 @@
 #include <sycl/ext/intel/experimental/kernel_properties.hpp>
 
 OIDN_NAMESPACE_BEGIN
-#if defined(OIDN_ARCH_XEHPG)
+
+#if defined(OIDN_ARCH_XELP)
+namespace xelp {
+#elif defined(OIDN_ARCH_XEHPG)
 namespace xehpg {
 #elif defined(OIDN_ARCH_XEHPC)
 namespace xehpc {
-#else
-namespace gen9 {
 #endif
 
   template<typename T, TensorLayout tensorLayout, TensorLayout weightLayout, PostOp postOp>
@@ -51,7 +52,7 @@ namespace gen9 {
     #elif defined(OIDN_ARCH_XEHPC)
       // Output rows (16-bit is precise enough thanks to DPAS)
       simd<T, blockOW * blockC> outRows[blockOH] = {}; // = 0
-    #elif defined(OIDN_ARCH_GEN9)
+    #elif defined(OIDN_ARCH_XELP)
       // Accumulator rows (32-bit is necessary because precision is too low with pure 16-bit FMAs)
       simd<float, blockOW * blockC> accumRows[blockOH] = {}; // = 0
     #endif
@@ -125,7 +126,7 @@ namespace gen9 {
                 weightMat,
                 inRows[(kh + boh) % blockOH].template select<blockOW * blockC, 1>(kw * blockC).read());
             }
-          #elif defined(OIDN_ARCH_GEN9)
+          #elif defined(OIDN_ARCH_XELP)
             #pragma unroll
             for (int boh = 0; boh < blockOH; ++boh)
             {
@@ -165,7 +166,7 @@ namespace gen9 {
         for (int i = 0; i < numBlockAC; ++i)
           outRowView.template select<blockOW, 1, blockAC, 1>(0, i * blockAC) = accumRows[boh][i];
       }
-    #elif defined(OIDN_ARCH_GEN9)
+    #elif defined(OIDN_ARCH_XELP)
       // Down-convert accumulator rows to output rows
       simd<T, blockOW * blockC> outRows[blockOH];
 
@@ -432,4 +433,5 @@ namespace gen9 {
   }
 
 } // namespace arch
+
 OIDN_NAMESPACE_END

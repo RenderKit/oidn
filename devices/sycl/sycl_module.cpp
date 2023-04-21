@@ -30,8 +30,10 @@ OIDN_NAMESPACE_BEGIN
 
   OIDN_DECLARE_INIT_MODULE(device_sycl)
   {
+  #if !defined(OIDN_DEVICE_SYCL_AOT)
     // Enable persistent JIT cache if not disabled explicitly
     setEnvVar("SYCL_CACHE_PERSISTENT", 1, false);
+  #endif
 
     Context::registerDeviceType<SYCLDeviceFactory>(DeviceType::SYCL, SYCLDevice::getPhysicalDevices());
   }

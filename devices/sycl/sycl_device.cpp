@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "sycl_device.h"
+#include "sycl_device_ids.h"
 #include "sycl_engine.h"
 #include <iomanip>
 
@@ -124,6 +125,7 @@ OIDN_NAMESPACE_BEGIN
 
   SYCLArch SYCLDevice::getArch(const sycl::device& syclDevice)
   {
+    // Check whether the device supports the required features
     auto syclBackend = syclDevice.get_backend();
     if ((syclBackend != sycl::backend::ext_oneapi_level_zero && syclBackend != sycl::backend::opencl) ||
         !syclDevice.is_gpu() ||
@@ -134,17 +136,19 @@ OIDN_NAMESPACE_BEGIN
         !syclDevice.has(sycl::aspect::ext_intel_device_id))
       return SYCLArch::Unknown;
 
-    const unsigned int fullID = syclDevice.get_info<sycl::ext::intel::info::device::device_id>();
-    const unsigned int id = fullID & 0xFFF0;
+    // Lookup the device ID to identify the architecture
+    const unsigned int deviceID = syclDevice.get_info<sycl::ext::intel::info::device::device_id>();
 
-    if (id == 0x1600 || id == 0x1610 || id == 0x1620)
-      return SYCLArch::Unknown; // unsupported: Gen8
-    else if (id == 0x4F80 || id == 0x5690 || id == 0x56A0 || id == 0x56B0 || id == 0x56C0)
-      return SYCLArch::XeHPG;
-    else if (id == 0x0BD0 || id == 0x0B60 || id == 0x0BE0)
-      return SYCLArch::XeHPC;
-    else
-      return SYCLArch::Gen9; // fallback: Gen9, Gen11, Xe-LP, ...
+    for (const auto& table : syclDeviceIDTables)
+    {
+      for (int tableID : table.ids)
+      {
+        if (tableID == deviceID)
+          return table.arch;
+      }
+    }
+
+    return SYCLArch::Unknown;
   }
 
   int SYCLDevice::getScore(const sycl::device& syclDevice)
@@ -157,7 +161,7 @@ OIDN_NAMESPACE_BEGIN
     int score = 0;
     switch (arch)
     {
-    case SYCLArch::Gen9:  score = 1;  break;
+    case SYCLArch::XeLP:  score = 1;  break;
     case SYCLArch::XeHPG: score = 20; break;
     case SYCLArch::XeHPC: score = 30; break;
     default:
@@ -268,7 +272,7 @@ OIDN_NAMESPACE_BEGIN
         std::cout << "    Arch    : ";
         switch (arch)
         {
-        case SYCLArch::Gen9:  std::cout << "Gen9/Gen11/Xe-LP"; break;
+        case SYCLArch::XeLP:  std::cout << "Xe-LP"; break;
         case SYCLArch::XeHPG: std::cout << "Xe-HPG"; break;
         case SYCLArch::XeHPC: std::cout << "Xe-HPC"; break;
         default:              std::cout << "Unknown";

@@ -3,11 +3,11 @@ Version History
 
 ### Changes in v2.0.0:
 
--   Added SYCL device for Intel Xe-HPG, Xe-HPC, Xe-LP, Gen11 and Gen9 GPU
-    architectures
+-   Added SYCL device for Intel Xe-LP, Xe-HPG and Xe-HPC GPU architectures
 -   Added CUDA device for NVIDIA Volta, Turing, Ampere, Ada Lovelace and Hopper
     GPU architectures
--   Added HIP device for AMD Navi 21 and Navi 3x GPU architectures
+-   Added HIP device for AMD RDNA2 (Navi 21 only) and RDNA3 (Navi 3x) GPU
+    architectures
 -   Added new API functions for advanced GPU support:
     -  `oidnNewBufferWithStorage`, `oidnGetBufferStorage`, `oidnReadBuffer`, and
        `oidnWriteBuffer` for more performant GPU buffer support
