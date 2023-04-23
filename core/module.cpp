@@ -41,12 +41,16 @@ OIDN_NAMESPACE_BEGIN
     filename = "lib" + filename + ".so" + versionStr;
   #endif
   #endif
-    
+
     const std::string path = modulePathPrefix + filename;
 
     // Load the module
   #if defined(_WIN32)
+    // Prevent the system from displaying a message box when the module fails to load
+    UINT prevErrorMode = GetErrorMode();
+    SetErrorMode(prevErrorMode | SEM_FAILCRITICALERRORS);
     void* module = LoadLibrary(path.c_str());
+    SetErrorMode(prevErrorMode);
   #else
     void* module = dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);
   #endif
@@ -102,7 +106,7 @@ OIDN_NAMESPACE_BEGIN
                         GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT;
     if (!GetModuleHandleExA(flags, reinterpret_cast<LPCSTR>(address), &module))
       throw std::runtime_error("GetModuleHandleExA failed");
-    
+
     // Get the path of the module
     // Since we don't know the length of the path, we use a buffer of increasing size
     DWORD pathSize = MAX_PATH + 1;
@@ -129,7 +133,7 @@ OIDN_NAMESPACE_BEGIN
       if (info.dli_fname && info.dli_fname[0] == '/')
         return info.dli_fname;
     }
-    
+
   #if defined(__APPLE__)
     // This shouldn't happen
     throw std::runtime_error("failed to get absolute path with dladdr");
@@ -168,7 +172,7 @@ OIDN_NAMESPACE_BEGIN
       line >> std::ws;
       if (!std::getline(line, str))
         continue; // no path or parse error
-      
+
       // Check whether the path is absolute
       if (str[0] == '/')
         return str;
