@@ -21,7 +21,7 @@ if(OIDN_DEVICE_SYCL_AOT)
   list(APPEND OIDN_SYCL_LINK_FLAGS    -fsycl-targets=spir64_gen)
 endif()
 
-macro(oidn_add_sycl_target name)
+macro(oidn_add_sycl_library name)
   add_library(${name} SHARED ${ARGN} ${OIDN_RESOURCE})
   set_property(TARGET ${name} PROPERTY VERSION ${PROJECT_VERSION})
   set_property(TARGET ${name} PROPERTY CXX_STANDARD 17)
@@ -46,38 +46,35 @@ set(OIDN_SYCL_SOURCES
 )
 
 if(OIDN_DEVICE_SYCL_AOT)
+  macro(oidn_add_sycl_arch_library name)
+    oidn_add_sycl_library(${name} ${ARGN})
+    target_include_directories(${name} PRIVATE ${LevelZero_INCLUDE_DIRS})
+    oidn_export_all_symbols(${name})
+  endmacro()
+
   # Xe-LP AOT kernel library
   set(OIDN_SYCL_AOT_TARGETS_XELP tgllp,rkl,adl-s,adl-p,adl-n,dg1)
-  oidn_add_sycl_target(${PROJECT_NAME}_device_sycl_xelp
-    sycl_conv_xelp.cpp
-  )
+  oidn_add_sycl_arch_library(${PROJECT_NAME}_device_sycl_xelp sycl_conv_xelp.cpp)
   target_link_options(${PROJECT_NAME}_device_sycl_xelp PRIVATE
     -Xsycl-target-backend=spir64_gen "-device ${OIDN_SYCL_AOT_TARGETS_XELP}"
   )
-  oidn_export_all_symbols(${PROJECT_NAME}_device_sycl_xelp)
 
   # Xe-HPG AOT kernel library
   set(OIDN_SYCL_AOT_TARGETS_XEHPG acm-g10,acm-g11,acm-g12)
-  oidn_add_sycl_target(${PROJECT_NAME}_device_sycl_xehpg
-    sycl_conv_xehpg.cpp
-  )
+  oidn_add_sycl_arch_library(${PROJECT_NAME}_device_sycl_xehpg sycl_conv_xehpg.cpp)
   target_link_options(${PROJECT_NAME}_device_sycl_xehpg PRIVATE
     -Xsycl-target-backend=spir64_gen "-device ${OIDN_SYCL_AOT_TARGETS_XEHPG} -options '-doubleGRF'"
   )
-  oidn_export_all_symbols(${PROJECT_NAME}_device_sycl_xehpg)
 
   set(OIDN_SYCL_AOT_TARGETS ${OIDN_SYCL_AOT_TARGETS_XELP},${OIDN_SYCL_AOT_TARGETS_XEHPG})
 
   if(UNIX)
     # Xe-HPC AOT kernel library
     set(OIDN_SYCL_AOT_TARGETS_XEHPC pvc-sdv,pvc)
-    oidn_add_sycl_target(${PROJECT_NAME}_device_sycl_xehpc
-      sycl_conv_xehpc.cpp
-    )
+    oidn_add_sycl_arch_library(${PROJECT_NAME}_device_sycl_xehpc sycl_conv_xehpc.cpp)
     target_link_options(${PROJECT_NAME}_device_sycl_xehpc PRIVATE
       -Xsycl-target-backend=spir64_gen "-device ${OIDN_SYCL_AOT_TARGETS_XEHPC}"
     )
-    oidn_export_all_symbols(${PROJECT_NAME}_device_sycl_xehpc)
 
     set(OIDN_SYCL_AOT_TARGETS ${OIDN_SYCL_AOT_TARGETS},${OIDN_SYCL_AOT_TARGETS_XEHPC})
   endif()
@@ -95,7 +92,7 @@ else()
 endif()
 
 # Main SYCL library
-oidn_add_sycl_target(${PROJECT_NAME}_device_sycl ${OIDN_SYCL_SOURCES} ${OIDN_GPU_SOURCES})
+oidn_add_sycl_library(${PROJECT_NAME}_device_sycl ${OIDN_SYCL_SOURCES} ${OIDN_GPU_SOURCES})
 
 if(OIDN_DEVICE_SYCL_AOT)
   target_compile_definitions(${PROJECT_NAME}_device_sycl PRIVATE OIDN_DEVICE_SYCL_AOT)
@@ -115,7 +112,5 @@ if(OIDN_DEVICE_SYCL_AOT)
   endif()
 endif()
 
-target_link_libraries(${PROJECT_NAME}_device_sycl PRIVATE
-  LevelZero::LevelZero
-)
+target_link_libraries(${PROJECT_NAME}_device_sycl PRIVATE LevelZero::LevelZero)
 oidn_strip_symbols(${PROJECT_NAME}_device_sycl)

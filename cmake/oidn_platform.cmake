@@ -1,7 +1,17 @@
-## Copyright 2009-2022 Intel Corporation
+## Copyright 2009-2023 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 include(CheckCXXCompilerFlag)
+
+# Check requirements for icx
+if(CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM" OR CMAKE_BASE_NAME MATCHES "icp?x")
+  # Various issues with older CMake versions
+  cmake_minimum_required(VERSION 3.25.2)
+
+  if(NOT CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM")
+    message(FATAL_ERROR "Intel oneAPI DPC++/C++ Compiler detection failed")
+  endif()
+endif()
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -24,7 +34,7 @@ set(OIDN_CXX_FLAGS)
 add_definitions(-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS)
 
 if(MSVC)
-  if(CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM" OR CMAKE_BASE_NAME MATCHES "icp?x")
+  if(CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM")
     # Default fp-model in icx and dpcpp (unlike clang) may be precise or fast=1 depending on the version
     append(OIDN_C_CXX_FLAGS "/fp:precise")
   endif()
@@ -74,7 +84,7 @@ if(MSVC)
     append(OIDN_C_CXX_FLAGS "-Wno-unneeded-internal-declaration")
   endif()
 elseif(UNIX OR MINGW)
-  if(CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM" OR CMAKE_BASE_NAME MATCHES "icp?x")
+  if(CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM")
     # Default fp-model in icx and dpcpp (unlike clang) may be precise or fast=1 depending on the version
     append(OIDN_C_CXX_FLAGS "-ffp-model=precise -fno-reciprocal-math")
   endif()
