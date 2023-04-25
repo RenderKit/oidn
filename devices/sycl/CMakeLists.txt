@@ -6,19 +6,22 @@ find_package(LevelZero REQUIRED)
 option(OIDN_DEVICE_SYCL_AOT "Enable AOT compilation for SYCL kernels (recommended)." ON)
 
 set(OIDN_SYCL_COMPILE_FLAGS -fsycl)
+
+if(OIDN_DEVICE_SYCL_AOT)
+  list(APPEND OIDN_SYCL_COMPILE_FLAGS -fsycl-targets=spir64_gen)
+else()
+  # Minimize JIT compile time
+  list(APPEND OIDN_SYCL_COMPILE_FLAGS -fsycl-device-code-split=per_kernel)
+endif()
+
+set(OIDN_SYCL_LINK_FLAGS ${OIDN_SYCL_COMPILE_FLAGS})
+
 # Silence false positive "loop not unrolled" warnings
 list(APPEND OIDN_SYCL_COMPILE_FLAGS -Wno-pass-failed)
 # FIXME: DPCPP issues a warning when WINAPI is used:
 # warning: '__stdcall' calling convention is not supported for this target
 if(WIN32)
   list(APPEND OIDN_SYCL_COMPILE_FLAGS -Wno-ignored-attributes)
-endif()
-
-set(OIDN_SYCL_LINK_FLAGS -fsycl)
-
-if(OIDN_DEVICE_SYCL_AOT)
-  list(APPEND OIDN_SYCL_COMPILE_FLAGS -fsycl-targets=spir64_gen)
-  list(APPEND OIDN_SYCL_LINK_FLAGS    -fsycl-targets=spir64_gen)
 endif()
 
 macro(oidn_add_sycl_library name)
