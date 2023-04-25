@@ -97,29 +97,39 @@ OIDN_NAMESPACE_BEGIN
 
   void* SYCLEngine::malloc(size_t byteSize, Storage storage)
   {
+    void* ptr = nullptr;
+
     switch (storage)
     {
     case Storage::Undefined:
     case Storage::Host:
-      return sycl::aligned_alloc_host(memoryAlignment,
-                                      byteSize,
-                                      syclQueue.get_context());
+      ptr = sycl::aligned_alloc_host(memoryAlignment,
+                                     byteSize,
+                                     syclQueue.get_context());
+      break;
 
     case Storage::Device:
-      return sycl::aligned_alloc_device(memoryAlignment,
-                                        byteSize,
-                                        syclQueue.get_device(),
-                                        syclQueue.get_context());
+      ptr = sycl::aligned_alloc_device(memoryAlignment,
+                                       byteSize,
+                                       syclQueue.get_device(),
+                                       syclQueue.get_context());
+      break;
 
     case Storage::Managed:
-      return sycl::aligned_alloc_shared(memoryAlignment,
-                                        byteSize,
-                                        syclQueue.get_device(),
-                                        syclQueue.get_context());
+      ptr = sycl::aligned_alloc_shared(memoryAlignment,
+                                       byteSize,
+                                       syclQueue.get_device(),
+                                       syclQueue.get_context());
+      break;
 
     default:
       throw Exception(Error::InvalidArgument, "invalid storage mode");
     }
+
+    if (ptr == nullptr && byteSize > 0)
+      throw std::bad_alloc();
+
+    return ptr;
   }
 
   void SYCLEngine::free(void* ptr, Storage storage)
