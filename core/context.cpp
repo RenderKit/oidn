@@ -24,16 +24,20 @@ OIDN_NAMESPACE_BEGIN
     {
       // Load the modules
     #if defined(OIDN_DEVICE_CPU)
-      modules.load("device_cpu");
+      if (getEnvVarOrDefault("OIDN_DEVICE_CPU", 1))
+        modules.load("device_cpu");
     #endif
     #if defined(OIDN_DEVICE_SYCL)
-      modules.load("device_sycl");
+      if (getEnvVarOrDefault("OIDN_DEVICE_SYCL", 1))
+        modules.load("device_sycl");
     #endif
     #if defined(OIDN_DEVICE_CUDA)
-      modules.load("device_cuda");
+      if (getEnvVarOrDefault("OIDN_DEVICE_CUDA", 1))
+        modules.load("device_cuda");
     #endif
     #if defined(OIDN_DEVICE_HIP)
-      modules.load("device_hip");
+      if (getEnvVarOrDefault("OIDN_DEVICE_HIP", 1))
+        modules.load("device_hip");
     #endif
 
       // Sort the physical devices by score

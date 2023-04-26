@@ -266,6 +266,14 @@ OIDN_NAMESPACE_BEGIN
   }
 
   template<typename T>
+  inline T getEnvVarOrDefault(const std::string& name, const T& defaultValue)
+  {
+    T value = defaultValue;
+    getEnvVar(name, value);
+    return value;
+  }
+
+  template<typename T>
   inline bool setEnvVar(const std::string& name, const T& value, bool overwrite)
   {
     const std::string valueStr = toString(value);
