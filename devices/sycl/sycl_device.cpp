@@ -220,7 +220,7 @@ OIDN_NAMESPACE_BEGIN
       catch (const sycl::exception& e)
       {
         if (e.code() == sycl::errc::runtime)
-          throw Exception(Error::UnsupportedHardware, "no supported SYCL device found");
+          throw Exception(Error::UnsupportedHardware, "no supported SYCL devices found");
         else
           throw;
       }

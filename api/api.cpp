@@ -165,13 +165,38 @@ OIDN_API_NAMESPACE_BEGIN
 
     OIDN_TRY
       Context& ctx = Context::get();
+
       if (type == DeviceType::Default)
       {
-        if (ctx.getNumPhysicalDevices() == 0)
-          throw Exception(Error::UnsupportedHardware, "no supported device found");
-        const auto& physicalDevice = ctx.getPhysicalDevice(0);
-        DeviceType type = physicalDevice->type;
-        device = ctx.getDeviceFactory(type)->newDevice(physicalDevice);
+        const int numDevices = ctx.getNumPhysicalDevices();
+        if (numDevices == 0)
+          throw Exception(Error::UnsupportedHardware, "no supported devices found");
+
+        // Check whether the user wants to override the default device
+        std::string deviceStr;
+        if (getEnvVar("OIDN_DEFAULT_DEVICE", deviceStr) && !deviceStr.empty())
+        {
+          if (isdigit(deviceStr[0]))
+          {
+            const int id = fromString<int>(deviceStr);
+            if (id >= 0 && id < numDevices)
+              device = ctx.newDevice(id);
+          }
+          else
+          {
+            try
+            {
+              type = fromString<DeviceType>(deviceStr);
+            }
+            catch (...) {}
+
+            if (ctx.isDeviceSupported(type))
+              device = ctx.getDeviceFactory(type)->newDevice();
+          }
+        }
+        
+        if (!device)
+          device = ctx.newDevice(0);
       }
       else
       {
