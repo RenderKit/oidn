@@ -101,19 +101,19 @@ OIDN_API OIDNDevice oidnNewDeviceByLUID(const void* luid);
 OIDN_API OIDNDevice oidnNewDeviceByPCIAddress(int pciDomain, int pciBus, int pciDevice, int pciFunction);
 
 // Creates a device from the specified list of SYCL queues.
-// The queues should belong to SYCL sub-devices (Xe-Stacks/Tiles) of the same SYCL root-device
-// (Xe GPU).
+// The queues should belong to different SYCL sub-devices (Xe Stack/Tile) of the same SYCL
+// root-device (GPU).
 OIDN_API OIDNDevice oidnNewSYCLDevice(const sycl::queue* queues, int numQueues);
 
 // Creates a device from the specified pairs of CUDA device IDs (negative ID corresponds to the
 // current device) and streams (null stream corresponds to the default stream).
 // Currently only one device ID/stream is supported.
-OIDN_API OIDNDevice oidnNewCUDADevice(const int* deviceIDs, const cudaStream_t* streams, int num);
+OIDN_API OIDNDevice oidnNewCUDADevice(const int* deviceIDs, const cudaStream_t* streams, int numStreams);
 
 // Creates a device from the specified pairs of HIP device IDs (negative ID corresponds to the
 // current device) and streams (null stream corresponds to the default stream).
 // Currently only one device ID/stream is supported.
-OIDN_API OIDNDevice oidnNewHIPDevice(const int* deviceIDs, const hipStream_t* streams, int num);
+OIDN_API OIDNDevice oidnNewHIPDevice(const int* deviceIDs, const hipStream_t* streams, int numStreams);
 
 // Retains the device (increments the reference count).
 OIDN_API void oidnRetainDevice(OIDNDevice device);
@@ -300,18 +300,18 @@ OIDN_API void* oidnMapBuffer(OIDNBuffer buffer, OIDNAccess access, size_t byteOf
 // mappedPtr must be a pointer returned by a previous call to oidnMapBuffer.
 OIDN_API void oidnUnmapBuffer(OIDNBuffer buffer, void* mappedPtr);
 
-// Reads data from a region of the buffer to host memory.
+// Copies data from a region of the buffer to host memory.
 OIDN_API void oidnReadBuffer(OIDNBuffer buffer, size_t byteOffset, size_t byteSize, void* dstHostPtr);
 
-// Reads data from a region of the buffer to host memory asynchronously.
+// Copies data from a region of the buffer to host memory asynchronously.
 OIDN_API void oidnReadBufferAsync(OIDNBuffer buffer,
                                   size_t byteOffset, size_t byteSize, void* dstHostPtr);
 
-// Writes data to a region of the buffer from host memory.
+// Copies data to a region of the buffer from host memory.
 OIDN_API void oidnWriteBuffer(OIDNBuffer buffer,
                               size_t byteOffset, size_t byteSize, const void* srcHostPtr);
 
-// Writes data to a region of the buffer from host memory asynchronously.
+// Copies data to a region of the buffer from host memory asynchronously.
 OIDN_API void oidnWriteBufferAsync(OIDNBuffer buffer,
                                    size_t byteOffset, size_t byteSize, const void* srcHostPtr);
 
@@ -449,8 +449,8 @@ OIDN_API void oidnExecuteFilter(OIDNFilter filter);
 // Executes the filter asynchronously.
 OIDN_API void oidnExecuteFilterAsync(OIDNFilter filter);
 
-// Executes the SYCL filter asynchronously using the specified dependent events,
-// and optionally returns an event for completion.
+// Executes the filter of a SYCL device using the specified dependent events asynchronously, and
+// optionally returns an event for completion.
 OIDN_API void oidnExecuteSYCLFilterAsync(OIDNFilter filter,
                                          const sycl::event* depEvents, int numDepEvents,
                                          sycl::event* doneEvent);

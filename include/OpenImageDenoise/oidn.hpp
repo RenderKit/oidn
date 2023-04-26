@@ -291,25 +291,25 @@ OIDN_NAMESPACE_BEGIN
       oidnUnmapBuffer(handle, mappedPtr);
     }
 
-    // Reads data from a region of the buffer to host memory.
+    // Copies data from a region of the buffer to host memory.
     void read(size_t byteOffset, size_t byteSize, void* dstHostPtr)
     {
       oidnReadBuffer(handle, byteOffset, byteSize, dstHostPtr);
     }
 
-    // Reads data from a region of the buffer to host memory asynchronously.
+    // Copies data from a region of the buffer to host memory asynchronously.
     void readAsync(size_t byteOffset, size_t byteSize, void* dstHostPtr)
     {
       oidnReadBufferAsync(handle, byteOffset, byteSize, dstHostPtr);
     }
 
-    // Writes data to a region of the buffer from host memory.
+    // Copies data to a region of the buffer from host memory.
     void write(size_t byteOffset, size_t byteSize, const void* srcHostPtr)
     {
       oidnWriteBuffer(handle, byteOffset, byteSize, srcHostPtr);
     }
 
-    // Writes data to a region of the buffer from host memory asynchronously.
+    // Copies data to a region of the buffer from host memory asynchronously.
     void writeAsync(size_t byteOffset, size_t byteSize, const void* srcHostPtr)
     {
       oidnWriteBufferAsync(handle, byteOffset, byteSize, srcHostPtr);
@@ -500,12 +500,12 @@ OIDN_NAMESPACE_BEGIN
     }
 
   #if defined(SYCL_LANGUAGE_VERSION)
-    // Executes the SYCL filter asynchronously using the specified dependent events,
-    // and returns an event for completion.
+    // Executes the filter of a SYCL device using the specified dependent events asynchronously, and
+    // optionally returns an event for completion.
     sycl::event executeAsync(const std::vector<sycl::event>& depEvents)
     {
       sycl::event doneEvent;
-      oidnExecuteSYCLFilterAsync(handle, depEvents.data(), int(depEvents.size()), &doneEvent);
+      oidnExecuteSYCLFilterAsync(handle, depEvents.data(), static_cast<int>(depEvents.size()), &doneEvent);
       return doneEvent;
     }
   #endif
@@ -822,11 +822,11 @@ OIDN_NAMESPACE_BEGIN
   }
 
   // Creates a device from the specified list of SYCL queues.
-  // The queues should belong to SYCL sub-devices (Xe-Stacks/Tiles) of the same SYCL root-device
-  // (Xe GPU).
+  // The queues should belong to different SYCL sub-devices (Xe Stack/Tile) of the same SYCL
+  // root-device (GPU).
   inline DeviceRef newSYCLDevice(const std::vector<sycl::queue>& queues)
   {
-    return DeviceRef(oidnNewSYCLDevice(queues.data(), int(queues.size())));
+    return DeviceRef(oidnNewSYCLDevice(queues.data(), static_cast<int>(queues.size())));
   }
 #endif
 
@@ -844,7 +844,8 @@ OIDN_NAMESPACE_BEGIN
                                  const std::vector<cudaStream_t>& streams)
   {
     assert(deviceIDs.size() == streams.size());
-    return DeviceRef(oidnNewCUDADevice(deviceIDs.data(), streams.data(), int(streams.size())));
+    return DeviceRef(oidnNewCUDADevice(deviceIDs.data(), streams.data(),
+                                       static_cast<int>(streams.size())));
   }
 
   // Creates a device from the specified HIP device ID (negative ID corresponds to the current
@@ -861,7 +862,8 @@ OIDN_NAMESPACE_BEGIN
                                 const std::vector<hipStream_t>& streams)
   {
     assert(deviceIDs.size() == streams.size());
-    return DeviceRef(oidnNewHIPDevice(deviceIDs.data(), streams.data(), int(streams.size())));
+    return DeviceRef(oidnNewHIPDevice(deviceIDs.data(), streams.data(),
+                                      static_cast<int>(streams.size())));
   }
 
   // -----------------------------------------------------------------------------------------------
