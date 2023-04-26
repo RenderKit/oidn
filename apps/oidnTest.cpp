@@ -90,6 +90,52 @@ TEST_CASE("physical device", "[physical_device]")
 
 // -------------------------------------------------------------------------------------------------
 
+TEST_CASE("buffer", "[buffer]")
+{
+  DeviceRef device = makeDevice();
+  REQUIRE(bool(device));
+  device.commit();
+  REQUIRE(device.getError() == Error::None);
+
+  SECTION("default buffer")
+  {
+    BufferRef buffer = device.newBuffer(1234567);
+    REQUIRE(device.getError() == Error::None);
+  }
+
+  SECTION("device buffer")
+  {
+    BufferRef buffer = device.newBuffer(1234567, Storage::Device);
+    REQUIRE(device.getError() == Error::None);
+  }
+
+  SECTION("zero-sized default buffer")
+  {
+    BufferRef buffer = device.newBuffer(0);
+    REQUIRE(device.getError() == Error::None);
+  }
+
+  SECTION("zero-sized device buffer")
+  {
+    BufferRef buffer = device.newBuffer(0, Storage::Device);
+    REQUIRE(device.getError() == Error::None);
+  }
+
+  SECTION("out-of-memory default buffer")
+  {
+    BufferRef buffer = device.newBuffer(INTPTR_MAX);
+    REQUIRE(device.getError() == Error::OutOfMemory);
+  }
+
+  SECTION("out-of-memory device buffer")
+  {
+    BufferRef buffer = device.newBuffer(INTPTR_MAX, Storage::Device);
+    REQUIRE(device.getError() == Error::OutOfMemory);
+  }
+}
+
+// -------------------------------------------------------------------------------------------------
+
 #if defined(OIDN_FILTER_RT)
 
 void setFilterImage(FilterRef& filter, const char* name, const std::shared_ptr<ImageBuffer>& image,
