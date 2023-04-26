@@ -7,6 +7,16 @@ configure_file(
   "${PROJECT_SOURCE_DIR}/include/OpenImageDenoise/config.h"
 )
 
+# Generate list of symbols to export
+configure_file(
+  "${PROJECT_SOURCE_DIR}/common/export.linux.map.in"
+  "${PROJECT_SOURCE_DIR}/common/export.linux.map"
+)
+configure_file(
+  "${PROJECT_SOURCE_DIR}/common/export.macos.map.in"
+  "${PROJECT_SOURCE_DIR}/common/export.macos.map"
+)
+
 add_library(${PROJECT_NAME}_common OBJECT
   ${PROJECT_SOURCE_DIR}/include/OpenImageDenoise/config.h
   ${PROJECT_SOURCE_DIR}/include/OpenImageDenoise/oidn.h
@@ -28,4 +38,4 @@ target_include_directories(${PROJECT_NAME}_common
     $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
 )
 
-install(TARGETS ${PROJECT_NAME}_common EXPORT ${PROJECT_NAME}_Export)
+install(TARGETS ${PROJECT_NAME}_common EXPORT ${PROJECT_NAME}_Exports)

@@ -88,7 +88,7 @@ oidn_export_all_symbols(${PROJECT_NAME}_core)
 
 install(TARGETS ${PROJECT_NAME}_core
   EXPORT
-    ${PROJECT_NAME}_Export
+    ${PROJECT_NAME}_Exports
   LIBRARY
     DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT devel
     NAMELINK_SKIP

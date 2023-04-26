@@ -88,16 +88,6 @@ include(oidn_package)
 # Platform-specific settings
 include(oidn_platform)
 
-# Generate list of symbols to export
-configure_file(
-  "${PROJECT_SOURCE_DIR}/common/export.linux.map.in"
-  "${PROJECT_SOURCE_DIR}/common/export.linux.map"
-)
-configure_file(
-  "${PROJECT_SOURCE_DIR}/common/export.macos.map.in"
-  "${PROJECT_SOURCE_DIR}/common/export.macos.map"
-)
-
 set(OIDN_RESOURCE ${PROJECT_SOURCE_DIR}/common/oidn.rc)
 
 ## -----------------------------------------------------------------------------
@@ -173,9 +163,8 @@ install(
 )
 
 # Install CMake configuration files
-install(EXPORT ${PROJECT_NAME}_Export
+install(EXPORT ${PROJECT_NAME}_Exports
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}-${OIDN_VERSION}
-  #NAMESPACE ${PROJECT_NAME}::
   FILE ${PROJECT_NAME}Config.cmake
   COMPONENT devel
 )

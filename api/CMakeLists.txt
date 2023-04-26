@@ -20,7 +20,7 @@ oidn_strip_symbols(${PROJECT_NAME})
 
 install(TARGETS ${PROJECT_NAME}
   EXPORT
-    ${PROJECT_NAME}_Export
+    ${PROJECT_NAME}_Exports
   ARCHIVE
     DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT devel
   LIBRARY
