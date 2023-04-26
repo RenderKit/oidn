@@ -204,8 +204,6 @@ OIDN_API_NAMESPACE_BEGIN
       // Find the physical device with the specified UUID
       const int numDevices = ctx.getNumPhysicalDevices();
       int foundID = -1;
-      int unknownID = -1;
-      int numUnknownDevices = 0;
 
       for (int i = 0; i < numDevices; ++i)
       {
@@ -216,18 +214,7 @@ OIDN_API_NAMESPACE_BEGIN
           foundID = i;
           break;
         }
-        else if (physicalDevice->type == DeviceType::HIP)
-        {
-          // FIXME: HIP reports inconsistent UUID, so we'll try to guess the device
-          unknownID = i;
-          ++numUnknownDevices;
-        }
       }
-
-      // FIXME: UUID might be missing or inconsistent, so if there is no match but only one unknown
-      // device, pick that one
-      if (foundID < 0 && numUnknownDevices == 1)
-        foundID = unknownID;
 
       if (foundID < 0)
         throw Exception(Error::InvalidArgument, "no physical device found with specified UUID");
@@ -248,8 +235,6 @@ OIDN_API_NAMESPACE_BEGIN
       // Find the physical device with the specified LUID
       const int numDevices = ctx.getNumPhysicalDevices();
       int foundID = -1;
-      int unknownID = -1;
-      int numUnknownDevices = 0;
 
       for (int i = 0; i < numDevices; ++i)
       {
@@ -260,20 +245,7 @@ OIDN_API_NAMESPACE_BEGIN
           foundID = i;
           break;
         }
-      #if defined(_WIN32)
-        else if (!physicalDevice->luidSupported && physicalDevice->type == DeviceType::HIP)
-        {
-          // FIXME: HIP does not support LUID, so we'll try to guess the device
-          unknownID = i;
-          ++numUnknownDevices;
-        }
-      #endif
       }
-
-      // FIXME: LUID might be missing or inconsistent, so if there is no match but only one unknown
-      // device, pick that one
-      if (foundID < 0 && numUnknownDevices == 1)
-        foundID = unknownID;
 
       if (foundID < 0)
         throw Exception(Error::InvalidArgument, "no physical device found with specified LUID");
