@@ -23,10 +23,10 @@ OIDN_NAMESPACE_BEGIN
       std::cout << "  Name: " << physicalDevice.get<std::string>("name") << std::endl;
       std::cout << "  Type: " << physicalDevice.get<DeviceType>("type") << std::endl;
       if (physicalDevice.get<bool>("uuidSupported"))
-        std::cout << "  UUID: " << physicalDevice.get<oidn::UUID>("uuid") << std::endl;
+        std::cout << "  UUID: " << physicalDevice.get<OIDN_NAMESPACE::UUID>("uuid") << std::endl;
       if (physicalDevice.get<bool>("luidSupported"))
       {
-        std::cout << "  LUID: " << physicalDevice.get<oidn::LUID>("luid") << std::endl;
+        std::cout << "  LUID: " << physicalDevice.get<OIDN_NAMESPACE::LUID>("luid") << std::endl;
         std::cout << "  Node: " << physicalDevice.get<uint32_t>("nodeMask") << std::endl;
       }
       if (physicalDevice.get<bool>("pciAddressSupported"))

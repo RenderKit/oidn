@@ -46,7 +46,7 @@ TEST_CASE("physical device", "[physical_device]")
 
     const bool uuidSupported = physicalDevice.get<bool>("uuidSupported");
     REQUIRE(getError() == Error::None);
-    physicalDevice.get<oidn::UUID>("uuid");
+    physicalDevice.get<OIDN_NAMESPACE::UUID>("uuid");
     if (uuidSupported)
       REQUIRE(getError() == Error::None);
     else
@@ -55,7 +55,7 @@ TEST_CASE("physical device", "[physical_device]")
     const bool luidSupported = physicalDevice.get<bool>("luidSupported");
     REQUIRE(getError() == Error::None);
 
-    physicalDevice.get<oidn::LUID>("luid");
+    physicalDevice.get<OIDN_NAMESPACE::LUID>("luid");
     if (luidSupported)
       REQUIRE(getError() == Error::None);
     else
