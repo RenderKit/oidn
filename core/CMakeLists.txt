@@ -74,21 +74,21 @@ set(OIDN_CORE_SOURCES
   vec.h
 )
 
-add_library(${PROJECT_NAME}_core SHARED ${OIDN_CORE_SOURCES} ${OIDN_RESOURCE})
-set_property(TARGET ${PROJECT_NAME}_core PROPERTY VERSION ${PROJECT_VERSION})
+add_library(OpenImageDenoise_core SHARED ${OIDN_CORE_SOURCES} ${OIDN_RESOURCE})
+set_property(TARGET OpenImageDenoise_core PROPERTY VERSION ${PROJECT_VERSION})
 
-target_link_libraries(${PROJECT_NAME}_core
+target_link_libraries(OpenImageDenoise_core
   PUBLIC
-    ${PROJECT_NAME}_common
+    OpenImageDenoise_common
   PRIVATE
-    ${PROJECT_NAME}_weights Threads::Threads ${CMAKE_DL_LIBS}
+    OpenImageDenoise_weights Threads::Threads ${CMAKE_DL_LIBS}
 )
 
-oidn_export_all_symbols(${PROJECT_NAME}_core)
+oidn_export_all_symbols(OpenImageDenoise_core)
 
-install(TARGETS ${PROJECT_NAME}_core
+install(TARGETS OpenImageDenoise_core
   EXPORT
-    ${PROJECT_NAME}_Exports
+    OpenImageDenoise_Exports
   LIBRARY
     DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT devel
     NAMELINK_SKIP

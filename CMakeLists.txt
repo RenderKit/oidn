@@ -8,20 +8,12 @@ if(POLICY CMP0074)
   cmake_policy(SET CMP0074 NEW)
 endif()
 
-set(OIDN_VERSION_MAJOR 2)
-set(OIDN_VERSION_MINOR 0)
-set(OIDN_VERSION_PATCH 0)
-set(OIDN_VERSION_NOTE "-beta")
-
-set(OIDN_VERSION ${OIDN_VERSION_MAJOR}.${OIDN_VERSION_MINOR}.${OIDN_VERSION_PATCH})
-math(EXPR OIDN_VERSION_NUMBER "10000*${OIDN_VERSION_MAJOR} + 100*${OIDN_VERSION_MINOR} + ${OIDN_VERSION_PATCH}")
+include(cmake/oidn_version.cmake)
 
 project(OpenImageDenoise
   VERSION ${OIDN_VERSION}
   LANGUAGES C CXX
 )
-
-message(STATUS "Setting target version ${PROJECT_VERSION}")
 
 # CMake modules
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
@@ -119,7 +111,7 @@ if(OIDN_FILTER_RTLIGHTMAP)
 endif()
 
 oidn_generate_cpp_from_blob(OIDN_WEIGHTS_SOURCES "${OIDN_NAMESPACE}::blobs::weights" ${OIDN_WEIGHTS})
-add_library(${PROJECT_NAME}_weights OBJECT ${OIDN_WEIGHTS_SOURCES})
+add_library(OpenImageDenoise_weights OBJECT ${OIDN_WEIGHTS_SOURCES})
 
 ## -----------------------------------------------------------------------------
 ## Libraries
@@ -163,17 +155,17 @@ install(
 )
 
 # Install CMake configuration files
-install(EXPORT ${PROJECT_NAME}_Exports
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}-${OIDN_VERSION}
-  FILE ${PROJECT_NAME}Config.cmake
+install(EXPORT OpenImageDenoise_Exports
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/OpenImageDenoise-${OIDN_VERSION}
+  FILE OpenImageDenoiseConfig.cmake
   COMPONENT devel
 )
 
 include(CMakePackageConfigHelpers)
-write_basic_package_version_file(${PROJECT_NAME}ConfigVersion.cmake
+write_basic_package_version_file(OpenImageDenoiseConfigVersion.cmake
   COMPATIBILITY SameMajorVersion)
-install(FILES ${CMAKE_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
-  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}-${OIDN_VERSION}
+install(FILES ${CMAKE_BINARY_DIR}/OpenImageDenoiseConfigVersion.cmake
+  DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/OpenImageDenoise-${OIDN_VERSION}
   COMPONENT devel
 )
 

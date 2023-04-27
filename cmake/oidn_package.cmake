@@ -1,4 +1,4 @@
-## Copyright 2009-2022 Intel Corporation
+## Copyright 2009-2023 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 option(OIDN_ZIP_MODE off)
@@ -36,7 +36,7 @@ endif()
 ## Configure CPack
 ## -----------------------------------------------------------------------------
 
-set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
+set(CPACK_PACKAGE_NAME OpenImageDenoise)
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Intel(R) Open Image Denoise library")
 set(CPACK_PACKAGE_VENDOR "Intel Corporation")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY ${CPACK_PACKAGE_NAME})

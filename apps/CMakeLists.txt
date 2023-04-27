@@ -1,11 +1,11 @@
-## Copyright 2009-2022 Intel Corporation
+## Copyright 2009-2023 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 add_subdirectory(utils)
 
 macro(oidn_add_app APP_NAME)
   add_executable(${APP_NAME} ${ARGN} ${OIDN_RESOURCE})
-  target_link_libraries(${APP_NAME} PRIVATE ${PROJECT_NAME}_common ${PROJECT_NAME}_utils ${PROJECT_NAME})
+  target_link_libraries(${APP_NAME} PRIVATE OpenImageDenoise_common OpenImageDenoise_utils OpenImageDenoise)
   install(TARGETS ${APP_NAME} DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT apps)
 endmacro()
 

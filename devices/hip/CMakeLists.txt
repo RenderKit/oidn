@@ -33,11 +33,11 @@ set(OIDN_HIP_SOURCES
   hip_module.cpp
 )
 
-add_library(${PROJECT_NAME}_device_hip SHARED ${OIDN_HIP_SOURCES} ${OIDN_GPU_SOURCES} ${OIDN_RESOURCE})
-set_property(TARGET ${PROJECT_NAME}_device_hip PROPERTY VERSION ${PROJECT_VERSION})
-set_property(TARGET ${PROJECT_NAME}_device_hip PROPERTY CXX_STANDARD 17)
+add_library(OpenImageDenoise_device_hip SHARED ${OIDN_HIP_SOURCES} ${OIDN_GPU_SOURCES} ${OIDN_RESOURCE})
+set_property(TARGET OpenImageDenoise_device_hip PROPERTY VERSION ${PROJECT_VERSION})
+set_property(TARGET OpenImageDenoise_device_hip PROPERTY CXX_STANDARD 17)
 
-target_include_directories(${PROJECT_NAME}_device_hip
+target_include_directories(OpenImageDenoise_device_hip
   PRIVATE
     "${PROJECT_SOURCE_DIR}/external/composable_kernel/include"
     "${PROJECT_SOURCE_DIR}/external/composable_kernel/library/include"
@@ -47,6 +47,6 @@ set_source_files_properties(
   ck_conv_wmma.cpp
   PROPERTIES COMPILE_FLAGS "-mcumode -mno-wavefrontsize64") # Navi3x optimizations
 
-target_link_libraries(${PROJECT_NAME}_device_hip PRIVATE ${PROJECT_NAME}_core hip::device)
-oidn_strip_symbols(${PROJECT_NAME}_device_hip)
-oidn_install_module(${PROJECT_NAME}_device_hip)
+target_link_libraries(OpenImageDenoise_device_hip PRIVATE OpenImageDenoise_core hip::device)
+oidn_strip_symbols(OpenImageDenoise_device_hip)
+oidn_install_module(OpenImageDenoise_device_hip)

@@ -28,7 +28,7 @@ macro(oidn_add_sycl_library name)
   set_property(TARGET ${name} PROPERTY CXX_STANDARD 17)
   target_compile_options(${name} PRIVATE ${OIDN_SYCL_COMPILE_FLAGS})
   target_link_options(${name} PRIVATE ${OIDN_SYCL_LINK_FLAGS})
-  target_link_libraries(${name} PRIVATE ${PROJECT_NAME}_core)
+  target_link_libraries(${name} PRIVATE OpenImageDenoise_core)
   oidn_install_module(${name})
 endmacro()
 
@@ -55,15 +55,15 @@ if(OIDN_DEVICE_SYCL_AOT)
 
   # Xe-LP AOT kernel library
   set(OIDN_SYCL_AOT_TARGETS_XELP tgllp,rkl,adl-s,adl-p,adl-n,dg1)
-  oidn_add_sycl_arch_library(${PROJECT_NAME}_device_sycl_xelp sycl_conv_xelp.cpp)
-  target_link_options(${PROJECT_NAME}_device_sycl_xelp PRIVATE
+  oidn_add_sycl_arch_library(OpenImageDenoise_device_sycl_xelp sycl_conv_xelp.cpp)
+  target_link_options(OpenImageDenoise_device_sycl_xelp PRIVATE
     -Xsycl-target-backend=spir64_gen "-device ${OIDN_SYCL_AOT_TARGETS_XELP}"
   )
 
   # Xe-HPG AOT kernel library
   set(OIDN_SYCL_AOT_TARGETS_XEHPG acm-g10,acm-g11,acm-g12)
-  oidn_add_sycl_arch_library(${PROJECT_NAME}_device_sycl_xehpg sycl_conv_xehpg.cpp)
-  target_link_options(${PROJECT_NAME}_device_sycl_xehpg PRIVATE
+  oidn_add_sycl_arch_library(OpenImageDenoise_device_sycl_xehpg sycl_conv_xehpg.cpp)
+  target_link_options(OpenImageDenoise_device_sycl_xehpg PRIVATE
     -Xsycl-target-backend=spir64_gen "-device ${OIDN_SYCL_AOT_TARGETS_XEHPG} -options '-doubleGRF'"
   )
 
@@ -72,8 +72,8 @@ if(OIDN_DEVICE_SYCL_AOT)
   if(UNIX)
     # Xe-HPC AOT kernel library
     set(OIDN_SYCL_AOT_TARGETS_XEHPC pvc-sdv,pvc)
-    oidn_add_sycl_arch_library(${PROJECT_NAME}_device_sycl_xehpc sycl_conv_xehpc.cpp)
-    target_link_options(${PROJECT_NAME}_device_sycl_xehpc PRIVATE
+    oidn_add_sycl_arch_library(OpenImageDenoise_device_sycl_xehpc sycl_conv_xehpc.cpp)
+    target_link_options(OpenImageDenoise_device_sycl_xehpc PRIVATE
       -Xsycl-target-backend=spir64_gen "-device ${OIDN_SYCL_AOT_TARGETS_XEHPC}"
     )
 
@@ -93,25 +93,25 @@ else()
 endif()
 
 # Main SYCL library
-oidn_add_sycl_library(${PROJECT_NAME}_device_sycl ${OIDN_SYCL_SOURCES} ${OIDN_GPU_SOURCES})
+oidn_add_sycl_library(OpenImageDenoise_device_sycl ${OIDN_SYCL_SOURCES} ${OIDN_GPU_SOURCES})
 
 if(OIDN_DEVICE_SYCL_AOT)
-  target_compile_definitions(${PROJECT_NAME}_device_sycl PRIVATE OIDN_DEVICE_SYCL_AOT)
+  target_compile_definitions(OpenImageDenoise_device_sycl PRIVATE OIDN_DEVICE_SYCL_AOT)
 
-  target_link_options(${PROJECT_NAME}_device_sycl PRIVATE
+  target_link_options(OpenImageDenoise_device_sycl PRIVATE
     -Xsycl-target-backend=spir64_gen "-device ${OIDN_SYCL_AOT_TARGETS}"
   )
 
-  target_link_libraries(${PROJECT_NAME}_device_sycl PRIVATE
-    ${PROJECT_NAME}_device_sycl_xelp
-    ${PROJECT_NAME}_device_sycl_xehpg
+  target_link_libraries(OpenImageDenoise_device_sycl PRIVATE
+    OpenImageDenoise_device_sycl_xelp
+    OpenImageDenoise_device_sycl_xehpg
   )
   if(UNIX)
-    target_link_libraries(${PROJECT_NAME}_device_sycl PRIVATE
-      ${PROJECT_NAME}_device_sycl_xehpc
+    target_link_libraries(OpenImageDenoise_device_sycl PRIVATE
+      OpenImageDenoise_device_sycl_xehpc
     )
   endif()
 endif()
 
-target_link_libraries(${PROJECT_NAME}_device_sycl PRIVATE LevelZero::LevelZero)
-oidn_strip_symbols(${PROJECT_NAME}_device_sycl)
+target_link_libraries(OpenImageDenoise_device_sycl PRIVATE LevelZero::LevelZero)
+oidn_strip_symbols(OpenImageDenoise_device_sycl)

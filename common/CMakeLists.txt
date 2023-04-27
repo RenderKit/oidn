@@ -17,7 +17,7 @@ configure_file(
   "${PROJECT_SOURCE_DIR}/common/export.macos.map"
 )
 
-add_library(${PROJECT_NAME}_common OBJECT
+add_library(OpenImageDenoise_common OBJECT
   ${PROJECT_SOURCE_DIR}/include/OpenImageDenoise/config.h
   ${PROJECT_SOURCE_DIR}/include/OpenImageDenoise/oidn.h
   ${PROJECT_SOURCE_DIR}/include/OpenImageDenoise/oidn.hpp
@@ -31,11 +31,11 @@ add_library(${PROJECT_NAME}_common OBJECT
   platform.cpp
 )
 
-target_include_directories(${PROJECT_NAME}_common
+target_include_directories(OpenImageDenoise_common
   PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/external>
     $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}>
 )
 
-install(TARGETS ${PROJECT_NAME}_common EXPORT ${PROJECT_NAME}_Exports)
+install(TARGETS OpenImageDenoise_common EXPORT OpenImageDenoise_Exports)
