@@ -16,8 +16,6 @@ endif()
 
 set(OIDN_SYCL_LINK_FLAGS ${OIDN_SYCL_COMPILE_FLAGS})
 
-# Silence false positive "loop not unrolled" warnings
-list(APPEND OIDN_SYCL_COMPILE_FLAGS -Wno-pass-failed)
 # FIXME: DPCPP issues a warning when WINAPI is used:
 # warning: '__stdcall' calling convention is not supported for this target
 if(WIN32)

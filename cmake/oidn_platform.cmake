@@ -77,11 +77,6 @@ if(MSVC)
     append(OIDN_C_CXX_FLAGS "-Qdiag-disable:2586")
     # disable: disabling optimization; runtime debug checks enabled
     append(OIDN_C_CXX_FLAGS_DEBUG "-Qdiag-disable:10182")
-  elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    # Disable warning: cannot vectorize some loops with #pragma omp simd
-    append(OIDN_C_CXX_FLAGS "-Wno-pass-failed")
-    # Disable warning: function is not needed and will not be emitted
-    append(OIDN_C_CXX_FLAGS "-Wno-unneeded-internal-declaration")
   endif()
 elseif(UNIX OR MINGW)
   if(CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM")
@@ -90,12 +85,7 @@ elseif(UNIX OR MINGW)
   endif()
   append(OIDN_C_CXX_FLAGS "-Wall -Wno-unknown-pragmas")
   append_if(OIDN_WARN_AS_ERRORS OIDN_C_CXX_FLAGS "-Werror")
-  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    # Disable warning: cannot vectorize some loops with #pragma omp simd
-    append(OIDN_C_CXX_FLAGS "-Wno-pass-failed")
-    # Disable warning: function is not needed and will not be emitted
-    append(OIDN_C_CXX_FLAGS "-Wno-unneeded-internal-declaration")
-  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     # Suppress warning on assumptions made regarding overflow (#146)
     append(OIDN_C_CXX_FLAGS "-Wno-strict-overflow")
   elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
@@ -109,6 +99,13 @@ elseif(UNIX OR MINGW)
     # Disable diagnostic: foo has been targeted for automatic cpu dispatch
     append(OIDN_C_CXX_FLAGS "-diag-disable:15009")
   endif()
+endif()
+
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM")
+  # Disable warning: loop not unrolled / cannot vectorize loop with #pragma omp simd
+  append(OIDN_C_CXX_FLAGS "-Wno-pass-failed")
+  # Disable warning: function is not needed and will not be emitted
+  append(OIDN_C_CXX_FLAGS "-Wno-unneeded-internal-declaration")
 endif()
 
 if(WIN32)
