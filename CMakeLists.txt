@@ -3,62 +3,25 @@
 
 cmake_minimum_required(VERSION 3.12)
 
-# Policy: find_package() uses <PackageName>_ROOT variables
-if(POLICY CMP0074)
-  cmake_policy(SET CMP0074 NEW)
-endif()
-
+# Get the library version
 include(cmake/oidn_version.cmake)
 
+# Main project
 project(OpenImageDenoise
   VERSION ${OIDN_VERSION}
   LANGUAGES C CXX
 )
 
-# CMake modules
-list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
+# Set common paths
+set(OIDN_ROOT_SOURCE_DIR ${PROJECT_SOURCE_DIR})
+set(OIDN_ROOT_BINARY_DIR ${PROJECT_BINARY_DIR})
+set(OIDN_INSTALL_RPATH_PREFIX ${CMAKE_INSTALL_PREFIX})
 
-# CMake macros
-include(oidn_macros)
+# Set the CMake module path
+list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-# Detect the processor architecture
-if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
-  message(FATAL_ERROR "Intel(R) Open Image Denoise supports 64-bit platforms only")
-endif()
-if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm64|aarch64")
-  set(OIDN_ARCH "ARM64")
-else()
-  set(OIDN_ARCH "X64")
-endif()
-
-# Configuration types
-set(CONFIGURATION_TYPES "Debug;Release;RelWithDebInfo")
-if(win32)
-  if(NOT OIDN_DEFAULT_CMAKE_CONFIGURATION_TYPES_SET)
-    set(CMAKE_CONFIGURATION_TYPES "${CONFIGURATION_TYPES}"
-        CACHE STRING "List of generated configurations." FORCE)
-    set(OOIDN_DEFAULT_CMAKE_CONFIGURATION_TYPES_SET ON
-        CACHE INTERNAL "Default CMake configuration types set.")
-  endif()
-else()
-  if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE "Release" CACHE STRING "Choose the build type." FORCE)
-  endif()
-  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${CONFIGURATION_TYPES})
-endif()
-
-# API namespace
-set(OIDN_API_NAMESPACE "" CACHE STRING "C++ namespace to put API symbols into.")
-if(OIDN_API_NAMESPACE)
-  set(OIDN_NAMESPACE ${OIDN_API_NAMESPACE}::oidn)
-else()
-  set(OIDN_NAMESPACE oidn)
-endif()
-
-# Output paths
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+# Common
+include(oidn_common)
 
 # Devices
 option(OIDN_DEVICE_CPU "Enable CPU device." ON)
@@ -67,20 +30,14 @@ if(NOT APPLE)
     option(OIDN_DEVICE_SYCL "Enable SYCL device." OFF)
   endif()
   option(OIDN_DEVICE_CUDA "Enable CUDA device." OFF)
-  option(OIDN_DEVICE_HIP "Enable HIP device." OFF)
+  if(NOT WIN32)
+    option(OIDN_DEVICE_HIP "Enable HIP device." OFF)
+  endif()
 endif()
 
 # Filters
 option(OIDN_FILTER_RT "Include trained weights of the RT filter." ON)
 option(OIDN_FILTER_RTLIGHTMAP "Include trained weights of the RTLightmap filter." ON)
-
-# Packaging
-include(oidn_package)
-
-# Platform-specific settings
-include(oidn_platform)
-
-set(OIDN_RESOURCE ${PROJECT_SOURCE_DIR}/common/oidn.rc)
 
 ## -----------------------------------------------------------------------------
 ## Weights
@@ -134,6 +91,11 @@ endif()
 ## -----------------------------------------------------------------------------
 ## Install and packaging
 ## -----------------------------------------------------------------------------
+
+# Export targets from the build tree for external projects
+export(EXPORT OpenImageDenoise_Exports
+  FILE ${OIDN_BUILD_TREE_EXPORT_FILE}
+)
 
 # Install headers
 install(DIRECTORY include/OpenImageDenoise

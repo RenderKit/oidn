@@ -49,7 +49,7 @@ function(oidn_generate_cpp_from_blob out_sources namespace)
       OUTPUT ${out_cpp_path} ${out_hpp_path}
       COMMAND ${CMAKE_COMMAND} -E make_directory ${out_dir}
       COMMAND ${PYTHON_EXECUTABLE}
-      ARGS ${PROJECT_SOURCE_DIR}/scripts/blob_to_cpp.py ${in_path} -o ${out_cpp_path} -H ${out_hpp_path} -n ${namespace}
+      ARGS ${OIDN_ROOT_SOURCE_DIR}/scripts/blob_to_cpp.py ${in_path} -o ${out_cpp_path} -H ${out_hpp_path} -n ${namespace}
       DEPENDS ${in_path}
       COMMENT "Generating CXX source files from blob ${in_path}"
       VERBATIM)
@@ -72,11 +72,11 @@ function(oidn_strip_symbols target)
   endif()
 
   if(APPLE)
-    set_target_properties(${target} PROPERTIES LINK_FLAGS -Wl,-exported_symbols_list,${PROJECT_SOURCE_DIR}/common/export.macos.map)
-    set_target_properties(${target} PROPERTIES LINK_DEPENDS ${PROJECT_SOURCE_DIR}/common/export.macos.map)
+    set_target_properties(${target} PROPERTIES LINK_FLAGS -Wl,-exported_symbols_list,${OIDN_ROOT_SOURCE_DIR}/common/export.macos.map)
+    set_target_properties(${target} PROPERTIES LINK_DEPENDS ${OIDN_ROOT_SOURCE_DIR}/common/export.macos.map)
   elseif(UNIX)
-    set_target_properties(${target} PROPERTIES LINK_FLAGS -Wl,--version-script=${PROJECT_SOURCE_DIR}/common/export.linux.map)
-    set_target_properties(${target} PROPERTIES LINK_DEPENDS ${PROJECT_SOURCE_DIR}/common/export.linux.map)
+    set_target_properties(${target} PROPERTIES LINK_FLAGS -Wl,--version-script=${OIDN_ROOT_SOURCE_DIR}/common/export.linux.map)
+    set_target_properties(${target} PROPERTIES LINK_DEPENDS ${OIDN_ROOT_SOURCE_DIR}/common/export.linux.map)
   endif()
 endfunction()
 

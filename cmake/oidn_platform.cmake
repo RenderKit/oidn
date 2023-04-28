@@ -3,6 +3,16 @@
 
 include(CheckCXXCompilerFlag)
 
+# Detect the processor architecture
+if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
+  message(FATAL_ERROR "Intel(R) Open Image Denoise supports 64-bit platforms only")
+endif()
+if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm64|aarch64")
+  set(OIDN_ARCH "ARM64")
+else()
+  set(OIDN_ARCH "X64")
+endif()
+
 # Check requirements for icx
 if(CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM" OR CMAKE_BASE_NAME MATCHES "icp?x")
   # Various issues with older CMake versions
@@ -157,47 +167,9 @@ if(APPLE)
   append(OIDN_CXX_FLAGS "-stdlib=libc++")
 endif()
 
-## -----------------------------------------------------------------------------
-## Secure Development Lifecycle (SDL)
-## -----------------------------------------------------------------------------
-
-if(UNIX)
-  append(OIDN_C_CXX_FLAGS "-fPIC -Wformat -Wformat-security")
-  append(OIDN_C_CXX_FLAGS_RELEASE "-D_FORTIFY_SOURCE=2")
-  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS 4.9)
-      append(OIDN_C_CXX_FLAGS "-fstack-protector-all")
-    else()
-      append(OIDN_C_CXX_FLAGS "-fstack-protector-strong")
-    endif()
-
-    # GCC might be very paranoid for partial structure initialization, e.g.
-    #   struct { int a, b; } s = { 0, };
-    # However the behavior is triggered by `Wmissing-field-initializers`
-    # only. To prevent warnings on users' side who use the library and turn
-    # this warning on, let's use it too. Applicable for the library sources
-    # and interfaces only (tests currently rely on that fact heavily)
-    append(OIDN_C_CXX_FLAGS "-Wmissing-field-initializers")
-  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    append(OIDN_C_CXX_FLAGS "-fstack-protector-all")
-  elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
-    append(CMAKE_CXX_FLAGS "-fstack-protector")
-  endif()
-  if(APPLE)
-    append(CMAKE_SHARED_LINKER_FLAGS "-Wl,-bind_at_load")
-    append(CMAKE_EXE_LINKER_FLAGS "-Wl,-bind_at_load")
-  else()
-    append(CMAKE_EXE_LINKER_FLAGS "-pie")
-    append(CMAKE_SHARED_LINKER_FLAGS "-Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now")
-    append(CMAKE_EXE_LINKER_FLAGS "-Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now")
-  endif()
-elseif(MSVC AND CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-  append(OIDN_C_CXX_FLAGS "/guard:cf")
-endif()
-
-## -----------------------------------------------------------------------------
+## -------------------------------------------------------------------------------------------------
 ## Clang Sanitizer
-## -----------------------------------------------------------------------------
+## -------------------------------------------------------------------------------------------------
 
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set(OIDN_SANITIZER "None" CACHE STRING "Enables a Clang sanitizer.")
@@ -229,9 +201,46 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   endif()
 endif()
 
-## -----------------------------------------------------------------------------
+## -------------------------------------------------------------------------------------------------
+## Security
+## -------------------------------------------------------------------------------------------------
+
+if(MSVC)
+  # Enable buffer security check
+  append(OIDN_C_CXX_FLAGS "/GS")
+  # Enable control flow guard
+  append(OIDN_C_CXX_FLAGS "/guard:cf")
+else()
+  append(OIDN_C_CXX_FLAGS "-fstack-protector")
+
+  if(UNIX)
+    append(OIDN_C_CXX_FLAGS "-fPIC -Wformat -Wformat-security")
+    append(OIDN_C_CXX_FLAGS_RELEASE "-D_FORTIFY_SOURCE=2")
+
+    if(APPLE)
+      append(CMAKE_SHARED_LINKER_FLAGS "-Wl,-bind_at_load")
+      append(CMAKE_EXE_LINKER_FLAGS "-Wl,-bind_at_load")
+    elseif(NOT OIDN_SANITIZER OR OIDN_SANITIZER STREQUAL "None")
+      append(CMAKE_EXE_LINKER_FLAGS "-pie")
+      append(CMAKE_SHARED_LINKER_FLAGS "-Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now")
+      append(CMAKE_EXE_LINKER_FLAGS "-Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now")
+    endif()
+  endif()
+
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    # GCC might be very paranoid for partial structure initialization, e.g.
+    #   struct { int a, b; } s = { 0, };
+    # However the behavior is triggered by `Wmissing-field-initializers`
+    # only. To prevent warnings on users' side who use the library and turn
+    # this warning on, let's use it too. Applicable for the library sources
+    # and interfaces only (tests currently rely on that fact heavily)
+    append(OIDN_C_CXX_FLAGS "-Wmissing-field-initializers")
+  endif()
+endif()
+
+## -------------------------------------------------------------------------------------------------
 ## Set flags
-## -----------------------------------------------------------------------------
+## -------------------------------------------------------------------------------------------------
 
 append(CMAKE_C_FLAGS   "${OIDN_C_CXX_FLAGS}")
 append(CMAKE_CXX_FLAGS "${OIDN_C_CXX_FLAGS} ${OIDN_CXX_FLAGS}")

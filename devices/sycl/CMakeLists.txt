@@ -23,7 +23,7 @@ if(WIN32)
 endif()
 
 macro(oidn_add_sycl_library name)
-  add_library(${name} SHARED ${ARGN} ${OIDN_RESOURCE})
+  add_library(${name} SHARED ${ARGN} ${OIDN_RESOURCE_FILE})
   set_property(TARGET ${name} PROPERTY VERSION ${PROJECT_VERSION})
   set_property(TARGET ${name} PROPERTY CXX_STANDARD 17)
   target_compile_options(${name} PRIVATE ${OIDN_SYCL_COMPILE_FLAGS})

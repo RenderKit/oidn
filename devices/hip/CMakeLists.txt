@@ -1,23 +1,32 @@
 ## Copyright 2009-2023 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
-if(NOT DEFINED ROCM_PATH)
-  set(ROCM_PATH "/opt/rocm" CACHE STRING "Default ROCM installation directory.")
-endif()
+cmake_minimum_required(VERSION 3.21)
 
-# Search for rocm in common locations
-list(APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/hip ${ROCM_PATH})
+# Set common paths
+set(OIDN_ROOT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../..")
+
+# Get the library version
+include(${OIDN_ROOT_SOURCE_DIR}/cmake/oidn_version.cmake)
+
+# Project
+project(OpenImageDenoise_device_hip
+  VERSION ${OIDN_VERSION}
+  LANGUAGES CXX
+)
+
+# Set the CMake module path
+list(APPEND CMAKE_MODULE_PATH ${OIDN_ROOT_SOURCE_DIR}/cmake)
+
+# Common
+include(oidn_common_external)
 
 # Set the GPU targets
 set(GPU_TARGETS "gfx1030,gfx1100,gfx1101,gfx1102" CACHE INTERNAL "")
 set(AMDGPU_TARGETS ${GPU_TARGETS} CACHE INTERNAL "")
 
-# Find hip
-find_package(hip)
-
-# Set compiler and linker
-set(CMAKE_CXX_COMPILER ${HIP_HIPCC_EXECUTABLE})
-set(CMAKE_CXX_LINKER   ${HIP_HIPCC_EXECUTABLE})
+# Find HIP
+find_package(hip REQUIRED)
 
 set(OIDN_HIP_SOURCES
   ck_conv.h
@@ -33,14 +42,14 @@ set(OIDN_HIP_SOURCES
   hip_module.cpp
 )
 
-add_library(OpenImageDenoise_device_hip SHARED ${OIDN_HIP_SOURCES} ${OIDN_GPU_SOURCES} ${OIDN_RESOURCE})
+add_library(OpenImageDenoise_device_hip SHARED ${OIDN_HIP_SOURCES} ${OIDN_GPU_SOURCES} ${OIDN_RESOURCE_FILE})
 set_property(TARGET OpenImageDenoise_device_hip PROPERTY VERSION ${PROJECT_VERSION})
 set_property(TARGET OpenImageDenoise_device_hip PROPERTY CXX_STANDARD 17)
 
 target_include_directories(OpenImageDenoise_device_hip
   PRIVATE
-    "${PROJECT_SOURCE_DIR}/external/composable_kernel/include"
-    "${PROJECT_SOURCE_DIR}/external/composable_kernel/library/include"
+    "${OIDN_ROOT_SOURCE_DIR}/external/composable_kernel/include"
+    "${OIDN_ROOT_SOURCE_DIR}/external/composable_kernel/library/include"
 )
 
 set_source_files_properties(

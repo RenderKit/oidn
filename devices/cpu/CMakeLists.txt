@@ -87,7 +87,7 @@ elseif(OIDN_BNNS)
   )
 endif()
 
-add_library(OpenImageDenoise_device_cpu SHARED ${OIDN_CPU_SOURCES} ${OIDN_RESOURCE})
+add_library(OpenImageDenoise_device_cpu SHARED ${OIDN_CPU_SOURCES} ${OIDN_RESOURCE_FILE})
 set_property(TARGET OpenImageDenoise_device_cpu PROPERTY VERSION ${PROJECT_VERSION})
 
 if(OIDN_DNNL)

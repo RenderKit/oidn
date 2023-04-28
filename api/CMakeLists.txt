@@ -5,7 +5,7 @@ set(API_SOURCES
   api.cpp
 )
 
-add_library(OpenImageDenoise SHARED ${API_SOURCES} ${OIDN_RESOURCE})
+add_library(OpenImageDenoise SHARED ${API_SOURCES} ${OIDN_RESOURCE_FILE})
 set_property(TARGET OpenImageDenoise PROPERTY VERSION ${PROJECT_VERSION})
 set_property(TARGET OpenImageDenoise PROPERTY SOVERSION ${PROJECT_VERSION_MAJOR})
 

@@ -1,21 +1,35 @@
 ## Copyright 2009-2023 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
-if(CMAKE_GENERATOR MATCHES "Visual Studio" AND ${CMAKE_VERSION} VERSION_LESS "3.23.2")
-  message(FATAL_ERROR "Building with CUDA support requires CMake 3.23.2 or newer if using a Visual Studio generator or 3.18.0 or newer otherwise (e.g. if using Ninja)")
-elseif(${CMAKE_VERSION} VERSION_LESS "3.18.0")
-  message(FATAL_ERROR "Building with CUDA support requires CMake 3.18.0 or newer")
+if(CMAKE_GENERATOR MATCHES "Visual Studio")
+  cmake_minimum_required(VERSION 3.23.2)
+else()
+  cmake_minimum_required(VERSION 3.18)
 endif()
 
-# Set the NVCC host compiler to make sure the same C++ compiler is used for all host code (except DPC++, which is not supported yet)
-if(NOT WIN32 AND (NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_VERSION VERSION_LESS 15))
-  set(CMAKE_CUDA_HOST_COMPILER ${CMAKE_CXX_COMPILER})
+# Set common paths
+set(OIDN_ROOT_SOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../..")
+
+# Get the library version
+include(${OIDN_ROOT_SOURCE_DIR}/cmake/oidn_version.cmake)
+
+# Project
+project(OpenImageDenoise_device_cuda
+  VERSION ${OIDN_VERSION}
+  LANGUAGES CXX CUDA
+)
+
+# Check the CUDA compiler
+set(OIDN_CUDA_MIN_VERSION 11.8)
+if(${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS ${OIDN_CUDA_MIN_VERSION})
+  message(FATAL_ERROR "Building with CUDA support requires NVIDIA CUDA Toolkit ${OIDN_CUDA_MIN_VERSION} or newer")
 endif()
 
-enable_language(CUDA)
-if (${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS "11.8")
-  message(FATAL_ERROR "Building with CUDA support requires NVIDIA CUDA Toolkit 11.8 or newer")
-endif()
+# Set the CMake module path
+list(APPEND CMAKE_MODULE_PATH ${OIDN_ROOT_SOURCE_DIR}/cmake)
+
+# Common
+include(oidn_common_external)
 
 set(OIDN_CUDA_SOURCES
   cuda_conv.h
@@ -59,14 +73,14 @@ set_source_files_properties(
   cutlass_conv_sm80.cu
   PROPERTIES COMPILE_FLAGS "${OIDN_NVCC_SM80_FLAGS} ${OIDN_NVCC_SM90_FLAGS}")
 
-add_library(OpenImageDenoise_device_cuda SHARED ${OIDN_CUDA_SOURCES} ${OIDN_GPU_SOURCES} ${OIDN_RESOURCE})
+add_library(OpenImageDenoise_device_cuda SHARED ${OIDN_CUDA_SOURCES} ${OIDN_GPU_SOURCES} ${OIDN_RESOURCE_FILE})
 set_property(TARGET OpenImageDenoise_device_cuda PROPERTY VERSION ${PROJECT_VERSION})
 
 target_include_directories(OpenImageDenoise_device_cuda
   PRIVATE
     ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
-    "${PROJECT_SOURCE_DIR}/external/cutlass/include"
-    "${PROJECT_SOURCE_DIR}/external/cutlass/tools/util/include")
+    "${OIDN_ROOT_SOURCE_DIR}/external/cutlass/include"
+    "${OIDN_ROOT_SOURCE_DIR}/external/cutlass/tools/util/include")
 set_target_properties(OpenImageDenoise_device_cuda PROPERTIES CUDA_ARCHITECTURES OFF)
 
 target_link_libraries(OpenImageDenoise_device_cuda PRIVATE OpenImageDenoise_core)

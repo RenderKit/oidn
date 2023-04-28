@@ -11,6 +11,7 @@ mark_as_advanced(OIDN_ZIP_MODE)
 include(GNUInstallDirs)
 
 if(OIDN_ZIP_MODE)
+  # Override install directories
   set(CMAKE_INSTALL_BINDIR bin)
   set(CMAKE_INSTALL_LIBDIR lib)
   set(CMAKE_INSTALL_DOCDIR doc)
@@ -29,7 +30,17 @@ if(OIDN_ZIP_MODE)
     set(CMAKE_INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}")
   endif()
 else()
-  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_FULL_LIBDIR}")
+  # Normally we would use ${CMAKE_INSTALL_FULL_LIBDIR} but since the final install prefix is in
+  # OIDN_INSTALL_RPATH_PREFIX for external projects, we need to determine the full path manually.
+  if(CMAKE_INSTALL_LIBDIR)
+    if(IS_ABSOLUTE ${CMAKE_INSTALL_LIBDIR})
+      set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_LIBDIR}")
+    else()
+      set(CMAKE_INSTALL_RPATH "${OIDN_INSTALL_RPATH_PREFIX}/${CMAKE_INSTALL_LIBDIR}")
+    endif()
+  else()
+    set(CMAKE_INSTALL_RPATH "${OIDN_INSTALL_RPATH_PREFIX}/lib")
+  endif()
 endif()
 
 ## -----------------------------------------------------------------------------
@@ -57,14 +68,8 @@ if(WIN32)
     set(CPACK_PACKAGE_NAME "${CPACK_PACKAGE_NAME} ARM64")
   endif()
 
-  if(MSVC12)
-    set(VCVER "vc12")
-  elseif(MSVC14) # also for VC15, which is toolset v141
-    set(VCVER "vc14")
-  endif()
-
   set(CPACK_GENERATOR ZIP)
-  set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}.${ARCH}.${VCVER}.windows")
+  set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}.${ARCH}.windows")
   set(CPACK_MONOLITHIC_INSTALL 1)
 else()
   if(OIDN_ARCH STREQUAL "X64")

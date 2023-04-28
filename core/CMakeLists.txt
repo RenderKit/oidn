@@ -74,7 +74,7 @@ set(OIDN_CORE_SOURCES
   vec.h
 )
 
-add_library(OpenImageDenoise_core SHARED ${OIDN_CORE_SOURCES} ${OIDN_RESOURCE})
+add_library(OpenImageDenoise_core SHARED ${OIDN_CORE_SOURCES} ${OIDN_RESOURCE_FILE})
 set_property(TARGET OpenImageDenoise_core PROPERTY VERSION ${PROJECT_VERSION})
 
 target_link_libraries(OpenImageDenoise_core

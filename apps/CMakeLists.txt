@@ -4,7 +4,7 @@
 add_subdirectory(utils)
 
 macro(oidn_add_app APP_NAME)
-  add_executable(${APP_NAME} ${ARGN} ${OIDN_RESOURCE})
+  add_executable(${APP_NAME} ${ARGN} ${OIDN_RESOURCE_FILE})
   target_link_libraries(${APP_NAME} PRIVATE OpenImageDenoise_common OpenImageDenoise_utils OpenImageDenoise)
   install(TARGETS ${APP_NAME} DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT apps)
 endmacro()
