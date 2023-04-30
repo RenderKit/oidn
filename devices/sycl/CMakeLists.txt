@@ -5,6 +5,36 @@ find_package(LevelZero REQUIRED)
 
 option(OIDN_DEVICE_SYCL_AOT "Enable AOT compilation for SYCL kernels (recommended)." ON)
 
+# Check the generator
+if(NOT CMAKE_GENERATOR MATCHES "Ninja" AND NOT CMAKE_GENERATOR MATCHES "Unix Makefiles")
+  message(FATAL_ERROR "Building with SYCL support requires Ninja or Make")
+endif()
+
+# Check the DPC++ compiler
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  include(CheckCXXCompilerFlag)
+  check_cxx_compiler_flag(-fsycl OIDN_DEVICE_SYCL_SUPPORTED)
+  if(NOT OIDN_DEVICE_SYCL_SUPPORTED)
+    message(FATAL_ERROR "Building with SYCL support requires oneAPI DPC++ Compiler as the C/C++ compiler")
+  endif()
+
+  if(OIDN_DEVICE_SYCL_AOT)
+    find_program(_OIDN_DEVICE_SYCL_OCLOC_FOUND NAMES ocloc)
+    mark_as_advanced(_OIDN_DEVICE_SYCL_OCLOC_FOUND)
+
+    if(NOT _OIDN_DEVICE_SYCL_OCLOC_FOUND)
+      message(FATAL_ERROR "Building with OIDN_DEVICE_SYCL_AOT requires Intel OpenCL Offline Compiler (OCLOC) to be installed")
+    endif()
+  endif()
+elseif(CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM")
+  set(OIDN_ICX_MIN_VERSION 2023.1)
+  if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS ${OIDN_ICX_MIN_VERSION})
+    message(FATAL_ERROR "Building with SYCL support requires Intel oneAPI DPC++/C++ Compiler ${OIDN_ICX_MIN_VERSION} or newer")
+  endif()
+else()
+  message(FATAL_ERROR "Building with SYCL support requires oneAPI DPC++ Compiler as the C/C++ compiler")
+endif()
+
 set(OIDN_SYCL_COMPILE_FLAGS -fsycl)
 
 if(OIDN_DEVICE_SYCL_AOT)
