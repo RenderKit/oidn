@@ -145,3 +145,26 @@ endif()
 
 target_link_libraries(OpenImageDenoise_device_sycl PRIVATE LevelZero::LevelZero)
 oidn_strip_symbols(OpenImageDenoise_device_sycl)
+
+## -------------------------------------------------------------------------------------------------
+## Install dependencies
+## -------------------------------------------------------------------------------------------------
+
+if(OIDN_INSTALL_DEPENDENCIES)
+  get_filename_component(_dpcpp_compiler_dir ${CMAKE_CXX_COMPILER} PATH)
+
+  if(WIN32)
+    file(GLOB _sycl_deps LIST_DIRECTORIES FALSE
+      "${_dpcpp_compiler_dir}/../bin/sycl?.dll"
+      "${_dpcpp_compiler_dir}/../bin/pi_level_zero.dll"
+      "${_dpcpp_compiler_dir}/../bin/win_proxy_loader.dll"
+    )
+  else()
+    file(GLOB _sycl_deps LIST_DIRECTORIES FALSE
+      "${_dpcpp_compiler_dir}/../lib/libsycl.so.?"
+      "${_dpcpp_compiler_dir}/../lib/libpi_level_zero.so"
+    )
+  endif()
+
+  oidn_install_lib_files(${_sycl_deps})
+endif()

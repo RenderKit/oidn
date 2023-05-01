@@ -105,26 +105,38 @@ target_link_libraries(OpenImageDenoise_device_cpu PRIVATE OpenImageDenoise_core 
 oidn_strip_symbols(OpenImageDenoise_device_cpu)
 oidn_install_module(OpenImageDenoise_device_cpu)
 
-# Install TBB
-if(OIDN_ZIP_MODE)
-  foreach(C IN ITEMS "tbb")
-    if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-      get_target_property(LIB_PATH TBB::${C} IMPORTED_LOCATION_DEBUG)
+## -------------------------------------------------------------------------------------------------
+## Install dependencies
+## -------------------------------------------------------------------------------------------------
+
+if(OIDN_INSTALL_DEPENDENCIES)
+  # Install TBB
+  oidn_install_imported_lib(TBB::tbb)
+  if(WIN32)
+    oidn_install_imported_implib(TBB::tbb)
+  endif()
+
+  # Install TBB plugins
+  if(NOT APPLE)
+    if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+      get_target_property(_tbb_lib TBB::tbb IMPORTED_LOCATION_DEBUG)
+      set(_tbb_suffix "_debug")
     else()
-      get_target_property(LIB_PATH TBB::${C} IMPORTED_LOCATION_RELEASE)
+      get_target_property(_tbb_lib TBB::tbb IMPORTED_LOCATION_RELEASE)
+      set(_tbb_suffix "")
     endif()
+    get_filename_component(_tbb_dir "${_tbb_lib}" DIRECTORY)
     if(WIN32)
-      install(PROGRAMS ${LIB_PATH} DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT lib)
-      if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-        get_target_property(IMPLIB_PATH TBB::${C} IMPORTED_IMPLIB_DEBUG)
-      else()
-        get_target_property(IMPLIB_PATH TBB::${C} IMPORTED_IMPLIB_RELEASE)
-      endif()
-      install(PROGRAMS ${IMPLIB_PATH} DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib)
+      file(GLOB _tbb_deps LIST_DIRECTORIES FALSE
+        "${_tbb_dir}/tbbbind${_tbb_suffix}\.dll"
+        "${_tbb_dir}/tbbbind_?_?${_tbb_suffix}\.dll"
+      )
     else()
-      string(REGEX REPLACE "\\.[^.]*$" ".*" LIB_FILES_GLOB ${LIB_PATH})
-      file(GLOB LIB_FILES ${LIB_FILES_GLOB})
-      install(PROGRAMS ${LIB_FILES} DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT lib)
+      file(GLOB _tbb_deps LIST_DIRECTORIES FALSE
+        "${_tbb_dir}/libtbbbind${_tbb_suffix}\.so.?"
+        "${_tbb_dir}/libtbbbind_?_?${_tbb_suffix}\.so.?"
+      )
     endif()
-  endforeach()
+    oidn_install_lib_files(${_tbb_deps})
+  endif()
 endif()

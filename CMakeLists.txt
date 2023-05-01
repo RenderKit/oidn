@@ -1,7 +1,7 @@
 ## Copyright 2009-2023 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.15)
 
 # Get the library version
 include(cmake/oidn_version.cmake)
@@ -38,6 +38,9 @@ endif()
 # Filters
 option(OIDN_FILTER_RT "Include trained weights of the RT filter." ON)
 option(OIDN_FILTER_RTLIGHTMAP "Include trained weights of the RTLightmap filter." ON)
+
+# Install
+option(OIDN_INSTALL_DEPENDENCIES "Install Open Image Denoise dependencies" OFF)
 
 ## -----------------------------------------------------------------------------
 ## Weights
@@ -79,6 +82,11 @@ add_subdirectory(core)
 add_subdirectory(api)
 add_subdirectory(devices)
 
+# Export targets from the build tree for external projects
+export(EXPORT OpenImageDenoise_Exports
+  FILE ${OIDN_BUILD_TREE_EXPORT_FILE}
+)
+
 ## -----------------------------------------------------------------------------
 ## Apps
 ## -----------------------------------------------------------------------------
@@ -91,11 +99,6 @@ endif()
 ## -----------------------------------------------------------------------------
 ## Install and packaging
 ## -----------------------------------------------------------------------------
-
-# Export targets from the build tree for external projects
-export(EXPORT OpenImageDenoise_Exports
-  FILE ${OIDN_BUILD_TREE_EXPORT_FILE}
-)
 
 # Install headers
 install(DIRECTORY include/OpenImageDenoise
@@ -115,6 +118,27 @@ install(
   DESTINATION ${CMAKE_INSTALL_DOCDIR}
   COMPONENT lib
 )
+
+# Install generic dependencies
+if(OIDN_INSTALL_DEPENDENCIES AND CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM")
+  get_filename_component(_icx_compiler_dir ${CMAKE_CXX_COMPILER} PATH)
+
+  if(WIN32)
+    file(GLOB _icx_deps LIST_DIRECTORIES FALSE
+      "${_icx_compiler_dir}/../redist/intel64_win/compiler/libmmd.dll"
+      "${_icx_compiler_dir}/../redist/intel64_win/compiler/svml_dispmd.dll"
+    )
+  else()
+    file(GLOB _icx_deps LIST_DIRECTORIES FALSE
+      "${_icx_compiler_dir}/../compiler/lib/intel64_lin/libsvml.so"
+      "${_icx_compiler_dir}/../compiler/lib/intel64_lin/libirng.so"
+      "${_icx_compiler_dir}/../compiler/lib/intel64_lin/libimf.so"
+      "${_icx_compiler_dir}/../compiler/lib/intel64_lin/libintlc.so.?"
+    )
+  endif()
+
+  oidn_install_lib_files(${_icx_deps})
+endif()
 
 # Install CMake configuration files
 install(EXPORT OpenImageDenoise_Exports

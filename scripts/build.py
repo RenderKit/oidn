@@ -144,7 +144,7 @@ if cfg.target == 'install':
 
   # Configure
   install_dir = os.path.join(build_dir, 'install')
-  run(f'cmake -L -D OIDN_ZIP_MODE=ON -D CMAKE_INSTALL_PREFIX={install_dir} ..')
+  run(f'cmake -L -D OIDN_ZIP_MODE=ON -D OIDN_INSTALL_DEPENDENCIES=ON -D CMAKE_INSTALL_PREFIX={install_dir} ..')
 
   # Build
   if OS == 'windows':
@@ -157,7 +157,7 @@ if cfg.target == 'package':
   os.chdir(build_dir)
 
   # Configure
-  run('cmake -L -D OIDN_ZIP_MODE=ON ..')
+  run('cmake -L -D OIDN_ZIP_MODE=ON -D OIDN_INSTALL_DEPENDENCIES=ON ..')
 
   # Build
   if OS == 'windows':
