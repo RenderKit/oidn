@@ -130,7 +130,8 @@ double runBenchmark(DeviceRef& device, const Benchmark& bench)
     input = color = newImage(device, bench.width, bench.height);
     initImage(*color, rng, 0.f, 100.f);
     filter.setImage("color", color->getBuffer(), color->getFormat(), bench.width, bench.height);
-    filter.set("hdr", true);
+    if (bench.filter != "RTLightmap")
+      filter.set("hdr", true);
   }
   else if (bench.hasInput("ldr"))
   {
