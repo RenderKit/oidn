@@ -1,10 +1,6 @@
 ## Copyright 2009-2023 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
-find_package(LevelZero REQUIRED)
-
-option(OIDN_DEVICE_SYCL_AOT "Enable AOT compilation for SYCL kernels (recommended)." ON)
-
 # Check the generator
 if(NOT CMAKE_GENERATOR MATCHES "Ninja" AND NOT CMAKE_GENERATOR MATCHES "Unix Makefiles")
   message(FATAL_ERROR "Building with SYCL support requires Ninja or Make")
@@ -34,6 +30,10 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM")
 else()
   message(FATAL_ERROR "Building with SYCL support requires oneAPI DPC++ Compiler as the C/C++ compiler")
 endif()
+
+find_package(LevelZero REQUIRED)
+
+option(OIDN_DEVICE_SYCL_AOT "Enable AOT compilation for SYCL kernels (recommended)." ON)
 
 set(OIDN_SYCL_COMPILE_FLAGS -fsycl)
 
