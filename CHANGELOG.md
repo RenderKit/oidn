@@ -21,7 +21,8 @@ Version History
         oidnRemoveFilter(Image|Data) functions
     -   Renamed `alignment` and `overlap` filter parameters to `tileAlignment`
         and `tileOverlap` but the old names remain supported
--   Removed `OIDN_STATIC_LIB` CMake option due to technical limitations
+-   Removed `OIDN_STATIC_LIB` and `OIDN_STATIC_RUNTIME` CMake options due to
+    technical limitations
 -   Fixed over-conservative buffer bounds checking for images with custom strides
 
 ### Changes in v1.4.3:
@@ -51,7 +52,7 @@ Version History
 -   Improved fine detail preservation
 -   Added the `cleanAux` filter parameter for further improving quality when the
     auxiliary feature (albedo, normal) images are noise-free
--   Added support for denoising auxiliary feature images, which can be used 
+-   Added support for denoising auxiliary feature images, which can be used
     together with the new `cleanAux` parameter for improving quality when the
     auxiliary images are noisy (recommended for final frame denoising)
 -   Normals are expected to be in the [-1, 1] range (but still do not have to

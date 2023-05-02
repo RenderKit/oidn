@@ -127,9 +127,9 @@ Denoise through CMake is easy:
 Entitlements on macOS
 ---------------------
 
-macOS requires notarization of applications as a security mechanism, and 
+macOS requires notarization of applications as a security mechanism, and
 [entitlements must be declared](https://developer.apple.com/documentation/bundleresources/entitlements)
-during the notarization process.  
+during the notarization process.
 Intel Open Image Denoise uses just-in-time compilaton through [oneDNN](https://github.com/oneapi-src/oneDNN) and requires the following entitlements:
 
 -    [`com.apple.security.cs.allow-jit`](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_cs_allow-jit)
@@ -185,15 +185,6 @@ in CMake:
 - `CMAKE_BUILD_TYPE`: Can be used to switch between Debug mode
   (Debug), Release mode (Release) (default), and Release mode with
   enabled assertions and debug symbols (RelWithDebInfo).
-
-- `OIDN_STATIC_LIB`: Build Intel Open Image Denoise as a static library (OFF by
-  default). When using the statically compiled Intel Open Image Denoise library,
-  you either have to use the generated CMake configuration files (recommended),
-  or you have to manually define `OIDN_STATIC_LIB` before including the library
-  headers in your application.
-
-- `OIDN_STATIC_RUNTIME`: Use the static version of the C/C++ runtime library
-  (available only on Windows, OFF by default).
 
 - `OIDN_API_NAMESPACE`: Specifies a namespace to put all Intel Open Image
   Denoise API symbols inside. This is also added as an outer namespace for the
