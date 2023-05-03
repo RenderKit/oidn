@@ -163,7 +163,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   set_property(CACHE OIDN_SANITIZER PROPERTY STRINGS "None" "Address" "Memory" "MemoryWithOrigin" "Undefined")
   mark_as_advanced(OIDN_SANITIZER)
 
-  if(NOT OIDN_SANITIZER STREQUAL "None")
+  if(OIDN_SANITIZER AND NOT OIDN_SANITIZER STREQUAL "None")
     if(OIDN_SANITIZER MATCHES "Memory(WithOrigin)?")
       append(OIDN_C_CXX_FLAGS "-fsanitize=memory")
       if(OIDN_SANITIZER STREQUAL "MemoryWithOrigin")
