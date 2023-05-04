@@ -62,14 +62,14 @@ std::vector<char> loadFile(const std::string& filename)
 {
   std::ifstream file(filename, std::ios::binary);
   if (file.fail())
-    throw std::runtime_error("cannot open file: " + filename);
+    throw std::runtime_error("cannot open file: '" + filename + "'");
   file.seekg(0, file.end);
   const size_t size = file.tellg();
   file.seekg(0, file.beg);
   std::vector<char> buffer(size);
   file.read(buffer.data(), size);
   if (file.fail())
-    throw std::runtime_error("error reading from file");
+    throw std::runtime_error("error reading from file: '" + filename + "'");
   return buffer;
 }
 
@@ -178,7 +178,7 @@ int main(int argc, char* argv[])
         return 1;
       }
       else
-        throw std::invalid_argument("invalid argument");
+        throw std::invalid_argument("invalid argument '" + opt + "'");
     }
 
   #if defined(OIDN_ARCH_X64)

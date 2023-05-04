@@ -55,7 +55,7 @@ OIDN_NAMESPACE_BEGIN
       return pciFunction;
     }
     else
-      throw Exception(Error::InvalidArgument, "unknown physical device parameter or type mismatch");
+      throw Exception(Error::InvalidArgument, "unknown physical device parameter or type mismatch: '" + name + "'");
   }
 
   const char* PhysicalDevice::getString(const std::string& name) const
@@ -63,7 +63,7 @@ OIDN_NAMESPACE_BEGIN
     if (name == "name")
       return this->name.c_str();
     else
-      throw Exception(Error::InvalidArgument, "unknown physical device parameter or type mismatch");
+      throw Exception(Error::InvalidArgument, "unknown physical device parameter or type mismatch: '" + name + "'");
   }
 
   Data PhysicalDevice::getData(const std::string& name) const
@@ -81,7 +81,7 @@ OIDN_NAMESPACE_BEGIN
       return {luid.bytes, sizeof(luid.bytes)};
     }
     else
-      throw Exception(Error::InvalidArgument, "unknown physical device parameter or type mismatch");
+      throw Exception(Error::InvalidArgument, "unknown physical device parameter or type mismatch: '" + name + "'");
   }
 
   Device::Device()
@@ -182,7 +182,7 @@ OIDN_NAMESPACE_BEGIN
     else if (name == "externalMemoryTypes")
       return static_cast<int>(externalMemoryTypes);
     else
-      throw Exception(Error::InvalidArgument, "unknown device parameter or type mismatch");
+      throw Exception(Error::InvalidArgument, "unknown device parameter or type mismatch: '" + name + "'");
   }
 
   void Device::setInt(const std::string& name, int value)
@@ -198,7 +198,7 @@ OIDN_NAMESPACE_BEGIN
         warning("OIDN_VERBOSE environment variable overrides device parameter");
     }
     else
-      warning("unknown device parameter or type mismatch");
+      warning("unknown device parameter or type mismatch: '" + name + "'");
 
     dirty = true;
   }
@@ -244,7 +244,7 @@ OIDN_NAMESPACE_BEGIN
     else if (type == "RTLightmap")
       filter = makeRef<RTLightmapFilter>(this);
     else
-      throw Exception(Error::InvalidArgument, "unknown filter type");
+      throw Exception(Error::InvalidArgument, "unknown filter type: '" + type + "'");
 
     return filter;
   }

@@ -15,7 +15,7 @@ OIDN_NAMESPACE_BEGIN
     if (name == "weights")
       setParam(userWeightsBlob, data);
     else
-      device->warning("unknown filter parameter or type mismatch");
+      device->warning("unknown filter parameter or type mismatch: '" + name + "'");
 
     dirty = true;
   }
@@ -25,7 +25,7 @@ OIDN_NAMESPACE_BEGIN
     if (name == "weights")
       dirtyParam |= userWeightsBlob;
     else
-      device->warning("unknown filter parameter or type mismatch");
+      device->warning("unknown filter parameter or type mismatch: '" + name + "'");
 
     dirty = true;
   }
@@ -35,7 +35,7 @@ OIDN_NAMESPACE_BEGIN
     if (name == "weights")
       removeParam(userWeightsBlob);
     else
-      device->warning("unknown filter parameter or type mismatch");
+      device->warning("unknown filter parameter or type mismatch: '" + name + "'");
 
     dirty = true;
   }
@@ -45,7 +45,7 @@ OIDN_NAMESPACE_BEGIN
     if (name == "inputScale" || name == "hdrScale")
       inputScale = value;
     else
-      device->warning("unknown filter parameter or type mismatch");
+      device->warning("unknown filter parameter or type mismatch: '" + name + "'");
 
     dirty = true;
   }
@@ -55,7 +55,7 @@ OIDN_NAMESPACE_BEGIN
     if (name == "inputScale" || name == "hdrScale")
       return inputScale;
     else
-      throw Exception(Error::InvalidArgument, "unknown filter parameter or type mismatch");
+      throw Exception(Error::InvalidArgument, "unknown filter parameter or type mismatch: '" + name + "'");
   }
 
   void UNetFilter::commit()

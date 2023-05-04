@@ -36,7 +36,7 @@ OIDN_NAMESPACE_BEGIN
     else if (name == "output")
       setParam(output, image);
     else
-      device->warning("unknown filter parameter or type mismatch");
+      device->warning("unknown filter parameter or type mismatch: '" + name + "'");
 
     dirty = true;
   }
@@ -48,7 +48,7 @@ OIDN_NAMESPACE_BEGIN
     else if (name == "output")
       removeParam(output);
     else
-      device->warning("unknown filter parameter or type mismatch");
+      device->warning("unknown filter parameter or type mismatch: '" + name + "'");
 
     dirty = true;
   }
@@ -63,7 +63,7 @@ OIDN_NAMESPACE_BEGIN
     else if (name == "maxMemoryMB")
       setParam(maxMemoryMB, value);
     else
-      device->warning("unknown filter parameter or type mismatch");
+      device->warning("unknown filter parameter or type mismatch: '" + name + "'");
 
     dirty = true;
   }
@@ -79,7 +79,7 @@ OIDN_NAMESPACE_BEGIN
     else if (name == "tileOverlap" || name == "overlap")
       return tileOverlap;
     else
-      throw Exception(Error::InvalidArgument, "unknown filter parameter or type mismatch");
+      throw Exception(Error::InvalidArgument, "unknown filter parameter or type mismatch: '" + name + "'");
   }
 
 OIDN_NAMESPACE_END

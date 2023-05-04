@@ -55,7 +55,7 @@ OIDN_NAMESPACE_BEGIN
       // Open the file
       std::ifstream file(filename, std::ios::binary);
       if (file.fail())
-        throw std::runtime_error("cannot open image file: " + filename);
+        throw std::runtime_error("cannot open image file: '" + filename + "'");
 
       // Read the header
       std::string id;
@@ -131,7 +131,7 @@ OIDN_NAMESPACE_BEGIN
       // Open the file
       std::ofstream file(filename, std::ios::binary);
       if (file.fail())
-        throw std::runtime_error("cannot open image file: " + filename);
+        throw std::runtime_error("cannot open image file: '" + filename + "'");
 
       // Write the header
       file << id << std::endl;
@@ -160,7 +160,7 @@ OIDN_NAMESPACE_BEGIN
       // Open the file
       std::ifstream file(filename, std::ios::binary);
       if (file.fail())
-        throw std::runtime_error("cannot open image file: " + filename);
+        throw std::runtime_error("cannot open image file: '" + filename + "'");
 
       // Read the header
       std::string id;
@@ -246,7 +246,7 @@ OIDN_NAMESPACE_BEGIN
       // Open the file
       std::ofstream file(filename, std::ios::binary);
       if (file.fail())
-        throw std::runtime_error("cannot open image file: " + filename);
+        throw std::runtime_error("cannot open image file: '" + filename + "'");
 
       // Write the header
       file << id << std::endl;
@@ -278,7 +278,7 @@ OIDN_NAMESPACE_BEGIN
       // Open the file
       std::ofstream file(filename, std::ios::binary);
       if (file.fail())
-        throw std::runtime_error("cannot open image file: " + filename);
+        throw std::runtime_error("cannot open image file: '" + filename + "'");
 
       // Write the header
       file << "P6" << std::endl;
@@ -305,7 +305,7 @@ OIDN_NAMESPACE_BEGIN
     {
       auto in = OIIO::ImageInput::open(filename);
       if (!in)
-        throw std::runtime_error("cannot open image file: " + filename);
+        throw std::runtime_error("cannot open image file: '" + filename + "'");
 
       const OIIO::ImageSpec& spec = in->spec();
       if (numChannels == 0)
@@ -334,7 +334,7 @@ OIDN_NAMESPACE_BEGIN
     {
       auto out = OIIO::ImageOutput::create(filename);
       if (!out)
-        throw std::runtime_error("cannot save unsupported image file format: " + filename);
+        throw std::runtime_error("cannot save unsupported image file format: '" + filename + "'");
 
       OIIO::TypeDesc format;
       switch (image.getDataType())
@@ -355,7 +355,7 @@ OIDN_NAMESPACE_BEGIN
                            format);
 
       if (!out->open(filename, spec))
-        throw std::runtime_error("cannot create image file: " + filename);
+        throw std::runtime_error("cannot create image file: '" + filename + "'");
       bool success = out->write_image(format, image.getData());
       out->close();
 
@@ -386,7 +386,7 @@ OIDN_NAMESPACE_BEGIN
 #if OIDN_USE_OPENIMAGEIO
       image = loadImageOIIO(device, filename, numChannels, dataType);
 #else
-      throw std::runtime_error("cannot load unsupported image file format: " + filename);
+      throw std::runtime_error("cannot load unsupported image file format: '" + filename + "'");
 #endif
 
     return image;
@@ -405,7 +405,7 @@ OIDN_NAMESPACE_BEGIN
 #if OIDN_USE_OPENIMAGEIO
       saveImageOIIO(filename, image);
 #else
-      throw std::runtime_error("cannot write unsupported image file format: " + filename);
+      throw std::runtime_error("cannot write unsupported image file format: '" + filename + "'");
 #endif
   }
 

@@ -11,7 +11,7 @@ OIDN_NAMESPACE_BEGIN
   // which would cause exception handling and dynamic_cast to fail.
   const char* Exception::what() const noexcept
   {
-    return message;
+    return message->c_str();
   }
 
 OIDN_NAMESPACE_END

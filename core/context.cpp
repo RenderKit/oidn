@@ -56,14 +56,14 @@ OIDN_NAMESPACE_BEGIN
   {
     auto it = deviceFactories.find(type);
     if (it == deviceFactories.end())
-      throw Exception(Error::UnsupportedHardware, "unsupported device type");
+      throw Exception(Error::UnsupportedHardware, "unsupported device type: " + toString(type));
     return it->second.get();
   }
 
   const Ref<PhysicalDevice>& Context::getPhysicalDevice(int id) const
   {
     if (id < 0 || static_cast<size_t>(id) >= physicalDevices.size())
-      throw Exception(Error::InvalidArgument, "invalid physical device ID");
+      throw Exception(Error::InvalidArgument, "invalid physical device ID: " + toString(id));
     return physicalDevices[id];
   }
 

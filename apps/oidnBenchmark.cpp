@@ -299,7 +299,7 @@ int main(int argc, char* argv[])
         return 1;
       }
       else
-        throw std::invalid_argument("invalid argument");
+        throw std::invalid_argument("invalid argument: '" + opt + "'");
     }
 
     // Add the benchmarks to the list
