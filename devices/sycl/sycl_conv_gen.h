@@ -1,6 +1,9 @@
 // Copyright 2009-2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
+// This file may be included multiple times in the same cpp with different macros defined,
+// so we have *no* 'pragma once' here
+
 #include "sycl_conv.h"
 #include "sycl_common.h"
 #include <sycl/ext/intel/experimental/kernel_properties.hpp>
@@ -11,6 +14,8 @@ OIDN_NAMESPACE_BEGIN
 namespace xelp {
 #elif defined(OIDN_ARCH_XEHPG)
 namespace xehpg {
+#elif defined(OIDN_ARCH_XEHPC_FAST)
+namespace xehpc_fast {
 #elif defined(OIDN_ARCH_XEHPC)
 namespace xehpc {
 #endif
@@ -47,13 +52,13 @@ namespace xehpc {
     #if defined(OIDN_ARCH_XEHPG)
       syclx::set_kernel_properties(syclx::kernel_properties::use_large_grf);
 
-      // Accumulator rows (only 32-bit is supported by DPAS on Xe-HPG)
+      // FP32 accumulator rows
       simd<float, blockOW * blockAC> accumRows[blockOH][numBlockAC] = {}; // = 0
-    #elif defined(OIDN_ARCH_XEHPC)
-      // Output rows (16-bit is precise enough thanks to DPAS)
+    #elif defined(OIDN_ARCH_XEHPC_FAST)
+      // FP16 output rows
       simd<T, blockOW * blockC> outRows[blockOH] = {}; // = 0
-    #elif defined(OIDN_ARCH_XELP)
-      // Accumulator rows (32-bit is necessary because precision is too low with pure 16-bit FMAs)
+    #else
+      // FP32 accumulator rows
       simd<float, blockOW * blockC> accumRows[blockOH] = {}; // = 0
     #endif
 
@@ -117,12 +122,21 @@ namespace xehpc {
                   inRows[(kh + boh) % blockOH].template select<blockOW * blockC, 1>(kw * blockC).read());
               }
             }
-          #elif defined(OIDN_ARCH_XEHPC)
+          #elif defined(OIDN_ARCH_XEHPC_FAST)
             #pragma unroll
             for (int boh = 0; boh < blockOH; ++boh)
             {
               outRows[boh] = xmx::dpas<dpasDepth, dpasRepeat, T>(
                 outRows[boh],
+                weightMat,
+                inRows[(kh + boh) % blockOH].template select<blockOW * blockC, 1>(kw * blockC).read());
+            }
+          #elif defined(OIDN_ARCH_XEHPC)
+            #pragma unroll
+            for (int boh = 0; boh < blockOH; ++boh)
+            {
+              accumRows[boh] = xmx::dpas<dpasDepth, dpasRepeat, float>(
+                accumRows[boh],
                 weightMat,
                 inRows[(kh + boh) % blockOH].template select<blockOW * blockC, 1>(kw * blockC).read());
             }
@@ -133,7 +147,7 @@ namespace xehpc {
               #pragma unroll
               for (int bow = 0; bow < blockOW; ++bow)
               {
-                // Intermediate 16-bit accumulator to use FMAs
+                // Intermediate 16-bit accumulator to be able to use FMAs
                 simd<T, blockC> localAccum =
                   inRows[(kh + boh) % blockOH].template replicate_w<blockC, 1>((kw + bow) * blockC + 0) *
                   weightMat.template select<blockC, 1>(0 * blockC);
@@ -166,7 +180,7 @@ namespace xehpc {
         for (int i = 0; i < numBlockAC; ++i)
           outRowView.template select<blockOW, 1, blockAC, 1>(0, i * blockAC) = accumRows[boh][i];
       }
-    #elif defined(OIDN_ARCH_XELP)
+    #elif !defined(OIDN_ARCH_XEHPC_FAST)
       // Down-convert accumulator rows to output rows
       simd<T, blockOW * blockC> outRows[blockOH];
 
@@ -427,7 +441,7 @@ namespace xehpc {
     Ref<SYCLEngine> engine;
   };
 
-  std::shared_ptr<Conv> newConv(const Ref<SYCLEngine>& engine, const ConvDesc& desc)
+  std::shared_ptr<Conv> newSYCLConv(const Ref<SYCLEngine>& engine, const ConvDesc& desc)
   {
     return std::make_shared<SYCLConv>(engine, desc);
   }

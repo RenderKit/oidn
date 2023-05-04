@@ -48,12 +48,12 @@ OIDN_NAMESPACE_BEGIN
     switch (device->getArch())
     {
     case SYCLArch::XeLP:
-      return xelp::newConv(this, desc);
+      return xelp::newSYCLConv(this, desc);
     case SYCLArch::XeHPG:
-      return xehpg::newConv(this, desc);
+      return xehpg::newSYCLConv(this, desc);
   #if defined(__linux__)
     case SYCLArch::XeHPC:
-      return xehpc::newConv(this, desc);
+      return xehpc::newSYCLConv(this, desc);
   #endif
     default:
       throw std::logic_error("unsupported architecture");
