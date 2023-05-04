@@ -20,9 +20,11 @@ OIDN_NAMESPACE_BEGIN
   namespace xehpc {
     std::shared_ptr<Conv> newSYCLConv(const Ref<SYCLEngine>& engine, const ConvDesc& desc);
   }
+  /*
   namespace xehpc_fast {
     std::shared_ptr<Conv> newSYCLConv(const Ref<SYCLEngine>& engine, const ConvDesc& desc);
   }
+  */
 #endif
 
 OIDN_NAMESPACE_END

@@ -5,5 +5,5 @@
 
 #include "sycl_conv_gen.h"
 
-#define OIDN_ARCH_XEHPC_FAST
-#include "sycl_conv_gen.h"
+//#define OIDN_ARCH_XEHPC_FAST
+//#include "sycl_conv_gen.h"
