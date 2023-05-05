@@ -15,11 +15,12 @@ OIDN_NAMESPACE_BEGIN
     TensorDesc weightDesc;
     TensorDesc biasDesc;
     Activation activation;
+    bool fastMath; // prefer performance over accuracy
   };
 
   class ConcatConv : public Op, protected ConcatConvDesc
   {
-  public:    
+  public:
     ConcatConv(const ConcatConvDesc& desc);
 
     TensorDesc getDstDesc() const { return dstDesc; }
@@ -35,7 +36,7 @@ OIDN_NAMESPACE_BEGIN
     virtual void updateDst() {}
 
     TensorDesc dstDesc;
-    
+
     std::shared_ptr<Tensor> src1;
     std::shared_ptr<Tensor> src2;
     std::shared_ptr<Tensor> bias;

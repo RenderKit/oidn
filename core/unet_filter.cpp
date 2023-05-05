@@ -40,6 +40,39 @@ OIDN_NAMESPACE_BEGIN
     dirty = true;
   }
 
+  void UNetFilter::setInt(const std::string& name, int value)
+  {
+    if (name == "quality")
+    {
+      Quality qualityValue = static_cast<Quality>(value);
+      if (qualityValue == Quality::Default)
+        qualityValue = defaultQuality;
+      else if (qualityValue != Quality::High && qualityValue != Quality::Balanced)
+        throw Exception(Error::InvalidArgument, "unknown filter quality mode");
+      setParam(quality, qualityValue);
+    }
+    else if (name == "maxMemoryMB")
+      setParam(maxMemoryMB, value);
+    else
+      device->warning("unknown filter parameter or type mismatch: '" + name + "'");
+
+    dirty = true;
+  }
+
+  int UNetFilter::getInt(const std::string& name)
+  {
+    if (name == "quality")
+      return static_cast<int>(quality);
+    else if (name == "maxMemoryMB")
+      return maxMemoryMB;
+    else if (name == "tileAlignment" || name == "alignment")
+      return tileAlignment;
+    else if (name == "tileOverlap" || name == "overlap")
+      return tileOverlap;
+    else
+      throw Exception(Error::InvalidArgument, "unknown filter parameter or type mismatch: '" + name + "'");
+  }
+
   void UNetFilter::setFloat(const std::string& name, float value)
   {
     if (name == "inputScale" || name == "hdrScale")
@@ -206,11 +239,13 @@ OIDN_NAMESPACE_BEGIN
     // Build the model
     Data weightsBlob = getWeights();
     std::shared_ptr<TensorMap> weightsMap = parseTZA(weightsBlob.ptr, weightsBlob.size);
+    const bool fastMath = quality == Quality::Balanced;
+
     for (int i = 0; i < device->getNumEngines(); ++i)
     {
       auto engine = device->getEngine(i);
       instances.emplace_back();
-      instances.back().graph = engine->newGraph(weightsMap);
+      instances.back().graph = engine->newGraph(weightsMap, fastMath);
     }
 
     transferFunc = newTransferFunc();
@@ -305,6 +340,7 @@ OIDN_NAMESPACE_BEGIN
 
     if (device->isVerbose(2))
     {
+      std::cout << "Quality: " << quality << std::endl;
       std::cout << "Inputs:";
       if (color)  std::cout << " " << (directional ? "dir" : (hdr ? "hdr" : "ldr")) << ":" << color->getFormat();
       if (albedo) std::cout << " " << "alb" << ":" << albedo->getFormat();
@@ -398,7 +434,7 @@ OIDN_NAMESPACE_BEGIN
       // Create the model graph
       auto inputProcess = graph->addInputProcess("input", inputDims, tileAlignment, transferFunc, hdr, snorm);
 
-      auto encConv0 = graph->addConv("enc_conv0", inputProcess);
+      auto encConv0 = graph->addConv("enc_conv0", inputProcess, Activation::ReLU);
 
       auto pool1 = graph->addConv("enc_conv1", encConv0, Activation::ReLU, PostOp::Pool);
 
@@ -408,22 +444,22 @@ OIDN_NAMESPACE_BEGIN
 
       auto pool4 = graph->addConv("enc_conv4", pool3, Activation::ReLU, PostOp::Pool);
 
-      auto encConv5a = graph->addConv("enc_conv5a", pool4);
+      auto encConv5a = graph->addConv("enc_conv5a", pool4, Activation::ReLU);
 
       auto upsample4 = graph->addConv("enc_conv5b", encConv5a, Activation::ReLU, PostOp::Upsample);
-      auto decConv4a = graph->addConcatConv("dec_conv4a", upsample4, pool3);
+      auto decConv4a = graph->addConcatConv("dec_conv4a", upsample4, pool3, Activation::ReLU);
 
       auto upsample3 = graph->addConv("dec_conv4b", decConv4a, Activation::ReLU, PostOp::Upsample);
-      auto decConv3a = graph->addConcatConv("dec_conv3a", upsample3, pool2);
+      auto decConv3a = graph->addConcatConv("dec_conv3a", upsample3, pool2, Activation::ReLU);
 
       auto upsample2 = graph->addConv("dec_conv3b", decConv3a, Activation::ReLU, PostOp::Upsample);
-      auto decConv2a = graph->addConcatConv("dec_conv2a", upsample2, pool1);
+      auto decConv2a = graph->addConcatConv("dec_conv2a", upsample2, pool1, Activation::ReLU);
 
       auto upsample1 = graph->addConv("dec_conv2b", decConv2a, Activation::ReLU, PostOp::Upsample);
-      auto decConv1a = graph->addConcatConv("dec_conv1a", upsample1, inputProcess);
-      auto decConv1b = graph->addConv("dec_conv1b", decConv1a);
+      auto decConv1a = graph->addConcatConv("dec_conv1a", upsample1, inputProcess, Activation::ReLU);
+      auto decConv1b = graph->addConv("dec_conv1b", decConv1a, Activation::ReLU);
 
-      auto decConv0 = graph->addConv("dec_conv0", decConv1b);
+      auto decConv0 = graph->addConv("dec_conv0", decConv1b, Activation::ReLU);
 
       auto outputProcess = graph->addOutputProcess("output", decConv0, transferFunc, hdr, snorm);
 

@@ -25,6 +25,12 @@ OIDN_NAMESPACE_BEGIN
     dst = src;
   }
 
+  void Filter::setParam(Quality& dst, Quality src)
+  {
+    dirtyParam |= dst != src;
+    dst = src;
+  }
+
   void Filter::setParam(std::shared_ptr<Image>& dst, const std::shared_ptr<Image>& src)
   {
     // Check whether the image is accessible to the device

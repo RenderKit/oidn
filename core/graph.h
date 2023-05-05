@@ -30,13 +30,13 @@ OIDN_NAMESPACE_BEGIN
 
     virtual std::shared_ptr<Op> addConv(const std::string& name,
                                         const std::shared_ptr<Op>& srcOp,
-                                        Activation activation = Activation::ReLU,
+                                        Activation activation,
                                         PostOp postOp = PostOp::None) = 0;
 
     virtual std::shared_ptr<ConcatConv> addConcatConv(const std::string& name,
                                                       const std::shared_ptr<Op>& src1Op,
                                                       const std::shared_ptr<Op>& src2Op,
-                                                      Activation activation = Activation::ReLU) = 0;
+                                                      Activation activation) = 0;
 
     virtual std::shared_ptr<Pool> addPool(const std::string& name,
                                           const std::shared_ptr<Op>& srcOp) = 0;

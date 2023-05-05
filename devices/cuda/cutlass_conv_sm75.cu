@@ -13,8 +13,11 @@ std::vector<CutlassConvFactory> getCutlassConvInstances<75>()
   using cutlass::gemm::GemmShape;
 
   return {
-    CutlassConvInstance<half, half, Sm75, GemmShape<256, 32, 32>, GemmShape<64, 32, 32>, 2>::get(),
-    CutlassConvInstance<half, half, Sm75, GemmShape<256, 64, 32>, GemmShape<64, 64, 32>, 2>::get(),
+    CutlassConvInstance<half, float, Sm75, GemmShape<256, 32, 32>, GemmShape<64, 32, 32>, 2>::get(),
+    CutlassConvInstance<half, float, Sm75, GemmShape<256, 64, 32>, GemmShape<64, 64, 32>, 2>::get(),
+
+    CutlassConvInstance<half, half,  Sm75, GemmShape<256, 32, 32>, GemmShape<64, 32, 32>, 2>::get(),
+    CutlassConvInstance<half, half,  Sm75, GemmShape<256, 64, 32>, GemmShape<64, 64, 32>, 2>::get(),
   };
 }
 

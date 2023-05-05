@@ -323,6 +323,15 @@ OIDN_NAMESPACE_BEGIN
   // Filter
   // -----------------------------------------------------------------------------------------------
 
+  // Filter quality/performance modes
+  enum class Quality
+  {
+    Default  = OIDN_QUALITY_DEFAULT,  // default quality mode
+
+    High     = OIDN_QUALITY_HIGH,     // high quality mode (for offline rendering)
+    Balanced = OIDN_QUALITY_BALANCED, // balanced quality/performance mode (for interactive/real-time rendering)
+  };
+
   // Progress monitor callback function
   using ProgressMonitorFunction = OIDNProgressMonitorFunction;
 
@@ -465,6 +474,11 @@ OIDN_NAMESPACE_BEGIN
       oidnSetFilterInt(handle, name, value);
     }
 
+    void set(const char* name, Quality value)
+    {
+      oidnSetFilterInt(handle, name, static_cast<int>(value));
+    }
+
     // Sets a float parameter of the filter.
     void set(const char* name, float value)
     {
@@ -514,21 +528,24 @@ OIDN_NAMESPACE_BEGIN
     OIDNFilter handle;
   };
 
-  // Gets a boolean parameter of the filter.
   template<>
   inline bool FilterRef::get(const char* name) const
   {
     return oidnGetFilterBool(handle, name);
   }
 
-  // Gets an integer parameter of the filter.
   template<>
   inline int FilterRef::get(const char* name) const
   {
     return oidnGetFilterInt(handle, name);
   }
 
-  // Gets a float parameter of the filter.
+  template<>
+  inline Quality FilterRef::get(const char* name) const
+  {
+    return static_cast<Quality>(oidnGetFilterInt(handle, name));
+  }
+
   template<>
   inline float FilterRef::get(const char* name) const
   {
@@ -762,7 +779,7 @@ OIDN_NAMESPACE_BEGIN
   template<>
   inline DeviceType DeviceRef::get(const char* name) const
   {
-    return DeviceType(oidnGetDeviceInt(handle, name));
+    return static_cast<DeviceType>(oidnGetDeviceInt(handle, name));
   }
 
   template<>

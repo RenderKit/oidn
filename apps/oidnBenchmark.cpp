@@ -22,6 +22,7 @@ OIDN_NAMESPACE_USING
 int width  = -1;
 int height = -1;
 Format dataType = Format::Float;
+Quality quality = Quality::Default;
 int numRuns = 0;
 int maxMemoryMB = -1;
 bool inplace = false;
@@ -33,6 +34,7 @@ void printUsage()
             << "                     [-r/--run regex] [-n times_to_run]" << std::endl
             << "                     [-s/--size width height]" << std::endl
             << "                     [-t/--type float|half]" << std::endl
+            << "                     [-q/--quality h|high|b|balanced]" << std::endl
             << "                     [--threads n] [--affinity 0|1] [--maxmem MB] [--inplace]" << std::endl
             << "                     [-v/--verbose 0-3]" << std::endl
             << "                     [--ld|--list_devices] [-l/--list] [-h/--help]" << std::endl;
@@ -147,6 +149,9 @@ double runBenchmark(DeviceRef& device, const Benchmark& bench)
   else
     output = newImage(device, bench.width, bench.height);
   filter.setImage("output", output->getBuffer(), output->getFormat(), bench.width, bench.height);
+
+  if (quality != Quality::Default)
+    filter.set("quality", quality);
 
   if (maxMemoryMB >= 0)
     filter.set("maxMemoryMB", maxMemoryMB);
@@ -271,13 +276,23 @@ int main(int argc, char* argv[])
       }
       else if (opt == "t" || opt == "type")
       {
-        const auto val = args.getNextValue();
-        if (val == "f" || val == "float" || val == "Float" || val == "fp32")
+        const auto val = toLower(args.getNextValue());
+        if (val == "f" || val == "float" || val == "fp32")
           dataType = Format::Float;
-        else if (val == "h" || val == "half" || val == "Half" || val == "fp16")
+        else if (val == "h" || val == "half" || val == "fp16")
           dataType = Format::Half;
         else
           throw std::runtime_error("invalid data type");
+      }
+      else if (opt == "q" || opt == "quality")
+      {
+        const auto val = toLower(args.getNextValue());
+        if (val == "h" || val == "high")
+          quality = Quality::High;
+        else if (val == "b" || val == "balanced")
+          quality = Quality::Balanced;
+        else
+          throw std::runtime_error("invalid filter quality mode");
       }
       else if (opt == "threads")
         numThreads = args.getNextValue<int>();

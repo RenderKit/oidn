@@ -17,7 +17,7 @@ OIDN_NAMESPACE_BEGIN
     TensorDims srcPaddedDims{src1Desc.getPaddedC() + src2Desc.getPaddedC(), src1Desc.getH(), src1Desc.getW()};
     srcDesc = {srcDims, srcPaddedDims, src1Desc.layout, src1Desc.dataType};
 
-    conv = engine->newConv({srcDesc, weightDesc, biasDesc, activation, PostOp::None});
+    conv = engine->newConv({srcDesc, weightDesc, biasDesc, activation, PostOp::None, fastMath});
   }
 
   void ConcatConvCHW::updateSrc()

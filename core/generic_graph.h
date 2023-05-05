@@ -11,7 +11,9 @@ OIDN_NAMESPACE_BEGIN
   class GenericGraph final : public Graph
   {
   public:
-    GenericGraph(const Ref<Engine>& engine, const std::shared_ptr<TensorMap>& constTensors);
+    GenericGraph(const Ref<Engine>& engine,
+                 const std::shared_ptr<TensorMap>& constTensors,
+                 bool fastMath = false);
 
     std::shared_ptr<InputProcess> addInputProcess(const std::string& name,
                                                   const TensorDims& srcDims,
@@ -80,8 +82,8 @@ OIDN_NAMESPACE_BEGIN
 
     void addOp(const std::shared_ptr<Op>& op, const std::vector<std::shared_ptr<Op>>& srcOps,
                bool concatSrcs = false);
-               
-    TensorAlloc* addOp(const std::shared_ptr<Op>& op, const std::vector<std::shared_ptr<Op>>& srcOps, 
+
+    TensorAlloc* addOp(const std::shared_ptr<Op>& op, const std::vector<std::shared_ptr<Op>>& srcOps,
                        const TensorDesc& dstDesc, bool concatSrcs = false);
 
     void planAllocations();
@@ -101,6 +103,7 @@ OIDN_NAMESPACE_BEGIN
     std::unordered_map<Op*, TensorAlloc*> tensorAllocsByOp;
     std::vector<std::function<void()>> lazyInits; // lazy initialization for ops
     std::shared_ptr<TensorMap> constTensors;
+    bool fastMath = false;
   };
 
 OIDN_NAMESPACE_END

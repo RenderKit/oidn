@@ -25,11 +25,11 @@ OIDN_NAMESPACE_BEGIN
                    weightDesc.dataType};
 
     // Convolution 1: dst = conv(src1, weight1) + bias
-    conv1 = engine->newConv({src1Desc, weight1Desc, biasDesc, Activation::None, PostOp::None});
+    conv1 = engine->newConv({src1Desc, weight1Desc, biasDesc, Activation::None, PostOp::None, fastMath});
 
     // Convolution 2: dst = activation(conv(src2, weight2) + dst)
     // We use dst as bias
-    conv2 = engine->newConv({src2Desc, weight2Desc, dstDesc, activation, PostOp::None});
+    conv2 = engine->newConv({src2Desc, weight2Desc, dstDesc, activation, PostOp::None, fastMath});
   }
 
   bool ConcatConvHWC::isSupported() const
@@ -59,7 +59,7 @@ OIDN_NAMESPACE_BEGIN
     conv1->setSrc(src1);
     conv2->setSrc(src2);
   }
-  
+
   void ConcatConvHWC::updateDst()
   {
     conv1->setDst(dst);

@@ -27,13 +27,15 @@ OIDN_NAMESPACE_BEGIN
     const size_t N = gemmSize.n();
     const size_t K = gemmSize.k();
 
+    const DataType accumType = desc.fastMath ? desc.srcDesc.dataType : DataType::Float32;
+
     const CutlassConvFactory* bestKernel = nullptr;
     int bestBlockSize = 0;
     size_t bestCost = std::numeric_limits<size_t>::max();
 
     for (const auto& kernel : kernels)
     {
-      if (kernel.dataType != desc.srcDesc.dataType)
+      if (kernel.dataType != desc.srcDesc.dataType || kernel.accumType != accumType)
         continue;
 
       const int blockSize = kernel.blockM * kernel.blockN * kernel.blockK;

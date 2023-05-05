@@ -62,7 +62,7 @@ OIDN_NAMESPACE_BEGIN
       Element, // ElementOutput
       CutlassEpilogueTraits<Element, alignment>::vectorLength,
       ElementAccumulator,
-      ElementAccumulator, // ElementComputeEpilogue
+      Element, // ElementComputeEpilogue
       cutlass::epilogue::thread::ScaleType::NoBetaScaling>; // alpha * C + D
   };
 
@@ -73,7 +73,7 @@ OIDN_NAMESPACE_BEGIN
       Element, // ElementOutput
       CutlassEpilogueTraits<Element, alignment>::vectorLength,
       ElementAccumulator,
-      ElementAccumulator, // ElementComputeEpilogue
+      Element, // ElementComputeEpilogue
       cutlass::epilogue::thread::ScaleType::NoBetaScaling>; // alpha * C + D
   };
 
@@ -160,7 +160,7 @@ OIDN_NAMESPACE_BEGIN
   private:
     using Element = typename CutlassElement<T>::Type;
     using ElementAccumulator = typename CutlassElement<AccumT>::Type;
-    using ElementComputeEpilogue = ElementAccumulator;
+    using ElementComputeEpilogue = Element;
     using ElementInputA = Element;
     using ElementInputB = Element;
     using ElementOutput = Element;
@@ -279,6 +279,7 @@ OIDN_NAMESPACE_BEGIN
     std::shared_ptr<Conv> (*make)(const Ref<CUDAEngine>&, const ConvDesc&);
 
     DataType dataType;
+    DataType accumType;
     int smArch;                 // compute capability
     int blockM, blockN, blockK; // threadblock size
   };
@@ -298,6 +299,7 @@ OIDN_NAMESPACE_BEGIN
       return {
         make,
         DataTypeOf<T>::value,
+        DataTypeOf<AccumT>::value,
         SmArch::kMinComputeCapability,
         ThreadblockShape::kM,
         ThreadblockShape::kN,

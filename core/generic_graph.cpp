@@ -9,9 +9,11 @@
 OIDN_NAMESPACE_BEGIN
 
   GenericGraph::GenericGraph(const Ref<Engine>& engine,
-                             const std::shared_ptr<TensorMap>& constTensors)
+                             const std::shared_ptr<TensorMap>& constTensors,
+                             bool fastMath)
     : engine(engine),
-      constTensors(constTensors) {}
+      constTensors(constTensors),
+      fastMath(fastMath) {}
 
   std::shared_ptr<InputProcess> GenericGraph::addInputProcess(const std::string& name,
                                                               const TensorDims& srcDims,
@@ -97,7 +99,7 @@ OIDN_NAMESPACE_BEGIN
 
     TensorAlloc* srcAlloc = tensorAllocsByOp[srcOp.get()];
     const TensorDesc srcDesc = srcAlloc->desc;
-    auto conv = engine->newConv({srcDesc, finalWeightDesc, finalBiasDesc, activation, postOp});
+    auto conv = engine->newConv({srcDesc, finalWeightDesc, finalBiasDesc, activation, postOp, fastMath});
     conv->setName(name);
     TensorAlloc* dstAlloc = addOp(conv, {srcOp}, conv->getDstDesc());
 
@@ -141,9 +143,9 @@ OIDN_NAMESPACE_BEGIN
     const TensorDesc src2Desc = src2Alloc->desc;
 
     TensorDims finalWeightDims{round_up(weight->getO(), blockC),
-                                src1Desc.getPaddedC() + src2Desc.getPaddedC(),
-                                weight->getH(),
-                                weight->getW()};
+                               src1Desc.getPaddedC() + src2Desc.getPaddedC(),
+                               weight->getH(),
+                               weight->getW()};
 
     TensorDesc finalWeightDesc = {weight->getDims(),
                                   finalWeightDims,
@@ -155,7 +157,7 @@ OIDN_NAMESPACE_BEGIN
                                 TensorLayout::x,
                                 engine->getDevice()->getTensorDataType()};
 
-    ConcatConvDesc concatConvDesc{src1Desc, src2Desc, finalWeightDesc, finalBiasDesc, activation};
+    ConcatConvDesc concatConvDesc{src1Desc, src2Desc, finalWeightDesc, finalBiasDesc, activation, fastMath};
 
     if (engine->getDevice()->getTensorLayout() == TensorLayout::hwc)
     {

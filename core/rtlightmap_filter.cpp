@@ -60,10 +60,8 @@ OIDN_NAMESPACE_BEGIN
       setParam(directional, value);
       hdr = !directional;
     }
-    else if (name == "maxMemoryMB")
-      setParam(maxMemoryMB, value);
     else
-      device->warning("unknown filter parameter or type mismatch: '" + name + "'");
+      UNetFilter::setInt(name, value);
 
     dirty = true;
   }
@@ -72,14 +70,8 @@ OIDN_NAMESPACE_BEGIN
   {
     if (name == "directional")
       return directional;
-    else if (name == "maxMemoryMB")
-      return maxMemoryMB;
-    else if (name == "tileAlignment" || name == "alignment")
-      return tileAlignment;
-    else if (name == "tileOverlap" || name == "overlap")
-      return tileOverlap;
     else
-      throw Exception(Error::InvalidArgument, "unknown filter parameter or type mismatch: '" + name + "'");
+      return UNetFilter::getInt(name);
   }
 
 OIDN_NAMESPACE_END

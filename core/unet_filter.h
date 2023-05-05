@@ -18,6 +18,8 @@ OIDN_NAMESPACE_BEGIN
     void setData(const std::string& name, const Data& data) override;
     void updateData(const std::string& name) override;
     void unsetData(const std::string& name) override;
+    void setInt(const std::string& name, int value) override;
+    int getInt(const std::string& name) override;
     void setFloat(const std::string& name, float value) override;
     float getFloat(const std::string& name) override;
 
@@ -42,6 +44,8 @@ OIDN_NAMESPACE_BEGIN
     std::shared_ptr<Image> output;
 
     // Options
+    static constexpr Quality defaultQuality = Quality::High;
+    Quality quality = defaultQuality;
     bool hdr = false;
     bool srgb = false;
     bool directional = false;
@@ -90,7 +94,7 @@ OIDN_NAMESPACE_BEGIN
       std::shared_ptr<InputProcess> inputProcess;
       std::shared_ptr<OutputProcess> outputProcess;
     };
-    
+
     // Model
     std::vector<Instance> instances;
     std::shared_ptr<TransferFunction> transferFunc;
@@ -98,7 +102,7 @@ OIDN_NAMESPACE_BEGIN
     // In-place tiled filtering
     std::shared_ptr<ImageCopy> imageCopy;
     std::shared_ptr<Image> outputTemp;
-    
+
     Progress progress;
   };
 

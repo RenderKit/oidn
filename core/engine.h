@@ -60,7 +60,7 @@ OIDN_NAMESPACE_BEGIN
     virtual std::shared_ptr<Tensor> newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset = 0);
 
     // Ops
-    virtual std::shared_ptr<Graph> newGraph(const std::shared_ptr<TensorMap>& constTensors);
+    virtual std::shared_ptr<Graph> newGraph(const std::shared_ptr<TensorMap>& constTensors, bool fastMath = false);
     virtual bool isConvSupported(PostOp postOp);
     virtual std::shared_ptr<Conv> newConv(const ConvDesc& desc) = 0;
     virtual std::shared_ptr<Pool> newPool(const PoolDesc& desc) = 0;

@@ -325,6 +325,16 @@ OIDN_API void oidnReleaseBuffer(OIDNBuffer buffer);
 // Filter
 // -------------------------------------------------------------------------------------------------
 
+// Filter quality/performance modes
+typedef enum
+{
+  OIDN_QUALITY_DEFAULT  = 0, // default quality mode
+
+  OIDN_QUALITY_HIGH     = 4, // high quality mode (for offline rendering)
+  OIDN_QUALITY_BALANCED = 5, // balanced quality/performance mode (for interactive/real-time rendering)
+  //OIDN_QUALITY_FAST     = 6
+} OIDNQuality;
+
 // Progress monitor callback function
 typedef bool (*OIDNProgressMonitorFunction)(void* userPtr, double n);
 

@@ -13,6 +13,7 @@ Version History
        `oidnWriteBuffer` for more performant GPU buffer support
     -  `oidnExecuteFilterAsync` and `oidnSyncDevice` for asynchronous
        filter execution
+-   Added `quality` filter parameter for setting filtering quality mode
 -   Added `type` device parameter for querying the device type
 -   Minor API changes with backward compatibility:
     -   Added oidn(Get|Set)(Device|Filter)(Bool|Int|Float) API functions and

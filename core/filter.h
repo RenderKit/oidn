@@ -34,6 +34,7 @@ OIDN_NAMESPACE_BEGIN
   protected:
     void setParam(int& dst, int src);
     void setParam(bool& dst, int src);
+    void setParam(Quality& dst, Quality src);
     void setParam(std::shared_ptr<Image>& dst, const std::shared_ptr<Image>& src);
     void removeParam(std::shared_ptr<Image>& dst);
     void setParam(Data& dst, const Data& src);

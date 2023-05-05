@@ -29,6 +29,7 @@ void printUsage()
             << "                   [--is/--input_scale value]" << std::endl
             << "                   [-o/--output output.pfm] [-r/--ref reference_output.pfm]" << std::endl
             << "                   [-t/--type float|half]" << std::endl
+            << "                   [-q/--quality h|high|b|balanced]" << std::endl
             << "                   [-w/--weights weights.tza]" << std::endl
             << "                   [--threads n] [--affinity 0|1] [--maxmem MB] [--inplace]" << std::endl
             << "                   [-n times_to_run] [-v/--verbose 0-3]" << std::endl
@@ -81,6 +82,7 @@ int main(int argc, char* argv[])
   std::string colorFilename, albedoFilename, normalFilename;
   std::string outputFilename, refFilename;
   std::string weightsFilename;
+  Quality quality = Quality::Default;
   bool hdr = false;
   bool srgb = false;
   bool directional = false;
@@ -148,13 +150,23 @@ int main(int argc, char* argv[])
         cleanAux = true;
       else if (opt == "t" || opt == "type")
       {
-        const auto val = args.getNextValue();
-        if (val == "f" || val == "float" || val == "Float" || val == "fp32")
+        const auto val = toLower(args.getNextValue());
+        if (val == "f" || val == "float" || val == "fp32")
           dataType = Format::Float;
-        else if (val == "h" || val == "half" || val == "Half" || val == "fp16")
+        else if (val == "h" || val == "half" || val == "fp16")
           dataType = Format::Half;
         else
           throw std::runtime_error("invalid data type");
+      }
+      else if (opt == "q" || opt == "quality")
+      {
+        const auto val = toLower(args.getNextValue());
+        if (val == "h" || val == "high")
+          quality = Quality::High;
+        else if (val == "b" || val == "balanced")
+          quality = Quality::Balanced;
+        else
+          throw std::runtime_error("invalid filter quality mode");
       }
       else if (opt == "w" || opt == "weights")
         weightsFilename = args.getNextValue();
@@ -312,6 +324,9 @@ int main(int argc, char* argv[])
 
     if (cleanAux)
       filter.set("cleanAux", cleanAux);
+
+    if (quality != Quality::Default)
+      filter.set("quality", quality);
 
     if (maxMemoryMB >= 0)
       filter.set("maxMemoryMB", maxMemoryMB);

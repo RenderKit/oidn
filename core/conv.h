@@ -30,6 +30,7 @@ OIDN_NAMESPACE_BEGIN
     TensorDesc biasDesc;
     Activation activation;
     PostOp postOp;
+    bool fastMath; // prefer performance over accuracy
   };
 
   // Convolution
@@ -37,7 +38,7 @@ OIDN_NAMESPACE_BEGIN
   {
   public:
     Conv(const ConvDesc& desc);
-    
+
     TensorDesc getDstDesc() const { return dstDesc; }
     std::shared_ptr<Tensor> getDst() const { return dst; }
 

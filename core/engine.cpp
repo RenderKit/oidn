@@ -63,9 +63,9 @@ OIDN_NAMESPACE_BEGIN
     return std::make_shared<GenericTensor>(buffer, desc, byteOffset);
   }
 
-  std::shared_ptr<Graph> Engine::newGraph(const std::shared_ptr<TensorMap>& constTensors)
+  std::shared_ptr<Graph> Engine::newGraph(const std::shared_ptr<TensorMap>& constTensors, bool fastMath)
   {
-    return std::make_shared<GenericGraph>(this, constTensors);
+    return std::make_shared<GenericGraph>(this, constTensors, fastMath);
   }
 
   bool Engine::isConvSupported(PostOp postOp)
