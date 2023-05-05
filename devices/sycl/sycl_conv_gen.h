@@ -46,6 +46,7 @@ namespace xehpc {
     TensorAccessor4D<T, weightLayout> weight;
     TensorAccessor1D<T> bias;
     TensorAccessor3D<T, tensorLayout> dst;
+    //Activation activation;
 
     OIDN_INLINE void operator ()(const WorkGroupItem<3>& it) const SYCL_ESIMD_FUNCTION
     {
@@ -192,14 +193,17 @@ namespace xehpc {
       // Load bias vector
       const auto biasVec = loadBlock<T, blockC>(&bias(oc));
 
+      // Add bias
       #pragma unroll
       for (int boh = 0; boh < blockOH; ++boh)
-      {
-        // Add bias
         outRows[boh] += biasVec.template replicate<blockOW>();
 
-        // Apply ReLU
-        outRows[boh] = max(outRows[boh], simd<T, blockOW * blockC>(0));
+      // Apply activation
+      //if (activation == Activation::ReLU)
+      {
+        #pragma unroll
+        for (int boh = 0; boh < blockOH; ++boh)
+          outRows[boh] = max(outRows[boh], simd<T, blockOW * blockC>(0));
       }
 
       // Store output rows
@@ -342,6 +346,9 @@ namespace xehpc {
         throw std::invalid_argument("unsupported convolution weight layout/data type");
       if (biasDesc.layout != TensorLayout::x || biasDesc.dataType != DataType::Float16)
         throw std::invalid_argument("unsupported convolution bias layout/data type");
+
+      if (desc.activation != Activation::ReLU)
+        throw std::invalid_argument("unsupported convolution activation");
     }
 
     void submit() override
@@ -384,6 +391,7 @@ namespace xehpc {
       kernel.weight = *weight;
       kernel.bias   = *bias;
       kernel.dst    = *dst;
+      //kernel.activation = activation;
 
       WorkDim<3> globalSize = {dst->getPaddedC() / Kernel::blockC,
                                ceil_div(src->getH(), Kernel::blockOH),

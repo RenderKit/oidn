@@ -180,7 +180,7 @@ OIDN_NAMESPACE_BEGIN
           tileIndex++;
         }
       }
-      
+
       device->submitBarrier();
 
       // Copy the output image to the final buffer if filtering in-place
@@ -214,7 +214,7 @@ OIDN_NAMESPACE_BEGIN
     }
 
     transferFunc = newTransferFunc();
-    
+
     // Divide the image into tiles until the number of tiles is a multiple of the number of engines
     // and the memory usage gets below the specified threshold
     const int minTileDim = 3*tileOverlap;
@@ -422,8 +422,8 @@ OIDN_NAMESPACE_BEGIN
       auto upsample1 = graph->addConv("dec_conv2b", decConv2a, Activation::ReLU, PostOp::Upsample);
       auto decConv1a = graph->addConcatConv("dec_conv1a", upsample1, inputProcess);
       auto decConv1b = graph->addConv("dec_conv1b", decConv1a);
-      
-      auto decConv0 = graph->addConv("dec_conv0", decConv1b, Activation::None);
+
+      auto decConv0 = graph->addConv("dec_conv0", decConv1b);
 
       auto outputProcess = graph->addOutputProcess("output", decConv0, transferFunc, hdr, snorm);
 
@@ -486,7 +486,7 @@ OIDN_NAMESPACE_BEGIN
     if (hdr)
       autoexposure->finalize();
     this->autoexposure = autoexposure;
-    
+
     if (outputTemp)
     {
       imageCopy = device->getEngine()->newImageCopy();
