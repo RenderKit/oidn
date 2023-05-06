@@ -371,6 +371,8 @@ TEST_CASE("filter update", "[filter_update]")
   FilterRef filter = device.newFilter("RT");
   REQUIRE(bool(filter));
 
+  filter.set("quality", Quality::High);
+
   auto color  = makeConstImage(device, W, H);
   auto albedo = makeConstImage(device, W, H);
   auto output = makeConstImage(device, W, H);
@@ -420,6 +422,11 @@ TEST_CASE("filter update", "[filter_update]")
   SECTION("filter update: different mode")
   {
     filter.set("hdr", false);
+  }
+
+  SECTION("filter update: different quality")
+  {
+    filter.set("quality", Quality::Balanced);
   }
 
   filter.commit();

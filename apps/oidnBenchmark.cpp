@@ -34,7 +34,7 @@ void printUsage()
             << "                     [-r/--run regex] [-n times_to_run]" << std::endl
             << "                     [-s/--size width height]" << std::endl
             << "                     [-t/--type float|half]" << std::endl
-            << "                     [-q/--quality h|high|b|balanced]" << std::endl
+            << "                     [-q/--quality default|h|high|b|balanced]" << std::endl
             << "                     [--threads n] [--affinity 0|1] [--maxmem MB] [--inplace]" << std::endl
             << "                     [-v/--verbose 0-3]" << std::endl
             << "                     [--ld|--list_devices] [-l/--list] [-h/--help]" << std::endl;
@@ -287,7 +287,9 @@ int main(int argc, char* argv[])
       else if (opt == "q" || opt == "quality")
       {
         const auto val = toLower(args.getNextValue());
-        if (val == "h" || val == "high")
+        if (val == "default")
+          quality = Quality::Default;
+        else if (val == "h" || val == "high")
           quality = Quality::High;
         else if (val == "b" || val == "balanced")
           quality = Quality::Balanced;
