@@ -35,13 +35,15 @@ OIDN_NAMESPACE_BEGIN
 
     for (const auto& kernel : kernels)
     {
-      if (kernel.dataType != desc.srcDesc.dataType || kernel.accumType != accumType)
+      if (kernel.dataType != desc.srcDesc.dataType || kernel.accumType < accumType)
         continue;
 
       const int blockSize = kernel.blockM * kernel.blockN * kernel.blockK;
       const size_t cost = round_up(M, kernel.blockM) * round_up(N, kernel.blockN) * round_up(K, kernel.blockK);
 
-      if ((cost < bestCost) || (cost == bestCost && blockSize > bestBlockSize))
+      if ((cost < bestCost) ||
+          (cost == bestCost && blockSize > bestBlockSize) ||
+          (cost == bestCost && blockSize == bestBlockSize && kernel.accumType == accumType))
       {
         bestKernel = &kernel;
         bestBlockSize = blockSize;
