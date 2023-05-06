@@ -328,8 +328,8 @@ OIDN_NAMESPACE_BEGIN
   {
     Default  = OIDN_QUALITY_DEFAULT,  // default quality mode
 
-    High     = OIDN_QUALITY_HIGH,     // high quality mode (for offline rendering)
     Balanced = OIDN_QUALITY_BALANCED, // balanced quality/performance mode (for interactive/real-time rendering)
+    High     = OIDN_QUALITY_HIGH,     // high quality mode (for offline rendering)
   };
 
   // Progress monitor callback function

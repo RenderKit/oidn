@@ -330,9 +330,9 @@ typedef enum
 {
   OIDN_QUALITY_DEFAULT  = 0, // default quality mode
 
-  OIDN_QUALITY_HIGH     = 4, // high quality mode (for offline rendering)
+//OIDN_QUALITY_FAST     = 4
   OIDN_QUALITY_BALANCED = 5, // balanced quality/performance mode (for interactive/real-time rendering)
-  //OIDN_QUALITY_FAST     = 6
+  OIDN_QUALITY_HIGH     = 6, // high quality mode (for offline rendering)
 } OIDNQuality;
 
 // Progress monitor callback function
