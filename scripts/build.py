@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-## Copyright 2009-2022 Intel Corporation
+## Copyright 2009-2023 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 import re
@@ -12,7 +12,7 @@ import argparse
 
 from common import *
 
-ISPC_VERSION = '1.19.0'
+ISPC_VERSION = '1.20.0'
 TBB_VERSION  = '2021.8.0'
 
 def check_symbols(filename, label, max_version):
