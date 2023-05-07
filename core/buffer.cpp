@@ -123,10 +123,10 @@ OIDN_NAMESPACE_BEGIN
     if (storage != Storage::Device)
       return devPtr;
 
-    void* hostPtr = engine->malloc(byteSize, Storage::Host);
+    void* hostPtr = alignedMalloc(byteSize);
     if (access != Access::WriteDiscard)
       engine->memcpy(hostPtr, devPtr, byteSize);
-    
+
     mappedRegions.insert({hostPtr, {devPtr, byteSize, access}});
     return hostPtr;
   }
@@ -142,7 +142,7 @@ OIDN_NAMESPACE_BEGIN
 
     if (region->second.access != Access::Read)
       engine->memcpy(region->second.devPtr, hostPtr, byteSize);
-    engine->free(hostPtr, Storage::Host);
+    alignedFree(hostPtr);
 
     mappedRegions.erase(region);
   }
