@@ -98,7 +98,7 @@ OIDN_NAMESPACE_BEGIN
     if (ptr == nullptr)
       throw Exception(Error::InvalidArgument, "buffer pointer null");
     if (storage == Storage::Undefined)
-      storage = engine->getDevice()->getPointerStorage(ptr);
+      this->storage = engine->getDevice()->getPointerStorage(ptr);
   }
 
   USMBuffer::~USMBuffer()
