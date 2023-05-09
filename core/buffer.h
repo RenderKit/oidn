@@ -119,6 +119,7 @@ OIDN_NAMESPACE_BEGIN
     struct MappedRegion
     {
       void* devPtr;
+      size_t byteOffset;
       size_t byteSize;
       Access access;
     };

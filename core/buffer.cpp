@@ -117,17 +117,25 @@ OIDN_NAMESPACE_BEGIN
       throw Exception(Error::InvalidArgument, "buffer region out of range");
 
     if (byteSize == 0)
-      byteSize = this->byteSize - byteOffset; // entire buffer
+      byteSize = this->byteSize - byteOffset; // rest of the buffer
 
     void* devPtr = ptr + byteOffset;
     if (storage != Storage::Device)
       return devPtr;
 
+    // Check whether the region overlaps with an already mapped region
+    for (const auto& region : mappedRegions)
+    {
+      if (byteOffset < region.second.byteOffset + region.second.byteSize &&
+          byteOffset + byteSize > region.second.byteOffset)
+        throw Exception(Error::InvalidArgument, "mapping overlapping buffer regions is not supported");
+    }
+
     void* hostPtr = alignedMalloc(byteSize);
     if (access != Access::WriteDiscard)
       engine->memcpy(hostPtr, devPtr, byteSize);
 
-    mappedRegions.insert({hostPtr, {devPtr, byteSize, access}});
+    mappedRegions.insert({hostPtr, {devPtr, byteOffset, byteSize, access}});
     return hostPtr;
   }
 
@@ -141,7 +149,7 @@ OIDN_NAMESPACE_BEGIN
       throw Exception(Error::InvalidArgument, "invalid mapped region");
 
     if (region->second.access != Access::Read)
-      engine->memcpy(region->second.devPtr, hostPtr, byteSize);
+      engine->memcpy(region->second.devPtr, hostPtr, region->second.byteSize);
     alignedFree(hostPtr);
 
     mappedRegions.erase(region);
