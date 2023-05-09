@@ -194,7 +194,7 @@ OIDN_API_NAMESPACE_BEGIN
               device = ctx.getDeviceFactory(type)->newDevice();
           }
         }
-        
+
         if (!device)
           device = ctx.newDevice(0);
       }
@@ -458,14 +458,17 @@ OIDN_API_NAMESPACE_BEGIN
     return nullptr;
   }
 
-  OIDN_API OIDNBuffer oidnNewBufferWithStorage(OIDNDevice hDevice, size_t byteSize, OIDNStorage storage)
+  OIDN_API OIDNBuffer oidnNewBufferWithStorage(OIDNDevice hDevice, size_t byteSize, OIDNStorage inStorage)
   {
     Device* device = reinterpret_cast<Device*>(hDevice);
     OIDN_TRY
       checkHandle(hDevice);
       OIDN_LOCK(device);
       device->checkCommitted();
-      Ref<Buffer> buffer = device->getEngine()->newBuffer(byteSize, static_cast<Storage>(storage));
+      Storage storage = static_cast<Storage>(inStorage);
+      if (storage == Storage::Undefined)
+        storage = Storage::Host;
+      Ref<Buffer> buffer = device->getEngine()->newBuffer(byteSize, storage);
       return reinterpret_cast<OIDNBuffer>(buffer.detach());
     OIDN_CATCH(device)
     return nullptr;

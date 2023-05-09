@@ -77,7 +77,6 @@ OIDN_NAMESPACE_BEGIN
 
     switch (storage)
     {
-    case Storage::Undefined:
     case Storage::Host:
       checkError(cudaMallocHost(&ptr, byteSize));
       return ptr;

@@ -101,7 +101,6 @@ OIDN_NAMESPACE_BEGIN
 
     switch (storage)
     {
-    case Storage::Undefined:
     case Storage::Host:
       ptr = sycl::aligned_alloc_host(memoryAlignment,
                                      byteSize,

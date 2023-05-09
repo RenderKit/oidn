@@ -85,7 +85,6 @@ OIDN_NAMESPACE_BEGIN
 
     switch (storage)
     {
-    case Storage::Undefined:
     case Storage::Host:
       checkError(hipHostMalloc(&ptr, byteSize));
       return ptr;
