@@ -210,15 +210,6 @@ typedef enum
   OIDN_STORAGE_MANAGED   = 3, // automatically migrated between the host and device, accessible to both
 } OIDNStorage;
 
-// Access modes for mapping buffers
-typedef enum
-{
-  OIDN_ACCESS_READ          = 0, // read-only access
-  OIDN_ACCESS_WRITE         = 1, // write-only access
-  OIDN_ACCESS_READ_WRITE    = 2, // read and write access
-  OIDN_ACCESS_WRITE_DISCARD = 3, // write-only access, previous contents discarded
-} OIDNAccess;
-
 // External memory type flags
 typedef enum
 {
@@ -292,14 +283,6 @@ OIDN_API OIDNStorage oidnGetBufferStorage(OIDNBuffer buffer);
 // the host as well, depending on the storage mode. Null pointer may be returned if the buffer
 // is empty or getting a pointer to data with device storage is not supported by the device.
 OIDN_API void* oidnGetBufferData(OIDNBuffer buffer);
-
-// Maps a region of the buffer to the host memory.
-// If byteSize is 0, the maximum available amount of memory will be mapped.
-OIDN_API void* oidnMapBuffer(OIDNBuffer buffer, OIDNAccess access, size_t byteOffset, size_t byteSize);
-
-// Unmaps a region of the buffer.
-// mappedPtr must be a pointer returned by a previous call to oidnMapBuffer.
-OIDN_API void oidnUnmapBuffer(OIDNBuffer buffer, void* mappedPtr);
 
 // Copies data from a region of the buffer to host memory.
 OIDN_API void oidnReadBuffer(OIDNBuffer buffer, size_t byteOffset, size_t byteSize, void* dstHostPtr);

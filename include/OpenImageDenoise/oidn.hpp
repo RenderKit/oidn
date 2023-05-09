@@ -141,15 +141,6 @@ OIDN_NAMESPACE_BEGIN
     Managed   = OIDN_STORAGE_MANAGED,   // automatically migrated between the host and device, accessible to both
   };
 
-  // Access modes for mapping buffers
-  enum class Access
-  {
-    Read         = OIDN_ACCESS_READ,          // read-only access
-    Write        = OIDN_ACCESS_WRITE,         // write-only access
-    ReadWrite    = OIDN_ACCESS_READ_WRITE,    // read and write access
-    WriteDiscard = OIDN_ACCESS_WRITE_DISCARD, // write-only access, previous contents discarded
-  };
-
   // External memory type flags
   enum class ExternalMemoryTypeFlag
   {
@@ -276,20 +267,6 @@ OIDN_NAMESPACE_BEGIN
     void* getData() const
     {
       return oidnGetBufferData(handle);
-    }
-
-    // Maps a region of the buffer to the host memory.
-    // If byteSize is 0, the maximum available amount of memory will be mapped.
-    void* map(Access access = Access::ReadWrite, size_t byteOffset = 0, size_t byteSize = 0) const
-    {
-      return oidnMapBuffer(handle, static_cast<OIDNAccess>(access), byteOffset, byteSize);
-    }
-
-    // Unmaps a region of the buffer.
-    // mappedPtr must be a pointer returned by a previous call to map.
-    void unmap(void* mappedPtr) const
-    {
-      oidnUnmapBuffer(handle, mappedPtr);
     }
 
     // Copies data from a region of the buffer to host memory.

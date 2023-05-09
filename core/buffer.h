@@ -19,6 +19,15 @@ OIDN_NAMESPACE_BEGIN
   class Device;
   class Engine;
 
+  // Access modes for mapping buffers
+  enum class Access
+  {
+    Read,         // read-only access
+    Write,        // write-only access
+    ReadWrite,    // read and write access
+    WriteDiscard, // write-only access, previous contents discarded
+  };
+
   // -----------------------------------------------------------------------------------------------
   // Buffer
   // -----------------------------------------------------------------------------------------------

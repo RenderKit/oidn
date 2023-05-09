@@ -34,24 +34,30 @@ OIDN_NAMESPACE_BEGIN
     default:
       assert(0);
     }
-  
+
     byteSize = std::max(numValues * valueByteSize, size_t(1)); // avoid zero-sized buffer
-    buffer = (storage == Storage::Undefined) ? device.newBuffer(byteSize) : device.newBuffer(byteSize, storage);
+    buffer = device.newBuffer(byteSize, storage);
+    storage = buffer.getStorage(); // get actual storage mode
     devPtr = static_cast<char*>(buffer.getData());
-    hostPtr = (storage != Storage::Device) ? devPtr : nullptr;
+    hostPtr = (storage != Storage::Device) ? devPtr : static_cast<char*>(malloc(byteSize));
   }
 
-  void ImageBuffer::map(Access access)
+  ImageBuffer::~ImageBuffer()
   {
-    assert(hostPtr == nullptr);
-    hostPtr = static_cast<char*>(buffer.map(access));
+    if (hostPtr != devPtr)
+      free(hostPtr);
   }
 
-  void ImageBuffer::unmap()
+  void ImageBuffer::toHost()
   {
-    assert(hostPtr);
-    buffer.unmap(hostPtr);
-    hostPtr = nullptr;
+    if (hostPtr != devPtr)
+      buffer.read(0, byteSize, hostPtr);
+  }
+
+  void ImageBuffer::toDevice()
+  {
+    if (hostPtr != devPtr)
+      buffer.write(0, byteSize, hostPtr);
   }
 
   std::shared_ptr<ImageBuffer> ImageBuffer::clone() const
@@ -66,7 +72,7 @@ OIDN_NAMESPACE_BEGIN
                                           const ImageBuffer& ref,
                                           double errorThreshold)
   {
-    assert(ref.getDims() == image.getDims());    
+    assert(ref.getDims() == image.getDims());
 
     size_t numErrors = 0;
     double avgError  = 0; // SMAPE

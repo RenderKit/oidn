@@ -537,27 +537,6 @@ OIDN_API_NAMESPACE_BEGIN
     releaseObject(buffer);
   }
 
-  OIDN_API void* oidnMapBuffer(OIDNBuffer hBuffer, OIDNAccess access, size_t byteOffset, size_t byteSize)
-  {
-    Buffer* buffer = reinterpret_cast<Buffer*>(hBuffer);
-    OIDN_TRY
-      checkHandle(hBuffer);
-      OIDN_LOCK(buffer);
-      return buffer->map(byteOffset, byteSize, static_cast<Access>(access));
-    OIDN_CATCH(buffer)
-    return nullptr;
-  }
-
-  OIDN_API void oidnUnmapBuffer(OIDNBuffer hBuffer, void* mappedPtr)
-  {
-    Buffer* buffer = reinterpret_cast<Buffer*>(hBuffer);
-    OIDN_TRY
-      checkHandle(hBuffer);
-      OIDN_LOCK(buffer);
-      return buffer->unmap(mappedPtr);
-    OIDN_CATCH(buffer)
-  }
-
   OIDN_API void oidnReadBuffer(OIDNBuffer hBuffer, size_t byteOffset, size_t byteSize, void* dstHostPtr)
   {
     Buffer* buffer = reinterpret_cast<Buffer*>(hBuffer);

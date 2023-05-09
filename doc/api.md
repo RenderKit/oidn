@@ -37,7 +37,7 @@ simple example code snippets.
     OIDNDevice device = oidnNewDevice(OIDN_DEVICE_TYPE_DEFAULT); // CPU or GPU if available
     oidnCommitDevice(device);
 
-    // Create buffers for input/output images accessible to both host (CPU) and device (CPU/GPU)
+    // Create buffers for input/output images accessible by both host (CPU) and device (CPU/GPU)
     OIDNBuffer colorBuf  = oidnNewBuffer(device, width * height * 3 * sizeof(float));
     OIDNBuffer albedoBuf = ...
 
@@ -82,7 +82,7 @@ simple example code snippets.
     oidn::DeviceRef device = oidn::newDevice(); // CPU or GPU if available
     device.commit();
 
-    // Create buffers for input/output images accessible to both host (CPU) and device (CPU/GPU)
+    // Create buffers for input/output images accessible by both host (CPU) and device (CPU/GPU)
     oidn::BufferRef colorBuf  = device.newBuffer(width * height * 3 * sizeof(float));
     oidn::BufferRef albedoBuf = ...
 
@@ -154,7 +154,7 @@ created and the user code is not GPU-ready.
 
 To ensure compatibility with any kind of device, including GPUs, the application
 should use `OIDNBuffer` objects to store all image data passed to the library.
-Data allocated this way is accessible to both the host and the device. The user
+Data allocated this way is accessible by both the host and the device. The user
 is free to use other ways to allocate memory for images but then they need to
 make sure that the proper allocation functions are used for the created device
 type. System memory allocation (e.g., `malloc`) is not supported on most
@@ -339,20 +339,20 @@ Name                              Description
 Buffer
 ------
 
-Large data like images can be passed to Intel Open Image Denoise either via
-pointers to memory allocated and managed by the user or by creating buffer
-objects. Regardless of which method is used, the data typically should be
-allocated in a way that it is accessible to the device (either CPU or GPU). To
-create a new data buffer with memory allocated and owned by the device, holding
-`byteSize` number of bytes, use
+Image data can be passed to Intel Open Image Denoise either via pointers to
+memory allocated and managed by the user or by creating buffer objects.
+Regardless of which method is used, the data must be allocated in a way that it
+is accessible by the device (either CPU or GPU). Using buffers is typically the
+preferred approach because this ensures that the allocation requirements are
+fulfilled regardless of device type. To create a new data buffer with memory
+allocated and owned by the device, use
 
     OIDNBuffer oidnNewBuffer(OIDNDevice device, size_t byteSize);
 
 The created buffer is bound to the specified device (`device` argument). The
-specified number of bytes are allocated at buffer construction time and
-deallocated when the buffer is destroyed. The allocated memory is accessible to
-both the host and the device, thus using buffers is the recommended
-device-independent way to fulfill the memory allocation requirements.
+specified number of bytes (`byteSize`) are allocated at buffer construction time
+and deallocated when the buffer is destroyed. The memory is by default allocated
+on the host and is accessible by both the host and the device.
 
 If this default buffer allocation is not suitable, a buffer can be created with
 a manually specified storage mode as well:
@@ -364,9 +364,9 @@ The supported storage modes are the following:
 Name                     Description
 ------------------------ ----------------------------------------------------------------------
 `OIDN_STORAGE_UNDEFINED` undefined storage mode
-`OIDN_STORAGE_HOST`      stored on the host, accessible to both the host and device (*default*)
-`OIDN_STORAGE_DEVICE`    stored on the device, *not* accessible to the host
-`OIDN_STORAGE_MANAGED`   automatically migrated between the host and device, accessible to both
+`OIDN_STORAGE_HOST`      stored on the host, accessible by both the host and device (*default*)
+`OIDN_STORAGE_DEVICE`    stored on the device, *not* accessible by the host
+`OIDN_STORAGE_MANAGED`   automatically migrated between the host and device, accessible by both
 ------------------------ ----------------------------------------------------------------------
 : Supported storage modes for buffers, i.e., valid constants of type `OIDNStorage`.
 
@@ -381,8 +381,8 @@ the buffer data provided by the user is used. The buffer data must remain valid
 for as long as the buffer may be used, and the user is responsible to free the
 buffer data when no longer required. The user must also ensure that the memory is
 accessible to the device by using allocation functions supported by the device
-(e.g. `sycl::malloc` for SYCL devices, `cudaMalloc` for CUDA devices, `hipMalloc`
-for HIP devices).
+(e.g. `sycl::malloc_*` for SYCL devices, `cudaMalloc*` for CUDA devices,
+`hipMalloc` for HIP devices).
 
 Similar to device objects, buffer objects are also reference-counted and can be
 retained and released by calling the following functions:
@@ -394,8 +394,8 @@ The size of the buffer in bytes can be queried using
 
     size_t oidnGetBufferSize(OIDNBuffer buffer);
 
-It is possible to get a pointer directly to the buffer data, which is the most
-efficient way to access the data stored in the buffer:
+It is possible to get a pointer directly to the buffer data, which is usually
+the preferred way to access the data stored in the buffer:
 
     void* oidnGetBufferData(OIDNBuffer buffer);
 
@@ -405,40 +405,8 @@ the buffer was created with a storage mode that enables this, i.e., any mode
 buffer is empty or getting a pointer to data with device storage is not supported
 by the device.
 
-One way to access the buffer data on the host regardless of the storage mode is
-by mapping it into the address space of the application using
-
-    void* oidnMapBuffer(OIDNBuffer buffer, OIDNAccess access, size_t byteOffset, size_t byteSize);
-
-where `access` is the desired access mode of the mapped memory, `byteOffset` is
-the offset to the beginning of the mapped memory region in bytes, and
-`byteSize` is the number of bytes to map. The function returns a pointer to
-the mapped buffer data. If the specified `byteSize` is 0, the maximum
-available amount of memory will be mapped. The `access` argument must be one of
-the access modes in the following table:
-
-Name                        Description
---------------------------- -------------------------------------------------------------
-`OIDN_ACCESS_READ`          read-only access
-`OIDN_ACCESS_WRITE`         write-only access
-`OIDN_ACCESS_READ_WRITE`    read and write access
-`OIDN_ACCESS_WRITE_DISCARD` write-only access but the previous contents will be discarded
---------------------------- -------------------------------------------------------------
-: Access modes for memory regions mapped with `oidnMapBuffer`, i.e., valid
-  constants of type `OIDNAccess`.
-
-After accessing the mapped data in the buffer, the memory region must be
-unmapped with
-
-    void oidnUnmapBuffer(OIDNBuffer buffer, void* mappedPtr);
-
-where `mappedPtr` must be a pointer returned by a call to `oidnMapBuffer` for
-the specified buffer. Any change to the mapped data is guaranteed to take
-effect only after unmapping the memory region.
-
-If the goal is to copy the buffer data to/from another location in host memory,
-it is more efficient to directly read/write a region from the buffer using the
-following functions:
+Data stored in buffers with device storage can be accessed on the host by copying
+to/from host memory using the following functions:
 
     void oidnReadBuffer(OIDNBuffer buffer,
                         size_t byteOffset, size_t byteSize, void* dstHostPtr);
@@ -446,8 +414,10 @@ following functions:
     void oidnWriteBuffer(OIDNBuffer buffer,
                          size_t byteOffset, size_t byteSize, const void* srcHostPtr);
 
-These function will block until the read/write operation has been completed. GPU
-devices also support asynchronous copying, which can be performed with
+These functions will always block until the read/write operation has been
+completed, which is often suboptimal. The following functions may execute the
+operation asynchonously if it is supported by the device (GPUs), or still block
+otherwise (CPUs):
 
     void oidnReadBufferAsync(OIDNBuffer buffer,
                              size_t byteOffset, size_t byteSize, void* dstHostPtr);
@@ -524,7 +494,7 @@ the `oidnSetFilterImage` function, or directly a pointer to user-managed
 device-accessible data (`devPtr` argument) with the `oidnSetSharedFilterImage`
 function. Regardless of whether a buffer or a pointer is specified, the data
 *must* be accessible to the device. The easiest way to guarantee this regardless
-of the device (CPU or GPU) is using buffer objects.
+of the device type (CPU or GPU) is using buffer objects.
 
 In both cases, you must also specify the name of the image parameter to set
 (`name` argument, e.g. `"color"`, `"output"`), the pixel format (`format`
@@ -624,8 +594,9 @@ Finally, an image can be filtered by executing the filter with
 which will read the input image data from the specified buffers and produce the
 denoised output image.
 
-This function will block until the filtering operation has been completed. GPU
-devices also support asynchronous execution, which can be performed with
+This function will always block until the filtering operation has been completed.
+The following function may execute the operation asynchrously if it is supported
+by the device (GPUs), or block otherwise (CPUs):
 
     void oidnExecuteFilterAsync(OIDNFilter filter);
 

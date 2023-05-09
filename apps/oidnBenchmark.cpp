@@ -23,6 +23,7 @@ int width  = -1;
 int height = -1;
 Format dataType = Format::Float;
 Quality quality = Quality::Default;
+Storage storage = Storage::Device; // maximize performance by default
 int numRuns = 0;
 int maxMemoryMB = -1;
 bool inplace = false;
@@ -36,6 +37,7 @@ void printUsage()
             << "                     [-t/--type float|half]" << std::endl
             << "                     [-q/--quality default|h|high|b|balanced]" << std::endl
             << "                     [--threads n] [--affinity 0|1] [--maxmem MB] [--inplace]" << std::endl
+            << "                     [--buffer host|device|managed]" << std::endl
             << "                     [-v/--verbose 0-3]" << std::endl
             << "                     [--ld|--list_devices] [-l/--list] [-h/--help]" << std::endl;
 }
@@ -86,17 +88,15 @@ void addBenchmark(const std::string& filter, const std::vector<std::string>& inp
 
 std::shared_ptr<ImageBuffer> newImage(DeviceRef& device, int width, int height)
 {
-  // Create a buffer stored on the device to maximize performance
-  return std::make_shared<ImageBuffer>(device, width, height, 3, dataType, Storage::Device);
+  return std::make_shared<ImageBuffer>(device, width, height, 3, dataType, storage);
 }
 
 // Initializes an image with random values
 void initImage(ImageBuffer& image, Random& rng, float minValue, float maxValue)
 {
-  image.map(Access::WriteDiscard);
   for (size_t i = 0; i < image.getSize(); ++i)
     image.set(i, minValue + rng.getFloat() * (maxValue - minValue));
-  image.unmap();
+  image.toDevice();
 }
 
 // Runs a benchmark and returns the total runtime
@@ -304,6 +304,18 @@ int main(int argc, char* argv[])
         maxMemoryMB = args.getNextValue<int>();
       else if (opt == "inplace")
         inplace = true;
+      else if (opt == "buffer")
+      {
+        const auto val = toLower(args.getNextValue());
+        if (val == "host")
+          storage = Storage::Host;
+        else if (val == "device")
+          storage = Storage::Device;
+        else if (val == "managed")
+          storage = Storage::Managed;
+        else
+          throw std::runtime_error("invalid storage mode");
+      }
       else if (opt == "v" || opt == "verbose")
         verbose = args.getNextValue<int>();
       else if (opt == "l" || opt == "list")

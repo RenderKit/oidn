@@ -19,6 +19,7 @@ OIDN_NAMESPACE_BEGIN
     ImageBuffer(const DeviceRef& device, int width, int height, int numChannels,
                 Format dataType = Format::Float,
                 Storage storage = Storage::Undefined);
+    ~ImageBuffer();
 
     OIDN_INLINE int getW() const { return width; }
     OIDN_INLINE int getH() const { return height; }
@@ -36,7 +37,7 @@ OIDN_NAMESPACE_BEGIN
 
     OIDN_INLINE size_t getSize() const { return numValues; }
     OIDN_INLINE size_t getByteSize() const { return byteSize; }
-    
+
     OIDN_INLINE const void* getData() const { return hostPtr ? hostPtr : devPtr; }
     OIDN_INLINE void* getData() { return hostPtr ? hostPtr : devPtr; }
 
@@ -45,8 +46,10 @@ OIDN_NAMESPACE_BEGIN
 
     OIDN_INLINE operator bool() const { return devPtr != nullptr; }
 
-    void map(Access access);
-    void unmap();
+    // Depending on storage mode, data must be explicitly copied between the host and device,
+    // so the following should be always called before/after accessing the data
+    void toHost();
+    void toDevice();
 
     template<typename T = float>
     T get(size_t i) const;
@@ -143,6 +146,6 @@ OIDN_NAMESPACE_BEGIN
   // and the average error value
   std::tuple<size_t, double> compareImage(const ImageBuffer& image,
                                           const ImageBuffer& ref,
-                                          double errorThreshold = 0.005); 
+                                          double errorThreshold = 0.005);
 
 OIDN_NAMESPACE_END

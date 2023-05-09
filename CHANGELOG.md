@@ -8,11 +8,12 @@ Version History
     GPU architectures
 -   Added HIP device for AMD RDNA2 (Navi 21 only) and RDNA3 (Navi 3x) GPU
     architectures
--   Added new API functions for advanced GPU support:
+-   Added new API functions for improved GPU support:
     -  `oidnNewBufferWithStorage`, `oidnGetBufferStorage`, `oidnReadBuffer`, and
        `oidnWriteBuffer` for more performant GPU buffer support
     -  `oidnExecuteFilterAsync` and `oidnSyncDevice` for asynchronous
        filter execution
+-   Removed `oidnMapBuffer` and `oidnUnmapBuffer` API functions
 -   Added `quality` filter parameter for setting filtering quality mode
 -   Added `type` device parameter for querying the device type
 -   Minor API changes with backward compatibility:
