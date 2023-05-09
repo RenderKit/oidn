@@ -401,7 +401,9 @@ efficient way to access the data stored in the buffer:
 
 However, accessing the data on the host through this pointer is possible only if
 the buffer was created with a storage mode that enables this, i.e., any mode
-*except* `OIDN_STORAGE_DEVICE`.
+*except* `OIDN_STORAGE_DEVICE`. Note that a null pointer may be returned if the
+buffer is empty or getting a pointer to data with device storage is not supported
+by the device.
 
 One way to access the buffer data on the host regardless of the storage mode is
 by mapping it into the address space of the application using

@@ -288,8 +288,9 @@ OIDN_API size_t oidnGetBufferSize(OIDNBuffer buffer);
 // Gets the storage mode of the buffer.
 OIDN_API OIDNStorage oidnGetBufferStorage(OIDNBuffer buffer);
 
-// Gets a pointer to the buffer data, which is accessible to the device but not necessarily to the
-// host as well, depending on the storage mode.
+// Gets a pointer to the buffer data, which is accessible to the device but not necessarily to
+// the host as well, depending on the storage mode. Null pointer may be returned if the buffer
+// is empty or getting a pointer to data with device storage is not supported by the device.
 OIDN_API void* oidnGetBufferData(OIDNBuffer buffer);
 
 // Maps a region of the buffer to the host memory.
