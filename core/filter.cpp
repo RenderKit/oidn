@@ -33,12 +33,13 @@ OIDN_NAMESPACE_BEGIN
 
   void Filter::setParam(std::shared_ptr<Image>& dst, const std::shared_ptr<Image>& src)
   {
-    // Check whether the image is accessible to the device
-    if (src && *src)
+    // Check whether the image is accessible by the device
+    if (src && *src && !device->isSystemMemorySupported())
     {
-      Storage storage = src->getBuffer() ? src->getBuffer()->getStorage() : device->getPointerStorage(src->getData());
+      const Storage storage = src->getBuffer() ? src->getBuffer()->getStorage()
+                                               : device->getPointerStorage(src->getData());
       if (storage == Storage::Undefined)
-        throw Exception(Error::InvalidArgument, "the specified image is not accessible to the device, please use OIDNBuffer or native device malloc");
+        throw Exception(Error::InvalidArgument, "image data not accessible by the device, please use OIDNBuffer or device allocator for storage");
     }
 
     // The image parameter is *not* dirty if only the pointer and/or strides change (except to/from nullptr)

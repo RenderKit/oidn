@@ -139,7 +139,7 @@ TEST_CASE("buffer", "[buffer]")
 #if defined(OIDN_FILTER_RT)
 
 void setFilterImage(FilterRef& filter, const char* name, const std::shared_ptr<ImageBuffer>& image,
-                    bool useBuffer = false)
+                    bool useBuffer = true)
 {
   Format format = Format::Undefined;
   switch (image->getC())
@@ -331,7 +331,7 @@ TEST_CASE("multiple devices", "[multi_device]")
 
 // -------------------------------------------------------------------------------------------------
 
-TEST_CASE("image buffers", "[image_buffers]")
+TEST_CASE("shared image", "[shared_image]")
 {
   const int W = 198;
   const int H = 300;
@@ -341,19 +341,50 @@ TEST_CASE("image buffers", "[image_buffers]")
   device.commit();
   REQUIRE(device.getError() == Error::None);
 
-  FilterRef filter = device.newFilter("RT");
-  REQUIRE(bool(filter));
+  SECTION("buffer allocator")
+  {
+    FilterRef filter = device.newFilter("RT");
+    REQUIRE(bool(filter));
 
-  auto color  = makeConstImage(device, W, H);
-  auto output = makeImage(device, W, H);
-  setFilterImage(filter, "color",  color,  true);
-  setFilterImage(filter, "output", output, true);
+    auto color  = makeConstImage(device, W, H);
+    auto output = makeImage(device, W, H);
+    setFilterImage(filter, "color",  color,  false);
+    setFilterImage(filter, "output", output, false);
 
-  filter.commit();
-  REQUIRE(device.getError() == Error::None);
+    filter.commit();
+    REQUIRE(device.getError() == Error::None);
 
-  filter.execute();
-  REQUIRE(device.getError() == Error::None);
+    filter.execute();
+    REQUIRE(device.getError() == Error::None);
+  }
+
+  SECTION("system allocator")
+  {
+    FilterRef filter = device.newFilter("RT");
+    REQUIRE(bool(filter));
+
+    const bool systemMemorySupported = device.get<bool>("systemMemorySupported");
+    REQUIRE(device.getError() == Error::None);
+
+    std::vector<int16_t> color (W * H * 3, 0);
+    std::vector<int16_t> output(W * H * 3);
+
+    filter.setImage("color",  color.data(),  Format::Half3, W, H);
+    filter.setImage("output", output.data(), Format::Half3, W, H);
+
+    if (systemMemorySupported)
+    {
+      REQUIRE(device.getError() == Error::None);
+      filter.commit();
+      REQUIRE(device.getError() == Error::None);
+      filter.execute();
+      REQUIRE(device.getError() == Error::None);
+    }
+    else
+    {
+      REQUIRE(device.getError() == Error::InvalidArgument);
+    }
+  }
 }
 
 // -------------------------------------------------------------------------------------------------
