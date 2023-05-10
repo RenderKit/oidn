@@ -109,6 +109,18 @@ TEST_CASE("buffer", "[buffer]")
     REQUIRE(device.getError() == Error::None);
   }
 
+  SECTION("managed buffer")
+  {
+    const bool managedMemorySupported = device.get<bool>("managedMemorySupported");
+    REQUIRE(device.getError() == Error::None);
+
+    if (managedMemorySupported)
+    {
+      BufferRef buffer = device.newBuffer(1234567, Storage::Managed);
+      REQUIRE(device.getError() == Error::None);
+    }
+  }
+
   SECTION("zero-sized default buffer")
   {
     BufferRef buffer = device.newBuffer(0);
