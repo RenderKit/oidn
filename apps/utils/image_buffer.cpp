@@ -75,9 +75,8 @@ OIDN_NAMESPACE_BEGIN
 
   std::shared_ptr<ImageBuffer> ImageBuffer::clone() const
   {
-    assert(hostPtr);
     auto result = std::make_shared<ImageBuffer>(device, width, height, numChannels, dataType);
-    memcpy(result->hostPtr, hostPtr, getByteSize());
+    result->buffer.write(0, getByteSize(), devPtr);
     return result;
   }
 

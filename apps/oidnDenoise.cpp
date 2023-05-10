@@ -300,13 +300,13 @@ int main(int argc, char* argv[])
     FilterRef filter = device.newFilter(filterType.c_str());
 
     if (color)
-      filter.setImage("color", color->getData(), color->getFormat(), color->getW(), color->getH());
+      filter.setImage("color", color->getBuffer(), color->getFormat(), color->getW(), color->getH());
     if (albedo)
-      filter.setImage("albedo", albedo->getData(), albedo->getFormat(), albedo->getW(), albedo->getH());
+      filter.setImage("albedo", albedo->getBuffer(), albedo->getFormat(), albedo->getW(), albedo->getH());
     if (normal)
-      filter.setImage("normal", normal->getData(), normal->getFormat(), normal->getW(), normal->getH());
+      filter.setImage("normal", normal->getBuffer(), normal->getFormat(), normal->getW(), normal->getH());
 
-    filter.setImage("output", output->getData(), output->getFormat(), output->getW(), output->getH());
+    filter.setImage("output", output->getBuffer(), output->getFormat(), output->getW(), output->getH());
 
     if (filterType == "RT")
     {

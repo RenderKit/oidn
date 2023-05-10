@@ -39,16 +39,14 @@ OIDN_NAMESPACE_BEGIN
     OIDN_INLINE size_t getSize() const { return numValues; }
     OIDN_INLINE size_t getByteSize() const { return byteSize; }
 
-    OIDN_INLINE const void* getData() const { return hostPtr ? hostPtr : devPtr; }
-    OIDN_INLINE void* getData() { return hostPtr ? hostPtr : devPtr; }
+    OIDN_INLINE const void* getData() const { return devPtr; }
+    OIDN_INLINE void* getData() { return devPtr; }
 
     OIDN_INLINE const BufferRef& getBuffer() const { return buffer; }
-    OIDN_INLINE BufferRef getBuffer() { return buffer; }
 
     OIDN_INLINE operator bool() const { return devPtr != nullptr; }
 
-    // Depending on storage mode, data must be explicitly copied between the host and device,
-    // so the following should be always called before/after accessing the data
+    // Data with device storage must be explicitly copied between host and device
     void toHost();
     void toHostAsync();
     void toDevice();
@@ -59,8 +57,6 @@ OIDN_NAMESPACE_BEGIN
 
     OIDN_INLINE void set(size_t i, float x)
     {
-      assert(hostPtr);
-
       switch (dataType)
       {
       case Format::Float:
@@ -76,8 +72,6 @@ OIDN_NAMESPACE_BEGIN
 
     OIDN_INLINE void set(size_t i, half x)
     {
-      assert(hostPtr);
-
       switch (dataType)
       {
       case Format::Float:
@@ -114,8 +108,6 @@ OIDN_NAMESPACE_BEGIN
   template<>
   OIDN_INLINE float ImageBuffer::get(size_t i) const
   {
-    assert(hostPtr);
-
     switch (dataType)
     {
     case Format::Float:
@@ -131,8 +123,6 @@ OIDN_NAMESPACE_BEGIN
   template<>
   OIDN_INLINE half ImageBuffer::get(size_t i) const
   {
-    assert(hostPtr);
-
     switch (dataType)
     {
     case Format::Float:
