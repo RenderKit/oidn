@@ -119,6 +119,31 @@ OIDN_NAMESPACE_BEGIN
   void CPUDevice::init()
   {
     arch = getArch();
+
+    if (isVerbose())
+    {
+      std::cout << "  Device    : " << getName() << std::endl;
+      std::cout << "    ISA     : ";
+      switch (arch)
+      {
+      case CPUArch::AVX512:
+        std::cout << "AVX512";
+        break;
+      case CPUArch::AVX2:
+        std::cout << "AVX2";
+        break;
+      case CPUArch::SSE41:
+        std::cout << "SSE4.1";
+        break;
+      case CPUArch::NEON:
+        std::cout << "NEON";
+        break;
+      default:
+        std::cout << "Unknown";
+      }
+      std::cout << std::endl;
+    }
+
     initTasking();
 
   #if defined(OIDN_DNNL)
@@ -140,30 +165,6 @@ OIDN_NAMESPACE_BEGIN
     weightLayout = TensorLayout::oihw;
     tensorBlockC = 1;
   #endif
-
-    if (isVerbose())
-    {
-      std::cout << "  Device    : " << getName() << std::endl;
-      std::cout << "    Arch    : ";
-      switch (arch)
-      {
-      case CPUArch::AVX512:
-        std::cout << "AVX512";
-        break;
-      case CPUArch::AVX2:
-        std::cout << "AVX2";
-        break;
-      case CPUArch::SSE41:
-        std::cout << "SSE4.1";
-        break;
-      case CPUArch::NEON:
-        std::cout << "NEON";
-        break;
-      default:
-        std::cout << "Unknown";
-      }
-      std::cout << std::endl;
-    }
 
   #if defined(OIDN_DNNL)
     engine = makeRef<DNNLEngine>(this);

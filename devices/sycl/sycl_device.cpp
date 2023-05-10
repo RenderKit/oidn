@@ -261,12 +261,12 @@ OIDN_NAMESPACE_BEGIN
     // Print device info
     if (isVerbose())
     {
-      std::cout << "  Platform  : " << syclContext.get_platform().get_info<sycl::info::platform::name>() << std::endl;
+      std::cout << "  Backend   : " << syclContext.get_platform().get_info<sycl::info::platform::name>() << std::endl;
 
       for (size_t i = 0; i < syclQueues.size(); ++i)
       {
         if (syclQueues.size() > 1)
-           std::cout << "  Device " << std::setw(2) << i << " : ";
+           std::cout << "  Subdev " << std::setw(2) << i << " : ";
         else
           std::cout << "  Device    : ";
         std::cout << syclQueues[i].get_device().get_info<sycl::info::device::name>() << std::endl;
@@ -274,7 +274,7 @@ OIDN_NAMESPACE_BEGIN
         std::cout << "    Arch    : ";
         switch (arch)
         {
-        case SYCLArch::XeLP:  std::cout << "Xe-LP"; break;
+        case SYCLArch::XeLP:  std::cout << "Xe-LP";  break;
         case SYCLArch::XeHPG: std::cout << "Xe-HPG"; break;
         case SYCLArch::XeHPC: std::cout << "Xe-HPC"; break;
         default:              std::cout << "Unknown";
