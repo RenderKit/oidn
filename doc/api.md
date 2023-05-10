@@ -352,7 +352,8 @@ allocated and owned by the device, use
 The created buffer is bound to the specified device (`device` argument). The
 specified number of bytes (`byteSize`) are allocated at buffer construction time
 and deallocated when the buffer is destroyed. The memory is by default allocated
-on the host and is accessible by both the host and the device.
+as managed memory automatically migrated between host and device, if supported,
+or as pinned host memory otherwise.
 
 If this default buffer allocation is not suitable, a buffer can be created with
 a manually specified storage mode as well:
@@ -364,15 +365,15 @@ The supported storage modes are the following:
 Name                     Description
 ------------------------ ----------------------------------------------------------------------
 `OIDN_STORAGE_UNDEFINED` undefined storage mode
-`OIDN_STORAGE_HOST`      stored on the host, accessible by both host and device (*default*)
-`OIDN_STORAGE_DEVICE`    stored on the device, *not* accessible by the host
+`OIDN_STORAGE_HOST`      pinned host memory, accessible by both host and device (*default*)
+`OIDN_STORAGE_DEVICE`    device memory, *not* accessible by the host
 `OIDN_STORAGE_MANAGED`   automatically migrated between host and device, accessible by both (*not* supported by all devices)
 ------------------------ ----------------------------------------------------------------------
 : Supported storage modes for buffers, i.e., valid constants of type `OIDNStorage`.
 
 Note that the host and device storage modes are supported by all devices but managed storage is
 an optional feature. Before using managed storage, the `managedMemorySupported` device paramater
-should be checked.
+should be queried.
 
 It is also possible to create a "shared" data buffer with memory allocated and
 managed by the user with
@@ -384,7 +385,7 @@ its size in bytes. At buffer construction time no buffer data is allocated, but
 the buffer data provided by the user is used. The buffer data must remain valid
 for as long as the buffer may be used, and the user is responsible to free the
 buffer data when no longer required. The user must also ensure that the memory is
-accessible to the device by using allocation functions supported by the device
+accessible by the device by using allocation functions supported by the device
 (e.g. `sycl::malloc_*` for SYCL devices, `cudaMalloc*` for CUDA devices,
 `hipMalloc` for HIP devices).
 
@@ -409,8 +410,9 @@ the buffer was created with a storage mode that enables this, i.e., any mode
 buffer is empty or getting a pointer to data with device storage is not supported
 by the device.
 
-Data stored in buffers with device storage can be accessed on the host by copying
-to/from host memory using the following functions:
+In some cases better performance can be achieved by using device storage for
+buffers. Such data can be accessed on the host by copying to/from host memory
+(including pageable system memory) using the following functions:
 
     void oidnReadBuffer(OIDNBuffer buffer,
                         size_t byteOffset, size_t byteSize, void* dstHostPtr);

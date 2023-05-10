@@ -85,7 +85,10 @@ OIDN_NAMESPACE_BEGIN
       storage(storage),
       engine(engine)
   {
-    ptr = static_cast<char*>(engine->malloc(byteSize, storage));
+    if (storage == Storage::Undefined)
+      this->storage = getDevice()->isManagedMemorySupported() ? Storage::Managed : Storage::Host;
+
+    ptr = static_cast<char*>(engine->malloc(byteSize, this->storage));
   }
 
   USMBuffer::USMBuffer(const Ref<Engine>& engine, void* data, size_t byteSize, Storage storage)
@@ -97,6 +100,7 @@ OIDN_NAMESPACE_BEGIN
   {
     if (ptr == nullptr)
       throw Exception(Error::InvalidArgument, "buffer pointer null");
+
     if (storage == Storage::Undefined)
       this->storage = engine->getDevice()->getPointerStorage(ptr);
   }
