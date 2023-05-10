@@ -185,6 +185,8 @@ OIDN_NAMESPACE_BEGIN
 
   void SYCLDevice::preinit()
   {
+    managedMemorySupported = true;
+
     // Get default values from environment variables
     getEnvVar("OIDN_NUM_SUBDEVICES", numSubdevices);
   }

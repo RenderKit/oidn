@@ -136,9 +136,16 @@ OIDN_NAMESPACE_BEGIN
   enum class Storage
   {
     Undefined = OIDN_STORAGE_UNDEFINED,
-    Host      = OIDN_STORAGE_HOST,      // stored on the host, accessible to both the host and device
-    Device    = OIDN_STORAGE_DEVICE,    // stored on the device, *not* accessible to the host
-    Managed   = OIDN_STORAGE_MANAGED,   // automatically migrated between the host and device, accessible to both
+
+    // stored on the host, accessible by both host and device
+    Host      = OIDN_STORAGE_HOST,
+
+    // stored on the device, *not* accessible by the host
+    Device    = OIDN_STORAGE_DEVICE,
+
+    // automatically migrated between host and device, accessible by both
+    // *not* supported by all devices, "managedMemorySupported" device parameter should be checked
+    Managed   = OIDN_STORAGE_MANAGED,
   };
 
   // External memory type flags

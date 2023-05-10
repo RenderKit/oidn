@@ -179,6 +179,10 @@ OIDN_NAMESPACE_BEGIN
       return OIDN_VERSION_PATCH;
     else if (name == "verbose")
       return verbose;
+    else if (name == "systemMemorySupported")
+      return systemMemorySupported;
+    else if (name == "managedMemorySupported")
+      return managedMemorySupported;
     else if (name == "externalMemoryTypes")
       return static_cast<int>(externalMemoryTypes);
     else

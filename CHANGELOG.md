@@ -16,6 +16,8 @@ Version History
 -   Removed `oidnMapBuffer` and `oidnUnmapBuffer` API functions
 -   Added `quality` filter parameter for setting filtering quality mode
 -   Added `type` device parameter for querying the device type
+-   Added `systemMemorySupported` and `managedMemorySupported` device parameters
+    for querying memory allocations supported by the device
 -   Minor API changes with backward compatibility:
     -   Added oidn(Get|Set)(Device|Filter)(Bool|Int|Float) API functions and
         deprecated oidn(Get|Set)(Device|Filter)(1b|1i|1f) functions

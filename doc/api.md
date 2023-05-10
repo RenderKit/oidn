@@ -364,11 +364,15 @@ The supported storage modes are the following:
 Name                     Description
 ------------------------ ----------------------------------------------------------------------
 `OIDN_STORAGE_UNDEFINED` undefined storage mode
-`OIDN_STORAGE_HOST`      stored on the host, accessible by both the host and device (*default*)
+`OIDN_STORAGE_HOST`      stored on the host, accessible by both host and device (*default*)
 `OIDN_STORAGE_DEVICE`    stored on the device, *not* accessible by the host
-`OIDN_STORAGE_MANAGED`   automatically migrated between the host and device, accessible by both
+`OIDN_STORAGE_MANAGED`   automatically migrated between host and device, accessible by both (*not* supported by all devices)
 ------------------------ ----------------------------------------------------------------------
 : Supported storage modes for buffers, i.e., valid constants of type `OIDNStorage`.
+
+Note that the host and device storage modes are supported by all devices but managed storage is
+an optional feature. Before using managed storage, the `managedMemorySupported` device paramater
+should be checked.
 
 It is also possible to create a "shared" data buffer with memory allocated and
 managed by the user with

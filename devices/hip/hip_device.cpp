@@ -61,7 +61,7 @@ OIDN_NAMESPACE_BEGIN
         continue;
 
       HIPArch arch = getArch(prop);
-      bool isSupported = arch != HIPArch::Unknown && prop.managedMemory;
+      bool isSupported = arch != HIPArch::Unknown;
 
       if (isSupported)
       {
@@ -159,13 +159,13 @@ OIDN_NAMESPACE_BEGIN
 
     if (arch == HIPArch::Unknown)
       throw Exception(Error::UnsupportedHardware, "unsupported HIP device architecture");
-    if (!prop.managedMemory)
-      throw Exception(Error::UnsupportedHardware, "HIP device does not support managed memory");
 
     tensorDataType = DataType::Float16;
     tensorLayout   = TensorLayout::hwc;
     weightLayout   = TensorLayout::ohwi;
     tensorBlockC   = (arch == HIPArch::DL) ? 32 : 8;
+
+    managedMemorySupported = prop.managedMemory;
 
   #if defined(_WIN32)
     externalMemoryTypes = ExternalMemoryTypeFlag::OpaqueWin32 |
@@ -189,16 +189,13 @@ OIDN_NAMESPACE_BEGIN
     if (hipPointerGetAttributes(&attrib, ptr) != hipSuccess)
       return Storage::Undefined;
 
-    if (attrib.isManaged)
-      return Storage::Managed;
-
     switch (attrib.memoryType)
     {
     case hipMemoryTypeHost:
       return Storage::Host;
     case hipMemoryTypeDevice:
       return Storage::Device;
-    case hipMemoryTypeUnified:
+    case hipMemoryTypeManaged:
       return Storage::Managed;
     default:
       return Storage::Undefined;

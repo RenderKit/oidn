@@ -65,7 +65,7 @@ OIDN_NAMESPACE_BEGIN
 
       int smArch = prop.major * 10 + prop.minor;
       bool isSupported = smArch >= minSMArch && smArch <= maxSMArch &&
-                         prop.unifiedAddressing && prop.managedMemory;
+                         prop.unifiedAddressing;
 
       if (isSupported)
       {
@@ -131,8 +131,6 @@ OIDN_NAMESPACE_BEGIN
       throw Exception(Error::UnsupportedHardware, "device has unsupported compute capability");
     if (!prop.unifiedAddressing)
       throw Exception(Error::UnsupportedHardware, "device does not support unified addressing");
-    if (!prop.managedMemory)
-      throw Exception(Error::UnsupportedHardware, "device does not support managed memory");
 
     // Print device info
     if (isVerbose())
@@ -147,6 +145,8 @@ OIDN_NAMESPACE_BEGIN
     tensorLayout   = TensorLayout::hwc;
     weightLayout   = TensorLayout::ohwi;
     tensorBlockC   = 8; // required by Tensor Core operations
+
+    managedMemorySupported = prop.managedMemory;
 
 #if defined(_WIN32)
     externalMemoryTypes = ExternalMemoryTypeFlag::OpaqueWin32 |

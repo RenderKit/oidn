@@ -103,6 +103,9 @@ OIDN_NAMESPACE_BEGIN
 
   CPUDevice::CPUDevice()
   {
+    systemMemorySupported  = true;
+    managedMemorySupported = true;
+
     // Get default values from environment variables
     getEnvVar("OIDN_NUM_THREADS", numThreads);
     getEnvVar("OIDN_SET_AFFINITY", setAffinity);

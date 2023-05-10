@@ -205,9 +205,16 @@ typedef enum
 typedef enum
 {
   OIDN_STORAGE_UNDEFINED = 0,
-  OIDN_STORAGE_HOST      = 1, // stored on the host, accessible to both the host and device
-  OIDN_STORAGE_DEVICE    = 2, // stored on the device, *not* accessible to the host
-  OIDN_STORAGE_MANAGED   = 3, // automatically migrated between the host and device, accessible to both
+
+  // stored on the host, accessible by both host and device
+  OIDN_STORAGE_HOST      = 1,
+
+  // stored on the device, *not* accessible by the host
+  OIDN_STORAGE_DEVICE    = 2,
+
+  // automatically migrated between host and device, accessible by both
+  // *not* supported by all devices, "managedMemorySupported" device parameter should be checked
+  OIDN_STORAGE_MANAGED   = 3,
 } OIDNStorage;
 
 // External memory type flags

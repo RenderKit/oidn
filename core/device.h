@@ -103,6 +103,8 @@ OIDN_NAMESPACE_BEGIN
     TensorLayout weightLayout = TensorLayout::oihw;
     int tensorBlockC = 1;
 
+    bool systemMemorySupported  = false;
+    bool managedMemorySupported = false;
     ExternalMemoryTypeFlags externalMemoryTypes;
 
     // State
