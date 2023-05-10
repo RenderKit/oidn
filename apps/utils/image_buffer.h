@@ -18,7 +18,8 @@ OIDN_NAMESPACE_BEGIN
     ImageBuffer();
     ImageBuffer(const DeviceRef& device, int width, int height, int numChannels,
                 Format dataType = Format::Float,
-                Storage storage = Storage::Undefined);
+                Storage storage = Storage::Undefined,
+                bool forceHostCopy = false);
     ~ImageBuffer();
 
     OIDN_INLINE int getW() const { return width; }
@@ -49,7 +50,9 @@ OIDN_NAMESPACE_BEGIN
     // Depending on storage mode, data must be explicitly copied between the host and device,
     // so the following should be always called before/after accessing the data
     void toHost();
+    void toHostAsync();
     void toDevice();
+    void toDeviceAsync();
 
     template<typename T = float>
     T get(size_t i) const;

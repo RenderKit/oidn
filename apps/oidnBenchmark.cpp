@@ -23,7 +23,8 @@ int width  = -1;
 int height = -1;
 Format dataType = Format::Float;
 Quality quality = Quality::Default;
-Storage storage = Storage::Device; // maximize performance by default
+Storage bufferStorage = Storage::Device; // maximize performance by default
+bool bufferCopy = false; // include copying between host and device in the measurements
 int numRuns = 0;
 int maxMemoryMB = -1;
 bool inplace = false;
@@ -37,7 +38,7 @@ void printUsage()
             << "                     [-t/--type float|half]" << std::endl
             << "                     [-q/--quality default|h|high|b|balanced]" << std::endl
             << "                     [--threads n] [--affinity 0|1] [--maxmem MB] [--inplace]" << std::endl
-            << "                     [--buffer host|device|managed]" << std::endl
+            << "                     [--buffer host(copy)|device(copy)|managed(copy)]" << std::endl
             << "                     [-v/--verbose 0-3]" << std::endl
             << "                     [--ld|--list_devices] [-l/--list] [-h/--help]" << std::endl;
 }
@@ -88,7 +89,7 @@ void addBenchmark(const std::string& filter, const std::vector<std::string>& inp
 
 std::shared_ptr<ImageBuffer> newImage(DeviceRef& device, int width, int height)
 {
-  return std::make_shared<ImageBuffer>(device, width, height, 3, dataType, storage);
+  return std::make_shared<ImageBuffer>(device, width, height, 3, dataType, bufferStorage, bufferCopy);
 }
 
 // Initializes an image with random values
@@ -158,6 +159,23 @@ double runBenchmark(DeviceRef& device, const Benchmark& bench)
 
   filter.commit();
 
+  auto executeFilter = [&]()
+  {
+    if (bufferCopy)
+    {
+      input->toDeviceAsync();
+      if (albedo)
+        albedo->toDeviceAsync();
+      if (normal)
+        normal->toDeviceAsync();
+    }
+
+    filter.executeAsync();
+
+    if (bufferCopy)
+      output->toHostAsync();
+  };
+
   // Warmup / determine number of benchmark runs
   int numBenchmarkRuns = 0;
   if (numRuns > 0)
@@ -165,16 +183,19 @@ double runBenchmark(DeviceRef& device, const Benchmark& bench)
     numBenchmarkRuns = std::max(numRuns - 1, 1);
     const int numWarmupRuns = numRuns - numBenchmarkRuns;
     for (int i = 0; i < numWarmupRuns; ++i)
-      filter.execute();
+      executeFilter();
+    device.sync();
   }
   else
   {
     // First warmup run
-    filter.execute();
+    executeFilter();
+    device.sync();
 
     // Second warmup run, measure time
     Timer timer;
-    filter.execute();
+    executeFilter();
+    device.sync();
     double warmupTime = timer.query();
 
     // Benchmark for at least 0.5 seconds or 3 times
@@ -189,8 +210,7 @@ double runBenchmark(DeviceRef& device, const Benchmark& bench)
   #endif
 
   for (int i = 0; i < numBenchmarkRuns; ++i)
-    filter.executeAsync();
-
+    executeFilter();
   device.sync();
 
   #ifdef VTUNE
@@ -308,11 +328,17 @@ int main(int argc, char* argv[])
       {
         const auto val = toLower(args.getNextValue());
         if (val == "host")
-          storage = Storage::Host;
+          bufferStorage = Storage::Host;
+        else if (val == "hostcopy")
+          std::tie(bufferStorage, bufferCopy) = std::make_pair(Storage::Host, true);
         else if (val == "device")
-          storage = Storage::Device;
+          bufferStorage = Storage::Device;
+        else if (val == "devicecopy")
+          std::tie(bufferStorage, bufferCopy) = std::make_pair(Storage::Device, true);
         else if (val == "managed")
-          storage = Storage::Managed;
+          bufferStorage = Storage::Managed;
+        else if (val == "managedcopy")
+          std::tie(bufferStorage, bufferCopy) = std::make_pair(Storage::Managed, true);
         else
           throw std::runtime_error("invalid storage mode");
       }

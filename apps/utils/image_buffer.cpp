@@ -14,7 +14,8 @@ OIDN_NAMESPACE_BEGIN
       numChannels(0),
       dataType(Format::Undefined) {}
 
-  ImageBuffer::ImageBuffer(const DeviceRef& device, int width, int height, int numChannels, Format dataType, Storage storage)
+  ImageBuffer::ImageBuffer(const DeviceRef& device, int width, int height, int numChannels, Format dataType,
+                           Storage storage, bool forceHostCopy)
     : device(device),
       numValues(size_t(width) * height * numChannels),
       width(width),
@@ -39,7 +40,7 @@ OIDN_NAMESPACE_BEGIN
     buffer = device.newBuffer(byteSize, storage);
     storage = buffer.getStorage(); // get actual storage mode
     devPtr = static_cast<char*>(buffer.getData());
-    hostPtr = (storage != Storage::Device) ? devPtr : static_cast<char*>(malloc(byteSize));
+    hostPtr = (storage != Storage::Device && !forceHostCopy) ? devPtr : static_cast<char*>(malloc(byteSize));
   }
 
   ImageBuffer::~ImageBuffer()
@@ -54,10 +55,22 @@ OIDN_NAMESPACE_BEGIN
       buffer.read(0, byteSize, hostPtr);
   }
 
+  void ImageBuffer::toHostAsync()
+  {
+    if (hostPtr != devPtr)
+      buffer.readAsync(0, byteSize, hostPtr);
+  }
+
   void ImageBuffer::toDevice()
   {
     if (hostPtr != devPtr)
       buffer.write(0, byteSize, hostPtr);
+  }
+
+  void ImageBuffer::toDeviceAsync()
+  {
+    if (hostPtr != devPtr)
+      buffer.writeAsync(0, byteSize, hostPtr);
   }
 
   std::shared_ptr<ImageBuffer> ImageBuffer::clone() const
