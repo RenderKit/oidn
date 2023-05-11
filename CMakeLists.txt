@@ -30,9 +30,7 @@ if(NOT APPLE)
     option(OIDN_DEVICE_SYCL "Enable SYCL device." OFF)
   endif()
   option(OIDN_DEVICE_CUDA "Enable CUDA device." OFF)
-  if(NOT WIN32)
-    option(OIDN_DEVICE_HIP "Enable HIP device." OFF)
-  endif()
+  option(OIDN_DEVICE_HIP "Enable HIP device." OFF)
 endif()
 
 # Filters

@@ -66,13 +66,19 @@ endif()
 if(OIDN_DEVICE_HIP)
   # Find ROCm
   if(NOT ROCM_PATH)
+    if(WIN32)
+      set(_rocm_search_paths "$ENV{PROGRAMFILES}/AMD/ROCm")
+    else()
+      set(_rocm_search_paths "/opt/rocm")
+    endif()
+
     find_path(ROCM_PATH
       NAMES
         bin/hipconfig
       HINTS
         $ENV{ROCM_PATH}
       PATHS
-        /opt/rocm
+        ${_rocm_search_paths}
       NO_DEFAULT_PATH
       DOC
         "ROCm installation path."

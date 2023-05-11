@@ -56,6 +56,11 @@ set_source_files_properties(
   ck_conv_wmma.cpp
   PROPERTIES COMPILE_FLAGS "-mcumode -mno-wavefrontsize64") # Navi3x optimizations
 
+if(WIN32)
+  # Fix warning: __declspec attribute 'dllexport' is not supported
+  target_compile_options(OpenImageDenoise_device_hip PRIVATE -Wno-ignored-attributes)
+endif()
+
 target_link_libraries(OpenImageDenoise_device_hip PRIVATE OpenImageDenoise_core hip::device)
 oidn_strip_symbols(OpenImageDenoise_device_hip)
 oidn_install_module(OpenImageDenoise_device_hip)
