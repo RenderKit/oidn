@@ -82,7 +82,7 @@ if(OIDN_DEVICE_HIP)
     if(ROCM_PATH)
       message(STATUS "Found ROCm: ${ROCM_PATH}")
     else()
-      message(FATAL_ERROR "Building with HIP support requires AMD ROCm")
+      message(FATAL_ERROR "Failed to find ROCm.\nBuilding with HIP support requires ROCm. Please set the ROCM_PATH variable.")
     endif()
   endif()
 
@@ -96,6 +96,7 @@ if(OIDN_DEVICE_HIP)
       bin
       llvm/bin
     NO_DEFAULT_PATH
+    REQUIRED
     DOC
       "HIP compiler."
   )
