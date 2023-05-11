@@ -381,6 +381,9 @@ int main(int argc, char* argv[])
     else
       device = newDevice(deviceType);
 
+    if (bufferStorage == Storage::Managed && !device.get<bool>("managedMemorySupported"))
+      throw std::runtime_error("managed memory is not supported by the device");
+
     if (verbose >= 0)
       device.set("verbose", verbose);
 
