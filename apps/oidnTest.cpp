@@ -9,6 +9,11 @@
 
 #define CATCH_CONFIG_RUNNER
 #define CATCH_CONFIG_FAST_COMPILE
+
+// The following are required for the correct functioning of USM!
+#define CATCH_CONFIG_NO_POSIX_SIGNALS
+#define CATCH_CONFIG_NO_WINDOWS_SEH
+
 #include "catch.hpp"
 
 OIDN_NAMESPACE_USING
