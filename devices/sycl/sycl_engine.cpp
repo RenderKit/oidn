@@ -97,6 +97,9 @@ OIDN_NAMESPACE_BEGIN
 
   void* SYCLEngine::malloc(size_t byteSize, Storage storage)
   {
+    if (byteSize == 0)
+      return nullptr;
+
     void* ptr = nullptr;
 
     switch (storage)
@@ -133,7 +136,8 @@ OIDN_NAMESPACE_BEGIN
 
   void SYCLEngine::free(void* ptr, Storage storage)
   {
-    sycl::free(ptr, syclQueue.get_context());
+    if (ptr != nullptr)
+      sycl::free(ptr, syclQueue.get_context());
   }
 
   void SYCLEngine::memcpy(void* dstPtr, const void* srcPtr, size_t byteSize)

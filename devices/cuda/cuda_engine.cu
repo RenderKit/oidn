@@ -73,7 +73,10 @@ OIDN_NAMESPACE_BEGIN
 
   void* CUDAEngine::malloc(size_t byteSize, Storage storage)
   {
-    void* ptr;
+    if (byteSize == 0)
+      return nullptr;
+
+    void* ptr = nullptr;
 
     switch (storage)
     {
@@ -96,6 +99,9 @@ OIDN_NAMESPACE_BEGIN
 
   void CUDAEngine::free(void* ptr, Storage storage)
   {
+    if (ptr == nullptr)
+      return;
+
     if (storage == Storage::Host)
       checkError(cudaFreeHost(ptr));
     else

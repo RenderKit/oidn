@@ -60,12 +60,15 @@ OIDN_NAMESPACE_BEGIN
 
   void* CPUEngine::malloc(size_t byteSize, Storage storage)
   {
+    if (byteSize == 0)
+      return nullptr;
     return alignedMalloc(byteSize);
   }
 
   void CPUEngine::free(void* ptr, Storage storage)
   {
-    alignedFree(ptr);
+    if (ptr != nullptr)
+      alignedFree(ptr);
   }
 
   void CPUEngine::memcpy(void* dstPtr, const void* srcPtr, size_t byteSize)

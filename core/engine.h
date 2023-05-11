@@ -35,6 +35,7 @@ OIDN_NAMESPACE_BEGIN
   class ScratchBuffer;
   class ScratchBufferManager;
 
+  // A device consists of one or more execution "engines"
   class Engine : public RefCount
   {
   public:

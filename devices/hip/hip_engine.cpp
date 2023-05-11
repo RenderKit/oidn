@@ -81,7 +81,10 @@ OIDN_NAMESPACE_BEGIN
 
   void* HIPEngine::malloc(size_t byteSize, Storage storage)
   {
-    void* ptr;
+    if (byteSize == 0)
+      return nullptr;
+
+    void* ptr = nullptr;
 
     switch (storage)
     {
@@ -104,6 +107,9 @@ OIDN_NAMESPACE_BEGIN
 
   void HIPEngine::free(void* ptr, Storage storage)
   {
+    if (ptr == nullptr)
+      return;
+
     if (storage == Storage::Host)
       checkError(hipHostFree(ptr));
     else
