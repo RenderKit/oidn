@@ -2,10 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "common/common.h"
+#include "common/timer.h"
 #include "utils/arg_parser.h"
 #include "utils/image_io.h"
 #include "utils/device_info.h"
-#include "utils/timer.h"
 #include <iostream>
 #include <fstream>
 #include <iomanip>

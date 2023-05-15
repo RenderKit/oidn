@@ -29,6 +29,7 @@ add_library(OpenImageDenoise_common OBJECT
   oidn_utils.cpp
   platform.h
   platform.cpp
+  timer.h
 )
 
 target_include_directories(OpenImageDenoise_common

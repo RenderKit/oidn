@@ -12,7 +12,6 @@ add_library(OpenImageDenoise_utils STATIC
   image_io.h
   image_io.cpp
   random.h
-  timer.h
 )
 
 target_link_libraries(OpenImageDenoise_utils PUBLIC OpenImageDenoise_common OpenImageDenoise)
