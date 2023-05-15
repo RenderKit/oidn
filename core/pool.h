@@ -1,4 +1,4 @@
-// Copyright 2009-2023 Intel Corporation
+// Copyright 2018 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -19,7 +19,7 @@ OIDN_NAMESPACE_BEGIN
   {
   public:
     Pool(const PoolDesc& desc);
-    
+
     TensorDesc getDstDesc() const { return dstDesc; }
     std::shared_ptr<Tensor> getDst() const { return dst; }
 

@@ -1,10 +1,10 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2018 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "output_process.h"
 
 OIDN_NAMESPACE_BEGIN
-  
+
   OutputProcess::OutputProcess(const OutputProcessDesc& desc)
     : OutputProcessDesc(desc)
   {

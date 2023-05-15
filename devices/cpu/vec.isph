@@ -1,4 +1,4 @@
-// Copyright 2009-2021 Intel Corporation
+// Copyright 2009 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -353,7 +353,7 @@ DEFINE_VEC_UNARY_FUNC(to_float_unorm, f, ui)
     return make_vec4##T(F(a, b.x), F(a, b.y),                   \
                         F(a, b.z), F(a, b.w));                  \
   }
-  
+
 
 #define DEFINE_VEC_BINARY_FUNC(F, TYPE, T)                         \
   DEFINE_VEC_BINARY_FUNC_UV(uniform, uniform, uniform, F, TYPE, T) \

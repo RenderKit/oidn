@@ -1,4 +1,4 @@
-// Copyright 2009-2023 Intel Corporation
+// Copyright 2018 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "conv.h"
@@ -65,7 +65,7 @@ OIDN_NAMESPACE_BEGIN
     this->weight = weight;
     updateWeight();
   }
-  
+
   void Conv::setBias(const std::shared_ptr<Tensor>& bias)
   {
     if (!bias || bias->getDesc() != biasDesc)

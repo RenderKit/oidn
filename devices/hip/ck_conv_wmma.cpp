@@ -1,4 +1,4 @@
-// Copyright 2009-2023 Intel Corporation
+// Copyright 2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "hip_conv.h"
@@ -85,7 +85,7 @@ OIDN_NAMESPACE_BEGIN
         S<1, 32, 1, 8>,          // CDEShuffleBlockTransferClusterLengths_MBlock_MPerBlock_NBlock_NPerBlock
         8                        // CDEShuffleBlockTransferScalarPerVector_NPerBlock
       >;
-  
+
   public:
     CKConvWMMA(const Ref<HIPEngine>& engine, const ConvDesc& desc)
       : Conv(desc),

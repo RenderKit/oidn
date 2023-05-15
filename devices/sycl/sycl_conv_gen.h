@@ -1,4 +1,4 @@
-// Copyright 2009-2023 Intel Corporation
+// Copyright 2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 // This file may be included multiple times in the same cpp with different macros defined,

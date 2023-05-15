@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -227,7 +227,7 @@ OIDN_NAMESPACE_BEGIN
     OIDN_DEVICE_INLINE int getGlobalLinearId() const;
     OIDN_DEVICE_INLINE int getLocalLinearId()  const { return threadIdx.y * blockDim.x + threadIdx.x; };
     OIDN_DEVICE_INLINE int getGroupLinearId()  const { return blockIdx.y * gridDim.x + blockIdx.x; }
-    
+
     OIDN_DEVICE_INLINE void syncGroup() const { __syncthreads(); }
   };
 

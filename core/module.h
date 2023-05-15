@@ -1,4 +1,4 @@
-// Copyright 2009-2023 Intel Corporation
+// Copyright 2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -23,7 +23,7 @@ OIDN_NAMESPACE_BEGIN
     ModuleLoader();
 
     bool load(const std::string& name);
-    
+
   private:
     static void* getSymbolAddress(void* module, const std::string& name);
     static void closeModule(void* module);

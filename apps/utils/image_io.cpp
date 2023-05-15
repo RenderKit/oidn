@@ -1,4 +1,4 @@
-// Copyright 2009-2023 Intel Corporation
+// Copyright 2018 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "image_io.h"
@@ -315,7 +315,7 @@ OIDN_NAMESPACE_BEGIN
 
       if (dataType == Format::Undefined)
         dataType = (spec.channelformat(0) == OIIO::TypeDesc::HALF) ? Format::Half : Format::Float;
-      
+
       auto image = std::make_shared<ImageBuffer>(device, spec.width, spec.height, numChannels, dataType);
       bool success = in->read_image(0, 0, 0, numChannels, dataType == Format::Half ? OIIO::TypeDesc::HALF : OIIO::TypeDesc::FLOAT, image->getData());
       in->close();
@@ -367,7 +367,7 @@ OIDN_NAMESPACE_BEGIN
         throw std::runtime_error("failed to write image data");
     }
   #endif
-  
+
   } // namespace
 
   std::shared_ptr<ImageBuffer> loadImage(const DeviceRef& device,

@@ -1,5 +1,5 @@
 #!/bin/bash -xe
-## Copyright 2020-2021 Intel Corporation
+## Copyright 2020 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 KW_SERVER_API_URL=http://$KW_SERVER_IP:$KW_SERVER_PORT/review/api

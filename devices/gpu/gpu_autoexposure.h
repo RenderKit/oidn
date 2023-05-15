@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -65,7 +65,7 @@ OIDN_NAMESPACE_BEGIN
     int size;
     float* sums;
     int* counts;
-  
+
     OIDN_DEVICE_INLINE void operator ()(const WorkGroupItem<1>& it) const
     {
       OIDN_SHARED LocalArray<float, groupSize> localSums;
@@ -112,7 +112,7 @@ OIDN_NAMESPACE_BEGIN
     const int* counts;
     int size;
     float* result;
-    
+
     OIDN_DEVICE_INLINE void operator ()(const WorkGroupItem<1>& it) const
     {
       OIDN_SHARED LocalArray<float, groupSize> localSums;
@@ -170,7 +170,7 @@ OIDN_NAMESPACE_BEGIN
     {
       if (!scratch || scratch->getByteSize() < scratchByteSize)
         throw std::invalid_argument("invalid autoexposure scratch");
-        
+
       this->scratch = scratch;
     }
 

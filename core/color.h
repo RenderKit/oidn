@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2018 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -129,7 +129,7 @@ OIDN_NAMESPACE_BEGIN
       {
       case Type::Linear:
         return y;
-      
+
       case Type::SRGB:
         return vec3f(SRGB::forward(y.x), SRGB::forward(y.y), SRGB::forward(y.z));
 
@@ -147,7 +147,7 @@ OIDN_NAMESPACE_BEGIN
     OIDN_HOST_DEVICE_INLINE vec3f inverse(vec3f x) const
     {
       switch (type)
-      { 
+      {
       case Type::Linear:
         return x;
 
@@ -159,7 +159,7 @@ OIDN_NAMESPACE_BEGIN
 
       case Type::Log:
         return math::exp(x * rcpNormScale) - 1.f;
-      
+
       default:
         return 0;
       }

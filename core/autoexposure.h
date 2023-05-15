@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2018 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -22,7 +22,7 @@ OIDN_NAMESPACE_BEGIN
       numBinsW = ceil_div(srcDesc.getW(), maxBinSize);
       numBins = numBinsH * numBinsW;
     }
-    
+
     void setSrc(const std::shared_ptr<Image>& src)
     {
       if (!src || src->getW() != srcDesc.getW() || src->getH() != srcDesc.getH())
@@ -30,7 +30,7 @@ OIDN_NAMESPACE_BEGIN
 
       this->src = src;
     }
-    
+
     // Returns pointer to the result in device memory
     virtual const float* getResult() const = 0;
 

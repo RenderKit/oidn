@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2020 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "progress.h"
@@ -77,7 +77,7 @@ OIDN_NAMESPACE_BEGIN
   {
     if (!func)
       return;
-      
+
     if (!func(userPtr, current / total))
     {
       cancelled = true;

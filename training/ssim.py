@@ -1,5 +1,5 @@
 ## Copyright 2019 Vainn
-## Copyright 2019-2021 Intel Corporation
+## Copyright 2019 Intel Corporation
 ## SPDX-License-Identifier: MIT
 
 # Based on: https://github.com/VainF/pytorch-msssim

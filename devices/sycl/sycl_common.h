@@ -1,4 +1,4 @@
-// Copyright 2009-2023 Intel Corporation
+// Copyright 2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -6,7 +6,7 @@
 #include "common/platform.h"
 
 OIDN_NAMESPACE_BEGIN
-  
+
   using namespace esimd;
   using namespace esimdx;
 

@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "cuda_external_buffer.h"
@@ -17,7 +17,7 @@ OIDN_NAMESPACE_BEGIN
     handleDesc.type = cudaExternalMemoryHandleTypeOpaqueFd;
     handleDesc.handle.fd = fd;
     handleDesc.size = byteSize;
-    
+
     init(handleDesc);
   }
 

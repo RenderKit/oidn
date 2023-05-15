@@ -1,4 +1,4 @@
-## Copyright 2009-2021 Intel Corporation
+## Copyright 2009 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 #===============================================================================
@@ -6,8 +6,8 @@
 #
 # The user may specify a version and lists of required and optional components:
 #
-# find_package(TBB 2017.0 EXACT REQUIRED 
-#              tbb tbbmalloc 
+# find_package(TBB 2017.0 EXACT REQUIRED
+#              tbb tbbmalloc
 #              OPTIONAL_COMPONENTS tbbmalloc_proxy
 #              QUIET)
 #
@@ -27,7 +27,7 @@
 # component targets TBB::<COMPONENT>, e.g. TBB::tbbmalloc.
 #
 # The targets will attempt to link to release versions of TBB in release mode,
-# and debug versions in debug mode. 
+# and debug versions in debug mode.
 #
 # In addition to the targets, the script defines:
 #
@@ -40,7 +40,7 @@
 cmake_minimum_required(VERSION 3.1)
 
 
-# CMake before 3.12 used to ignore <PKGNAME>_ROOT, but we always use this 
+# CMake before 3.12 used to ignore <PKGNAME>_ROOT, but we always use this
 # variable. Avoid warning by setting the policy to new behaviour, which means
 # the variables are used.
 if(POLICY CMP0074)
@@ -221,7 +221,7 @@ macro(rk_tbb_reuse_existing_target_components)
     set(TBB_FOUND TRUE)
     set(TBB_INCLUDE_DIRS "${TBB_INCLUDE_DIR}")
     return()
-  elseif ((TARGET TBB) OR (NOT _TBB_AVAILABLE_COMPONENTS STREQUAL "")) 
+  elseif ((TARGET TBB) OR (NOT _TBB_AVAILABLE_COMPONENTS STREQUAL ""))
     rk_tbb_error("Ignoring existing TBB targets because required components are missing: ${_TBB_MISSING_COMPONENTS}")
   endif()
 endmacro()

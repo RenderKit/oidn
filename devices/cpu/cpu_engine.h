@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2018 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -9,7 +9,7 @@
 OIDN_NAMESPACE_BEGIN
 
   class CPUEngine : public Engine
-  { 
+  {
   public:
     explicit CPUEngine(const Ref<CPUDevice>& device);
 

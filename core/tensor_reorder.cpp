@@ -1,4 +1,4 @@
-// Copyright 2009-2023 Intel Corporation
+// Copyright 2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "tensor_reorder.h"
@@ -7,14 +7,14 @@ OIDN_NAMESPACE_BEGIN
 
   template<typename SrcT, typename DstT, TensorLayout srcLayout, TensorLayout dstLayout>
   bool tryReorderWeight(Tensor& src, int srcBeginI, int srcI, Tensor& dst, int dstBeginI, int dstI)
-  {   
+  {
     assert(srcBeginI + srcI <= src.getPaddedI());
     assert(dstBeginI + dstI <= dst.getPaddedI());
 
     if (src.getDataType() != DataTypeOf<SrcT>::value || src.getLayout() != srcLayout ||
         dst.getDataType() != DataTypeOf<DstT>::value || dst.getLayout() != dstLayout)
       return false;
-  
+
     TensorAccessor4D<SrcT, srcLayout> srcAcc = src;
     TensorAccessor4D<DstT, dstLayout> dstAcc = dst;
 
@@ -64,7 +64,7 @@ OIDN_NAMESPACE_BEGIN
   {
     if (src.getDataType() != DataTypeOf<SrcT>::value ||
         dst.getDataType() != DataTypeOf<DstT>::value)
-      return false; 
+      return false;
 
     TensorAccessor1D<SrcT> srcAcc = src;
     TensorAccessor1D<DstT> dstAcc = dst;

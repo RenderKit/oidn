@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2018 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -30,7 +30,7 @@ OIDN_NAMESPACE_BEGIN
   };
 
   class CPUDevice final : public Device
-  { 
+  {
     friend class CPUEngine;
     friend class DNNLEngine;
 
@@ -49,7 +49,7 @@ OIDN_NAMESPACE_BEGIN
       assert(i == 0);
       return (Engine*)engine.get();
     }
-    
+
     int getNumEngines() const override { return 1; }
 
     Storage getPointerStorage(const void* ptr) override;

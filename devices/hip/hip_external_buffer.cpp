@@ -1,4 +1,4 @@
-// Copyright 2009-2023 Intel Corporation
+// Copyright 2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "hip_external_buffer.h"
@@ -17,7 +17,7 @@ OIDN_NAMESPACE_BEGIN
     handleDesc.type = hipExternalMemoryHandleTypeOpaqueFd;
     handleDesc.handle.fd = fd;
     handleDesc.size = byteSize;
-    
+
     init(handleDesc);
   }
 

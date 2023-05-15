@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2021 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -91,7 +91,7 @@ OIDN_NAMESPACE_BEGIN
 
   private:
     void submitBarrier();
-  
+
     OIDN_INLINE std::vector<sycl::event> getDepEvents()
     {
       if (!depEvents.empty())
@@ -101,7 +101,7 @@ OIDN_NAMESPACE_BEGIN
       else
         return {};
     }
-  
+
     SYCLDevice* device;
     ze_device_handle_t zeDevice = nullptr; // Level Zero device
     sycl::queue syclQueue;                 // all commands are submitted to this queue

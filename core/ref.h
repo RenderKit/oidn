@@ -1,4 +1,4 @@
-// Copyright 2009-2023 Intel Corporation
+// Copyright 2009 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -11,7 +11,7 @@ OIDN_NAMESPACE_BEGIN
   {
   public:
     OIDN_INLINE RefCount(size_t count = 0) noexcept : count(count) {}
-  
+
     OIDN_INLINE size_t incRef() noexcept
     {
       return ++count;

@@ -1,4 +1,4 @@
-// Copyright 2009-2023 Intel Corporation
+// Copyright 2022 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "concat_conv.h"
@@ -15,7 +15,7 @@ OIDN_NAMESPACE_BEGIN
         src1Desc.layout != src2Desc.layout ||
         src1Desc.dataType != src2Desc.dataType)
       throw std::invalid_argument("invalid concat+conv source descriptor");
-    if (weightDesc.getRank() != 4 || weightDesc.getI() != (src1Desc.getC() + src2Desc.getC()) || 
+    if (weightDesc.getRank() != 4 || weightDesc.getI() != (src1Desc.getC() + src2Desc.getC()) ||
         weightDesc.getPaddedI() != (src1Desc.getPaddedC() + src2Desc.getPaddedC()))
       throw std::invalid_argument("invalid concat+conv weight shape");
 
@@ -33,7 +33,7 @@ OIDN_NAMESPACE_BEGIN
     this->src2 = src2;
     updateSrc();
   }
-  
+
   void ConcatConv::setBias(const std::shared_ptr<Tensor>& bias)
   {
     if (!bias || bias->getDesc() != biasDesc)

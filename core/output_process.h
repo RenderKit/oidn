@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2018 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -23,7 +23,7 @@ OIDN_NAMESPACE_BEGIN
   {
   public:
     OutputProcess(const OutputProcessDesc& desc);
-    
+
     void setSrc(const std::shared_ptr<Tensor>& src);
     void setDst(const std::shared_ptr<Image>& dst);
     void setTile(int hSrc, int wSrc, int hDst, int wDst, int H, int W);

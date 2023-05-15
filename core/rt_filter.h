@@ -1,4 +1,4 @@
-// Copyright 2009-2022 Intel Corporation
+// Copyright 2018 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -17,7 +17,7 @@ OIDN_NAMESPACE_BEGIN
     void unsetImage(const std::string& name) override;
     void setInt(const std::string& name, int value) override;
     int getInt(const std::string& name) override;
-  
+
   protected:
     std::shared_ptr<TransferFunction> newTransferFunc() override;
   };

@@ -1,4 +1,4 @@
-## Copyright 2009-2023 Intel Corporation
+## Copyright 2018 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
 # Policy: find_package() uses <PackageName>_ROOT variables
