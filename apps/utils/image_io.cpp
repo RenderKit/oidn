@@ -71,7 +71,7 @@ OIDN_NAMESPACE_BEGIN
       if (numChannels == 0)
         numChannels = C;
       else if (C < numChannels)
-        throw std::runtime_error("not enough image channnels");
+        throw std::runtime_error("not enough image channels");
 
       if (dataType == Format::Undefined)
         dataType = Format::Float;
@@ -176,7 +176,7 @@ OIDN_NAMESPACE_BEGIN
       if (numChannels == 0)
         numChannels = C;
       else if (C < numChannels)
-        throw std::runtime_error("not enough image channnels");
+        throw std::runtime_error("not enough image channels");
 
       if (dataType == Format::Undefined)
         dataType = Format::Half;

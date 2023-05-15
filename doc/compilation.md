@@ -130,7 +130,7 @@ Entitlements on macOS
 macOS requires notarization of applications as a security mechanism, and
 [entitlements must be declared](https://developer.apple.com/documentation/bundleresources/entitlements)
 during the notarization process.
-Intel Open Image Denoise uses just-in-time compilaton through [oneDNN](https://github.com/oneapi-src/oneDNN) and requires the following entitlements:
+Intel Open Image Denoise uses just-in-time compilation through [oneDNN](https://github.com/oneapi-src/oneDNN) and requires the following entitlements:
 
 -    [`com.apple.security.cs.allow-jit`](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_cs_allow-jit)
 -    [`com.apple.security.cs.allow-unsigned-executable-memory`](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_cs_allow-unsigned-executable-memory)

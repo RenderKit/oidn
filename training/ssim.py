@@ -29,11 +29,11 @@ def _fspecial_gauss_1d(size, sigma):
 def gaussian_filter(input, win):
     r""" Blur input with 1-D kernel
     Args:
-        input (torch.Tensor): a batch of tensors to be blured
+        input (torch.Tensor): a batch of tensors to be blurred
         window (torch.Tensor): 1-D gauss kernel
 
     Returns:
-        torch.Tensor: blured tensors
+        torch.Tensor: blurred tensors
     """
 
     N, C, H, W = input.shape
