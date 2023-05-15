@@ -472,7 +472,7 @@ normally. When returning `false`, the library will cancel the filter operation
 with the `OIDN_ERROR_CANCELLED` error code.
 
 After setting all necessary parameters for the filter, the changes must be
-commmitted by calling
+committed by calling
 
     void oidnCommitFilter(OIDNFilter filter);
 
