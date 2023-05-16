@@ -8,12 +8,12 @@ projects and related information.
 If you have a project that makes use of Intel Open Image Denoise and would like
 this to be listed here, please let us know.
 
--   [Intel® OSPRay](http://www.ospray.org), a ray tracing based rendering engine for high-fidelity visualization
+-   [Intel® OSPRay](https://www.ospray.org), a ray tracing based rendering engine for high-fidelity visualization
 
 
 Projects that are closely related to Intel Open Image Denoise
 =============================================================
 
--   The [Intel® Embree](http://embree.github.io) Ray Tracing Kernel Framework
+-   The [Intel® Embree](https://www.embree.org) Ray Tracing Kernel Framework
 
 

@@ -3,26 +3,34 @@ Version History
 
 ### Changes in v2.0.0:
 
--   Added SYCL device for Intel Xe-LP, Xe-HPG and Xe-HPC GPU architectures
+-   Added SYCL device for Intel® Xe architecture GPUs (Xe-LP, Xe-HPG and Xe-HPC)
 -   Added CUDA device for NVIDIA Volta, Turing, Ampere, Ada Lovelace and Hopper
-    GPU architectures
--   Added HIP device for AMD RDNA2 (Navi 21 only) and RDNA3 (Navi 3x) GPU
-    architectures
--   Added new API functions for improved GPU support:
-    -  `oidnNewBufferWithStorage`, `oidnGetBufferStorage`, `oidnReadBuffer`, and
-       `oidnWriteBuffer` for more performant GPU buffer support
-    -  `oidnExecuteFilterAsync` and `oidnSyncDevice` for asynchronous
-       filter execution
--   Removed `oidnMapBuffer` and `oidnUnmapBuffer` API functions
--   Added `quality` filter parameter for setting filtering quality mode
+    architecture GPUs
+-   Added HIP device for AMD RDNA2 (Navi 21 only) and RDNA3 (Navi 3x)
+    architecture GPUs
+-   Added new buffer API functions for specifying the storage type (host, device
+    or managed), copying data to/from the host, and importing external buffers from
+    graphics APIs (e.g. Vulkan, Direct3D 12)
+-   Removed the `oidnMapBuffer` and `oidnUnmapBuffer` functions
+-   Added support for asynchronous execution (e.g. `oidnExecuteFilterAsync`,
+    `oidnSyncDevice` functions)
+-   Added physical device API for querying the supported devices in the system
+-   Added functions for creating a device from a physical device ID, UUID, LUID
+    or PCI address (e.g. `oidnNewDeviceByID`)
+-   Added SYCL, CUDA and HIP interoperability API functions (e.g. `oidnNewSYCLDevice`,
+    `oidnExecuteSYCLFilterAsync`)
 -   Added `type` device parameter for querying the device type
 -   Added `systemMemorySupported` and `managedMemorySupported` device parameters
     for querying memory allocations supported by the device
+-   Added `externalMemoryTypes` device parameter for querying the supported
+    external memory handle types
+-   Added `quality` filter parameter for setting the filtering quality mode (high
+    or balanced quality)
 -   Minor API changes with backward compatibility:
-    -   Added oidn(Get|Set)(Device|Filter)(Bool|Int|Float) API functions and
-        deprecated oidn(Get|Set)(Device|Filter)(1b|1i|1f) functions
-    -   Added oidnUnsetFilter(Image|Data) API functions and deprecated
-        oidnRemoveFilter(Image|Data) functions
+    -   Added `oidn(Get|Set)(Device|Filter)(Bool|Int|Float)` functions and
+        deprecated `oidn(Get|Set)(Device|Filter)(1b|1i|1f)` functions
+    -   Added `oidnUnsetFilter(Image|Data)` functions and deprecated
+        `oidnRemoveFilter(Image|Data)` functions
     -   Renamed `alignment` and `overlap` filter parameters to `tileAlignment`
         and `tileOverlap` but the old names remain supported
 -   Removed `OIDN_STATIC_LIB` and `OIDN_STATIC_RUNTIME` CMake options due to

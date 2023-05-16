@@ -52,7 +52,7 @@ simple example code snippets.
                        OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0); // auxiliary
     oidnSetFilterImage(filter, "output", colorBuf,
                        OIDN_FORMAT_FLOAT3, width, height, 0, 0, 0); // denoised beauty
-    oidnSetFilter1b(filter, "hdr", true); // beauty image is HDR
+    oidnSetFilterBool(filter, "hdr", true); // beauty image is HDR
     oidnCommitFilter(filter);
 
     // Fill the input image buffers
@@ -658,59 +658,59 @@ can be one of the input images (i.e. in-place denoising is supported). See
 section [Examples] for simple code snippets that demonstrate the usage of
 the filter.
 
------------ ------------- ---------- ---------------------------------------------------------------
-Type        Name             Default Description
------------ ------------- ---------- ---------------------------------------------------------------
-`Image`     `color`       *optional* input beauty image (3 channels, LDR values in [0, 1] or HDR
-                                     values in [0, +∞), values being interpreted such that, after
-                                     scaling with the `inputScale` parameter, a value of 1
-                                     corresponds to a luminance level of 100 cd/m²)
+----------- --------------- ---------- ---------------------------------------------------------------
+Type        Name               Default Description
+----------- --------------- ---------- ---------------------------------------------------------------
+`Image`     `color`         *optional* input beauty image (3 channels, LDR values in [0, 1] or HDR
+                                       values in [0, +∞), values being interpreted such that, after
+                                       scaling with the `inputScale` parameter, a value of 1
+                                       corresponds to a luminance level of 100 cd/m²)
 
-`Image`     `albedo`      *optional* input auxiliary image containing the albedo per pixel (3
-                                     channels, values in [0, 1])
+`Image`     `albedo`        *optional* input auxiliary image containing the albedo per pixel (3
+                                       channels, values in [0, 1])
 
-`Image`     `normal`      *optional* input auxiliary image containing the shading normal per pixel
-                                     (3 channels, world-space or view-space vectors with arbitrary
-                                     length, values in [-1, 1])
+`Image`     `normal`        *optional* input auxiliary image containing the shading normal per pixel
+                                       (3 channels, world-space or view-space vectors with arbitrary
+                                       length, values in [-1, 1])
 
-`Image`     `output`      *required* output image (3 channels); can be one of the input images
+`Image`     `output`        *required* output image (3 channels); can be one of the input images
 
-`bool`      `hdr`              false whether the main input image is HDR
+`bool`      `hdr`                false whether the main input image is HDR
 
-`bool`      `srgb`             false whether the main input image is encoded with the sRGB (or 2.2
-                                     gamma) curve (LDR only) or is linear; the output will be
-                                     encoded with the same curve
+`bool`      `srgb`               false whether the main input image is encoded with the sRGB (or 2.2
+                                       gamma) curve (LDR only) or is linear; the output will be
+                                       encoded with the same curve
 
-`float`     `inputScale`         NaN scales values in the main input image before filtering, without
-                                     scaling the output too, which can be used to map color or
-                                     auxiliary feature values to the expected range, e.g. for
-                                     mapping HDR values to physical units (which affects the quality
-                                     of the output but *not* the range of the output values); if set
-                                     to NaN, the scale is computed implicitly for HDR images or set
-                                     to 1 otherwise
+`float`     `inputScale`           NaN scales values in the main input image before filtering, without
+                                       scaling the output too, which can be used to map color or
+                                       auxiliary feature values to the expected range, e.g. for
+                                       mapping HDR values to physical units (which affects the quality
+                                       of the output but *not* the range of the output values); if set
+                                       to NaN, the scale is computed implicitly for HDR images or set
+                                       to 1 otherwise
 
-`bool`      `cleanAux`         false whether the auxiliary feature (albedo, normal) images are
-                                     noise-free; recommended for highest quality but should *not* be
-                                     enabled for noisy auxiliary images to avoid residual noise
+`bool`      `cleanAux`           false whether the auxiliary feature (albedo, normal) images are
+                                       noise-free; recommended for highest quality but should *not* be
+                                       enabled for noisy auxiliary images to avoid residual noise
 
-`Data`      `weights`     *optional* trained model weights blob
+`Data`      `weights`       *optional* trained model weights blob
 
-`int`       `maxMemoryMB`         -1 if set to >= 0, an attempt will be made to limit the memory
-                                     usage below the specified amount in megabytes at the potential
-                                     cost of slower performance but actual memory usage may be higher
-                                     (the target may not be achievable or the device may not support
-                                     this feature at all); otherwise memory usage will be limited to
-                                     an unspecified device-dependent amount
+`int`       `maxMemoryMB`           -1 if set to >= 0, an attempt will be made to limit the memory
+                                       usage below the specified amount in megabytes at the potential
+                                       cost of slower performance but actual memory usage may be higher
+                                       (the target may not be achievable or the device may not support
+                                       this feature at all); otherwise memory usage will be limited to
+                                       an unspecified device-dependent amount
 
-`const int` `tileAlignment`          when manually denoising in tiles, the tile size and offsets
-                                     should be multiples of this amount of pixels to avoid
-                                     artifacts; when denoising HDR images `inputScale` *must* be set
-                                     by the user to avoid seam artifacts
+`const int` `tileAlignment`            when manually denoising in tiles, the tile size and offsets
+                                       should be multiples of this amount of pixels to avoid
+                                       artifacts; when denoising HDR images `inputScale` *must* be set
+                                       by the user to avoid seam artifacts
 
-`const int` `tileOverlap`            when manually denoising in tiles, the tiles should overlap by
-                                     this amount of pixels
+`const int` `tileOverlap`              when manually denoising in tiles, the tiles should overlap by
+                                       this amount of pixels
 
------------ ------------- ---------- ---------------------------------------------------------------
+----------- --------------- ---------- ---------------------------------------------------------------
 : Parameters supported by the `RT` filter.
 
 Using auxiliary feature images like albedo and normal helps preserving fine
@@ -836,46 +836,46 @@ support LDR images.
 The filter can be created by passing `"RTLightmap"` to the `oidnNewFilter`
 function as the filter type. The filter supports the following parameters:
 
------------ ------------- ---------- ---------------------------------------------------------------
-Type        Name             Default Description
------------ ------------- ---------- ---------------------------------------------------------------
-`Image`     `color`       *required* input beauty image (3 channels, HDR values in [0, +∞),
-                                     interpreted such that, after scaling with the `inputScale`
-                                     parameter, a value of 1 corresponds to a luminance level of 100
-                                     cd/m²; directional values in [-1, 1])
+----------- --------------- ---------- ---------------------------------------------------------------
+Type        Name               Default Description
+----------- --------------- ---------- ---------------------------------------------------------------
+`Image`     `color`         *required* input beauty image (3 channels, HDR values in [0, +∞),
+                                       interpreted such that, after scaling with the `inputScale`
+                                       parameter, a value of 1 corresponds to a luminance level of 100
+                                       cd/m²; directional values in [-1, 1])
 
-`Image`     `output`      *required* output image (3 channels); can be one of the input images
+`Image`     `output`        *required* output image (3 channels); can be one of the input images
 
-`bool`      `directional`      false whether the input contains normalized coefficients (in [-1, 1])
-                                     of a directional lightmap (e.g. normalized L1 or higher
-                                     spherical harmonics band with the L0 band divided out); if the
-                                     range of the coefficients is different from [-1, 1], the
-                                     `inputScale` parameter can be used to adjust the range without
-                                     changing the stored values
+`bool`      `directional`        false whether the input contains normalized coefficients (in [-1, 1])
+                                       of a directional lightmap (e.g. normalized L1 or higher
+                                       spherical harmonics band with the L0 band divided out); if the
+                                       range of the coefficients is different from [-1, 1], the
+                                       `inputScale` parameter can be used to adjust the range without
+                                       changing the stored values
 
-`float`     `inputScale`         NaN scales input color values before filtering, without scaling the
-                                     output too, which can be used to map color values to the
-                                     expected range, e.g. for mapping HDR values to physical units
-                                     (which affects the quality of the output but *not* the range of
-                                     the output values); if set to NaN, the scale is computed
-                                     implicitly for HDR images or set to 1 otherwise
+`float`     `inputScale`           NaN scales input color values before filtering, without scaling the
+                                       output too, which can be used to map color values to the
+                                       expected range, e.g. for mapping HDR values to physical units
+                                       (which affects the quality of the output but *not* the range of
+                                       the output values); if set to NaN, the scale is computed
+                                       implicitly for HDR images or set to 1 otherwise
 
-`Data`      `weights`     *optional* trained model weights blob
+`Data`      `weights`       *optional* trained model weights blob
 
-`int`       `maxMemoryMB`         -1 if set to >= 0, an attempt will be made to limit the memory
-                                     usage below the specified amount in megabytes at the potential
-                                     cost of slower performance but actual memory usage may be higher
-                                     (the target may not be achievable or the device may not support
-                                     this feature at all); otherwise memory usage will be limited to
-                                     an unspecified device-dependent amount
+`int`       `maxMemoryMB`           -1 if set to >= 0, an attempt will be made to limit the memory
+                                       usage below the specified amount in megabytes at the potential
+                                       cost of slower performance but actual memory usage may be higher
+                                       (the target may not be achievable or the device may not support
+                                       this feature at all); otherwise memory usage will be limited to
+                                       an unspecified device-dependent amount
 
-`const int` `tileAlignment`          when manually denoising in tiles, the tile size and offsets
-                                     should be multiples of this amount of pixels to avoid
-                                     artifacts; when denoising HDR images `inputScale` *must* be set
-                                     by the user to avoid seam artifacts
+`const int` `tileAlignment`            when manually denoising in tiles, the tile size and offsets
+                                       should be multiples of this amount of pixels to avoid
+                                       artifacts; when denoising HDR images `inputScale` *must* be set
+                                       by the user to avoid seam artifacts
 
-`const int` `tileOverlap`            when manually denoising in tiles, the tiles should overlap by
-                                     this amount of pixels
+`const int` `tileOverlap`              when manually denoising in tiles, the tiles should overlap by
+                                       this amount of pixels
 
------------ ------------- ---------- ---------------------------------------------------------------
+----------- --------------- ---------- ---------------------------------------------------------------
 : Parameters supported by the `RTLightmap` filter.

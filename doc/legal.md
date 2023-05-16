@@ -1,12 +1,12 @@
 Disclaimer and Legal Information
 ================================
 
-© 2018-2021 Intel Corporation
+© 2018-2023 Intel Corporation
 
 [Privacy Notice](https://www.intel.com/privacy)
 
 Intel, the Intel logo, Xeon, Intel Xeon Phi, and Intel Core are
-trademarks of Intel Corporation in the U.S. and/or other countries.  
+trademarks of Intel Corporation in the U.S. and/or other countries.
 *Other names and brands may be claimed as the property of others.
 
 
@@ -21,5 +21,5 @@ use with Intel microprocessors. Certain optimizations not specific to
 Intel microarchitecture are reserved for Intel microprocessors. Please
 refer to the applicable product User and Reference Guides for more
 information regarding the specific instruction sets covered by this
-notice.  
+notice.
 Notice Revision #20110804

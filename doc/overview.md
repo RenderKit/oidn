@@ -32,16 +32,69 @@ mandatory to use these. To optimize a filter for a specific renderer, sample
 count, content type, scene, etc., it is possible to train the model using the
 included training toolkit and user-provided image datasets.
 
-Intel Open Image Denoise supports Intel® 64 architecture compatible CPUs
-(with at least SSE4.1), Apple Silicon, NVIDIA GPUs (Volta architecture and
-newer), and AMD GPUs (RDNA2 architecture and newer). It runs on most machines
-ranging from laptops to workstations and compute nodes in HPC systems. It is
-efficient enough to be suitable not only for offline rendering, but, depending
-on the hardware used, also for interactive or even real-time ray tracing.
+Intel Open Image Denoise supports a wide variety of CPUs and GPUs from different
+vendors:
+
+-   Intel® 64 architecture compatible CPUs (with at least SSE4.1)
+
+-   Apple Silicon CPUs
+
+-   Intel® Xe architecture GPUs, both discrete and integrated, including
+    Intel® Arc™ Graphics, Intel® Data Center GPU Flex Series (Xe-HPG
+    microarchitecture), Intel® Data Center GPU Max Series (Xe-HPC),
+    11th-13th Gen Intel® Core™ processor graphics, and related Intel Pentium®
+    and Celeron® processors (Xe-LP)
+
+-   NVIDIA GPUs with Volta, Turing, Ampere, Ada Lovelace, and Hopper
+    architectures
+
+-   AMD GPUs with RDNA2 (Navi 21 only) and RDNA3 (Navi 3x) architectures
+
+It runs on most machines ranging from laptops to workstations and compute nodes
+in HPC systems. It is efficient enough to be suitable not only for offline
+rendering, but, depending on the hardware used, also for interactive or even
+real-time ray tracing.
 
 Intel Open Image Denoise exploits modern instruction sets like Intel SSE4, AVX2,
 and AVX-512 on CPUs, Intel Xe Matrix Extensions (XMX) on Intel GPUs, and tensor
 cores on NVIDIA GPUs to achieve high denoising performance.
+
+
+System Requirements
+-------------------
+
+You need a CPU with SSE4.1 support or Apple Silicon to run Intel Open Image
+Denoise, and you need a 64-bit operating system as well.
+
+For Intel GPU support, please also install the latest Intel graphics drivers:
+
+-   Windows:
+    [Intel® Graphics Driver](https://www.intel.com/content/www/us/en/download/726609/intel-arc-iris-xe-graphics-whql-windows.html)
+    31.0.101.4314 or newer for Intel® Arc™ Graphics, 11th-13th Gen Intel® Core™
+    processor graphics, and related Intel Pentium® and Celeron® processors
+
+-   Linux:
+    [Intel® software for General Purpose GPU capabilities](https://dgpu-docs.intel.com/driver/installation.html)
+    release [20230323](https://dgpu-docs.intel.com/releases/stable_602_20230323.html)
+    or newer
+
+Using older driver versions is *not* supported and Intel Open Image Denoise
+might run with only limited capabilities or might be unstable.
+
+For NVIDIA GPU support, please also install the latest
+[NVIDIA graphics drivers](https://www.nvidia.com/en-us/geforce/drivers/):
+
+-   Windows: Version 522.06 or newer
+
+-   Linux: Version 520.61.05 or newer
+
+For AMD GPU support, please also install the latest
+[AMD graphics drivers](https://www.amd.com/en/support):
+
+-   Windows: AMD Software: Adrenalin Edition 23.4.3 Driver Version 22.40.51.05 or newer
+
+-   Linux: [Radeon Software for Linux](https://www.amd.com/en/support/linux-drivers)
+    version 22.40.5 or newer
 
 
 Support and Contact
