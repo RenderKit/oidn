@@ -24,6 +24,11 @@ if(OIDN_DEVICE_CUDA)
   # We need to build this an external project because we might need to switch to clang-cl
   # CMake does not support GNU-like compilers for CUDA
   if(WIN32 AND CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT MSVC)
+    # Check the generator
+    if(NOT CMAKE_GENERATOR MATCHES "Ninja" AND NOT CMAKE_GENERATOR MATCHES "Unix Makefiles")
+      message(FATAL_ERROR "Building with CUDA support requires Ninja or Make")
+    endif()
+
     get_filename_component(_cxx_compiler_dir ${CMAKE_CXX_COMPILER} DIRECTORY)
     set(_host_compiler ${_cxx_compiler_dir}/clang-cl.exe)
   else()
@@ -64,6 +69,11 @@ if(OIDN_DEVICE_CUDA)
 endif()
 
 if(OIDN_DEVICE_HIP)
+  # Check the generator
+  if(NOT CMAKE_GENERATOR MATCHES "Ninja" AND NOT CMAKE_GENERATOR MATCHES "Unix Makefiles")
+    message(FATAL_ERROR "Building with HIP support requires Ninja or Make")
+  endif()
+
   # Find ROCm
   if(NOT ROCM_PATH)
     if(WIN32)
