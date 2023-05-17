@@ -40,7 +40,7 @@ vendors:
 -   Apple Silicon CPUs
 
 -   Intel® Xe architecture GPUs, both discrete and integrated, including
-    Intel® Arc™ Graphics, Intel® Data Center GPU Flex Series (Xe-HPG
+    Intel® Arc™ A-Series Graphics, Intel® Data Center GPU Flex Series (Xe-HPG
     microarchitecture), Intel® Data Center GPU Max Series (Xe-HPC),
     11th-13th Gen Intel® Core™ processor graphics, and related Intel Pentium®
     and Celeron® processors (Xe-LP)
@@ -64,7 +64,7 @@ System Requirements
 -------------------
 
 You need a CPU with SSE4.1 support or Apple Silicon to run Intel Open Image
-Denoise, and you need a 64-bit operating system as well.
+Denoise, and you need a 64-bit operating system as well (Windows, Linux or macOS).
 
 For Intel GPU support, please also install the latest Intel graphics drivers:
 

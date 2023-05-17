@@ -143,22 +143,101 @@ simple example code snippets.
 Upgrading from Open Image Denoise 1.x
 -------------------------------------
 
-Intel Open Image Denoise 2 introduces GPU support without breaking the 1.x API.
-However, some applications may require some code changes to support running on
-GPUs.
+Intel Open Image Denoise 2.0 introduces GPU support, which requires implementing
+some minor changes in applications. There are also small API changes, additions
+and improvements in this new version. In this section we summarize the necessary
+code modifications and also briefly mention the new features that users might
+find useful when upgrading to 2.0. For a full description of the changes and new
+functionality, please see the API reference.
 
-Applications that explicitly use the CPU device (`OIDN_DEVICE_TYPE_CPU`) do not
-require any code changes but using the default device
-(`OIDN_DEVICE_TYPE_DEFAULT`) may cause runtime errors if a GPU device is
-created and the user code is not GPU-ready.
+#### Buffers {-}
+
+The most important required change is related to how data is passed to Open Image
+Denoise. If the application is explicitly using only the CPU (by specifying
+`OIDN_DEVICE_TYPE_CPU`), no changes should be necessary. But if it wants to
+support GPUs as well, passing pointers to memory allocated with the system
+allocator (e.g. `malloc`) would raise an error because GPUs cannot access such
+memory in almost all cases.
 
 To ensure compatibility with any kind of device, including GPUs, the application
 should use `OIDNBuffer` objects to store all image data passed to the library.
-Data allocated this way is accessible by both the host and the device. The user
-is free to use other ways to allocate memory for images but then they need to
-make sure that the proper allocation functions are used for the created device
-type. System memory allocation (e.g., `malloc`) is not supported on most
-platforms.
+Memory allocated using buffers is by default accessible by both the host (CPU)
+and the device (CPU or GPU).
+
+Ideally, the application should directly read and write image data to/from
+such buffers to avoid redundant and inefficient data copying. If this cannot be
+implemented, the application should try to minimize the overhead of copying as
+much as possible:
+
+-   Data should be copied to/from buffers only if the data in system memory
+    indeed cannot be accessed by the device. This can be determined by simply
+    querying the `systemMemorySupported` device parameter. If system memory is
+    accessible by the device, no buffers are necessary and filter image
+    parameters can be set with `oidnSetSharedFilterImage`.
+
+-   If the image data cannot be accessed by the device, buffers must be created
+    and the data must be copied to/from these buffers. These buffers should be
+    directly passed to filters as image parameters instead of the original
+    pointers using `oidnSetFilterImage`.
+
+-   Data should be copied asynchronously using using the new
+    `oidnReadBufferAsync` and `oidnWriteBufferAsync` functions, which may
+    achieve higher performance than plain `memcpy`.
+
+-   If image data must be copied, using the default buffer allocation may not be
+    the most efficient method. If the device memory is not physically shared
+    with the host memory (e.g. for discrete GPUs), higher performance may be
+    achieved by creating the buffers with device storage (`OIDN_STORAGE_DEVICE`)
+    using the new `oidnNewBufferWithStorage` function. This way, the buffer data
+    cannot be directly accessed by the host anymore but this should not matter
+    because the data must be copied from some other memory location anyway.
+    However, this ensures that the data is stored only in high-performance
+    device memory, and the user has full control over when and how the data is
+    transferred between host and device.
+
+#### Interoperability with compute (SYCL, CUDA, HIP) and graphics (DX, Vulkan) APIs {-}
+
+If the application is explicitly using a particular GPU device type, e.g.
+SYCL or CUDA, it may directly pass pointers allocated using the unified memory
+allocator of the respective compute API (e.g. `sycl::malloc_device`,
+`cudaMalloc`) instead of using buffers. This way, it is the responsibility of
+the user to correctly allocate the memory for the device.
+
+In such cases, it often necessary to have more control over the device creation,
+to ensure that denoising is running on the right device and command queues or
+streams from the application can be directly used for denoising as well. If the
+application is using the same compute or graphics API as the Open Image Denoise
+device, this can be achieved by creating devices with `oidnNewSYCLDevice`,
+`oidnNewCUDADevice`, etc. For some APIs there are additional interoperability
+functions as well, e.g. `oidnExecuteSYCLFilterAsync`.
+
+If the application is using a graphics API different from the one used by the
+Open Image Denoise device, e.g. DX12 or Vulkan, it may be still possible to
+share memory between the two using buffers, to avoid expensive copying through
+host memory. External memory can be imported from graphics APIs with the new
+`oidnNewSharedBufferFromFD` and `oidnNewSharedBufferFromWin32Handle` functions.
+To use this feature, buffers must be exported in the graphics API and must be
+imported in Open Image Denoise using the same kind of handle. Care must be taken
+to select an external memory handle type which is supported by both APIs. The
+external memory types supported by an Open Image Denoise device can be queried
+using the `externalMemoryTypes` device parameter. Note that some devices do not
+support importing external memory at all (e.g. CPUs, and on GPUs it primarily
+depends on the installed drivers), so the application should always implement a
+fallback too, which copies the data through the host if there is no other
+supported way.
+
+Sharing textures is currently not supported natively but it is still possible
+to share texture data without copying by using a linear texture layout and
+sharing the buffer that stores this data.
+
+When importing external memory, the application also needs to make sure that the
+Open Image Denoise device is running on the same *physical* device as the
+graphics API. This can be easily achieved by using the new physical device
+feature, described in the next section.
+
+#### Physical devices {-}
+
+
 
 
 Device
@@ -365,7 +444,7 @@ The supported storage modes are the following:
 Name                     Description
 ------------------------ ----------------------------------------------------------------------
 `OIDN_STORAGE_UNDEFINED` undefined storage mode
-`OIDN_STORAGE_HOST`      pinned host memory, accessible by both host and device (*default*)
+`OIDN_STORAGE_HOST`      pinned host memory, accessible by both host and device
 `OIDN_STORAGE_DEVICE`    device memory, *not* accessible by the host
 `OIDN_STORAGE_MANAGED`   automatically migrated between host and device, accessible by both (*not* supported by all devices)
 ------------------------ ----------------------------------------------------------------------
