@@ -65,18 +65,33 @@ OIDN_NAMESPACE_BEGIN
       return static_cast<int>(quality);
     else if (name == "maxMemoryMB")
       return maxMemoryMB;
-    else if (name == "tileAlignment" || name == "alignment")
+    else if (name == "tileAlignment")
       return tileAlignment;
-    else if (name == "tileOverlap" || name == "overlap")
+    else if (name == "alignment")
+    {
+      device->warning("filter parameter 'alignment' is deprecated, use 'tileAlignment' instead");
+      return tileAlignment;
+    }
+    else if (name == "tileOverlap")
       return tileOverlap;
+    else if (name == "overlap")
+    {
+      device->warning("filter parameter 'overlap' is deprecated, use 'tileOverlap' instead");
+      return tileOverlap;
+    }
     else
       throw Exception(Error::InvalidArgument, "unknown filter parameter or type mismatch: '" + name + "'");
   }
 
   void UNetFilter::setFloat(const std::string& name, float value)
   {
-    if (name == "inputScale" || name == "hdrScale")
+    if (name == "inputScale")
       inputScale = value;
+    else if (name == "hdrScale")
+    {
+      device->warning("filter parameter 'hdrScale' is deprecated, use 'inputScale' instead");
+      inputScale = value;
+    }
     else
       device->warning("unknown filter parameter or type mismatch: '" + name + "'");
 
@@ -85,8 +100,13 @@ OIDN_NAMESPACE_BEGIN
 
   float UNetFilter::getFloat(const std::string& name)
   {
-    if (name == "inputScale" || name == "hdrScale")
+    if (name == "inputScale")
       return inputScale;
+    else if (name == "hdrScale")
+    {
+      device->warning("filter parameter 'hdrScale' is deprecated, use 'inputScale' instead");
+      return inputScale;
+    }
     else
       throw Exception(Error::InvalidArgument, "unknown filter parameter or type mismatch: '" + name + "'");
   }
