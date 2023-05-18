@@ -52,7 +52,8 @@ inline unsigned int oidnGetPhysicalDeviceUInt(int physicalDeviceID, const char* 
 OIDN_API const char* oidnGetPhysicalDeviceString(int physicalDeviceID, const char* name);
 
 // Gets an opaque data parameter of the physical device.
-OIDN_API const void* oidnGetPhysicalDeviceData(int physicalDeviceID, const char* name, size_t* byteSize);
+OIDN_API const void* oidnGetPhysicalDeviceData(int physicalDeviceID, const char* name,
+                                               size_t* byteSize);
 
 // -------------------------------------------------------------------------------------------------
 // Device
@@ -90,17 +91,18 @@ typedef struct OIDNDeviceImpl* OIDNDevice;
 // Creates a device of the specified type.
 OIDN_API OIDNDevice oidnNewDevice(OIDNDeviceType type);
 
-// Creates a device from the physical device specified by its ID (0 to numPhysicalDevices-1).
+// Creates a device from a physical device specified by its ID (0 to oidnGetNumPhysicalDevices()-1).
 OIDN_API OIDNDevice oidnNewDeviceByID(int physicalDeviceID);
 
-// Creates a device from the physical device specified by its UUID.
+// Creates a device from a physical device specified by its UUID.
 OIDN_API OIDNDevice oidnNewDeviceByUUID(const void* uuid);
 
-// Creates a device from the physical device specified by its LUID.
+// Creates a device from a physical device specified by its LUID.
 OIDN_API OIDNDevice oidnNewDeviceByLUID(const void* luid);
 
-// Creates a device from the physical device specified by its PCI address.
-OIDN_API OIDNDevice oidnNewDeviceByPCIAddress(int pciDomain, int pciBus, int pciDevice, int pciFunction);
+// Creates a device from a physical device specified by its PCI address.
+OIDN_API OIDNDevice oidnNewDeviceByPCIAddress(int pciDomain, int pciBus, int pciDevice,
+                                              int pciFunction);
 
 #if defined(__cplusplus)
 // Creates a device from the specified list of SYCL queues.
@@ -112,12 +114,14 @@ OIDN_API OIDNDevice oidnNewSYCLDevice(const sycl::queue* queues, int numQueues);
 // Creates a device from the specified pairs of CUDA device IDs (negative ID corresponds to the
 // current device) and streams (null stream corresponds to the default stream).
 // Currently only one device ID/stream is supported.
-OIDN_API OIDNDevice oidnNewCUDADevice(const int* deviceIDs, const cudaStream_t* streams, int numStreams);
+OIDN_API OIDNDevice oidnNewCUDADevice(const int* deviceIDs, const cudaStream_t* streams,
+                                      int numPairs);
 
 // Creates a device from the specified pairs of HIP device IDs (negative ID corresponds to the
 // current device) and streams (null stream corresponds to the default stream).
 // Currently only one device ID/stream is supported.
-OIDN_API OIDNDevice oidnNewHIPDevice(const int* deviceIDs, const hipStream_t* streams, int numStreams);
+OIDN_API OIDNDevice oidnNewHIPDevice(const int* deviceIDs, const hipStream_t* streams,
+                                     int numPairs);
 
 // Retains the device (increments the reference count).
 OIDN_API void oidnRetainDevice(OIDNDevice device);

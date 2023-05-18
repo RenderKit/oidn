@@ -792,25 +792,25 @@ OIDN_NAMESPACE_BEGIN
     return DeviceRef(oidnNewDevice(static_cast<OIDNDeviceType>(type)));
   }
 
-  // Creates a device from the physical device specified by its ID (0 to numPhysicalDevices-1).
+  // Creates a device from a physical device specified by its ID (0 to getNumPhysicalDevices()-1).
   inline DeviceRef newDevice(int physicalDeviceID)
   {
     return DeviceRef(oidnNewDeviceByID(physicalDeviceID));
   }
 
-  // Creates a device from the physical device specified by its UUID.
+  // Creates a device from a physical device specified by its UUID.
   inline DeviceRef newDevice(const UUID& uuid)
   {
     return DeviceRef(oidnNewDeviceByUUID(uuid.bytes));
   }
 
-  // Creates a device from the physical device specified by its LUID.
+  // Creates a device from a physical device specified by its LUID.
   inline DeviceRef newDevice(const LUID& luid)
   {
     return DeviceRef(oidnNewDeviceByLUID(luid.bytes));
   }
 
-  // Creates a device from the physical device specified by its PCI address.
+  // Creates a device from a physical device specified by its PCI address.
   inline DeviceRef newDevice(int pciDomain, int pciBus, int pciDevice, int pciFunction)
   {
     return DeviceRef(oidnNewDeviceByPCIAddress(pciDomain, pciBus, pciDevice, pciFunction));

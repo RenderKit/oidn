@@ -14,9 +14,9 @@ OIDN_NAMESPACE_BEGIN
       return makeRef<CUDADevice>();
     }
 
-    Ref<Device> newDevice(const int* deviceIDs, const cudaStream_t* streams, int num) override
+    Ref<Device> newDevice(const int* deviceIDs, const cudaStream_t* streams, int numPairs) override
     {
-      if (num != 1)
+      if (numPairs != 1)
         throw Exception(Error::InvalidArgument, "invalid number of CUDA devices/streams");
       return makeRef<CUDADevice>(deviceIDs[0], streams[0]);
     }
