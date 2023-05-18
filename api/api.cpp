@@ -328,24 +328,24 @@ OIDN_API_NAMESPACE_BEGIN
     return reinterpret_cast<OIDNDevice>(device.detach());
   }
 
-  OIDN_API OIDNDevice oidnNewCUDADevice(const int* deviceIDs, const cudaStream_t* streams, int num)
+  OIDN_API OIDNDevice oidnNewCUDADevice(const int* deviceIDs, const cudaStream_t* streams, int numPairs)
   {
     Ref<Device> device = nullptr;
     OIDN_TRY
       Context& ctx = Context::get();
       auto factory = static_cast<CUDADeviceFactoryBase*>(ctx.getDeviceFactory(DeviceType::CUDA));
-      device = factory->newDevice(deviceIDs, streams, num);
+      device = factory->newDevice(deviceIDs, streams, numPairs);
     OIDN_CATCH(device)
     return reinterpret_cast<OIDNDevice>(device.detach());
   }
 
-  OIDN_API OIDNDevice oidnNewHIPDevice(const int* deviceIDs, const hipStream_t* streams, int num)
+  OIDN_API OIDNDevice oidnNewHIPDevice(const int* deviceIDs, const hipStream_t* streams, int numPairs)
   {
     Ref<Device> device = nullptr;
     OIDN_TRY
       Context& ctx = Context::get();
       auto factory = static_cast<HIPDeviceFactoryBase*>(ctx.getDeviceFactory(DeviceType::HIP));
-      device = factory->newDevice(deviceIDs, streams, num);
+      device = factory->newDevice(deviceIDs, streams, numPairs);
     OIDN_CATCH(device)
     return reinterpret_cast<OIDNDevice>(device.detach());
   }

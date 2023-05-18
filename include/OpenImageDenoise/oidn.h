@@ -147,6 +147,12 @@ inline void oidnSetDevice1i(OIDNDevice device, const char* name, int value)
   oidnSetDeviceInt(device, name, value);
 }
 
+// Sets an unsigned integer parameter of the device.
+inline void oidnSetDeviceUInt(OIDNDevice device, const char* name, unsigned int value)
+{
+  oidnSetDeviceInt(device, name, (int)value);
+}
+
 // Gets a boolean parameter of the device.
 OIDN_API bool oidnGetDeviceBool(OIDNDevice device, const char* name);
 
@@ -230,38 +236,38 @@ typedef enum
 {
   OIDN_EXTERNAL_MEMORY_TYPE_FLAG_NONE = 0,
 
-  // an opaque POSIX file descriptor handle
+  // opaque POSIX file descriptor handle
   OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_FD = 1 << 0,
 
-  // a file descriptor handle for a Linux dma_buf
+  // file descriptor handle for a Linux dma_buf
   OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DMA_BUF = 1 << 1,
 
-  // an NT handle
+  // NT handle
   OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32 = 1 << 2,
 
-  // a global share (KMT) handle
+  // global share (KMT) handle
   OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32_KMT = 1 << 3,
 
-  // an NT handle returned by IDXGIResource1::CreateSharedHandle referring to a Direct3D 11 texture
+  // NT handle returned by IDXGIResource1::CreateSharedHandle referring to a Direct3D 11 texture
   // resource
   OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_TEXTURE = 1 << 4,
 
-  // a global share (KMT) handle returned by IDXGIResource::GetSharedHandle referring to a Direct3D 11
+  // global share (KMT) handle returned by IDXGIResource::GetSharedHandle referring to a Direct3D 11
   // texture resource
   OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_TEXTURE_KMT = 1 << 5,
 
-  // an NT handle returned by IDXGIResource1::CreateSharedHandle referring to a Direct3D 11 resource
+  // NT handle returned by IDXGIResource1::CreateSharedHandle referring to a Direct3D 11 resource
   OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_RESOURCE = 1 << 6,
 
-  // a global share (KMT) handle returned by IDXGIResource::GetSharedHandle referring to a Direct3D 11
+  // global share (KMT) handle returned by IDXGIResource::GetSharedHandle referring to a Direct3D 11
   // resource
   OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_RESOURCE_KMT = 1 << 7,
 
-  // an NT handle returned by ID3D12Device::CreateSharedHandle referring to a Direct3D 12 heap
+  // NT handle returned by ID3D12Device::CreateSharedHandle referring to a Direct3D 12 heap
   // resource
   OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D12_HEAP = 1 << 8,
 
-  // an NT handle returned by ID3D12Device::CreateSharedHandle referring to a Direct3D 12 committed
+  // NT handle returned by ID3D12Device::CreateSharedHandle referring to a Direct3D 12 committed
   // resource
   OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D12_RESOURCE = 1 << 9,
 } OIDNExternalMemoryTypeFlag;
@@ -327,11 +333,11 @@ OIDN_API void oidnReleaseBuffer(OIDNBuffer buffer);
 // Filter quality/performance modes
 typedef enum
 {
-  OIDN_QUALITY_DEFAULT  = 0, // default quality mode
+  OIDN_QUALITY_DEFAULT  = 0, // default quality
 
 //OIDN_QUALITY_FAST     = 4
-  OIDN_QUALITY_BALANCED = 5, // balanced quality/performance mode (for interactive/real-time rendering)
-  OIDN_QUALITY_HIGH     = 6, // high quality mode (for offline rendering)
+  OIDN_QUALITY_BALANCED = 5, // balanced quality/performance (for interactive/real-time rendering)
+  OIDN_QUALITY_HIGH     = 6, // high quality (for final-frame rendering)
 } OIDNQuality;
 
 // Progress monitor callback function
