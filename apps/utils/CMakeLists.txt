@@ -7,6 +7,7 @@ add_library(OpenImageDenoise_utils STATIC
   arg_parser.h
   arg_parser.cpp
   device_info.h
+  dummy.c
   image_buffer.h
   image_buffer.cpp
   image_io.h

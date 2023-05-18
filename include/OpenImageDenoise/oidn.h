@@ -9,14 +9,16 @@
 
 #include "config.h"
 
-#if defined(SYCL_LANGUAGE_VERSION)
-  #include <CL/sycl.hpp>
-#else
-  namespace sycl
-  {
-    class queue;
-    class event;
-  }
+#if defined(__cplusplus)
+  #if defined(SYCL_LANGUAGE_VERSION)
+    #include <CL/sycl.hpp>
+  #else
+    namespace sycl
+    {
+      class queue;
+      class event;
+    }
+  #endif
 #endif
 
 typedef struct CUstream_st* cudaStream_t;
@@ -100,10 +102,12 @@ OIDN_API OIDNDevice oidnNewDeviceByLUID(const void* luid);
 // Creates a device from the physical device specified by its PCI address.
 OIDN_API OIDNDevice oidnNewDeviceByPCIAddress(int pciDomain, int pciBus, int pciDevice, int pciFunction);
 
+#if defined(__cplusplus)
 // Creates a device from the specified list of SYCL queues.
 // The queues should belong to different SYCL sub-devices (Xe Stack/Tile) of the same SYCL
 // root-device (GPU).
 OIDN_API OIDNDevice oidnNewSYCLDevice(const sycl::queue* queues, int numQueues);
+#endif
 
 // Creates a device from the specified pairs of CUDA device IDs (negative ID corresponds to the
 // current device) and streams (null stream corresponds to the default stream).
@@ -450,10 +454,12 @@ OIDN_API void oidnExecuteFilter(OIDNFilter filter);
 // Executes the filter asynchronously.
 OIDN_API void oidnExecuteFilterAsync(OIDNFilter filter);
 
+#if defined(__cplusplus)
 // Executes the filter of a SYCL device using the specified dependent events asynchronously, and
 // optionally returns an event for completion.
 OIDN_API void oidnExecuteSYCLFilterAsync(OIDNFilter filter,
                                          const sycl::event* depEvents, int numDepEvents,
                                          sycl::event* doneEvent);
+#endif
 
 OIDN_API_NAMESPACE_END
