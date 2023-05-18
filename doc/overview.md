@@ -56,8 +56,8 @@ rendering, but, depending on the hardware used, also for interactive or even
 real-time ray tracing.
 
 Intel Open Image Denoise exploits modern instruction sets like Intel SSE4, AVX2,
-and AVX-512 on CPUs, Intel Xe Matrix Extensions (XMX) on Intel GPUs, and tensor
-cores on NVIDIA GPUs to achieve high denoising performance.
+and AVX-512 on CPUs, Intel® Xe Matrix Extensions (Intel® XMX) on Intel GPUs, and
+tensor cores on NVIDIA GPUs to achieve high denoising performance.
 
 
 System Requirements
@@ -80,6 +80,8 @@ For Intel GPU support, please also install the latest Intel graphics drivers:
 
 Using older driver versions is *not* supported and Intel Open Image Denoise
 might run with only limited capabilities or might be unstable.
+Also, resizable BAR *must* be enabled in the BIOS for Intel discrete GPUs if
+running on Linux, and recommended if running on Windows.
 
 For NVIDIA GPU support, please also install the latest
 [NVIDIA graphics drivers](https://www.nvidia.com/en-us/geforce/drivers/):
