@@ -1,7 +1,7 @@
 # Intel® Open Image Denoise
 
-This is release v2.0.0-beta of Intel Open Image Denoise. For changes and
-new features see the [changelog](CHANGELOG.md). Visit
+This is release v2.0.0 of Intel Open Image Denoise. For changes and new
+features see the [changelog](CHANGELOG.md). Visit
 https://www.openimagedenoise.org for more information.
 
 # Overview
@@ -26,7 +26,7 @@ into most existing or new rendering solutions.
 At the heart of the Intel Open Image Denoise library is a collection of
 efficient deep learning based denoising filters, which were trained to
 handle a wide range of samples per pixel (spp), from 1 spp to almost
-fully converged. Thus it is suitable for both preview and final frame
+fully converged. Thus it is suitable for both preview and final-frame
 rendering. The filters can denoise images either using only the noisy
 color (*beauty*) buffer, or, to preserve as much detail as possible, can
 optionally utilize auxiliary feature buffers as well (e.g. albedo,
@@ -47,11 +47,11 @@ different vendors:
 
   - Apple Silicon CPUs
 
-  - Intel® Xe architecture GPUs, both discrete and integrated, including
-    Intel® Arc™ Graphics, Intel® Data Center GPU Flex Series (Xe-HPG
-    microarchitecture), Intel® Data Center GPU Max Series (Xe-HPC),
-    11th-13th Gen Intel® Core™ processor graphics, and related Intel
-    Pentium® and Celeron® processors (Xe-LP)
+  - Intel Xe architecture GPUs, both discrete and integrated, including
+    Intel® Arc™ A-Series Graphics, Intel® Data Center GPU Flex Series
+    (Xe-HPG microarchitecture), Intel® Data Center GPU Max Series
+    (Xe-HPC), 11th-13th Gen Intel® Core™ processor graphics, and related
+    Intel Pentium® and Celeron® processors (Xe-LP)
 
   - NVIDIA GPUs with Volta, Turing, Ampere, Ada Lovelace, and Hopper
     architectures
@@ -64,14 +64,15 @@ only for offline rendering, but, depending on the hardware used, also
 for interactive or even real-time ray tracing.
 
 Intel Open Image Denoise exploits modern instruction sets like Intel
-SSE4, AVX2, and AVX-512 on CPUs, Intel Xe Matrix Extensions (XMX) on
-Intel GPUs, and tensor cores on NVIDIA GPUs to achieve high denoising
-performance.
+SSE4, AVX2, and AVX-512 on CPUs, Intel® Xe Matrix Extensions (Intel®
+XMX) on Intel GPUs, and tensor cores on NVIDIA GPUs to achieve high
+denoising performance.
 
 ## System Requirements
 
 You need a CPU with SSE4.1 support or Apple Silicon to run Intel Open
-Image Denoise, and you need a 64-bit operating system as well.
+Image Denoise, and you need a 64-bit Windows, Linux, or macOS operating
+system as well.
 
 For Intel GPU support, please also install the latest Intel graphics
 drivers:
@@ -90,6 +91,8 @@ drivers:
 
 Using older driver versions is *not* supported and Intel Open Image
 Denoise might run with only limited capabilities or might be unstable.
+Also, resizable BAR *must* be enabled in the BIOS for Intel discrete
+GPUs if running on Linux, and recommended if running on Windows.
 
 For NVIDIA GPU support, please also install the latest [NVIDIA graphics
 drivers](https://www.nvidia.com/en-us/geforce/drivers/):
@@ -429,9 +432,9 @@ document](https://github.com/OpenImageDenoise/oidn/blob/master/readme.pdf "Intel
 
 # Open Image Denoise API
 
-Intel Open Image Denoise provides a C99 API (also compatible with C++)
-and a C++11 wrapper API as well. For simplicity, this document mostly
-refers to the C99 version of the API.
+Open Image Denoise provides a C99 API (also compatible with C++) and a
+C++11 wrapper API as well. For simplicity, this document mostly refers
+to the C99 version of the API.
 
 The API is designed in an object-oriented manner, e.g. it contains
 device objects (`OIDNDevice` type), buffer objects (`OIDNBuffer` type),
@@ -456,13 +459,13 @@ should be minimized.
 To have a quick overview of the C99 and C++11 APIs, see the following
 simple example code snippets.
 
-### Basic denoising (C99 API)
+### Basic Denoising (C99 API)
 
 ``` cpp
 #include <OpenImageDenoise/oidn.h>
 ...
 
-// Create an Intel Open Image Denoise device
+// Create an Open Image Denoise device
 OIDNDevice device = oidnNewDevice(OIDN_DEVICE_TYPE_DEFAULT); // CPU or GPU if available
 oidnCommitDevice(device);
 
@@ -503,13 +506,13 @@ oidnReleaseFilter(filter);
 oidnReleaseDevice(device);
 ```
 
-### Basic denoising (C++11 API)
+### Basic Denoising (C++11 API)
 
 ``` cpp
 #include <OpenImageDenoise/oidn.hpp>
 ...
 
-// Create an Intel Open Image Denoise device
+// Create an Open Image Denoise device
 oidn::DeviceRef device = oidn::newDevice(); // CPU or GPU if available
 device.commit();
 
@@ -540,7 +543,7 @@ if (device.getError(errorMessage) != oidn::Error::None)
   std::cout << "Error: " << errorMessage << std::endl;
 ```
 
-### Denoising with prefiltering (C++11 API)
+### Denoising with Prefiltering (C++11 API)
 
 ``` cpp
 // Create a filter for denoising a beauty (color) image using prefiltered auxiliary images too
@@ -575,29 +578,253 @@ filter.execute();
 
 ## Upgrading from Open Image Denoise 1.x
 
-Intel Open Image Denoise 2 introduces GPU support without breaking the
-1.x API. However, some applications may require some code changes to
-support running on GPUs.
+Open Image Denoise 2.0 introduces GPU support, which requires
+implementing some minor changes in applications. There are also small
+API changes, additions and improvements in this new version. In this
+section we summarize the necessary code modifications and also briefly
+mention the new features that users might find useful when upgrading to
+2.0. For a full description of the changes and new functionality, please
+see the API reference.
 
-Applications that explicitly use the CPU device (`OIDN_DEVICE_TYPE_CPU`)
-do not require any code changes but using the default device
-(`OIDN_DEVICE_TYPE_DEFAULT`) may cause runtime errors if a GPU device is
-created and the user code is not GPU-ready.
+### Buffers
+
+The most important required change is related to how data is passed to
+Open Image Denoise. If the application is explicitly using only the CPU
+(by specifying `OIDN_DEVICE_TYPE_CPU`), no changes should be necessary.
+But if it wants to support GPUs as well, passing pointers to memory
+allocated with the system allocator (e.g. `malloc`) would raise an error
+because GPUs cannot access such memory in almost all cases.
 
 To ensure compatibility with any kind of device, including GPUs, the
 application should use `OIDNBuffer` objects to store all image data
-passed to the library. Data allocated this way is accessible by both the
-host and the device. The user is free to use other ways to allocate
-memory for images but then they need to make sure that the proper
-allocation functions are used for the created device type. System memory
-allocation (e.g., `malloc`) is not supported on most platforms.
+passed to the library. Memory allocated using buffers is by default
+accessible by both the host (CPU) and the device (CPU or GPU).
 
-## Device
+Ideally, the application should directly read and write image data
+to/from such buffers to avoid redundant and inefficient data copying. If
+this cannot be implemented, the application should try to minimize the
+overhead of copying as much as possible:
 
-Intel Open Image Denoise supports a device concept, which allows
-different components of the application to use the Open Image Denoise
-API without interfering with each other. An application first needs to
-create a device with
+  - Data should be copied to/from buffers only if the data in system
+    memory indeed cannot be accessed by the device. This can be
+    determined by simply querying the `systemMemorySupported` device
+    parameter. If system memory is accessible by the device, no buffers
+    are necessary and filter image parameters can be set with
+    `oidnSetSharedFilterImage`.
+
+  - If the image data cannot be accessed by the device, buffers must be
+    created and the data must be copied to/from these buffers. These
+    buffers should be directly passed to filters as image parameters
+    instead of the original pointers using `oidnSetFilterImage`.
+
+  - Data should be copied asynchronously using using the new
+    `oidnReadBufferAsync` and `oidnWriteBufferAsync` functions, which
+    may achieve higher performance than plain `memcpy`.
+
+  - If image data must be copied, using the default buffer allocation
+    may not be the most efficient method. If the device memory is not
+    physically shared with the host memory (e.g. for discrete GPUs),
+    higher performance may be achieved by creating the buffers with
+    device storage (`OIDN_STORAGE_DEVICE`) using the new
+    `oidnNewBufferWithStorage` function. This way, the buffer data
+    cannot be directly accessed by the host anymore but this should not
+    matter because the data must be copied from some other memory
+    location anyway. However, this ensures that the data is stored only
+    in high-performance device memory, and the user has full control
+    over when and how the data is transferred between host and device.
+
+The `oidnMapBuffer` and `oidnUnmapBuffer` functions have been removed
+from the API due to these not being supported by any of the device
+backends. Please use `oidnReadBuffer(Async)` and
+`oidnWriteBuffer(Async)` instead.
+
+### Interop with Compute (SYCL, CUDA, HIP) and Graphics (DX, Vulkan) APIs
+
+If the application is explicitly using a particular device type which
+supports unified memory allocations, e.g. SYCL or CUDA, it may directly
+pass pointers allocated using the native allocator of the respective
+compute API (e.g. `sycl::malloc_device`, `cudaMalloc`) instead of using
+buffers. This way, it is the responsibility of the user to correctly
+allocate the memory for the device.
+
+In such cases, it often necessary to have more control over the device
+creation as well, to ensure that filtering is running on the intended
+device and command queues or streams from the application can be shared
+to improve performance. If the application is using the same compute or
+graphics API as the Open Image Denoise device, this can be achieved by
+creating devices with `oidnNewSYCLDevice`, `oidnNewCUDADevice`, etc. For
+some APIs there are additional interoperability functions as well,
+e.g. `oidnExecuteSYCLFilterAsync`.
+
+If the application is using a graphics API which does not support
+unified memory allocations, e.g. DX12 or Vulkan, it may be still
+possible to share memory between the application and Open Image Denoise
+using buffers, avoiding expensive copying through host memory. External
+buffers can be imported from graphics APIs with the new
+`oidnNewSharedBufferFromFD` and `oidnNewSharedBufferFromWin32Handle`
+functions. To use this feature, buffers must be exported in the graphics
+API and must be imported in Open Image Denoise using the same kind of
+handle. Care must be taken to select an external memory handle type
+which is supported by both APIs. The external memory types supported by
+an Open Image Denoise device can be queried using the
+`externalMemoryTypes` device parameter. Note that some devices do not
+support importing external memory at all (e.g. CPUs, and on GPUs it
+primarily depends on the installed drivers), so the application should
+always implement a fallback too, which copies the data through the host
+if there is no other supported way.
+
+Sharing textures is currently not supported natively but it is still
+possible avoid copying texture data by using a linear texture layout
+(e.g. `VK_IMAGE_TILING_LINEAR` in Vulkan) and sharing the buffer that
+backs this data. In this case, you should ensure that the row stride of
+the linear texture data is correctly set.
+
+Importing external synchronization primitives (e.g. semaphores) from
+graphics APIs is not yet supported either but it is planned for a future
+release. Meanwhile, synchronizing access to shared memory should be done
+on the host using `oidnSyncDevice` and the used graphics API.
+
+When importing external memory, the application also needs to make sure
+that the Open Image Denoise device is running on the same *physical*
+device as the graphics API. This can be easily achieved by using the new
+physical device feature, described in the next section.
+
+### Physical Devices
+
+Although it is possible to explicitly create devices of a particular
+type (with, e.g., `OIDN_DEVICE_TYPE_SYCL`), this is often insufficient,
+especially if the system has multiple devices of the same type, and with
+GPU support it is very common that there are multiple different types of
+supported devices in the system (e.g. a CPU and one or more GPUs).
+
+The 2.0 version of the library introduces a simple *physical device*
+API, which enables the application to query the list of supported
+physical devices in the system, including their name, type, UUID, LUID,
+PCI address, etc. (see `oidnGetNumPhysicalDevices`,
+`oidnGetPhysicalDeviceString`, etc.). New logical device
+(i.e. `OIDNDevice`) creation functions for have been also introduced,
+which enable creating a logical device on a specific physical device:
+`oidnNewDeviceByID`, `oidnNewDeviceByUUID`, etc.
+
+Creating a logical device on a physical device having a particular UUID,
+LUID or PCI address is particularly important when importing external
+memory from graphics APIs. However, not all device types support all
+types of IDs, and some graphics drivers may even report mismatching
+UUIDs or LUIDs for the same physical device, so applications should try
+to implement multiple identification methods, or at least assume that
+identification might fail.
+
+### Asynchronous Execution
+
+With the introduction of GPU support, it is now possible to execute some
+operations asynchronously, most importantly filtering
+(`oidnExecuteFilterAsync`, `oidnExecuteSYCLFilterAsync`) and copying
+data (the already mentioned `oidnReadBufferAsync` and
+`oidnWriteBufferAsync`). Although these new asynchronous functions can
+be used with any device type, it is *not* guaranteed that these will be
+actually executed asynchronously. The most important such exceptions are
+CPU devices, which are still blocking the calling thread when these
+functions are called.
+
+When using any asynchronous function it is the responsibility of the
+application to handle correct synchronization using `oidnSyncDevice`.
+
+### Filter Quality
+
+Open Image Denoise still delivers the same high image quality on all
+device types as before, including on GPUs. But often filtering
+performance is more important than having the highest possible image
+quality, so it is now possible to switch between multiple filter quality
+modes. Filters have a new parameter called `quality`, which defaults to
+the existing high image quality (`OIDN_QUALITY_HIGH`) but a balanced
+quality mode (`OIDN_QUALITY_BALANCED`) has been added as well for even
+higher performance. We recommend using balanced quality for interactive
+and real-time use cases.
+
+### Small API Changes
+
+A few existing API functions have been renamed to improve clarity (e.g.
+`oidnSetFilter1i` to `oidnSetFilterInt`) but the old function names are
+still available as deprecated functions. When compiling legacy code,
+warnings will be emitted for these deprecated functions. To upgrade to
+the new API, please simply follow the instructions in the warnings.
+
+Some filter parameters have been also renamed (`alignment` to
+`tileAlignment`, `overlap` to `tileOverlap`). When using the old names,
+warnings will be emitted at runtime.
+
+### Building as a Static Library
+
+The support to build Open Image Denoise as a static library
+(`OIDN_STATIC_LIB` CMake option) has been removed due to switching to a
+modular library design, which was necessary for adding multi-vendor GPU
+support.
+
+If the main reason for building as a static library would be is the
+ability to use multiple versions of Open Image Denoise in the same
+process, please use the existing `OIDN_API_NAMESPACE` CMake option
+instead. With this feature all symbols of the library will be put into a
+custom namespace, which can prevent symbol clashes.
+
+## Physical Devices
+
+Systems often have multiple different types of devices supported by Open
+Image Denoise (CPUs and GPUs). The application can get the list of
+supported *physical devices* and select which of these to use for
+denoising.
+
+The number of supported physical devices can be queried with
+
+``` cpp
+int oidnGetNumPhysicalDevices();
+```
+
+The physical devices can be identified using IDs between 0 and
+(`oidnGetNumPhysicalDevices()` \(-\) 1), and are ordered *approximately*
+from fastest to slowest (e.g., ID of 0 corresponds to the likely fastest
+physical device). Note that the reported number and order of physical
+devices may change between application runs, so no assumptions should be
+made about this list.
+
+Parameters of these physical devices can be queried using
+
+``` cpp
+bool         oidnGetPhysicalDeviceBool  (int physicalDeviceID, const char* name);
+int          oidnGetPhysicalDeviceInt   (int physicalDeviceID, const char* name);
+unsigned int oidnGetPhysicalDeviceUInt  (int physicalDeviceID, const char* name);
+const char*  oidnGetPhysicalDeviceString(int physicalDeviceID, const char* name);
+const void*  oidnGetPhysicalDeviceData  (int physicalDeviceID, const char* name,
+                                         size_t* byteSize);
+```
+
+where `name` is the name of the parameter, and `byteSize` is the number
+of returned bytes for data parameters. The following parameters can be
+queried:
+
+| Type     | Name                  | Description                                                                                                                         |
+| :------- | :-------------------- | :---------------------------------------------------------------------------------------------------------------------------------- |
+| `Int`    | `type`                | device type as an `OIDNDeviceType` value                                                                                            |
+| `String` | `name`                | name string                                                                                                                         |
+| `Bool`   | `uuidSupported`       | device supports universally unique identifier (UUID)                                                                                |
+| `Data`   | `uuid`                | opaque UUID (`OIDN_UUID_SIZE` bytes, exists only if `uuidSupported` is `true`)                                                      |
+| `Bool`   | `luidSupported`       | device supports locally unique identifier (UUID)                                                                                    |
+| `Data`   | `luid`                | opaque LUID (`OIDN_LUID_SIZE` bytes, exists only if `luidSupported` is `true`)                                                      |
+| `UInt`   | `nodeMask`            | bitfield identifying the node within a linked device adapter corresponding to the device (exists only if `luidSupported` is `true`) |
+| `Bool`   | `pciAddressSupported` | device supports PCI address                                                                                                         |
+| `Int`    | `pciDomain`           | PCI domain (exists only if `pciAddressSupported` is `true`)                                                                         |
+| `Int`    | `pciBus`              | PCI bus (exists only if `pciAddressSupported` is `true`)                                                                            |
+| `Int`    | `pciDevice`           | PCI device (exists only if `pciAddressSupported` is `true`)                                                                         |
+| `Int`    | `pciFunction`         | PCI function (exists only if `pciAddressSupported` is `true`)                                                                       |
+
+Constant parameters supported by physical devices.
+
+## Devices
+
+Open Image Denoise has a *logical* device concept as well, or simply
+referred to as *device*, which allows different components of the
+application to use the Open Image Denoise API without interfering with
+each other. Each physical device may be associated with one ore more
+logical devices. A basic way to create a device is by calling
 
 ``` cpp
 OIDNDevice oidnNewDevice(OIDNDeviceType type);
@@ -606,15 +833,70 @@ OIDNDevice oidnNewDevice(OIDNDeviceType type);
 where the `type` enumeration maps to a specific device implementation,
 which can be one of the following:
 
-| Name                       | Description                                                     |
-| :------------------------- | :-------------------------------------------------------------- |
-| `OIDN_DEVICE_TYPE_DEFAULT` | select the likely fastest device (GPUs are preferred over CPUs) |
-| `OIDN_DEVICE_TYPE_CPU`     | CPU device (requires SSE4.1 support or Apple Silicon)           |
-| `OIDN_DEVICE_TYPE_SYCL`    | SYCL device (requires Intel Gen9 architecture or newer GPU)     |
-| `OIDN_DEVICE_TYPE_CUDA`    | CUDA device (requires NVIDIA Volta architecture or newer GPU)   |
-| `OIDN_DEVICE_TYPE_HIP`     | HIP device (requires AMD RDNA2 architecture or newer GPU)       |
+| Name                       | Description                                                          |
+| :------------------------- | :------------------------------------------------------------------- |
+| `OIDN_DEVICE_TYPE_DEFAULT` | select the likely fastest device (same as physical device with ID 0) |
+| `OIDN_DEVICE_TYPE_CPU`     | CPU device                                                           |
+| `OIDN_DEVICE_TYPE_SYCL`    | SYCL device (requires a supported Intel GPU)                         |
+| `OIDN_DEVICE_TYPE_CUDA`    | CUDA device (requires a supported NVIDIA GPU)                        |
+| `OIDN_DEVICE_TYPE_HIP`     | HIP device (requires a supported AMD GPU)                            |
 
 Supported device types, i.e., valid constants of type `OIDNDeviceType`.
+
+If there are multiple supported devices of the specified type, an
+implementation-dependent default will be selected.
+
+A device can be created by specifying a physical device ID as well using
+
+``` cpp
+OIDNDevice oidnNewDeviceByID(int physicalDeviceID);
+```
+
+Applications can manually iterate over the list of physical devices and
+select from them based on their properties but there are also some
+built-in helper functions as well, which make creating a device by a
+particular physical device property easier:
+
+``` cpp
+OIDNDevice oidnNewDeviceByUUID(const void* uuid);
+OIDNDevice oidnNewDeviceByLUID(const void* luid);
+OIDNDevice oidnNewDeviceByPCIAddress(int pciDomain, int pciBus, int pciDevice,
+                                     int pciFunction);
+```
+
+These functions are particularly useful when the application needs
+interoperability with a graphics API (e.g. DX12, Vulkan). However, not
+all of these properties may be supported by the intended physical device
+(or drivers might even report inconsistent identifiers), so it is
+recommended to select by more than one property, if possible.
+
+If the application requires interoperability with a particular compute
+API (SYCL, CUDA, HIP), it is recommended to use one of the following
+dedicated functions instead:
+
+``` cpp
+OIDNDevice oidnNewSYCLDevice(const sycl::queue* queues, int numQueues);
+OIDNDevice oidnNewCUDADevice(const int* deviceIDs, const cudaStream_t* streams,
+                             int numPairs);
+OIDNDevice oidnNewHIPDevice (const int* deviceIDs, const hipStream_t* streams,
+                             int numPairs);
+```
+
+For SYCL, it is possible to pass one or more SYCL queues which will be
+used by Open Image Denoise for all device operations. This is useful
+when the application wants to use the same queues for both denoising and
+its own operations (e.g. rendering). Passing multiple queues is not
+intended to be used for different physical devices but just for a single
+SYCL root-device which consists of multiple sub-devices (e.g. Intel®
+Data Center GPU Max Series having multiple Xe-Stacks/tiles).
+
+For CUDA and HIP, pairs of CUDA/HIP device IDs and corresponding streams
+can be specified but the current implementation supports only one pair.
+Negative device IDs correspond to the default device, and a `NULL`
+stream corresponds to the default stream on the corresponding device.
+Open Image Denoise automatically sets and restores the current CUDA/HIP
+device on the calling thread when necessary, thus the current device
+does not have to be changed manually by the application.
 
 Once a device is created, you can call
 
@@ -623,27 +905,32 @@ bool oidnGetDeviceBool(OIDNDevice device, const char* name);
 void oidnSetDeviceBool(OIDNDevice device, const char* name, bool value);
 int  oidnGetDeviceInt (OIDNDevice device, const char* name);
 void oidnSetDeviceInt (OIDNDevice device, const char* name, int  value);
+int  oidnGetDeviceUInt(OIDNDevice device, const char* name);
+void oidnSetDeviceUInt(OIDNDevice device, const char* name, unsigned int value);
 ```
 
 to set and get parameter values on the device. Note that some parameters
 are constants, thus trying to set them is an error. See the tables below
 for the parameters supported by devices.
 
-| Type        | Name           | Default | Description                                                                                                                                 |
-| :---------- | :------------- | ------: | :------------------------------------------------------------------------------------------------------------------------------------------ |
-| `const int` | `type`         |         | device type (`OIDNDeviceType`)                                                                                                              |
-| `const int` | `version`      |         | combined version number (major.minor.patch) with two decimal digits per component                                                           |
-| `const int` | `versionMajor` |         | major version number                                                                                                                        |
-| `const int` | `versionMinor` |         | minor version number                                                                                                                        |
-| `const int` | `versionPatch` |         | patch version number                                                                                                                        |
-| `int`       | `verbose`      |         | 0 verbosity level of the console output between 0–4; when set to 0, no output is printed, when set to a higher level more output is printed |
+| Type   | Name                     |    Default | Description                                                                                                                               |
+| :----- | :----------------------- | ---------: | :---------------------------------------------------------------------------------------------------------------------------------------- |
+| `Int`  | `type`                   | *constant* | device type as an `OIDNDeviceType` value                                                                                                  |
+| `Int`  | `version`                | *constant* | combined version number (major.minor.patch) with two decimal digits per component                                                         |
+| `Int`  | `versionMajor`           | *constant* | major version number                                                                                                                      |
+| `Int`  | `versionMinor`           | *constant* | minor version number                                                                                                                      |
+| `Int`  | `versionPatch`           | *constant* | patch version number                                                                                                                      |
+| `Bool` | `systemMemorySupported`  | *constant* | device can directly access memory allocated with the system allocator (e.g. `malloc`)                                                     |
+| `Bool` | `managedMemorySupported` | *constant* | device supports buffers created with managed storage (`OIDN_STORAGE_MANAGED`)                                                             |
+| `Int`  | `externalMemoryTypes`    | *constant* | bitfield of `OIDNExternalMemoryTypeFlag` values representing the external memory types supported by the device                            |
+| `Int`  | `verbose`                |          0 | verbosity level of the console output between 0–4; when set to 0, no output is printed, when set to a higher level more output is printed |
 
 Parameters supported by all devices.
 
 | Type   | Name          | Default | Description                                                                                                                       |
 | :----- | :------------ | ------: | :-------------------------------------------------------------------------------------------------------------------------------- |
-| `int`  | `numThreads`  |       0 | maximum number of threads which the library should use; 0 will set it automatically to get the best performance                   |
-| `bool` | `setAffinity` |    true | enables thread affinitization (pinning software threads to hardware threads) if it is necessary for achieving optimal performance |
+| `Int`  | `numThreads`  |       0 | maximum number of threads which the library should use; 0 will set it automatically to get the best performance                   |
+| `Bool` | `setAffinity` |  `true` | enables thread affinitization (pinning software threads to hardware threads) if it is necessary for achieving optimal performance |
 
 Additional parameters supported only by CPU devices.
 
@@ -652,7 +939,7 @@ to achieve optimal performance, so it is highly recommended to leave
 this option enabled. However, this may interfere with the application if
 that also sets the thread affinities, potentially causing performance
 degradation. In such cases, the recommended solution is to either
-disable setting the affinities in the application or in Intel Open Image
+disable setting the affinities in the application or in Open Image
 Denoise, or to always set/reset the affinities before/after each
 parallel region in the application (e.g., if using TBB, with
 `tbb::task_arena` and `tbb::task_scheduler_observer`).
@@ -668,10 +955,10 @@ This device can then be used to construct further objects, such as
 buffers and filters. Note that a device can be committed only once
 during its lifetime.
 
-Some functions execute asynchronously with respect to the host. The
+Some functions may execute asynchronously with respect to the host. The
 names of these functions are suffixed with `Async`. Asynchronous
-operations are executed *in order* on the device but do not block on the
-host. Eventually, it is necessary to wait for all asynchronous
+operations are executed *in order* on the device but may not block on
+the host. Eventually, it is necessary to wait for all asynchronous
 operations to complete, which can be done by calling
 
 ``` cpp
@@ -689,10 +976,10 @@ Before the application exits, it should release all devices by invoking
 void oidnReleaseDevice(OIDNDevice device);
 ```
 
-Note that Intel Open Image Denoise uses reference counting for all
-object types, so this function decreases the reference count of the
-device, and if the count reaches 0 the device will automatically get
-deleted. It is also possible to increase the reference count by calling
+Note that Open Image Denoise uses reference counting for all object
+types, so this function decreases the reference count of the device, and
+if the count reaches 0 the device will automatically get deleted. It is
+also possible to increase the reference count by calling
 
 ``` cpp
 void oidnRetainDevice(OIDNDevice device);
@@ -754,7 +1041,7 @@ pass `NULL` as device to the `oidnGetDeviceError` function. For all
 other invocations of `oidnGetDeviceError`, a proper device handle must
 be specified.
 
-The following errors are currently used by Intel Open Image Denoise:
+The following errors are currently used by Open Image Denoise:
 
 | Name                              | Description                                |
 | :-------------------------------- | :----------------------------------------- |
@@ -768,14 +1055,14 @@ The following errors are currently used by Intel Open Image Denoise:
 
 Possible error codes, i.e., valid constants of type `OIDNError`.
 
-## Buffer
+## Buffers
 
-Image data can be passed to Intel Open Image Denoise either via pointers
-to memory allocated and managed by the user or by creating buffer
-objects. Regardless of which method is used, the data must be allocated
-in a way that it is accessible by the device (either CPU or GPU). Using
-buffers is typically the preferred approach because this ensures that
-the allocation requirements are fulfilled regardless of device type. To
+Image data can be passed to Open Image Denoise either via pointers to
+memory allocated and managed by the user or by creating buffer objects.
+Regardless of which method is used, the data must be allocated in a way
+that it is accessible by the device (either CPU or GPU). Using buffers
+is typically the preferred approach because this ensures that the
+allocation requirements are fulfilled regardless of device type. To
 create a new data buffer with memory allocated and owned by the device,
 use
 
@@ -799,19 +1086,19 @@ OIDNBuffer oidnNewBufferWithStorage(OIDNDevice device, size_t byteSize, OIDNStor
 
 The supported storage modes are the following:
 
-| Name                     | Description                                                                                         |
-| :----------------------- | :-------------------------------------------------------------------------------------------------- |
-| `OIDN_STORAGE_UNDEFINED` | undefined storage mode                                                                              |
-| `OIDN_STORAGE_HOST`      | pinned host memory, accessible by both host and device (*default*)                                  |
-| `OIDN_STORAGE_DEVICE`    | device memory, *not* accessible by the host                                                         |
-| `OIDN_STORAGE_MANAGED`   | automatically migrated between host and device, accessible by both (*not* supported by all devices) |
+| Name                     | Description                                                                                                                                                               |
+| :----------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `OIDN_STORAGE_UNDEFINED` | undefined storage mode                                                                                                                                                    |
+| `OIDN_STORAGE_HOST`      | pinned host memory, accessible by both host and device                                                                                                                    |
+| `OIDN_STORAGE_DEVICE`    | device memory, *not* accessible by the host                                                                                                                               |
+| `OIDN_STORAGE_MANAGED`   | automatically migrated between host and device, accessible by both (*not* supported by all devices, `managedMemorySupported` device parameter must be checked before use) |
 
 Supported storage modes for buffers, i.e., valid constants of type
 `OIDNStorage`.
 
 Note that the host and device storage modes are supported by all devices
 but managed storage is an optional feature. Before using managed
-storage, the `managedMemorySupported` device paramater should be
+storage, the `managedMemorySupported` device parameter should be
 queried.
 
 It is also possible to create a “shared” data buffer with memory
@@ -828,21 +1115,59 @@ buffer data must remain valid for as long as the buffer may be used, and
 the user is responsible to free the buffer data when no longer required.
 The user must also ensure that the memory is accessible by the device by
 using allocation functions supported by the device
-(e.g. `sycl::malloc_*` for SYCL devices, `cudaMalloc*` for CUDA
-devices, `hipMalloc` for HIP devices).
+(e.g. `sycl::malloc_device`, `cudaMalloc`, `hipMalloc`).
+
+Buffers can be also imported from graphics APIs as external memory, to
+avoid expensive copying of data through host memory. Different types of
+external memory can be imported from either POSIX file descriptors or
+Win32 handles using
+
+``` cpp
+OIDNBuffer oidnNewSharedBufferFromFD(OIDNDevice device,
+                                     OIDNExternalMemoryTypeFlag fdType,
+                                     int fd, size_t byteSize);
+
+OIDNBuffer oidnNewSharedBufferFromWin32Handle(OIDNDevice device,
+                                              OIDNExternalMemoryTypeFlag handleType,
+                                              void* handle, const void* name, size_t byteSize);
+```
+
+Before exporting memory from the graphics API, the application should
+find a handle type which is supported by both the Open Image Denoise
+device (see `externalMemoryTypes` device parameter) and the graphics
+API. The possible external memory types as flags are listed in the table
+below.
+
+| Name                                                | Description                                                                                                        |
+| :-------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------- |
+| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_NONE`               |                                                                                                                    |
+| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_FD`          | opaque POSIX file descriptor handle                                                                                |
+| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DMA_BUF`            | file descriptor handle for a Linux dma\_buf                                                                        |
+| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32`       | NT handle                                                                                                          |
+| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32_KMT`   | global share (KMT) handle                                                                                          |
+| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_TEXTURE`      | NT handle returned by `IDXGIResource1::CreateSharedHandle` referring to a Direct3D 11 texture resource             |
+| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_TEXTURE_KMT`  | global share (KMT) handle returned by `IDXGIResource::GetSharedHandle` referring to a Direct3D 11 texture resource |
+| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_RESOURCE`     | NT handle returned by `IDXGIResource1::CreateSharedHandle` referring to a Direct3D 11 resource                     |
+| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_RESOURCE_KMT` | global share (KMT) handle returned by `IDXGIResource::GetSharedHandle` referring to a Direct3D 11 resource         |
+| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D12_HEAP`         | NT handle returned by `ID3D12Device::CreateSharedHandle` referring to a Direct3D 12 heap resource                  |
+| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D12_RESOURCE`     | NT handle returned by `ID3D12Device::CreateSharedHandle` referring to a Direct3D 12 committed resource             |
+
+Supported external memory type flags, i.e., valid constants of type
+`OIDNExternalMemoryTypeFlag`.
 
 Similar to device objects, buffer objects are also reference-counted and
 can be retained and released by calling the following functions:
 
 ``` cpp
-void oidnRetainBuffer(OIDNBuffer buffer);
+void oidnRetainBuffer (OIDNBuffer buffer);
 void oidnReleaseBuffer(OIDNBuffer buffer);
 ```
 
-The size of the buffer in bytes can be queried using
+The size of in bytes and storage mode of the buffer can be queried using
 
 ``` cpp
-size_t oidnGetBufferSize(OIDNBuffer buffer);
+size_t      oidnGetBufferSize   (OIDNBuffer buffer);
+OIDNStorage oidnGetBufferStorage(OIDNBuffer buffer);
 ```
 
 It is possible to get a pointer directly to the buffer data, which is
@@ -854,9 +1179,9 @@ void* oidnGetBufferData(OIDNBuffer buffer);
 
 However, accessing the data on the host through this pointer is possible
 only if the buffer was created with a storage mode that enables this,
-i.e., any mode *except* `OIDN_STORAGE_DEVICE`. Note that a null pointer
-may be returned if the buffer is empty or getting a pointer to data with
-device storage is not supported by the device.
+i.e., any mode *except* `OIDN_STORAGE_DEVICE`. Note that a `NULL`
+pointer may be returned if the buffer is empty or getting a pointer to
+data with device storage is not supported by the device.
 
 In some cases better performance can be achieved by using device storage
 for buffers. Such data can be accessed on the host by copying to/from
@@ -873,7 +1198,7 @@ void oidnWriteBuffer(OIDNBuffer buffer,
 
 These functions will always block until the read/write operation has
 been completed, which is often suboptimal. The following functions may
-execute the operation asynchonously if it is supported by the device
+execute the operation asynchronously if it is supported by the device
 (GPUs), or still block otherwise (CPUs):
 
 ``` cpp
@@ -906,12 +1231,12 @@ pointers. This can be done using the `OIDNFormat` enumeration type:
 
 Supported data formats, i.e., valid constants of type `OIDNFormat`.
 
-## Filter
+## Filters
 
-Filters are the main objects in Intel Open Image Denoise that are
-responsible for the actual denoising. The library ships with a
-collection of filters which are optimized for different types of images
-and use cases. To create a filter object, call
+Filters are the main objects in Open Image Denoise that are responsible
+for the actual denoising. The library ships with a collection of filters
+which are optimized for different types of images and use cases. To
+create a filter object, call
 
 ``` cpp
 OIDNFilter oidnNewFilter(OIDNDevice device, const char* type);
@@ -930,7 +1255,7 @@ resolutions), reusing the same filter would not have any benefits.
 Once created, filter objects can be retained and released with
 
 ``` cpp
-void oidnRetainFilter(OIDNFilter filter);
+void oidnRetainFilter (OIDNFilter filter);
 void oidnReleaseFilter(OIDNFilter filter);
 ```
 
@@ -938,7 +1263,7 @@ After creating a filter, it needs to be set up by specifying the input
 and output images, and potentially setting other parameter values as
 well.
 
-To set image paramaters of a filter, you can use one of the following
+To set image parameters of a filter, you can use one of the following
 functions:
 
 ``` cpp
@@ -1010,7 +1335,7 @@ data has been updated by calling
 void oidnUpdateFilterData(OIDNFilter filter, const char* name);
 ```
 
-Unsetting an opaque data paramater can be performed with
+Unsetting an opaque data parameter can be performed with
 
 ``` cpp
 void oidnRemoveFilterData(OIDNFilter filter, const char* name);
@@ -1045,15 +1370,15 @@ void oidnSetFilterProgressMonitorFunction(OIDNFilter filter,
 Only a single callback function can be registered per filter, and
 further invocations overwrite the previously set callback function.
 Passing `NULL` as function pointer disables the registered callback
-function. Once registered, Intel Open Image Denoise will invoke the
-callback function multiple times during filter operations, by passing
-the payload as set at registration time (`userPtr` argument), and a
-`double` in the range \[0, 1\] which estimates the progress of the
-operation (`n` argument). When returning `true` from the callback
-function, Intel Open Image Denoise will continue the filter operation
-normally. When returning `false`, the library will attempt to cancel the
-filter operation as soon as possible, and if that is fulfilled, it will
-raise an `OIDN_ERROR_CANCELLED` error.
+function. Once registered, Open Image Denoise will invoke the callback
+function multiple times during filter operations, by passing the payload
+as set at registration time (`userPtr` argument), and a `double` in the
+range \[0, 1\] which estimates the progress of the operation (`n`
+argument). When returning `true` from the callback function, Open Image
+Denoise will continue the filter operation normally. When returning
+`false`, the library will attempt to cancel the filter operation as soon
+as possible, and if that is fulfilled, it will raise an
+`OIDN_ERROR_CANCELLED` error.
 
 Please note that using a progress monitor callback function introduces
 some overhead, which may be significant on GPU devices, hurting
@@ -1083,8 +1408,9 @@ which will read the input image data from the specified buffers and
 produce the denoised output image.
 
 This function will always block until the filtering operation has been
-completed. The following function may execute the operation asynchrously
-if it is supported by the device (GPUs), or block otherwise (CPUs):
+completed. The following function may execute the operation
+asynchronously if it is supported by the device (GPUs), or block
+otherwise (CPUs):
 
 ``` cpp
 void oidnExecuteFilterAsync(OIDNFilter filter);
@@ -1096,7 +1422,7 @@ accessing the output image data or releasing the filter. Failure to do
 so will result in undefined behavior.
 
 In the following we describe the different filters that are currently
-implemented in Intel Open Image Denoise.
+implemented in Open Image Denoise.
 
 ### RT
 
@@ -1105,10 +1431,8 @@ filter which is suitable for denoising images rendered with Monte Carlo
 ray tracing methods like unidirectional and bidirectional path tracing.
 It supports depth of field and motion blur as well, but it is *not*
 temporally stable. The filter is based on a convolutional neural network
-(CNN), and it aims to provide a good balance between denoising
-performance and quality. The filter comes with a set of pre-trained CNN
-models that work well with a wide range of ray tracing based renderers
-and noise levels.
+(CNN) and comes with a set of pre-trained models that work well with a
+wide range of ray tracing based renderers and noise levels.
 
 ![](https://openimagedenoise.github.io/images/mazda_4spp_input.jpg)
 Example noisy beauty image rendered using unidirectional path tracing
@@ -1150,20 +1474,21 @@ The output image can be one of the input images (i.e. in-place denoising
 is supported). See section [Examples](#examples) for simple code
 snippets that demonstrate the usage of the filter.
 
-| Type        | Name            |    Default | Description                                                                                                                                                                                                                                                                                                                                                                                      |
-| :---------- | :-------------- | ---------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Image`     | `color`         | *optional* | input beauty image (3 channels, LDR values in \[0, 1\] or HDR values in \[0, +∞), values being interpreted such that, after scaling with the `inputScale` parameter, a value of 1 corresponds to a luminance level of 100 cd/m²)                                                                                                                                                                 |
-| `Image`     | `albedo`        | *optional* | input auxiliary image containing the albedo per pixel (3 channels, values in \[0, 1\])                                                                                                                                                                                                                                                                                                           |
-| `Image`     | `normal`        | *optional* | input auxiliary image containing the shading normal per pixel (3 channels, world-space or view-space vectors with arbitrary length, values in \[-1, 1\])                                                                                                                                                                                                                                         |
-| `Image`     | `output`        | *required* | output image (3 channels); can be one of the input images                                                                                                                                                                                                                                                                                                                                        |
-| `bool`      | `hdr`           |      false | whether the main input image is HDR                                                                                                                                                                                                                                                                                                                                                              |
-| `bool`      | `srgb`          |      false | whether the main input image is encoded with the sRGB (or 2.2 gamma) curve (LDR only) or is linear; the output will be encoded with the same curve                                                                                                                                                                                                                                               |
-| `float`     | `inputScale`    |        NaN | scales values in the main input image before filtering, without scaling the output too, which can be used to map color or auxiliary feature values to the expected range, e.g. for mapping HDR values to physical units (which affects the quality of the output but *not* the range of the output values); if set to NaN, the scale is computed implicitly for HDR images or set to 1 otherwise |
-| `bool`      | `cleanAux`      |      false | whether the auxiliary feature (albedo, normal) images are noise-free; recommended for highest quality but should *not* be enabled for noisy auxiliary images to avoid residual noise                                                                                                                                                                                                             |
-| `Data`      | `weights`       | *optional* | trained model weights blob                                                                                                                                                                                                                                                                                                                                                                       |
-| `int`       | `maxMemoryMB`   |        \-1 | if set to \>= 0, an attempt will be made to limit the memory usage below the specified amount in megabytes at the potential cost of slower performance but actual memory usage may be higher (the target may not be achievable or the device may not support this feature at all); otherwise memory usage will be limited to an unspecified device-dependent amount                              |
-| `const int` | `tileAlignment` |            | when manually denoising in tiles, the tile size and offsets should be multiples of this amount of pixels to avoid artifacts; when denoising HDR images `inputScale` *must* be set by the user to avoid seam artifacts                                                                                                                                                                            |
-| `const int` | `tileOverlap`   |            | when manually denoising in tiles, the tiles should overlap by this amount of pixels                                                                                                                                                                                                                                                                                                              |
+| Type    | Name            |    Default | Description                                                                                                                                                                                                                                                                                                                                                                                      |
+| :------ | :-------------- | ---------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Image` | `color`         | *optional* | input beauty image (3 channels, LDR values in \[0, 1\] or HDR values in \[0, +∞), values being interpreted such that, after scaling with the `inputScale` parameter, a value of 1 corresponds to a luminance level of 100 cd/m²)                                                                                                                                                                 |
+| `Image` | `albedo`        | *optional* | input auxiliary image containing the albedo per pixel (3 channels, values in \[0, 1\])                                                                                                                                                                                                                                                                                                           |
+| `Image` | `normal`        | *optional* | input auxiliary image containing the shading normal per pixel (3 channels, world-space or view-space vectors with arbitrary length, values in \[-1, 1\])                                                                                                                                                                                                                                         |
+| `Image` | `output`        | *required* | output image (3 channels); can be one of the input images                                                                                                                                                                                                                                                                                                                                        |
+| `Bool`  | `hdr`           |    `false` | the main input image is HDR                                                                                                                                                                                                                                                                                                                                                                      |
+| `Bool`  | `srgb`          |    `false` | the main input image is encoded with the sRGB (or 2.2 gamma) curve (LDR only) or is linear; the output will be encoded with the same curve                                                                                                                                                                                                                                                       |
+| `Float` | `inputScale`    |        NaN | scales values in the main input image before filtering, without scaling the output too, which can be used to map color or auxiliary feature values to the expected range, e.g. for mapping HDR values to physical units (which affects the quality of the output but *not* the range of the output values); if set to NaN, the scale is computed implicitly for HDR images or set to 1 otherwise |
+| `Bool`  | `cleanAux`      |    `false` | the auxiliary feature (albedo, normal) images are noise-free; recommended for highest quality but should *not* be enabled for noisy auxiliary images to avoid residual noise                                                                                                                                                                                                                     |
+| `Int`   | `quality`       |       high | image quality mode as an `OIDNQuality` value                                                                                                                                                                                                                                                                                                                                                     |
+| `Data`  | `weights`       | *optional* | trained model weights blob                                                                                                                                                                                                                                                                                                                                                                       |
+| `Int`   | `maxMemoryMB`   |        \-1 | if set to \>= 0, an attempt will be made to limit the memory usage below the specified amount in megabytes at the potential cost of slower performance but actual memory usage may be higher (the target may not be achievable or the device may not support this feature at all); otherwise memory usage will be limited to an unspecified device-dependent amount                              |
+| `Int`   | `tileAlignment` | *constant* | when manually denoising in tiles, the tile size and offsets should be multiples of this amount of pixels to avoid artifacts; when denoising HDR images `inputScale` *must* be set by the user to avoid seam artifacts                                                                                                                                                                            |
+| `Int`   | `tileOverlap`   | *constant* | when manually denoising in tiles, the tiles should overlap by this amount of pixels                                                                                                                                                                                                                                                                                                              |
 
 Parameters supported by the `RT` filter.
 
@@ -1206,7 +1531,7 @@ multiple color AOVs to denoise, the prefiltered auxiliary images can be
 reused for denoising multiple AOVs, amortizing the cost of the
 prefiltering step.
 
-Thus, for final frame denoising, where the best possible image quality
+Thus, for final-frame denoising, where the best possible image quality
 is required, it is recommended to prefilter the auxiliary features if
 they are noisy and enable the `cleanAux` parameter. Denoising with noisy
 auxiliary features should be reserved for previews and interactive
@@ -1216,7 +1541,7 @@ All auxiliary images should use the same pixel reconstruction filter as
 the beauty image. Using a properly anti-aliased beauty image but aliased
 albedo or normal images will likely introduce artifacts around edges.
 
-#### Albedo
+#### Albedos
 
 The albedo image is the feature image that usually provides the biggest
 quality improvement. It should contain the approximate color of the
@@ -1260,7 +1585,7 @@ the albedos of the individual layers. Non-absorbing clear coat layers
 can be simply ignored (or the albedo of the perfect specular reflection
 can be used as well) but absorption should be taken into account.
 
-#### Normal
+#### Normals
 
 The normal image should contain the shading normals of the surfaces
 either in world-space or view-space. It is recommended to include normal
@@ -1287,6 +1612,39 @@ and must be remapped to \[−1, 1\]).
 Similar to the albedo, the normal can be stored for either the first or
 a subsequent hit (if the first hit has a perfect specular/delta BSDF).
 
+#### Quality
+
+The filter supports setting an image quality mode, which determines
+whether to favor quality, performance, or have a balanced solution
+between the two. The supported quality modes are listed in the following
+table.
+
+| Name                    | Description                                                        |
+| :---------------------- | :----------------------------------------------------------------- |
+| `OIDN_QUALITY_DEFAULT`  | default quality                                                    |
+| `OIDN_QUALITY_BALANCED` | balanced quality/performance (for interactive/real-time rendering) |
+| `OIDN_QUALITY_HIGH`     | high quality (for final-frame rendering); *default*                |
+
+Supported image quality modes, i.e., valid constants of type
+`OIDNQuality`.
+
+By default filtering is performed in high quality mode, which is
+recommended for final-frame rendering. Using this setting the results
+have the same high quality regardless of what kind of device (CPU or
+GPU) is used. However, due to significant hardware architecture
+differences between devices, there might be small numerical differences
+between the produced outputs.
+
+The balanced quality mode is very close in image quality to the high
+quality mode except that lower numerical precision is used, if this is
+supported by the device. This may result in significantly higher
+performance on some devices but on others there might be no difference
+at all due to hardware specifics. This mode is recommended for
+interactive and real-time rendering.
+
+Note that in balanced quality mode a higher variation in image quality
+should be expected across devices.
+
 #### Weights
 
 Instead of using the built-in trained models for filtering, it is also
@@ -1305,16 +1663,17 @@ The filter can be created by passing `"RTLightmap"` to the
 `oidnNewFilter` function as the filter type. The filter supports the
 following parameters:
 
-| Type        | Name            |    Default | Description                                                                                                                                                                                                                                                                                                                                                         |
-| :---------- | :-------------- | ---------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `Image`     | `color`         | *required* | input beauty image (3 channels, HDR values in \[0, +∞), interpreted such that, after scaling with the `inputScale` parameter, a value of 1 corresponds to a luminance level of 100 cd/m²; directional values in \[-1, 1\])                                                                                                                                          |
-| `Image`     | `output`        | *required* | output image (3 channels); can be one of the input images                                                                                                                                                                                                                                                                                                           |
-| `bool`      | `directional`   |      false | whether the input contains normalized coefficients (in \[-1, 1\]) of a directional lightmap (e.g. normalized L1 or higher spherical harmonics band with the L0 band divided out); if the range of the coefficients is different from \[-1, 1\], the `inputScale` parameter can be used to adjust the range without changing the stored values                       |
-| `float`     | `inputScale`    |        NaN | scales input color values before filtering, without scaling the output too, which can be used to map color values to the expected range, e.g. for mapping HDR values to physical units (which affects the quality of the output but *not* the range of the output values); if set to NaN, the scale is computed implicitly for HDR images or set to 1 otherwise     |
-| `Data`      | `weights`       | *optional* | trained model weights blob                                                                                                                                                                                                                                                                                                                                          |
-| `int`       | `maxMemoryMB`   |        \-1 | if set to \>= 0, an attempt will be made to limit the memory usage below the specified amount in megabytes at the potential cost of slower performance but actual memory usage may be higher (the target may not be achievable or the device may not support this feature at all); otherwise memory usage will be limited to an unspecified device-dependent amount |
-| `const int` | `tileAlignment` |            | when manually denoising in tiles, the tile size and offsets should be multiples of this amount of pixels to avoid artifacts; when denoising HDR images `inputScale` *must* be set by the user to avoid seam artifacts                                                                                                                                               |
-| `const int` | `tileOverlap`   |            | when manually denoising in tiles, the tiles should overlap by this amount of pixels                                                                                                                                                                                                                                                                                 |
+| Type    | Name            |    Default | Description                                                                                                                                                                                                                                                                                                                                                         |
+| :------ | :-------------- | ---------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `Image` | `color`         | *required* | input beauty image (3 channels, HDR values in \[0, +∞), interpreted such that, after scaling with the `inputScale` parameter, a value of 1 corresponds to a luminance level of 100 cd/m²; directional values in \[-1, 1\])                                                                                                                                          |
+| `Image` | `output`        | *required* | output image (3 channels); can be one of the input images                                                                                                                                                                                                                                                                                                           |
+| `Bool`  | `directional`   |    `false` | whether the input contains normalized coefficients (in \[-1, 1\]) of a directional lightmap (e.g. normalized L1 or higher spherical harmonics band with the L0 band divided out); if the range of the coefficients is different from \[-1, 1\], the `inputScale` parameter can be used to adjust the range without changing the stored values                       |
+| `Float` | `inputScale`    |        NaN | scales input color values before filtering, without scaling the output too, which can be used to map color values to the expected range, e.g. for mapping HDR values to physical units (which affects the quality of the output but *not* the range of the output values); if set to NaN, the scale is computed implicitly for HDR images or set to 1 otherwise     |
+| `Int`   | `quality`       |       high | image quality mode as an `OIDNQuality` value                                                                                                                                                                                                                                                                                                                        |
+| `Data`  | `weights`       | *optional* | trained model weights blob                                                                                                                                                                                                                                                                                                                                          |
+| `Int`   | `maxMemoryMB`   |        \-1 | if set to \>= 0, an attempt will be made to limit the memory usage below the specified amount in megabytes at the potential cost of slower performance but actual memory usage may be higher (the target may not be achievable or the device may not support this feature at all); otherwise memory usage will be limited to an unspecified device-dependent amount |
+| `Int`   | `tileAlignment` | *constant* | when manually denoising in tiles, the tile size and offsets should be multiples of this amount of pixels to avoid artifacts; when denoising HDR images `inputScale` *must* be set by the user to avoid seam artifacts                                                                                                                                               |
+| `Int`   | `tileOverlap`   | *constant* | when manually denoising in tiles, the tiles should overlap by this amount of pixels                                                                                                                                                                                                                                                                                 |
 
 Parameters supported by the `RTLightmap` filter.
 

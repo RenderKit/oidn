@@ -324,17 +324,19 @@ Physical Devices
 
 Systems often have multiple different types of devices supported by Open
 Image Denoise (CPUs and GPUs). The application can get the list of supported
-physical devices and select which of these to use for denoising.
+*physical devices* and select which of these to use for denoising.
 
 The number of supported physical devices can be queried with
 
     int oidnGetNumPhysicalDevices();
 
-Note that the reported number and order of physical devices may change between
-application runs, so no assumptions should be made about these.
+The physical devices can be identified using IDs between 0 and
+(`oidnGetNumPhysicalDevices()` $-$ 1), and are ordered *approximately* from
+fastest to slowest (e.g., ID of 0 corresponds to the likely fastest physical
+device). Note that the reported number and order of physical devices may change
+between application runs, so no assumptions should be made about this list.
 
-After calling this function, it is possible to query parameters of these physical
-devices using
+Parameters of these physical devices can be queried using
 
     bool         oidnGetPhysicalDeviceBool  (int physicalDeviceID, const char* name);
     int          oidnGetPhysicalDeviceInt   (int physicalDeviceID, const char* name);
@@ -343,12 +345,13 @@ devices using
     const void*  oidnGetPhysicalDeviceData  (int physicalDeviceID, const char* name,
                                              size_t* byteSize);
 
-The following parameters can be queried:
+where `name` is the name of the parameter, and `byteSize` is the number of returned
+bytes for data parameters. The following parameters can be queried:
 
 ----------- ---------------------  -----------------------------------------------------------------
 Type        Name                   Description
 ----------- ---------------------  -----------------------------------------------------------------
-`Int`       `type`                 device type (`OIDNDeviceType`)
+`Int`       `type`                 device type as an `OIDNDeviceType` value
 
 `String`    `name`                 name string
 
@@ -378,27 +381,84 @@ Type        Name                   Description
 ----------- ---------------------  -----------------------------------------------------------------
 : Constant parameters supported by physical devices.
 
+
 Devices
 -------
 
-Open Image Denoise supports a device concept, which allows different
-components of the application to use the Open Image Denoise API without
-interfering with each other. An application first needs to create a device with
+Open Image Denoise has a *logical* device concept as well, or simply referred
+to as *device*, which allows different components of the application to use the
+Open Image Denoise API without interfering with each other. Each physical device
+may be associated with one ore more logical devices. A basic way to create a
+device is by calling
 
     OIDNDevice oidnNewDevice(OIDNDeviceType type);
 
 where the `type` enumeration maps to a specific device implementation, which
 can be one of the following:
 
+-------------------------- --------------------------------------------------------------------
 Name                       Description
--------------------------- ---------------------------------------------------------------
-`OIDN_DEVICE_TYPE_DEFAULT` select the likely fastest device (GPUs are preferred over CPUs)
-`OIDN_DEVICE_TYPE_CPU`     CPU device (requires SSE4.1 support or Apple Silicon)
-`OIDN_DEVICE_TYPE_SYCL`    SYCL device (requires Intel Xe architecture GPU)
-`OIDN_DEVICE_TYPE_CUDA`    CUDA device (requires NVIDIA Volta architecture or newer GPU)
-`OIDN_DEVICE_TYPE_HIP`     HIP device (requires AMD RDNA2 architecture or newer GPU)
--------------------------- ---------------------------------------------------------------
+-------------------------- --------------------------------------------------------------------
+`OIDN_DEVICE_TYPE_DEFAULT` select the likely fastest device (same as physical device with ID 0)
+
+`OIDN_DEVICE_TYPE_CPU`     CPU device
+
+`OIDN_DEVICE_TYPE_SYCL`    SYCL device (requires a supported Intel GPU)
+
+`OIDN_DEVICE_TYPE_CUDA`    CUDA device (requires a supported NVIDIA GPU)
+
+`OIDN_DEVICE_TYPE_HIP`     HIP device (requires a supported AMD GPU)
+-------------------------- --------------------------------------------------------------------
 : Supported device types, i.e., valid constants of type `OIDNDeviceType`.
+
+If there are multiple supported devices of the specified type, an implementation-dependent
+default will be selected.
+
+A device can be created by specifying a physical device ID as well using
+
+    OIDNDevice oidnNewDeviceByID(int physicalDeviceID);
+
+Applications can manually iterate over the list of physical devices and select
+from them based on their properties but there are also some built-in helper
+functions as well, which make creating a device by a particular physical device
+property easier:
+
+    OIDNDevice oidnNewDeviceByUUID(const void* uuid);
+    OIDNDevice oidnNewDeviceByLUID(const void* luid);
+    OIDNDevice oidnNewDeviceByPCIAddress(int pciDomain, int pciBus, int pciDevice,
+                                         int pciFunction);
+
+These functions are particularly useful when the application needs
+interoperability with a graphics API (e.g. DX12, Vulkan). However, not all of
+these properties may be supported by the intended physical device (or drivers
+might even report inconsistent identifiers), so it is recommended to select by
+more than one property, if possible.
+
+If the application requires interoperability with a particular compute API (SYCL,
+CUDA, HIP), it is recommended to use one of the following dedicated functions
+instead:
+
+    OIDNDevice oidnNewSYCLDevice(const sycl::queue* queues, int numQueues);
+    OIDNDevice oidnNewCUDADevice(const int* deviceIDs, const cudaStream_t* streams,
+                                 int numPairs);
+    OIDNDevice oidnNewHIPDevice (const int* deviceIDs, const hipStream_t* streams,
+                                 int numPairs);
+
+For SYCL, it is possible to pass one or more SYCL queues which will be used by
+Open Image Denoise for all device operations. This is useful when the
+application wants to use the same queues for both denoising and its own
+operations (e.g. rendering). Passing multiple queues is not intended to be used
+for different physical devices but just for a single SYCL root-device which
+consists of multiple sub-devices (e.g. Intel® Data Center GPU Max Series having
+multiple Xe-Stacks/tiles).
+
+For CUDA and HIP, pairs of CUDA/HIP device IDs and corresponding streams can be
+specified but the current implementation supports only one pair. Negative device
+IDs correspond to the default device, and a `NULL` stream corresponds to the
+default stream on the corresponding device. Open Image Denoise automatically
+sets and restores the current CUDA/HIP device on the calling thread when
+necessary, thus the current device does not have to be changed manually by the
+application.
 
 Once a device is created, you can call
 
@@ -406,30 +466,41 @@ Once a device is created, you can call
     void oidnSetDeviceBool(OIDNDevice device, const char* name, bool value);
     int  oidnGetDeviceInt (OIDNDevice device, const char* name);
     void oidnSetDeviceInt (OIDNDevice device, const char* name, int  value);
+    int  oidnGetDeviceUInt(OIDNDevice device, const char* name);
+    void oidnSetDeviceUInt(OIDNDevice device, const char* name, unsigned int value);
 
 to set and get parameter values on the device. Note that some parameters are
 constants, thus trying to set them is an error. See the tables below for the
 parameters supported by devices.
 
------------ -------------- ---------- -------------------------------------------
-Type        Name              Default Description
------------ -------------- ---------- -------------------------------------------
-`Int`       `type`         *constant* device type (`OIDNDeviceType`)
+----------- ----------------------- ----------- ----------------------------------------------------
+Type        Name                        Default Description
+----------- ------------------------ ---------- ----------------------------------------------------
+`Int`       `type`                   *constant* device type as an `OIDNDeviceType` value
 
-`Int`       `version`      *constant* combined version number (major.minor.patch)
-                                      with two decimal digits per component
+`Int`       `version`                *constant* combined version number (major.minor.patch)
+                                                with two decimal digits per component
 
-`Int`       `versionMajor` *constant* major version number
+`Int`       `versionMajor`           *constant* major version number
 
-`Int`       `versionMinor` *constant* minor version number
+`Int`       `versionMinor`           *constant* minor version number
 
-`Int`       `versionPatch` *constant* patch version number
+`Int`       `versionPatch`           *constant* patch version number
 
-`Int`       `verbose`               0 verbosity level of the console output
-                                      between 0--4; when set to 0, no output is
-                                      printed, when set to a higher level more
-                                      output is printed
------------ -------------- ---------- -------------------------------------------
+`Bool`      `systemMemorySupported`  *constant* device can directly access memory allocated with the
+                                                system allocator (e.g. `malloc`)
+
+`Bool`      `managedMemorySupported` *constant* device supports buffers created with managed storage
+                                                (`OIDN_STORAGE_MANAGED`)
+
+`Int`       `externalMemoryTypes`    *constant* bitfield of `OIDNExternalMemoryTypeFlag` values
+                                                representing the external memory types supported by
+                                                the device
+
+`Int`       `verbose`                         0 verbosity level of the console output between 0--4;
+                                                when set to 0, no output is printed, when set to a
+                                                higher level more output is printed
+----------- ------------------------ ---------- ----------------------------------------------------
 : Parameters supported by all devices.
 
 ------ -------------- -------- -------------------------------------------------
@@ -461,9 +532,9 @@ Once parameters are set on the created device, the device must be committed with
 This device can then be used to construct further objects, such as buffers and
 filters. Note that a device can be committed only once during its lifetime.
 
-Some functions execute asynchronously with respect to the host. The names of
+Some functions may execute asynchronously with respect to the host. The names of
 these functions are suffixed with `Async`. Asynchronous operations are executed
-*in order* on the device but do not block on the host. Eventually, it is
+*in order* on the device but may not block on the host. Eventually, it is
 necessary to wait for all asynchronous operations to complete, which can be done
 by calling
 
@@ -579,17 +650,23 @@ a manually specified storage mode as well:
 
 The supported storage modes are the following:
 
+------------------------ ---------------------------------------------------------------------------
 Name                     Description
------------------------- ----------------------------------------------------------------------
+------------------------ ---------------------------------------------------------------------------
 `OIDN_STORAGE_UNDEFINED` undefined storage mode
+
 `OIDN_STORAGE_HOST`      pinned host memory, accessible by both host and device
+
 `OIDN_STORAGE_DEVICE`    device memory, *not* accessible by the host
-`OIDN_STORAGE_MANAGED`   automatically migrated between host and device, accessible by both (*not* supported by all devices)
------------------------- ----------------------------------------------------------------------
+
+`OIDN_STORAGE_MANAGED`   automatically migrated between host and device, accessible by both
+                         (*not* supported by all devices, `managedMemorySupported` device parameter
+                          must be checked before use)
+------------------------ ---------------------------------------------------------------------------
 : Supported storage modes for buffers, i.e., valid constants of type `OIDNStorage`.
 
 Note that the host and device storage modes are supported by all devices but managed storage is
-an optional feature. Before using managed storage, the `managedMemorySupported` device paramater
+an optional feature. Before using managed storage, the `managedMemorySupported` device parameter
 should be queried.
 
 It is also possible to create a "shared" data buffer with memory allocated and
@@ -603,18 +680,71 @@ the buffer data provided by the user is used. The buffer data must remain valid
 for as long as the buffer may be used, and the user is responsible to free the
 buffer data when no longer required. The user must also ensure that the memory is
 accessible by the device by using allocation functions supported by the device
-(e.g. `sycl::malloc_*` for SYCL devices, `cudaMalloc*` for CUDA devices,
-`hipMalloc` for HIP devices).
+(e.g. `sycl::malloc_device`, `cudaMalloc`, `hipMalloc`).
+
+Buffers can be also imported from graphics APIs as external memory, to avoid
+expensive copying of data through host memory. Different types of external
+memory can be imported from either POSIX file descriptors or Win32 handles
+using
+
+    OIDNBuffer oidnNewSharedBufferFromFD(OIDNDevice device,
+                                         OIDNExternalMemoryTypeFlag fdType,
+                                         int fd, size_t byteSize);
+
+    OIDNBuffer oidnNewSharedBufferFromWin32Handle(OIDNDevice device,
+                                                  OIDNExternalMemoryTypeFlag handleType,
+                                                  void* handle, const void* name, size_t byteSize);
+
+Before exporting memory from the graphics API, the application should find a
+handle type which is supported by both the Open Image Denoise device
+(see `externalMemoryTypes` device parameter) and the graphics API. The possible
+external memory types as flags are listed in the table below.
+
+--------------------------------------------------- ----------------------------------------------------------
+Name                                                Description
+--------------------------------------------------- ----------------------------------------------------------
+`OIDN_EXTERNAL_MEMORY_TYPE_FLAG_NONE`
+
+`OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_FD`          opaque POSIX file descriptor handle
+
+`OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DMA_BUF`            file descriptor handle for a Linux dma_buf
+
+`OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32`       NT handle
+
+`OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32_KMT`   global share (KMT) handle
+
+`OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_TEXTURE`      NT handle returned by `IDXGIResource1::CreateSharedHandle`
+                                                    referring to a Direct3D 11 texture resource
+
+`OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_TEXTURE_KMT`  global share (KMT) handle returned by
+                                                    `IDXGIResource::GetSharedHandle` referring to a Direct3D 11
+                                                    texture resource
+
+`OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_RESOURCE`     NT handle returned by `IDXGIResource1::CreateSharedHandle`
+                                                    referring to a Direct3D 11 resource
+
+`OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_RESOURCE_KMT` global share (KMT) handle returned by
+                                                    `IDXGIResource::GetSharedHandle` referring to a Direct3D 11
+                                                    resource
+
+`OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D12_HEAP`         NT handle returned by `ID3D12Device::CreateSharedHandle`
+                                                    referring to a Direct3D 12 heap resource
+
+`OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D12_RESOURCE`     NT handle returned by `ID3D12Device::CreateSharedHandle`
+                                                    referring to a Direct3D 12 committed resource
+--------------------------------------------------- ----------------------------------------------------------
+: Supported external memory type flags, i.e., valid constants of type `OIDNExternalMemoryTypeFlag`.
 
 Similar to device objects, buffer objects are also reference-counted and can be
 retained and released by calling the following functions:
 
-    void oidnRetainBuffer(OIDNBuffer buffer);
+    void oidnRetainBuffer (OIDNBuffer buffer);
     void oidnReleaseBuffer(OIDNBuffer buffer);
 
-The size of the buffer in bytes can be queried using
+The size of in bytes and storage mode of the buffer can be queried using
 
-    size_t oidnGetBufferSize(OIDNBuffer buffer);
+    size_t      oidnGetBufferSize   (OIDNBuffer buffer);
+    OIDNStorage oidnGetBufferStorage(OIDNBuffer buffer);
 
 It is possible to get a pointer directly to the buffer data, which is usually
 the preferred way to access the data stored in the buffer:
@@ -623,7 +753,7 @@ the preferred way to access the data stored in the buffer:
 
 However, accessing the data on the host through this pointer is possible only if
 the buffer was created with a storage mode that enables this, i.e., any mode
-*except* `OIDN_STORAGE_DEVICE`. Note that a null pointer may be returned if the
+*except* `OIDN_STORAGE_DEVICE`. Note that a `NULL` pointer may be returned if the
 buffer is empty or getting a pointer to data with device storage is not supported
 by the device.
 
@@ -639,7 +769,7 @@ buffers. Such data can be accessed on the host by copying to/from host memory
 
 These functions will always block until the read/write operation has been
 completed, which is often suboptimal. The following functions may execute the
-operation asynchonously if it is supported by the device (GPUs), or still block
+operation asynchronously if it is supported by the device (GPUs), or still block
 otherwise (CPUs):
 
     void oidnReadBufferAsync(OIDNBuffer buffer,
@@ -692,13 +822,13 @@ any benefits.
 
 Once created, filter objects can be retained and released with
 
-    void oidnRetainFilter(OIDNFilter filter);
+    void oidnRetainFilter (OIDNFilter filter);
     void oidnReleaseFilter(OIDNFilter filter);
 
 After creating a filter, it needs to be set up by specifying the input and
 output images, and potentially setting other parameter values as well.
 
-To set image paramaters of a filter, you can use one of the following functions:
+To set image parameters of a filter, you can use one of the following functions:
 
     void oidnSetFilterImage(OIDNFilter filter, const char* name,
                             OIDNBuffer buffer, OIDNFormat format,
@@ -757,7 +887,7 @@ updated by calling
 
     void oidnUpdateFilterData(OIDNFilter filter, const char* name);
 
-Unsetting an opaque data paramater can be performed with
+Unsetting an opaque data parameter can be performed with
 
     void oidnRemoveFilterData(OIDNFilter filter, const char* name);
 
@@ -818,7 +948,7 @@ which will read the input image data from the specified buffers and produce the
 denoised output image.
 
 This function will always block until the filtering operation has been completed.
-The following function may execute the operation asynchrously if it is supported
+The following function may execute the operation asynchronously if it is supported
 by the device (GPUs), or block otherwise (CPUs):
 
     void oidnExecuteFilterAsync(OIDNFilter filter);
@@ -836,10 +966,9 @@ The `RT` (**r**ay **t**racing) filter is a generic ray tracing denoising filter
 which is suitable for denoising images rendered with Monte Carlo ray tracing
 methods like unidirectional and bidirectional path tracing. It supports depth
 of field and motion blur as well, but it is *not* temporally stable. The filter
-is based on a convolutional neural network (CNN), and it aims to provide a
-good balance between denoising performance and quality. The filter comes with a
-set of pre-trained CNN models that work well with a wide range of ray tracing
-based renderers and noise levels.
+is based on a convolutional neural network (CNN) and comes with a set of
+pre-trained  models that work well with a wide range of ray tracing based
+renderers and noise levels.
 
 ![Example noisy beauty image rendered using unidirectional path tracing (4
 samples per pixel). *Scene by Evermotion.*][imgMazdaColor]
@@ -892,11 +1021,11 @@ Type        Name               Default Description
 
 `Image`     `output`        *required* output image (3 channels); can be one of the input images
 
-`Bool`      `hdr`              `false` whether the main input image is HDR
+`Bool`      `hdr`              `false` the main input image is HDR
 
-`Bool`      `srgb`             `false` whether the main input image is encoded with the sRGB (or 2.2
-                                       gamma) curve (LDR only) or is linear; the output will be
-                                       encoded with the same curve
+`Bool`      `srgb`             `false` the main input image is encoded with the sRGB (or 2.2 gamma)
+                                       curve (LDR only) or is linear; the output will be encoded
+                                       with the same curve
 
 `Float`     `inputScale`           NaN scales values in the main input image before filtering, without
                                        scaling the output too, which can be used to map color or
@@ -906,9 +1035,11 @@ Type        Name               Default Description
                                        to NaN, the scale is computed implicitly for HDR images or set
                                        to 1 otherwise
 
-`Bool`      `cleanAux`          `false` whether the auxiliary feature (albedo, normal) images are
-                                       noise-free; recommended for highest quality but should *not* be
-                                       enabled for noisy auxiliary images to avoid residual noise
+`Bool`      `cleanAux`         `false` the auxiliary feature (albedo, normal) images are noise-free;
+                                       recommended for highest quality but should *not* be enabled for
+                                       noisy auxiliary images to avoid residual noise
+
+`Int`       `quality`             high image quality mode as an `OIDNQuality` value
 
 `Data`      `weights`       *optional* trained model weights blob
 
@@ -964,7 +1095,7 @@ code example. Prefiltering makes denoising much more expensive but if there are
 multiple color AOVs to denoise, the prefiltered auxiliary images can be reused
 for denoising multiple AOVs, amortizing the cost of the prefiltering step.
 
-Thus, for final frame denoising, where the best possible image quality is
+Thus, for final-frame denoising, where the best possible image quality is
 required, it is recommended to prefilter the auxiliary features if they are
 noisy and enable the `cleanAux` parameter. Denoising with noisy auxiliary
 features should be reserved for previews and interactive rendering.
@@ -973,14 +1104,7 @@ All auxiliary images should use the same pixel reconstruction filter as the
 beauty image. Using a properly anti-aliased beauty image but aliased albedo or
 normal images will likely introduce artifacts around edges.
 
-QUALITY------
-The balanced quality mode is essentially the same as high quality mode except
-lower numerical precision is used, if this is supported by the device. This
-results in an almost imperceptible difference compared to high quality but
-performance may be significantly higher.
-QUALITY------
-
-#### Albedo
+#### Albedos
 
 The albedo image is the feature image that usually provides the biggest quality
 improvement. It should contain the approximate color of the surfaces
@@ -1020,7 +1144,7 @@ albedos of the individual layers. Non-absorbing clear coat layers can be simply
 ignored (or the albedo of the perfect specular reflection can be used as well)
 but absorption should be taken into account.
 
-#### Normal
+#### Normals
 
 The normal image should contain the shading normals of the surfaces either in
 world-space or view-space. It is recommended to include normal maps to
@@ -1042,6 +1166,35 @@ normals mapped to [0, 1] are *not* acceptable and must be remapped to [−1, 1])
 
 Similar to the albedo, the normal can be stored for either the first
 or a subsequent hit (if the first hit has a perfect specular/delta BSDF).
+
+#### Quality
+
+The filter supports setting an image quality mode, which determines whether to
+favor quality, performance, or have a balanced solution between the two. The
+supported quality modes are listed in the following table.
+
+Name                     Description
+------------------------ ---------------------------------------------------------------------------
+`OIDN_QUALITY_DEFAULT`   default quality
+`OIDN_QUALITY_BALANCED`  balanced quality/performance (for interactive/real-time rendering)
+`OIDN_QUALITY_HIGH`      high quality (for final-frame rendering); *default*
+------------------------ ---------------------------------------------------------------------------
+: Supported image quality modes, i.e., valid constants of type `OIDNQuality`.
+
+By default filtering is performed in high quality mode, which is recommended for
+final-frame rendering. Using this setting the results have the same high quality
+regardless of what kind of device (CPU or GPU) is used. However, due to
+significant hardware architecture differences between devices, there might be
+small numerical differences between the produced outputs.
+
+The balanced quality mode is very close in image quality to the high quality
+mode except that lower numerical precision is used, if this is supported by the
+device. This may result in significantly higher performance on some devices but
+on others there might be no difference at all due to hardware specifics. This
+mode is recommended for interactive and real-time rendering.
+
+Note that in balanced quality mode a higher variation in image quality should be
+expected across devices.
 
 #### Weights
 
@@ -1083,6 +1236,8 @@ Type        Name               Default Description
                                        (which affects the quality of the output but *not* the range of
                                        the output values); if set to NaN, the scale is computed
                                        implicitly for HDR images or set to 1 otherwise
+
+`Int`       `quality`             high image quality mode as an `OIDNQuality` value
 
 `Data`      `weights`       *optional* trained model weights blob
 

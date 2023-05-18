@@ -3,7 +3,7 @@ Version History
 
 ### Changes in v2.0.0:
 
--   Added SYCL device for Intel® Xe architecture GPUs (Xe-LP, Xe-HPG and Xe-HPC)
+-   Added SYCL device for Intel Xe architecture GPUs (Xe-LP, Xe-HPG and Xe-HPC)
 -   Added CUDA device for NVIDIA Volta, Turing, Ampere, Ada Lovelace and Hopper
     architecture GPUs
 -   Added HIP device for AMD RDNA2 (Navi 21 only) and RDNA3 (Navi 3x)
@@ -36,6 +36,7 @@ Version History
 -   Removed `OIDN_STATIC_LIB` and `OIDN_STATIC_RUNTIME` CMake options due to
     technical limitations
 -   Fixed over-conservative buffer bounds checking for images with custom strides
+-   Upgraded to oneTBB 2021.9.0 in the official binaries
 
 ### Changes in v1.4.3:
 

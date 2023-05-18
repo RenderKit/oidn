@@ -20,7 +20,7 @@ integrated into most existing or new rendering solutions.
 At the heart of the Intel Open Image Denoise library is a collection of
 efficient deep learning based denoising filters, which were trained to handle
 a wide range of samples per pixel (spp), from 1 spp to almost fully converged.
-Thus it is suitable for both preview and final frame rendering. The filters can
+Thus it is suitable for both preview and final-frame rendering. The filters can
 denoise images either using only the noisy color (*beauty*) buffer, or, to
 preserve as much detail as possible, can optionally utilize auxiliary feature
 buffers as well (e.g. albedo, normal). Such buffers are supported by most
@@ -39,7 +39,7 @@ vendors:
 
 -   Apple Silicon CPUs
 
--   Intel® Xe architecture GPUs, both discrete and integrated, including
+-   Intel Xe architecture GPUs, both discrete and integrated, including
     Intel® Arc™ A-Series Graphics, Intel® Data Center GPU Flex Series (Xe-HPG
     microarchitecture), Intel® Data Center GPU Max Series (Xe-HPC),
     11th-13th Gen Intel® Core™ processor graphics, and related Intel Pentium®
@@ -64,7 +64,7 @@ System Requirements
 -------------------
 
 You need a CPU with SSE4.1 support or Apple Silicon to run Intel Open Image
-Denoise, and you need a 64-bit operating system as well (Windows, Linux or macOS).
+Denoise, and you need a 64-bit Windows, Linux, or macOS operating system as well.
 
 For Intel GPU support, please also install the latest Intel graphics drivers:
 
