@@ -184,18 +184,23 @@ additional prerequisites are needed:
     the compiler is more up-to-date but less stable, so we *strongly*
     recommend to use the exact version listed here.
 
-  - If building on Windows using the open source oneAPI DPC++ Compiler:
-    [Intel® Graphics Offline Compiler for OpenCL™ Code
-    (OCLOC)](https://www.intel.com/content/www/us/en/developer/articles/tool/oneapi-standalone-components.html)
-    version
-    [31.0.101.4314](https://registrationcenter-download.intel.com/akdlm/IRC_NAS/9926f1ea-209e-42b3-94db-a1f895ee56ce/ocloc_win_101.4314.zip)
-    or newer. The package must be extracted and its contents added to
-    the `PATH`.
-
-  - If building on Linux: [Intel® software for General Purpose GPU
-    capabilities](https://dgpu-docs.intel.com) release
-    [20230323](https://dgpu-docs.intel.com/releases/stable_602_20230323.html)
-    or newer (to install OCLOC).
+  - Intel® Graphics Offline Compiler for OpenCL™ Code (OCLOC)
+    
+      - Windows: Version
+        [31.0.101.4314](https://registrationcenter-download.intel.com/akdlm/IRC_NAS/9926f1ea-209e-42b3-94db-a1f895ee56ce/ocloc_win_101.4314.zip)
+        or newer as a [standalone component of Intel® oneAPI
+        Toolkits](https://www.intel.com/content/www/us/en/developer/articles/tool/oneapi-standalone-components.html),
+        which must be extracted and its contents added to the `PATH`.
+        Also included with [Intel® oneAPI Base
+        Toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/toolkits.html#base-kit).
+    
+      - Linux: Included with [Intel® software for General Purpose GPU
+        capabilities](https://dgpu-docs.intel.com) release
+        [20230323](https://dgpu-docs.intel.com/releases/stable_602_20230323.html)
+        or newer (install at least `intel-opencl-icd` on Ubuntu,
+        `intel-ocloc` on RHEL or SLES). Also available with [Intel®
+        Graphics Compute Runtime for oneAPI Level Zero and OpenCL™
+        Driver](https://github.com/intel/compute-runtime).
 
   - If using Intel® oneAPI DPC++/C++ Compiler:
     [CMake](http://www.cmake.org) 3.25.2 or newer
@@ -1054,6 +1059,25 @@ The following errors are currently used by Open Image Denoise:
 | `OIDN_ERROR_CANCELLED`            | the operation was cancelled by the user    |
 
 Possible error codes, i.e., valid constants of type `OIDNError`.
+
+### Environment Variables
+
+Open Image Denoise supports environment variables for overriding certain
+settings at runtime, which can be useful for debugging and development:
+
+| Name                  | Description                                                                                                                         |
+| :-------------------- | :---------------------------------------------------------------------------------------------------------------------------------- |
+| `OIDN_DEFAULT_DEVICE` | overrides what physical device to use with `OIDN_DEVICE_TYPE_DEFAULT`; can be `cpu`, `sycl`, `cuda`, `hip`, or a physical device ID |
+| `OIDN_DEVICE_CPU`     | value of 0 disables CPU device support                                                                                              |
+| `OIDN_DEVICE_SYCL`    | value of 0 disables SYCL device support                                                                                             |
+| `OIDN_DEVICE_CUDA`    | value of 0 disables CUDA device support                                                                                             |
+| `OIDN_DEVICE_HIP`     | value of 0 disables HIP device support                                                                                              |
+| `OIDN_NUM_THREADS`    | overrides `numThreads` device parameter                                                                                             |
+| `OIDN_SET_AFFINITY`   | overrides `setAffinity` device parameter                                                                                            |
+| `OIDN_NUM_SUBDEVICES` | overrides number of SYCL sub-devices to use (e.g. for Intel® Data Center GPU Max Series)                                            |
+| `OIDN_VERBOSE`        | overrides `verbose` device parameter                                                                                                |
+
+Environment variables supported by Open Image Denoise.
 
 ## Buffers
 
