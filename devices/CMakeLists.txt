@@ -65,7 +65,11 @@ if(OIDN_DEVICE_CUDA)
 
   # Due to limitations of CMake, the module is pre-installed at build time to a temporary location,
   # and then copied to the real install location at install time.
-  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/cuda/preinstall/ DESTINATION ".")
+  install(DIRECTORY
+    ${CMAKE_CURRENT_BINARY_DIR}/cuda/preinstall/
+    DESTINATION "."
+    USE_SOURCE_PERMISSIONS
+  )
 endif()
 
 if(OIDN_DEVICE_HIP)
@@ -150,5 +154,9 @@ if(OIDN_DEVICE_HIP)
 
   # Due to limitations of CMake, the module is pre-installed at build time to a temporary location,
   # and then copied to the real install location at install time.
-  install(DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/hip/preinstall/ DESTINATION ".")
+  install(DIRECTORY
+    ${CMAKE_CURRENT_BINARY_DIR}/hip/preinstall/
+    DESTINATION "."
+    USE_SOURCE_PERMISSIONS
+  )
 endif()
