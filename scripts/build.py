@@ -106,7 +106,7 @@ if not os.path.isdir(deps_dir):
 
 # Set up ISPC
 ispc_release = f'ispc-v{ISPC_VERSION}-'
-ispc_release += {'windows' : 'windows', 'linux' : 'linux', 'macos' : 'macOS'}[OS]
+ispc_release += {'windows' : 'windows', 'linux' : 'linux', 'macos' : 'macOS.universal'}[OS]
 ispc_dir = os.path.join(deps_dir, ispc_release)
 if not os.path.isdir(ispc_dir):
   # Download and extract ISPC
@@ -135,7 +135,7 @@ if ARCH != 'arm64':
   tbb_root = os.path.join(tbb_dir, f'oneapi-tbb-{TBB_VERSION}')
   config_cmd += f' -D TBB_ROOT="{tbb_root}"'
 
-if cfg.full:
+if cfg.full and OS != 'macos':
   config_cmd += ' -D OIDN_DEVICE_CPU=ON -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_CUDA=ON -D OIDN_DEVICE_HIP=ON'
 
 if cfg.target in {'install', 'package'}:
@@ -194,12 +194,12 @@ if cfg.target == 'package':
       run(f'{sign_file} -q -vv {filename}')
 
   # Make the binaries consistently executable
-  if OS == 'linux':
+  if OS != 'windows':
     for filename in binaries:
       run(f'chmod +x {filename}')
 
   # Repack
-  if sign_file or OS == 'linux':
+  if sign_file or OS != 'windows':
     os.remove(package_filename)
     create_package(package_filename, package_dir)
 
