@@ -193,7 +193,13 @@ if cfg.target == 'package':
     for filename in binaries:
       run(f'{sign_file} -q -vv {filename}')
 
-    # Repack
+  # Make the binaries consistently executable
+  if OS == 'linux':
+    for filename in binaries:
+      run(f'chmod +x {filename}')
+
+  # Repack
+  if sign_file or OS == 'linux':
     os.remove(package_filename)
     create_package(package_filename, package_dir)
 
