@@ -27,12 +27,12 @@ def check_symbols(filename, label, max_version):
 
 def check_symbols_linux(filename):
   print('Checking symbols:', filename)
-  check_symbols(filename, 'GLIBC',   (2, 17, 0))
-  check_symbols(filename, 'GLIBCXX', (3, 4, 19))
-  check_symbols(filename, 'CXXABI',  (1, 3, 7))
+  check_symbols(filename, 'GLIBC',   (2, 28, 0))
+  check_symbols(filename, 'GLIBCXX', (3, 4, 22))
+  check_symbols(filename, 'CXXABI',  (1, 3, 11))
 
 # Parse the arguments
-compilers = {'windows' : ['msvc15', 'msvc15-icc18', 'msvc15-icc19', 'msvc15-icc20', 'msvc16', 'msvc16-icc19', 'msvc16-icc20', 'msvc16-icc21', 'msvc17'],
+compilers = {'windows' : ['msvc17', 'msvc16-icc21', 'msvc16-icc20', 'msvc16-icc19', 'msvc16', 'msvc15-icc20', 'msvc15-icc19', 'msvc15-icc18', 'msvc15', 'clang'],
              'linux'   : ['gcc', 'clang', 'icc'],
              'macos'   : ['clang', 'icc']}
 
@@ -40,8 +40,9 @@ parser = argparse.ArgumentParser()
 parser.usage = '\rIntel(R) Open Image Denoise - Build\n' + parser.format_usage()
 parser.add_argument('target', type=str, nargs='?', choices=['all', 'install', 'package'], default='all')
 parser.add_argument('--build_dir', '-B', type=str, help='build directory')
-parser.add_argument('--compiler', type=str, choices=compilers[OS], default=compilers[OS][0])
+parser.add_argument('--compiler', type=str, choices=(['default'] + compilers[OS]), default='default')
 parser.add_argument('--config', type=str, choices=['Debug', 'Release', 'RelWithDebInfo'], default='Release')
+parser.add_argument('--full', action='store_true', help='build with full device support')
 parser.add_argument('--wrapper', type=str, help='wrap build command')
 parser.add_argument('-D', dest='cmake_vars', type=str, action='append', help='create or update a CMake cache entry')
 cfg = parser.parse_args()
@@ -51,52 +52,30 @@ if cfg.build_dir is None:
 else:
   build_dir = os.path.abspath(cfg.build_dir)
 
-# Build
-if cfg.target == 'all' or not os.path.isdir(build_dir):
-  # Set up the dependencies
-  deps_dir = os.path.join(root_dir, 'deps')
-  if not os.path.isdir(deps_dir):
-    os.makedirs(deps_dir)
+if cfg.compiler == 'default' and cfg.full:
+  cfg.compiler = 'clang'
 
-  # Set up ISPC
-  ispc_release = f'ispc-v{ISPC_VERSION}-'
-  ispc_release += {'windows' : 'windows', 'linux' : 'linux', 'macos' : 'macOS'}[OS]
-  ispc_dir = os.path.join(deps_dir, ispc_release)
-  if not os.path.isdir(ispc_dir):
-    # Download and extract ISPC
-    ispc_url = f'https://github.com/ispc/ispc/releases/download/v{ISPC_VERSION}/{ispc_release}'
-    ispc_url += '.zip' if OS == 'windows' else '.tar.gz'
-    ispc_filename = download_file(ispc_url, deps_dir)
-    extract_package(ispc_filename, ispc_dir)
-    os.remove(ispc_filename)
-  ispc_executable = os.path.join(ispc_dir, 'bin', 'ispc')
+# Create a clean build directory
+if os.path.isdir(build_dir):
+  shutil.rmtree(build_dir)
+os.mkdir(build_dir)
+os.chdir(build_dir)
 
-  # Set up TBB
-  if ARCH != 'arm64':
-    tbb_release = f'oneapi-tbb-{TBB_VERSION}-'
-    tbb_release += {'windows' : 'win', 'linux' : 'lin', 'macos' : 'mac'}[OS]
-    tbb_dir = os.path.join(deps_dir, tbb_release)
-    if not os.path.isdir(tbb_dir):
-      # Download and extract TBB
-      tbb_url = f'https://github.com/oneapi-src/oneTBB/releases/download/v{TBB_VERSION}/{tbb_release}'
-      tbb_url += '.zip' if OS == 'windows' else '.tgz'
-      tbb_filename = download_file(tbb_url, deps_dir)
-      extract_package(tbb_filename, tbb_dir)
-      os.remove(tbb_filename)
-    tbb_root = os.path.join(tbb_dir, f'oneapi-tbb-{TBB_VERSION}')
+# Configure
+msbuild = False
+config_cmd = 'cmake -L'
 
-  # Create a clean build directory
-  if os.path.isdir(build_dir):
-    shutil.rmtree(build_dir)
-  os.mkdir(build_dir)
-  os.chdir(build_dir)
-
-  # Set up CMake options
-  num_jobs = os.cpu_count()
-  config_cmd = 'cmake -L'
-  build_cmd  = 'cmake --build .'
-
-  if OS == 'windows':
+if OS == 'windows':
+  if cfg.compiler == 'clang':
+    cc  = 'clang'
+    cxx = 'clang++'
+    config_cmd += ' -G Ninja'
+    config_cmd += f' -D CMAKE_C_COMPILER:FILEPATH="{cc}"'
+    config_cmd += f' -D CMAKE_CXX_COMPILER:FILEPATH="{cxx}"'
+  else:
+    msbuild = True
+    if cfg.compiler == 'default':
+      cfg.compiler = 'msvc17'
     for compiler in cfg.compiler.split('-'):
       if compiler.startswith('msvc'):
         config_cmd += {'msvc15' : ' -G "Visual Studio 15 2017 Win64"',
@@ -105,12 +84,11 @@ if cfg.target == 'all' or not os.path.isdir(build_dir):
       elif compiler.startswith('icc'):
         icc_version = {'18' : '18.0', '19' : '19.0', '20' : '19.1', '21' : '19.2'}[compiler[3:]]
         config_cmd += f' -T "Intel C++ Compiler {icc_version}"'
-    ispc_executable += '.exe'
-
-    build_cmd += f' --config {cfg.config} --target ALL_BUILD'
-  else:
+else:
+  config_cmd += ' -G Ninja'
+  if cfg.compiler != 'default':
     cc = cfg.compiler
-    cxx = {'gcc' : 'g++', 'clang' : 'clang++', 'icc' : 'icpc'}[cc]
+    cxx = {'gcc' : 'g++', 'clang' : 'clang++', 'icx' : 'icx', 'icc' : 'icpc'}[cc]
     if cfg.compiler == 'icc':
       icc_dir = os.environ.get('OIDN_ICC_DIR_' + OS.upper())
       if icc_dir:
@@ -119,52 +97,76 @@ if cfg.target == 'all' or not os.path.isdir(build_dir):
     config_cmd += f' -D CMAKE_C_COMPILER:FILEPATH="{cc}"'
     config_cmd += f' -D CMAKE_CXX_COMPILER:FILEPATH="{cxx}"'
 
-    build_cmd += f' --target preinstall -- -j {num_jobs} VERBOSE=1'
+config_cmd += f' -D CMAKE_BUILD_TYPE={cfg.config}'
 
-  config_cmd += f' -D CMAKE_BUILD_TYPE={cfg.config}'
-  config_cmd += f' -D ISPC_EXECUTABLE="{ispc_executable}"'
-  if ARCH != 'arm64':
-    config_cmd += f' -D TBB_ROOT="{tbb_root}"'
-  if cfg.cmake_vars:
-    for var in cfg.cmake_vars:
-      config_cmd += f' -D {var}'
-  config_cmd += ' ..'
+# Set up the dependencies
+deps_dir = os.path.join(root_dir, 'deps')
+if not os.path.isdir(deps_dir):
+  os.makedirs(deps_dir)
 
-  # Configure
-  run(config_cmd)
+# Set up ISPC
+ispc_release = f'ispc-v{ISPC_VERSION}-'
+ispc_release += {'windows' : 'windows', 'linux' : 'linux', 'macos' : 'macOS'}[OS]
+ispc_dir = os.path.join(deps_dir, ispc_release)
+if not os.path.isdir(ispc_dir):
+  # Download and extract ISPC
+  ispc_url = f'https://github.com/ispc/ispc/releases/download/v{ISPC_VERSION}/{ispc_release}'
+  ispc_url += '.zip' if OS == 'windows' else '.tar.gz'
+  ispc_filename = download_file(ispc_url, deps_dir)
+  extract_package(ispc_filename, ispc_dir)
+  os.remove(ispc_filename)
+ispc_executable = os.path.join(ispc_dir, 'bin', 'ispc')
+if OS == 'windows':
+  ispc_executable += '.exe'
+config_cmd += f' -D ISPC_EXECUTABLE="{ispc_executable}"'
 
-  # Build
-  if cfg.wrapper:
-    build_cmd = cfg.wrapper + ' ' + build_cmd
-  run(build_cmd)
+# Set up TBB
+if ARCH != 'arm64':
+  tbb_release = f'oneapi-tbb-{TBB_VERSION}-'
+  tbb_release += {'windows' : 'win', 'linux' : 'lin', 'macos' : 'mac'}[OS]
+  tbb_dir = os.path.join(deps_dir, tbb_release)
+  if not os.path.isdir(tbb_dir):
+    # Download and extract TBB
+    tbb_url = f'https://github.com/oneapi-src/oneTBB/releases/download/v{TBB_VERSION}/{tbb_release}'
+    tbb_url += '.zip' if OS == 'windows' else '.tgz'
+    tbb_filename = download_file(tbb_url, deps_dir)
+    extract_package(tbb_filename, tbb_dir)
+    os.remove(tbb_filename)
+  tbb_root = os.path.join(tbb_dir, f'oneapi-tbb-{TBB_VERSION}')
+  config_cmd += f' -D TBB_ROOT="{tbb_root}"'
 
-# Install
+if cfg.full:
+  config_cmd += ' -D OIDN_DEVICE_CPU=ON -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_CUDA=ON -D OIDN_DEVICE_HIP=ON'
+
+if cfg.target in {'install', 'package'}:
+  config_cmd += ' -D OIDN_ZIP_MODE=ON -D OIDN_INSTALL_DEPENDENCIES=ON'
+
 if cfg.target == 'install':
-  os.chdir(build_dir)
-
-  # Configure
   install_dir = os.path.join(build_dir, 'install')
-  run(f'cmake -L -D OIDN_ZIP_MODE=ON -D OIDN_INSTALL_DEPENDENCIES=ON -D CMAKE_INSTALL_PREFIX={install_dir} ..')
+  config_cmd += f' -D CMAKE_INSTALL_PREFIX={install_dir}'
 
-  # Build
-  if OS == 'windows':
-    run(f'cmake --build . --config {cfg.config} --target INSTALL')
-  else:
-    run(f'cmake --build . --target install -- -j {num_jobs} VERBOSE=1')
+if cfg.cmake_vars:
+  for var in cfg.cmake_vars:
+    config_cmd += f' -D {var}'
 
-# Package
+config_cmd += ' ..'
+
+run(config_cmd)
+
+# Build
+build_cmd  = 'cmake --build .'
+
+if msbuild:
+  cmake_target = {'all' : 'ALL_BUILD', 'install' : 'INSTALL', 'package' : 'PACKAGE'}[cfg.target]
+  build_cmd += f' --config {cfg.config} --target {cmake_target}'
+else:
+  build_cmd += f' --target {cfg.target} -- -v'
+
+if cfg.wrapper:
+  build_cmd = cfg.wrapper + ' ' + build_cmd
+run(build_cmd)
+
 if cfg.target == 'package':
-  os.chdir(build_dir)
-
-  # Configure
-  run('cmake -L -D OIDN_ZIP_MODE=ON -D OIDN_INSTALL_DEPENDENCIES=ON ..')
-
-  # Build
-  if OS == 'windows':
-    run(f'cmake --build . --config {cfg.config} --target PACKAGE')
-  else:
-    run(f'cmake --build . --target package -- -j {num_jobs} VERBOSE=1')
-
   # Extract the package
   package_filename = [f for f in glob(os.path.join(build_dir, 'oidn-*')) if os.path.isfile(f)][0]
   package_dir = re.sub(r'\.(tar(\..*)?|zip)$', '', package_filename)
