@@ -115,10 +115,18 @@ endfunction()
 
 function(oidn_install_imported_lib target)
   if(${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-    get_target_property(_lib_path ${target} IMPORTED_LOCATION_DEBUG)
+    get_target_property(_lib_path   ${target} IMPORTED_LOCATION_DEBUG)
+    get_target_property(_lib_sopath ${target} IMPORTED_SONAME_DEBUG)
   else()
-    get_target_property(_lib_path ${target} IMPORTED_LOCATION_RELEASE)
+    get_target_property(_lib_path   ${target} IMPORTED_LOCATION_RELEASE)
+    get_target_property(_lib_sopath ${target} IMPORTED_SONAME_RELEASE)
   endif()
+
+  if(APPLE AND _lib_sopath)
+    get_filename_component(_lib_dir ${_lib_path} DIRECTORY)
+    string(REPLACE "@rpath" ${_lib_dir} _lib_path ${_lib_sopath})
+  endif()
+
   oidn_install_lib_files(${_lib_path})
 endfunction()
 

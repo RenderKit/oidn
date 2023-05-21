@@ -112,9 +112,6 @@ oidn_install_module(OpenImageDenoise_device_cpu)
 if(OIDN_INSTALL_DEPENDENCIES)
   # Install TBB
   oidn_install_imported_lib(TBB::tbb)
-  if(WIN32)
-    oidn_install_imported_implib(TBB::tbb)
-  endif()
 
   # Install TBB plugins
   if(NOT APPLE)

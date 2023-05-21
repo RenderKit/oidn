@@ -121,19 +121,38 @@ if OS == 'windows':
 config_cmd += f' -D ISPC_EXECUTABLE="{ispc_executable}"'
 
 # Set up TBB
-if ARCH != 'arm64':
-  tbb_release = f'oneapi-tbb-{TBB_VERSION}-'
-  tbb_release += {'windows' : 'win', 'linux' : 'lin', 'macos' : 'mac'}[OS]
-  tbb_dir = os.path.join(deps_dir, tbb_release)
-  if not os.path.isdir(tbb_dir):
+tbb_release = f'oneapi-tbb-{TBB_VERSION}-'
+tbb_release += {'windows' : 'win', 'linux' : 'lin', 'macos' : 'mac'}[OS]
+tbb_dir = os.path.join(deps_dir, tbb_release)
+tbb_root = os.path.join(tbb_dir, f'oneapi-tbb-{TBB_VERSION}')
+if not os.path.isdir(tbb_dir):
+  if ARCH != 'arm64':
     # Download and extract TBB
     tbb_url = f'https://github.com/oneapi-src/oneTBB/releases/download/v{TBB_VERSION}/{tbb_release}'
     tbb_url += '.zip' if OS == 'windows' else '.tgz'
     tbb_filename = download_file(tbb_url, deps_dir)
     extract_package(tbb_filename, tbb_dir)
     os.remove(tbb_filename)
-  tbb_root = os.path.join(tbb_dir, f'oneapi-tbb-{TBB_VERSION}')
-  config_cmd += f' -D TBB_ROOT="{tbb_root}"'
+  else:
+    # Download TBB source
+    tbb_url = f'https://github.com/oneapi-src/oneTBB/archive/refs/tags/v{TBB_VERSION}.tar.gz'
+    tbb_filename = download_file(tbb_url, deps_dir)
+    extract_package(tbb_filename, deps_dir)
+    os.remove(tbb_filename)
+
+    # Build TBB
+    tbb_src_dir = os.path.join(deps_dir, f'oneTBB-{TBB_VERSION}')
+    tbb_build_dir = os.path.join(tbb_src_dir, 'build')
+    os.mkdir(tbb_build_dir)
+    os.chdir(tbb_build_dir)
+    tbb_config_cmd = f'cmake -L -G Ninja -D CMAKE_BUILD_TYPE=Release -D TBB_TEST=OFF -D CMAKE_INSTALL_PREFIX={tbb_root} ..'
+    if OS == 'macos':
+      tbb_config_cmd += f' -D CMAKE_OSX_DEPLOYMENT_TARGET=11.0'
+    run(tbb_config_cmd)
+    run('cmake --build . --target install')
+    os.chdir(build_dir)
+    shutil.rmtree(tbb_src_dir)
+config_cmd += f' -D TBB_ROOT="{tbb_root}"'
 
 if cfg.full and OS != 'macos':
   config_cmd += ' -D OIDN_DEVICE_CPU=ON -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_CUDA=ON -D OIDN_DEVICE_HIP=ON'
