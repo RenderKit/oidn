@@ -261,8 +261,6 @@ OIDN_NAMESPACE_BEGIN
     // Print device info
     if (isVerbose())
     {
-      std::cout << "  Backend   : " << syclContext.get_platform().get_info<sycl::info::platform::name>() << std::endl;
-
       for (size_t i = 0; i < syclQueues.size(); ++i)
       {
         if (syclQueues.size() > 1)
@@ -271,6 +269,7 @@ OIDN_NAMESPACE_BEGIN
           std::cout << "  Device    : ";
         std::cout << syclQueues[i].get_device().get_info<sycl::info::device::name>() << std::endl;
 
+        std::cout << "    Type    : SYCL" << std::endl;
         std::cout << "    Arch    : ";
         switch (arch)
         {
@@ -283,6 +282,8 @@ OIDN_NAMESPACE_BEGIN
 
         std::cout << "    EUs     : " << syclQueues[i].get_device().get_info<sycl::info::device::max_compute_units>() << std::endl;
       }
+
+      std::cout << "  Backend   : " << syclContext.get_platform().get_info<sycl::info::platform::name>() << std::endl;
     }
 
     // Create the engines

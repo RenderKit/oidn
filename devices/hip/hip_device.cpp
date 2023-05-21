@@ -153,6 +153,7 @@ OIDN_NAMESPACE_BEGIN
     if (isVerbose())
     {
       std::cout << "  Device    : " << getName(prop) << std::endl;
+      std::cout << "    Type    : HIP" << std::endl;
       std::cout << "    Arch    : " << getArchName(prop) << std::endl;
       std::cout << "    CUs     : " << prop.multiProcessorCount << std::endl;
     }

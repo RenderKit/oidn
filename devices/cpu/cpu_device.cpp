@@ -123,6 +123,7 @@ OIDN_NAMESPACE_BEGIN
     if (isVerbose())
     {
       std::cout << "  Device    : " << getName() << std::endl;
+      std::cout << "    Type    : CPU" << std::endl;
       std::cout << "    ISA     : ";
       switch (arch)
       {

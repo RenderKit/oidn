@@ -136,6 +136,7 @@ OIDN_NAMESPACE_BEGIN
     if (isVerbose())
     {
       std::cout << "  Device    : " << prop.name << std::endl;
+      std::cout << "    Type    : CUDA" << std::endl;
       std::cout << "    Arch    : SM " << prop.major << "." << prop.minor << std::endl;
       std::cout << "    SMs     : " << prop.multiProcessorCount << std::endl;
     }
