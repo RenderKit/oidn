@@ -198,7 +198,7 @@ if(MSVC)
   # Enable control flow guard
   append(OIDN_C_CXX_FLAGS "/guard:cf")
 else()
-  append(OIDN_C_CXX_FLAGS "-fstack-protector")
+  append(OIDN_C_CXX_FLAGS_RELEASE "-fstack-protector")
 
   if(UNIX)
     append(OIDN_C_CXX_FLAGS "-fPIC -Wformat -Wformat-security")
