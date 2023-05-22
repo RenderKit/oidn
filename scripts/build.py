@@ -158,6 +158,8 @@ config_cmd += f' -D TBB_ROOT="{tbb_root}"'
 if cfg.full and OS != 'macos':
   config_cmd += ' -D OIDN_DEVICE_CPU=ON -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_CUDA=ON -D OIDN_DEVICE_HIP=ON'
 
+config_cmd += ' -D OIDN_WARN_AS_ERRORS=ON'
+
 if cfg.target in {'install', 'package'}:
   config_cmd += ' -D OIDN_ZIP_MODE=ON -D OIDN_INSTALL_DEPENDENCIES=ON'
 
