@@ -183,7 +183,11 @@ if msbuild:
   cmake_target = {'all' : 'ALL_BUILD', 'install' : 'INSTALL', 'package' : 'PACKAGE'}[cfg.target]
   build_cmd += f' --config {cfg.config} --target {cmake_target}'
 else:
-  build_cmd += f' --target {cfg.target} -- -v'
+  build_cmd += f' --target {cfg.target}'
+  if OS == 'macos':
+    build_cmd += ' -- VERBOSE=1' # Make
+  else:
+    build_cmd += ' -- -v' # Ninja
 
 if cfg.wrapper:
   build_cmd = cfg.wrapper + ' ' + build_cmd
