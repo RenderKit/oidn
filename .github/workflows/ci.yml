@@ -323,6 +323,22 @@ jobs:
       artifact-path: test.log
       cmd: scripts/test.py
 
+  build-windows:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@tgt/oidn-support
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "build", "cuda" ]'
+      dpcpp-version: sycl-nightly/20221215
+      ocloc-version: 9926f1ea-209e-42b3-94db-a1f895ee56ce/ocloc_win_101.4314
+      rocm-version: rocm/5.5.0
+      cmd: |
+        echo $env:ROCM_PATH
+        where ocloc.exe
+        where $env:CC
+        where $env:CXX
+        python scripts/build.py --full
+
   build-windows-msvc15-icc:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_windows.yml@main
@@ -373,14 +389,14 @@ jobs:
       artifact-path: test.log
       cmd: python scripts/test.py
 
-  test-windows-icc-avx512:
-    needs: build-windows-msvc15-icc
+  test-windows-avx512:
+    needs: build-windows
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_windows.yml@main
     with:
       runs-on: '[ "Windows", "avx512", "NAS" ]'
-      artifact-in: build-windows-msvc15-icc
-      artifact-out: test-windows-icc-avx512
+      artifact-in: build-windows
+      artifact-out: test-windows-avx512
       artifact-path: test.log
       cmd: python scripts/test.py
 
@@ -424,12 +440,19 @@ jobs:
 
   package-windows:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_windows.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@tgt/oidn-support
     with:
+      project: oidn
       runs-on: '[ "Windows", "build", "cuda" ]'
-      cmd: python scripts/build.py package --full
-      artifact-out: package-windows
-      artifact-path: build\oidn-*.zip
+      dpcpp-version: sycl-nightly/20221215
+      ocloc-version: 9926f1ea-209e-42b3-94db-a1f895ee56ce/ocloc_win_101.4314
+      rocm-version: rocm/5.5.0
+      cmd: |
+        echo $env:ROCM_PATH
+        where ocloc.exe
+        where $env:CC
+        where $env:CXX
+        python scripts/build.py package --full
 
   antivirus-scan:
     needs:
