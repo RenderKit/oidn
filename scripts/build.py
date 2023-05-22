@@ -161,8 +161,11 @@ if cfg.full and OS != 'macos':
 
 config_cmd += ' -D OIDN_WARN_AS_ERRORS=ON'
 
+if cfg.target in {'install', 'package'}:
+  config_cmd += ' -D OIDN_INSTALL_DEPENDENCIES=ON'
+
 if cfg.target == 'package':
-  config_cmd += ' -D OIDN_ZIP_MODE=ON -D OIDN_INSTALL_DEPENDENCIES=ON'
+  config_cmd += ' -D OIDN_ZIP_MODE=ON'
 
 if cfg.target == 'install':
   install_dir = os.path.join(build_dir, 'install')

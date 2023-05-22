@@ -247,7 +247,7 @@ jobs:
       runs-on: '[ "macOS", "build", "arm" ]'
       artifact-out: build-macos-clang-debug-arm
       artifact-path: ./build ./deps
-      cmd: scripts/build.py install --compiler clang --config Debug
+      cmd: scripts/build.py --compiler clang --config Debug
 
   build-macos-clang-namespace-arm:
     secrets: inherit
@@ -292,7 +292,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "avx2", "x86_64" ]'
-      cmd: scripts/build.py install --compiler clang --config Debug
+      cmd: scripts/build.py --compiler clang --config Debug
 
   build-macos-clang-namespace:
     secrets: inherit
@@ -300,22 +300,6 @@ jobs:
     with:
       runs-on: '[ "macOS", "build", "avx2", "x86_64" ]'
       cmd: scripts/build.py --compiler clang -D OIDN_API_NAMESPACE=myoidn
-
-  build-macos-icc:
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
-    with:
-      runs-on: '[ "macOS", "build", "avx2", "x86_64" ]'
-      artifact-out: build-macos-icc
-      artifact-path: ./build ./deps
-      cmd: scripts/build.py install --compiler icc
-
-  build-macos-icc-debug:
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
-    with:
-      runs-on: '[ "macOS", "build", "avx2", "x86_64" ]'
-      cmd: scripts/build.py install --compiler icc --config Debug
 
   test-macos-clang-avx2:
     needs: build-macos-clang
@@ -336,28 +320,6 @@ jobs:
       runs-on: '[ "macOS", "build", "avx512", "x86_64" ]'
       artifact-in: build-macos-clang
       artifact-out: test-macos-clang-avx512
-      artifact-path: test.log
-      cmd: scripts/test.py
-
-  test-macos-icc-avx2:
-    needs: build-macos-icc
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
-    with:
-      runs-on: '[ "macOS", "avx2", "sign", "x86_64" ]'
-      artifact-in: build-macos-icc
-      artifact-out: test-macos-icc-avx2
-      artifact-path: test.log
-      cmd: scripts/test.py
-
-  test-macos-icc-avx512:
-    needs: build-macos-icc
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
-    with:
-      runs-on: '[ "macOS", "build", "avx512", "x86_64" ]'
-      artifact-in: build-macos-icc
-      artifact-out: test-macos-icc-avx512
       artifact-path: test.log
       cmd: scripts/test.py
 
