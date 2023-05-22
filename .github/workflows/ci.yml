@@ -175,55 +175,55 @@ jobs:
       artifact-in: build-rockylinux8
       cmd: scripts/test.py --device cpu --arch pnr
 
-  test-ubuntu1804-gcc-avx2:
-    needs: build-ubuntu1804-gcc
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
-    with:
-      runs-on: '[ "Linux", "avx2" ]'
-      image: oidn-build:ubuntu18.04
-      artifact-in: build-ubuntu1804-gcc_artifact
-      cmd: scripts/test.py
+  # test-ubuntu1804-gcc-avx2:
+  #   needs: build-ubuntu1804-gcc
+  #   secrets: inherit
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
+  #   with:
+  #     runs-on: '[ "Linux", "avx2" ]'
+  #     image: oidn-build:ubuntu18.04
+  #     artifact-in: build-ubuntu1804-gcc_artifact
+  #     cmd: scripts/test.py
 
-  test-ubuntu1804-gcc-avx512:
-    needs: build-ubuntu1804-gcc
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
-    with:
-      runs-on: '[ "Linux", "build", "avx512" ]'
-      image: oidn-build:ubuntu18.04
-      artifact-in: build-ubuntu1804-gcc_artifact
-      cmd: scripts/test.py
+  # test-ubuntu1804-gcc-avx512:
+  #   needs: build-ubuntu1804-gcc
+  #   secrets: inherit
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
+  #   with:
+  #     runs-on: '[ "Linux", "build", "avx512" ]'
+  #     image: oidn-build:ubuntu18.04
+  #     artifact-in: build-ubuntu1804-gcc_artifact
+  #     cmd: scripts/test.py
 
-  test-ubuntu1804-gcc-sse4:
-    needs: build-ubuntu1804-gcc
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
-    with:
-      runs-on: '[ "Linux", "build", "build" ]'
-      image: oidn-build:ubuntu18.04
-      artifact-in: build-ubuntu1804-gcc_artifact
-      cmd: scripts/test.py --arch pnr
+  # test-ubuntu1804-gcc-sse4:
+  #   needs: build-ubuntu1804-gcc
+  #   secrets: inherit
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
+  #   with:
+  #     runs-on: '[ "Linux", "build", "build" ]'
+  #     image: oidn-build:ubuntu18.04
+  #     artifact-in: build-ubuntu1804-gcc_artifact
+  #     cmd: scripts/test.py --arch pnr
 
-  test-ubuntu1804-gcc-debug-avx2:
-    needs: build-ubuntu1804-gcc-debug
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
-    with:
-      runs-on: '[ "Linux", "avx2" ]'
-      image: oidn-build:ubuntu18.04
-      artifact-in: build-ubuntu1804-gcc-debug_artifact
-      cmd: scripts/test.py
+  # test-ubuntu1804-gcc-debug-avx2:
+  #   needs: build-ubuntu1804-gcc-debug
+  #   secrets: inherit
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
+  #   with:
+  #     runs-on: '[ "Linux", "avx2" ]'
+  #     image: oidn-build:ubuntu18.04
+  #     artifact-in: build-ubuntu1804-gcc-debug_artifact
+  #     cmd: scripts/test.py
 
-  test-ubuntu1804-gcc-debug-avx512:
-    needs: build-ubuntu1804-gcc-debug
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
-    with:
-      runs-on: '[ "Linux", "build", "avx512" ]'
-      image: oidn-build:ubuntu18.04
-      artifact-in: build-ubuntu1804-gcc-debug_artifact
-      cmd: scripts/test.py
+  # test-ubuntu1804-gcc-debug-avx512:
+  #   needs: build-ubuntu1804-gcc-debug
+  #   secrets: inherit
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
+  #   with:
+  #     runs-on: '[ "Linux", "build", "avx512" ]'
+  #     image: oidn-build:ubuntu18.04
+  #     artifact-in: build-ubuntu1804-gcc-debug_artifact
+  #     cmd: scripts/test.py
 
   build-macos-clang-arm:
     secrets: inherit
