@@ -172,13 +172,15 @@ jobs:
   test-rockylinux8-sse4:
     needs: build-rockylinux8
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@tgt/oidn-support
     with:
+      project: oidn
       runs-on: '[ "Linux", "build" ]'
       image: oidn/rockylinux:8.6
       artifact-in: build-rockylinux8
       artifact-out: test-rockylinux8-sse4
       artifact-path: test.log
+      artifact-on-failure: true
       cmd: scripts/test.py --device cpu --arch pnr
 
   # test-ubuntu1804-gcc-avx2:
@@ -338,15 +340,6 @@ jobs:
         where $env:CC
         where $env:CXX
         python scripts/build.py --full
-
-  build-windows-msvc15-icc:
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_windows.yml@main
-    with:
-      runs-on: '[ "Windows", "build", "icc19.0" ]'
-      artifact-out: build-windows-msvc15-icc
-      artifact-path: build deps
-      cmd: python scripts/build.py install --compiler msvc15-icc19
 
   build-windows-msvc15:
     secrets: inherit
