@@ -3,17 +3,22 @@
 
 include(CMakeDependentOption)
 
-add_library(OpenImageDenoise_utils STATIC
+set(OIDN_UTILS_SOURCES
   arg_parser.h
   arg_parser.cpp
   device_info.h
-  dummy.c
   image_buffer.h
   image_buffer.cpp
   image_io.h
   image_io.cpp
   random.h
 )
+
+if(NOT OIDN_API_NAMESPACE)
+  list(APPEND OIDN_UTILS_SOURCES dummy.c)
+endif()
+
+add_library(OpenImageDenoise_utils STATIC ${OIDN_UTILS_SOURCES})
 
 target_link_libraries(OpenImageDenoise_utils PUBLIC OpenImageDenoise_common OpenImageDenoise)
 
