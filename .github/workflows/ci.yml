@@ -154,7 +154,7 @@ jobs:
       image: oidn/rockylinux:8.6
       artifact-in: build-rockylinux8
       artifact-out: test-rockylinux8-avx2
-      artifact-path: *.log
+      artifact-path: test.log
       cmd: scripts/test.py --device cpu
 
   test-rockylinux8-avx512:
@@ -166,7 +166,7 @@ jobs:
       image: oidn/rockylinux:8.6
       artifact-in: build-rockylinux8
       artifact-out: test-rockylinux8-avx512
-      artifact-path: *.log
+      artifact-path: test.log
       cmd: scripts/test.py --device cpu
 
   test-rockylinux8-sse4:
@@ -178,7 +178,7 @@ jobs:
       image: oidn/rockylinux:8.6
       artifact-in: build-rockylinux8
       artifact-out: test-rockylinux8-sse4
-      artifact-path: *.log
+      artifact-path: test.log
       cmd: scripts/test.py --device cpu --arch pnr
 
   # test-ubuntu1804-gcc-avx2:
@@ -264,7 +264,7 @@ jobs:
       runs-on: '[ "macOS", "build", "arm" ]'
       artifact-in: build-macos-clang-arm
       artifact-out: test-macos-clang-arm
-      artifact-path: *.log
+      artifact-path: test.log
       cmd: scripts/test.py
 
   test-macos-clang-debug-arm:
@@ -275,7 +275,7 @@ jobs:
       runs-on: '[ "macOS", "build", "arm" ]'
       artifact-in: build-macos-clang-debug-arm
       artifact-out: test-macos-clang-debug-arm
-      artifact-path: *.log
+      artifact-path: test.log
       cmd: scripts/test.py
 
   build-macos-clang:
@@ -325,7 +325,7 @@ jobs:
       runs-on: '[ "macOS", "avx2", "sign", "x86_64" ]'
       artifact-in: build-macos-clang
       artifact-out: test-macos-clang-avx2
-      artifact-path: *.log
+      artifact-path: test.log
       cmd: scripts/test.py
 
   test-macos-clang-avx512:
@@ -336,7 +336,7 @@ jobs:
       runs-on: '[ "macOS", "build", "avx512", "x86_64" ]'
       artifact-in: build-macos-clang
       artifact-out: test-macos-clang-avx512
-      artifact-path: *.log
+      artifact-path: test.log
       cmd: scripts/test.py
 
   test-macos-icc-avx2:
@@ -347,7 +347,7 @@ jobs:
       runs-on: '[ "macOS", "avx2", "sign", "x86_64" ]'
       artifact-in: build-macos-icc
       artifact-out: test-macos-icc-avx2
-      artifact-path: *.log
+      artifact-path: test.log
       cmd: scripts/test.py
 
   test-macos-icc-avx512:
@@ -358,7 +358,7 @@ jobs:
       runs-on: '[ "macOS", "build", "avx512", "x86_64" ]'
       artifact-in: build-macos-icc
       artifact-out: test-macos-icc-avx512
-      artifact-path: *.log
+      artifact-path: test.log
       cmd: scripts/test.py
 
   build-windows-msvc15-icc:
@@ -408,7 +408,7 @@ jobs:
       runs-on: '[ "Windows", "avx512", "NAS" ]'
       artifact-in: build-windows-msvc16
       artifact-out: test-windows-msvc16-avx512
-      artifact-path: *.log
+      artifact-path: test.log
       cmd: python scripts/test.py
 
   test-windows-icc-avx512:
@@ -419,7 +419,7 @@ jobs:
       runs-on: '[ "Windows", "avx512", "NAS" ]'
       artifact-in: build-windows-msvc15-icc
       artifact-out: test-windows-icc-avx512
-      artifact-path: *.log
+      artifact-path: test.log
       cmd: python scripts/test.py
 
   kw-build-scan-report:
