@@ -81,8 +81,12 @@ target_link_libraries(OpenImageDenoise_core
   PUBLIC
     OpenImageDenoise_common
   PRIVATE
-    OpenImageDenoise_weights Threads::Threads ${CMAKE_DL_LIBS}
+    Threads::Threads ${CMAKE_DL_LIBS}
 )
+
+if(TARGET OpenImageDenoise_weights)
+  target_link_libraries(OpenImageDenoise_core PRIVATE OpenImageDenoise_weights)
+endif()
 
 oidn_export_all_symbols(OpenImageDenoise_core)
 

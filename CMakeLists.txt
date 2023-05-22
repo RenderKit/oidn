@@ -69,7 +69,9 @@ if(OIDN_FILTER_RTLIGHTMAP)
 endif()
 
 oidn_generate_cpp_from_blob(OIDN_WEIGHTS_SOURCES "${OIDN_NAMESPACE}::blobs::weights" ${OIDN_WEIGHTS})
-add_library(OpenImageDenoise_weights OBJECT ${OIDN_WEIGHTS_SOURCES})
+if(OIDN_WEIGHTS_SOURCES)
+  add_library(OpenImageDenoise_weights OBJECT ${OIDN_WEIGHTS_SOURCES})
+endif()
 
 ## -----------------------------------------------------------------------------
 ## Libraries
