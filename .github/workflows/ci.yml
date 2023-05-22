@@ -86,7 +86,7 @@ jobs:
   #   with:
   #     image: oidn-build:ubuntu18.04
   #     cmd: scripts/build.py install --compiler gcc
-  #     artifact-out: build-ubuntu1804-gcc_artifact
+  #     artifact-out: build-ubuntu1804-gcc
   #     artifact-path: ./build ./deps
 
   # build-ubuntu1804-gcc-debug:
@@ -95,7 +95,7 @@ jobs:
   #   with:
   #     image: oidn-build:ubuntu18.04
   #     cmd: scripts/build.py install --compiler gcc --config Debug
-  #     artifact-out: build-ubuntu1804-gcc-debug_artifact
+  #     artifact-out: build-ubuntu1804-gcc-debug
   #     artifact-path: ./build ./deps
 
   # build-ubuntu1804-clang:
@@ -153,6 +153,8 @@ jobs:
       runs-on: '[ "Linux", "avx2" ]'
       image: oidn/rockylinux:8.6
       artifact-in: build-rockylinux8
+      artifact-out: test-rockylinux8-avx2
+      artifact-path: *.log
       cmd: scripts/test.py --device cpu
 
   test-rockylinux8-avx512:
@@ -163,6 +165,8 @@ jobs:
       runs-on: '[ "Linux", "build", "avx512" ]'
       image: oidn/rockylinux:8.6
       artifact-in: build-rockylinux8
+      artifact-out: test-rockylinux8-avx512
+      artifact-path: *.log
       cmd: scripts/test.py --device cpu
 
   test-rockylinux8-sse4:
@@ -173,6 +177,8 @@ jobs:
       runs-on: '[ "Linux", "build" ]'
       image: oidn/rockylinux:8.6
       artifact-in: build-rockylinux8
+      artifact-out: test-rockylinux8-sse4
+      artifact-path: *.log
       cmd: scripts/test.py --device cpu --arch pnr
 
   # test-ubuntu1804-gcc-avx2:
@@ -182,7 +188,7 @@ jobs:
   #   with:
   #     runs-on: '[ "Linux", "avx2" ]'
   #     image: oidn-build:ubuntu18.04
-  #     artifact-in: build-ubuntu1804-gcc_artifact
+  #     artifact-in: build-ubuntu1804-gcc
   #     cmd: scripts/test.py
 
   # test-ubuntu1804-gcc-avx512:
@@ -192,7 +198,7 @@ jobs:
   #   with:
   #     runs-on: '[ "Linux", "build", "avx512" ]'
   #     image: oidn-build:ubuntu18.04
-  #     artifact-in: build-ubuntu1804-gcc_artifact
+  #     artifact-in: build-ubuntu1804-gcc
   #     cmd: scripts/test.py
 
   # test-ubuntu1804-gcc-sse4:
@@ -202,7 +208,7 @@ jobs:
   #   with:
   #     runs-on: '[ "Linux", "build", "build" ]'
   #     image: oidn-build:ubuntu18.04
-  #     artifact-in: build-ubuntu1804-gcc_artifact
+  #     artifact-in: build-ubuntu1804-gcc
   #     cmd: scripts/test.py --arch pnr
 
   # test-ubuntu1804-gcc-debug-avx2:
@@ -212,7 +218,7 @@ jobs:
   #   with:
   #     runs-on: '[ "Linux", "avx2" ]'
   #     image: oidn-build:ubuntu18.04
-  #     artifact-in: build-ubuntu1804-gcc-debug_artifact
+  #     artifact-in: build-ubuntu1804-gcc-debug
   #     cmd: scripts/test.py
 
   # test-ubuntu1804-gcc-debug-avx512:
@@ -222,7 +228,7 @@ jobs:
   #   with:
   #     runs-on: '[ "Linux", "build", "avx512" ]'
   #     image: oidn-build:ubuntu18.04
-  #     artifact-in: build-ubuntu1804-gcc-debug_artifact
+  #     artifact-in: build-ubuntu1804-gcc-debug
   #     cmd: scripts/test.py
 
   build-macos-clang-arm:
@@ -230,7 +236,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "arm" ]'
-      artifact-out: test-macos-clang-arm_artifact
+      artifact-out: build-macos-clang-arm
       artifact-path: ./build ./deps
       cmd: scripts/build.py install --compiler clang
 
@@ -239,7 +245,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "arm" ]'
-      artifact-out: test-macos-clang-debug-arm_artifact
+      artifact-out: build-macos-clang-debug-arm
       artifact-path: ./build ./deps
       cmd: scripts/build.py install --compiler clang --config Debug
 
@@ -256,7 +262,9 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "arm" ]'
-      artifact-in: test-macos-clang-arm_artifact
+      artifact-in: build-macos-clang-arm
+      artifact-out: test-macos-clang-arm
+      artifact-path: *.log
       cmd: scripts/test.py
 
   test-macos-clang-debug-arm:
@@ -265,7 +273,9 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "arm" ]'
-      artifact-in: test-macos-clang-debug-arm_artifact
+      artifact-in: build-macos-clang-debug-arm
+      artifact-out: test-macos-clang-debug-arm
+      artifact-path: *.log
       cmd: scripts/test.py
 
   build-macos-clang:
@@ -273,7 +283,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "avx2", "x86_64" ]'
-      artifact-out: build-macos-clang_artifact
+      artifact-out: build-macos-clang
       artifact-path: ./build ./deps
       cmd: scripts/build.py install --compiler clang
 
@@ -296,7 +306,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "avx2", "x86_64" ]'
-      artifact-out: build-macos-icc_artifact
+      artifact-out: build-macos-icc
       artifact-path: ./build ./deps
       cmd: scripts/build.py install --compiler icc
 
@@ -313,7 +323,9 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "avx2", "sign", "x86_64" ]'
-      artifact-in: build-macos-clang_artifact
+      artifact-in: build-macos-clang
+      artifact-out: test-macos-clang-avx2
+      artifact-path: *.log
       cmd: scripts/test.py
 
   test-macos-clang-avx512:
@@ -322,7 +334,9 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "avx512", "x86_64" ]'
-      artifact-in: build-macos-clang_artifact
+      artifact-in: build-macos-clang
+      artifact-out: test-macos-clang-avx512
+      artifact-path: *.log
       cmd: scripts/test.py
 
   test-macos-icc-avx2:
@@ -331,7 +345,9 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "avx2", "sign", "x86_64" ]'
-      artifact-in: build-macos-icc_artifact
+      artifact-in: build-macos-icc
+      artifact-out: test-macos-icc-avx2
+      artifact-path: *.log
       cmd: scripts/test.py
 
   test-macos-icc-avx512:
@@ -340,7 +356,9 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "avx512", "x86_64" ]'
-      artifact-in: build-macos-icc_artifact
+      artifact-in: build-macos-icc
+      artifact-out: test-macos-icc-avx512
+      artifact-path: *.log
       cmd: scripts/test.py
 
   build-windows-msvc15-icc:
@@ -348,7 +366,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_windows.yml@main
     with:
       runs-on: '[ "Windows", "build", "icc19.0" ]'
-      artifact-out: build-windows-msvc15-icc_artifact
+      artifact-out: build-windows-msvc15-icc
       artifact-path: build deps
       cmd: python scripts/build.py install --compiler msvc15-icc19
 
@@ -378,7 +396,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_windows.yml@main
     with:
       runs-on: '[ "Windows", "build" ]'
-      artifact-out: build-windows-msvc16_artifact
+      artifact-out: build-windows-msvc16
       artifact-path: build deps
       cmd: python scripts/build.py install --compiler msvc16
 
@@ -388,7 +406,9 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_windows.yml@main
     with:
       runs-on: '[ "Windows", "avx512", "NAS" ]'
-      artifact-in: build-windows-msvc16_artifact
+      artifact-in: build-windows-msvc16
+      artifact-out: test-windows-msvc16-avx512
+      artifact-path: *.log
       cmd: python scripts/test.py
 
   test-windows-icc-avx512:
@@ -397,7 +417,9 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_windows.yml@main
     with:
       runs-on: '[ "Windows", "avx512", "NAS" ]'
-      artifact-in: build-windows-msvc15-icc_artifact
+      artifact-in: build-windows-msvc15-icc
+      artifact-out: test-windows-icc-avx512
+      artifact-path: *.log
       cmd: python scripts/test.py
 
   kw-build-scan-report:
