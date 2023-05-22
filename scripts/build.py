@@ -161,7 +161,7 @@ if cfg.full and OS != 'macos':
 
 config_cmd += ' -D OIDN_WARN_AS_ERRORS=ON'
 
-if cfg.target in {'install', 'package'}:
+if cfg.target == 'package':
   config_cmd += ' -D OIDN_ZIP_MODE=ON -D OIDN_INSTALL_DEPENDENCIES=ON'
 
 if cfg.target == 'install':

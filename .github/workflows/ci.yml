@@ -22,8 +22,17 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
     with:
       image: oidn/rockylinux:8.6
-      cmd: scripts/build.py install --full --config Debug
-      artifact-out: build-rockylinux8
+      cmd: scripts/build.py install --compiler clang --config Debug -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=OFF -D OIDN_DEVICE_CUDA=ON
+      artifact-out: build-rockylinux8-debug
+      artifact-path: ./build ./deps
+
+  build-rockylinux8-jit:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
+    with:
+      image: oidn/rockylinux:8.6
+      cmd: scripts/build.py install --full -D OIDN_DEVICE_SYCL_AOT=OFF
+      artifact-out: build-rockylinux8-jit
       artifact-path: ./build ./deps
 
   build-rockylinux8-namespace:
@@ -32,55 +41,80 @@ jobs:
     with:
       image: oidn/rockylinux:8.6
       cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
-      artifact-out: build-rockylinux8
+      artifact-out: build-rockylinux8-namespace
       artifact-path: ./build ./deps
 
-  build-arch-gcc-oiio:
+  build-rockylinux8-gcc:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
     with:
-      image: oidn-build:arch
-      cmd: |
-        mkdir build
-        cd build
-        cmake -D OIDN_APPS_OPENIMAGEIO=ON ..
-        make -j8 VERBOSE=1
-
-  build-ubuntu1804-gcc:
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
-    with:
-      image: oidn-build:ubuntu18.04
-      cmd: scripts/build.py install --compiler gcc
-      artifact-out: build-ubuntu1804-gcc_artifact
+      image: oidn/rockylinux:8.6
+      cmd: scripts/build.py install --compiler gcc -D OIDN_DEVICE_CUDA=ON -D OIDN_DEVICE_HIP=ON
+      artifact-out: build-rockylinux8-gcc
       artifact-path: ./build ./deps
 
-  build-ubuntu1804-gcc-debug:
+  build-rockylinux8-gcc-debug:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
     with:
-      image: oidn-build:ubuntu18.04
-      cmd: scripts/build.py install --compiler gcc --config Debug
-      artifact-out: build-ubuntu1804-gcc-debug_artifact
+      image: oidn/rockylinux:8.6
+      cmd: scripts/build.py install --compiler gcc --config Debug -D OIDN_DEVICE_CUDA=ON -D OIDN_DEVICE_HIP=ON
+      artifact-out: build-rockylinux8-gcc-debug
       artifact-path: ./build ./deps
 
-  build-ubuntu1804-clang:
+  build-rockylinux8-gcc-minimal:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
     with:
-      image: oidn-build:ubuntu18.04
-      cmd: scripts/build.py --compiler clang
+      image: oidn/rockylinux:8.6
+      cmd: scripts/build.py install --compiler gcc -D OIDN_FILTER_RT=OFF -D OIDN_FILTER_RTLIGHTMAP=OFF
+      artifact-out: build-rockylinux8-gcc-minimal
+      artifact-path: ./build ./deps
 
-  build-ubuntu1804-gcc-tbb2007:
+  build-ubuntu2204:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
     with:
-      image: oidn-build:ubuntu18.04
-      cmd: |
-        mkdir build
-        cd build
-        cmake ..
-        make -j8 VERBOSE=1
+      image: oidn/ubuntu:22.04
+      cmd: scripts/build.py install --full
+      artifact-out: build-ubuntu2204
+      artifact-path: ./build ./deps
+
+  # build-ubuntu1804-gcc:
+  #   secrets: inherit
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
+  #   with:
+  #     image: oidn-build:ubuntu18.04
+  #     cmd: scripts/build.py install --compiler gcc
+  #     artifact-out: build-ubuntu1804-gcc_artifact
+  #     artifact-path: ./build ./deps
+
+  # build-ubuntu1804-gcc-debug:
+  #   secrets: inherit
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
+  #   with:
+  #     image: oidn-build:ubuntu18.04
+  #     cmd: scripts/build.py install --compiler gcc --config Debug
+  #     artifact-out: build-ubuntu1804-gcc-debug_artifact
+  #     artifact-path: ./build ./deps
+
+  # build-ubuntu1804-clang:
+  #   secrets: inherit
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
+  #   with:
+  #     image: oidn-build:ubuntu18.04
+  #     cmd: scripts/build.py --compiler clang
+
+  # build-ubuntu1804-gcc-tbb2007:
+  #   secrets: inherit
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
+  #   with:
+  #     image: oidn-build:ubuntu18.04
+  #     cmd: |
+  #       mkdir build
+  #       cd build
+  #       cmake ..
+  #       make -j8 VERBOSE=1
 
   build-ubuntu2004-gcc-oiio:
     secrets: inherit
@@ -93,12 +127,23 @@ jobs:
         cmake -D OIDN_APPS_OPENIMAGEIO=ON ..
         make -j8 VERBOSE=1
 
-  build-ubuntu2004-gcc-minimal:
+  # build-ubuntu2004-gcc-minimal:
+  #   secrets: inherit
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
+  #   with:
+  #     image: oidn-build:ubuntu20.04
+  #     cmd: scripts/build.py --compiler gcc -D OIDN_FILTER_RT=OFF -D OIDN_FILTER_RTLIGHTMAP=OFF
+
+  build-arch-gcc-oiio:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
     with:
-      image: oidn-build:ubuntu20.04
-      cmd: scripts/build.py --compiler gcc -D OIDN_FILTER_RT=OFF -D OIDN_FILTER_RTLIGHTMAP=OFF
+      image: oidn-build:arch
+      cmd: |
+        mkdir build
+        cd build
+        cmake -D OIDN_APPS_OPENIMAGEIO=ON ..
+        make -j8 VERBOSE=1
 
   test-rockylinux8-avx2:
     needs: build-rockylinux8
