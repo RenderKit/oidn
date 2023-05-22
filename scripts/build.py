@@ -85,7 +85,8 @@ if OS == 'windows':
         icc_version = {'18' : '18.0', '19' : '19.0', '20' : '19.1', '21' : '19.2'}[compiler[3:]]
         config_cmd += f' -T "Intel C++ Compiler {icc_version}"'
 else:
-  config_cmd += ' -G Ninja'
+  if OS == 'linux':
+    config_cmd += ' -G Ninja'
   if cfg.compiler != 'default':
     cc = cfg.compiler
     cxx = {'gcc' : 'g++', 'clang' : 'clang++', 'icx' : 'icx', 'icc' : 'icpc'}[cc]
@@ -147,7 +148,7 @@ if not os.path.isdir(tbb_dir):
     tbb_build_dir = os.path.join(tbb_src_dir, 'build')
     os.mkdir(tbb_build_dir)
     os.chdir(tbb_build_dir)
-    tbb_config_cmd = f'cmake -L -G Ninja -D CMAKE_BUILD_TYPE=Release -D TBB_TEST=OFF -D CMAKE_INSTALL_PREFIX={tbb_root} ..'
+    tbb_config_cmd = f'cmake -L -D CMAKE_BUILD_TYPE=Release -D TBB_TEST=OFF -D CMAKE_INSTALL_PREFIX={tbb_root} ..'
     tbb_config_cmd += ' -D CMAKE_OSX_DEPLOYMENT_TARGET=11.0'
     run(tbb_config_cmd)
     run('cmake --build . --target install')

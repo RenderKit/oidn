@@ -8,17 +8,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-arch-gcc-oiio:
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
-    with:
-      image: oidn-build:arch
-      cmd: |
-        mkdir build
-        cd build
-        cmake -D OIDN_APPS_OPENIMAGEIO=ON ..
-        make -j8 VERBOSE=1
-
   build-rockylinux8:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
@@ -45,6 +34,17 @@ jobs:
       cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
       artifact-out: build-rockylinux8
       artifact-path: ./build ./deps
+
+  build-arch-gcc-oiio:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
+    with:
+      image: oidn-build:arch
+      cmd: |
+        mkdir build
+        cd build
+        cmake -D OIDN_APPS_OPENIMAGEIO=ON ..
+        make -j8 VERBOSE=1
 
   build-ubuntu1804-gcc:
     secrets: inherit
@@ -372,7 +372,7 @@ jobs:
     with:
       image: oidn/rockylinux:8.6
       cmd: scripts/build.py package --full
-      artifact-out: package-linux-artifact
+      artifact-out: package-linux
       artifact-path: ./build/oidn-*.tar.gz
 
   package-macos:
@@ -380,17 +380,26 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "sign", "x86_64" ]'
-      cmd: scripts/build.py package --compiler icc
-      artifact-out: package-macos-artifact
+      cmd: scripts/build.py package --full
+      artifact-out: package-macos
+      artifact-path: ./build/oidn-*.tar.gz
+
+  package-macos-arm:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
+    with:
+      runs-on: '[ "macOS", "sign", "arm" ]'
+      cmd: scripts/build.py package --full
+      artifact-out: package-macos-arm
       artifact-path: ./build/oidn-*.tar.gz
 
   package-windows:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_windows.yml@main
     with:
-      runs-on: '[ "Windows", "build", "icc19.0" ]'
-      cmd: python scripts/build.py package --compiler msvc15-icc19
-      artifact-out: package-windows-artifact
+      runs-on: '[ "Windows", "build", "cuda" ]'
+      cmd: python scripts/build.py package --full
+      artifact-out: package-windows
       artifact-path: build\oidn-*.zip
 
   antivirus-scan:
@@ -402,9 +411,19 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/antivirus_scan.yml@main
     with:
       project: oidn
-      artifact-in-linux: package-linux-artifact
-      artifact-in-macos: package-macos-artifact
-      artifact-in-windows: package-windows-artifact
+      artifact-in-linux: package-linux
+      artifact-in-macos: package-macos
+      artifact-in-windows: package-windows
+      path: ./build/oidn-*
+
+  antivirus-scan-arm:
+    needs:
+      - package-macos-arm
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/antivirus_scan.yml@main
+    with:
+      project: oidn
+      artifact-in-macos: package-macos-arm
       path: ./build/oidn-*
 
   binary-analysis:
@@ -416,7 +435,17 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/binary_analysis.yml@main
     with:
       project: oidn
-      artifact-in-linux: package-linux-artifact
-      artifact-in-macos: package-macos-artifact
-      artifact-in-windows: package-windows-artifact
+      artifact-in-linux: package-linux
+      artifact-in-macos: package-macos
+      artifact-in-windows: package-windows
+      path: ./build/oidn-*
+
+  binary-analysis-arm:
+    needs:
+      - package-macos-arm
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/binary_analysis.yml@main
+    with:
+      project: oidn
+      artifact-in-macos: package-macos-arm
       path: ./build/oidn-*
