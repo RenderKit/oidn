@@ -58,7 +58,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
     with:
       image: oidn/rockylinux:8.6
-      cmd: scripts/build.py install --compiler gcc --config Debug -D OIDN_DEVICE_CUDA=ON -D OIDN_DEVICE_HIP=ON
+      cmd: scripts/build.py install --compiler gcc --config Debug -D OIDN_DEVICE_CUDA=ON
       artifact-out: build-rockylinux8-gcc-debug
       artifact-path: ./build ./deps
 
