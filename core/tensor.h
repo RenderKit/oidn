@@ -48,7 +48,7 @@ OIDN_NAMESPACE_BEGIN
       return getRank() == info.rank &&
              dims.size() == paddedDims.size() &&
              std::mismatch(dims.begin(), dims.end(), paddedDims.begin(),
-                           std::less_equal<int>()).first == dims.end() &&
+                           [](int a, int b) { return a <= b; }).first == dims.end() &&
              (info.blockC == 1 ||
                (getRank() == 3 && getPaddedC() % info.blockC == 0) ||
                (getRank() == 4 && getPaddedO() % info.blockC == 0 && getPaddedI() % info.blockC == 0));
