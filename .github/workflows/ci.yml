@@ -17,6 +17,7 @@ jobs:
       artifact-out: build-rockylinux8
       artifact-path: ./build ./deps
 
+  # FIXME: enable AOT and HIP
   build-rockylinux8-debug:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
@@ -42,6 +43,16 @@ jobs:
       image: oidn/rockylinux:8.6
       cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
       artifact-out: build-rockylinux8-namespace
+      artifact-path: ./build ./deps
+
+  # FIXME: enable AOT and HIP
+  build-rockylinux8-namespace-debug:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
+    with:
+      image: oidn/rockylinux:8.6
+      cmd: scripts/build.py install --compiler clang --config Debug -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=OFF -D OIDN_DEVICE_CUDA=ON -D OIDN_API_NAMESPACE=myoidn
+      artifact-out: build-rockylinux8-namespace-debug
       artifact-path: ./build ./deps
 
   build-rockylinux8-gcc:
@@ -148,40 +159,73 @@ jobs:
   test-rockylinux8-avx2:
     needs: build-rockylinux8
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@tgt/oidn-support
     with:
-      runs-on: '[ "Linux", "avx2" ]'
+      project: oidn
+      runs-on: '[ "Linux", "build", "avx2" ]'
       image: oidn/rockylinux:8.6
       artifact-in: build-rockylinux8
       artifact-out: test-rockylinux8-avx2
       artifact-path: test.log
+      artifact-on-failure: true
       cmd: scripts/test.py --device cpu
 
   test-rockylinux8-avx512:
     needs: build-rockylinux8
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@tgt/oidn-support
     with:
+      project: oidn
       runs-on: '[ "Linux", "build", "avx512" ]'
       image: oidn/rockylinux:8.6
       artifact-in: build-rockylinux8
       artifact-out: test-rockylinux8-avx512
       artifact-path: test.log
+      artifact-on-failure: true
       cmd: scripts/test.py --device cpu
 
-  test-rockylinux8-sse4:
-    needs: build-rockylinux8
+  # TODO: Install SDE
+  # test-rockylinux8-sse4:
+  #   needs: build-rockylinux8
+  #   secrets: inherit
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@tgt/oidn-support
+  #   with:
+  #     project: oidn
+  #     runs-on: '[ "Linux", "build" ]'
+  #     image: oidn/rockylinux:8.6
+  #     artifact-in: build-rockylinux8
+  #     artifact-out: test-rockylinux8-sse4
+  #     artifact-path: test.log
+  #     artifact-on-failure: true
+  #     cmd: scripts/test.py --device cpu --arch pnr
+
+  test-rockylinux8-debug-avx2:
+    needs: build-rockylinux8-debug
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@tgt/oidn-support
     with:
       project: oidn
-      runs-on: '[ "Linux", "build" ]'
+      runs-on: '[ "Linux", "avx2" ]'
       image: oidn/rockylinux:8.6
-      artifact-in: build-rockylinux8
-      artifact-out: test-rockylinux8-sse4
+      artifact-in: build-rockylinux8-debug
+      artifact-out: test-rockylinux8-debug-avx2
       artifact-path: test.log
       artifact-on-failure: true
-      cmd: scripts/test.py --device cpu --arch pnr
+      cmd: scripts/test.py --device cpu
+
+  test-rockylinux8-namespace-avx2:
+    needs: build-rockylinux8-namespace
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@tgt/oidn-support
+    with:
+      project: oidn
+      runs-on: '[ "Linux", "avx2" ]'
+      image: oidn/rockylinux:8.6
+      artifact-in: build-rockylinux8-namespace
+      artifact-out: test-rockylinux8-namespace-avx2
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: scripts/test.py --device cpu
 
   # test-ubuntu1804-gcc-avx2:
   #   needs: build-ubuntu1804-gcc
@@ -233,95 +277,134 @@ jobs:
   #     artifact-in: build-ubuntu1804-gcc-debug
   #     cmd: scripts/test.py
 
-  build-macos-clang-arm:
+  build-macos-arm:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "arm" ]'
-      artifact-out: build-macos-clang-arm
+      artifact-out: build-macos-arm
       artifact-path: ./build ./deps
-      cmd: scripts/build.py install --compiler clang
+      cmd: scripts/build.py install --full
 
-  build-macos-clang-debug-arm:
+  build-macos-debug-arm:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "arm" ]'
-      artifact-out: build-macos-clang-debug-arm
+      artifact-out: build-macos-debug-arm
       artifact-path: ./build ./deps
-      cmd: scripts/build.py --compiler clang --config Debug
+      cmd: scripts/build.py install --full --config Debug
 
-  build-macos-clang-namespace-arm:
+  build-macos-namespace-arm:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "arm" ]'
-      cmd: scripts/build.py --compiler clang -D OIDN_API_NAMESPACE=myoidn
+      artifact-out: build-macos-namespace-arm
+      artifact-path: ./build ./deps
+      cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
 
-  test-macos-clang-arm:
-    needs: build-macos-clang-arm
+  test-macos-arm:
+    needs: build-macos-arm
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "arm" ]'
-      artifact-in: build-macos-clang-arm
-      artifact-out: test-macos-clang-arm
+      artifact-in: build-macos-arm
+      artifact-out: test-macos-arm
       artifact-path: test.log
       cmd: scripts/test.py
 
-  test-macos-clang-debug-arm:
-    needs: build-macos-clang-debug-arm
+  test-macos-debug-arm:
+    needs: build-macos-debug-arm
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "arm" ]'
-      artifact-in: build-macos-clang-debug-arm
-      artifact-out: test-macos-clang-debug-arm
+      artifact-in: build-macos-debug-arm
+      artifact-out: test-macos-debug-arm
       artifact-path: test.log
       cmd: scripts/test.py
 
-  build-macos-clang:
+  test-macos-namespace-arm:
+    needs: build-macos-namespace-arm
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
+    with:
+      runs-on: '[ "macOS", "build", "arm" ]'
+      artifact-in: build-macos-namespace-arm
+      artifact-out: test-macos-namespace-arm
+      artifact-path: test.log
+      cmd: scripts/test.py
+
+  build-macos:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "avx2", "x86_64" ]'
-      artifact-out: build-macos-clang
+      artifact-out: build-macos
       artifact-path: ./build ./deps
-      cmd: scripts/build.py install --compiler clang
+      cmd: scripts/build.py install --full
 
-  build-macos-clang-debug:
+  build-macos-debug:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "avx2", "x86_64" ]'
-      cmd: scripts/build.py --compiler clang --config Debug
+      artifact-out: build-macos-debug
+      artifact-path: ./build ./deps
+      cmd: scripts/build.py install --full --config Debug
 
-  build-macos-clang-namespace:
+  build-macos-namespace:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "avx2", "x86_64" ]'
-      cmd: scripts/build.py --compiler clang -D OIDN_API_NAMESPACE=myoidn
+      artifact-out: build-macos-namespace
+      artifact-path: ./build ./deps
+      cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
 
-  test-macos-clang-avx2:
-    needs: build-macos-clang
+  test-macos-avx2:
+    needs: build-macos
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "avx2", "sign", "x86_64" ]'
-      artifact-in: build-macos-clang
-      artifact-out: test-macos-clang-avx2
+      artifact-in: build-macos
+      artifact-out: test-macos-avx2
       artifact-path: test.log
       cmd: scripts/test.py
 
-  test-macos-clang-avx512:
-    needs: build-macos-clang
+  test-macos-avx512:
+    needs: build-macos
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
       runs-on: '[ "macOS", "build", "avx512", "x86_64" ]'
-      artifact-in: build-macos-clang
-      artifact-out: test-macos-clang-avx512
+      artifact-in: build-macos
+      artifact-out: test-macos-avx512
+      artifact-path: test.log
+      cmd: scripts/test.py
+
+  test-macos-debug-avx2:
+    needs: build-macos-debug
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
+    with:
+      runs-on: '[ "macOS", "avx2", "sign", "x86_64" ]'
+      artifact-in: build-macos-debug
+      artifact-out: test-macos-debug-avx2
+      artifact-path: test.log
+      cmd: scripts/test.py
+
+  test-macos-namespace-avx2:
+    needs: build-macos-namespace
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
+    with:
+      runs-on: '[ "macOS", "avx2", "sign", "x86_64" ]'
+      artifact-in: build-macos-namespace
+      artifact-out: test-macos-namespace-avx2
       artifact-path: test.log
       cmd: scripts/test.py
 
@@ -334,12 +417,51 @@ jobs:
       dpcpp-version: sycl-nightly/20221215
       ocloc-version: 9926f1ea-209e-42b3-94db-a1f895ee56ce/ocloc_win_101.4314
       rocm-version: rocm/5.5.0
+      artifact-out: build-windows
+      artifact-path: build
       cmd: |
         echo $env:ROCM_PATH
         where ocloc.exe
         where $env:CC
         where $env:CXX
-        python scripts/build.py --full
+        python scripts/build.py install --full
+
+  # FIXME: enable AOT and HIP
+  build-windows-debug:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@tgt/oidn-support
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "build", "cuda" ]'
+      dpcpp-version: sycl-nightly/20221215
+      ocloc-version: 9926f1ea-209e-42b3-94db-a1f895ee56ce/ocloc_win_101.4314
+      rocm-version: rocm/5.5.0
+      artifact-out: build-windows-debug
+      artifact-path: build
+      cmd: |
+        echo $env:ROCM_PATH
+        where ocloc.exe
+        where $env:CC
+        where $env:CXX
+        python scripts/build.py install --compiler clang --config Debug -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=OFF -D OIDN_DEVICE_CUDA=ON
+
+  build-windows-namespace:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@tgt/oidn-support
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "build", "cuda" ]'
+      dpcpp-version: sycl-nightly/20221215
+      ocloc-version: 9926f1ea-209e-42b3-94db-a1f895ee56ce/ocloc_win_101.4314
+      rocm-version: rocm/5.5.0
+      artifact-out: build-windows-namespace
+      artifact-path: build
+      cmd: |
+        echo $env:ROCM_PATH
+        where ocloc.exe
+        where $env:CC
+        where $env:CXX
+        python scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
 
   build-windows-msvc15:
     secrets: inherit
@@ -368,17 +490,17 @@ jobs:
     with:
       runs-on: '[ "Windows", "build" ]'
       artifact-out: build-windows-msvc16
-      artifact-path: build deps
+      artifact-path: build
       cmd: python scripts/build.py install --compiler msvc16
 
-  test-windows-msvc16-avx512:
-    needs: build-windows-msvc16
+  test-windows-avx2:
+    needs: build-windows
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_windows.yml@main
     with:
-      runs-on: '[ "Windows", "avx512", "NAS" ]'
-      artifact-in: build-windows-msvc16
-      artifact-out: test-windows-msvc16-avx512
+      runs-on: '[ "Windows", "avx2", "NAS" ]'
+      artifact-in: build-windows
+      artifact-out: test-windows-avx2
       artifact-path: test.log
       cmd: python scripts/test.py
 
@@ -390,6 +512,39 @@ jobs:
       runs-on: '[ "Windows", "avx512", "NAS" ]'
       artifact-in: build-windows
       artifact-out: test-windows-avx512
+      artifact-path: test.log
+      cmd: python scripts/test.py
+
+  test-windows-debug-avx2:
+    needs: build-windows-debug
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_windows.yml@main
+    with:
+      runs-on: '[ "Windows", "avx2", "NAS" ]'
+      artifact-in: build-windows-debug
+      artifact-out: test-windows-debug-avx2
+      artifact-path: test.log
+      cmd: python scripts/test.py
+
+  test-windows-namespace-avx2:
+    needs: build-windows-namespace
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_windows.yml@main
+    with:
+      runs-on: '[ "Windows", "avx2", "NAS" ]'
+      artifact-in: build-windows-namespace
+      artifact-out: test-windows-namespace-avx2
+      artifact-path: test.log
+      cmd: python scripts/test.py
+
+  test-windows-msvc16-avx512:
+    needs: build-windows-msvc16
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_windows.yml@main
+    with:
+      runs-on: '[ "Windows", "avx512", "NAS" ]'
+      artifact-in: build-windows-msvc16
+      artifact-out: test-windows-msvc16-avx512
       artifact-path: test.log
       cmd: python scripts/test.py
 
