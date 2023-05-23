@@ -8,6 +8,7 @@ OIDN_NAMESPACE_BEGIN
   ImageBuffer::ImageBuffer()
     : devPtr(nullptr),
       hostPtr(nullptr),
+      byteSize(0),
       numValues(0),
       width(0),
       height(0),

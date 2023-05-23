@@ -961,7 +961,8 @@ OIDN_NAMESPACE_BEGIN
   template<>
   inline std::string PhysicalDeviceRef::get(const char* name) const
   {
-    return oidnGetPhysicalDeviceString(id, name);
+    const char* str = oidnGetPhysicalDeviceString(id, name);
+    return str ? str : "";
   }
 
   template<>

@@ -65,7 +65,7 @@ OIDN_NAMESPACE_BEGIN
 
   private:
     Ref<CPUEngine> engine;
-    CPUArch arch;
+    CPUArch arch = CPUArch::Unknown;
 
     // Tasking
     std::shared_ptr<tbb::task_arena> arena;
