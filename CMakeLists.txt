@@ -38,7 +38,11 @@ option(OIDN_FILTER_RT "Include trained weights of the RT filter." ON)
 option(OIDN_FILTER_RTLIGHTMAP "Include trained weights of the RTLightmap filter." ON)
 
 # Install
-option(OIDN_INSTALL_DEPENDENCIES "Install Open Image Denoise dependencies" OFF)
+option(OIDN_INSTALL_DEPENDENCIES "Install Open Image Denoise dependencies." OFF)
+
+# Misc
+option(OIDN_WARN_AS_ERRORS "Treat warnings as errors." OFF)
+mark_as_advanced(OIDN_WARN_AS_ERRORS)
 
 ## -----------------------------------------------------------------------------
 ## Weights
