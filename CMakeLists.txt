@@ -117,7 +117,6 @@ install(
     ${PROJECT_SOURCE_DIR}/README.md
     ${PROJECT_SOURCE_DIR}/readme.pdf
     ${PROJECT_SOURCE_DIR}/CHANGELOG.md
-    ${PROJECT_SOURCE_DIR}/LICENSE.txt
     ${PROJECT_SOURCE_DIR}/third-party-programs.txt
     ${PROJECT_SOURCE_DIR}/third-party-programs-DPCPP.txt
     ${PROJECT_SOURCE_DIR}/third-party-programs-oneDNN.txt
@@ -125,6 +124,22 @@ install(
   DESTINATION ${CMAKE_INSTALL_DOCDIR}
   COMPONENT lib
 )
+
+# Install license
+if(OIDN_DEVICE_CUDA)
+  install(
+    FILES ${PROJECT_SOURCE_DIR}/doc/BINARY-LICENSE.txt
+    RENAME LICENSE.txt
+    DESTINATION ${CMAKE_INSTALL_DOCDIR}
+    COMPONENT lib
+  )
+else()
+  install(
+    FILES ${PROJECT_SOURCE_DIR}/LICENSE.txt
+    DESTINATION ${CMAKE_INSTALL_DOCDIR}
+    COMPONENT lib
+  )
+endif()
 
 # Install generic dependencies
 if(OIDN_INSTALL_DEPENDENCIES AND CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM")
