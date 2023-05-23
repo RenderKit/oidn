@@ -218,7 +218,8 @@ if cfg.target == 'package':
       check_symbols_linux(filename)
 
   # Sign the binaries
-  sign_file = os.environ.get('OIDN_SIGN_FILE_' + OS.upper())
+  sign_file_env = 'SIGN_FILE_' + {'windows' : 'WINDOWS', 'linux' : 'LINUX_disabled', 'macos' : 'MAC'}[OS]
+  sign_file = os.environ.get(sign_file_env)
   if sign_file:
     for filename in binaries:
       run(f'{sign_file} -q -vv {filename}')
