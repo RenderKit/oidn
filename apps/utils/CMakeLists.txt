@@ -23,7 +23,7 @@ add_library(OpenImageDenoise_utils STATIC ${OIDN_UTILS_SOURCES})
 target_link_libraries(OpenImageDenoise_utils PUBLIC OpenImageDenoise_common OpenImageDenoise)
 
 # OpenImageIO
-option(OIDN_APPS_OPENIMAGEIO "Enable OpenImageIO support in example and test apps" OFF)
+option(OIDN_APPS_OPENIMAGEIO "Enable OpenImageIO support in example and test apps." OFF)
 if(OIDN_APPS_OPENIMAGEIO)
   find_package(OpenImageIO REQUIRED)
   if(OPENIMAGEIO_VERSION VERSION_GREATER_EQUAL "2.3")
