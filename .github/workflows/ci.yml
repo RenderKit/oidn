@@ -293,7 +293,7 @@ jobs:
       runs-on: '[ "macOS", "build", "arm" ]'
       artifact-out: build-macos-debug-arm
       artifact-path: ./build ./deps
-      cmd: scripts/build.py install --full --config Debug
+      cmd: scripts/build.py --full --config Debug
 
   build-macos-namespace-arm:
     secrets: inherit
@@ -353,7 +353,7 @@ jobs:
       runs-on: '[ "macOS", "build", "avx2", "x86_64" ]'
       artifact-out: build-macos-debug
       artifact-path: ./build ./deps
-      cmd: scripts/build.py install --full --config Debug
+      cmd: scripts/build.py --full --config Debug
 
   build-macos-namespace:
     secrets: inherit
@@ -601,6 +601,8 @@ jobs:
         where $env:CC
         where $env:CXX
         python scripts/build.py package --full
+      artifact-out: package-windows
+      artifact-path: ./build/oidn-*.zip
 
   antivirus-scan:
     needs:
