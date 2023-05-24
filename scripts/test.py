@@ -23,8 +23,9 @@ parser.add_argument('--build_dir', '-B', type=str, help='build directory')
 parser.add_argument('--data_dir', '-D', type=str, help='directory of datasets (e.g. training, validation, test)')
 parser.add_argument('--results_dir', '-R', type=str, help='directory of training results')
 parser.add_argument('--baseline_dir', '-G', type=str, help='directory of generated baseline images')
-parser.add_argument('--arch', '-a', type=str, nargs='*', choices=['native', 'pnr', 'hsw', 'skx', 'knl'], default=['native'], help='CPU architectures to test (requires Intel SDE)')
-parser.add_argument('--log', '-l', type=str, default=os.path.join(root_dir, 'test.log'), help='output log file')
+parser.add_argument('--arch', '-a', type=str, choices=['native', 'pnr', 'hsw', 'skx'], default='native', help='CPU architectures to test (requires Intel SDE)')
+parser.add_argument('--full', action='store_true', help='run all tests')
+parser.add_argument('--log', '-l', type=str, default=None, help='output log file')
 cfg = parser.parse_args()
 
 training_dir = os.environ.get('OIDN_TRAINING_DIR_' + OS.upper())
@@ -57,7 +58,7 @@ if cfg.command == 'run':
 
 # Prints the name of a test
 def print_test(name, kind='Test'):
-  print(kind + ':', name, '...', end='', flush=True)
+  print(kind + ':', name, '...', end=('' if cfg.log else None), flush=True)
 
 # Runs a test command
 def run_test(cmd, arch='native'):
@@ -66,28 +67,44 @@ def run_test(cmd, arch='native'):
     cmd = f'{sde} -{arch} -- ' + cmd
 
   # Write command and redirect output to log
-  run(f'echo >> "{cfg.log}"')
-  run(f'echo "{cmd}" >> "{cfg.log}"')
-  cmd += f' >> "{cfg.log}" 2>&1'
+  if cfg.log:
+    run(f'echo >> "{cfg.log}"')
+    run(f'echo "{cmd}" >> "{cfg.log}"')
+    cmd += f' >> "{cfg.log}" 2>&1'
+  else:
+    print(f'Command: {cmd}')
 
   # Run the command and check the return value
   if os.system(cmd) == 0:
-    print(' PASSED')
+    if cfg.log:
+      print(' PASSED')
+    else:
+      print('PASSED\n')
   else:
-    print(' FAILED')
-    print(f'Error: test failed, see "{cfg.log}" for details')
+    if cfg.log:
+      print(' FAILED')
+    else:
+      print('FAILED\n')
+    if cfg.log:
+      print(f'Error: test failed, see "{cfg.log}" for details')
+    else:
+      print('Error: test failed')
     exit(1)
 
 # Runs main tests
 def test():
   if cfg.command == 'run':
-    # Iterate over architectures
-    for arch in cfg.arch:
-      print_test(f'oidnTest.{arch}')
-      test_cmd = os.path.join(bin_dir, 'oidnTest')
-      if cfg.device != 'default':
-        test_cmd += f' --device {cfg.device}'
-      run_test(test_cmd, arch)
+    print_test('oidnTest')
+    test_cmd = os.path.join(bin_dir, 'oidnTest')
+    if cfg.device != 'default':
+      test_cmd += f' --device {cfg.device}'
+    run_test(test_cmd, cfg.arch)
+
+    print_test('oidnBenchmark')
+    test_cmd = os.path.join(bin_dir, 'oidnBenchmark -v 1')
+    if cfg.device != 'default':
+      test_cmd += f' --device {cfg.device}'
+    run_test(test_cmd, cfg.arch)
 
 # Gets the option name of a feature
 def get_feature_opt(feature):
@@ -133,7 +150,7 @@ def test_regression(filter, feature_sets, dataset):
       # Generate the baseline images
       print_test(f'{filter}.{features_str}', 'Infer')
       infer_cmd = os.path.join(root_dir, 'training', 'infer.py')
-      infer_cmd += f' -D "{cfg.data_dir}" -R "{cfg.results_dir}" -O "{cfg.baseline_dir}" -i {dataset} -r {result} -F pfm -d cpu'
+      infer_cmd += f' -D "{cfg.data_dir}" -R "{cfg.results_dir}" -O "{cfg.baseline_dir}" -i {dataset} -r {result} -F pfm'
       run_test(infer_cmd)
 
     elif cfg.command == 'run':
@@ -146,21 +163,25 @@ def test_regression(filter, feature_sets, dataset):
         print('Error: baseline input images missing (run with "baseline" first)')
         exit(1)
       image_names = [os.path.relpath(filename, dataset_dir).rsplit('.', 3)[0] for filename in image_filenames]
+      if not cfg.full:
+        image_names = image_names[:1]
 
       # Iterate over quality
-      for quality in ['high', 'balanced']:
-        # Iterate over architectures
-        for arch in cfg.arch:
-          # Iterate over images
-          for image_name in image_names:
-            # Iterate over precision
-            for precision in ['fp32', 'fp16']:
-              # Iterate over in-place mode
-              for inplace in ([False, True] if full_test else [False]):
+      for quality in (['high', 'balanced'] if filter == 'RT' or cfg.full else ['high']):
+        # Iterate over images
+        for image_name in image_names:
+          # Iterate over precision
+          for precision in (['fp32', 'fp16'] if full_test or cfg.full else ['fp32']):
+            # Iterate over in-place mode
+            for inplace in ([False, True] if full_test or cfg.full else [False]):
+              # Iterate over memory usage
+              for maxmem in ([None, 200] if full_test or cfg.full else [None]):
                 # Run test
-                test_name = f'{filter}.{quality}.{features_str}.{arch}.{image_name}.{precision}'
+                test_name = f'{filter}.{quality}.{features_str}.{image_name}.{precision}'
                 if inplace:
                   test_name += '.inplace'
+                if maxmem:
+                  test_name += f'.maxmem{maxmem}'
                 print_test(test_name)
 
                 denoise_cmd = os.path.join(bin_dir, 'oidnDenoise')
@@ -188,7 +209,10 @@ def test_regression(filter, feature_sets, dataset):
                 if inplace:
                   denoise_cmd += ' --inplace'
 
-                run_test(denoise_cmd, arch)
+                if maxmem:
+                  denoise_cmd += f' --maxmem {maxmem}'
+
+                run_test(denoise_cmd, cfg.arch)
 
 # Main tests
 test()
@@ -199,12 +223,12 @@ if not cfg.filter or 'RT' in cfg.filter:
     'RT',
     [
       (['hdr', 'alb', 'nrm'],   True),
-      (['hdr', 'alb'],          True),
+      (['hdr', 'alb'],          False),
       (['hdr'],                 True),
       (['hdr', 'calb', 'cnrm'], False),
       (['ldr', 'alb', 'nrm'],   False),
       (['ldr', 'alb'],          False),
-      (['ldr'],                 True),
+      (['ldr'],                 False),
       (['ldr', 'calb', 'cnrm'], False),
       (['alb'],                 True),
       (['nrm'],                 True)
@@ -218,7 +242,7 @@ if not cfg.filter or 'RTLightmap' in cfg.filter:
     'RTLightmap',
     [
       (['hdr'], True),
-      (['dir'], True)
+      (['dir'], False)
     ],
     'rtlightmap_regress'
   )

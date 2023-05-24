@@ -168,7 +168,7 @@ jobs:
       artifact-out: test-rockylinux8-avx2
       artifact-path: test.log
       artifact-on-failure: true
-      cmd: scripts/test.py --device cpu
+      cmd: scripts/test.py --device cpu --log test.log
 
   test-rockylinux8-avx512:
     needs: build-rockylinux8
@@ -182,7 +182,7 @@ jobs:
       artifact-out: test-rockylinux8-avx512
       artifact-path: test.log
       artifact-on-failure: true
-      cmd: scripts/test.py --device cpu
+      cmd: scripts/test.py --device cpu --log test.log
 
   # TODO: Install SDE
   # test-rockylinux8-sse4:
@@ -197,7 +197,7 @@ jobs:
   #     artifact-out: test-rockylinux8-sse4
   #     artifact-path: test.log
   #     artifact-on-failure: true
-  #     cmd: scripts/test.py --device cpu --arch pnr
+  #     cmd: scripts/test.py --device cpu --arch pnr --log test.log
 
   test-rockylinux8-debug-avx2:
     needs: build-rockylinux8-debug
@@ -211,7 +211,7 @@ jobs:
       artifact-out: test-rockylinux8-debug-avx2
       artifact-path: test.log
       artifact-on-failure: true
-      cmd: scripts/test.py --device cpu
+      cmd: scripts/test.py --device cpu --log test.log
 
   test-rockylinux8-namespace-avx2:
     needs: build-rockylinux8-namespace
@@ -225,7 +225,7 @@ jobs:
       artifact-out: test-rockylinux8-namespace-avx2
       artifact-path: test.log
       artifact-on-failure: true
-      cmd: scripts/test.py --device cpu
+      cmd: scripts/test.py --device cpu --log test.log
 
   # test-ubuntu1804-gcc-avx2:
   #   needs: build-ubuntu1804-gcc
@@ -313,7 +313,7 @@ jobs:
       artifact-in: build-macos-arm
       artifact-out: test-macos-arm
       artifact-path: test.log
-      cmd: scripts/test.py
+      cmd: scripts/test.py --log test.log
 
   test-macos-debug-arm:
     needs: build-macos-debug-arm
@@ -324,7 +324,7 @@ jobs:
       artifact-in: build-macos-debug-arm
       artifact-out: test-macos-debug-arm
       artifact-path: test.log
-      cmd: scripts/test.py
+      cmd: scripts/test.py --log test.log
 
   test-macos-namespace-arm:
     needs: build-macos-namespace-arm
@@ -335,7 +335,7 @@ jobs:
       artifact-in: build-macos-namespace-arm
       artifact-out: test-macos-namespace-arm
       artifact-path: test.log
-      cmd: scripts/test.py
+      cmd: scripts/test.py --log test.log
 
   build-macos:
     secrets: inherit
@@ -373,7 +373,7 @@ jobs:
       artifact-in: build-macos
       artifact-out: test-macos-avx2
       artifact-path: test.log
-      cmd: scripts/test.py
+      cmd: scripts/test.py --log test.log
 
   test-macos-avx512:
     needs: build-macos
@@ -384,7 +384,7 @@ jobs:
       artifact-in: build-macos
       artifact-out: test-macos-avx512
       artifact-path: test.log
-      cmd: scripts/test.py
+      cmd: scripts/test.py --log test.log
 
   test-macos-debug-avx2:
     needs: build-macos-debug
@@ -395,7 +395,7 @@ jobs:
       artifact-in: build-macos-debug
       artifact-out: test-macos-debug-avx2
       artifact-path: test.log
-      cmd: scripts/test.py
+      cmd: scripts/test.py --log test.log
 
   test-macos-namespace-avx2:
     needs: build-macos-namespace
@@ -406,7 +406,7 @@ jobs:
       artifact-in: build-macos-namespace
       artifact-out: test-macos-namespace-avx2
       artifact-path: test.log
-      cmd: scripts/test.py
+      cmd: scripts/test.py --log test.log
 
   build-windows:
     secrets: inherit
@@ -503,7 +503,7 @@ jobs:
       artifact-in: build-windows
       artifact-out: test-windows-avx2
       artifact-path: test.log
-      cmd: python scripts/test.py
+      cmd: python scripts/test.py --log test.log
 
   test-windows-avx512:
     needs: build-windows
@@ -514,7 +514,7 @@ jobs:
       artifact-in: build-windows
       artifact-out: test-windows-avx512
       artifact-path: test.log
-      cmd: python scripts/test.py
+      cmd: python scripts/test.py --log test.log
 
   test-windows-debug-avx2:
     needs: build-windows-debug
@@ -525,7 +525,7 @@ jobs:
       artifact-in: build-windows-debug
       artifact-out: test-windows-debug-avx2
       artifact-path: test.log
-      cmd: python scripts/test.py
+      cmd: python scripts/test.py --log test.log
 
   test-windows-namespace-avx2:
     needs: build-windows-namespace
@@ -536,7 +536,7 @@ jobs:
       artifact-in: build-windows-namespace
       artifact-out: test-windows-namespace-avx2
       artifact-path: test.log
-      cmd: python scripts/test.py
+      cmd: python scripts/test.py --log test.log
 
   test-windows-msvc16-avx512:
     needs: build-windows-msvc16
@@ -547,7 +547,7 @@ jobs:
       artifact-in: build-windows-msvc16
       artifact-out: test-windows-msvc16-avx512
       artifact-path: test.log
-      cmd: python scripts/test.py
+      cmd: python scripts/test.py --log test.log
 
   kw-build-scan-report:
     secrets: inherit
