@@ -578,14 +578,14 @@ jobs:
       artifact-out: package-macos
       artifact-path: ./build/oidn-*.tar.gz
 
-  package-macos-arm:
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
-    with:
-      runs-on: '[ "macOS", "arm" ]'
-      cmd: scripts/build.py package --full
-      artifact-out: package-macos-arm
-      artifact-path: ./build/oidn-*.tar.gz
+  # package-macos-arm:
+  #   secrets: inherit
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
+  #   with:
+  #     runs-on: '[ "macOS", "arm" ]'
+  #     cmd: scripts/build.py package --full
+  #     artifact-out: package-macos-arm
+  #     artifact-path: ./build/oidn-*.tar.gz
 
   package-windows:
     secrets: inherit
@@ -620,15 +620,15 @@ jobs:
       artifact-in-windows: package-windows
       path: ./build/oidn-*
 
-  antivirus-scan-arm:
-    needs:
-      - package-macos-arm
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/antivirus_scan.yml@main
-    with:
-      project: oidn
-      artifact-in-macos: package-macos-arm
-      path: ./build/oidn-*
+  # antivirus-scan-arm:
+  #   needs:
+  #     - package-macos-arm
+  #   secrets: inherit
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/antivirus_scan.yml@main
+  #   with:
+  #     project: oidn
+  #     artifact-in-macos: package-macos-arm
+  #     path: ./build/oidn-*
 
   binary-analysis:
     needs:
@@ -644,12 +644,12 @@ jobs:
       artifact-in-windows: package-windows
       path: ./build/oidn-*
 
-  binary-analysis-arm:
-    needs:
-      - package-macos-arm
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/binary_analysis.yml@main
-    with:
-      project: oidn
-      artifact-in-macos: package-macos-arm
-      path: ./build/oidn-*
+  # binary-analysis-arm:
+  #   needs:
+  #     - package-macos-arm
+  #   secrets: inherit
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/binary_analysis.yml@main
+  #   with:
+  #     project: oidn
+  #     artifact-in-macos: package-macos-arm
+  #     path: ./build/oidn-*

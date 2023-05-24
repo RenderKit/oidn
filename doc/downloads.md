@@ -6,10 +6,9 @@ archive:
 
 [oidn-<OIDN_VERSION>.x86_64.linux.tar.gz](https://github.com/OpenImageDenoise/oidn/releases/download/v<OIDN_VERSION>/oidn-<OIDN_VERSION>.x86_64.linux.tar.gz)
 
-For macOS we provide Intel Open Image Denoise precompiled for Intel and Apple Silicon as separate TGZ archives:
+For macOS we provide Intel Open Image Denoise precompiled for Intel processors as a separate TGZ archive:
 
 [oidn-<OIDN_VERSION>.x86_64.macos.tar.gz](https://github.com/OpenImageDenoise/oidn/releases/download/v<OIDN_VERSION>/oidn-<OIDN_VERSION>.x86_64.macos.tar.gz)
-[oidn-<OIDN_VERSION>.arm64.macos.tar.gz](https://github.com/OpenImageDenoise/oidn/releases/download/v<OIDN_VERSION>/oidn-<OIDN_VERSION>.arm64.macos.tar.gz)
 
 For Windows we provide Intel Open Image Denoise binaries precompiled for 64-bit as a ZIP archive:
 
