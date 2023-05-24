@@ -47,7 +47,7 @@ different vendors:
 
   - Apple Silicon CPUs
 
-  - Intel Xe architecture GPUs, both discrete and integrated, including
+  - Intel Xe architecture GPUs, both dedicated and integrated, including
     Intel® Arc™ A-Series Graphics, Intel® Data Center GPU Flex Series
     (Xe-HPG microarchitecture), Intel® Data Center GPU Max Series
     (Xe-HPC), 11th-13th Gen Intel® Core™ processor graphics, and related
@@ -90,9 +90,10 @@ drivers:
     or newer
 
 Using older driver versions is *not* supported and Intel Open Image
-Denoise might run with only limited capabilities or might be unstable.
-Also, resizable BAR *must* be enabled in the BIOS for Intel discrete
-GPUs if running on Linux, and recommended if running on Windows.
+Denoise might run with only limited capabilities, have suboptimal
+performance or might be unstable. Also, Resizable BAR *must* be enabled
+in the BIOS for Intel dedicated GPUs if running on Linux, and strongly
+recommended if running on Windows.
 
 For NVIDIA GPU support, please also install the latest [NVIDIA graphics
 drivers](https://www.nvidia.com/en-us/geforce/drivers/):
@@ -893,7 +894,8 @@ when the application wants to use the same queues for both denoising and
 its own operations (e.g. rendering). Passing multiple queues is not
 intended to be used for different physical devices but just for a single
 SYCL root-device which consists of multiple sub-devices (e.g. Intel®
-Data Center GPU Max Series having multiple Xe-Stacks/tiles).
+Data Center GPU Max Series having multiple Xe-Stacks/tiles). The only
+supported SYCL backend is oneAPI Level Zero.
 
 For CUDA and HIP, pairs of CUDA/HIP device IDs and corresponding streams
 can be specified but the current implementation supports only one pair.

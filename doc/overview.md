@@ -39,7 +39,7 @@ vendors:
 
 -   Apple Silicon CPUs
 
--   Intel Xe architecture GPUs, both discrete and integrated, including
+-   Intel Xe architecture GPUs, both dedicated and integrated, including
     Intel® Arc™ A-Series Graphics, Intel® Data Center GPU Flex Series (Xe-HPG
     microarchitecture), Intel® Data Center GPU Max Series (Xe-HPC),
     11th-13th Gen Intel® Core™ processor graphics, and related Intel Pentium®
@@ -81,7 +81,7 @@ For Intel GPU support, please also install the latest Intel graphics drivers:
 Using older driver versions is *not* supported and Intel Open Image Denoise
 might run with only limited capabilities, have suboptimal performance or might
 be unstable. Also, Resizable BAR *must* be enabled in the BIOS for Intel
-discrete GPUs if running on Linux, and strongly recommended if running on
+dedicated GPUs if running on Linux, and strongly recommended if running on
 Windows.
 
 For NVIDIA GPU support, please also install the latest
