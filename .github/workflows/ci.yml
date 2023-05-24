@@ -341,7 +341,7 @@ jobs:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
-      runs-on: '[ "macOS", "build", "x86_64" ]'
+      runs-on: '[ "macOS", "build", "avx2", "x86_64" ]'
       artifact-out: build-macos
       artifact-path: ./build ./deps
       cmd: scripts/build.py install --full
@@ -350,7 +350,7 @@ jobs:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
-      runs-on: '[ "macOS", "build", "x86_64" ]'
+      runs-on: '[ "macOS", "build", "avx2", "x86_64" ]'
       artifact-out: build-macos-debug
       artifact-path: ./build ./deps
       cmd: scripts/build.py --full --config Debug
@@ -359,39 +359,50 @@ jobs:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
-      runs-on: '[ "macOS", "build", "x86_64" ]'
+      runs-on: '[ "macOS", "build", "avx2", "x86_64" ]'
       artifact-out: build-macos-namespace
       artifact-path: ./build ./deps
       cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
 
-  test-macos:
+  test-macos-avx2:
     needs: build-macos
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
-      runs-on: '[ "macOS", "x86_64" ]'
+      runs-on: '[ "macOS", "avx2", "x86_64" ]'
       artifact-in: build-macos
       artifact-out: test-macos-avx2
       artifact-path: test.log
       cmd: scripts/test.py --device cpu --minimal --log test.log
 
-  test-macos-debug:
+  test-macos-avx512:
+    needs: build-macos
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
+    with:
+      runs-on: '[ "macOS", "avx512", "x86_64" ]'
+      artifact-in: build-macos
+      artifact-out: test-macos-avx512
+      artifact-path: test.log
+      cmd: scripts/test.py --device cpu --log test.log
+
+  test-macos-debug-avx2:
     needs: build-macos-debug
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
-      runs-on: '[ "macOS", "x86_64" ]'
+      runs-on: '[ "macOS", "avx2", "x86_64" ]'
       artifact-in: build-macos-debug
       artifact-out: test-macos-debug-avx2
       artifact-path: test.log
       cmd: scripts/test.py --device cpu --minimal --log test.log
 
-  test-macos-namespace:
+  test-macos-namespace-avx2:
     needs: build-macos-namespace
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_macos.yml@main
     with:
-      runs-on: '[ "macOS", "x86_64" ]'
+      runs-on: '[ "macOS", "avx2", "x86_64" ]'
       artifact-in: build-macos-namespace
       artifact-out: test-macos-namespace-avx2
       artifact-path: test.log
