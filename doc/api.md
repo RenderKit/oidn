@@ -450,7 +450,7 @@ application wants to use the same queues for both denoising and its own
 operations (e.g. rendering). Passing multiple queues is not intended to be used
 for different physical devices but just for a single SYCL root-device which
 consists of multiple sub-devices (e.g. Intel® Data Center GPU Max Series having
-multiple Xe-Stacks/tiles).
+multiple Xe-Stacks/tiles). The only supported SYCL backend is oneAPI Level Zero.
 
 For CUDA and HIP, pairs of CUDA/HIP device IDs and corresponding streams can be
 specified but the current implementation supports only one pair. Negative device

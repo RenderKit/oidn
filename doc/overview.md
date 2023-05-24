@@ -79,9 +79,10 @@ For Intel GPU support, please also install the latest Intel graphics drivers:
     or newer
 
 Using older driver versions is *not* supported and Intel Open Image Denoise
-might run with only limited capabilities or might be unstable.
-Also, resizable BAR *must* be enabled in the BIOS for Intel discrete GPUs if
-running on Linux, and recommended if running on Windows.
+might run with only limited capabilities, have suboptimal performance or might
+be unstable. Also, Resizable BAR *must* be enabled in the BIOS for Intel
+discrete GPUs if running on Linux, and strongly recommended if running on
+Windows.
 
 For NVIDIA GPU support, please also install the latest
 [NVIDIA graphics drivers](https://www.nvidia.com/en-us/geforce/drivers/):

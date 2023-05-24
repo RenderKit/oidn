@@ -13,15 +13,7 @@ OIDN_NAMESPACE_BEGIN
   public:
     int operator()(const sycl::device& syclDevice) const
     {
-      const sycl::backend syclBackend = syclDevice.get_backend();
-      const int score = SYCLDevice::getScore(syclDevice);
-
-      if (syclBackend == sycl::backend::ext_oneapi_level_zero)
-        return score * 2 + 1; // prefer Level Zero
-      else if (syclBackend == sycl::backend::opencl)
-        return score * 2;
-      else
-        return -1; // other backends are not supported
+      return SYCLDevice::getScore(syclDevice);
     }
   };
 
@@ -35,6 +27,8 @@ OIDN_NAMESPACE_BEGIN
       return; // only Level Zero supports further features
 
     // Check the supported Level Zero extensions
+    bool luidExtension = false;
+
   #if defined(_WIN32)
     ze_driver_handle_t zeDriver =
       sycl::get_native<sycl::backend::ext_oneapi_level_zero>(syclDevice.get_platform());
@@ -50,7 +44,7 @@ OIDN_NAMESPACE_BEGIN
     for (const auto& extension : extensions)
     {
       if (strcmp(extension.name, ZE_DEVICE_LUID_EXT_NAME) == 0)
-        luidSupported = true;
+        luidExtension = true;
     }
   #endif
 
@@ -59,7 +53,7 @@ OIDN_NAMESPACE_BEGIN
 
     ze_device_properties_t zeDeviceProps{ZE_STRUCTURE_TYPE_DEVICE_PROPERTIES};
     ze_device_luid_ext_properties_t zeDeviceLUIDProps{ZE_STRUCTURE_TYPE_DEVICE_LUID_EXT_PROPERTIES};
-    if (luidSupported)
+    if (luidExtension)
       zeDeviceProps.pNext = &zeDeviceLUIDProps;
 
     if (zeDeviceGetProperties(zeDevice, &zeDeviceProps) != ZE_RESULT_SUCCESS)
@@ -69,14 +63,13 @@ OIDN_NAMESPACE_BEGIN
     memcpy(uuid.bytes, zeDeviceProps.uuid.id, sizeof(uuid.bytes));
     uuidSupported = true;
 
-    if (luidSupported && zeDeviceLUIDProps.nodeMask != 0)
+    if (luidExtension && zeDeviceLUIDProps.nodeMask != 0)
     {
       static_assert(ZE_MAX_DEVICE_LUID_SIZE_EXT == OIDN_LUID_SIZE, "unexpected LUID size");
       memcpy(luid.bytes, zeDeviceLUIDProps.luid.id, sizeof(luid.bytes));
       nodeMask = zeDeviceLUIDProps.nodeMask;
+      luidSupported = true;
     }
-    else
-      luidSupported = false; // LUID may be invalid
 
     // Get the PCI address
     ze_pci_ext_properties_t zePCIProps{ZE_STRUCTURE_TYPE_PCI_EXT_PROPERTIES};
@@ -94,22 +87,10 @@ OIDN_NAMESPACE_BEGIN
   {
     std::vector<Ref<PhysicalDevice>> devices;
 
-    // Select the backend to use to avoid duplicate devices
     const auto syclPlatforms = sycl::platform::get_platforms();
-    sycl::backend syclBackend = sycl::backend::opencl; // fallback
     for (const auto& syclPlatform : syclPlatforms)
     {
-      if (syclPlatform.get_backend() == sycl::backend::ext_oneapi_level_zero &&
-          !syclPlatform.get_devices(sycl::info::device_type::gpu).empty())
-      {
-        syclBackend = sycl::backend::ext_oneapi_level_zero; // prefer Level Zero
-        break;
-      }
-    }
-
-    for (const auto& syclPlatform : syclPlatforms)
-    {
-      if (syclPlatform.get_backend() != syclBackend)
+      if (syclPlatform.get_backend() != sycl::backend::ext_oneapi_level_zero)
         continue;
 
       for (const auto& syclDevice : syclPlatform.get_devices(sycl::info::device_type::gpu))
@@ -126,8 +107,7 @@ OIDN_NAMESPACE_BEGIN
   SYCLArch SYCLDevice::getArch(const sycl::device& syclDevice)
   {
     // Check whether the device supports the required features
-    auto syclBackend = syclDevice.get_backend();
-    if ((syclBackend != sycl::backend::ext_oneapi_level_zero && syclBackend != sycl::backend::opencl) ||
+    if (syclDevice.get_backend() != sycl::backend::ext_oneapi_level_zero ||
         !syclDevice.is_gpu() ||
         syclDevice.get_info<sycl::info::device::vendor_id>() != 0x8086 || // Intel
         !syclDevice.has(sycl::aspect::usm_host_allocations) ||
@@ -135,6 +115,17 @@ OIDN_NAMESPACE_BEGIN
         !syclDevice.has(sycl::aspect::usm_shared_allocations) ||
         !syclDevice.has(sycl::aspect::ext_intel_device_id))
       return SYCLArch::Unknown;
+
+    // Check the Level Zero driver version
+    ze_driver_handle_t zeDriver =
+      sycl::get_native<sycl::backend::ext_oneapi_level_zero>(syclDevice.get_platform());
+
+    ze_driver_properties_t zeDriverProps{ZE_STRUCTURE_TYPE_DRIVER_PROPERTIES};
+    if (zeDriverGetProperties(zeDriver, &zeDriverProps) != ZE_RESULT_SUCCESS)
+      return SYCLArch::Unknown;
+
+    if (zeDriverProps.driverVersion < 0x01036237) // 1.3.25143 (Windows Driver 31.0.101.4091)
+      return SYCLArch::Unknown; // older versions do not work!
 
     // Lookup the device ID to identify the architecture
     const unsigned int deviceID = syclDevice.get_info<sycl::ext::intel::info::device::device_id>();
