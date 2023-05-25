@@ -63,15 +63,18 @@ set_source_files_properties(
 
 set_source_files_properties(
   cutlass_conv_sm70.cu
-  PROPERTIES COMPILE_FLAGS ${OIDN_NVCC_SM70_FLAGS})
+  PROPERTIES COMPILE_FLAGS ${OIDN_NVCC_SM70_FLAGS}
+)
 
 set_source_files_properties(
   cutlass_conv_sm75.cu
-  PROPERTIES COMPILE_FLAGS ${OIDN_NVCC_SM75_FLAGS})
+  PROPERTIES COMPILE_FLAGS ${OIDN_NVCC_SM75_FLAGS}
+)
 
 set_source_files_properties(
   cutlass_conv_sm80.cu
-  PROPERTIES COMPILE_FLAGS "${OIDN_NVCC_SM80_FLAGS} ${OIDN_NVCC_SM90_FLAGS}")
+  PROPERTIES COMPILE_FLAGS "${OIDN_NVCC_SM80_FLAGS} ${OIDN_NVCC_SM90_FLAGS}"
+)
 
 add_library(OpenImageDenoise_device_cuda SHARED ${OIDN_CUDA_SOURCES} ${OIDN_GPU_SOURCES} ${OIDN_RESOURCE_FILE})
 set_property(TARGET OpenImageDenoise_device_cuda PROPERTY VERSION ${PROJECT_VERSION})
@@ -80,7 +83,8 @@ target_include_directories(OpenImageDenoise_device_cuda
   PRIVATE
     ${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES}
     "${OIDN_ROOT_SOURCE_DIR}/external/cutlass/include"
-    "${OIDN_ROOT_SOURCE_DIR}/external/cutlass/tools/util/include")
+    "${OIDN_ROOT_SOURCE_DIR}/external/cutlass/tools/util/include"
+)
 set_target_properties(OpenImageDenoise_device_cuda PROPERTIES CUDA_ARCHITECTURES OFF)
 
 target_link_libraries(OpenImageDenoise_device_cuda PRIVATE OpenImageDenoise_core)
