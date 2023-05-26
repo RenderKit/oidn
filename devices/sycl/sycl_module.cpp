@@ -30,7 +30,7 @@ OIDN_NAMESPACE_BEGIN
 
   OIDN_DECLARE_INIT_MODULE(device_sycl)
   {
-  #if !defined(OIDN_DEVICE_SYCL_AOT)
+  #if defined(OIDN_DEVICE_SYCL_JIT_CACHE)
     // Enable persistent JIT cache if not disabled explicitly
     setEnvVar("SYCL_CACHE_PERSISTENT", 1, false);
   #endif

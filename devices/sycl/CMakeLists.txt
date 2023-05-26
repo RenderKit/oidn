@@ -1,6 +1,16 @@
 ## Copyright 2021 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
+# Options
+option(OIDN_DEVICE_SYCL_AOT "Enable AOT compilation for SYCL kernels (recommended)." ON)
+if(OIDN_DEVICE_SYCL_AOT)
+  option(OIDN_DEVICE_SYCL_JIT_FALLBACK "Enable JIT fallback for SYCL kernels when AOT is rejected at runtime." ON)
+  mark_as_advanced(OIDN_DEVICE_SYCL_JIT_FALLBACK)
+else()
+  option(OIDN_DEVICE_SYCL_JIT_CACHE "Enable JIT cache for SYCL kernels." ON)
+  mark_as_advanced(OIDN_DEVICE_SYCL_JIT_CACHE)
+endif()
+
 # Check the generator
 if(NOT CMAKE_GENERATOR MATCHES "Ninja" AND NOT CMAKE_GENERATOR MATCHES "Unix Makefiles")
   message(FATAL_ERROR "Building with SYCL support requires Ninja or Make")
@@ -33,8 +43,6 @@ endif()
 
 find_package(LevelZero REQUIRED)
 
-option(OIDN_DEVICE_SYCL_AOT "Enable AOT compilation for SYCL kernels (recommended)." ON)
-
 set(OIDN_SYCL_COMPILE_FLAGS -fsycl)
 
 if(OIDN_DEVICE_SYCL_AOT)
@@ -52,14 +60,14 @@ if(WIN32)
   list(APPEND OIDN_SYCL_COMPILE_FLAGS -Wno-ignored-attributes)
 endif()
 
-macro(oidn_add_sycl_library name)
-  add_library(${name} SHARED ${ARGN} ${OIDN_RESOURCE_FILE})
-  set_property(TARGET ${name} PROPERTY VERSION ${PROJECT_VERSION})
-  set_property(TARGET ${name} PROPERTY CXX_STANDARD 17)
-  target_compile_options(${name} PRIVATE ${OIDN_SYCL_COMPILE_FLAGS})
-  target_link_options(${name} PRIVATE ${OIDN_SYCL_LINK_FLAGS})
-  target_link_libraries(${name} PRIVATE OpenImageDenoise_core)
-  oidn_install_module(${name})
+macro(oidn_add_sycl_library target)
+  add_library(${target} SHARED ${ARGN} ${OIDN_RESOURCE_FILE})
+  set_property(TARGET ${target} PROPERTY VERSION ${PROJECT_VERSION})
+  set_property(TARGET ${target} PROPERTY CXX_STANDARD 17)
+  target_compile_options(${target} PRIVATE ${OIDN_SYCL_COMPILE_FLAGS})
+  target_link_options(${target} PRIVATE ${OIDN_SYCL_LINK_FLAGS})
+  target_link_libraries(${target} PRIVATE OpenImageDenoise_core)
+  oidn_install_module(${target})
 endmacro()
 
 set(OIDN_SYCL_SOURCES
@@ -77,24 +85,30 @@ set(OIDN_SYCL_SOURCES
 )
 
 if(OIDN_DEVICE_SYCL_AOT)
-  macro(oidn_add_sycl_arch_library name)
-    oidn_add_sycl_library(${name} ${ARGN})
-    target_include_directories(${name} PRIVATE ${LevelZero_INCLUDE_DIRS})
-    oidn_export_all_symbols(${name})
+  macro(oidn_add_sycl_arch_library target)
+    oidn_add_sycl_library(${target} ${ARGN})
+    target_include_directories(${target} PRIVATE ${LevelZero_INCLUDE_DIRS})
+    oidn_export_all_symbols(${target})
+  endmacro()
+
+  macro(oidn_set_sycl_aot_options target options)
+    set(_final_options ${options})
+    if(NOT OIDN_DEVICE_SYCL_JIT_FALLBACK)
+      set(_final_options "${_final_options} -exclude_ir")
+    endif()
+    target_link_options(${target} PRIVATE -Xsycl-target-backend=spir64_gen "${_final_options}")
   endmacro()
 
   # Xe-LP AOT kernel library
   set(OIDN_SYCL_AOT_TARGETS_XELP tgllp,rkl,adl-s,adl-p,adl-n,dg1)
   oidn_add_sycl_arch_library(OpenImageDenoise_device_sycl_xelp sycl_conv_xelp.cpp)
-  target_link_options(OpenImageDenoise_device_sycl_xelp PRIVATE
-    -Xsycl-target-backend=spir64_gen "-device ${OIDN_SYCL_AOT_TARGETS_XELP}"
-  )
+  oidn_set_sycl_aot_options(OpenImageDenoise_device_sycl_xelp "-device ${OIDN_SYCL_AOT_TARGETS_XELP}")
 
   # Xe-HPG AOT kernel library
   set(OIDN_SYCL_AOT_TARGETS_XEHPG acm-g10,acm-g11,acm-g12)
   oidn_add_sycl_arch_library(OpenImageDenoise_device_sycl_xehpg sycl_conv_xehpg.cpp)
-  target_link_options(OpenImageDenoise_device_sycl_xehpg PRIVATE
-    -Xsycl-target-backend=spir64_gen "-device ${OIDN_SYCL_AOT_TARGETS_XEHPG} -options '-doubleGRF'"
+  oidn_set_sycl_aot_options(OpenImageDenoise_device_sycl_xehpg
+    "-device ${OIDN_SYCL_AOT_TARGETS_XEHPG} -options '-doubleGRF'"
   )
 
   set(OIDN_SYCL_AOT_TARGETS ${OIDN_SYCL_AOT_TARGETS_XELP},${OIDN_SYCL_AOT_TARGETS_XEHPG})
@@ -103,10 +117,7 @@ if(OIDN_DEVICE_SYCL_AOT)
     # Xe-HPC AOT kernel library
     set(OIDN_SYCL_AOT_TARGETS_XEHPC pvc-sdv,pvc)
     oidn_add_sycl_arch_library(OpenImageDenoise_device_sycl_xehpc sycl_conv_xehpc.cpp)
-    target_link_options(OpenImageDenoise_device_sycl_xehpc PRIVATE
-      -Xsycl-target-backend=spir64_gen "-device ${OIDN_SYCL_AOT_TARGETS_XEHPC}"
-    )
-
+    oidn_set_sycl_aot_options(OpenImageDenoise_device_sycl_xehpc "-device ${OIDN_SYCL_AOT_TARGETS_XEHPC}")
     set(OIDN_SYCL_AOT_TARGETS ${OIDN_SYCL_AOT_TARGETS},${OIDN_SYCL_AOT_TARGETS_XEHPC})
   endif()
 else()
@@ -127,10 +138,7 @@ oidn_add_sycl_library(OpenImageDenoise_device_sycl ${OIDN_SYCL_SOURCES} ${OIDN_G
 
 if(OIDN_DEVICE_SYCL_AOT)
   target_compile_definitions(OpenImageDenoise_device_sycl PRIVATE OIDN_DEVICE_SYCL_AOT)
-
-  target_link_options(OpenImageDenoise_device_sycl PRIVATE
-    -Xsycl-target-backend=spir64_gen "-device ${OIDN_SYCL_AOT_TARGETS}"
-  )
+  oidn_set_sycl_aot_options(OpenImageDenoise_device_sycl "-device ${OIDN_SYCL_AOT_TARGETS}")
 
   target_link_libraries(OpenImageDenoise_device_sycl PRIVATE
     OpenImageDenoise_device_sycl_xelp
@@ -141,6 +149,10 @@ if(OIDN_DEVICE_SYCL_AOT)
       OpenImageDenoise_device_sycl_xehpc
     )
   endif()
+endif()
+
+if(OIDN_DEVICE_SYCL_JIT_CACHE)
+  target_compile_definitions(OpenImageDenoise_device_sycl PRIVATE OIDN_DEVICE_SYCL_JIT_CACHE)
 endif()
 
 target_link_libraries(OpenImageDenoise_device_sycl PRIVATE LevelZero::LevelZero)
