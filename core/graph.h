@@ -33,16 +33,16 @@ OIDN_NAMESPACE_BEGIN
                                         Activation activation,
                                         PostOp postOp = PostOp::None) = 0;
 
-    virtual std::shared_ptr<ConcatConv> addConcatConv(const std::string& name,
-                                                      const std::shared_ptr<Op>& src1Op,
-                                                      const std::shared_ptr<Op>& src2Op,
-                                                      Activation activation) = 0;
+    virtual std::shared_ptr<Op> addConcatConv(const std::string& name,
+                                              const std::shared_ptr<Op>& src1Op,
+                                              const std::shared_ptr<Op>& src2Op,
+                                              Activation activation) = 0;
 
-    virtual std::shared_ptr<Pool> addPool(const std::string& name,
-                                          const std::shared_ptr<Op>& srcOp) = 0;
+    virtual std::shared_ptr<Op> addPool(const std::string& name,
+                                        const std::shared_ptr<Op>& srcOp) = 0;
 
-    virtual std::shared_ptr<Upsample> addUpsample(const std::string& name,
-                                                  const std::shared_ptr<Op>& srcOp) = 0;
+    virtual std::shared_ptr<Op> addUpsample(const std::string& name,
+                                            const std::shared_ptr<Op>& srcOp) = 0;
 
     virtual bool isSupported() const = 0;
 

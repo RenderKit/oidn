@@ -124,10 +124,10 @@ OIDN_NAMESPACE_BEGIN
     return conv;
   }
 
-  std::shared_ptr<ConcatConv> GenericGraph::addConcatConv(const std::string& name,
-                                                          const std::shared_ptr<Op>& src1Op,
-                                                          const std::shared_ptr<Op>& src2Op,
-                                                          Activation activation)
+  std::shared_ptr<Op> GenericGraph::addConcatConv(const std::string& name,
+                                                  const std::shared_ptr<Op>& src1Op,
+                                                  const std::shared_ptr<Op>& src2Op,
+                                                  Activation activation)
   {
     auto weight = (*constTensors)[name + ".weight"];
     auto bias   = (*constTensors)[name + ".bias"];
@@ -227,8 +227,8 @@ OIDN_NAMESPACE_BEGIN
     }
   }
 
-  std::shared_ptr<Pool> GenericGraph::addPool(const std::string& name,
-                                              const std::shared_ptr<Op>& srcOp)
+  std::shared_ptr<Op> GenericGraph::addPool(const std::string& name,
+                                            const std::shared_ptr<Op>& srcOp)
   {
     TensorAlloc* srcAlloc = tensorAllocsByOp[srcOp.get()];
     const TensorDesc srcDesc = srcAlloc->desc;
@@ -245,8 +245,8 @@ OIDN_NAMESPACE_BEGIN
     return op;
   }
 
-  std::shared_ptr<Upsample> GenericGraph::addUpsample(const std::string& name,
-                                                      const std::shared_ptr<Op>& srcOp)
+  std::shared_ptr<Op> GenericGraph::addUpsample(const std::string& name,
+                                                const std::shared_ptr<Op>& srcOp)
   {
     TensorAlloc* srcAlloc = tensorAllocsByOp[srcOp.get()];
     const TensorDesc srcDesc = srcAlloc->desc;
