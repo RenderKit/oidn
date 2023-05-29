@@ -73,4 +73,24 @@ OIDN_NAMESPACE_BEGIN
     return postOp == PostOp::None;
   }
 
+  void* Engine::usmAlloc(size_t byteSize, Storage storage)
+  {
+    throw std::logic_error("USM is not supported by the device");
+  }
+
+  void Engine::usmFree(void* ptr, Storage storage)
+  {
+    throw std::logic_error("USM is not supported by the device");
+  }
+
+  void Engine::usmCopy(void* dstPtr, const void* srcPtr, size_t byteSize)
+  {
+    throw std::logic_error("USM is not supported by the device");
+  }
+
+  void Engine::submitUSMCopy(void* dstPtr, const void* srcPtr, size_t byteSize)
+  {
+    throw std::logic_error("USM is not supported by the device");
+  }
+
 OIDN_NAMESPACE_END

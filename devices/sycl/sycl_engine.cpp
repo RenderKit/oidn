@@ -95,7 +95,7 @@ OIDN_NAMESPACE_BEGIN
     return std::make_shared<GPUImageCopy<SYCLEngine>>(this);
   }
 
-  void* SYCLEngine::malloc(size_t byteSize, Storage storage)
+  void* SYCLEngine::usmAlloc(size_t byteSize, Storage storage)
   {
     if (byteSize == 0)
       return nullptr;
@@ -134,19 +134,19 @@ OIDN_NAMESPACE_BEGIN
     return ptr;
   }
 
-  void SYCLEngine::free(void* ptr, Storage storage)
+  void SYCLEngine::usmFree(void* ptr, Storage storage)
   {
     if (ptr != nullptr)
       sycl::free(ptr, syclQueue.get_context());
   }
 
-  void SYCLEngine::memcpy(void* dstPtr, const void* srcPtr, size_t byteSize)
+  void SYCLEngine::usmCopy(void* dstPtr, const void* srcPtr, size_t byteSize)
   {
-    submitMemcpy(dstPtr, srcPtr, byteSize);
+    submitUSMCopy(dstPtr, srcPtr, byteSize);
     wait();
   }
 
-  void SYCLEngine::submitMemcpy(void* dstPtr, const void* srcPtr, size_t byteSize)
+  void SYCLEngine::submitUSMCopy(void* dstPtr, const void* srcPtr, size_t byteSize)
   {
     lastEvent = syclQueue.memcpy(dstPtr, srcPtr, byteSize, getDepEvents());
   }

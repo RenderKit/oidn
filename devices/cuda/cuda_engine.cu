@@ -71,7 +71,7 @@ OIDN_NAMESPACE_BEGIN
     return std::make_shared<GPUImageCopy<CUDAEngine>>(this);
   }
 
-  void* CUDAEngine::malloc(size_t byteSize, Storage storage)
+  void* CUDAEngine::usmAlloc(size_t byteSize, Storage storage)
   {
     if (byteSize == 0)
       return nullptr;
@@ -97,7 +97,7 @@ OIDN_NAMESPACE_BEGIN
     }
   }
 
-  void CUDAEngine::free(void* ptr, Storage storage)
+  void CUDAEngine::usmFree(void* ptr, Storage storage)
   {
     if (ptr == nullptr)
       return;
@@ -108,12 +108,12 @@ OIDN_NAMESPACE_BEGIN
       checkError(cudaFree(ptr));
   }
 
-  void CUDAEngine::memcpy(void* dstPtr, const void* srcPtr, size_t byteSize)
+  void CUDAEngine::usmCopy(void* dstPtr, const void* srcPtr, size_t byteSize)
   {
     checkError(cudaMemcpy(dstPtr, srcPtr, byteSize, cudaMemcpyDefault));
   }
 
-  void CUDAEngine::submitMemcpy(void* dstPtr, const void* srcPtr, size_t byteSize)
+  void CUDAEngine::submitUSMCopy(void* dstPtr, const void* srcPtr, size_t byteSize)
   {
     checkError(cudaMemcpyAsync(dstPtr, srcPtr, byteSize, cudaMemcpyDefault, stream));
   }

@@ -92,7 +92,7 @@ OIDN_NAMESPACE_BEGIN
   // USMBuffer
   // -----------------------------------------------------------------------------------------------
 
-  // Unified shared memory based buffer object
+  // Unified shared memory (USM) based buffer object
   class USMBuffer : public Buffer
   {
   public:

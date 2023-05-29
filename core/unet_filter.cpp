@@ -165,11 +165,6 @@ OIDN_NAMESPACE_BEGIN
           autoexposure->setSrc(color);
           autoexposure->submit();
           progress.update(mainEngine, 1);
-          /*
-          float autoexpResult;
-          device->memcpy(&autoexpResult, autoexposure->getResult(), sizeof(float));
-          std::cout << "Autoexposure: " << autoexpResult << std::endl;
-          */
           transferFunc->setInputScale(autoexposure->getResult());
         }
         else

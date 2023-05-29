@@ -88,7 +88,7 @@ OIDN_NAMESPACE_BEGIN
     if (storage == Storage::Undefined)
       this->storage = getDevice()->isManagedMemorySupported() ? Storage::Managed : Storage::Host;
 
-    ptr = static_cast<char*>(engine->malloc(byteSize, this->storage));
+    ptr = static_cast<char*>(engine->usmAlloc(byteSize, this->storage));
   }
 
   USMBuffer::USMBuffer(const Ref<Engine>& engine, void* data, size_t byteSize, Storage storage)
@@ -112,7 +112,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Free the memory
     if (!shared && ptr)
-      engine->free(ptr, storage);
+      engine->usmFree(ptr, storage);
   }
 
   void* USMBuffer::map(size_t byteOffset, size_t byteSize, Access access)
@@ -137,7 +137,7 @@ OIDN_NAMESPACE_BEGIN
 
     void* hostPtr = alignedMalloc(byteSize);
     if (access != Access::WriteDiscard)
-      engine->memcpy(hostPtr, devPtr, byteSize);
+      engine->usmCopy(hostPtr, devPtr, byteSize);
 
     mappedRegions.insert({hostPtr, {devPtr, byteOffset, byteSize, access}});
     return hostPtr;
@@ -153,7 +153,7 @@ OIDN_NAMESPACE_BEGIN
       throw Exception(Error::InvalidArgument, "invalid mapped region");
 
     if (region->second.access != Access::Read)
-      engine->memcpy(region->second.devPtr, hostPtr, region->second.byteSize);
+      engine->usmCopy(region->second.devPtr, hostPtr, region->second.byteSize);
     alignedFree(hostPtr);
 
     mappedRegions.erase(region);
@@ -173,9 +173,9 @@ OIDN_NAMESPACE_BEGIN
       throw Exception(Error::InvalidArgument, "buffer region out of range");
 
     if (sync == SyncMode::Sync)
-      engine->memcpy(dstHostPtr, ptr + byteOffset, byteSize);
+      engine->usmCopy(dstHostPtr, ptr + byteOffset, byteSize);
     else
-      engine->submitMemcpy(dstHostPtr, ptr + byteOffset, byteSize);
+      engine->submitUSMCopy(dstHostPtr, ptr + byteOffset, byteSize);
   }
 
   void USMBuffer::write(size_t byteOffset, size_t byteSize, const void* srcHostPtr, SyncMode sync)
@@ -186,9 +186,9 @@ OIDN_NAMESPACE_BEGIN
       throw Exception(Error::InvalidArgument, "buffer region out of range");
 
     if (sync == SyncMode::Sync)
-      engine->memcpy(ptr + byteOffset, srcHostPtr, byteSize);
+      engine->usmCopy(ptr + byteOffset, srcHostPtr, byteSize);
     else
-      engine->submitMemcpy(ptr + byteOffset, srcHostPtr, byteSize);
+      engine->submitUSMCopy(ptr + byteOffset, srcHostPtr, byteSize);
   }
 
   void USMBuffer::realloc(size_t newByteSize)
@@ -198,8 +198,8 @@ OIDN_NAMESPACE_BEGIN
     if (!mappedRegions.empty())
       throw std::logic_error("mapped buffers cannot be reallocated");
 
-    engine->free(ptr, storage);
-    ptr = static_cast<char*>(engine->malloc(newByteSize, storage));
+    engine->usmFree(ptr, storage);
+    ptr = static_cast<char*>(engine->usmAlloc(newByteSize, storage));
     byteSize = newByteSize;
   }
 

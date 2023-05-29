@@ -23,11 +23,11 @@ OIDN_NAMESPACE_BEGIN
     std::shared_ptr<OutputProcess> newOutputProcess(const OutputProcessDesc& desc) override;
     std::shared_ptr<ImageCopy> newImageCopy() override;
 
-    // Memory
-    void* malloc(size_t byteSize, Storage storage) override;
-    void free(void* ptr, Storage storage) override;
-    void memcpy(void* dstPtr, const void* srcPtr, size_t byteSize) override;
-    void submitMemcpy(void* dstPtr, const void* srcPtr, size_t byteSize) override;
+    // Unified shared memory (USM)
+    void* usmAlloc(size_t byteSize, Storage storage) override;
+    void usmFree(void* ptr, Storage storage) override;
+    void usmCopy(void* dstPtr, const void* srcPtr, size_t byteSize) override;
+    void submitUSMCopy(void* dstPtr, const void* srcPtr, size_t byteSize) override;
 
     // Runs a parallel host task in the thread arena (if it exists)
     void runHostTask(std::function<void()>&& f) override;

@@ -58,25 +58,25 @@ OIDN_NAMESPACE_BEGIN
     f(); // no async execution on the CPU
   }
 
-  void* CPUEngine::malloc(size_t byteSize, Storage storage)
+  void* CPUEngine::usmAlloc(size_t byteSize, Storage storage)
   {
     if (byteSize == 0)
       return nullptr;
     return alignedMalloc(byteSize);
   }
 
-  void CPUEngine::free(void* ptr, Storage storage)
+  void CPUEngine::usmFree(void* ptr, Storage storage)
   {
     if (ptr != nullptr)
       alignedFree(ptr);
   }
 
-  void CPUEngine::memcpy(void* dstPtr, const void* srcPtr, size_t byteSize)
+  void CPUEngine::usmCopy(void* dstPtr, const void* srcPtr, size_t byteSize)
   {
     std::memcpy(dstPtr, srcPtr, byteSize);
   }
 
-  void CPUEngine::submitMemcpy(void* dstPtr, const void* srcPtr, size_t byteSize)
+  void CPUEngine::submitUSMCopy(void* dstPtr, const void* srcPtr, size_t byteSize)
   {
     std::memcpy(dstPtr, srcPtr, byteSize);
   }

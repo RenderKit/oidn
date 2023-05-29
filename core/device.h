@@ -82,7 +82,7 @@ OIDN_NAMESPACE_BEGIN
     int getTensorBlockC() const { return tensorBlockC; }
 
     // Memory
-    virtual Storage getPointerStorage(const void* ptr) = 0;
+    virtual Storage getPointerStorage(const void* ptr) { return Storage::Undefined; }
     virtual bool isMemoryUsageLimitSupported() const { return true; }
 
     bool isSystemMemorySupported()  const { return systemMemorySupported; }

@@ -71,11 +71,11 @@ OIDN_NAMESPACE_BEGIN
     virtual std::shared_ptr<OutputProcess> newOutputProcess(const OutputProcessDesc& desc) = 0;
     virtual std::shared_ptr<ImageCopy> newImageCopy() = 0;
 
-    // Memory
-    virtual void* malloc(size_t byteSize, Storage storage) = 0;
-    virtual void free(void* ptr, Storage storage) = 0;
-    virtual void memcpy(void* dstPtr, const void* srcPtr, size_t byteSize) = 0;
-    virtual void submitMemcpy(void* dstPtr, const void* srcPtr, size_t byteSize) = 0;
+    // Unified shared memory (USM)
+    virtual void* usmAlloc(size_t byteSize, Storage storage);
+    virtual void usmFree(void* ptr, Storage storage);
+    virtual void usmCopy(void* dstPtr, const void* srcPtr, size_t byteSize);
+    virtual void submitUSMCopy(void* dstPtr, const void* srcPtr, size_t byteSize);
 
     // Runs a host task
     virtual void runHostTask(std::function<void()>&& f)

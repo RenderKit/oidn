@@ -79,7 +79,7 @@ OIDN_NAMESPACE_BEGIN
     return std::make_shared<GPUImageCopy<HIPEngine>>(this);
   }
 
-  void* HIPEngine::malloc(size_t byteSize, Storage storage)
+  void* HIPEngine::usmAlloc(size_t byteSize, Storage storage)
   {
     if (byteSize == 0)
       return nullptr;
@@ -105,7 +105,7 @@ OIDN_NAMESPACE_BEGIN
     }
   }
 
-  void HIPEngine::free(void* ptr, Storage storage)
+  void HIPEngine::usmFree(void* ptr, Storage storage)
   {
     if (ptr == nullptr)
       return;
@@ -116,12 +116,12 @@ OIDN_NAMESPACE_BEGIN
       checkError(hipFree(ptr));
   }
 
-  void HIPEngine::memcpy(void* dstPtr, const void* srcPtr, size_t byteSize)
+  void HIPEngine::usmCopy(void* dstPtr, const void* srcPtr, size_t byteSize)
   {
     checkError(hipMemcpy(dstPtr, srcPtr, byteSize, hipMemcpyDefault));
   }
 
-  void HIPEngine::submitMemcpy(void* dstPtr, const void* srcPtr, size_t byteSize)
+  void HIPEngine::submitUSMCopy(void* dstPtr, const void* srcPtr, size_t byteSize)
   {
     checkError(hipMemcpyAsync(dstPtr, srcPtr, byteSize, hipMemcpyDefault, stream));
   }
