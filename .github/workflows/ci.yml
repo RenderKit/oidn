@@ -15,7 +15,7 @@ jobs:
       image: oidn/rockylinux:8.6
       cmd: scripts/build.py install --full
       artifact-out: build-rockylinux8
-      artifact-path: ./build ./deps
+      artifact-path: ./build ./install ./deps
 
   # FIXME: enable AOT and HIP
   build-rockylinux8-debug:
@@ -25,7 +25,7 @@ jobs:
       image: oidn/rockylinux:8.6
       cmd: scripts/build.py install --compiler clang --config Debug -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=OFF -D OIDN_DEVICE_CUDA=ON
       artifact-out: build-rockylinux8-debug
-      artifact-path: ./build ./deps
+      artifact-path: ./build ./install ./deps
 
   build-rockylinux8-jit:
     secrets: inherit
@@ -34,7 +34,7 @@ jobs:
       image: oidn/rockylinux:8.6
       cmd: scripts/build.py install --full -D OIDN_DEVICE_SYCL_AOT=OFF
       artifact-out: build-rockylinux8-jit
-      artifact-path: ./build ./deps
+      artifact-path: ./build ./install ./deps
 
   build-rockylinux8-namespace:
     secrets: inherit
@@ -43,7 +43,7 @@ jobs:
       image: oidn/rockylinux:8.6
       cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
       artifact-out: build-rockylinux8-namespace
-      artifact-path: ./build ./deps
+      artifact-path: ./build ./install ./deps
 
   # FIXME: enable AOT and HIP
   build-rockylinux8-namespace-debug:
@@ -53,7 +53,7 @@ jobs:
       image: oidn/rockylinux:8.6
       cmd: scripts/build.py install --compiler clang --config Debug -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=OFF -D OIDN_DEVICE_CUDA=ON -D OIDN_API_NAMESPACE=myoidn
       artifact-out: build-rockylinux8-namespace-debug
-      artifact-path: ./build ./deps
+      artifact-path: ./build ./install ./deps
 
   build-rockylinux8-gcc:
     secrets: inherit
@@ -62,7 +62,7 @@ jobs:
       image: oidn/rockylinux:8.6
       cmd: scripts/build.py install --compiler gcc -D OIDN_DEVICE_CUDA=ON -D OIDN_DEVICE_HIP=ON
       artifact-out: build-rockylinux8-gcc
-      artifact-path: ./build ./deps
+      artifact-path: ./build ./install ./deps
 
   build-rockylinux8-gcc-debug:
     secrets: inherit
@@ -71,7 +71,7 @@ jobs:
       image: oidn/rockylinux:8.6
       cmd: scripts/build.py install --compiler gcc --config Debug -D OIDN_DEVICE_CUDA=ON
       artifact-out: build-rockylinux8-gcc-debug
-      artifact-path: ./build ./deps
+      artifact-path: ./build ./install ./deps
 
   build-rockylinux8-gcc-minimal:
     secrets: inherit
@@ -80,7 +80,7 @@ jobs:
       image: oidn/rockylinux:8.6
       cmd: scripts/build.py install --compiler gcc -D OIDN_FILTER_RT=OFF -D OIDN_FILTER_RTLIGHTMAP=OFF
       artifact-out: build-rockylinux8-gcc-minimal
-      artifact-path: ./build ./deps
+      artifact-path: ./build ./install ./deps
 
   build-ubuntu2204:
     secrets: inherit
@@ -89,7 +89,33 @@ jobs:
       image: oidn/ubuntu:22.04
       cmd: scripts/build.py install --full
       artifact-out: build-ubuntu2204
-      artifact-path: ./build ./deps
+      artifact-path: ./build ./install ./deps
+
+  build-ubuntu2204-gta-aot:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
+    with:
+      image: oidn/ubuntu:22.04
+      cmd: >
+        scripts/build.py install --install_dir oidn-gta-aot-lin --compiler clang
+        -D OIDN_DEVICE_CPU=OFF
+        -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=ON -D OIDN_DEVICE_SYCL_JIT_FALLBACK=OFF
+        -D OIDN_INSTALL_DEPENDENCIES=ON -D OIDN_ZIP_MODE=ON
+      artifact-out: build-ubuntu2204-gta-aot
+      artifact-path: ./oidn-gta-aot-lin
+
+  build-ubuntu2204-gta-jit:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_docker.yml@main
+    with:
+      image: oidn/ubuntu:22.04
+      cmd: >
+        scripts/build.py install --install_dir oidn-gta-jit-lin --compiler clang
+        -D OIDN_DEVICE_CPU=OFF
+        -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=OFF -D OIDN_DEVICE_SYCL_JIT_CACHE=OFF
+        -D OIDN_INSTALL_DEPENDENCIES=ON -D OIDN_ZIP_MODE=ON
+      artifact-out: build-ubuntu2204-gta-jit
+      artifact-path: ./oidn-gta-jit-lin
 
   # build-ubuntu1804-gcc:
   #   secrets: inherit
@@ -98,7 +124,7 @@ jobs:
   #     image: oidn-build:ubuntu18.04
   #     cmd: scripts/build.py install --compiler gcc
   #     artifact-out: build-ubuntu1804-gcc
-  #     artifact-path: ./build ./deps
+  #     artifact-path: ./build ./install ./deps
 
   # build-ubuntu1804-gcc-debug:
   #   secrets: inherit
@@ -107,7 +133,7 @@ jobs:
   #     image: oidn-build:ubuntu18.04
   #     cmd: scripts/build.py install --compiler gcc --config Debug
   #     artifact-out: build-ubuntu1804-gcc-debug
-  #     artifact-path: ./build ./deps
+  #     artifact-path: ./build ./install ./deps
 
   # build-ubuntu1804-clang:
   #   secrets: inherit
@@ -283,7 +309,7 @@ jobs:
     with:
       runs-on: '[ "macOS", "build", "arm" ]'
       artifact-out: build-macos-arm
-      artifact-path: ./build ./deps
+      artifact-path: ./build ./install ./deps
       cmd: scripts/build.py install --full
 
   build-macos-debug-arm:
@@ -292,7 +318,7 @@ jobs:
     with:
       runs-on: '[ "macOS", "build", "arm" ]'
       artifact-out: build-macos-debug-arm
-      artifact-path: ./build ./deps
+      artifact-path: ./build ./install ./deps
       cmd: scripts/build.py --full --config Debug
 
   build-macos-namespace-arm:
@@ -301,7 +327,7 @@ jobs:
     with:
       runs-on: '[ "macOS", "build", "arm" ]'
       artifact-out: build-macos-namespace-arm
-      artifact-path: ./build ./deps
+      artifact-path: ./build ./install ./deps
       cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
 
   test-macos-arm:
@@ -343,7 +369,7 @@ jobs:
     with:
       runs-on: '[ "macOS", "build", "avx2", "x86_64" ]'
       artifact-out: build-macos
-      artifact-path: ./build ./deps
+      artifact-path: ./build ./install ./deps
       cmd: scripts/build.py install --full
 
   build-macos-debug:
@@ -352,7 +378,7 @@ jobs:
     with:
       runs-on: '[ "macOS", "build", "avx2", "x86_64" ]'
       artifact-out: build-macos-debug
-      artifact-path: ./build ./deps
+      artifact-path: ./build ./install ./deps
       cmd: scripts/build.py --full --config Debug
 
   build-macos-namespace:
@@ -361,7 +387,7 @@ jobs:
     with:
       runs-on: '[ "macOS", "build", "avx2", "x86_64" ]'
       artifact-out: build-macos-namespace
-      artifact-path: ./build ./deps
+      artifact-path: ./build ./install ./deps
       cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
 
   test-macos-avx2:
@@ -419,7 +445,7 @@ jobs:
       ocloc-version: 9926f1ea-209e-42b3-94db-a1f895ee56ce/ocloc_win_101.4314
       rocm-version: rocm/5.5.0
       artifact-out: build-windows
-      artifact-path: build
+      artifact-path: build install
       cmd: |
         echo $env:ROCM_PATH
         where ocloc.exe
@@ -438,7 +464,7 @@ jobs:
       ocloc-version: 9926f1ea-209e-42b3-94db-a1f895ee56ce/ocloc_win_101.4314
       rocm-version: rocm/5.5.0
       artifact-out: build-windows-debug
-      artifact-path: build
+      artifact-path: build install
       cmd: |
         echo $env:ROCM_PATH
         where ocloc.exe
@@ -456,13 +482,52 @@ jobs:
       ocloc-version: 9926f1ea-209e-42b3-94db-a1f895ee56ce/ocloc_win_101.4314
       rocm-version: rocm/5.5.0
       artifact-out: build-windows-namespace
-      artifact-path: build
+      artifact-path: build install
       cmd: |
         echo $env:ROCM_PATH
         where ocloc.exe
         where $env:CC
         where $env:CXX
         python scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
+
+  build-windows-gta-aot:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@tgt/oidn-support
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "build" ]'
+      msvc-version: "2022"
+      dpcpp-version: sycl-nightly/20221215
+      ocloc-version: 9926f1ea-209e-42b3-94db-a1f895ee56ce/ocloc_win_101.4314
+      artifact-out: build-windows-gta-aot
+      artifact-path: oidn-gta-aot-win
+      cmd: >
+        where ocloc.exe
+        where $env:CC
+        where $env:CXX
+        python scripts/build.py install --install_dir oidn-gta-aot-win --compiler clang
+        -D OIDN_DEVICE_CPU=OFF
+        -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=ON -D OIDN_DEVICE_SYCL_JIT_FALLBACK=OFF
+        -D OIDN_INSTALL_DEPENDENCIES=ON -D OIDN_ZIP_MODE=ON
+
+  build-windows-gta-jit:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@tgt/oidn-support
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "build" ]'
+      msvc-version: "2022"
+      dpcpp-version: sycl-nightly/20221215
+      artifact-out: build-windows-gta-jit
+      artifact-path: oidn-gta-jit-win
+      cmd: >
+        where ocloc.exe
+        where $env:CC
+        where $env:CXX
+        python scripts/build.py install --install_dir oidn-gta-jit-win --compiler clang
+        -D OIDN_DEVICE_CPU=OFF
+        -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=OFF -D OIDN_DEVICE_SYCL_JIT_CACHE=OFF
+        -D OIDN_INSTALL_DEPENDENCIES=ON -D OIDN_ZIP_MODE=ON
 
   build-windows-msvc15:
     secrets: inherit
@@ -491,7 +556,7 @@ jobs:
     with:
       runs-on: '[ "Windows", "build" ]'
       artifact-out: build-windows-msvc16
-      artifact-path: build
+      artifact-path: build install
       cmd: python scripts/build.py install --compiler msvc16
 
   test-windows-avx2:

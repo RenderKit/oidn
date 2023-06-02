@@ -40,6 +40,7 @@ parser = argparse.ArgumentParser()
 parser.usage = '\rIntel(R) Open Image Denoise - Build\n' + parser.format_usage()
 parser.add_argument('target', type=str, nargs='?', choices=['all', 'install', 'package'], default='all')
 parser.add_argument('--build_dir', '-B', type=str, help='build directory')
+parser.add_argument('--install_dir', '-I', type=str, help='install directory')
 parser.add_argument('--compiler', type=str, choices=(['default'] + compilers[OS]), default='default')
 parser.add_argument('--config', type=str, choices=['Debug', 'Release', 'RelWithDebInfo'], default='Release')
 parser.add_argument('--full', action='store_true', help='build with full device support')
@@ -48,18 +49,23 @@ parser.add_argument('-D', dest='cmake_vars', type=str, action='append', help='cr
 cfg = parser.parse_args()
 
 if cfg.build_dir is None:
-  build_dir = os.path.join(root_dir, 'build')
+  cfg.build_dir = os.path.join(root_dir, 'build')
 else:
-  build_dir = os.path.abspath(cfg.build_dir)
+  cfg.build_dir = os.path.abspath(cfg.build_dir)
+
+if cfg.install_dir is None:
+  cfg.install_dir = os.path.join(root_dir, 'install')
+else:
+  cfg.install_dir = os.path.abspath(cfg.install_dir)
 
 if cfg.compiler == 'default' and cfg.full:
   cfg.compiler = 'clang'
 
 # Create a clean build directory
-if os.path.isdir(build_dir):
-  shutil.rmtree(build_dir)
-os.mkdir(build_dir)
-os.chdir(build_dir)
+if os.path.isdir(cfg.build_dir):
+  shutil.rmtree(cfg.build_dir)
+os.mkdir(cfg.build_dir)
+os.chdir(cfg.build_dir)
 
 # Configure
 msbuild = False
@@ -152,7 +158,7 @@ if not os.path.isdir(tbb_dir):
     tbb_config_cmd += ' -D CMAKE_OSX_DEPLOYMENT_TARGET=11.0'
     run(tbb_config_cmd)
     run('cmake --build . --target install')
-    os.chdir(build_dir)
+    os.chdir(cfg.build_dir)
     shutil.rmtree(tbb_src_dir)
 config_cmd += f' -D TBB_ROOT="{tbb_root}"'
 
@@ -168,8 +174,7 @@ if cfg.target == 'package':
   config_cmd += ' -D OIDN_ZIP_MODE=ON'
 
 if cfg.target == 'install':
-  install_dir = os.path.join(build_dir, 'install')
-  config_cmd += f' -D CMAKE_INSTALL_PREFIX={install_dir}'
+  config_cmd += f' -D CMAKE_INSTALL_PREFIX={cfg.install_dir}'
 
 if cfg.cmake_vars:
   for var in cfg.cmake_vars:
@@ -198,11 +203,11 @@ run(build_cmd)
 
 if cfg.target == 'package':
   # Extract the package
-  package_filename = [f for f in glob(os.path.join(build_dir, 'oidn-*')) if os.path.isfile(f)][0]
+  package_filename = [f for f in glob(os.path.join(cfg.build_dir, 'oidn-*')) if os.path.isfile(f)][0]
   package_dir = re.sub(r'\.(tar(\..*)?|zip)$', '', package_filename)
   if os.path.isdir(package_dir):
     shutil.rmtree(package_dir)
-  extract_package(package_filename, build_dir)
+  extract_package(package_filename, cfg.build_dir)
 
   # Get the list of binaries
   binaries = glob(os.path.join(package_dir, 'bin', '*'))

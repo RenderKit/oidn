@@ -20,6 +20,7 @@ parser.add_argument('command', type=str, nargs='?', choices=['baseline', 'run'],
 parser.add_argument('--device', '-d', type=str, choices=['default', 'cpu', 'sycl', 'cuda', 'hip'], default='default', help='device to test')
 parser.add_argument('--filter', '-f', type=str, nargs='*', choices=['RT', 'RTLightmap'], default=None, help='filters to test')
 parser.add_argument('--build_dir', '-B', type=str, help='build directory')
+parser.add_argument('--install_dir', '-I', type=str, help='install directory')
 parser.add_argument('--data_dir', '-D', type=str, help='directory of datasets (e.g. training, validation, test)')
 parser.add_argument('--results_dir', '-R', type=str, help='directory of training results')
 parser.add_argument('--baseline_dir', '-G', type=str, help='directory of generated baseline images')
@@ -50,9 +51,14 @@ if cfg.command == 'run':
   else:
     cfg.build_dir = os.path.abspath(cfg.build_dir)
 
-  bin_dir = os.path.join(cfg.build_dir, 'install', 'bin')
+  if cfg.install_dir is None:
+    cfg.install_dir = os.path.join(root_dir, 'install')
+  else:
+    cfg.install_dir = os.path.abspath(cfg.install_dir)
+
+  bin_dir = os.path.join(cfg.install_dir, 'bin')
   if not os.path.isdir(bin_dir):
-    bin_dir = os.path.join(root_dir, 'build')
+    bin_dir = cfg.build_dir
 
   # Detect the Intel(R) Software Development Emulator (SDE)
   # See: https://software.intel.com/en-us/articles/intel-software-development-emulator
