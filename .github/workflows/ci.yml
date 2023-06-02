@@ -15,7 +15,7 @@ jobs:
       image: oidn/rockylinux:8.6
       cmd: scripts/build.py install --full
       artifact-out: build-rockylinux8
-      artifact-path: ./build ./install ./deps
+      artifact-path: build install deps
 
   # FIXME: enable AOT and HIP
   build-rockylinux8-debug:
@@ -25,7 +25,7 @@ jobs:
       image: oidn/rockylinux:8.6
       cmd: scripts/build.py install --compiler clang --config Debug -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=OFF -D OIDN_DEVICE_CUDA=ON
       artifact-out: build-rockylinux8-debug
-      artifact-path: ./build ./install ./deps
+      artifact-path: build install deps
 
   build-rockylinux8-jit:
     secrets: inherit
@@ -34,7 +34,7 @@ jobs:
       image: oidn/rockylinux:8.6
       cmd: scripts/build.py install --full -D OIDN_DEVICE_SYCL_AOT=OFF
       artifact-out: build-rockylinux8-jit
-      artifact-path: ./build ./install ./deps
+      artifact-path: build install deps
 
   build-rockylinux8-namespace:
     secrets: inherit
@@ -43,7 +43,7 @@ jobs:
       image: oidn/rockylinux:8.6
       cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
       artifact-out: build-rockylinux8-namespace
-      artifact-path: ./build ./install ./deps
+      artifact-path: build install deps
 
   # FIXME: enable AOT and HIP
   build-rockylinux8-namespace-debug:
@@ -53,7 +53,7 @@ jobs:
       image: oidn/rockylinux:8.6
       cmd: scripts/build.py install --compiler clang --config Debug -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=OFF -D OIDN_DEVICE_CUDA=ON -D OIDN_API_NAMESPACE=myoidn
       artifact-out: build-rockylinux8-namespace-debug
-      artifact-path: ./build ./install ./deps
+      artifact-path: build install deps
 
   build-rockylinux8-gcc:
     secrets: inherit
@@ -62,7 +62,7 @@ jobs:
       image: oidn/rockylinux:8.6
       cmd: scripts/build.py install --compiler gcc -D OIDN_DEVICE_CUDA=ON -D OIDN_DEVICE_HIP=ON
       artifact-out: build-rockylinux8-gcc
-      artifact-path: ./build ./install ./deps
+      artifact-path: build install deps
 
   build-rockylinux8-gcc-debug:
     secrets: inherit
@@ -71,7 +71,7 @@ jobs:
       image: oidn/rockylinux:8.6
       cmd: scripts/build.py install --compiler gcc --config Debug -D OIDN_DEVICE_CUDA=ON
       artifact-out: build-rockylinux8-gcc-debug
-      artifact-path: ./build ./install ./deps
+      artifact-path: build install deps
 
   build-rockylinux8-gcc-minimal:
     secrets: inherit
@@ -80,7 +80,7 @@ jobs:
       image: oidn/rockylinux:8.6
       cmd: scripts/build.py install --compiler gcc -D OIDN_FILTER_RT=OFF -D OIDN_FILTER_RTLIGHTMAP=OFF
       artifact-out: build-rockylinux8-gcc-minimal
-      artifact-path: ./build ./install ./deps
+      artifact-path: build install deps
 
   build-ubuntu2204:
     secrets: inherit
@@ -89,7 +89,7 @@ jobs:
       image: oidn/ubuntu:22.04
       cmd: scripts/build.py install --full
       artifact-out: build-ubuntu2204
-      artifact-path: ./build ./install ./deps
+      artifact-path: build install deps
 
   build-ubuntu2204-gta-aot:
     secrets: inherit
@@ -102,7 +102,7 @@ jobs:
         -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=ON -D OIDN_DEVICE_SYCL_JIT_FALLBACK=OFF
         -D OIDN_INSTALL_DEPENDENCIES=ON -D OIDN_ZIP_MODE=ON
       artifact-out: build-ubuntu2204-gta-aot
-      artifact-path: ./oidn-gta-aot-lin
+      artifact-path: oidn-gta-aot-lin
 
   build-ubuntu2204-gta-jit:
     secrets: inherit
@@ -115,7 +115,7 @@ jobs:
         -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=OFF -D OIDN_DEVICE_SYCL_JIT_CACHE=OFF
         -D OIDN_INSTALL_DEPENDENCIES=ON -D OIDN_ZIP_MODE=ON
       artifact-out: build-ubuntu2204-gta-jit
-      artifact-path: ./oidn-gta-jit-lin
+      artifact-path: oidn-gta-jit-lin
 
   # build-ubuntu1804-gcc:
   #   secrets: inherit
@@ -124,7 +124,7 @@ jobs:
   #     image: oidn-build:ubuntu18.04
   #     cmd: scripts/build.py install --compiler gcc
   #     artifact-out: build-ubuntu1804-gcc
-  #     artifact-path: ./build ./install ./deps
+  #     artifact-path: build install deps
 
   # build-ubuntu1804-gcc-debug:
   #   secrets: inherit
@@ -133,7 +133,7 @@ jobs:
   #     image: oidn-build:ubuntu18.04
   #     cmd: scripts/build.py install --compiler gcc --config Debug
   #     artifact-out: build-ubuntu1804-gcc-debug
-  #     artifact-path: ./build ./install ./deps
+  #     artifact-path: build install deps
 
   # build-ubuntu1804-clang:
   #   secrets: inherit
@@ -309,7 +309,7 @@ jobs:
     with:
       runs-on: '[ "macOS", "build", "arm" ]'
       artifact-out: build-macos-arm
-      artifact-path: ./build ./install ./deps
+      artifact-path: build install deps
       cmd: scripts/build.py install --full
 
   build-macos-debug-arm:
@@ -318,7 +318,7 @@ jobs:
     with:
       runs-on: '[ "macOS", "build", "arm" ]'
       artifact-out: build-macos-debug-arm
-      artifact-path: ./build ./install ./deps
+      artifact-path: build install deps
       cmd: scripts/build.py --full --config Debug
 
   build-macos-namespace-arm:
@@ -327,7 +327,7 @@ jobs:
     with:
       runs-on: '[ "macOS", "build", "arm" ]'
       artifact-out: build-macos-namespace-arm
-      artifact-path: ./build ./install ./deps
+      artifact-path: build install deps
       cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
 
   test-macos-arm:
@@ -369,7 +369,7 @@ jobs:
     with:
       runs-on: '[ "macOS", "build", "avx2", "x86_64" ]'
       artifact-out: build-macos
-      artifact-path: ./build ./install ./deps
+      artifact-path: build install deps
       cmd: scripts/build.py install --full
 
   build-macos-debug:
@@ -378,7 +378,7 @@ jobs:
     with:
       runs-on: '[ "macOS", "build", "avx2", "x86_64" ]'
       artifact-out: build-macos-debug
-      artifact-path: ./build ./install ./deps
+      artifact-path: build install deps
       cmd: scripts/build.py --full --config Debug
 
   build-macos-namespace:
@@ -387,7 +387,7 @@ jobs:
     with:
       runs-on: '[ "macOS", "build", "avx2", "x86_64" ]'
       artifact-out: build-macos-namespace
-      artifact-path: ./build ./install ./deps
+      artifact-path: build install deps
       cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
 
   test-macos-avx2:
@@ -632,7 +632,7 @@ jobs:
       image: oidn/rockylinux:8.6
       cmd: scripts/build.py package --full
       artifact-out: package-linux
-      artifact-path: ./build/oidn-*.tar.gz
+      artifact-path: build/oidn-*.tar.gz
 
   package-macos:
     secrets: inherit
@@ -641,7 +641,7 @@ jobs:
       runs-on: '[ "macOS", "sign", "x86_64" ]'
       cmd: scripts/build.py package --full
       artifact-out: package-macos
-      artifact-path: ./build/oidn-*.tar.gz
+      artifact-path: build/oidn-*.tar.gz
 
   # package-macos-arm:
   #   secrets: inherit
@@ -650,7 +650,7 @@ jobs:
   #     runs-on: '[ "macOS", "arm" ]'
   #     cmd: scripts/build.py package --full
   #     artifact-out: package-macos-arm
-  #     artifact-path: ./build/oidn-*.tar.gz
+  #     artifact-path: build/oidn-*.tar.gz
 
   package-windows:
     secrets: inherit
@@ -669,7 +669,7 @@ jobs:
         where $env:CXX
         python scripts/build.py package --full
       artifact-out: package-windows
-      artifact-path: ./build/oidn-*.zip
+      artifact-path: build/oidn-*.zip
 
   antivirus-scan:
     needs:
@@ -683,7 +683,7 @@ jobs:
       artifact-in-linux: package-linux
       artifact-in-macos: package-macos
       artifact-in-windows: package-windows
-      path: ./build/oidn-*
+      path: build/oidn-*
 
   # antivirus-scan-arm:
   #   needs:
@@ -693,7 +693,7 @@ jobs:
   #   with:
   #     project: oidn
   #     artifact-in-macos: package-macos-arm
-  #     path: ./build/oidn-*
+  #     path: build/oidn-*
 
   binary-analysis:
     needs:
@@ -707,7 +707,7 @@ jobs:
       artifact-in-linux: package-linux
       artifact-in-macos: package-macos
       artifact-in-windows: package-windows
-      path: ./build/oidn-*
+      path: build/oidn-*
 
   # binary-analysis-arm:
   #   needs:
@@ -717,4 +717,4 @@ jobs:
   #   with:
   #     project: oidn
   #     artifact-in-macos: package-macos-arm
-  #     path: ./build/oidn-*
+  #     path: build/oidn-*
