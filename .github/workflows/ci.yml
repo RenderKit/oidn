@@ -446,12 +446,7 @@ jobs:
       rocm-version: rocm/5.5.0
       artifact-out: build-windows
       artifact-path: build install
-      cmd: |
-        echo $env:ROCM_PATH
-        where ocloc.exe
-        where $env:CC
-        where $env:CXX
-        python scripts/build.py install --full
+      cmd: python scripts/build.py install --full
 
   # FIXME: enable AOT and HIP
   build-windows-debug:
@@ -465,12 +460,9 @@ jobs:
       rocm-version: rocm/5.5.0
       artifact-out: build-windows-debug
       artifact-path: build install
-      cmd: |
-        echo $env:ROCM_PATH
-        where ocloc.exe
-        where $env:CC
-        where $env:CXX
-        python scripts/build.py install --compiler clang --config Debug -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=OFF -D OIDN_DEVICE_CUDA=ON
+      cmd: >
+        python scripts/build.py install --compiler clang --config Debug
+        -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=OFF -D OIDN_DEVICE_CUDA=ON
 
   build-windows-namespace:
     secrets: inherit
@@ -483,12 +475,7 @@ jobs:
       rocm-version: rocm/5.5.0
       artifact-out: build-windows-namespace
       artifact-path: build install
-      cmd: |
-        echo $env:ROCM_PATH
-        where ocloc.exe
-        where $env:CC
-        where $env:CXX
-        python scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
+      cmd: python scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
 
   build-windows-gta-aot:
     secrets: inherit
@@ -502,9 +489,6 @@ jobs:
       artifact-out: build-windows-gta-aot
       artifact-path: oidn-gta-aot-win
       cmd: >
-        where ocloc.exe
-        where $env:CC
-        where $env:CXX
         python scripts/build.py install --install_dir oidn-gta-aot-win --compiler clang
         -D OIDN_DEVICE_CPU=OFF
         -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=ON -D OIDN_DEVICE_SYCL_JIT_FALLBACK=OFF
@@ -521,9 +505,6 @@ jobs:
       artifact-out: build-windows-gta-jit
       artifact-path: oidn-gta-jit-win
       cmd: >
-        where ocloc.exe
-        where $env:CC
-        where $env:CXX
         python scripts/build.py install --install_dir oidn-gta-jit-win --compiler clang
         -D OIDN_DEVICE_CPU=OFF
         -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=OFF -D OIDN_DEVICE_SYCL_JIT_CACHE=OFF
