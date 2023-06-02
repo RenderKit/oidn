@@ -482,10 +482,11 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@tgt/oidn-support
     with:
       project: oidn
-      runs-on: '[ "Windows", "build" ]'
+      runs-on: '[ "Windows", "build", "cuda" ]'
       msvc-version: "2022"
       dpcpp-version: sycl-nightly/20221215
       ocloc-version: 9926f1ea-209e-42b3-94db-a1f895ee56ce/ocloc_win_101.4314
+      rocm-version: rocm/5.5.0
       artifact-out: build-windows-gta-aot
       artifact-path: oidn-gta-aot-win
       cmd: >
@@ -499,9 +500,11 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@tgt/oidn-support
     with:
       project: oidn
-      runs-on: '[ "Windows", "build" ]'
+      runs-on: '[ "Windows", "build", "cuda" ]'
       msvc-version: "2022"
       dpcpp-version: sycl-nightly/20221215
+      ocloc-version: 9926f1ea-209e-42b3-94db-a1f895ee56ce/ocloc_win_101.4314
+      rocm-version: rocm/5.5.0
       artifact-out: build-windows-gta-jit
       artifact-path: oidn-gta-jit-win
       cmd: >
