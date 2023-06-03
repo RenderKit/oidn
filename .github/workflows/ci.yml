@@ -185,7 +185,7 @@ jobs:
   test-rockylinux8-avx2:
     needs: build-rockylinux8
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@tgt/oidn-support
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "avx2" ]'
@@ -199,7 +199,7 @@ jobs:
   test-rockylinux8-avx512:
     needs: build-rockylinux8
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@tgt/oidn-support
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "avx512" ]'
@@ -214,7 +214,7 @@ jobs:
   # test-rockylinux8-sse4:
   #   needs: build-rockylinux8
   #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@tgt/oidn-support
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
   #   with:
   #     project: oidn
   #     runs-on: '[ "Linux", "build" ]'
@@ -228,7 +228,7 @@ jobs:
   test-rockylinux8-debug-avx2:
     needs: build-rockylinux8-debug
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@tgt/oidn-support
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "avx2" ]'
@@ -242,7 +242,7 @@ jobs:
   test-rockylinux8-namespace-avx2:
     needs: build-rockylinux8-namespace
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@tgt/oidn-support
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "avx2" ]'
@@ -436,7 +436,7 @@ jobs:
 
   build-windows:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@tgt/oidn-support
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "build", "cuda" ]'
@@ -451,7 +451,7 @@ jobs:
   # FIXME: enable AOT and HIP
   build-windows-debug:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@tgt/oidn-support
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "build", "cuda" ]'
@@ -466,7 +466,7 @@ jobs:
 
   build-windows-namespace:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@tgt/oidn-support
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "build", "cuda" ]'
@@ -479,7 +479,7 @@ jobs:
 
   build-windows-gta-aot:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@tgt/oidn-support
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "build", "cuda" ]'
@@ -497,7 +497,7 @@ jobs:
 
   build-windows-gta-jit:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@tgt/oidn-support
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "build", "cuda" ]'
@@ -638,7 +638,7 @@ jobs:
 
   package-windows:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@tgt/oidn-support
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "build", "cuda" ]'
