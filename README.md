@@ -1,7 +1,7 @@
 # Intel® Open Image Denoise
 
-This is release v2.0.0 of Intel Open Image Denoise. For changes and new
-features see the [changelog](CHANGELOG.md). Visit
+This is release v2.0.1-devel of Intel Open Image Denoise. For changes
+and new features see the [changelog](CHANGELOG.md). Visit
 https://www.openimagedenoise.org for more information.
 
 # Overview
@@ -431,8 +431,8 @@ CMake:
 
 # Documentation
 
-The following [API
-documentation](https://github.com/OpenImageDenoise/oidn/blob/master/readme.pdf "Intel Open Image Denoise Documentation")
+The following
+[documentation](https://github.com/OpenImageDenoise/oidn/blob/master/readme.pdf "Intel Open Image Denoise Documentation")
 of Intel Open Image Denoise can also be found as a [pdf
 document](https://github.com/OpenImageDenoise/oidn/blob/master/readme.pdf "Intel Open Image Denoise Documentation").
 
@@ -629,7 +629,7 @@ overhead of copying as much as possible:
 
   - If image data must be copied, using the default buffer allocation
     may not be the most efficient method. If the device memory is not
-    physically shared with the host memory (e.g. for discrete GPUs),
+    physically shared with the host memory (e.g. for dedicated GPUs),
     higher performance may be achieved by creating the buffers with
     device storage (`OIDN_STORAGE_DEVICE`) using the new
     `oidnNewBufferWithStorage` function. This way, the buffer data
@@ -1161,15 +1161,19 @@ OIDNBuffer oidnNewSharedBufferFromWin32Handle(OIDNDevice device,
 Before exporting memory from the graphics API, the application should
 find a handle type which is supported by both the Open Image Denoise
 device (see `externalMemoryTypes` device parameter) and the graphics
-API. The possible external memory types as flags are listed in the table
-below.
+API. Note that different GPU vendors may support different handle types.
+To ensure compatibility with all device types, applications should
+support at least `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_FD` on Windows
+and both `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_FD` and
+`OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DMA_BUF` on Linux. All possible external
+memory types are listed in the table below.
 
 | Name                                                | Description                                                                                                        |
 | :-------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------- |
 | `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_NONE`               |                                                                                                                    |
-| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_FD`          | opaque POSIX file descriptor handle                                                                                |
-| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DMA_BUF`            | file descriptor handle for a Linux dma\_buf                                                                        |
-| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32`       | NT handle                                                                                                          |
+| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_FD`          | opaque POSIX file descriptor handle (recommended on Linux)                                                         |
+| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DMA_BUF`            | file descriptor handle for a Linux dma\_buf (recommended on Linux)                                                 |
+| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32`       | NT handle (recommended on Windows)                                                                                 |
 | `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32_KMT`   | global share (KMT) handle                                                                                          |
 | `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_TEXTURE`      | NT handle returned by `IDXGIResource1::CreateSharedHandle` referring to a Direct3D 11 texture resource             |
 | `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_TEXTURE_KMT`  | global share (KMT) handle returned by `IDXGIResource::GetSharedHandle` referring to a Direct3D 11 texture resource |
