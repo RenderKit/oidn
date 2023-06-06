@@ -38,17 +38,20 @@ OIDN_NAMESPACE_BEGIN
       break;
     case ExternalMemoryTypeFlag::D3D11Texture:
     case ExternalMemoryTypeFlag::D3D11Resource:
-      handleDesc.type = cudaExternalMemoryHandleTypeD3D11Resource;
+      handleDesc.type  = cudaExternalMemoryHandleTypeD3D11Resource;
+      handleDesc.flags = cudaExternalMemoryDedicated;
       break;
     case ExternalMemoryTypeFlag::D3D11TextureKMT:
     case ExternalMemoryTypeFlag::D3D11ResourceKMT:
-      handleDesc.type = cudaExternalMemoryHandleTypeD3D11ResourceKmt;
+      handleDesc.type  = cudaExternalMemoryHandleTypeD3D11ResourceKmt;
+      handleDesc.flags = cudaExternalMemoryDedicated;
       break;
     case ExternalMemoryTypeFlag::D3D12Heap:
       handleDesc.type = cudaExternalMemoryHandleTypeD3D12Heap;
       break;
     case ExternalMemoryTypeFlag::D3D12Resource:
-      handleDesc.type = cudaExternalMemoryHandleTypeD3D12Resource;
+      handleDesc.type  = cudaExternalMemoryHandleTypeD3D12Resource;
+      handleDesc.flags = cudaExternalMemoryDedicated;
       break;
     default:
       throw Exception(Error::InvalidArgument, "external memory type not supported by the device");

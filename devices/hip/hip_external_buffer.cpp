@@ -38,17 +38,20 @@ OIDN_NAMESPACE_BEGIN
       break;
     case ExternalMemoryTypeFlag::D3D11Texture:
     case ExternalMemoryTypeFlag::D3D11Resource:
-      handleDesc.type = hipExternalMemoryHandleTypeD3D11Resource;
+      handleDesc.type  = hipExternalMemoryHandleTypeD3D11Resource;
+      handleDesc.flags = hipExternalMemoryDedicated;
       break;
     case ExternalMemoryTypeFlag::D3D11TextureKMT:
     case ExternalMemoryTypeFlag::D3D11ResourceKMT:
-      handleDesc.type = hipExternalMemoryHandleTypeD3D11ResourceKmt;
+      handleDesc.type  = hipExternalMemoryHandleTypeD3D11ResourceKmt;
+      handleDesc.flags = hipExternalMemoryDedicated;
       break;
     case ExternalMemoryTypeFlag::D3D12Heap:
       handleDesc.type = hipExternalMemoryHandleTypeD3D12Heap;
       break;
     case ExternalMemoryTypeFlag::D3D12Resource:
-      handleDesc.type = hipExternalMemoryHandleTypeD3D12Resource;
+      handleDesc.type  = hipExternalMemoryHandleTypeD3D12Resource;
+      handleDesc.flags = hipExternalMemoryDedicated;
       break;
     default:
       throw Exception(Error::InvalidArgument, "external memory type not supported by the device");

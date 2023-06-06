@@ -1,6 +1,9 @@
 Version History
 ---------------
 
+-   Fixed importing D3D12Resource, D3D11Resource, D3D11ResourceKMT, D3D11Texture
+    and D3D11TextureKMT external memory types on CUDA and HIP devices
+
 ### Changes in v2.0.0:
 
 -   Added SYCL device for Intel Xe architecture GPUs (Xe-LP, Xe-HPG and Xe-HPC)
