@@ -18,6 +18,7 @@ OIDN_NAMESPACE_BEGIN
   // Data types sorted by precision in ascending order
   enum class DataType
   {
+    Void,
     UInt8,
     Float16,
     Float32,
@@ -26,14 +27,18 @@ OIDN_NAMESPACE_BEGIN
   template<typename T>
   struct DataTypeOf;
 
-  template<> struct DataTypeOf<float>   { static constexpr DataType value = DataType::Float32; };
-  template<> struct DataTypeOf<half>    { static constexpr DataType value = DataType::Float16; };
+  template<> struct DataTypeOf<void>    { static constexpr DataType value = DataType::Void;    };
   template<> struct DataTypeOf<uint8_t> { static constexpr DataType value = DataType::UInt8;   };
+  template<> struct DataTypeOf<half>    { static constexpr DataType value = DataType::Float16; };
+  template<> struct DataTypeOf<float>   { static constexpr DataType value = DataType::Float32; };
 
   // Returns the size of a data type in bytes
   size_t getDataTypeSize(DataType dataType);
 
   // Returns the data type of a format
   DataType getFormatDataType(Format format);
+
+  // Makes a format from a data type and number of channels
+  Format makeFormat(DataType dataType, int numChannels);
 
 OIDN_NAMESPACE_END

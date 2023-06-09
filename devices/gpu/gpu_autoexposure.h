@@ -9,10 +9,10 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  template<typename ImageDataT, int maxBinSize>
+  template<int maxBinSize>
   struct GPUAutoexposureDownsampleKernel : WorkGroup<2>
   {
-    ImageAccessor<ImageDataT> src;
+    ImageAccessor src;
     float* bins;
 
     OIDN_DEVICE_INLINE void operator ()(const WorkGroupItem<2>& it) const
@@ -181,25 +181,11 @@ OIDN_NAMESPACE_BEGIN
       if (!scratch)
         throw std::logic_error("autoexposure scratch not set");
 
-      switch (src->getDataType())
-      {
-      case DataType::Float32: runImpl<float>(); break;
-      case DataType::Float16: runImpl<half>();  break;
-      default:                assert(0);
-      }
-    }
-
-    const float* getResult() const override { return (float*)resultBuffer->getData(); }
-
-  private:
-    template<typename ImageDataT>
-    void runImpl()
-    {
       float* bins = (float*)scratch->getData();
       float* sums = (float*)((char*)bins + numBins * sizeof(float));
       int* counts = (int*)((char*)sums + numGroups * sizeof(float));
 
-      GPUAutoexposureDownsampleKernel<ImageDataT, maxBinSize> downsample;
+      GPUAutoexposureDownsampleKernel<maxBinSize> downsample;
       downsample.src = *src;
       downsample.bins = bins;
       engine->submitKernel(WorkDim<2>(numBinsH, numBinsW), WorkDim<2>(maxBinSize, maxBinSize), downsample);
@@ -219,6 +205,9 @@ OIDN_NAMESPACE_BEGIN
       engine->submitKernel(WorkDim<1>(1), WorkDim<1>(groupSize), reduceFinal);
     }
 
+    const float* getResult() const override { return (float*)resultBuffer->getData(); }
+
+  private:
     Ref<EngineT> engine;
     int numGroups;
     Ref<Buffer> resultBuffer;

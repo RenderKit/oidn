@@ -7,17 +7,16 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  template<typename T>
   struct GPUImageCopyKernel
   {
-    ImageAccessor<T> src;
-    ImageAccessor<T> dst;
+    ImageAccessor src;
+    ImageAccessor dst;
 
     OIDN_DEVICE_INLINE void operator ()(const WorkItem<2>& it) const
     {
       const int h = it.getId<0>();
       const int w = it.getId<1>();
-      const vec3<T> value = src.get3(h, w);
+      const vec3f value = src.get3(h, w);
       dst.set3(h, w, value);
     }
   };
@@ -38,25 +37,14 @@ OIDN_NAMESPACE_BEGIN
       if (dst->getDataType() != src->getDataType())
         throw std::invalid_argument("image copy source and destination have different data types");
 
-      switch (src->getDataType())
-      {
-      case DataType::Float32: runImpl<float>(); break;
-      case DataType::Float16: runImpl<half>();  break;
-      default:                assert(0);
-      }
-    }
-
-  private:
-    template<typename ImageDataT>
-    void runImpl()
-    {
-      GPUImageCopyKernel<ImageDataT> kernel;
+      GPUImageCopyKernel kernel;
       kernel.src = *src;
       kernel.dst = *dst;
 
       engine->submitKernel(WorkDim<2>(dst->getH(), dst->getW()), kernel);
     }
 
+  private:
     Ref<EngineT> engine;
   };
 

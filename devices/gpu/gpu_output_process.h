@@ -11,14 +11,14 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  template<typename ImageDataT, typename TensorDataT, TensorLayout tensorLayout>
+  template<typename TensorDataT, TensorLayout tensorLayout>
   struct GPUOutputProcessKernel
   {
     // Source
     TensorAccessor3D<TensorDataT, tensorLayout> src;
 
     // Destination
-    ImageAccessor<ImageDataT> dst;
+    ImageAccessor dst;
 
     // Tile
     Tile tile;
@@ -46,6 +46,10 @@ OIDN_NAMESPACE_BEGIN
 
       // Apply the inverse transfer function
       value = transferFunc.inverse(value);
+
+      // Average the channels if there is only one output channel
+      if (dst.C == 1)
+        value = (value.x + value.y + value.z) * (1.f / 3.f);
 
       // Sanitize
       if (snorm)
@@ -83,19 +87,7 @@ OIDN_NAMESPACE_BEGIN
           tile.wDstBegin + tile.W > dst->getW())
         throw std::out_of_range("output processing source/destination out of range");
 
-      switch (dst->getDataType())
-      {
-      case DataType::Float32: runImpl<float>(); break;
-      case DataType::Float16: runImpl<half>();  break;
-      default:                assert(0);
-      }
-    }
-
-  private:
-    template<typename ImageDataT>
-    void runImpl()
-    {
-      GPUOutputProcessKernel<ImageDataT, TensorDataT, tensorLayout> kernel;
+      GPUOutputProcessKernel<TensorDataT, tensorLayout> kernel;
       kernel.src = *src;
       kernel.dst = *dst;
       kernel.tile = tile;
@@ -106,6 +98,7 @@ OIDN_NAMESPACE_BEGIN
       engine->submitKernel(WorkDim<2>(tile.H, tile.W), kernel);
     }
 
+  private:
     Ref<EngineT> engine;
   };
 

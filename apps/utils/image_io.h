@@ -10,15 +10,13 @@ OIDN_NAMESPACE_BEGIN
   // Loads an image with optionally specified number of channels and data type
   std::shared_ptr<ImageBuffer> loadImage(const DeviceRef& device,
                                          const std::string& filename,
-                                         int numChannels = 0,
-                                         Format dataType = Format::Undefined);
+                                         DataType dataType = DataType::Void);
 
   // Loads an image with/without sRGB to linear conversion
   std::shared_ptr<ImageBuffer> loadImage(const DeviceRef& device,
                                          const std::string& filename,
-                                         int numChannels,
                                          bool srgb,
-                                         Format dataType = Format::Undefined);
+                                         DataType dataType = DataType::Void);
 
   // Saves an image
   void saveImage(const std::string& filename, const ImageBuffer& image);

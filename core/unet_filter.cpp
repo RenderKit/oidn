@@ -332,16 +332,21 @@ OIDN_NAMESPACE_BEGIN
     if (!output)
       throw Exception(Error::InvalidOperation, "output image not specified");
 
-    if (((color  && color->getFormat()  != Format::Float3) ||
-         (albedo && albedo->getFormat() != Format::Float3) ||
-         (normal && normal->getFormat() != Format::Float3)) &&
-        ((color  && color->getFormat()  != Format::Half3) ||
-         (albedo && albedo->getFormat() != Format::Half3) ||
-         (normal && normal->getFormat() != Format::Half3)))
+    if ((color  && color->getFormat()  != Format::Float3 && color->getFormat()  != Format::Half3
+                && color->getFormat()  != Format::Float2 && color->getFormat()  != Format::Half2
+                && color->getFormat()  != Format::Float  && color->getFormat()  != Format::Half ) ||
+        (albedo && albedo->getFormat() != Format::Float3 && albedo->getFormat() != Format::Half3) ||
+        (normal && normal->getFormat() != Format::Float3 && normal->getFormat() != Format::Half3))
       throw Exception(Error::InvalidOperation, "unsupported input image format");
 
-    if (output->getFormat() != Format::Float3 && output->getFormat() != Format::Half3)
+    if (output->getFormat() != Format::Float3 && output->getFormat() != Format::Half3 &&
+        output->getFormat() != Format::Float2 && output->getFormat() != Format::Half2 &&
+        output->getFormat() != Format::Float  && output->getFormat() != Format::Half)
       throw Exception(Error::InvalidOperation, "unsupported output image format");
+
+    Image* input = color ? color.get() : (albedo ? albedo.get() : normal.get());
+    if (input->getC() != output->getC())
+      throw Exception(Error::InvalidOperation, "input/output image channel count mismatch");
 
     if ((color  && (color->getW()  != output->getW() || color->getH()  != output->getH())) ||
         (albedo && (albedo->getW() != output->getW() || albedo->getH() != output->getH())) ||
@@ -427,9 +432,9 @@ OIDN_NAMESPACE_BEGIN
 
     // Get the number of input channels
     int inputC = 0;
-    if (color)  inputC += color->getC();
-    if (albedo) inputC += albedo->getC();
-    if (normal) inputC += normal->getC();
+    if (color)  inputC += 3; // always broadcast to 3 channels
+    if (albedo) inputC += 3;
+    if (normal) inputC += 3;
 
     // Create global operations (not part of any model instance or graph)
     std::shared_ptr<Autoexposure> autoexposure;

@@ -11,13 +11,13 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  template<typename ImageDataT, typename TensorDataT, TensorLayout tensorLayout>
+  template<typename TensorDataT, TensorLayout tensorLayout>
   struct GPUInputProcessKernel
   {
     // Source
-    ImageAccessor<ImageDataT> color;
-    ImageAccessor<ImageDataT> albedo;
-    ImageAccessor<ImageDataT> normal;
+    ImageAccessor color;
+    ImageAccessor albedo;
+    ImageAccessor normal;
 
     // Destination
     TensorAccessor3D<TensorDataT, tensorLayout> dst;
@@ -100,13 +100,13 @@ OIDN_NAMESPACE_BEGIN
       const int h = hDst - tile.hDstBegin;
       const int w = wDst - tile.wDstBegin;
 
+      int c = 0;
+
       if (h >= 0 && h < tile.H && w >= 0 && w < tile.W)
       {
         const int hSrc = h + tile.hSrcBegin;
         const int wSrc = w + tile.wSrcBegin;
         const int wDst = w + tile.wDstBegin;
-
-        int c = 0;
 
         if (color.ptr)
         {
@@ -125,16 +125,11 @@ OIDN_NAMESPACE_BEGIN
           storeNormal(c, hDst, wDst, normal.get3(hSrc, wSrc));
           c += 3;
         }
+      }
 
-        for (; c < dst.C; ++c)
-          storeZero(c, hDst, wDst);
-      }
-      else
-      {
-        // Zero pad
-        for (int c = 0; c < dst.C; ++c)
-          storeZero(c, hDst, wDst);
-      }
+      // Zero pad
+      for (; c < dst.C; ++c)
+        storeZero(c, hDst, wDst);
     }
   };
 
@@ -156,27 +151,7 @@ OIDN_NAMESPACE_BEGIN
           tile.wDstBegin + tile.W > dst->getW())
         throw std::out_of_range("input processing source/destination out of range");
 
-      switch (getMainSrc()->getDataType())
-      {
-      case DataType::Float32: runImpl<float>(); break;
-      case DataType::Float16: runImpl<half>();  break;
-      default:                assert(0);
-      }
-    }
-
-  private:
-    void updateSrc() override
-    {
-      if ((color  && color->getDataType()  != getMainSrc()->getDataType()) ||
-          (albedo && albedo->getDataType() != getMainSrc()->getDataType()) ||
-          (normal && normal->getDataType() != getMainSrc()->getDataType()))
-        throw std::invalid_argument("input processing sources have different data types");
-    }
-
-    template<typename ImageDataT>
-    void runImpl()
-    {
-      GPUInputProcessKernel<ImageDataT, TensorDataT, tensorLayout> kernel;
+      GPUInputProcessKernel<TensorDataT, tensorLayout> kernel;
       Image nullImage;
 
       kernel.color  = color  ? *color  : nullImage;
