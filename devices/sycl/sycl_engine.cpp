@@ -82,7 +82,7 @@ OIDN_NAMESPACE_BEGIN
 
   std::shared_ptr<InputProcess> SYCLEngine::newInputProcess(const InputProcessDesc& desc)
   {
-    return std::make_shared<GPUInputProcess<SYCLEngine, half, TensorLayout::Chw16c>>(this, desc);
+    return std::make_shared<GPUInputProcess<SYCLEngine, half, TensorLayout::Chw16c, 16>>(this, desc);
   }
 
   std::shared_ptr<OutputProcess> SYCLEngine::newOutputProcess(const OutputProcessDesc& desc)

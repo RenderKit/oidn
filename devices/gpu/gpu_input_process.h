@@ -11,13 +11,13 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  template<typename TensorDataT, TensorLayout tensorLayout>
+  template<typename TensorDataT, TensorLayout tensorLayout, int dstPaddedC>
   struct GPUInputProcessKernel
   {
     // Source
-    ImageAccessor color;
-    ImageAccessor albedo;
-    ImageAccessor normal;
+    ImageAccessor input;  // color, albedo or normal
+    ImageAccessor albedo; // auxiliary albedo
+    ImageAccessor normal; // auxiliary normal
 
     // Destination
     TensorAccessor3D<TensorDataT, tensorLayout> dst;
@@ -30,14 +30,10 @@ OIDN_NAMESPACE_BEGIN
     bool hdr;
     bool snorm; // signed normalized ([-1..1])
 
-    OIDN_DEVICE_INLINE void storeZero(int c, int h, int w) const
+    OIDN_DEVICE_INLINE vec3f getInput(int h, int w) const
     {
-      dst(c, h, w) = 0.f;
-    }
+      vec3f value = input.get3(h, w);
 
-    // Stores a color value
-    OIDN_DEVICE_INLINE void storeColor(int c, int h, int w, vec3f value) const
-    {
       // Scale
       value = value * transferFunc.getInputScale();
 
@@ -53,34 +49,22 @@ OIDN_NAMESPACE_BEGIN
       // Apply the transfer function
       value = transferFunc.forward(value);
 
-      // Store
-      dst.set3(c, h, w, value);
+      return value;
     }
 
-    // Stores an albedo value
-    OIDN_DEVICE_INLINE void storeAlbedo(int c, int h, int w, vec3f value) const
+    OIDN_DEVICE_INLINE vec3f getAlbedo(int h, int w) const
     {
-      // Scale
-      if (!color.ptr)
-        value = value * transferFunc.getInputScale();
+      vec3f value = albedo.get3(h, w);
 
       // Sanitize
       value = math::clamp(math::nan_to_zero(value), 0.f, 1.f);
 
-      // Apply the transfer function
-      if (!color.ptr)
-        value = transferFunc.forward(value);
-
-      // Store
-      dst.set3(c, h, w, value);
+      return value;
     }
 
-    // Stores a normal value
-    OIDN_DEVICE_INLINE void storeNormal(int c, int h, int w, vec3f value) const
+    OIDN_DEVICE_INLINE vec3f getNormal(int h, int w) const
     {
-      // Scale
-      if (!color.ptr)
-        value = value * transferFunc.getInputScale();
+      vec3f value = normal.get3(h, w);
 
       // Sanitize
       value = math::clamp(math::nan_to_zero(value), -1.f, 1.f);
@@ -88,8 +72,7 @@ OIDN_NAMESPACE_BEGIN
       // Transform to [0..1]
       value = value * 0.5f + 0.5f;
 
-      // Store
-      dst.set3(c, h, w, value);
+      return value;
     }
 
     OIDN_DEVICE_INLINE void operator ()(const WorkItem<2>& it) const
@@ -100,40 +83,42 @@ OIDN_NAMESPACE_BEGIN
       const int h = hDst - tile.hDstBegin;
       const int w = wDst - tile.wDstBegin;
 
-      int c = 0;
+      float values[dstPaddedC] = {}; // = 0
 
       if (h >= 0 && h < tile.H && w >= 0 && w < tile.W)
       {
         const int hSrc = h + tile.hSrcBegin;
         const int wSrc = w + tile.wSrcBegin;
-        const int wDst = w + tile.wDstBegin;
 
-        if (color.ptr)
-        {
-          storeColor(c, hDst, wDst, color.get3(hSrc, wSrc));
-          c += 3;
-        }
+        const vec3f inputValue = getInput(hSrc, wSrc);
+        values[0] = inputValue.x;
+        values[1] = inputValue.y;
+        values[2] = inputValue.z;
 
-        if (albedo.ptr)
+        if (dstPaddedC >= 6 && albedo.ptr)
         {
-          storeAlbedo(c, hDst, wDst, albedo.get3(hSrc, wSrc));
-          c += 3;
-        }
+          const vec3f albedoValue = getAlbedo(hSrc, wSrc);
+          values[3] = albedoValue.x;
+          values[4] = albedoValue.y;
+          values[5] = albedoValue.z;
 
-        if (normal.ptr)
-        {
-          storeNormal(c, hDst, wDst, normal.get3(hSrc, wSrc));
-          c += 3;
+          if (dstPaddedC >= 9 && normal.ptr)
+          {
+            const vec3f normalValue = getNormal(hSrc, wSrc);
+            values[6] = normalValue.x;
+            values[7] = normalValue.y;
+            values[8] = normalValue.z;
+          }
         }
       }
 
-      // Zero pad
-      for (; c < dst.C; ++c)
-        storeZero(c, hDst, wDst);
+      #pragma unroll
+      for (int c = 0; c < dstPaddedC; ++c)
+        dst(c, hDst, wDst) = values[c];
     }
   };
 
-  template<typename EngineT, typename TensorDataT, TensorLayout tensorLayout>
+  template<typename EngineT, typename TensorDataT, TensorLayout tensorLayout, int tensorBlockC>
   class GPUInputProcess : public InputProcess
   {
   public:
@@ -151,12 +136,31 @@ OIDN_NAMESPACE_BEGIN
           tile.wDstBegin + tile.W > dst->getW())
         throw std::out_of_range("input processing source/destination out of range");
 
-      GPUInputProcessKernel<TensorDataT, tensorLayout> kernel;
+      switch (dst->getC())
+      {
+      case  3: runImpl<3>(); break;
+      case  6: runImpl<6>(); break;
+      case  9: runImpl<9>(); break;
+      default: throw std::logic_error("unsupported input processing source");
+      }
+    }
+
+  private:
+    template<int dstC>
+    void runImpl()
+    {
+      constexpr int dstPaddedC = round_up(dstC, tensorBlockC);
+      if (dst->getPaddedC() != dstPaddedC)
+        throw std::logic_error("unexpected input processing destination channel count");
+
+      using Kernel = GPUInputProcessKernel<TensorDataT, tensorLayout, dstPaddedC>;
+
+      Kernel kernel;
       Image nullImage;
 
-      kernel.color  = color  ? *color  : nullImage;
-      kernel.albedo = albedo ? *albedo : nullImage;
-      kernel.normal = normal ? *normal : nullImage;
+      kernel.input  = color ? *color : (albedo ? *albedo : *normal);
+      kernel.albedo = (color && albedo) ? *albedo : nullImage;
+      kernel.normal = (color && normal) ? *normal : nullImage;
       kernel.dst    = *dst;
       kernel.tile   = tile;
       kernel.transferFunc = *transferFunc;

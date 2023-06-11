@@ -4,6 +4,7 @@ Version History
 -   Added support for 1-channel and 2-channel `color` images
 -   Added support for arbitrary combinations of input image data types
     (e.g. `OIDN_FORMAT_FLOAT3` for `color` but `OIDN_FORMAT_HALF3` for `albedo`)
+-   Slightly improved GPU performance
 -   Fixed importing D3D12Resource, D3D11Resource, D3D11ResourceKMT, D3D11Texture
     and D3D11TextureKMT external memory types on CUDA and HIP devices
 
