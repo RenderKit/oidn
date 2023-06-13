@@ -131,6 +131,11 @@ OIDN_NAMESPACE_BEGIN
       item.barrier(sycl::access::fence_space::local_space);
     }
 
+    OIDN_DEVICE_INLINE sycl::ext::oneapi::sub_group getSubGroup() const
+    {
+      return item.get_sub_group();
+    }
+
   private:
     const sycl::nd_item<N>& item;
   };

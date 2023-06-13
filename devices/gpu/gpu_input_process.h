@@ -12,7 +12,7 @@
 OIDN_NAMESPACE_BEGIN
 
   template<typename TensorDataT, TensorLayout tensorLayout, int dstPaddedC>
-  struct GPUInputProcessKernel
+  struct GPUInputProcessKernel : WorkGroup<2>
   {
     // Source
     ImageAccessor input;  // color, albedo or normal
@@ -75,10 +75,10 @@ OIDN_NAMESPACE_BEGIN
       return value;
     }
 
-    OIDN_DEVICE_INLINE void operator ()(const WorkItem<2>& it) const
+    OIDN_DEVICE_INLINE void operator ()(const WorkGroupItem<2>& it) const
     {
-      const int hDst = it.getId<0>();
-      const int wDst = it.getId<1>();
+      const int hDst = it.getGlobalId<0>();
+      const int wDst = it.getGlobalId<1>();
 
       const int h = hDst - tile.hDstBegin;
       const int w = wDst - tile.wDstBegin;
@@ -112,9 +112,67 @@ OIDN_NAMESPACE_BEGIN
         }
       }
 
+      auto sg = it.getSubGroup();
+      int sgid = sg.get_local_id()[0];
+
+#if 0
+      // Shuffle in SLM
+      OIDN_SHARED LocalArray<half, 16 * 16> localValues; // float is much slower
+      for (int i = 0; i < 16; ++i)
+        sg.store(&localValues[i*16], half(values[i]));
+
+      //it.syncGroup();
+
+      half out[16];
+      for (int i = 0; i < 16; ++i)
+        out[i] = localValues[sgid*16 + i];
+#else
+
+      //float out[16];
+      float out[16] = {}; // = 0
+
+      // for (int corr=0; corr < 16; ++corr)
+      // {
+      //   int src_lane = ((sgid + corr) % 16);
+      //   int src_corr = ((16 - corr) + sgid) % 16;
+      //   int dest = (sgid + corr) % 16;
+      //   out[dest] = sg.shuffle(values[src_corr], src_lane);
+      // }
+
+      //for (int n = 0; n < 16; ++n)
+      for (int n = 0; n < 9; ++n)
+      {
+        for (int k = 0; k < 16; ++k)
+        {
+          const auto v = sycl::group_broadcast(sg, values[n], k);
+          out[k] = sgid == n ? v : out[k];
+        }
+      }
+
+#endif
+
+      using global_ptr = sycl::multi_ptr<half, sycl::access::address_space::global_space>;
+
+      // Store to memory
+      const int wDstBlock = it.getGroupId<1>() * it.getLocalRange<1>();
+      half* dstPtr = &dst(0, hDst, wDstBlock);
+      for (int i = 0; i < 16; ++i)
+      {
+      #if 1
+        sg.store(global_ptr(&dst(0, hDst, wDstBlock + i)), half(out[i]));
+      #else
+        // Much slower
+        dstPtr[sgid] = half(out[i]);
+        dstPtr += 16;
+      #endif
+      }
+
+      /*
+      // Scatter to memory
       #pragma unroll
       for (int c = 0; c < dstPaddedC; ++c)
         dst(c, hDst, wDst) = values[c];
+      */
     }
   };
 
@@ -167,7 +225,9 @@ OIDN_NAMESPACE_BEGIN
       kernel.hdr   = hdr;
       kernel.snorm = snorm;
 
-      engine->submitKernel(WorkDim<2>(dst->getH(), dst->getW()), kernel);
+      engine->submitKernel(WorkDim<2>(dst->getH(), dst->getW() / 16),
+                           WorkDim<2>(1, 16),
+                           kernel);
     }
 
     Ref<EngineT> engine;
