@@ -112,15 +112,10 @@ OIDN_NAMESPACE_BEGIN
         }
       }
 
-      auto sg = it.getSubGroup();
-      int sgid = sg.get_local_id()[0];
-
-      using global_ptr = sycl::multi_ptr<half, sycl::access::address_space::global_space>;
-
       // Store to memory
-      const int wDstBlock = it.getGroupId<1>() * it.getLocalRange<1>();
-      global_ptr dstPtr = &dst(0, hDst, wDstBlock);
-      //float* dstPtr = (float*)&dst(0, hDst, wDstBlock);
+      const int subGroupID = it.getSubGroupId();
+      const int wDstGroup = it.subGroupBroadcast(wDst, 0);
+      GlobalPtr<TensorDataT> dstPtr = &dst(0, hDst, wDstGroup);
 
       #pragma unroll
       for (int i = 0; i < 16; ++i)
@@ -129,16 +124,11 @@ OIDN_NAMESPACE_BEGIN
         #pragma unroll
         for (int n = 0; n < 9; ++n)
         {
-          const auto v = sycl::group_broadcast(sg, values[n], i);
-          out = sgid == n ? v : out;
+          const auto v = it.subGroupBroadcast(values[n], i);
+          out = subGroupID == n ? v : out;
         }
 
-        #if 1
-          sg.store(dstPtr + i * 16, out);
-        #else
-          // Much slower
-          dstPtr[i * 16 + sgid] = out;
-        #endif
+        it.subGroupStore(dstPtr + i * 16, out);
       }
 
       /*
@@ -199,8 +189,8 @@ OIDN_NAMESPACE_BEGIN
       kernel.hdr   = hdr;
       kernel.snorm = snorm;
 
-      engine->submitKernel(WorkDim<2>(dst->getH(), dst->getW() / 16),
-                           WorkDim<2>(1, 16),
+      engine->submitKernel(WorkDim<2>(dst->getH() / 16, dst->getW() / 16),
+                           WorkDim<2>(16, 16),
                            kernel);
     }
 

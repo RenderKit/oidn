@@ -86,6 +86,9 @@ OIDN_NAMESPACE_BEGIN
 
 #if defined(OIDN_COMPILE_SYCL)
 
+  template<typename T>
+  using GlobalPtr = sycl::multi_ptr<T, sycl::access::address_space::global_space>;
+
   // -----------------------------------------------------------------------------------------------
   // SYCL WorkItem
   // -----------------------------------------------------------------------------------------------
@@ -131,9 +134,26 @@ OIDN_NAMESPACE_BEGIN
       item.barrier(sycl::access::fence_space::local_space);
     }
 
-    OIDN_DEVICE_INLINE sycl::ext::oneapi::sub_group getSubGroup() const
+    OIDN_DEVICE_INLINE int getSubGroupId() const
     {
-      return item.get_sub_group();
+      return int(item.get_sub_group().get_local_linear_id());
+    }
+
+    template<typename T>
+    OIDN_DEVICE_INLINE T subGroupBroadcast(T x, int id) const
+    {
+      return sycl::group_broadcast(item.get_sub_group(), x, id);
+    }
+
+    template<typename T>
+    OIDN_DEVICE_INLINE void subGroupStore(GlobalPtr<T> dst, const T& x) const
+    {
+      item.get_sub_group().store(dst, x);
+    }
+
+    OIDN_DEVICE_INLINE void subGroupSync() const
+    {
+      sycl::group_barrier(item.get_sub_group());
     }
 
   private:
@@ -162,6 +182,9 @@ OIDN_NAMESPACE_BEGIN
   };
 
 #elif defined(OIDN_COMPILE_CUDA) || defined(OIDN_COMPILE_HIP)
+
+  template<typename T>
+  using GlobalPtr = T*;
 
   // -----------------------------------------------------------------------------------------------
   // CUDA/HIP WorkItem
