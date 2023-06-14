@@ -83,7 +83,7 @@ OIDN_NAMESPACE_BEGIN
       const int h = hDst - tile.hDstBegin;
       const int w = wDst - tile.wDstBegin;
 
-      float values[dstPaddedC] = {}; // = 0
+      TensorDataT values[dstPaddedC] = {}; // = 0
 
       if (h >= 0 && h < tile.H && w >= 0 && w < tile.W)
       {
@@ -115,56 +115,30 @@ OIDN_NAMESPACE_BEGIN
       auto sg = it.getSubGroup();
       int sgid = sg.get_local_id()[0];
 
-#if 0
-      // Shuffle in SLM
-      OIDN_SHARED LocalArray<half, 16 * 16> localValues; // float is much slower
-      for (int i = 0; i < 16; ++i)
-        sg.store(&localValues[i*16], half(values[i]));
-
-      //it.syncGroup();
-
-      half out[16];
-      for (int i = 0; i < 16; ++i)
-        out[i] = localValues[sgid*16 + i];
-#else
-
-      //float out[16];
-      float out[16] = {}; // = 0
-
-      // for (int corr=0; corr < 16; ++corr)
-      // {
-      //   int src_lane = ((sgid + corr) % 16);
-      //   int src_corr = ((16 - corr) + sgid) % 16;
-      //   int dest = (sgid + corr) % 16;
-      //   out[dest] = sg.shuffle(values[src_corr], src_lane);
-      // }
-
-      //for (int n = 0; n < 16; ++n)
-      for (int n = 0; n < 9; ++n)
-      {
-        for (int k = 0; k < 16; ++k)
-        {
-          const auto v = sycl::group_broadcast(sg, values[n], k);
-          out[k] = sgid == n ? v : out[k];
-        }
-      }
-
-#endif
-
       using global_ptr = sycl::multi_ptr<half, sycl::access::address_space::global_space>;
 
       // Store to memory
       const int wDstBlock = it.getGroupId<1>() * it.getLocalRange<1>();
-      half* dstPtr = &dst(0, hDst, wDstBlock);
+      global_ptr dstPtr = &dst(0, hDst, wDstBlock);
+      //float* dstPtr = (float*)&dst(0, hDst, wDstBlock);
+
+      #pragma unroll
       for (int i = 0; i < 16; ++i)
       {
-      #if 1
-        sg.store(global_ptr(&dst(0, hDst, wDstBlock + i)), half(out[i]));
-      #else
-        // Much slower
-        dstPtr[sgid] = half(out[i]);
-        dstPtr += 16;
-      #endif
+        TensorDataT out = 0;
+        #pragma unroll
+        for (int n = 0; n < 9; ++n)
+        {
+          const auto v = sycl::group_broadcast(sg, values[n], i);
+          out = sgid == n ? v : out;
+        }
+
+        #if 1
+          sg.store(dstPtr + i * 16, out);
+        #else
+          // Much slower
+          dstPtr[i * 16 + sgid] = out;
+        #endif
       }
 
       /*
