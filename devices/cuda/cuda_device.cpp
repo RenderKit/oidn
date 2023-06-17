@@ -124,6 +124,7 @@ OIDN_NAMESPACE_BEGIN
     cudaDeviceProp prop{};
     checkError(cudaGetDeviceProperties(&prop, deviceID));
     maxWorkGroupSize = prop.maxThreadsPerBlock;
+    subgroupSize = prop.warpSize;
     smArch = prop.major * 10 + prop.minor;
 
     // Check required hardware features

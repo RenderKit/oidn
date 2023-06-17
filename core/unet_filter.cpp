@@ -446,9 +446,9 @@ OIDN_NAMESPACE_BEGIN
     size_t totalMemoryByteSize = 0;
 
     // Create model instances for each engine of the device
-    for (int instanceId = 0; instanceId < device->getNumEngines(); ++instanceId)
+    for (int instanceID = 0; instanceID < device->getNumEngines(); ++instanceID)
     {
-      auto& instance = instances[instanceId];
+      auto& instance = instances[instanceID];
       auto& graph = instance.graph;
 
       // Create the model graph
@@ -495,20 +495,20 @@ OIDN_NAMESPACE_BEGIN
       size_t scratchByteSize = graphScratchByteSize;
 
       // Allocate scratch for global operations
-      if (instanceId == 0 && hdr)
+      if (instanceID == 0 && hdr)
         scratchByteSize = max(scratchByteSize, autoexposure->getScratchAlignedSize());
 
       // If doing in-place _tiled_ filtering, allocate a temporary output image
       ImageDesc outputTempDesc(output->getFormat(), W, H);
       size_t outputTempByteOffset = SIZE_MAX;
-      if (instanceId == 0 && inplace && (tileCountH * tileCountW) > 1)
+      if (instanceID == 0 && inplace && (tileCountH * tileCountW) > 1)
       {
         outputTempByteOffset = scratchByteSize;
         scratchByteSize += outputTempDesc.getAlignedSize();
       }
 
       // Check the total memory usage
-      if (instanceId == 0)
+      if (instanceID == 0)
       {
         totalMemoryByteSize = scratchByteSize + graph->getPrivateByteSize() +
                               (graphScratchByteSize + graph->getPrivateByteSize()) * (device->getNumEngines() - 1);
@@ -520,18 +520,18 @@ OIDN_NAMESPACE_BEGIN
       }
 
       // Allocate the scratch buffer
-      auto scratch = device->getEngine(instanceId)->newScratchBuffer(scratchByteSize);
+      auto scratch = device->getEngine(instanceID)->newScratchBuffer(scratchByteSize);
 
       // Set the scratch buffer for the graph and the global operations
       graph->setScratch(scratch);
-      if (instanceId == 0 && hdr)
+      if (instanceID == 0 && hdr)
         autoexposure->setScratch(scratch);
 
       // Finalize the network
       graph->finalize();
 
       // Create the temporary output image
-      if (instanceId == 0 && outputTempByteOffset < SIZE_MAX)
+      if (instanceID == 0 && outputTempByteOffset < SIZE_MAX)
         outputTemp = scratch->newImage(outputTempDesc, outputTempByteOffset);
 
       instance.inputProcess  = inputProcess;

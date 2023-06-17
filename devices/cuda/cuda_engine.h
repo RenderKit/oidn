@@ -16,7 +16,7 @@ OIDN_NAMESPACE_BEGIN
     __global__ void basicCUDAKernel(WorkDim<1> globalSize, const F f)
     {
       WorkItem<1> it(globalSize);
-      if (it.getId() < it.getRange())
+      if (it.getGlobalID() < it.getGlobalSize())
         f(it);
     }
 
@@ -24,8 +24,8 @@ OIDN_NAMESPACE_BEGIN
     __global__ void basicCUDAKernel(WorkDim<2> globalSize, const F f)
     {
       WorkItem<2> it(globalSize);
-      if (it.getId<0>() < it.getRange<0>() &&
-          it.getId<1>() < it.getRange<1>())
+      if (it.getGlobalID<0>() < it.getGlobalSize<0>() &&
+          it.getGlobalID<1>() < it.getGlobalSize<1>())
         f(it);
     }
 
@@ -33,9 +33,9 @@ OIDN_NAMESPACE_BEGIN
     __global__ void basicCUDAKernel(WorkDim<3> globalSize, const F f)
     {
       WorkItem<3> it(globalSize);
-      if (it.getId<0>() < it.getRange<0>() &&
-          it.getId<1>() < it.getRange<1>() &&
-          it.getId<2>() < it.getRange<2>())
+      if (it.getGlobalID<0>() < it.getGlobalSize<0>() &&
+          it.getGlobalID<1>() < it.getGlobalSize<1>() &&
+          it.getGlobalID<2>() < it.getGlobalSize<2>())
         f(it);
     }
 
@@ -114,6 +114,7 @@ OIDN_NAMESPACE_BEGIN
     void wait() override;
 
     int getMaxWorkGroupSize() const override { return device->maxWorkGroupSize; }
+    int getSubgroupSize() const override { return device->subgroupSize; }
     int getSMArch() const { return device->smArch; }
 
   private:

@@ -60,7 +60,17 @@ OIDN_NAMESPACE_BEGIN
       lastEvent = syclQueue.parallel_for<F>(
         sycl::nd_range<N>(numGroups * groupSize, groupSize),
         getDepEvents(),
-        [=](sycl::nd_item<N> it) [[intel::reqd_sub_group_size(16)]] { f(it); });
+        [=](sycl::nd_item<N> it) { f(it); });
+    }
+
+    // Enqueues a work-group kernel with explicit subgroup size
+    template<int subgroupSize, int N, typename F>
+    OIDN_INLINE void submitKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const F& f)
+    {
+      lastEvent = syclQueue.parallel_for<F>(
+        sycl::nd_range<N>(numGroups * groupSize, groupSize),
+        getDepEvents(),
+        [=](sycl::nd_item<N> it) [[intel::reqd_sub_group_size(subgroupSize)]] { f(it); });
     }
 
     // Enqueues a basic ESIMD kernel

@@ -89,7 +89,8 @@ OIDN_NAMESPACE_BEGIN
     // Waits for all asynchronous commands to complete (blocks)
     virtual void wait() = 0;
 
-    virtual int getMaxWorkGroupSize() const { return 0; }
+    virtual int getMaxWorkGroupSize() const;
+    virtual int getSubgroupSize() const;
 
   private:
     // Memory

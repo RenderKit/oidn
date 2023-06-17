@@ -93,4 +93,14 @@ OIDN_NAMESPACE_BEGIN
     throw std::logic_error("USM is not supported by the device");
   }
 
+  int Engine::getMaxWorkGroupSize() const
+  {
+    throw std::logic_error("getting the maximum work-group size is not supported by the device");
+  }
+
+  int Engine::getSubgroupSize() const
+  {
+    throw std::logic_error("getting the subgroup size is not supported by the device");
+  }
+
 OIDN_NAMESPACE_END

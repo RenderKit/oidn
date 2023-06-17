@@ -132,10 +132,10 @@ OIDN_NAMESPACE_BEGIN
     std::vector<int> threadIds;
 
     // Parse the thread/CPU topology
-    for (int cpuId = 0; ; cpuId++)
+    for (int cpuID = 0; ; cpuID++)
     {
       std::fstream fs;
-      std::string cpu = std::string("/sys/devices/system/cpu/cpu") + std::to_string(cpuId) + std::string("/topology/thread_siblings_list");
+      std::string cpu = std::string("/sys/devices/system/cpu/cpu") + std::to_string(cpuID) + std::string("/topology/thread_siblings_list");
       fs.open(cpu.c_str(), std::fstream::in);
       if (fs.fail()) break;
 

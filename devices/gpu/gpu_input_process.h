@@ -77,13 +77,14 @@ OIDN_NAMESPACE_BEGIN
 
     OIDN_DEVICE_INLINE void operator ()(const WorkGroupItem<2>& it) const
     {
-      const int hDst = it.getGlobalId<0>();
-      const int wDst = it.getGlobalId<1>();
+      const int hDst = it.getGlobalID<0>();
+      const int wDst = it.getGlobalID<1>();
 
       const int h = hDst - tile.hDstBegin;
       const int w = wDst - tile.wDstBegin;
 
-      TensorDataT values[dstPaddedC] = {}; // = 0
+      // Gather and process the input channel values
+      float values[dstPaddedC] = {}; // = 0
 
       if (h >= 0 && h < tile.H && w >= 0 && w < tile.W)
       {
@@ -112,31 +113,62 @@ OIDN_NAMESPACE_BEGIN
         }
       }
 
-      // Store to memory
-      const int subGroupID = it.getSubGroupId();
-      const int wDstGroup = it.subGroupBroadcast(wDst, 0);
-      GlobalPtr<TensorDataT> dstPtr = &dst(0, hDst, wDstGroup);
+    #if !defined(OIDN_COMPILE_HIP) || defined(__gfx1030__)
+      // Transpose the values in the subgroup into coalesced blocks and store them to memory (fast)
+      // All work-items in the subgroup are assumed to be in the same row
+      const int subgroupLocalID = it.getSubgroupLocalID();
+      const int wDstBegin = it.subgroupBroadcast(wDst, 0);
+      GlobalPtr<TensorDataT> dstPtr = &dst(0, hDst, wDstBegin);
+
+      #if defined(OIDN_COMPILE_SYCL)
+      // The subgroup size is assumed to be equal to the channel count
+      constexpr int subgroupSize = dstPaddedC;
 
       #pragma unroll
-      for (int i = 0; i < 16; ++i)
+      for (int i = 0; i < subgroupSize; ++i)
       {
-        TensorDataT out = 0;
+        float dstBlock = 0;
+
         #pragma unroll
-        for (int n = 0; n < 9; ++n)
+        for (int c = 0; c < min(dstPaddedC, 9); ++c) // only up to 9 non-zero channels
         {
-          const auto v = it.subGroupBroadcast(values[n], i);
-          out = subGroupID == n ? v : out;
+          const auto value = it.subgroupBroadcast(values[c], i);
+          dstBlock = (subgroupLocalID == c) ? value : dstBlock;
         }
 
-        it.subGroupStore(dstPtr + i * 16, out);
+        if (wDstBegin + i < dst.W)
+          it.subgroupStore(dstPtr + i * dstPaddedC, TensorDataT(dstBlock));
       }
+      #else
+      // The subgroup size is assumed to be divisible by the channel count
+      const int subgroupSize = it.getSubgroupSize();
 
-      /*
-      // Scatter to memory
-      #pragma unroll
-      for (int c = 0; c < dstPaddedC; ++c)
-        dst(c, hDst, wDst) = values[c];
-      */
+      for (int i = 0; i < subgroupSize; i += subgroupSize / dstPaddedC)
+      {
+        // We may store multiple pixels in the same block
+        const int wBlock = i + subgroupLocalID / dstPaddedC;
+        float dstBlock = 0;
+
+        #pragma unroll
+        for (int c = 0; c < min(dstPaddedC, 9); ++c) // only up to 9 non-zero channels
+        {
+          const auto value = it.subgroupShuffle(values[c], wBlock);
+          dstBlock = (subgroupLocalID % dstPaddedC) == c ? value : dstBlock;
+        }
+
+        if (wDstBegin + wBlock < dst.W)
+          dstPtr[i * dstPaddedC + subgroupLocalID] = TensorDataT(dstBlock);
+      }
+      #endif
+    #else
+      // Scatter the values to memory (slow on most architectures)
+      if (wDst < dst.W)
+      {
+        #pragma unroll
+        for (int c = 0; c < dstPaddedC; ++c)
+          dst(c, hDst, wDst) = values[c];
+      }
+    #endif
     }
   };
 
@@ -163,7 +195,7 @@ OIDN_NAMESPACE_BEGIN
       case  3: runImpl<3>(); break;
       case  6: runImpl<6>(); break;
       case  9: runImpl<9>(); break;
-      default: throw std::logic_error("unsupported input processing source");
+      default: throw std::logic_error("unsupported input processing source channel count");
       }
     }
 
@@ -174,6 +206,16 @@ OIDN_NAMESPACE_BEGIN
       constexpr int dstPaddedC = round_up(dstC, tensorBlockC);
       if (dst->getPaddedC() != dstPaddedC)
         throw std::logic_error("unexpected input processing destination channel count");
+
+    #if defined(OIDN_COMPILE_SYCL)
+      // We request the subgroup size at compile time
+      constexpr int subgroupSize = dstPaddedC;
+    #else
+      // We know the subgroup size only at runtime
+      const int subgroupSize = engine->getSubgroupSize();
+      if (subgroupSize % dstPaddedC != 0)
+        throw std::logic_error("unsupported input processing destination channel count");
+    #endif
 
       using Kernel = GPUInputProcessKernel<TensorDataT, tensorLayout, dstPaddedC>;
 
@@ -189,9 +231,14 @@ OIDN_NAMESPACE_BEGIN
       kernel.hdr   = hdr;
       kernel.snorm = snorm;
 
-      engine->submitKernel(WorkDim<2>(dst->getH() / 16, dst->getW() / 16),
-                           WorkDim<2>(16, 16),
-                           kernel);
+      const WorkDim<2> numGroups{dst->getH(), ceil_div(dst->getW(), subgroupSize)};
+      const WorkDim<2> groupSize{1, subgroupSize};
+
+    #if defined(OIDN_COMPILE_SYCL)
+      engine->template submitKernel<subgroupSize>(numGroups, groupSize, kernel);
+    #else
+      engine->submitKernel(numGroups, groupSize, kernel);
+    #endif
     }
 
     Ref<EngineT> engine;

@@ -62,6 +62,7 @@ OIDN_NAMESPACE_BEGIN
     cudaStream_t stream = nullptr;
 
     int maxWorkGroupSize = 0;
+    int subgroupSize = 0;
     int smArch = 0; // compute capability
   };
 

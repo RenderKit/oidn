@@ -1,7 +1,7 @@
 // Copyright 2018 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-//#define OIDN_MICROBENCH
+//#define OIDN_MICROBENCH 1000 // number of microbenchmark iterations
 
 #include "generic_graph.h"
 #include "concat_conv_chw.h"
@@ -497,7 +497,7 @@ OIDN_NAMESPACE_BEGIN
 
     #if defined(OIDN_MICROBENCH)
       engine->wait();
-      const int numRuns = 1000;
+      const int numRuns = OIDN_MICROBENCH;
       Timer timer;
       for (int j = 0; j < numRuns; ++j)
         ops[i]->submit();

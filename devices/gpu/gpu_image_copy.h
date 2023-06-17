@@ -14,8 +14,8 @@ OIDN_NAMESPACE_BEGIN
 
     OIDN_DEVICE_INLINE void operator ()(const WorkItem<2>& it) const
     {
-      const int h = it.getId<0>();
-      const int w = it.getId<1>();
+      const int h = it.getGlobalID<0>();
+      const int w = it.getGlobalID<1>();
       const vec3f value = src.get3(h, w);
       dst.set3(h, w, value);
     }
