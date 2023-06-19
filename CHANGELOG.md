@@ -1,6 +1,7 @@
 Version History
 ---------------
 
+-   Fixed performance issue for Intel integrated GPUs using recent Linux drivers
 -   Fixed importing D3D12Resource, D3D11Resource, D3D11ResourceKMT, D3D11Texture
     and D3D11TextureKMT external memory types on CUDA and HIP devices
 -   Fixed the macOS deployment target of the official x86 binaries (lowered from
