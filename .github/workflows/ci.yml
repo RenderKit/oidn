@@ -645,9 +645,10 @@ jobs:
 
   kw-build-scan-report:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_static_analysis.yml@devel
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/static_analysis.yml@main
     with:
       project: oidn
+      image: oidn/ubuntu:22.04
       build: scripts/build.py
 
   snyk-scan:
