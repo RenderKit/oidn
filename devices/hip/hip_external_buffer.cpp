@@ -57,8 +57,11 @@ OIDN_NAMESPACE_BEGIN
       throw Exception(Error::InvalidArgument, "external memory type not supported by the device");
     }
 
-    handleDesc.handle.win32.handle = handle;
-    handleDesc.handle.win32.name = name;
+    if (handle)
+      handleDesc.handle.win32.handle = handle;
+    if (name)
+      handleDesc.handle.win32.name = name;
+
     handleDesc.size = byteSize;
 
     init(handleDesc);
