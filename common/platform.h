@@ -145,21 +145,6 @@ OIDN_NAMESPACE_BEGIN
   using enable_if_t = typename std::enable_if<B, T>::type;
 
   // -----------------------------------------------------------------------------------------------
-  // Error handling and debugging
-  // -----------------------------------------------------------------------------------------------
-
-  struct Verbose
-  {
-    int verbose;
-
-    Verbose(int v = 0) : verbose(v) {}
-    OIDN_INLINE bool isVerbose(int v = 1) const { return v <= verbose; }
-  };
-
-  #define OIDN_WARNING(message) { if (isVerbose()) std::cerr << "Warning: " << message << std::endl; }
-  #define OIDN_FATAL(message) throw std::runtime_error(message);
-
-  // -----------------------------------------------------------------------------------------------
   // Common functions
   // -----------------------------------------------------------------------------------------------
 

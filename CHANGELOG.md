@@ -7,6 +7,7 @@ Version History
     and D3D11TextureKMT external memory types on CUDA and HIP devices
 -   Fixed the macOS deployment target of the official x86 binaries (lowered from
     11.0 to 10.11)
+-   Minor improvements to verbose output
 
 ### Changes in v2.0.0:
 

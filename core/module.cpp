@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "module.h"
+#include "context.h"
 
 #if !defined(_WIN32)
   #include <dlfcn.h>
@@ -62,7 +63,10 @@ OIDN_NAMESPACE_BEGIN
       (OIDN_TO_STRING(OIDN_NAMESPACE_C) "_init_module_") + name + ("_v" OIDN_TO_STRING(OIDN_VERSION));
     void* initAddress = getSymbolAddress(module, initSymbol);
     if (initAddress == nullptr)
+    {
+      Context::get().printWarning("invalid module: '" + filename + "'");
       return false;
+    }
 
     // Call the module init function
     auto initFunc = reinterpret_cast<void (*)()>(initAddress);
@@ -71,7 +75,8 @@ OIDN_NAMESPACE_BEGIN
     // The module has been loaded successfully
     // We won't unload the module manually, so we don't need to keep the handle
     modules.insert(name);
-    //std::cout << "Loaded module: " << path << std::endl;
+
+    Context::get().printDebug("Loaded module: '" + filename + "'");
     return true;
   }
 

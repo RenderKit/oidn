@@ -57,7 +57,7 @@ OIDN_NAMESPACE_BEGIN
     else if (name == "output")
       setParam(output, image);
     else
-      device->warning("unknown filter parameter or type mismatch: '" + name + "'");
+      device->printWarning("unknown filter parameter or type mismatch: '" + name + "'");
 
     dirty = true;
   }
@@ -73,7 +73,7 @@ OIDN_NAMESPACE_BEGIN
     else if (name == "output")
       removeParam(output);
     else
-      device->warning("unknown filter parameter or type mismatch: '" + name + "'");
+      device->printWarning("unknown filter parameter or type mismatch: '" + name + "'");
 
     dirty = true;
   }

@@ -327,7 +327,7 @@ OIDN_NAMESPACE_BEGIN
       if (!isEnvVar("OIDN_NUM_SUBDEVICES"))
         numSubdevices = value;
       else if (numSubdevices != value)
-        warning("OIDN_NUM_SUBDEVICES environment variable overrides device parameter");
+        printWarning("OIDN_NUM_SUBDEVICES environment variable overrides device parameter");
     }
     else
       Device::setInt(name, value);
