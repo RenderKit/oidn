@@ -32,7 +32,7 @@ bool inplace = false;
 void printUsage()
 {
   std::cout << "Intel(R) Open Image Denoise - Benchmark" << std::endl;
-  std::cout << "usage: oidnBenchmark [-d/--device [0-9]+|default|cpu|sycl|cuda|hip]" << std::endl
+  std::cout << "usage: oidnBenchmark [-d/--device [0-9]+|default|cpu|sycl|cuda|hip|metal]" << std::endl
             << "                     [-r/--run regex] [-n times_to_run]" << std::endl
             << "                     [-s/--size width height]" << std::endl
             << "                     [-t/--type float|half]" << std::endl

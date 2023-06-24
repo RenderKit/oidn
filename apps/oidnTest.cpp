@@ -736,7 +736,7 @@ int main(int argc, char* argv[])
   using namespace Catch::clara;
   auto cli
     = session.cli()
-    | Opt(deviceStr, "[0-9]+|default|cpu|sycl|cuda|hip")
+    | Opt(deviceStr, "[0-9]+|default|cpu|sycl|cuda|hip|metal")
         ["--device"]
         ("Open Image Denoise device to use");
 

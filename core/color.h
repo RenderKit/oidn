@@ -123,6 +123,12 @@ OIDN_NAMESPACE_BEGIN
       return outputScale;
     }
 
+    // FIXME: remove
+    OIDN_HOST_DEVICE_INLINE float getNormScale() const
+    {
+      return normScale;
+    }
+
     OIDN_HOST_DEVICE_INLINE vec3f forward(vec3f y) const
     {
       switch (type)

@@ -39,6 +39,10 @@ OIDN_NAMESPACE_BEGIN
       if (getEnvVarOrDefault("OIDN_DEVICE_HIP", 1))
         modules.load("device_hip");
     #endif
+    #if defined(OIDN_DEVICE_METAL)
+      if (getEnvVarOrDefault("OIDN_DEVICE_METAL", 1))
+        modules.load("device_metal");
+    #endif
 
       // Sort the physical devices by score
       std::sort(physicalDevices.begin(), physicalDevices.end(),

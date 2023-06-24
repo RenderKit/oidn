@@ -162,3 +162,7 @@ if(OIDN_DEVICE_HIP)
     USE_SOURCE_PERMISSIONS
   )
 endif()
+
+if(OIDN_DEVICE_METAL)
+  add_subdirectory(metal)
+endif()

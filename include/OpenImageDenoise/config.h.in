@@ -69,6 +69,9 @@
 #if !defined(OIDN_DEVICE_HIP)
   #cmakedefine OIDN_DEVICE_HIP
 #endif
+#if !defined(OIDN_DEVICE_METAL)
+  #cmakedefine OIDN_DEVICE_METAL
+#endif
 
 #cmakedefine OIDN_FILTER_RT
 #cmakedefine OIDN_FILTER_RTLIGHTMAP

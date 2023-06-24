@@ -546,10 +546,11 @@ OIDN_NAMESPACE_BEGIN
   {
     Default = OIDN_DEVICE_TYPE_DEFAULT, // select device automatically
 
-    CPU  = OIDN_DEVICE_TYPE_CPU,  // CPU device
-    SYCL = OIDN_DEVICE_TYPE_SYCL, // SYCL device
-    CUDA = OIDN_DEVICE_TYPE_CUDA, // CUDA device
-    HIP  = OIDN_DEVICE_TYPE_HIP,  // HIP device
+    CPU   = OIDN_DEVICE_TYPE_CPU,   // CPU device
+    SYCL  = OIDN_DEVICE_TYPE_SYCL,  // SYCL device
+    CUDA  = OIDN_DEVICE_TYPE_CUDA,  // CUDA device
+    HIP   = OIDN_DEVICE_TYPE_HIP,   // HIP device
+    METAL = OIDN_DEVICE_TYPE_METAL, // Metal device
   };
 
   // Error codes

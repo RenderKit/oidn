@@ -22,7 +22,7 @@ OIDN_NAMESPACE_USING
 void printUsage()
 {
   std::cout << "Intel(R) Open Image Denoise" << std::endl;
-  std::cout << "usage: oidnDenoise [-d/--device [0-9]+|default|cpu|sycl|cuda|hip]" << std::endl
+  std::cout << "usage: oidnDenoise [-d/--device [0-9]+|default|cpu|sycl|cuda|hip|metal]" << std::endl
             << "                   [-f/--filter RT|RTLightmap]" << std::endl
             << "                   [--hdr color.pfm] [--ldr color.pfm] [--srgb] [--dir directional.pfm]" << std::endl
             << "                   [--alb albedo.pfm] [--nrm normal.pfm] [--clean_aux]" << std::endl

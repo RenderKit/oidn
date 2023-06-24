@@ -50,6 +50,7 @@ OIDN_NAMESPACE_BEGIN
     case DeviceType::SYCL:    sm << "SYCL";    break;
     case DeviceType::CUDA:    sm << "CUDA";    break;
     case DeviceType::HIP:     sm << "HIP";     break;
+    case DeviceType::METAL:   sm << "Metal";   break;
     default:
       throw std::invalid_argument("invalid device type");
     }
@@ -73,6 +74,8 @@ OIDN_NAMESPACE_BEGIN
       deviceType = DeviceType::CUDA;
     else if (str == "hip")
       deviceType = DeviceType::HIP;
+    else if (str == "metal")
+      deviceType = DeviceType::METAL;
     else
       throw std::invalid_argument("invalid device type");
 
