@@ -11,11 +11,14 @@
 OIDN_NAMESPACE_BEGIN
 
 // Global library context
-class Context
+class Context : public Verbose
 {
 public:
-  // Returns the lazily initialized global context. Do *not* call from modules!
+  // Returns the global context without initialization
   static Context& get();
+
+  // Initializes the global context (should be called by API functions)
+  void init();
 
   template<typename DeviceFactoryT>
   static void registerDeviceType(DeviceType type, const std::vector<Ref<PhysicalDevice>>& physicalDevices)
@@ -23,7 +26,7 @@ public:
     if (physicalDevices.empty())
       return;
 
-    Context& ctx = getInstance();
+    Context& ctx = get();
     ctx.deviceFactories[type] = std::unique_ptr<DeviceFactory>(new DeviceFactoryT);
     ctx.physicalDevices.insert(ctx.physicalDevices.end(), physicalDevices.begin(), physicalDevices.end());
   }
@@ -36,13 +39,9 @@ public:
   Ref<Device> newDevice(int physicalDeviceID);
 
 private:
-  // Returns the global context without initialization
-  static Context& getInstance();
-
   Context() = default;
   Context(const Context&) = delete;
   Context& operator =(const Context&) = delete;
-  void init();
 
   std::once_flag initFlag;
   ModuleLoader modules;

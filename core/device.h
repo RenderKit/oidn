@@ -6,6 +6,7 @@
 #include "common/common.h"
 #include "ref.h"
 #include "exception.h"
+#include "verbose.h"
 #include "thread.h"
 #include "tensor_layout.h"
 #include "data.h"
@@ -52,8 +53,6 @@ OIDN_NAMESPACE_BEGIN
     static void setError(Device* device, Error code, const std::string& message);
     static Error getError(Device* device, const char** outMessage);
     void setErrorFunction(ErrorFunction func, void* userPtr);
-
-    void warning(const std::string& message);
 
     // Some devices (e.g. CUDA, HIP) need to change some per-thread state, which must be later restored
     // Most device calls must be between begin() and end() calls

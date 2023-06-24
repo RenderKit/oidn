@@ -15,7 +15,7 @@ OIDN_NAMESPACE_BEGIN
     if (name == "weights")
       setParam(userWeightsBlob, data);
     else
-      device->warning("unknown filter parameter or type mismatch: '" + name + "'");
+      device->printWarning("unknown filter parameter or type mismatch: '" + name + "'");
 
     dirty = true;
   }
@@ -25,7 +25,7 @@ OIDN_NAMESPACE_BEGIN
     if (name == "weights")
       dirtyParam |= userWeightsBlob;
     else
-      device->warning("unknown filter parameter or type mismatch: '" + name + "'");
+      device->printWarning("unknown filter parameter or type mismatch: '" + name + "'");
 
     dirty = true;
   }
@@ -35,7 +35,7 @@ OIDN_NAMESPACE_BEGIN
     if (name == "weights")
       removeParam(userWeightsBlob);
     else
-      device->warning("unknown filter parameter or type mismatch: '" + name + "'");
+      device->printWarning("unknown filter parameter or type mismatch: '" + name + "'");
 
     dirty = true;
   }
@@ -54,7 +54,7 @@ OIDN_NAMESPACE_BEGIN
     else if (name == "maxMemoryMB")
       setParam(maxMemoryMB, value);
     else
-      device->warning("unknown filter parameter or type mismatch: '" + name + "'");
+      device->printWarning("unknown filter parameter or type mismatch: '" + name + "'");
 
     dirty = true;
   }
@@ -69,14 +69,14 @@ OIDN_NAMESPACE_BEGIN
       return tileAlignment;
     else if (name == "alignment")
     {
-      device->warning("filter parameter 'alignment' is deprecated, use 'tileAlignment' instead");
+      device->printWarning("filter parameter 'alignment' is deprecated, use 'tileAlignment' instead");
       return tileAlignment;
     }
     else if (name == "tileOverlap")
       return tileOverlap;
     else if (name == "overlap")
     {
-      device->warning("filter parameter 'overlap' is deprecated, use 'tileOverlap' instead");
+      device->printWarning("filter parameter 'overlap' is deprecated, use 'tileOverlap' instead");
       return tileOverlap;
     }
     else
@@ -89,11 +89,11 @@ OIDN_NAMESPACE_BEGIN
       inputScale = value;
     else if (name == "hdrScale")
     {
-      device->warning("filter parameter 'hdrScale' is deprecated, use 'inputScale' instead");
+      device->printWarning("filter parameter 'hdrScale' is deprecated, use 'inputScale' instead");
       inputScale = value;
     }
     else
-      device->warning("unknown filter parameter or type mismatch: '" + name + "'");
+      device->printWarning("unknown filter parameter or type mismatch: '" + name + "'");
 
     dirty = true;
   }
@@ -104,7 +104,7 @@ OIDN_NAMESPACE_BEGIN
       return inputScale;
     else if (name == "hdrScale")
     {
-      device->warning("filter parameter 'hdrScale' is deprecated, use 'inputScale' instead");
+      device->printWarning("filter parameter 'hdrScale' is deprecated, use 'inputScale' instead");
       return inputScale;
     }
     else
