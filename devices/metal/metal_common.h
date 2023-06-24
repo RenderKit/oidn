@@ -6,7 +6,6 @@
 #include "core/tensor.h"
 #include "core/color.h"
 
-#ifdef __OBJC__
 #include <Foundation/Foundation.h>
 #include <Metal/Metal.h>
 #include <MetalPerformanceShadersGraph/MetalPerformanceShadersGraph.h>
@@ -25,21 +24,6 @@ typedef MPSGraphConvolution2DOpDescriptor* MPSGraphConvolution2DOpDescriptor_t;
 typedef MPSShape* MPSShape_t;
 typedef NSData* NSData_t;
 typedef MPSDataType MPSDataType_t;
-#else
-typedef void* MTLDevice_t;
-typedef void* MTLLibrary_t;
-typedef void* MTLBuffer_t;
-typedef void* MTLCommandQueue_t;
-typedef void* MTLComputePipelineState_t;
-typedef void* MPSGraph_t;
-typedef void* MPSGraphTensor_t;
-typedef void* MPSGraphTensorData_t;
-typedef void* MPSGraphPooling2DOpDescriptor_t;
-typedef void* MPSGraphConvolution2DOpDescriptor_t;
-typedef void* MPSShape_t;
-typedef void* NSData_t;
-typedef uint32_t MPSDataType_t;
-#endif
 
 #include "metal_kernel_common.h"
 

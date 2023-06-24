@@ -14,7 +14,7 @@ set(SRC_METAL_KERNEL
 set_source_files_properties(${SRC_METAL_KERNEL} PROPERTIES LANGUAGE METAL)
 
 set(OIDN_METAL_SOURCES
-  metal_module.cpp
+  metal_module.mm
   metal_common.h
   metal_common.mm
   metal_engine.mm
