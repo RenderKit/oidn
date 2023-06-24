@@ -9,7 +9,7 @@
 OIDN_NAMESPACE_BEGIN
 
   MetalPhysicalDevice::MetalPhysicalDevice(int deviceID, std::string name, int score)
-    : PhysicalDevice(DeviceType::METAL, score),
+    : PhysicalDevice(DeviceType::Metal, score),
       deviceID(deviceID)
   {
     this->name = name;

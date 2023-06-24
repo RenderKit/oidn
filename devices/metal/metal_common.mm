@@ -162,7 +162,7 @@ OIDN_NAMESPACE_BEGIN
 
   MTLBuffer_t getMetalBuffer(Ref<Buffer> buffer)
   {
-    if (buffer->getDevice()->getType() != DeviceType::METAL)
+    if (buffer->getDevice()->getType() != DeviceType::Metal)
       throw std::logic_error("not supported device");
     if (auto metal = static_cast<MetalBuffer*>(buffer.get()))
       return metal->getMetalBuffer();

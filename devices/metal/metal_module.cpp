@@ -16,14 +16,14 @@ OIDN_NAMESPACE_BEGIN
 
     Ref<Device> newDevice(const Ref<PhysicalDevice>& physicalDevice) override
     {
-      assert(physicalDevice->type == DeviceType::METAL);
+      assert(physicalDevice->type == DeviceType::Metal);
       return makeRef<MetalDevice>(staticRefCast<MetalPhysicalDevice>(physicalDevice));
     }
   };
 
   OIDN_DECLARE_INIT_MODULE(device_metal)
   {
-    Context::registerDeviceType<MetalDeviceFactory>(DeviceType::METAL, MetalDevice::getPhysicalDevices());
+    Context::registerDeviceType<MetalDeviceFactory>(DeviceType::Metal, MetalDevice::getPhysicalDevices());
   }
 
 OIDN_NAMESPACE_END

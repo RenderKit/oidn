@@ -29,7 +29,7 @@ OIDN_NAMESPACE_BEGIN
     MetalDevice(const Ref<MetalPhysicalDevice>& physicalDevice);
     ~MetalDevice();
     
-    DeviceType getType() const override { return DeviceType::METAL; }
+    DeviceType getType() const override { return DeviceType::Metal; }
     
     Engine* getEngine(int i) const override
     {
