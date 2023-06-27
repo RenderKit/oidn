@@ -46,7 +46,7 @@ OIDN_NAMESPACE_BEGIN
     int getInt(const std::string& name) override;
     void setInt(const std::string& name, int value) override;
 
-    Storage getPointerStorage(const void* ptr) override;
+    Storage getPtrStorage(const void* ptr) override;
 
     void submitBarrier() override;
     void wait() override;

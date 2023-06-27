@@ -44,7 +44,7 @@ OIDN_NAMESPACE_BEGIN
     if ((ptr == nullptr) && (byteOffset + getByteSize() > 0))
       throw Exception(Error::InvalidArgument, "buffer region out of range");
 
-    this->ptr = (char*)ptr + byteOffset;
+    this->ptr = static_cast<char*>(ptr) + byteOffset;
   }
 
   Image::Image(const Ref<Buffer>& buffer, const ImageDesc& desc, size_t byteOffset)
@@ -54,7 +54,7 @@ OIDN_NAMESPACE_BEGIN
     if (byteOffset + getByteSize() > buffer->getByteSize())
       throw Exception(Error::InvalidArgument, "buffer region out of range");
 
-    this->ptr = buffer->getData() + byteOffset;
+    this->ptr = buffer->hasPtr() ? (buffer->getPtr() + byteOffset) : nullptr;
   }
 
   Image::Image(const Ref<Buffer>& buffer, Format format, size_t width, size_t height, size_t byteOffset, size_t pixelByteStride, size_t rowByteStride)
@@ -64,14 +64,14 @@ OIDN_NAMESPACE_BEGIN
     if (byteOffset + getByteSize() > buffer->getByteSize())
       throw Exception(Error::InvalidArgument, "buffer region out of range");
 
-    this->ptr = buffer->getData() + byteOffset;
+    this->ptr = buffer->hasPtr() ? (buffer->getPtr() + byteOffset) : nullptr;
   }
 
   Image::Image(const Ref<Engine>& engine, Format format, size_t width, size_t height)
     : Memory(engine->newBuffer(width * height * getFormatSize(format), Storage::Device)),
       ImageDesc(format, width, height)
   {
-    this->ptr = buffer->getData();
+    this->ptr = buffer->hasPtr() ? buffer->getPtr() : nullptr;
   }
 
   void Image::updatePtr()
@@ -81,13 +81,13 @@ OIDN_NAMESPACE_BEGIN
       if (byteOffset + getByteSize() > buffer->getByteSize())
         throw std::range_error("buffer region out of range");
 
-      ptr = buffer->getData() + byteOffset;
+      ptr = buffer->hasPtr() ? (buffer->getPtr() + byteOffset) : nullptr;
     }
   }
 
   bool Image::overlaps(const Image& other) const
   {
-    if (!ptr || !other.ptr)
+    if (!*this || !other)
       return false;
 
     // If the images are backed by different buffers, they cannot overlap
@@ -95,10 +95,10 @@ OIDN_NAMESPACE_BEGIN
       return false;
 
     // Check whether the pointer intervals overlap
-    const char* begin1 = begin();
-    const char* end1   = end();
-    const char* begin2 = other.begin();
-    const char* end2   = other.end();
+    const char* begin1 = ptr;
+    const char* end1   = ptr + getByteSize();
+    const char* begin2 = other.ptr;
+    const char* end2   = other.ptr + other.getByteSize();
 
     return begin1 < end2 && begin2 < end1;
   }

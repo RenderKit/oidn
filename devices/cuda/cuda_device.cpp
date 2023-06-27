@@ -165,7 +165,7 @@ OIDN_NAMESPACE_BEGIN
     engine = makeRef<CUDAEngine>(this, stream);
   }
 
-  Storage CUDADevice::getPointerStorage(const void* ptr)
+  Storage CUDADevice::getPtrStorage(const void* ptr)
   {
     cudaPointerAttributes attrib;
     if (cudaPointerGetAttributes(&attrib, ptr) != cudaSuccess)

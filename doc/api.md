@@ -779,7 +779,8 @@ However, accessing the data on the host through this pointer is possible only if
 the buffer was created with a storage mode that enables this, i.e., any mode
 *except* `OIDN_STORAGE_DEVICE`. Note that a `NULL` pointer may be returned if the
 buffer is empty or getting a pointer to data with device storage is not supported
-by the device.
+by the device. In the latter case, an `OIDN_ERROR_INVALID_OPERATION` is also
+raised.
 
 In some cases better performance can be achieved by using device storage for
 buffers. Such data can be accessed on the host by copying to/from host memory

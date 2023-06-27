@@ -1,4 +1,5 @@
 // Copyright 2023 Apple Inc.
+// Copyright 2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "metal_device.h"
@@ -48,17 +49,17 @@ OIDN_NAMESPACE_BEGIN
 
   void MetalDevice::init()
   {
-    managedMemorySupported = false;
-    systemMemorySupported = true;
-    
     tensorLayout = TensorLayout::hwc;
     weightLayout = TensorLayout::oihw;
     tensorBlockC = 1;
 
+    systemMemorySupported  = true;
+    managedMemorySupported = false;
+
     engine = makeRef<MetalEngine>(this);
   }
 
-  Storage MetalDevice::getPointerStorage(const void* ptr)
+  Storage MetalDevice::getPtrStorage(const void* ptr)
   {
     return Storage::Host;
   }

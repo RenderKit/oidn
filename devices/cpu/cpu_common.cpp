@@ -10,7 +10,7 @@ OIDN_NAMESPACE_BEGIN
     const ImageDesc& desc = image.getDesc();
 
     ispc::ImageAccessor acc;
-    acc.ptr = static_cast<uint8_t*>(image.getData());
+    acc.ptr = static_cast<uint8_t*>(image.getPtr());
     acc.hByteStride = desc.hByteStride;
     acc.wByteStride = desc.wByteStride;
 
@@ -46,7 +46,7 @@ OIDN_NAMESPACE_BEGIN
       throw std::logic_error("incompatible tensor accessor");
 
     ispc::TensorAccessor3D acc;
-    acc.ptr = static_cast<float*>(tensor.getData());
+    acc.ptr = static_cast<float*>(tensor.getPtr());
     acc.C = tensor.getPaddedC();
     acc.H = tensor.getH();
     acc.W = tensor.getW();

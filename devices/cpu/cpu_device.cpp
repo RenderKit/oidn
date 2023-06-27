@@ -215,7 +215,7 @@ OIDN_NAMESPACE_BEGIN
     }
   }
 
-  Storage CPUDevice::getPointerStorage(const void* ptr)
+  Storage CPUDevice::getPtrStorage(const void* ptr)
   {
     return Storage::Host;
   }

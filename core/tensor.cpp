@@ -96,7 +96,7 @@ OIDN_NAMESPACE_BEGIN
     : Tensor(desc)
   {
     buffer = engine->newBuffer(getByteSize(), storage);
-    ptr = buffer->getData();
+    ptr = buffer->hasPtr() ? buffer->getPtr() : nullptr;
   }
 
   GenericTensor::GenericTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
@@ -105,7 +105,7 @@ OIDN_NAMESPACE_BEGIN
     if (byteOffset + getByteSize() > buffer->getByteSize())
       throw Exception(Error::InvalidArgument, "buffer region out of range");
 
-    ptr = buffer->getData() + byteOffset;
+    ptr = buffer->hasPtr() ? (buffer->getPtr() + byteOffset) : nullptr;
   }
 
   void GenericTensor::updatePtr()
@@ -115,7 +115,7 @@ OIDN_NAMESPACE_BEGIN
       if (byteOffset + getByteSize() > buffer->getByteSize())
         throw std::range_error("buffer region out of range");
 
-      ptr = buffer->getData() + byteOffset;
+      ptr = buffer->hasPtr() ? (buffer->getPtr() + byteOffset) : nullptr;
     }
   }
 

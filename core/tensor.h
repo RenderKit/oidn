@@ -168,8 +168,7 @@ OIDN_NAMESPACE_BEGIN
   class Tensor : public Memory, protected TensorDesc
   {
   public:
-    virtual void* getData() = 0;
-    virtual const void* getData() const = 0;
+    virtual void* getPtr() const = 0;
 
     OIDN_INLINE const TensorDesc& getDesc() const { return *this; }
     OIDN_INLINE const TensorDims& getDims() const { return dims; }
@@ -191,14 +190,12 @@ OIDN_NAMESPACE_BEGIN
     using TensorDesc::getByteSize;
     using TensorDesc::getAlignedSize;
 
-    OIDN_INLINE operator bool() const { return getData() != nullptr; }
-
     template<typename T>
     operator TensorAccessor1D<T>()
     {
       if (layout != TensorLayout::x || dataType != DataTypeOf<T>::value)
         throw std::logic_error("incompatible tensor accessor");
-      return TensorAccessor1D<T>(getData(), dims[0]);
+      return TensorAccessor1D<T>(getPtr(), dims[0]);
     }
 
     template<typename T, TensorLayout accessorLayout>
@@ -206,7 +203,7 @@ OIDN_NAMESPACE_BEGIN
     {
       if (layout != accessorLayout || dataType != DataTypeOf<T>::value)
         throw std::logic_error("incompatible tensor accessor");
-      return TensorAccessor3D<T, accessorLayout>(getData(), getPaddedC(), getH(), getW());
+      return TensorAccessor3D<T, accessorLayout>(getPtr(), getPaddedC(), getH(), getW());
     }
 
     template<typename T, TensorLayout accessorLayout>
@@ -214,7 +211,7 @@ OIDN_NAMESPACE_BEGIN
     {
       if (layout != accessorLayout || dataType != DataTypeOf<T>::value)
         throw std::logic_error("incompatible tensor accessor");
-      return TensorAccessor4D<T, accessorLayout>(getData(), getPaddedO(), getPaddedI(), getH(), getW());
+      return TensorAccessor4D<T, accessorLayout>(getPtr(), getPaddedO(), getPaddedI(), getH(), getW());
     }
 
     std::shared_ptr<Tensor> map(Access access);
@@ -237,13 +234,12 @@ OIDN_NAMESPACE_BEGIN
     GenericTensor(const Ref<Engine>& engine, const TensorDesc& desc, Storage storage);
     GenericTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset = 0);
 
-    void* getData() override { return ptr; }
-    const void* getData() const override { return ptr; }
+    void* getPtr() const override { return ptr; }
 
   private:
     void updatePtr() override;
 
-    void* ptr;
+    void* ptr; // pointer to the tensor data (optional)
   };
 
   using TensorMap = std::unordered_map<std::string, std::shared_ptr<Tensor>>;

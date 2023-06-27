@@ -42,7 +42,7 @@ OIDN_NAMESPACE_BEGIN
     if (!src || !dst)
       throw std::logic_error("pooling source/destination not set");
 
-    BNNSFilterApply(filter, src->getData(), dst->getData());
+    BNNSFilterApply(filter, src->getPtr(), dst->getPtr());
   }
 
 OIDN_NAMESPACE_END

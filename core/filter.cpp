@@ -37,7 +37,7 @@ OIDN_NAMESPACE_BEGIN
     if (src && *src && !device->isSystemMemorySupported())
     {
       const Storage storage = src->getBuffer() ? src->getBuffer()->getStorage()
-                                               : device->getPointerStorage(src->getData());
+                                               : device->getPtrStorage(src->getPtr());
       if (storage == Storage::Undefined)
         throw Exception(Error::InvalidArgument, "image data not accessible by the device, please use OIDNBuffer or device allocator for storage");
     }
@@ -63,7 +63,7 @@ OIDN_NAMESPACE_BEGIN
   void Filter::setParam(Data& dst, const Data& src)
   {
     // Check whether the data is accessible to the host
-    if (src && device->getPointerStorage(src.ptr) == Storage::Device)
+    if (src && device->getPtrStorage(src.ptr) == Storage::Device)
       throw Exception(Error::InvalidArgument, "the specified data is not accessible to the host, please use host malloc");
 
     dirtyParam = dst || src;

@@ -116,10 +116,10 @@ OIDN_NAMESPACE_BEGIN
     auto makeArgument() const
     {
       return conv.MakeArgument(
-        src ? src->getData() : nullptr,       // p_a
-        weight ? weight->getData() : nullptr, // p_b
-        {bias ? bias->getData() : nullptr},   // p_ds
-        dst ? dst->getData() : nullptr,       // p_e
+        src ? src->getPtr() : nullptr,        // p_a
+        weight ? weight->getPtr() : nullptr,  // p_b
+        {bias ? bias->getPtr() : nullptr},    // p_ds
+        dst ? dst->getPtr() : nullptr,        // p_e
         getCKTensorLengths(srcDesc),          // a_g_n_c_wis_lengths
         getCKTensorStrides(srcDesc),          // a_g_n_c_wis_strides
         getCKTensorLengths(weightDesc),       // b_g_k_c_xs_lengths

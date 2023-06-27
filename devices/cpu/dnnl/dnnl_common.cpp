@@ -80,7 +80,7 @@ OIDN_NAMESPACE_BEGIN
     if (!engine)
       throw std::logic_error("buffer does not belong to a DNNL engine");
     dnnl::memory::desc desc({int64_t(buffer->getByteSize())}, dnnl::memory::data_type::u8, dnnl::memory::format_tag::x);
-    return {desc, engine->getDNNLEngine(), buffer->getData()};
+    return {desc, engine->getDNNLEngine(), buffer->getPtr()};
   }
 
   const dnnl::memory& getDNNL(const std::shared_ptr<Tensor>& tensor)

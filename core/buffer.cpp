@@ -102,7 +102,7 @@ OIDN_NAMESPACE_BEGIN
       throw Exception(Error::InvalidArgument, "buffer pointer null");
 
     if (storage == Storage::Undefined)
-      this->storage = engine->getDevice()->getPointerStorage(ptr);
+      this->storage = engine->getDevice()->getPtrStorage(ptr);
   }
 
   USMBuffer::~USMBuffer()
@@ -113,6 +113,32 @@ OIDN_NAMESPACE_BEGIN
     // Free the memory
     if (!shared && ptr)
       engine->usmFree(ptr, storage);
+  }
+
+  void USMBuffer::read(size_t byteOffset, size_t byteSize, void* dstHostPtr, SyncMode sync)
+  {
+    if (!mappedRegions.empty())
+      throw Exception(Error::InvalidOperation, "buffer cannot be read while mapped");
+    if (byteOffset + byteSize > this->byteSize)
+      throw Exception(Error::InvalidArgument, "buffer region out of range");
+
+    if (sync == SyncMode::Sync)
+      engine->usmCopy(dstHostPtr, ptr + byteOffset, byteSize);
+    else
+      engine->submitUSMCopy(dstHostPtr, ptr + byteOffset, byteSize);
+  }
+
+  void USMBuffer::write(size_t byteOffset, size_t byteSize, const void* srcHostPtr, SyncMode sync)
+  {
+    if (!mappedRegions.empty())
+      throw Exception(Error::InvalidOperation, "buffer cannot be written while mapped");
+    if (byteOffset + byteSize > this->byteSize)
+      throw Exception(Error::InvalidArgument, "buffer region out of range");
+
+    if (sync == SyncMode::Sync)
+      engine->usmCopy(ptr + byteOffset, srcHostPtr, byteSize);
+    else
+      engine->submitUSMCopy(ptr + byteOffset, srcHostPtr, byteSize);
   }
 
   void* USMBuffer::map(size_t byteOffset, size_t byteSize, Access access)
@@ -163,32 +189,6 @@ OIDN_NAMESPACE_BEGIN
   {
     for (const auto& region : mappedRegions)
       unmap(region.first);
-  }
-
-  void USMBuffer::read(size_t byteOffset, size_t byteSize, void* dstHostPtr, SyncMode sync)
-  {
-    if (!mappedRegions.empty())
-      throw Exception(Error::InvalidOperation, "buffer cannot be read while mapped");
-    if (byteOffset + byteSize > this->byteSize)
-      throw Exception(Error::InvalidArgument, "buffer region out of range");
-
-    if (sync == SyncMode::Sync)
-      engine->usmCopy(dstHostPtr, ptr + byteOffset, byteSize);
-    else
-      engine->submitUSMCopy(dstHostPtr, ptr + byteOffset, byteSize);
-  }
-
-  void USMBuffer::write(size_t byteOffset, size_t byteSize, const void* srcHostPtr, SyncMode sync)
-  {
-    if (!mappedRegions.empty())
-      throw Exception(Error::InvalidOperation, "buffer cannot be written while mapped");
-    if (byteOffset + byteSize > this->byteSize)
-      throw Exception(Error::InvalidArgument, "buffer region out of range");
-
-    if (sync == SyncMode::Sync)
-      engine->usmCopy(ptr + byteOffset, srcHostPtr, byteSize);
-    else
-      engine->submitUSMCopy(ptr + byteOffset, srcHostPtr, byteSize);
   }
 
   void USMBuffer::realloc(size_t newByteSize)

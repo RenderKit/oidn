@@ -1,4 +1,5 @@
 // Copyright 2023 Apple Inc.
+// Copyright 2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "metal_common.h"
@@ -29,15 +30,16 @@ OIDN_NAMESPACE_BEGIN
     }
   }
 
-  MPSShape_t toMPSShape(const TensorDesc& td) {
+  MPSShape_t toMPSShape(const TensorDesc& td)
+  {
     switch (td.layout)
     {
     case TensorLayout::x:
-      return @[@(size_t(td.dims[0]))];
+      return @[@1, @1, @1, @(size_t(td.getX()))];
     case TensorLayout::hwc:
-      return @[@1, @(size_t(td.dims[1])), @(size_t(td.dims[2])), @(size_t(td.dims[0]))];
+      return @[@1, @(size_t(td.getH())), @(size_t(td.getW())), @(size_t(td.getC()))];
     case TensorLayout::oihw:
-      return @[@(size_t(td.dims[0])), @(size_t(td.dims[1])), @(size_t(td.dims[2])), @(size_t(td.dims[3]))];
+      return @[@(size_t(td.getO())), @(size_t(td.getI())), @(size_t(td.getH())), @(size_t(td.getW()))];
     default:
       throw std::invalid_argument("unsupported tensor layout");
     }
@@ -45,12 +47,12 @@ OIDN_NAMESPACE_BEGIN
 
   MPSGraphTensor_t toMPSGraphTensor(MPSGraph_t graph, const std::shared_ptr<Tensor>& t)
   {
-    NSData* data = [NSData dataWithBytes: (void*)t->getData()
+    NSData* data = [NSData dataWithBytes: t->getPtr()
                                   length: t->getByteSize()];
-    
+
     return [graph constantWithData: data
                              shape: toMPSShape(t->getDesc())
-                          dataType: toMPSDataType(t->getDesc().dataType)];
+                          dataType: toMPSDataType(t->getDataType())];
   }
 
   MPSGraphTensor_t toMPSGraphPlaceholder(MPSGraph_t graph, TensorDesc td)
@@ -67,19 +69,19 @@ OIDN_NAMESPACE_BEGIN
                                   name: nil];
   }
 
-  MPSGraphTensorData_t toMPSGraphTensorData(MTLBuffer_t buffer, const std::shared_ptr<Tensor>& t)
+  MPSGraphTensorData_t toMPSGraphTensorData(id<MTLBuffer> buffer, const std::shared_ptr<Tensor>& t)
   {
     return toMPSGraphTensorData(buffer, t->getDesc());
   }
 
-  MPSGraphTensorData_t toMPSGraphTensorData(MTLBuffer_t buffer, TensorDesc td)
+  MPSGraphTensorData_t toMPSGraphTensorData(id<MTLBuffer> buffer, TensorDesc td)
   {
     return [[MPSGraphTensorData alloc] initWithMTLBuffer: buffer
                                                    shape: toMPSShape(td)
                                                 dataType: toMPSDataType(td.dataType)];
   }
 
-  MPSGraphTensorData_t toMPSGraphTensorData(MTLBuffer_t buffer, ImageDesc imd)
+  MPSGraphTensorData_t toMPSGraphTensorData(id<MTLBuffer> buffer, ImageDesc imd)
   {
     return [[MPSGraphTensorData alloc] initWithMTLBuffer: buffer
                                                    shape: @[@1, @(imd.getH()), @(imd.getW()), @(imd.getC())]
@@ -89,24 +91,24 @@ OIDN_NAMESPACE_BEGIN
   MPSGraphPooling2DOpDescriptor_t MPSGraphPoolDesc()
   {
     MPSGraphPooling2DOpDescriptor_t descr = [[MPSGraphPooling2DOpDescriptor alloc] init];
-    
+
     descr.strideInX = 2;
     descr.strideInY = 2;
-    
+
     descr.paddingLeft = 1;
     descr.paddingRight = 1;
     descr.paddingTop = 1;
     descr.paddingBottom = 1;
     descr.paddingStyle = MPSGraphPaddingStyle::MPSGraphPaddingStyleTF_SAME;
-    
+
     descr.kernelWidth = 2;
     descr.kernelHeight = 2;
-    
+
     descr.dilationRateInX = 1;
     descr.dilationRateInY = 1;
-    
+
     descr.dataLayout = MPSGraphTensorNamedDataLayout::MPSGraphTensorNamedDataLayoutNHWC;
-    
+
     return descr;
   }
 
@@ -117,18 +119,18 @@ OIDN_NAMESPACE_BEGIN
                                                 strideInY: 1
                                                 dilationRateInX: 1
                                                 dilationRateInY: 1
-                                                
+
                                                 groups: 1
-                                                
+
                                                 paddingLeft: 1
                                                 paddingRight: 1
                                                 paddingTop: 1
                                                 paddingBottom: 1
-                                                
+
                                                 paddingStyle: MPSGraphPaddingStyle::MPSGraphPaddingStyleTF_SAME
                                                 dataLayout: MPSGraphTensorNamedDataLayout::MPSGraphTensorNamedDataLayoutNHWC
                                                 weightsLayout: MPSGraphTensorNamedDataLayout::MPSGraphTensorNamedDataLayoutOIHW];
-    
+
     return descr;
   }
 
@@ -160,35 +162,35 @@ OIDN_NAMESPACE_BEGIN
     }
   }
 
-  MTLBuffer_t getMetalBuffer(Ref<Buffer> buffer)
+  id<MTLBuffer> getMTLBuffer(Ref<Buffer> buffer)
   {
     if (buffer->getDevice()->getType() != DeviceType::Metal)
       throw std::logic_error("not supported device");
     if (auto metal = static_cast<MetalBuffer*>(buffer.get()))
-      return metal->getMetalBuffer();
+      return metal->getMTLBuffer();
     throw std::logic_error("buffer is not a metal buffer");
   }
 
   MTLComputePipelineState_t createPipeline(MTLDevice_t device, std::string function)
   {
     NSError* error = nil;
-    
+
     id library = [device newDefaultLibrary];
-    
+
     if (!library)
       throw std::runtime_error("can not load default library");
-    
+
     id fn = [library newFunctionWithName: @(function.c_str())];
-    
+
     if (!fn)
         throw std::runtime_error("can not load function");
-    
+
     auto pipeline = [device newComputePipelineStateWithFunction: fn
                                                           error: &error];
-    
+
     if (!pipeline)
       throw std::runtime_error("can not create pipeline");
-    
+
     return pipeline;
   }
 

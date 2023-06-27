@@ -99,16 +99,8 @@ OIDN_NAMESPACE_BEGIN
     using ImageDesc::getAlignedSize;
     using ImageDesc::getDataType;
 
-    OIDN_INLINE       void* getData()       { return ptr; }
-    OIDN_INLINE const void* getData() const { return ptr; }
-
-    OIDN_INLINE       char* begin()       { return ptr; }
-    OIDN_INLINE const char* begin() const { return ptr; }
-
-    OIDN_INLINE       char* end()       { return ptr + getByteSize(); }
-    OIDN_INLINE const char* end() const { return ptr + getByteSize(); }
-
-    OIDN_INLINE operator bool() const { return ptr != nullptr; }
+    OIDN_INLINE void* getPtr() const { return ptr; }
+    OIDN_INLINE operator bool() const { return ptr || buffer; }
 
     template<typename T>
     operator ImageAccessor<T>()
@@ -129,7 +121,7 @@ OIDN_NAMESPACE_BEGIN
     bool overlaps(const Image& other) const;
 
   private:
-    char* ptr; // pointer to the first pixel
+    char* ptr; // pointer to the first pixel (optional)
   };
 
 OIDN_NAMESPACE_END

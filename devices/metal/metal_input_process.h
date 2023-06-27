@@ -19,18 +19,18 @@ OIDN_NAMESPACE_BEGIN
 
     void finalize() override;
     void submit() override;
-    
+
   private:
     void cleanup();
     ProcessParams createProcessParams();
-    MTLBuffer_t bufferFromImageOrMain(Image* ptr);
-    
+    id<MTLBuffer> bufferFromImageOrMain(Image* ptr);
+
   private:
     Ref<MetalEngine> engine;
-      
+
     MTLComputePipelineState_t pipeline;
     MTLCommandQueue_t commandQueue;
-    MTLBuffer_t paramsBuffer;
+    id<MTLBuffer> paramsBuffer;
   };
 
 OIDN_NAMESPACE_END

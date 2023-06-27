@@ -189,13 +189,13 @@ OIDN_NAMESPACE_BEGIN
       }
     }
 
-    const float* getResult() const override { return (float*)resultBuffer->getData(); }
+    const float* getResult() const override { return (float*)resultBuffer->getPtr(); }
 
   private:
     template<typename ImageDataT>
     void runImpl()
     {
-      float* bins = (float*)scratch->getData();
+      float* bins = (float*)scratch->getPtr();
       float* sums = (float*)((char*)bins + numBins * sizeof(float));
       int* counts = (int*)((char*)sums + numGroups * sizeof(float));
 
@@ -215,7 +215,7 @@ OIDN_NAMESPACE_BEGIN
       reduceFinal.sums   = sums;
       reduceFinal.counts = counts;
       reduceFinal.size   = numGroups;
-      reduceFinal.result = (float*)resultBuffer->getData();
+      reduceFinal.result = (float*)resultBuffer->getPtr();
       engine->submitKernel(WorkDim<1>(1), WorkDim<1>(groupSize), reduceFinal);
     }
 

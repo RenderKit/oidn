@@ -123,11 +123,11 @@ OIDN_NAMESPACE_BEGIN
     switch (t->getLayout())
     {
     case TensorLayout::x:
-      return {static_cast<T*>(t->getData()),
+      return {static_cast<T*>(t->getPtr()),
               cutlass::layout::TensorNHWC::Stride(0)};
     case TensorLayout::hwc:
     case TensorLayout::ohwi:
-      return {static_cast<T*>(t->getData()),
+      return {static_cast<T*>(t->getPtr()),
               cutlass::layout::TensorNHWC::packed(toCutlassTensor4DCoord(t->getDesc()))};
     default:
       throw std::invalid_argument("unsupported tensor layout");
@@ -238,7 +238,7 @@ OIDN_NAMESPACE_BEGIN
     void finalize() override
     {
       checkError(gemm.initialize(initialArguments,
-                                 scratch ? scratch->getData() : nullptr,
+                                 scratch ? scratch->getPtr() : nullptr,
                                  engine->getCUDAStream()));
       finalized = true;
     }
@@ -260,7 +260,7 @@ OIDN_NAMESPACE_BEGIN
       };
 
       checkError(gemm.update(arguments,
-                             scratch ? scratch->getData() : nullptr));
+                             scratch ? scratch->getPtr() : nullptr));
 
       checkError(gemm.run(engine->getCUDAStream()));
     }

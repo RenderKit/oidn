@@ -43,8 +43,8 @@ OIDN_NAMESPACE_BEGIN
       parallel_nd(src->getPaddedC(), src->getH(), [&](int c, int h)
       {
         const size_t offset = (c*H + h) * W;
-        const float* srcPtr_line = (float*)src->getData() + offset;
-        float* dstPtr_line0 = (float*)dst->getData() + offset * 4;
+        const float* srcPtr_line = (float*)src->getPtr() + offset;
+        float* dstPtr_line0 = (float*)dst->getPtr() + offset * 4;
         float* dstPtr_line1 = dstPtr_line0 + W*2; // next line
 
         #pragma unroll(16)

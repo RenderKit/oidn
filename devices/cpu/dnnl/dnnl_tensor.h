@@ -15,9 +15,7 @@ OIDN_NAMESPACE_BEGIN
     DNNLTensor(const Ref<DNNLEngine>& engine, const TensorDesc& desc, Storage storage);
     DNNLTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset);
 
-    void* getData() override { return mem.get_data_handle(); }
-    const void* getData() const override { return mem.get_data_handle(); }
-
+    void* getPtr() const override { return mem.get_data_handle(); }
     const dnnl::memory& getDNNLMemory() const { return mem; }
 
   private:

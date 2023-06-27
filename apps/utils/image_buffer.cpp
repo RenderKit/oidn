@@ -40,7 +40,7 @@ OIDN_NAMESPACE_BEGIN
     byteSize = std::max(numValues * valueByteSize, size_t(1)); // avoid zero-sized buffer
     buffer = device.newBuffer(byteSize, storage);
     storage = buffer.getStorage(); // get actual storage mode
-    devPtr = static_cast<char*>(buffer.getData());
+    devPtr  = (storage != Storage::Device) ? static_cast<char*>(buffer.getData()) : nullptr;
     hostPtr = (storage != Storage::Device && !forceHostCopy) ? devPtr : static_cast<char*>(malloc(byteSize));
   }
 
@@ -77,7 +77,17 @@ OIDN_NAMESPACE_BEGIN
   std::shared_ptr<ImageBuffer> ImageBuffer::clone() const
   {
     auto result = std::make_shared<ImageBuffer>(device, width, height, numChannels, dataType);
-    result->buffer.write(0, getByteSize(), devPtr);
+
+    if (devPtr)
+      result->buffer.write(0, byteSize, devPtr);
+    else
+    {
+      void* temp = alignedMalloc(byteSize);
+      buffer.read(0, byteSize, temp);
+      result->buffer.write(0, byteSize, temp);
+      alignedFree(temp);
+    }
+
     return result;
   }
 

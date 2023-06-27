@@ -277,13 +277,13 @@ OIDN_NAMESPACE_BEGIN
     }
 
     // Copies data from a region of the buffer to host memory.
-    void read(size_t byteOffset, size_t byteSize, void* dstHostPtr)
+    void read(size_t byteOffset, size_t byteSize, void* dstHostPtr) const
     {
       oidnReadBuffer(handle, byteOffset, byteSize, dstHostPtr);
     }
 
     // Copies data from a region of the buffer to host memory asynchronously.
-    void readAsync(size_t byteOffset, size_t byteSize, void* dstHostPtr)
+    void readAsync(size_t byteOffset, size_t byteSize, void* dstHostPtr) const
     {
       oidnReadBufferAsync(handle, byteOffset, byteSize, dstHostPtr);
     }

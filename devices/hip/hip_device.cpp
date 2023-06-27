@@ -184,7 +184,7 @@ OIDN_NAMESPACE_BEGIN
     engine = makeRef<HIPEngine>(this, stream);
   }
 
-  Storage HIPDevice::getPointerStorage(const void* ptr)
+  Storage HIPDevice::getPtrStorage(const void* ptr)
   {
     hipPointerAttribute_t attrib;
     if (hipPointerGetAttributes(&attrib, ptr) != hipSuccess)

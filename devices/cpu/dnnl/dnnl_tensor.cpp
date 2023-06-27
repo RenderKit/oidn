@@ -8,7 +8,7 @@ OIDN_NAMESPACE_BEGIN
   DNNLTensor::DNNLTensor(const Ref<DNNLEngine>& engine, const TensorDesc& desc, Storage storage)
     : Tensor(engine->newBuffer(desc.getByteSize(), storage), desc)
   {
-    mem = dnnl::memory(toDNNL(getDesc()), engine->getDNNLEngine(), buffer->getData());
+    mem = dnnl::memory(toDNNL(getDesc()), engine->getDNNLEngine(), buffer->getPtr());
   }
 
   DNNLTensor::DNNLTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
@@ -19,7 +19,7 @@ OIDN_NAMESPACE_BEGIN
 
     mem = dnnl::memory(toDNNL(getDesc()),
                        static_cast<DNNLEngine*>(buffer->getEngine())->getDNNLEngine(),
-                       buffer->getData() + byteOffset);
+                       buffer->getPtr() + byteOffset);
   }
 
   void DNNLTensor::updatePtr()
@@ -29,7 +29,7 @@ OIDN_NAMESPACE_BEGIN
       if (byteOffset + getByteSize() > buffer->getByteSize())
         throw std::range_error("buffer region out of range");
 
-      mem.set_data_handle(buffer->getData() + byteOffset);
+      mem.set_data_handle(buffer->getPtr() + byteOffset);
     }
   }
 

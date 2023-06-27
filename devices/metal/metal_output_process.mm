@@ -26,7 +26,7 @@ OIDN_NAMESPACE_BEGIN
       [commandQueue release];
     if (paramsBuffer)
       [paramsBuffer release];
-    
+
     pipeline = nullptr;
     commandQueue = nullptr;
     paramsBuffer = nullptr;
@@ -37,12 +37,12 @@ OIDN_NAMESPACE_BEGIN
     MTLDevice_t device = static_cast<MetalDevice*>(engine->getDevice())->getMetalDevice();
 
     pipeline = createPipeline(device, "output_process");
-    
+
     commandQueue = [device newCommandQueue];
-    
+
     if (!commandQueue)
       throw std::runtime_error("can not create command queue");
-    
+
     paramsBuffer = [device newBufferWithLength: sizeof(ProcessParams)
                                        options: MTLResourceStorageModeShared];
   }
@@ -50,41 +50,41 @@ OIDN_NAMESPACE_BEGIN
   void MetalOutputProcess::submit()
   {
     ProcessParams params = createProcessParams();
-    
+
     void* paramsPtr = [paramsBuffer contents];
     memcpy(paramsPtr, &params, sizeof(params));
-    
-    MTLBuffer_t bufferInput = getMetalBuffer(src->getBuffer());
-    MTLBuffer_t bufferOutput = getMetalBuffer(dst->getBuffer());
-    
+
+    id<MTLBuffer> bufferInput = getMTLBuffer(src->getBuffer());
+    id<MTLBuffer> bufferOutput = getMTLBuffer(dst->getBuffer());
+
     auto commandBuffer = [commandQueue commandBuffer];
     auto computeEncoder = [commandBuffer computeCommandEncoder];
 
     [computeEncoder setComputePipelineState: pipeline];
-    
+
     int index = 0;
-    
+
     [computeEncoder setBuffer: bufferInput
                        offset: 0
                       atIndex: index++];
-    
+
     [computeEncoder setBuffer: bufferOutput
                        offset: 0
                       atIndex: index++];
-    
+
     [computeEncoder setBuffer: paramsBuffer
                        offset: 0
                       atIndex: index++];
-    
+
     auto width = pipeline.threadExecutionWidth;
     auto height = pipeline.maxTotalThreadsPerThreadgroup / width;
     auto threadsPerThreadgroup = MTLSizeMake(width, height, 1);
     auto threadgroupsPerGrid = MTLSizeMake((params.tile.W + width - 1) / width,
                                            (params.tile.H + height - 1) / height, 1);
-    
+
     [computeEncoder dispatchThreadgroups: threadgroupsPerGrid
                    threadsPerThreadgroup: threadsPerThreadgroup];
-    
+
     [computeEncoder endEncoding];
     [commandBuffer commit];
     [commandBuffer waitUntilCompleted];

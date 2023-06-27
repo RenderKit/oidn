@@ -44,7 +44,7 @@ OIDN_NAMESPACE_BEGIN
 
     int getNumEngines() const override { return 1; }
 
-    Storage getPointerStorage(const void* ptr) override;
+    Storage getPtrStorage(const void* ptr) override;
 
     void wait() override;
 

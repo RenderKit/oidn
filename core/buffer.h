@@ -41,16 +41,16 @@ OIDN_NAMESPACE_BEGIN
     virtual Engine* getEngine() const = 0;
     Device* getDevice() const;
 
-    virtual char* getData() = 0;
-    virtual const char* getData() const = 0;
+    virtual bool hasPtr() const = 0;  // not all buffers have a pointer to their data
+    virtual char* getPtr() const = 0; // nullptr if !hasPtr()
     virtual size_t getByteSize() const = 0;
     virtual Storage getStorage() const = 0;
 
-    virtual void* map(size_t byteOffset, size_t byteSize, Access access);
-    virtual void unmap(void* hostPtr);
-
     virtual void read(size_t byteOffset, size_t byteSize, void* dstHostPtr, SyncMode sync = SyncMode::Sync);
     virtual void write(size_t byteOffset, size_t byteSize, const void* srcHostPtr, SyncMode sync = SyncMode::Sync);
+
+    virtual void* map(size_t byteOffset, size_t byteSize, Access access);
+    virtual void unmap(void* hostPtr);
 
     // Reallocates the buffer with a new size discarding its current contents
     virtual void realloc(size_t newByteSize);
@@ -77,8 +77,8 @@ OIDN_NAMESPACE_BEGIN
 
     Engine* getEngine() const override { return buffer->getEngine(); }
 
-    char* getData() override { return ptr; }
-    const char* getData() const override { return ptr; }
+    bool hasPtr() const override { return true; }
+    char* getPtr() const override { return ptr; }
     size_t getByteSize() const override { return byteSize; }
     Storage getStorage() const override { return Storage::Host; }
 
@@ -102,8 +102,8 @@ OIDN_NAMESPACE_BEGIN
 
     Engine* getEngine() const override { return engine.get(); }
 
-    char* getData() override { return ptr; }
-    const char* getData() const override { return ptr; }
+    bool hasPtr() const override { return true; }
+    char* getPtr() const override { return ptr; }
     size_t getByteSize() const override { return byteSize; }
     Storage getStorage() const override { return storage; }
 

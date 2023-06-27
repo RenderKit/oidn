@@ -58,7 +58,7 @@ OIDN_NAMESPACE_BEGIN
   BNNSNDArrayDescriptor toBNNS(const std::shared_ptr<Tensor>& t)
   {
     BNNSNDArrayDescriptor res = toBNNS(t->getDesc());
-    res.data = (void*)t->getData();
+    res.data = t->getPtr();
     return res;
   }
 

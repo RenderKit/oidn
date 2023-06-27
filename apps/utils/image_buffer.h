@@ -44,7 +44,7 @@ OIDN_NAMESPACE_BEGIN
 
     OIDN_INLINE const BufferRef& getBuffer() const { return buffer; }
 
-    OIDN_INLINE operator bool() const { return devPtr != nullptr; }
+    OIDN_INLINE operator bool() const { return buffer; }
 
     // Data with device storage must be explicitly copied between host and device
     void toHost();

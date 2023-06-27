@@ -612,7 +612,12 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_TRY
       checkHandle(hBuffer);
       OIDN_LOCK(buffer);
-      return buffer->getData();
+      if (!buffer->hasPtr())
+      {
+        throw Exception(Error::InvalidOperation,
+                        "getting a pointer to the buffer data is not supported by the device");
+      }
+      return buffer->getPtr();
     OIDN_CATCH(buffer)
     return nullptr;
   }

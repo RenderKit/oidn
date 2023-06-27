@@ -18,22 +18,22 @@ OIDN_NAMESPACE_BEGIN
     void submit() override;
 
     const float* getResult() const override { return &result; }
-    
+
   private:
     void cleanup();
     void downsample();
     void reduce();
     AutoexposureParams createProcessParams();
-    
+
   private:
     Ref<MetalEngine> engine;
     float result;
-    
+
     MTLComputePipelineState_t pipelineDownsample;
     MTLComputePipelineState_t pipelineReduce;
     MTLCommandQueue_t commandQueue;
-    MTLBuffer_t paramsBuffer;
-    
+    id<MTLBuffer> paramsBuffer;
+
     std::shared_ptr<Tensor> binsTensor;
     std::shared_ptr<Tensor> sumsTensor;
     std::shared_ptr<Tensor> countsTensor;

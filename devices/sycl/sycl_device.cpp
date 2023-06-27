@@ -335,7 +335,7 @@ OIDN_NAMESPACE_BEGIN
     dirty = true;
   }
 
-  Storage SYCLDevice::getPointerStorage(const void* ptr)
+  Storage SYCLDevice::getPtrStorage(const void* ptr)
   {
     switch (sycl::get_pointer_type(ptr, syclContext))
     {

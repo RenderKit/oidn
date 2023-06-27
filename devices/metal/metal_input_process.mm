@@ -27,7 +27,7 @@ OIDN_NAMESPACE_BEGIN
       [commandQueue release];
     if (paramsBuffer)
       [paramsBuffer release];
-    
+
     pipeline = nullptr;
     commandQueue = nullptr;
     paramsBuffer = nullptr;
@@ -36,16 +36,16 @@ OIDN_NAMESPACE_BEGIN
   void MetalInputProcess::finalize()
   {
     NSError* error = nil;
-    
+
     MTLDevice_t device = static_cast<MetalDevice*>(engine->getDevice())->getMetalDevice();
-    
+
     pipeline = createPipeline(device, "input_process");
-    
+
     commandQueue = [device newCommandQueue];
-    
+
     if (!commandQueue)
       throw std::runtime_error([[error localizedDescription] UTF8String]);
-    
+
     paramsBuffer = [device newBufferWithLength: sizeof(ProcessParams)
                                        options: MTLResourceStorageModeShared];
   }
@@ -59,57 +59,57 @@ OIDN_NAMESPACE_BEGIN
         tile.hDstBegin + tile.H > dst->getH() ||
         tile.wDstBegin + tile.W > dst->getW())
       throw std::out_of_range("input processing source/destination out of range");
-    
+
     ProcessParams params = createProcessParams();
-    
+
     void* paramsPtr = [paramsBuffer contents];
     memcpy(paramsPtr, &params, sizeof(params));
-    
-    MTLBuffer_t bufferColor = bufferFromImageOrMain(color.get());
-    MTLBuffer_t bufferAlbedo = bufferFromImageOrMain(albedo.get());
-    MTLBuffer_t bufferNormal = bufferFromImageOrMain(normal.get());
-    MTLBuffer_t bufferOutput = getMetalBuffer(dst->getBuffer());
-    
+
+    id<MTLBuffer> bufferColor = bufferFromImageOrMain(color.get());
+    id<MTLBuffer> bufferAlbedo = bufferFromImageOrMain(albedo.get());
+    id<MTLBuffer> bufferNormal = bufferFromImageOrMain(normal.get());
+    id<MTLBuffer> bufferOutput = getMTLBuffer(dst->getBuffer());
+
     auto commandBuffer = [commandQueue commandBuffer];
     auto computeEncoder = [commandBuffer computeCommandEncoder];
 
     [computeEncoder setComputePipelineState: pipeline];
-    
+
     int index = 0;
-  
+
     [computeEncoder setBuffer: bufferColor
                        offset: 0
                       atIndex: index++];
-    
+
     [computeEncoder setBuffer: bufferAlbedo
                        offset: 0
                       atIndex: index++];
-    
+
     [computeEncoder setBuffer: bufferNormal
                        offset: 0
                       atIndex: index++];
-    
+
     [computeEncoder setBuffer: bufferOutput
                        offset: 0
                       atIndex: index++];
-    
+
     [computeEncoder setBuffer: paramsBuffer
                        offset: 0
                       atIndex: index++];
-    
+
     auto width = pipeline.threadExecutionWidth;
     auto height = pipeline.maxTotalThreadsPerThreadgroup / width;
     auto threadsPerThreadgroup = MTLSizeMake(width, height, 1);
     auto threadgroupsPerGrid = MTLSizeMake((dstDesc.getW() + width - 1) / width,
                                            (dstDesc.getH() + height - 1) / height, 1);
-    
+
     [computeEncoder dispatchThreadgroups: threadgroupsPerGrid
                    threadsPerThreadgroup: threadsPerThreadgroup];
-    
+
     [computeEncoder endEncoding];
     [commandBuffer commit];
     [commandBuffer waitUntilCompleted];
-    
+
     [computeEncoder release];
     [commandBuffer release];
   }
@@ -141,12 +141,12 @@ OIDN_NAMESPACE_BEGIN
     return params;
   }
 
-  MTLBuffer_t MetalInputProcess::bufferFromImageOrMain(Image* image)
+  id<MTLBuffer> MetalInputProcess::bufferFromImageOrMain(Image* image)
   {
     if (image)
-      return getMetalBuffer(image->getBuffer());
+      return getMTLBuffer(image->getBuffer());
     else
-      return getMetalBuffer(getMainSrc()->getBuffer());
+      return getMTLBuffer(getMainSrc()->getBuffer());
   }
 
 OIDN_NAMESPACE_END
