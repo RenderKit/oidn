@@ -8,7 +8,7 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  MTLDevice_t mtlDevice(int deviceID)
+  id<MTLDevice> mtlDevice(int deviceID)
   {
     NSArray* devices = [MTLCopyAllDevices() autorelease];
     int numDevice = (int)[devices count];
@@ -171,7 +171,7 @@ OIDN_NAMESPACE_BEGIN
     throw std::logic_error("buffer is not a metal buffer");
   }
 
-  MTLComputePipelineState_t createPipeline(MTLDevice_t device, std::string function)
+  MTLComputePipelineState_t createPipeline(id<MTLDevice> device, std::string function)
   {
     NSError* error = nil;
 

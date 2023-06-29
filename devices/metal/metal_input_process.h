@@ -29,7 +29,6 @@ OIDN_NAMESPACE_BEGIN
     Ref<MetalEngine> engine;
 
     MTLComputePipelineState_t pipeline;
-    MTLCommandQueue_t commandQueue;
     id<MTLBuffer> paramsBuffer;
   };
 

@@ -14,8 +14,11 @@ OIDN_NAMESPACE_BEGIN
   {
   public:
     explicit MetalEngine(const Ref<MetalDevice>& device);
+    ~MetalEngine();
 
     Device* getDevice() const override { return device; }
+    id<MTLDevice> getMTLDevice() const { return device->getMTLDevice(); }
+    id<MTLCommandQueue> getMTLCommandQueue() const { return commandQueue; }
 
     // Buffer
     Ref<Buffer> newBuffer(size_t byteSize, Storage storage) override;
@@ -24,7 +27,7 @@ OIDN_NAMESPACE_BEGIN
     // Tensor
     std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, Storage storage = Storage::Device) override;
     std::shared_ptr<Tensor> newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset = 0) override;
-    
+
     // Ops
     std::shared_ptr<Graph> newGraph(const std::shared_ptr<TensorMap>& constTensors, bool fastMath = false) override;
     std::shared_ptr<Conv> newConv(const ConvDesc& desc) override;
@@ -35,22 +38,17 @@ OIDN_NAMESPACE_BEGIN
     std::shared_ptr<OutputProcess> newOutputProcess(const OutputProcessDesc& desc) override;
     std::shared_ptr<ImageCopy> newImageCopy() override;
 
-    // Memory
-    void* usmAlloc(size_t byteSize, Storage storage) override;
-    void usmFree(void* ptr, Storage storage) override;
-    void usmCopy(void* dstPtr, const void* srcPtr, size_t byteSize) override;
-    void submitUSMCopy(void* dstPtr, const void* srcPtr, size_t byteSize) override;
-
     // Runs a parallel host task in the thread arena (if it exists)
     void runHostTask(std::function<void()>&& f) override;
 
     // Enqueues a host function
     void submitHostFunc(std::function<void()>&& f) override;
 
-    void wait() override {}
+    void wait() override;
 
-  protected:
+  private:
     MetalDevice* device;
+    id<MTLCommandQueue> commandQueue;
   };
 
 OIDN_NAMESPACE_END

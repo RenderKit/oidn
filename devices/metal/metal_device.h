@@ -39,6 +39,8 @@ OIDN_NAMESPACE_BEGIN
 
     int getNumEngines() const override { return 1; }
 
+    id<MTLDevice> getMTLDevice() const { return device; }
+
     Storage getPtrStorage(const void* ptr) override;
 
     int getInt(const std::string& name) override;
@@ -48,10 +50,6 @@ OIDN_NAMESPACE_BEGIN
 
     void wait() override;
 
-    MTLDevice_t getMetalDevice() {
-      return device;
-    }
-
   protected:
     void init() override;
 
@@ -59,7 +57,7 @@ OIDN_NAMESPACE_BEGIN
     Ref<MetalEngine> engine;
 
     int deviceID = 0;
-    MTLDevice_t device;
+    id<MTLDevice> device;
   };
 
 OIDN_NAMESPACE_END

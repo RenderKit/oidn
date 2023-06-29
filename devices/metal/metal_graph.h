@@ -20,9 +20,9 @@ OIDN_NAMESPACE_BEGIN
     MetalGraph(const Ref<MetalEngine>& engine,
                const std::shared_ptr<TensorMap>& constTensors,
                bool fastMath = false);
-    
+
     ~MetalGraph();
-    
+
     std::shared_ptr<InputProcess> addInputProcess(const std::string& name,
                                                   const TensorDims& srcDims,
                                                   int tileAlignment,
@@ -62,44 +62,43 @@ OIDN_NAMESPACE_BEGIN
     void clear() override;
     void finalize() override;
     void run(Progress& progress) override;
-    
+
   private:
     void cleanup();
-      
+
     void addOp(std::shared_ptr<MetalOp>& op, TensorDesc td);
-    
+
     MPSGraphTensor_t createConv(std::shared_ptr<MetalOp>& op, MPSGraphTensor_t input);
     MPSGraphTensor_t createActivation(std::shared_ptr<MetalOp>& op, MPSGraphTensor_t input);
     MPSGraphTensor_t createPool(std::shared_ptr<MetalOp>& op, MPSGraphTensor_t input);
     MPSGraphTensor_t createConcat(std::shared_ptr<MetalOp>& op,
                                   MPSGraphTensor_t input1, MPSGraphTensor_t input2);
     MPSGraphTensor_t createUpsample(std::shared_ptr<MetalOp>& op, MPSGraphTensor_t input);
-    
+
   private:
     Ref<MetalEngine> engine;
     std::shared_ptr<TensorMap> constTensors;
     bool fastMath = false;
-    
+
     std::vector<std::shared_ptr<MetalOp>> ops;
     std::shared_ptr<InputProcess> inputProcess;
     std::shared_ptr<OutputProcess> outputProcess;
-    
+
     std::unordered_map<Op*, TensorDesc> tensorDescByOp;
-    
+
     size_t opScratchByteSize     = 0; // total size of operation scratch
     size_t tensorScratchByteSize = 0; // total size of temporary tensors
     size_t constByteSize         = 0; // total size of constant tensors
     bool dirty = false;
     bool finalized = false;
-    
+
     MPSGraph_t graph;
-    MTLCommandQueue_t commandQueue;
 
     Ref<Buffer> inputBuffer;
-    
+
     MPSGraphTensor_t graphInput;
     MPSGraphTensor_t graphOutput;
-    
+
     std::shared_ptr<Tensor> outputTensor;
   };
 

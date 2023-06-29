@@ -31,7 +31,6 @@ OIDN_NAMESPACE_BEGIN
 
     MTLComputePipelineState_t pipelineDownsample;
     MTLComputePipelineState_t pipelineReduce;
-    MTLCommandQueue_t commandQueue;
     id<MTLBuffer> paramsBuffer;
 
     std::shared_ptr<Tensor> binsTensor;

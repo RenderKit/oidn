@@ -11,7 +11,7 @@ OIDN_NAMESPACE_BEGIN
       engine(engine),
       result(0),
       pipelineDownsample(nullptr), pipelineReduce(nullptr),
-      commandQueue(nullptr), paramsBuffer(nullptr) {}
+      paramsBuffer(nullptr) {}
 
   MetalAutoexposure::~MetalAutoexposure()
   {
@@ -24,36 +24,28 @@ OIDN_NAMESPACE_BEGIN
       [pipelineDownsample release];
     if (pipelineReduce)
       [pipelineReduce release];
-    if (commandQueue)
-      [commandQueue release];
     if (paramsBuffer)
       [paramsBuffer release];
 
     pipelineDownsample = nullptr;
     pipelineReduce = nullptr;
-    commandQueue = nullptr;
     paramsBuffer = nullptr;
   }
 
   void MetalAutoexposure::finalize()
   {
     @autoreleasepool {
-      MTLDevice_t device = static_cast<MetalDevice*>(engine->getDevice())->getMetalDevice();
+      id<MTLDevice> device = engine->getMTLDevice();
 
       pipelineDownsample = createPipeline(device, "autoexposure_downsample");
       pipelineReduce = createPipeline(device, "autoexposure_reduce");
-
-      commandQueue = [device newCommandQueue];
-
-      if (!commandQueue)
-        throw std::runtime_error("can not create command queue");
 
       paramsBuffer = [device newBufferWithLength: sizeof(ProcessParams)
                                          options: MTLResourceStorageModeShared];
 
       binsTensor = engine->newTensor({{numBins}, TensorLayout::x, DataType::Float32});
-      sumsTensor = engine->newTensor({{numBins / maxBinSize}, TensorLayout::x, DataType::Float32});
-      countsTensor = engine->newTensor({{numBins / maxBinSize}, TensorLayout::x, DataType::Float32});
+      sumsTensor = engine->newTensor({{numBins / maxBinSize}, TensorLayout::x, DataType::Float32}, Storage::Host);
+      countsTensor = engine->newTensor({{numBins / maxBinSize}, TensorLayout::x, DataType::Float32}, Storage::Host);
     }
   }
 
@@ -76,7 +68,7 @@ OIDN_NAMESPACE_BEGIN
     id<MTLBuffer> input = getMTLBuffer(src->getBuffer());
     id<MTLBuffer> bins = getMTLBuffer(binsTensor->getBuffer());
 
-    auto commandBuffer = [commandQueue commandBuffer];
+    auto commandBuffer = [engine->getMTLCommandQueue() commandBuffer];
     auto computeEncoder = [commandBuffer computeCommandEncoder];
 
     [computeEncoder setComputePipelineState: pipelineDownsample];
@@ -108,10 +100,6 @@ OIDN_NAMESPACE_BEGIN
 
     [computeEncoder endEncoding];
     [commandBuffer commit];
-    [commandBuffer waitUntilCompleted];
-
-    [computeEncoder release];
-    [commandBuffer release];
   }
 
   void MetalAutoexposure::reduce()
@@ -123,7 +111,7 @@ OIDN_NAMESPACE_BEGIN
     id<MTLBuffer> sums = getMTLBuffer(sumsTensor->getBuffer());
     id<MTLBuffer> counts = getMTLBuffer(countsTensor->getBuffer());
 
-    auto commandBuffer = [commandQueue commandBuffer];
+    auto commandBuffer = [engine->getMTLCommandQueue() commandBuffer];
     auto computeEncoder = [commandBuffer computeCommandEncoder];
 
     [computeEncoder setComputePipelineState: pipelineReduce];
@@ -155,7 +143,7 @@ OIDN_NAMESPACE_BEGIN
 
     [computeEncoder endEncoding];
     [commandBuffer commit];
-    [commandBuffer waitUntilCompleted];
+    [commandBuffer waitUntilCompleted]; // FIXME!!!
 
     float sum = ((float*)[sums contents])[0];
     float count = ((float*)[counts contents])[0];

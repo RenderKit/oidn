@@ -10,7 +10,6 @@
 #include <Metal/Metal.h>
 #include <MetalPerformanceShadersGraph/MetalPerformanceShadersGraph.h>
 #include <MetalPerformanceShaders/MetalPerformanceShaders.h>
-typedef id<MTLDevice> MTLDevice_t;
 typedef id<MTLLibrary> MTLLibrary_t;
 typedef id<MTLComputePipelineState> MTLComputePipelineState_t;
 typedef id<MTLLibrary> MTLLibrary_t;
@@ -32,7 +31,7 @@ OIDN_NAMESPACE_BEGIN
   struct PoolDesc;
   struct ConvDesc;
 
-  MTLDevice_t mtlDevice(int deviceID);
+  id<MTLDevice> mtlDevice(int deviceID);
 
   MPSDataType_t toMPSDataType(DataType dataType);
   MPSShape_t toMPSShape(const TensorDesc& td);
@@ -52,6 +51,6 @@ OIDN_NAMESPACE_BEGIN
 
   id<MTLBuffer> getMTLBuffer(Ref<Buffer> buffer);
 
-  MTLComputePipelineState_t createPipeline(MTLDevice_t device, std::string function);
+  MTLComputePipelineState_t createPipeline(id<MTLDevice> device, std::string function);
 
 OIDN_NAMESPACE_END

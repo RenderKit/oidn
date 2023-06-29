@@ -14,11 +14,11 @@ OIDN_NAMESPACE_BEGIN
   class MetalBuffer : public Buffer
   {
   public:
-    MetalBuffer(const Ref<Engine>& engine, size_t byteSize, Storage storage);
+    MetalBuffer(const Ref<MetalEngine>& engine, size_t byteSize, Storage storage);
     ~MetalBuffer();
 
-    Engine* getEngine() const override { return engine.get(); }
-    id<MTLBuffer> getMTLBuffer() { return buffer; }
+    Engine* getEngine() const override { return (Engine*)engine.get(); }
+    id<MTLBuffer> getMTLBuffer() const { return buffer; }
 
     bool hasPtr() const override;
     char* getPtr() const override;
@@ -36,11 +36,10 @@ OIDN_NAMESPACE_BEGIN
     void free();
 
   private:
-    Ref<Engine> engine;
+    Ref<MetalEngine> engine;
     size_t byteSize;
     Storage storage;
     id<MTLBuffer> buffer;
-    MTLCommandQueue_t commandQueue;
   };
 
 OIDN_NAMESPACE_END

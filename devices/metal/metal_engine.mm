@@ -12,8 +12,14 @@
 OIDN_NAMESPACE_BEGIN
 
   MetalEngine::MetalEngine(const Ref<MetalDevice>& device)
-    : device(device.get())
+    : device(device.get()),
+      commandQueue([device->getMTLDevice() newCommandQueue])
   {}
+
+  MetalEngine::~MetalEngine()
+  {
+    [commandQueue release];
+  }
 
   Ref<Buffer> MetalEngine::newBuffer(size_t byteSize, Storage storage)
   {
@@ -30,14 +36,17 @@ OIDN_NAMESPACE_BEGIN
 
   void MetalEngine::runHostTask(std::function<void()>&& f)
   {
-    f();
+    @autoreleasepool
+    {
+      f();
+    }
   }
 
   std::shared_ptr<Tensor> MetalEngine::newTensor(const TensorDesc& desc, Storage storage)
   {
     if (!isSupported(desc))
       throw std::invalid_argument("unsupported tensor descriptor");
-    
+
     return std::make_shared<GenericTensor>(this, desc, storage);
   }
 
@@ -98,24 +107,14 @@ OIDN_NAMESPACE_BEGIN
     f(); // no async execution on the Metal
   }
 
-  void* MetalEngine::usmAlloc(size_t byteSize, Storage storage)
+  void MetalEngine::wait()
   {
-    throw std::logic_error("malloc is not supported accessor");
-  }
-
-  void MetalEngine::usmFree(void* ptr, Storage storage)
-  {
-    throw std::logic_error("free is not supported accessor");
-  }
-
-  void MetalEngine::usmCopy(void* dstPtr, const void* srcPtr, size_t byteSize)
-  {
-    throw std::logic_error("memcpy is not supported accessor");
-  }
-
-  void MetalEngine::submitUSMCopy(void* dstPtr, const void* srcPtr, size_t byteSize)
-  {
-    throw std::logic_error("submitMemcpy is not supported accessor");
+    @autoreleasepool
+    {
+      id<MTLCommandBuffer> commandBuffer = [commandQueue commandBuffer];
+      [commandBuffer commit];
+      [commandBuffer waitUntilCompleted];
+    }
   }
 
 OIDN_NAMESPACE_END

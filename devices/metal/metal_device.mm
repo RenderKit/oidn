@@ -5,8 +5,6 @@
 #include "metal_device.h"
 #include "metal_engine.h"
 
-#include <MetalPerformanceShaders/MetalPerformanceShaders.h>
-
 OIDN_NAMESPACE_BEGIN
 
   MetalPhysicalDevice::MetalPhysicalDevice(int deviceID, std::string name, int score)

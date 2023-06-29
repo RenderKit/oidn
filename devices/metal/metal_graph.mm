@@ -14,8 +14,7 @@ OIDN_NAMESPACE_BEGIN
     : engine(engine),
       constTensors(constTensors),
       fastMath(fastMath),
-      graph(nullptr),
-      commandQueue(nullptr) {}
+      graph(nullptr) {}
 
   MetalGraph::~MetalGraph()
   {
@@ -27,17 +26,13 @@ OIDN_NAMESPACE_BEGIN
     if (graph)
       [graph release];
 
-    if (commandQueue)
-      [commandQueue release];
+    //if (graphInput)
+    //  [graphInput release];
 
-    if (graphInput)
-      [graphInput release];
-
-    if (graphOutput)
-      [graphOutput release];
+    //if (graphOutput)
+    //  [graphOutput release];
 
     graph = nullptr;
-    commandQueue = nullptr;
     graphInput = nullptr;
     graphOutput = nullptr;
   }
@@ -217,10 +212,9 @@ OIDN_NAMESPACE_BEGIN
 
   void MetalGraph::finalize()
   {
-    MTLDevice_t device = static_cast<MetalDevice*>(engine->getDevice())->getMetalDevice();
+    id<MTLDevice> device = engine->getMTLDevice();
 
     graph = [[MPSGraph alloc] init];
-    commandQueue = [device newCommandQueue];
 
     std::unordered_map<Op*, MPSGraphTensor_t> tensorByOp;
 
@@ -295,13 +289,10 @@ OIDN_NAMESPACE_BEGIN
     inputProcess->submit();
     progress.update(engine, 1);
 
-    auto feeds = @{graphInput: graphInputData};
-    auto results = @{graphOutput: graphOutputData};
-
-    [graph runWithMTLCommandQueue: commandQueue
-                            feeds: feeds
+    [graph runWithMTLCommandQueue: engine->getMTLCommandQueue()
+                            feeds: @{graphInput: graphInputData}
                  targetOperations: nil
-                resultsDictionary: results];
+                resultsDictionary: @{graphOutput: graphOutputData}];
     progress.update(engine, 1);
 
     outputProcess->submit();
@@ -309,8 +300,6 @@ OIDN_NAMESPACE_BEGIN
 
     [graphInputData release];
     [graphOutputData release];
-    [feeds release];
-    [results release];
   }
 
   void MetalGraph::addOp(std::shared_ptr<MetalOp>& op, TensorDesc td)

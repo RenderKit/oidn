@@ -7,7 +7,7 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  MetalBuffer::MetalBuffer(const Ref<Engine>& engine,
+  MetalBuffer::MetalBuffer(const Ref<MetalEngine>& engine,
                            size_t byteSize,
                            Storage storage)
     : engine(engine),
@@ -15,8 +15,7 @@ OIDN_NAMESPACE_BEGIN
       storage((storage == Storage::Undefined) ? Storage::Host : storage),
       buffer(nullptr)
   {
-    if (byteSize > 0)
-      init();
+    init();
   }
 
   MetalBuffer::~MetalBuffer()
@@ -26,7 +25,10 @@ OIDN_NAMESPACE_BEGIN
 
   void MetalBuffer::init()
   {
-    MTLDevice_t device = static_cast<MetalDevice*>(getDevice())->getMetalDevice();
+    if (byteSize == 0)
+      return;
+
+    id<MTLDevice> device = static_cast<MetalDevice*>(getDevice())->getMTLDevice();
 
     if (byteSize > [device maxBufferLength])
       throw std::bad_alloc();
@@ -46,8 +48,6 @@ OIDN_NAMESPACE_BEGIN
 
     buffer = [device newBufferWithLength: byteSize
                                  options: options];
-
-    commandQueue = [device newCommandQueue];
   }
 
   void MetalBuffer::free()
@@ -55,9 +55,6 @@ OIDN_NAMESPACE_BEGIN
     if (buffer)
       [buffer release];
     buffer = nullptr;
-
-    [commandQueue release];
-    commandQueue = nullptr;
   }
 
   bool MetalBuffer::hasPtr() const
@@ -76,7 +73,7 @@ OIDN_NAMESPACE_BEGIN
     if (byteOffset + byteSize > this->byteSize)
       throw Exception(Error::InvalidArgument, "buffer region out of range");
 
-    MTLDevice_t device = static_cast<MetalDevice*>(getDevice())->getMetalDevice();
+    id<MTLDevice> device = static_cast<MetalDevice*>(getDevice())->getMTLDevice();
 
     @autoreleasepool
     {
@@ -86,7 +83,7 @@ OIDN_NAMESPACE_BEGIN
                                               options: options
                                           deallocator: nil];
 
-      id<MTLCommandBuffer> commandBuffer = [commandQueue commandBuffer];
+      id<MTLCommandBuffer> commandBuffer = [engine->getMTLCommandQueue() commandBuffer];
       id<MTLBlitCommandEncoder> blitEncoder = [commandBuffer blitCommandEncoder];
 
       [blitEncoder copyFromBuffer: buffer
@@ -107,7 +104,7 @@ OIDN_NAMESPACE_BEGIN
     if (byteOffset + byteSize > this->byteSize)
       throw Exception(Error::InvalidArgument, "buffer region out of range");
 
-    MTLDevice_t device = static_cast<MetalDevice*>(getDevice())->getMetalDevice();
+    id<MTLDevice> device = static_cast<MetalDevice*>(getDevice())->getMTLDevice();
 
     @autoreleasepool
     {
@@ -116,7 +113,7 @@ OIDN_NAMESPACE_BEGIN
                                          length: byteSize
                                         options: options];
 
-      id<MTLCommandBuffer> commandBuffer = [commandQueue commandBuffer];
+      id<MTLCommandBuffer> commandBuffer = [engine->getMTLCommandQueue() commandBuffer];
       id<MTLBlitCommandEncoder> blitCommandEncoder = [commandBuffer blitCommandEncoder];
 
       [blitCommandEncoder copyFromBuffer: srcBuffer
@@ -137,8 +134,7 @@ OIDN_NAMESPACE_BEGIN
     free();
 
     byteSize = newByteSize;
-    if (byteSize != 0)
-      init();
+    init();
   }
 
 OIDN_NAMESPACE_END

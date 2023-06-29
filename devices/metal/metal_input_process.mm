@@ -12,7 +12,7 @@ OIDN_NAMESPACE_BEGIN
   MetalInputProcess::MetalInputProcess(const Ref<MetalEngine>& engine, const InputProcessDesc& desc)
     : InputProcess(engine, desc),
       engine(engine),
-      pipeline(nullptr), commandQueue(nullptr), paramsBuffer(nullptr) {}
+      pipeline(nullptr), paramsBuffer(nullptr) {}
 
   MetalInputProcess::~MetalInputProcess()
   {
@@ -23,13 +23,10 @@ OIDN_NAMESPACE_BEGIN
   {
     if (pipeline)
       [pipeline release];
-    if (commandQueue)
-      [commandQueue release];
     if (paramsBuffer)
       [paramsBuffer release];
 
     pipeline = nullptr;
-    commandQueue = nullptr;
     paramsBuffer = nullptr;
   }
 
@@ -37,14 +34,9 @@ OIDN_NAMESPACE_BEGIN
   {
     NSError* error = nil;
 
-    MTLDevice_t device = static_cast<MetalDevice*>(engine->getDevice())->getMetalDevice();
+    id<MTLDevice> device = engine->getMTLDevice();
 
     pipeline = createPipeline(device, "input_process");
-
-    commandQueue = [device newCommandQueue];
-
-    if (!commandQueue)
-      throw std::runtime_error([[error localizedDescription] UTF8String]);
 
     paramsBuffer = [device newBufferWithLength: sizeof(ProcessParams)
                                        options: MTLResourceStorageModeShared];
@@ -70,7 +62,7 @@ OIDN_NAMESPACE_BEGIN
     id<MTLBuffer> bufferNormal = bufferFromImageOrMain(normal.get());
     id<MTLBuffer> bufferOutput = getMTLBuffer(dst->getBuffer());
 
-    auto commandBuffer = [commandQueue commandBuffer];
+    auto commandBuffer = [engine->getMTLCommandQueue() commandBuffer];
     auto computeEncoder = [commandBuffer computeCommandEncoder];
 
     [computeEncoder setComputePipelineState: pipeline];
@@ -108,10 +100,6 @@ OIDN_NAMESPACE_BEGIN
 
     [computeEncoder endEncoding];
     [commandBuffer commit];
-    [commandBuffer waitUntilCompleted];
-
-    [computeEncoder release];
-    [commandBuffer release];
   }
 
   ProcessParams MetalInputProcess::createProcessParams()
