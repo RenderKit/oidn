@@ -349,9 +349,20 @@ OIDN_NAMESPACE_BEGIN
     auto weightsTensor = toMPSGraphTensor(graph, finalWeight);
     auto biasTensor    = toMPSGraphTensor(graph, finalBias);
 
+    MPSGraphConvolution2DOpDescriptor* descr = [MPSGraphConvolution2DOpDescriptor
+      descriptorWithStrideInX: 1
+      strideInY: 1
+      dilationRateInX: 1
+      dilationRateInY: 1
+      groups: 1
+      paddingStyle: MPSGraphPaddingStyle::MPSGraphPaddingStyleTF_SAME
+      dataLayout: MPSGraphTensorNamedDataLayout::MPSGraphTensorNamedDataLayoutNHWC
+      weightsLayout: MPSGraphTensorNamedDataLayout::MPSGraphTensorNamedDataLayoutOIHW
+    ];
+
     auto outputTensor = [graph convolution2DWithSourceTensor: input
                                                weightsTensor: weightsTensor
-                                                  descriptor: MPSGraphConvDesc()
+                                                  descriptor: descr
                                                         name: nil];
 
     outputTensor = [graph additionWithPrimaryTensor: outputTensor
@@ -371,19 +382,24 @@ OIDN_NAMESPACE_BEGIN
 
   MPSGraphTensor_t MetalGraph::createPool(std::shared_ptr<MetalOp>& op, MPSGraphTensor_t input)
   {
+    MPSGraphPooling2DOpDescriptor* descr = [MPSGraphPooling2DOpDescriptor
+      descriptorWithKernelWidth: 2
+      kernelHeight: 2
+      strideInX: 2
+      strideInY: 2
+      paddingStyle: MPSGraphPaddingStyle::MPSGraphPaddingStyleTF_SAME
+      dataLayout: MPSGraphTensorNamedDataLayout::MPSGraphTensorNamedDataLayoutNHWC
+    ];
+
     return [graph maxPooling2DWithSourceTensor: input
-                                    descriptor: MPSGraphPoolDesc()
+                                    descriptor: descr
                                           name: nil];
   }
 
   MPSGraphTensor_t MetalGraph::createConcat(std::shared_ptr<MetalOp>& op,
                                             MPSGraphTensor_t input1, MPSGraphTensor_t input2)
   {
-    id tensors = [NSMutableArray new];
-    [tensors addObject: input1];
-    [tensors addObject: input2];
-
-    return [graph concatTensors: tensors
+    return [graph concatTensors: @[input1, input2]
                       dimension: 3
                            name: nil];
   }

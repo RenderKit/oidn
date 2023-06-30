@@ -36,7 +36,7 @@ OIDN_NAMESPACE_BEGIN
 
     id<MTLDevice> device = engine->getMTLDevice();
 
-    pipeline = createPipeline(device, "input_process");
+    pipeline = engine->newMTLComputePipelineState("input_process");
 
     paramsBuffer = [device newBufferWithLength: sizeof(ProcessParams)
                                        options: MTLResourceStorageModeShared];

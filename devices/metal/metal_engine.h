@@ -17,8 +17,11 @@ OIDN_NAMESPACE_BEGIN
     ~MetalEngine();
 
     Device* getDevice() const override { return device; }
+
+    // Metal
     id<MTLDevice> getMTLDevice() const { return device->getMTLDevice(); }
     id<MTLCommandQueue> getMTLCommandQueue() const { return commandQueue; }
+    id<MTLComputePipelineState> newMTLComputePipelineState(const std::string& functionName);
 
     // Buffer
     Ref<Buffer> newBuffer(size_t byteSize, Storage storage) override;
@@ -49,6 +52,7 @@ OIDN_NAMESPACE_BEGIN
   private:
     MetalDevice* device;
     id<MTLCommandQueue> commandQueue;
+    id<MTLLibrary> library;
   };
 
 OIDN_NAMESPACE_END

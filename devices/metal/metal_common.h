@@ -43,14 +43,9 @@ OIDN_NAMESPACE_BEGIN
   MPSGraphTensorData_t toMPSGraphTensorData(id<MTLBuffer> buffer, TensorDesc td);
   MPSGraphTensorData_t toMPSGraphTensorData(id<MTLBuffer> buffer, ImageDesc imd);
 
-  MPSGraphPooling2DOpDescriptor_t MPSGraphPoolDesc();
-  MPSGraphConvolution2DOpDescriptor_t MPSGraphConvDesc();
-
   TransferFunctionType toTransferFunctionType(TransferFunction::Type type);
   KernelDataType toDataType(DataType type);
 
   id<MTLBuffer> getMTLBuffer(Ref<Buffer> buffer);
-
-  MTLComputePipelineState_t createPipeline(id<MTLDevice> device, std::string function);
 
 OIDN_NAMESPACE_END

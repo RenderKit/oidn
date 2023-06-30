@@ -13,12 +13,33 @@ OIDN_NAMESPACE_BEGIN
 
   MetalEngine::MetalEngine(const Ref<MetalDevice>& device)
     : device(device.get()),
-      commandQueue([device->getMTLDevice() newCommandQueue])
-  {}
+      commandQueue([device->getMTLDevice() newCommandQueue]),
+      library([device->getMTLDevice() newDefaultLibrary])
+  {
+    if (!library)
+      throw std::runtime_error("could not create default Metal library");
+  }
 
   MetalEngine::~MetalEngine()
   {
+    [library release];
     [commandQueue release];
+  }
+
+  id<MTLComputePipelineState> MetalEngine::newMTLComputePipelineState(const std::string& functionName)
+  {
+    auto function = [library newFunctionWithName: @(functionName.c_str())];
+    if (!function)
+      throw std::runtime_error("could not create Metal library function");
+
+    NSError* error = nil;
+    auto pipeline = [device->getMTLDevice() newComputePipelineStateWithFunction: function
+                                                                                 error: &error];
+
+    if (!pipeline)
+      throw std::runtime_error("could not create Metal compute pipeline state");
+
+    return pipeline;
   }
 
   Ref<Buffer> MetalEngine::newBuffer(size_t byteSize, Storage storage)

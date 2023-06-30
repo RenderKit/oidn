@@ -88,52 +88,6 @@ OIDN_NAMESPACE_BEGIN
                                                 dataType: toMPSDataType(imd.getDataType())];
   }
 
-  MPSGraphPooling2DOpDescriptor_t MPSGraphPoolDesc()
-  {
-    MPSGraphPooling2DOpDescriptor_t descr = [[MPSGraphPooling2DOpDescriptor alloc] init];
-
-    descr.strideInX = 2;
-    descr.strideInY = 2;
-
-    descr.paddingLeft = 1;
-    descr.paddingRight = 1;
-    descr.paddingTop = 1;
-    descr.paddingBottom = 1;
-    descr.paddingStyle = MPSGraphPaddingStyle::MPSGraphPaddingStyleTF_SAME;
-
-    descr.kernelWidth = 2;
-    descr.kernelHeight = 2;
-
-    descr.dilationRateInX = 1;
-    descr.dilationRateInY = 1;
-
-    descr.dataLayout = MPSGraphTensorNamedDataLayout::MPSGraphTensorNamedDataLayoutNHWC;
-
-    return descr;
-  }
-
-  MPSGraphConvolution2DOpDescriptor_t MPSGraphConvDesc()
-  {
-    MPSGraphConvolution2DOpDescriptor* descr = [MPSGraphConvolution2DOpDescriptor
-                                                descriptorWithStrideInX: 1
-                                                strideInY: 1
-                                                dilationRateInX: 1
-                                                dilationRateInY: 1
-
-                                                groups: 1
-
-                                                paddingLeft: 1
-                                                paddingRight: 1
-                                                paddingTop: 1
-                                                paddingBottom: 1
-
-                                                paddingStyle: MPSGraphPaddingStyle::MPSGraphPaddingStyleTF_SAME
-                                                dataLayout: MPSGraphTensorNamedDataLayout::MPSGraphTensorNamedDataLayoutNHWC
-                                                weightsLayout: MPSGraphTensorNamedDataLayout::MPSGraphTensorNamedDataLayoutOIHW];
-
-    return descr;
-  }
-
   TransferFunctionType toTransferFunctionType(TransferFunction::Type type)
   {
     switch (type) {
@@ -169,29 +123,6 @@ OIDN_NAMESPACE_BEGIN
     if (auto metal = static_cast<MetalBuffer*>(buffer.get()))
       return metal->getMTLBuffer();
     throw std::logic_error("buffer is not a metal buffer");
-  }
-
-  MTLComputePipelineState_t createPipeline(id<MTLDevice> device, std::string function)
-  {
-    NSError* error = nil;
-
-    id library = [device newDefaultLibrary];
-
-    if (!library)
-      throw std::runtime_error("can not load default library");
-
-    id fn = [library newFunctionWithName: @(function.c_str())];
-
-    if (!fn)
-        throw std::runtime_error("can not load function");
-
-    auto pipeline = [device newComputePipelineStateWithFunction: fn
-                                                          error: &error];
-
-    if (!pipeline)
-      throw std::runtime_error("can not create pipeline");
-
-    return pipeline;
   }
 
 OIDN_NAMESPACE_END

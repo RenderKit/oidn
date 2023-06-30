@@ -37,8 +37,8 @@ OIDN_NAMESPACE_BEGIN
     @autoreleasepool {
       id<MTLDevice> device = engine->getMTLDevice();
 
-      pipelineDownsample = createPipeline(device, "autoexposure_downsample");
-      pipelineReduce = createPipeline(device, "autoexposure_reduce");
+      pipelineDownsample = engine->newMTLComputePipelineState("autoexposure_downsample");
+      pipelineReduce = engine->newMTLComputePipelineState("autoexposure_reduce");
 
       paramsBuffer = [device newBufferWithLength: sizeof(ProcessParams)
                                          options: MTLResourceStorageModeShared];
