@@ -16,29 +16,38 @@ OIDN_NAMESPACE_BEGIN
 
   std::vector<Ref<PhysicalDevice>> MetalDevice::getPhysicalDevices()
   {
-    std::vector<Ref<PhysicalDevice>> physicalDevices;
-    NSArray* devices = [MTLCopyAllDevices() autorelease];
-    int numDevice = (int)[devices count];
-    for (int deviceID = 0 ; deviceID < numDevice ; deviceID++)
+    @autoreleasepool
     {
-      id<MTLDevice>  device = devices[deviceID];
-      int score = (19 << 16) - 1 - deviceID;
-      std::string name = std::string([[device name] UTF8String]);
-      physicalDevices.push_back(makeRef<MetalPhysicalDevice>(deviceID, name, score));
+      std::vector<Ref<PhysicalDevice>> physicalDevices;
+      NSArray* devices = [MTLCopyAllDevices() autorelease];
+      int numDevice = (int)[devices count];
+      for (int deviceID = 0 ; deviceID < numDevice ; deviceID++)
+      {
+        id<MTLDevice>  device = devices[deviceID];
+        int score = (19 << 16) - 1 - deviceID;
+        std::string name = std::string([[device name] UTF8String]);
+        physicalDevices.push_back(makeRef<MetalPhysicalDevice>(deviceID, name, score));
+      }
+      return physicalDevices;
     }
-    return physicalDevices;
   }
 
   MetalDevice::MetalDevice(int deviceID)
     : deviceID(deviceID)
   {
-    device = mtlDevice(deviceID);
+    @autoreleasepool
+    {
+      device = mtlDevice(deviceID);
+    }
   }
 
   MetalDevice::MetalDevice(const Ref<MetalPhysicalDevice>& physicalDevice)
     : deviceID(physicalDevice->deviceID)
   {
-    device = mtlDevice(deviceID);
+    @autoreleasepool
+    {
+      device = mtlDevice(deviceID);
+    }
   }
 
   MetalDevice::~MetalDevice()
@@ -54,7 +63,10 @@ OIDN_NAMESPACE_BEGIN
     systemMemorySupported  = true;
     managedMemorySupported = false;
 
-    engine = makeRef<MetalEngine>(this);
+    @autoreleasepool
+    {
+      engine = makeRef<MetalEngine>(this);
+    }
   }
 
   Storage MetalDevice::getPtrStorage(const void* ptr)
