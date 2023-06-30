@@ -49,7 +49,7 @@ OIDN_NAMESPACE_BEGIN
     id<MTLBuffer> bufferInput = getMTLBuffer(src->getBuffer());
     id<MTLBuffer> bufferOutput = getMTLBuffer(dst->getBuffer());
 
-    auto commandBuffer = [engine->getMTLCommandQueue() commandBuffer];
+    auto commandBuffer = engine->getMTLCommandBuffer();
     auto computeEncoder = [commandBuffer computeCommandEncoder];
 
     [computeEncoder setComputePipelineState: pipeline];

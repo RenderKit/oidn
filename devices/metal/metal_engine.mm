@@ -14,6 +14,7 @@ OIDN_NAMESPACE_BEGIN
   MetalEngine::MetalEngine(const Ref<MetalDevice>& device)
     : device(device.get()),
       commandQueue([device->getMTLDevice() newCommandQueue]),
+      lastCommandBuffer(nil),
       library([device->getMTLDevice() newDefaultLibrary])
   {
     if (!library)
@@ -23,6 +24,8 @@ OIDN_NAMESPACE_BEGIN
   MetalEngine::~MetalEngine()
   {
     [library release];
+    if (lastCommandBuffer)
+      [lastCommandBuffer release];
     [commandQueue release];
   }
 
@@ -34,12 +37,20 @@ OIDN_NAMESPACE_BEGIN
 
     NSError* error = nil;
     auto pipeline = [device->getMTLDevice() newComputePipelineStateWithFunction: function
-                                                                                 error: &error];
+                                            error: &error];
 
     if (!pipeline)
       throw std::runtime_error("could not create Metal compute pipeline state");
 
     return pipeline;
+  }
+
+  id<MTLCommandBuffer> MetalEngine::getMTLCommandBuffer()
+  {
+    if (lastCommandBuffer)
+      [lastCommandBuffer release];
+    lastCommandBuffer = [commandQueue commandBuffer].retain;
+    return lastCommandBuffer;
   }
 
   Ref<Buffer> MetalEngine::newBuffer(size_t byteSize, Storage storage)
@@ -130,11 +141,11 @@ OIDN_NAMESPACE_BEGIN
 
   void MetalEngine::wait()
   {
-    @autoreleasepool
+    if (lastCommandBuffer)
     {
-      id<MTLCommandBuffer> commandBuffer = [commandQueue commandBuffer];
-      [commandBuffer commit];
-      [commandBuffer waitUntilCompleted];
+      [lastCommandBuffer waitUntilCompleted];
+      [lastCommandBuffer release];
+      lastCommandBuffer = nil;
     }
   }
 

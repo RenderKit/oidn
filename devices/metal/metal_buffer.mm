@@ -28,7 +28,7 @@ OIDN_NAMESPACE_BEGIN
     if (byteSize == 0)
       return;
 
-    id<MTLDevice> device = static_cast<MetalDevice*>(getDevice())->getMTLDevice();
+    id<MTLDevice> device = engine->getMTLDevice();
 
     if (byteSize > [device maxBufferLength])
       throw std::bad_alloc();
@@ -83,7 +83,7 @@ OIDN_NAMESPACE_BEGIN
                                               options: options
                                           deallocator: nil];
 
-      id<MTLCommandBuffer> commandBuffer = [engine->getMTLCommandQueue() commandBuffer];
+      id<MTLCommandBuffer> commandBuffer = engine->getMTLCommandBuffer();
       id<MTLBlitCommandEncoder> blitEncoder = [commandBuffer blitCommandEncoder];
 
       [blitEncoder copyFromBuffer: buffer
@@ -95,7 +95,7 @@ OIDN_NAMESPACE_BEGIN
       [commandBuffer commit];
 
       if (sync == SyncMode::Sync)
-        [commandBuffer waitUntilCompleted];
+        engine->wait();
     }
   }
 
@@ -113,7 +113,7 @@ OIDN_NAMESPACE_BEGIN
                                          length: byteSize
                                         options: options];
 
-      id<MTLCommandBuffer> commandBuffer = [engine->getMTLCommandQueue() commandBuffer];
+      id<MTLCommandBuffer> commandBuffer = engine->getMTLCommandBuffer();
       id<MTLBlitCommandEncoder> blitCommandEncoder = [commandBuffer blitCommandEncoder];
 
       [blitCommandEncoder copyFromBuffer: srcBuffer
@@ -125,7 +125,7 @@ OIDN_NAMESPACE_BEGIN
       [commandBuffer commit];
 
       if (sync == SyncMode::Sync)
-        [commandBuffer waitUntilCompleted];
+        engine->wait();
     }
   }
 

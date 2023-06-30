@@ -68,7 +68,7 @@ OIDN_NAMESPACE_BEGIN
     id<MTLBuffer> input = getMTLBuffer(src->getBuffer());
     id<MTLBuffer> bins = getMTLBuffer(binsTensor->getBuffer());
 
-    auto commandBuffer = [engine->getMTLCommandQueue() commandBuffer];
+    auto commandBuffer = engine->getMTLCommandBuffer();
     auto computeEncoder = [commandBuffer computeCommandEncoder];
 
     [computeEncoder setComputePipelineState: pipelineDownsample];
@@ -111,7 +111,7 @@ OIDN_NAMESPACE_BEGIN
     id<MTLBuffer> sums = getMTLBuffer(sumsTensor->getBuffer());
     id<MTLBuffer> counts = getMTLBuffer(countsTensor->getBuffer());
 
-    auto commandBuffer = [engine->getMTLCommandQueue() commandBuffer];
+    auto commandBuffer = engine->getMTLCommandBuffer();
     auto computeEncoder = [commandBuffer computeCommandEncoder];
 
     [computeEncoder setComputePipelineState: pipelineReduce];
@@ -143,7 +143,7 @@ OIDN_NAMESPACE_BEGIN
 
     [computeEncoder endEncoding];
     [commandBuffer commit];
-    [commandBuffer waitUntilCompleted]; // FIXME!!!
+    engine->wait(); // FIXME!!!
 
     float sum = ((float*)[sums contents])[0];
     float count = ((float*)[counts contents])[0];

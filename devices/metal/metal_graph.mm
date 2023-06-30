@@ -26,12 +26,6 @@ OIDN_NAMESPACE_BEGIN
     if (graph)
       [graph release];
 
-    //if (graphInput)
-    //  [graphInput release];
-
-    //if (graphOutput)
-    //  [graphOutput release];
-
     graph = nullptr;
     graphInput = nullptr;
     graphOutput = nullptr;
@@ -283,7 +277,7 @@ OIDN_NAMESPACE_BEGIN
     id<MTLBuffer> inputBuffer = getMTLBuffer(inputProcess->getDst()->getBuffer());
     id<MTLBuffer> outputBuffer = getMTLBuffer(outputTensor->getBuffer());
 
-    MPSGraphTensorData_t graphInputData = toMPSGraphTensorData(inputBuffer, inputProcess->getDst());
+    MPSGraphTensorData_t graphInputData  = toMPSGraphTensorData(inputBuffer, inputProcess->getDst());
     MPSGraphTensorData_t graphOutputData = toMPSGraphTensorData(outputBuffer, dstDesc);
 
     inputProcess->submit();
