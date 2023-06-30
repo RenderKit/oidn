@@ -358,6 +358,7 @@ TEST_CASE("shared image", "[shared_image]")
   device.commit();
   REQUIRE(device.getError() == Error::None);
 
+  // FIXME: don't run on Metal
   SECTION("buffer allocator")
   {
     FilterRef filter = device.newFilter("RT");

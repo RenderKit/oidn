@@ -48,6 +48,8 @@ OIDN_NAMESPACE_BEGIN
     size_t getByteSize() const override { return localSize; }
     Storage getStorage() const override { return manager->buffer->getStorage(); }
 
+    Buffer* getParentBuffer() const { return manager->buffer.get(); }
+
   private:
     void attach(Memory* mem) override;
     void detach(Memory* mem) override;

@@ -5,6 +5,7 @@
 #include "metal_common.h"
 #include "metal_engine.h"
 #include "metal_buffer.h"
+#include "core/scratch.h"
 
 OIDN_NAMESPACE_BEGIN
 
@@ -118,11 +119,17 @@ OIDN_NAMESPACE_BEGIN
 
   id<MTLBuffer> getMTLBuffer(Ref<Buffer> buffer)
   {
-    if (buffer->getDevice()->getType() != DeviceType::Metal)
-      throw std::logic_error("not supported device");
-    if (auto metal = static_cast<MetalBuffer*>(buffer.get()))
-      return metal->getMTLBuffer();
-    throw std::logic_error("buffer is not a metal buffer");
+    if (!buffer)
+      return nil;
+
+    Buffer* baseBuffer = buffer.get();
+    if (ScratchBuffer* scratchBuffer = dynamic_cast<ScratchBuffer*>(baseBuffer))
+      baseBuffer = scratchBuffer->getParentBuffer();
+
+    if (MetalBuffer* metalBuffer = dynamic_cast<MetalBuffer*>(baseBuffer))
+      return metalBuffer->getMTLBuffer();
+    else
+      throw std::logic_error("buffer is not a Metal buffer");
   }
 
 OIDN_NAMESPACE_END

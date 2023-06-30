@@ -60,10 +60,7 @@ OIDN_NAMESPACE_BEGIN
 
   Ref<Buffer> MetalEngine::newBuffer(void* ptr, size_t byteSize)
   {
-    if (byteSize == 0)
-      throw Exception(Error::InvalidArgument, "invalid buffer size");;
-
-    return makeRef<MetalBuffer>(this, byteSize, Storage::Host);
+    throw Exception(Error::InvalidOperation, "creating shared buffers is not supported by the device");
   }
 
   void MetalEngine::runHostTask(std::function<void()>&& f)

@@ -11,7 +11,7 @@ OIDN_NAMESPACE_BEGIN
 
   void MetalImageCopy::submit()
   {
-    throw std::logic_error("Not implemented");
+    throw std::logic_error("MetalImageCopy not implemented");
   }
 
 OIDN_NAMESPACE_END

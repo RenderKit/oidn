@@ -60,7 +60,7 @@ OIDN_NAMESPACE_BEGIN
     weightLayout = TensorLayout::oihw;
     tensorBlockC = 1;
 
-    systemMemorySupported  = true;
+    systemMemorySupported  = false;
     managedMemorySupported = false;
 
     @autoreleasepool
@@ -71,7 +71,8 @@ OIDN_NAMESPACE_BEGIN
 
   Storage MetalDevice::getPtrStorage(const void* ptr)
   {
-    return Storage::Host;
+    // USM not supported by Metal
+    return Storage::Undefined;
   }
 
   int MetalDevice::getInt(const std::string& name)
