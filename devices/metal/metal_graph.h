@@ -6,13 +6,25 @@
 #include "core/graph.h"
 #include "metal_engine.h"
 #include "metal_common.h"
-#include "metal_op.h"
 #include <unordered_map>
 #include <vector>
 
 OIDN_NAMESPACE_BEGIN
 
   class MetalEngine;
+
+  class MetalOp final : public Op
+  {
+  public:
+    void submit() override { throw std::logic_error("MetalOp cannot be submitted"); }
+  };
+
+  class MetalConv final : public Conv
+  {
+  public:
+    explicit MetalConv(const ConvDesc& desc) : Conv(desc) {}
+    void submit() override { throw std::logic_error("MetalConv cannot be submitted"); }
+  };
 
   class MetalGraph final : public Graph
   {
@@ -64,27 +76,26 @@ OIDN_NAMESPACE_BEGIN
     void run(Progress& progress) override;
 
   private:
+    struct TensorNode
+    {
+      TensorDesc desc;
+      MPSGraphTensor* tensor;
+    };
+
+    TensorNode* addOp(const std::shared_ptr<Op>& op, const TensorDesc& dstDesc);
     void cleanup();
 
-    void addOp(std::shared_ptr<MetalOp>& op, TensorDesc td);
-
-    MPSGraphTensor_t createConv(std::shared_ptr<MetalOp>& op, MPSGraphTensor_t input);
-    MPSGraphTensor_t createActivation(std::shared_ptr<MetalOp>& op, MPSGraphTensor_t input);
-    MPSGraphTensor_t createPool(std::shared_ptr<MetalOp>& op, MPSGraphTensor_t input);
-    MPSGraphTensor_t createConcat(std::shared_ptr<MetalOp>& op,
-                                  MPSGraphTensor_t input1, MPSGraphTensor_t input2);
-    MPSGraphTensor_t createUpsample(std::shared_ptr<MetalOp>& op, MPSGraphTensor_t input);
-
-  private:
     Ref<MetalEngine> engine;
-    std::shared_ptr<TensorMap> constTensors;
-    bool fastMath = false;
-
-    std::vector<std::shared_ptr<MetalOp>> ops;
+    std::vector<std::shared_ptr<Op>> ops;
     std::shared_ptr<InputProcess> inputProcess;
     std::shared_ptr<OutputProcess> outputProcess;
 
-    std::unordered_map<Op*, TensorDesc> tensorDescByOp;
+    MPSGraph* graph = nullptr;
+    MPSGraphTensor* graphInput = nullptr;
+    MPSGraphTensor* graphOutput = nullptr;
+
+    Ref<Buffer> inputBuffer;
+    std::shared_ptr<Tensor> outputTensor;
 
     size_t opScratchByteSize     = 0; // total size of operation scratch
     size_t tensorScratchByteSize = 0; // total size of temporary tensors
@@ -92,14 +103,12 @@ OIDN_NAMESPACE_BEGIN
     bool dirty = false;
     bool finalized = false;
 
-    MPSGraph_t graph;
-
-    Ref<Buffer> inputBuffer;
-
-    MPSGraphTensor_t graphInput;
-    MPSGraphTensor_t graphOutput;
-
-    std::shared_ptr<Tensor> outputTensor;
+    // Used only while building the graph
+    std::vector<std::unique_ptr<TensorNode>> tensorNodes;
+    std::unordered_map<Op*, TensorNode*> tensorNodesByOp;
+    std::vector<std::function<void()>> lazyInits; // lazy initialization for ops
+    std::shared_ptr<TensorMap> constTensors;
+    bool fastMath = false;
   };
 
 OIDN_NAMESPACE_END

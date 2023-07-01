@@ -13,22 +13,25 @@ OIDN_NAMESPACE_BEGIN
                          bool fastMath)
     : engine(engine),
       constTensors(constTensors),
-      fastMath(fastMath),
-      graph(nullptr) {}
+      fastMath(fastMath)
+  {}
 
   MetalGraph::~MetalGraph()
   {
-    cleanup();
-  }
-
-  void MetalGraph::cleanup()
-  {
     if (graph)
       [graph release];
+  }
 
-    graph = nullptr;
-    graphInput = nullptr;
-    graphOutput = nullptr;
+  MetalGraph::TensorNode* MetalGraph::addOp(const std::shared_ptr<Op>& op, const TensorDesc& dstDesc)
+  {
+    if (finalized)
+      throw std::logic_error("graph cannot be changed after finalization");
+
+    tensorNodes.emplace_back(new TensorNode{dstDesc, nullptr});
+    TensorNode* dstNode = tensorNodes.back().get();
+    tensorNodesByOp[op.get()] = dstNode;
+    ops.push_back(op);
+    return dstNode;
   }
 
   std::shared_ptr<InputProcess> MetalGraph::addInputProcess(const std::string& name,
@@ -40,7 +43,16 @@ OIDN_NAMESPACE_BEGIN
   {
     inputProcess = engine->newInputProcess({srcDims, tileAlignment, transferFunc, hdr, snorm});
     inputProcess->setName(name);
-    tensorDescByOp[inputProcess.get()] = inputProcess->getDstDesc();
+    TensorNode* dstNode = addOp(inputProcess, inputProcess->getDstDesc());
+
+    lazyInits.push_back([=]()
+    {
+      MPSGraphTensor* dst = toMPSGraphPlaceholder(graph, inputProcess->getDstDesc());
+      dstNode->tensor = dst;
+      graphInput = dst;
+      inputProcess->setDst(engine->newTensor(inputProcess->getDstDesc()));
+    });
+
     return inputProcess;
   }
 
@@ -50,9 +62,18 @@ OIDN_NAMESPACE_BEGIN
                                                               bool hdr,
                                                               bool snorm)
   {
-    const TensorDesc srcDesc = tensorDescByOp[srcOp.get()];
+    TensorNode* srcNode = tensorNodesByOp[srcOp.get()];
+    const TensorDesc srcDesc = srcNode->desc;
     outputProcess = engine->newOutputProcess({srcDesc, transferFunc, hdr, snorm});
     outputProcess->setName(name);
+    addOp(outputProcess, srcDesc);
+
+    lazyInits.push_back([=]()
+    {
+      graphOutput = srcNode->tensor;
+      outputProcess->setSrc(engine->newTensor(srcDesc));
+    });
+
     return outputProcess;
   }
 
@@ -61,25 +82,6 @@ OIDN_NAMESPACE_BEGIN
                                           Activation activation,
                                           PostOp postOp)
   {
-    if (postOp != PostOp::None && !engine->isConvSupported(postOp))
-    {
-      // If the engine does not support the specified fused convolution, split it into two ops
-      auto conv = addConv(name, srcOp, activation, PostOp::None);
-      switch (postOp)
-      {
-      case PostOp::Pool:
-        return addPool(name + "_pool", conv);
-      case PostOp::Upsample:
-        return addUpsample(name + "_upsample", conv);
-      default:
-        throw std::invalid_argument("cannot split fused convolution");
-      }
-    }
-
-    std::vector<std::shared_ptr<Op>> srcs = { srcOp };
-    auto conv = std::make_shared<MetalOp>(MetalOpType::Conv, srcs);
-    conv->setName(name);
-
     auto weight = (*constTensors)[name + ".weight"];
     auto bias   = (*constTensors)[name + ".bias"];
 
@@ -103,20 +105,83 @@ OIDN_NAMESPACE_BEGIN
                                 TensorLayout::x,
                                 engine->getDevice()->getTensorDataType()};
 
-    auto srcDesc = tensorDescByOp[srcOp.get()];
+    TensorNode* srcNode = tensorNodesByOp[srcOp.get()];
+    const TensorDesc srcDesc = srcNode->desc;
+    auto conv = engine->newConv({srcDesc, finalWeightDesc, finalBiasDesc, activation, postOp, fastMath});
+    conv->setName(name);
+    const TensorDesc dstDesc = conv->getDstDesc();
+    TensorNode* dstNode = addOp(conv, dstDesc);
 
-    TensorDims dstDims = {finalWeightDesc.getO(), srcDesc.getH(), srcDesc.getW()};
-    auto dstDesc = TensorDesc(dstDims, srcDesc.layout, srcDesc.dataType);
-    addOp(conv, dstDesc);
-
-    if (activation == Activation::ReLU)
+    lazyInits.push_back([=]()
     {
-      std::vector<std::shared_ptr<Op>> srcs = { conv };
-      auto relu = std::make_shared<MetalOp>(MetalOpType::Relu, srcs);
-      relu->setName(name + "_relu");
-      addOp(relu, dstDesc);
-      return relu;
-    }
+      // Reorder the weight tensor
+      auto finalWeight = engine->newTensor(finalWeightDesc, Storage::Host);
+      reorderWeight(*weight, 0, weight->getI(),
+                    *finalWeight, 0, finalWeight->getPaddedI());
+
+      // Reorder the bias tensor
+      auto finalBias = engine->newTensor(finalBiasDesc, Storage::Host);
+      reorderBias(*bias, *finalBias);
+
+      auto weightsTensor = toMPSGraphTensor(graph, finalWeight);
+      auto biasTensor    = toMPSGraphTensor(graph, finalBias);
+
+      MPSGraphConvolution2DOpDescriptor* descr = [MPSGraphConvolution2DOpDescriptor
+        descriptorWithStrideInX: 1
+        strideInY: 1
+        dilationRateInX: 1
+        dilationRateInY: 1
+        groups: 1
+        paddingStyle: MPSGraphPaddingStyle::MPSGraphPaddingStyleTF_SAME
+        dataLayout: MPSGraphTensorNamedDataLayout::MPSGraphTensorNamedDataLayoutNHWC
+        weightsLayout: MPSGraphTensorNamedDataLayout::MPSGraphTensorNamedDataLayoutOIHW
+      ];
+
+      auto dst = [graph convolution2DWithSourceTensor: srcNode->tensor
+                                        weightsTensor: weightsTensor
+                                           descriptor: descr
+                                                 name: nil];
+
+      dst = [graph additionWithPrimaryTensor: dst
+                             secondaryTensor: biasTensor
+                                        name: nil];
+
+      if (activation == Activation::ReLU)
+      {
+        dst = [graph reLUWithTensor: dst
+                               name: nil];
+      }
+
+      if (postOp == PostOp::Pool)
+      {
+        MPSGraphPooling2DOpDescriptor* descr = [MPSGraphPooling2DOpDescriptor
+          descriptorWithKernelWidth: 2
+                       kernelHeight: 2
+                          strideInX: 2
+                          strideInY: 2
+                       paddingStyle: MPSGraphPaddingStyle::MPSGraphPaddingStyleTF_SAME
+                         dataLayout: MPSGraphTensorNamedDataLayout::MPSGraphTensorNamedDataLayoutNHWC
+        ];
+
+        dst = [graph maxPooling2DWithSourceTensor: dst
+                                       descriptor: descr
+                                             name: nil];
+      }
+      else if (postOp == PostOp::Upsample)
+      {
+        dst = [graph resizeTensor: dst
+                             size: @[@(dstDesc.getH()), @(dstDesc.getW())]
+                             mode: MPSGraphResizeMode::MPSGraphResizeNearest
+                     centerResult: true
+                     alignCorners: false
+                           layout: MPSGraphTensorNamedDataLayout::MPSGraphTensorNamedDataLayoutNHWC
+                             name: nil];
+      }
+      else if (postOp != PostOp::None)
+        throw std::invalid_argument("unsupported convolution postop");
+
+      dstNode->tensor = dst;
+    });
 
     return conv;
   }
@@ -126,16 +191,24 @@ OIDN_NAMESPACE_BEGIN
                                                 const std::shared_ptr<Op>& src2Op,
                                                 Activation activation)
   {
-    std::vector<std::shared_ptr<Op>> srcs = { src1Op, src2Op };
-    auto concat = std::make_shared<MetalOp>(MetalOpType::Concat, srcs);
-    concat->setName(name + "_concat");
+    TensorNode* src1Node = tensorNodesByOp[src1Op.get()];
+    TensorNode* src2Node = tensorNodesByOp[src2Op.get()];
 
-    auto src1Desc = tensorDescByOp[src1Op.get()];
-    auto src2Desc = tensorDescByOp[src2Op.get()];
+    TensorDesc src1Desc = src1Node->desc;
+    TensorDesc src2Desc = src2Node->desc;
 
-    auto dstDims = {src1Desc.getC() + src2Desc.getC(), src1Desc.getH(), src1Desc.getW()};
-    auto dstDesc = TensorDesc(dstDims, src1Desc.layout, src1Desc.dataType);
-    addOp(concat, dstDesc);
+    TensorDims dstDims = {src1Desc.getC() + src2Desc.getC(), src1Desc.getH(), src1Desc.getW()};
+    TensorDesc dstDesc{dstDims, src1Desc.layout, src1Desc.dataType};
+
+    auto concat = std::make_shared<MetalOp>();
+    TensorNode* concatDstNode = addOp(concat, dstDesc);
+
+    lazyInits.push_back([=]()
+    {
+      concatDstNode->tensor = [graph concatTensors: @[src1Node->tensor, src2Node->tensor]
+                                         dimension: 3
+                                              name: nil];
+    });
 
     return addConv(name, concat, activation);
   }
@@ -143,33 +216,13 @@ OIDN_NAMESPACE_BEGIN
   std::shared_ptr<Op> MetalGraph::addPool(const std::string& name,
                                           const std::shared_ptr<Op>& srcOp)
   {
-    std::vector<std::shared_ptr<Op>> srcs = { srcOp };
-    auto pool = std::make_shared<MetalOp>(MetalOpType::Pool, srcs);
-    pool->setName(name);
-
-    auto srcDesc = tensorDescByOp[srcOp.get()];
-
-    auto dstDims = {srcDesc.getC(), srcDesc.getH() / 2, srcDesc.getW() / 2};
-    auto dstDesc = TensorDesc(dstDims, srcDesc.layout, srcDesc.dataType);
-    addOp(pool, dstDesc);
-
-    return pool;
+    throw std::runtime_error("not implemented");
   }
 
   std::shared_ptr<Op> MetalGraph::addUpsample(const std::string& name,
                                               const std::shared_ptr<Op>& srcOp)
   {
-    std::vector<std::shared_ptr<Op>> srcs = { srcOp };
-    auto upsample = std::make_shared<MetalOp>(MetalOpType::Upsample, srcs);
-    upsample->setName(name);
-
-    auto srcDesc = tensorDescByOp[srcOp.get()];
-
-    TensorDims dstDims = {srcDesc.getC(), srcDesc.getH() * 2, srcDesc.getW() * 2};
-    auto dstDesc = TensorDesc(dstDims, srcDesc.layout, srcDesc.dataType);
-    addOp(upsample, dstDesc);
-
-    return upsample;
+    throw std::runtime_error("not implemented");
   }
 
   double MetalGraph::getWorkAmount() const
@@ -195,8 +248,19 @@ OIDN_NAMESPACE_BEGIN
   {
   }
 
+  void MetalGraph::cleanup()
+  {
+    lazyInits.clear();
+    tensorNodesByOp.clear();
+    tensorNodes.clear();
+  }
+
   void MetalGraph::clear()
   {
+    if (finalized)
+      throw std::runtime_error("graph cannot be cleared after finalization");
+
+    cleanup();
     ops.clear();
     opScratchByteSize = 0;
     tensorScratchByteSize = 0;
@@ -206,79 +270,31 @@ OIDN_NAMESPACE_BEGIN
 
   void MetalGraph::finalize()
   {
-    id<MTLDevice> device = engine->getMTLDevice();
-
     graph = [[MPSGraph alloc] init];
 
-    std::unordered_map<Op*, MPSGraphTensor_t> tensorByOp;
+    for (auto& lazyInit : lazyInits)
+      lazyInit();
+    lazyInits.clear();
 
-    inputBuffer = engine->newBuffer(inputProcess->getDstDesc().getByteSize(), Storage::Device);
-
-    inputProcess->finalize();
-
-    inputProcess->setDst(engine->newTensor(inputBuffer, inputProcess->getDstDesc()));
-
-    graphInput = toMPSGraphPlaceholder(graph, inputProcess->getDst()->getDesc());
-    tensorByOp[inputProcess.get()] = graphInput;
-
-    for (auto op : ops)
+    for (auto& op : ops)
     {
-      auto srcs = op->getSrc();
-      auto input = tensorByOp[srcs[0].get()];
-
-      MPSGraphTensor_t output = nullptr;
-
-      switch (op->getOpType())
-      {
-        case MetalOpType::Conv:
-          output = createConv(op, input);
-          break;
-        case MetalOpType::Relu:
-          output = createActivation(op, input);
-          break;
-        case MetalOpType::Pool:
-          output = createPool(op, input);
-          break;
-        case MetalOpType::Concat:
-          output = createConcat(op, input, tensorByOp[srcs[1].get()]);
-          break;
-        case MetalOpType::Upsample:
-          output = createUpsample(op, input);
-          break;
-        default:
-          throw std::logic_error("not implemented");
-      }
-
-      tensorByOp[op.get()] = output;
+      //op->setScratch(scratch);
+      op->finalize();
     }
 
-    auto lastOp = ops[ops.size() - 1].get();
-    auto dstDesc = tensorDescByOp[lastOp];
-
-    graphOutput = tensorByOp[lastOp];
-
-    outputTensor = engine->newTensor(dstDesc);
-    outputProcess->setSrc(outputTensor);
-
-    outputProcess->finalize();
-
+    cleanup();
     constTensors.reset();
+
     finalized = true;
   }
 
   void MetalGraph::run(Progress& progress)
   {
     if (!finalized)
-      throw std::logic_error("graph should be finalized first");
+      throw std::logic_error("graph not finalized");
 
-    auto lastOp = ops[ops.size() - 1].get();
-    auto dstDesc = tensorDescByOp[lastOp];
-
-    id<MTLBuffer> inputBuffer = getMTLBuffer(inputProcess->getDst()->getBuffer());
-    id<MTLBuffer> outputBuffer = getMTLBuffer(outputTensor->getBuffer());
-
-    MPSGraphTensorData_t graphInputData  = toMPSGraphTensorData(inputBuffer, inputProcess->getDst());
-    MPSGraphTensorData_t graphOutputData = toMPSGraphTensorData(outputBuffer, dstDesc);
+    MPSGraphTensorData* graphInputData  = newMPSGraphTensorData(inputProcess->getDst());
+    MPSGraphTensorData* graphOutputData = newMPSGraphTensorData(outputProcess->getSrc());
 
     inputProcess->submit();
     progress.update(engine, 1);
@@ -294,123 +310,6 @@ OIDN_NAMESPACE_BEGIN
 
     [graphInputData release];
     [graphOutputData release];
-  }
-
-  void MetalGraph::addOp(std::shared_ptr<MetalOp>& op, TensorDesc td)
-  {
-    if (finalized)
-      throw std::logic_error("graph cannot be changed after finalization");
-    tensorDescByOp[op.get()] = td;
-    ops.emplace_back(op);
-  }
-
-  MPSGraphTensor_t MetalGraph::createConv(std::shared_ptr<MetalOp>& op, MPSGraphTensor_t input)
-  {
-    auto name = op->getName();
-
-    auto weight = (*constTensors)[name + ".weight"];
-    auto bias   = (*constTensors)[name + ".bias"];
-
-    if (weight->getRank() != 4 || bias->getRank() != 1)
-      throw std::invalid_argument("invalid convolution weight/bias");
-
-    const int blockC = engine->getDevice()->getTensorBlockC();
-
-    TensorDims finalWeightDims{round_up(weight->getO(), blockC),
-                               round_up(weight->getI(), blockC),
-                               weight->getH(),
-                               weight->getW()};
-
-    TensorDesc finalWeightDesc = {weight->getDims(),
-                                  finalWeightDims,
-                                  engine->getDevice()->getWeightLayout(),
-                                  engine->getDevice()->getTensorDataType()};
-
-    TensorDesc finalBiasDesc = {bias->getDims(),
-                                {round_up(bias->getX(), blockC)},
-                                TensorLayout::x,
-                                engine->getDevice()->getTensorDataType()};
-
-    // Reorder the weight tensor
-    auto finalWeight = engine->newTensor(finalWeightDesc, Storage::Host);
-    reorderWeight(*weight, 0, weight->getI(),
-                  *finalWeight, 0, finalWeight->getPaddedI());
-
-    // Reorder the bias tensor
-    auto finalBias = engine->newTensor(finalBiasDesc, Storage::Host);
-    reorderBias(*bias, *finalBias);
-
-    auto weightsTensor = toMPSGraphTensor(graph, finalWeight);
-    auto biasTensor    = toMPSGraphTensor(graph, finalBias);
-
-    MPSGraphConvolution2DOpDescriptor* descr = [MPSGraphConvolution2DOpDescriptor
-      descriptorWithStrideInX: 1
-      strideInY: 1
-      dilationRateInX: 1
-      dilationRateInY: 1
-      groups: 1
-      paddingStyle: MPSGraphPaddingStyle::MPSGraphPaddingStyleTF_SAME
-      dataLayout: MPSGraphTensorNamedDataLayout::MPSGraphTensorNamedDataLayoutNHWC
-      weightsLayout: MPSGraphTensorNamedDataLayout::MPSGraphTensorNamedDataLayoutOIHW
-    ];
-
-    auto outputTensor = [graph convolution2DWithSourceTensor: input
-                                               weightsTensor: weightsTensor
-                                                  descriptor: descr
-                                                        name: nil];
-
-    outputTensor = [graph additionWithPrimaryTensor: outputTensor
-                                    secondaryTensor: biasTensor
-                                               name: nil];
-
-    constByteSize += finalWeightDesc.getByteSize() + finalBiasDesc.getByteSize();
-
-    return outputTensor;
-  }
-
-  MPSGraphTensor_t MetalGraph::createActivation(std::shared_ptr<MetalOp>& op, MPSGraphTensor_t input)
-  {
-    return [graph reLUWithTensor: input
-                            name: nil];
-  }
-
-  MPSGraphTensor_t MetalGraph::createPool(std::shared_ptr<MetalOp>& op, MPSGraphTensor_t input)
-  {
-    MPSGraphPooling2DOpDescriptor* descr = [MPSGraphPooling2DOpDescriptor
-      descriptorWithKernelWidth: 2
-      kernelHeight: 2
-      strideInX: 2
-      strideInY: 2
-      paddingStyle: MPSGraphPaddingStyle::MPSGraphPaddingStyleTF_SAME
-      dataLayout: MPSGraphTensorNamedDataLayout::MPSGraphTensorNamedDataLayoutNHWC
-    ];
-
-    return [graph maxPooling2DWithSourceTensor: input
-                                    descriptor: descr
-                                          name: nil];
-  }
-
-  MPSGraphTensor_t MetalGraph::createConcat(std::shared_ptr<MetalOp>& op,
-                                            MPSGraphTensor_t input1, MPSGraphTensor_t input2)
-  {
-    return [graph concatTensors: @[input1, input2]
-                      dimension: 3
-                           name: nil];
-  }
-
-  MPSGraphTensor_t MetalGraph::createUpsample(std::shared_ptr<MetalOp>& op, MPSGraphTensor_t input)
-  {
-    MPSShape* shape = [input shape];
-    MPSShape* size = @[[NSNumber numberWithInt: [shape[1] intValue] * 2],
-                       [NSNumber numberWithInt: [shape[2] intValue] * 2]];
-
-    return [graph resizeTensor: input
-                          size: size
-                          mode: MPSGraphResizeMode::MPSGraphResizeNearest
-                  centerResult: true
-                  alignCorners: false
-                        layout: MPSGraphTensorNamedDataLayout::MPSGraphTensorNamedDataLayoutNHWC
-                          name: nil];
   }
 
 OIDN_NAMESPACE_END

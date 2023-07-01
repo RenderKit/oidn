@@ -24,6 +24,9 @@ OIDN_NAMESPACE_BEGIN
   public:
     OutputProcess(const OutputProcessDesc& desc);
 
+    TensorDesc getSrcDesc() const { return srcDesc; }
+    std::shared_ptr<Tensor> getSrc() const { return src; }
+
     void setSrc(const std::shared_ptr<Tensor>& src);
     void setDst(const std::shared_ptr<Image>& dst);
     void setTile(int hSrc, int wSrc, int hDst, int wDst, int H, int W);

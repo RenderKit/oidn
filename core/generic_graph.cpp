@@ -445,6 +445,9 @@ OIDN_NAMESPACE_BEGIN
 
   void GenericGraph::clear()
   {
+    if (finalized)
+      throw std::logic_error("graph cannot be cleared after finalization");
+
     cleanup();
     ops.clear();
     scratch.reset();
@@ -480,6 +483,9 @@ OIDN_NAMESPACE_BEGIN
 
   void GenericGraph::run(Progress& progress)
   {
+    if (!finalized)
+      throw std::logic_error("graph not finalized");
+
     for (size_t i = 0; i < ops.size(); ++i)
     {
       ops[i]->submit();

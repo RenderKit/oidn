@@ -28,7 +28,7 @@ OIDN_NAMESPACE_BEGIN
   private:
     Ref<MetalEngine> engine;
 
-    MTLComputePipelineState_t pipeline;
+    id<MTLComputePipelineState> pipeline;
     id<MTLBuffer> paramsBuffer;
   };
 

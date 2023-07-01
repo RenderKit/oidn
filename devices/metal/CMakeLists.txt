@@ -25,8 +25,6 @@ set(OIDN_METAL_SOURCES
   metal_graph.h
   metal_buffer.mm
   metal_buffer.h
-  metal_op.mm
-  metal_op.h
   metal_autoexposure.h
   metal_autoexposure.mm
   metal_image_copy.h

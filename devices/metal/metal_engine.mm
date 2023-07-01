@@ -98,7 +98,7 @@ OIDN_NAMESPACE_BEGIN
 
   std::shared_ptr<Conv> MetalEngine::newConv(const ConvDesc& desc)
   {
-    throw std::logic_error("newConv is not supported");
+    return std::make_shared<MetalConv>(desc);
   }
 
   std::shared_ptr<Pool> MetalEngine::newPool(const PoolDesc& desc)

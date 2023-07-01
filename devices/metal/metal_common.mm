@@ -17,7 +17,7 @@ OIDN_NAMESPACE_BEGIN
     return [devices[deviceID] retain];
   }
 
-  MPSDataType_t toMPSDataType(DataType dataType) {
+  MPSDataType toMPSDataType(DataType dataType) {
     switch (dataType)
     {
     case DataType::Float32:
@@ -31,7 +31,7 @@ OIDN_NAMESPACE_BEGIN
     }
   }
 
-  MPSShape_t toMPSShape(const TensorDesc& td)
+  MPSShape* toMPSShape(const TensorDesc& td)
   {
     switch (td.layout)
     {
@@ -46,7 +46,7 @@ OIDN_NAMESPACE_BEGIN
     }
   }
 
-  MPSGraphTensor_t toMPSGraphTensor(MPSGraph_t graph, const std::shared_ptr<Tensor>& t)
+  MPSGraphTensor* toMPSGraphTensor(MPSGraph* graph, const std::shared_ptr<Tensor>& t)
   {
     NSData* data = [NSData dataWithBytes: t->getPtr()
                                   length: t->getByteSize()];
@@ -56,37 +56,29 @@ OIDN_NAMESPACE_BEGIN
                           dataType: toMPSDataType(t->getDataType())];
   }
 
-  MPSGraphTensor_t toMPSGraphPlaceholder(MPSGraph_t graph, TensorDesc td)
+  MPSGraphTensor* toMPSGraphPlaceholder(MPSGraph* graph, TensorDesc td)
   {
     return [graph placeholderWithShape: toMPSShape(td)
                               dataType: toMPSDataType(td.dataType)
                                   name: nil];
   }
 
-  MPSGraphTensor_t toMPSGraphPlaceholder(MPSGraph_t graph, ImageDesc imd)
+  MPSGraphTensor* toMPSGraphPlaceholder(MPSGraph* graph, ImageDesc imd)
   {
     return [graph placeholderWithShape: @[@(imd.getH()), @(imd.getW()), @(imd.getC())]
                               dataType: toMPSDataType(imd.getDataType())
                                   name: nil];
   }
 
-  MPSGraphTensorData_t toMPSGraphTensorData(id<MTLBuffer> buffer, const std::shared_ptr<Tensor>& t)
+  MPSGraphTensorData* newMPSGraphTensorData(const std::shared_ptr<Tensor>& tensor)
   {
-    return toMPSGraphTensorData(buffer, t->getDesc());
-  }
+    id<MTLBuffer> buffer = getMTLBuffer(tensor->getBuffer());
+    if (tensor->getByteOffset() != 0)
+      throw std::invalid_argument("MPSGraphTensorData requires zero offset in buffer");
 
-  MPSGraphTensorData_t toMPSGraphTensorData(id<MTLBuffer> buffer, TensorDesc td)
-  {
     return [[MPSGraphTensorData alloc] initWithMTLBuffer: buffer
-                                                   shape: toMPSShape(td)
-                                                dataType: toMPSDataType(td.dataType)];
-  }
-
-  MPSGraphTensorData_t toMPSGraphTensorData(id<MTLBuffer> buffer, ImageDesc imd)
-  {
-    return [[MPSGraphTensorData alloc] initWithMTLBuffer: buffer
-                                                   shape: @[@1, @(imd.getH()), @(imd.getW()), @(imd.getC())]
-                                                dataType: toMPSDataType(imd.getDataType())];
+                                                   shape: toMPSShape(tensor->getDesc())
+                                                dataType: toMPSDataType(tensor->getDataType())];
   }
 
   TransferFunctionType toTransferFunctionType(TransferFunction::Type type)

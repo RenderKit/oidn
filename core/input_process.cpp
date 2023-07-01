@@ -29,11 +29,6 @@ OIDN_NAMESPACE_BEGIN
     setTile(0, 0, 0, 0, 0, 0);
   }
 
-  TensorDesc InputProcess::getDstDesc() const
-  {
-    return dstDesc;
-  }
-
   void InputProcess::setSrc(const std::shared_ptr<Image>& color,
                             const std::shared_ptr<Image>& albedo,
                             const std::shared_ptr<Image>& normal)

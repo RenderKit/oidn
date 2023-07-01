@@ -29,8 +29,8 @@ OIDN_NAMESPACE_BEGIN
     Ref<MetalEngine> engine;
     float result;
 
-    MTLComputePipelineState_t pipelineDownsample;
-    MTLComputePipelineState_t pipelineReduce;
+    id<MTLComputePipelineState> pipelineDownsample;
+    id<MTLComputePipelineState> pipelineReduce;
     id<MTLBuffer> paramsBuffer;
 
     std::shared_ptr<Tensor> binsTensor;

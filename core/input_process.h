@@ -25,7 +25,7 @@ OIDN_NAMESPACE_BEGIN
   public:
     InputProcess(const Ref<Engine>& engine, const InputProcessDesc& desc);
 
-    TensorDesc getDstDesc() const;
+    TensorDesc getDstDesc() const { return dstDesc; }
     std::shared_ptr<Tensor> getDst() const { return dst; }
 
     void setSrc(const std::shared_ptr<Image>& color,
