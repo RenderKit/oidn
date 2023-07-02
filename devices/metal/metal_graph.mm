@@ -99,20 +99,11 @@ OIDN_NAMESPACE_BEGIN
     if (weight->getRank() != 4 || bias->getRank() != 1)
       throw std::invalid_argument("invalid convolution weight/bias");
 
-    const int blockC = engine->getDevice()->getTensorBlockC();
-
-    TensorDims finalWeightDims{round_up(weight->getO(), blockC),
-                               round_up(weight->getI(), blockC),
-                               weight->getH(),
-                               weight->getW()};
-
     TensorDesc finalWeightDesc = {weight->getDims(),
-                                  finalWeightDims,
                                   engine->getDevice()->getWeightLayout(),
                                   engine->getDevice()->getTensorDataType()};
 
     TensorDesc finalBiasDesc = {bias->getDims(),
-                                {round_up(bias->getX(), blockC)},
                                 TensorLayout::x,
                                 engine->getDevice()->getTensorDataType()};
 
@@ -126,16 +117,15 @@ OIDN_NAMESPACE_BEGIN
     lazyInits.push_back([=]()
     {
       // Reorder the weight tensor
-      auto finalWeight = engine->newTensor(finalWeightDesc, Storage::Host);
-      reorderWeight(*weight, 0, weight->getI(),
-                    *finalWeight, 0, finalWeight->getPaddedI());
+      auto finalHostWeight = engine->newTensor(finalWeightDesc, Storage::Host);
+      reorderWeight(*weight, *finalHostWeight);
 
       // Reorder the bias tensor
-      auto finalBias = engine->newTensor(finalBiasDesc, Storage::Host);
-      reorderBias(*bias, *finalBias);
+      auto finalHostBias = engine->newTensor(finalBiasDesc, Storage::Host);
+      reorderBias(*bias, *finalHostBias);
 
-      auto weightsTensor = toMPSGraphTensor(graph, finalWeight);
-      auto biasTensor    = toMPSGraphTensor(graph, finalBias);
+      auto finalWeight = toMPSGraphTensor(graph, finalHostWeight);
+      auto finalBias   = toMPSGraphTensor(graph, finalHostBias);
 
       MPSGraphConvolution2DOpDescriptor* descr = [MPSGraphConvolution2DOpDescriptor
         descriptorWithStrideInX: 1
@@ -149,12 +139,12 @@ OIDN_NAMESPACE_BEGIN
       ];
 
       auto dst = [graph convolution2DWithSourceTensor: srcNode->tensor
-                                        weightsTensor: weightsTensor
+                                        weightsTensor: finalWeight
                                            descriptor: descr
                                                  name: nil];
 
       dst = [graph additionWithPrimaryTensor: dst
-                             secondaryTensor: biasTensor
+                             secondaryTensor: finalBias
                                         name: nil];
 
       if (activation == Activation::ReLU)
@@ -211,7 +201,7 @@ OIDN_NAMESPACE_BEGIN
     TensorDesc src1Desc = src1Node->desc;
     TensorDesc src2Desc = src2Node->desc;
 
-    TensorDims dstDims = {src1Desc.getC() + src2Desc.getC(), src1Desc.getH(), src1Desc.getW()};
+    TensorDims dstDims{src1Desc.getC() + src2Desc.getC(), src1Desc.getH(), src1Desc.getW()};
     TensorDesc dstDesc{dstDims, src1Desc.layout, src1Desc.dataType};
 
     auto concat = std::make_shared<MetalOp>();

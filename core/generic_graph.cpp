@@ -110,8 +110,7 @@ OIDN_NAMESPACE_BEGIN
 
       // Reorder the weight tensor
       auto finalWeight = engine->newTensor(finalWeightDesc);
-      reorderWeight(*weight, 0, weight->getI(),
-                    *finalWeight->map(Access::WriteDiscard), 0, finalWeight->getPaddedI());
+      reorderWeight(*weight, *finalWeight->map(Access::WriteDiscard));
       conv->setWeight(finalWeight);
 
       // Reorder the bias tensor

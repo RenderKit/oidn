@@ -59,6 +59,11 @@ OIDN_NAMESPACE_BEGIN
       throw std::logic_error("unsupported weight layout or data type");
   }
 
+  void reorderWeight(Tensor& src, Tensor& dst)
+  {
+    reorderWeight(src, 0, src.getI(), dst, 0, dst.getPaddedI());
+  }
+
   template<typename SrcT, typename DstT>
   bool tryReorderBias(Tensor& src, Tensor& dst)
   {
