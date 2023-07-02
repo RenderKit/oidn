@@ -49,8 +49,20 @@ OIDN_NAMESPACE_BEGIN
   {
     if (lastCommandBuffer)
       [lastCommandBuffer release];
+
     lastCommandBuffer = [commandQueue commandBuffer].retain;
     return lastCommandBuffer;
+  }
+
+  MPSCommandBuffer* MetalEngine::getMPSCommandBuffer()
+  {
+    if (lastCommandBuffer)
+      [lastCommandBuffer release];
+
+    MPSCommandBuffer* mpsCommandBuffer =
+      [MPSCommandBuffer commandBufferFromCommandQueue: commandQueue].retain;
+    lastCommandBuffer = mpsCommandBuffer;
+    return mpsCommandBuffer;
   }
 
   Ref<Buffer> MetalEngine::newBuffer(size_t byteSize, Storage storage)

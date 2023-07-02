@@ -91,6 +91,7 @@ OIDN_NAMESPACE_BEGIN
     std::shared_ptr<OutputProcess> outputProcess;
 
     MPSGraph* graph = nullptr;
+    MPSGraphExecutionDescriptor* graphExecDesc = nullptr;
     MPSGraphTensor* graphInput = nullptr;
     MPSGraphTensor* graphOutput = nullptr;
 

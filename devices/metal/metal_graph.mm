@@ -18,6 +18,8 @@ OIDN_NAMESPACE_BEGIN
 
   MetalGraph::~MetalGraph()
   {
+    if (graphExecDesc)
+      [graphExecDesc release];
     if (graph)
       [graph release];
   }
@@ -272,6 +274,10 @@ OIDN_NAMESPACE_BEGIN
   {
     graph = [[MPSGraph alloc] init];
 
+    graphExecDesc = [MPSGraphExecutionDescriptor new];
+    graphExecDesc.completionHandler = ^(MPSGraphTensorDataDictionary* resultsDictionary,
+                                        NSError* _Nullable error) {};
+
     for (auto& lazyInit : lazyInits)
       lazyInit();
     lazyInits.clear();
@@ -293,23 +299,31 @@ OIDN_NAMESPACE_BEGIN
     if (!finalized)
       throw std::logic_error("graph not finalized");
 
-    MPSGraphTensorData* graphInputData  = newMPSGraphTensorData(inputProcess->getDst());
-    MPSGraphTensorData* graphOutputData = newMPSGraphTensorData(outputProcess->getSrc());
-
+    // Submit input processing
     inputProcess->submit();
     progress.update(engine, 1);
 
-    [graph runWithMTLCommandQueue: engine->getMTLCommandQueue()
-                            feeds: @{graphInput: graphInputData}
-                 targetOperations: nil
-                resultsDictionary: @{graphOutput: graphOutputData}];
-    progress.update(engine, 1);
+    // Submit graph
+    MPSGraphTensorData* graphInputData  = newMPSGraphTensorData(inputProcess->getDst());
+    MPSGraphTensorData* graphOutputData = newMPSGraphTensorData(outputProcess->getSrc());
+    MPSCommandBuffer* commandBuffer = engine->getMPSCommandBuffer();
 
-    outputProcess->submit();
-    progress.update(engine, 1);
+    [graph encodeToCommandBuffer: commandBuffer
+                           feeds: @{graphInput: graphInputData}
+                targetOperations: nil
+               resultsDictionary: @{graphOutput: graphOutputData}
+             executionDescriptor: graphExecDesc];
+
+    [commandBuffer commit];
 
     [graphInputData release];
     [graphOutputData release];
+
+    progress.update(engine, 1);
+
+    // Submit output processing
+    outputProcess->submit();
+    progress.update(engine, 1);
   }
 
 OIDN_NAMESPACE_END

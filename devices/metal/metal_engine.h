@@ -23,6 +23,7 @@ OIDN_NAMESPACE_BEGIN
     id<MTLCommandQueue> getMTLCommandQueue() const { return commandQueue; }
     id<MTLComputePipelineState> newMTLComputePipelineState(const std::string& functionName);
     id<MTLCommandBuffer> getMTLCommandBuffer();
+    MPSCommandBuffer* getMPSCommandBuffer();
 
     // Buffer
     Ref<Buffer> newBuffer(size_t byteSize, Storage storage) override;
