@@ -139,13 +139,13 @@ OIDN_NAMESPACE_BEGIN
 
       MPSGraphConvolution2DOpDescriptor* descr = [MPSGraphConvolution2DOpDescriptor
         descriptorWithStrideInX: 1
-        strideInY: 1
-        dilationRateInX: 1
-        dilationRateInY: 1
-        groups: 1
-        paddingStyle: MPSGraphPaddingStyle::MPSGraphPaddingStyleTF_SAME
-        dataLayout: MPSGraphTensorNamedDataLayout::MPSGraphTensorNamedDataLayoutNHWC
-        weightsLayout: MPSGraphTensorNamedDataLayout::MPSGraphTensorNamedDataLayoutOIHW
+                      strideInY: 1
+                dilationRateInX: 1
+                dilationRateInY: 1
+                         groups: 1
+                   paddingStyle: MPSGraphPaddingStyle::MPSGraphPaddingStyleTF_SAME
+                     dataLayout: MPSGraphTensorNamedDataLayout::MPSGraphTensorNamedDataLayoutNHWC
+                  weightsLayout: MPSGraphTensorNamedDataLayout::MPSGraphTensorNamedDataLayoutOIHW
       ];
 
       auto dst = [graph convolution2DWithSourceTensor: srcNode->tensor

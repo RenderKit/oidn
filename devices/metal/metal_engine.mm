@@ -145,7 +145,8 @@ OIDN_NAMESPACE_BEGIN
 
   void MetalEngine::submitHostFunc(std::function<void()>&& f)
   {
-    f(); // no async execution on the Metal
+    // FIXME: implement
+    f();
   }
 
   void MetalEngine::wait()
