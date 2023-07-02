@@ -43,6 +43,9 @@ OIDN_NAMESPACE_BEGIN
                                                             bool hdr,
                                                             bool snorm)
   {
+    if (!ops.empty())
+      throw std::logic_error("input processing must be added first to the graph");
+
     inputProcess = engine->newInputProcess({srcDims, tileAlignment, transferFunc, hdr, snorm});
     inputProcess->setName(name);
     TensorNode* dstNode = addOp(inputProcess, inputProcess->getDstDesc());
@@ -64,6 +67,9 @@ OIDN_NAMESPACE_BEGIN
                                                               bool hdr,
                                                               bool snorm)
   {
+    if (!inputProcess || outputProcess)
+      throw std::logic_error("output processing must be added last to the graph");
+
     TensorNode* srcNode = tensorNodesByOp[srcOp.get()];
     const TensorDesc srcDesc = srcNode->desc;
     outputProcess = engine->newOutputProcess({srcDesc, transferFunc, hdr, snorm});
@@ -84,6 +90,9 @@ OIDN_NAMESPACE_BEGIN
                                           Activation activation,
                                           PostOp postOp)
   {
+    if (!inputProcess || outputProcess)
+      throw std::logic_error("op must be added to the graph between input and output processing");
+
     auto weight = (*constTensors)[name + ".weight"];
     auto bias   = (*constTensors)[name + ".bias"];
 
@@ -193,6 +202,9 @@ OIDN_NAMESPACE_BEGIN
                                                 const std::shared_ptr<Op>& src2Op,
                                                 Activation activation)
   {
+    if (!inputProcess || outputProcess)
+      throw std::logic_error("op must be added to the graph between input and output processing");
+
     TensorNode* src1Node = tensorNodesByOp[src1Op.get()];
     TensorNode* src2Node = tensorNodesByOp[src2Op.get()];
 
@@ -229,7 +241,7 @@ OIDN_NAMESPACE_BEGIN
 
   double MetalGraph::getWorkAmount() const
   {
-    return 3;
+    return 3; // input process, graph, output process
   }
 
   bool MetalGraph::isSupported() const
@@ -272,6 +284,9 @@ OIDN_NAMESPACE_BEGIN
 
   void MetalGraph::finalize()
   {
+    if (!inputProcess || !outputProcess)
+      throw std::logic_error("graph must have input and output processing");
+
     graph = [[MPSGraph alloc] init];
 
     graphExecDesc = [MPSGraphExecutionDescriptor new];
