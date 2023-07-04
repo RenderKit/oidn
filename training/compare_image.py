@@ -16,8 +16,8 @@ def main():
   cfg = parse_args(description='Compares two feature images using the specified quality metrics.')
 
   # Load the images
-  image1 = load_image(cfg.input[0], num_channels=3)
-  image2 = load_image(cfg.input[1], num_channels=3)
+  image1, _ = load_image(cfg.input[0])
+  image2, _ = load_image(cfg.input[1])
 
   feature1 = get_image_feature(cfg.input[0])
   feature2 = get_image_feature(cfg.input[1])
