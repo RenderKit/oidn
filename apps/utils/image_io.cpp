@@ -64,6 +64,8 @@ OIDN_NAMESPACE_BEGIN
         C = 3;
       else if (id == "Pf")
         C = 1;
+      else if (id == "P=")
+        C = 2; // non-standard 2-channel format
       else
         throw std::runtime_error("invalid PFM image");
 
@@ -119,8 +121,10 @@ OIDN_NAMESPACE_BEGIN
         id = "PF";
       else if (C == 1)
         id = "Pf";
+      else if (C == 2)
+        id = "P="; // non-standard 2-channel format
       else
-        throw std::runtime_error("unsupported number of channels");
+        throw std::runtime_error("unsupported number of channels for PFM image");
 
       // Open the file
       std::ofstream file(filename, std::ios::binary);
@@ -163,6 +167,8 @@ OIDN_NAMESPACE_BEGIN
         C = 3;
       else if (id == "Ph")
         C = 1;
+      else if (id == "P:")
+        C = 2; // non-standard 2-channel format
       else
         throw std::runtime_error("invalid PHM image");
 
@@ -225,8 +231,10 @@ OIDN_NAMESPACE_BEGIN
         id = "PH";
       else if (C == 1)
         id = "Ph";
+      else if (C == 2)
+        id = "P:"; // non-standard 2-channel format
       else
-        throw std::runtime_error("unsupported number of channels");
+        throw std::runtime_error("unsupported number of channels for PHM image");
 
       // Open the file
       std::ofstream file(filename, std::ios::binary);
@@ -254,11 +262,17 @@ OIDN_NAMESPACE_BEGIN
 
     void saveImagePPM(const std::string& filename, const ImageBuffer& image)
     {
-      if (image.getC() != 3)
-        throw std::invalid_argument("image must have 3 channels");
       const int H = image.getH();
       const int W = image.getW();
       const int C = image.getC();
+
+      std::string id;
+      if (C == 3)
+        id = "P6";
+      else if (C == 1)
+        id = "P5";
+      else
+        throw std::runtime_error("unsupported number of channels for PPM image");
 
       // Open the file
       std::ofstream file(filename, std::ios::binary);
@@ -266,14 +280,14 @@ OIDN_NAMESPACE_BEGIN
         throw std::runtime_error("cannot open image file: '" + filename + "'");
 
       // Write the header
-      file << "P6" << std::endl;
+      file << id << std::endl;
       file << W << " " << H << std::endl;
       file << "255" << std::endl;
 
       // Write the pixels
       for (int i = 0; i < W*H; ++i)
       {
-        for (int c = 0; c < 3; ++c)
+        for (int c = 0; c < C; ++c)
         {
           const float x = image.get(i*C+c);
           const int ch = std::min(std::max(int(x * 255.f), 0), 255);

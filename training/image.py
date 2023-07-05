@@ -117,9 +117,12 @@ def save_pfm(filename, image):
     if num_channels >= 3:
       f.write('PF\n')
       data = image[..., 0:3]
-    else:
+    elif num_channels == 1:
       f.write('Pf\n')
       data = image[..., 0]
+    else:
+      f.write('P=\n') # non-standard 2-channel format
+      data = image
     data = np.flip(data, 0).astype(np.float32)
 
     f.write('%d %d\n' % (image.shape[1], image.shape[0]))
@@ -133,9 +136,12 @@ def save_phm(filename, image):
     if num_channels >= 3:
       f.write('PH\n')
       data = image[..., 0:3]
-    else:
+    elif num_channels == 1:
       f.write('Ph\n')
       data = image[..., 0]
+    else:
+      f.write('P:\n') # non-standard 2-channel format
+      data = image
     data = np.flip(data, 0).astype(np.float16)
 
     f.write('%d %d\n' % (image.shape[1], image.shape[0]))
