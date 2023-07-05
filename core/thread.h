@@ -4,6 +4,7 @@
 #pragma once
 
 #include "common/platform.h"
+#include "verbose.h"
 
 #if !defined(_WIN32)
   #include <pthread.h>
@@ -33,10 +34,10 @@ OIDN_NAMESPACE_BEGIN
     #if defined(_WIN32)
       key = TlsAlloc();
       if (key == TLS_OUT_OF_INDEXES)
-        OIDN_FATAL("TlsAlloc failed");
+        throw std::runtime_error("TlsAlloc failed");
     #else
       if (pthread_key_create(&key, nullptr) != 0)
-        OIDN_FATAL("pthread_key_create failed");
+        throw std::runtime_error("pthread_key_create failed");
     #endif
     }
 
@@ -48,10 +49,10 @@ OIDN_NAMESPACE_BEGIN
 
     #if defined(_WIN32)
       if (!TlsFree(key))
-        OIDN_WARNING("TlsFree failed");
+        printWarning("TlsFree failed");
     #else
       if (pthread_key_delete(key) != 0)
-        OIDN_WARNING("pthread_key_delete failed");
+        printWarning("pthread_key_delete failed");
     #endif
     }
 
@@ -72,10 +73,10 @@ OIDN_NAMESPACE_BEGIN
 
     #if defined(_WIN32)
       if (!TlsSetValue(key, ptr))
-        OIDN_FATAL("TlsSetValue failed");
+        throw std::runtime_error("TlsSetValue failed");
     #else
       if (pthread_setspecific(key, ptr) != 0)
-        OIDN_FATAL("pthread_setspecific failed");
+        throw std::runtime_error("pthread_setspecific failed");
     #endif
 
       return *ptr;

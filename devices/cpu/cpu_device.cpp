@@ -237,14 +237,14 @@ OIDN_NAMESPACE_BEGIN
       if (!isEnvVar("OIDN_NUM_THREADS"))
         numThreads = value;
       else if (numThreads != value)
-        warning("OIDN_NUM_THREADS environment variable overrides device parameter");
+        printWarning("OIDN_NUM_THREADS environment variable overrides device parameter");
     }
     else if (name == "setAffinity")
     {
       if (!isEnvVar("OIDN_SET_AFFINITY"))
         setAffinity = value;
       else if (setAffinity != bool(value))
-        warning("OIDN_SET_AFFINITY environment variable overrides device parameter");
+        printWarning("OIDN_SET_AFFINITY environment variable overrides device parameter");
     }
     else
       Device::setInt(name, value);

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "device.h"
+#include "context.h"
 #include "rt_filter.h"
 #include "rtlightmap_filter.h"
 
@@ -88,7 +89,7 @@ OIDN_NAMESPACE_BEGIN
   {
     // Get default values from environment variables
     if (getEnvVar("OIDN_VERBOSE", verbose))
-      error.verbose = verbose;
+      error.setVerbose(verbose);
   }
 
   void Device::setError(Device* device, Error code, const std::string& message)
@@ -105,8 +106,7 @@ OIDN_NAMESPACE_BEGIN
       }
 
       // Print the error message in verbose mode
-      if (device->isVerbose())
-        std::cerr << "Error: " << message << std::endl;
+      device->printError(message);
 
       // Call the error callback function
       ErrorFunction errorFunc;
@@ -128,6 +128,9 @@ OIDN_NAMESPACE_BEGIN
         globalError.code = code;
         globalError.message = message;
       }
+
+      // Print the error message in verbose mode
+      Context::get().printError(message);
     }
   }
 
@@ -158,11 +161,6 @@ OIDN_NAMESPACE_BEGIN
   {
     errorFunc = func;
     errorUserPtr = userPtr;
-  }
-
-  void Device::warning(const std::string& message)
-  {
-    OIDN_WARNING(message);
   }
 
   int Device::getInt(const std::string& name)
@@ -196,13 +194,13 @@ OIDN_NAMESPACE_BEGIN
       if (!isEnvVar("OIDN_VERBOSE"))
       {
         verbose = value;
-        error.verbose = value;
+        error.setVerbose(value);
       }
-      else if (verbose != value || error.verbose != value)
-        warning("OIDN_VERBOSE environment variable overrides device parameter");
+      else if (verbose != value)
+        printWarning("OIDN_VERBOSE environment variable overrides device parameter");
     }
     else
-      warning("unknown device parameter or type mismatch: '" + name + "'");
+      printWarning("unknown device parameter or type mismatch: '" + name + "'");
 
     dirty = true;
   }

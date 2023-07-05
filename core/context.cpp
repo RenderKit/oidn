@@ -7,13 +7,6 @@ OIDN_NAMESPACE_BEGIN
 
   Context& Context::get()
   {
-    Context& ctx = getInstance();
-    ctx.init();
-    return ctx;
-  }
-
-  Context& Context::getInstance()
-  {
     static Context instance;
     return instance;
   }
@@ -22,6 +15,8 @@ OIDN_NAMESPACE_BEGIN
   {
     std::call_once(initFlag, [this]()
     {
+      getEnvVar("OIDN_VERBOSE", verbose);
+
       // Load the modules
     #if defined(OIDN_DEVICE_CPU)
       if (getEnvVarOrDefault("OIDN_DEVICE_CPU", 1))

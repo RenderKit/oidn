@@ -87,6 +87,12 @@ set(OIDN_SYCL_SOURCES
 )
 
 if(OIDN_DEVICE_SYCL_AOT)
+  # FIXME: IGC currently ignores "--format zebin" for TGL/ADL, so we need to set an environment variable
+  # instead but IGC supports this only on Linux. On Windows we're stuck with the old format.
+  if(UNIX)
+    set(CMAKE_CXX_LINKER_LAUNCHER "IGC_EnableZEBinary=1" ${CMAKE_CXX_LINKER_LAUNCHER})
+  endif()
+
   macro(oidn_add_sycl_arch_library target)
     oidn_add_sycl_library(${target} ${ARGN})
     target_include_directories(${target} PRIVATE ${LevelZero_INCLUDE_DIRS})
@@ -95,7 +101,10 @@ if(OIDN_DEVICE_SYCL_AOT)
 
   macro(oidn_set_sycl_aot_options target options)
     set(_final_options ${options})
+    # We need to force using the new zebin format because it's not the default for TGL/ADL yet
+    set(_final_options "${_final_options} --format zebin")
     if(NOT OIDN_DEVICE_SYCL_JIT_FALLBACK)
+      # Do not include SPIRV in the binary
       set(_final_options "${_final_options} -exclude_ir")
     endif()
     target_link_options(${target} PRIVATE -Xsycl-target-backend=spir64_gen "${_final_options}")

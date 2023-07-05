@@ -155,7 +155,8 @@ if not os.path.isdir(tbb_dir):
     os.mkdir(tbb_build_dir)
     os.chdir(tbb_build_dir)
     tbb_config_cmd = f'cmake -L -D CMAKE_BUILD_TYPE=Release -D TBB_TEST=OFF -D CMAKE_INSTALL_PREFIX={tbb_root} ..'
-    tbb_config_cmd += ' -D CMAKE_OSX_DEPLOYMENT_TARGET=11.0'
+    min_macos_version = {'x86_64' : '10.11', 'arm64' : '11.0'}[ARCH]
+    tbb_config_cmd += f' -D CMAKE_OSX_DEPLOYMENT_TARGET={min_macos_version}'
     run(tbb_config_cmd)
     run('cmake --build . --target install')
     os.chdir(cfg.build_dir)

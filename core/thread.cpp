@@ -38,7 +38,7 @@ OIDN_NAMESPACE_BEGIN
       BOOL result = pGetLogicalProcessorInformationEx(RelationProcessorCore, buffer, &bufferSize);
       if (result || GetLastError() != ERROR_INSUFFICIENT_BUFFER)
       {
-        OIDN_WARNING("GetLogicalProcessorInformationEx failed");
+        printWarning("GetLogicalProcessorInformationEx failed");
         return;
       }
 
@@ -46,7 +46,7 @@ OIDN_NAMESPACE_BEGIN
       buffer = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)malloc(bufferSize);
       if (!buffer)
       {
-        OIDN_WARNING("SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX allocation failed");
+        printWarning("SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX allocation failed");
         return;
       }
 
@@ -54,7 +54,7 @@ OIDN_NAMESPACE_BEGIN
       result = pGetLogicalProcessorInformationEx(RelationProcessorCore, buffer, &bufferSize);
       if (!result)
       {
-        OIDN_WARNING("GetLogicalProcessorInformationEx failed");
+        printWarning("GetLogicalProcessorInformationEx failed");
         free(buffer);
         return;
       }
@@ -106,7 +106,7 @@ OIDN_NAMESPACE_BEGIN
     // Save the current affinity and set the new one
     const HANDLE thread = GetCurrentThread();
     if (!pSetThreadGroupAffinity(thread, &affinities[threadIndex], &oldAffinities[threadIndex]))
-      OIDN_WARNING("SetThreadGroupAffinity failed");
+      printWarning("SetThreadGroupAffinity failed");
   }
 
   void ThreadAffinity::restore(int threadIndex)
@@ -117,7 +117,7 @@ OIDN_NAMESPACE_BEGIN
     // Restore the original affinity
     const HANDLE thread = GetCurrentThread();
     if (!pSetThreadGroupAffinity(thread, &oldAffinities[threadIndex], nullptr))
-      OIDN_WARNING("SetThreadGroupAffinity failed");
+      printWarning("SetThreadGroupAffinity failed");
   }
 
 #elif defined(__linux__)
@@ -184,14 +184,14 @@ OIDN_NAMESPACE_BEGIN
     // Save the current affinity
     if (pthread_getaffinity_np(thread, sizeof(cpu_set_t), &oldAffinities[threadIndex]) != 0)
     {
-      OIDN_WARNING("pthread_getaffinity_np failed");
+      printWarning("pthread_getaffinity_np failed");
       oldAffinities[threadIndex] = affinities[threadIndex];
       return;
     }
 
     // Set the new affinity
     if (pthread_setaffinity_np(thread, sizeof(cpu_set_t), &affinities[threadIndex]) != 0)
-      OIDN_WARNING("pthread_setaffinity_np failed");
+      printWarning("pthread_setaffinity_np failed");
   }
 
   void ThreadAffinity::restore(int threadIndex)
@@ -203,7 +203,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Restore the original affinity
     if (pthread_setaffinity_np(thread, sizeof(cpu_set_t), &oldAffinities[threadIndex]) != 0)
-      OIDN_WARNING("pthread_setaffinity_np failed");
+      printWarning("pthread_setaffinity_np failed");
   }
 
 #elif defined(__APPLE__)
@@ -221,7 +221,7 @@ OIDN_NAMESPACE_BEGIN
 
     if (!getSysctl("hw.physicalcpu", numPhysicalCpus) || !getSysctl("hw.logicalcpu", numLogicalCpus))
     {
-      OIDN_WARNING("sysctlbyname failed");
+      printWarning("sysctlbyname failed");
       return;
     }
 
@@ -257,14 +257,14 @@ OIDN_NAMESPACE_BEGIN
     boolean_t getDefault = FALSE;
     if (thread_policy_get(thread, THREAD_AFFINITY_POLICY, (thread_policy_t)&oldAffinities[threadIndex], &policyCount, &getDefault) != KERN_SUCCESS)
     {
-      OIDN_WARNING("thread_policy_get failed");
+      printWarning("thread_policy_get failed");
       oldAffinities[threadIndex] = affinities[threadIndex];
       return;
     }
 
     // Set the new affinity
     if (thread_policy_set(thread, THREAD_AFFINITY_POLICY, (thread_policy_t)&affinities[threadIndex], THREAD_AFFINITY_POLICY_COUNT) != KERN_SUCCESS)
-      OIDN_WARNING("thread_policy_set failed");
+      printWarning("thread_policy_set failed");
   }
 
   void ThreadAffinity::restore(int threadIndex)
@@ -276,7 +276,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Restore the original affinity
     if (thread_policy_set(thread, THREAD_AFFINITY_POLICY, (thread_policy_t)&oldAffinities[threadIndex], THREAD_AFFINITY_POLICY_COUNT) != KERN_SUCCESS)
-      OIDN_WARNING("thread_policy_set failed");
+      printWarning("thread_policy_set failed");
   }
 
 #endif

@@ -21,8 +21,11 @@ list(APPEND CMAKE_MODULE_PATH ${OIDN_ROOT_SOURCE_DIR}/cmake)
 # Common
 include(oidn_common_external)
 
-# Set the GPU targets
-set(GPU_TARGETS "gfx1030,gfx1100,gfx1101,gfx1102" CACHE INTERNAL "")
+# Set the GPU targets: RDNA2, RDNA3
+# FIXME: The HIP runtime has a bug that causes a crash if the kernels are not compiled for all
+# targets detected in the system. As a workaround, we compile for more targets then we actually
+# support to avoid the crash on systems with dedicated + integrated GPUs.
+set(GPU_TARGETS "gfx1030,gfx1031,gfx1032,gfx1033,gfx1034,gfx1035,gfx1036,gfx1100,gfx1101,gfx1102,gfx1103" CACHE INTERNAL "")
 set(AMDGPU_TARGETS ${GPU_TARGETS} CACHE INTERNAL "")
 
 # Find HIP
