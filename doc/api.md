@@ -887,8 +887,9 @@ library compute the actual strides automatically, as a convenience.
 Images support only `FLOAT` and `HALF` pixel formats with up to 3 channels.
 Custom image layouts with extra channels (e.g. alpha channel) or other data are
 supported as well by specifying a non-zero pixel stride. This way, expensive
-image layout conversion and copying can be avoided but the extra data will be
-ignored by the filter.
+image layout conversion and copying can be avoided but the extra channels will
+be ignored by the filter. If these channels also need to be denoised, separate
+filters can be used.
 
 To unset a previously set image parameter, returning it to a state as if it had
 not been set, call

@@ -332,16 +332,19 @@ OIDN_NAMESPACE_BEGIN
     if (!output)
       throw Exception(Error::InvalidOperation, "output image not specified");
 
-    if ((color  && color->getFormat()  != Format::Float3 && color->getFormat()  != Format::Half3
-                && color->getFormat()  != Format::Float2 && color->getFormat()  != Format::Half2
-                && color->getFormat()  != Format::Float  && color->getFormat()  != Format::Half ) ||
-        (albedo && albedo->getFormat() != Format::Float3 && albedo->getFormat() != Format::Half3) ||
-        (normal && normal->getFormat() != Format::Float3 && normal->getFormat() != Format::Half3))
+    auto isSupportedFormat = [](Format format)
+    {
+      return format == Format::Float3 || format == Format::Half3 ||
+             format == Format::Float2 || format == Format::Half2 ||
+             format == Format::Float  || format == Format::Half;
+    };
+
+    if ((color  && !isSupportedFormat(color->getFormat()))  ||
+        (albedo && !isSupportedFormat(albedo->getFormat())) ||
+        (normal && !isSupportedFormat(normal->getFormat())))
       throw Exception(Error::InvalidOperation, "unsupported input image format");
 
-    if (output->getFormat() != Format::Float3 && output->getFormat() != Format::Half3 &&
-        output->getFormat() != Format::Float2 && output->getFormat() != Format::Half2 &&
-        output->getFormat() != Format::Float  && output->getFormat() != Format::Half)
+    if (!isSupportedFormat(output->getFormat()))
       throw Exception(Error::InvalidOperation, "unsupported output image format");
 
     Image* input = color ? color.get() : (albedo ? albedo.get() : normal.get());
