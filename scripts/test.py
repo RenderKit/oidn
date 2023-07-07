@@ -11,7 +11,7 @@ import argparse
 
 from common import *
 
-MODEL_VERSION='v2.0.0'
+BASELINE_VERSION='v2.1.0'
 
 # Parse the command-line arguments
 parser = argparse.ArgumentParser(description='Runs all tests, including comparing images produced by the library with generated baseline images.')
@@ -42,7 +42,7 @@ if cfg.data_dir is None:
 if cfg.results_dir is None:
   cfg.results_dir = os.path.join(training_dir, 'results')
 if cfg.baseline_dir is None:
-  cfg.baseline_dir = os.path.join(training_dir, 'baseline_' + MODEL_VERSION)
+  cfg.baseline_dir = os.path.join(training_dir, 'baseline_' + BASELINE_VERSION)
 
 if cfg.command == 'run':
   # Detect the OIDN binary directory
@@ -136,16 +136,21 @@ def get_feature_ext(feature):
 
 # Runs regression tests for the specified filter
 def test_regression(filter, feature_sets, dataset):
-  dataset_dir = os.path.join(cfg.data_dir, dataset)
+  dataset_dir  = os.path.join(cfg.data_dir, dataset)
+  baseline_dir = os.path.join(cfg.baseline_dir, dataset)
 
   # Convert the input images to PFM
   if cfg.command == 'baseline':
-    image_filenames = sorted(glob(os.path.join(dataset_dir, '**', '*.exr'), recursive=True))
-    for input_filename in image_filenames:
-      input_name = os.path.relpath(input_filename, dataset_dir).rsplit('.', 1)[0]
-      print_test(f'{filter}.{input_name}', 'Convert')
+    if os.path.exists(baseline_dir):
+      print('Error: baseline directory already exists')
+      exit(1)
+    os.makedirs(baseline_dir)
 
-      output_filename = input_filename.rsplit('.', 1)[0] + '.pfm'
+    input_filenames = sorted(glob(os.path.join(dataset_dir, '**', '*.exr'), recursive=True))
+    for input_filename in input_filenames:
+      image_name, feature = os.path.relpath(input_filename, dataset_dir).rsplit('.', 2)[0:2]
+      print_test(f'{filter}.{image_name}.{feature}', 'Convert')
+      output_filename = os.path.join(baseline_dir, f'{image_name}.input.{feature}.pfm')
       convert_cmd = os.path.join(root_dir, 'training', 'convert_image.py')
       convert_cmd += f' "{input_filename}" "{output_filename}"'
       run_test(convert_cmd)
@@ -169,14 +174,12 @@ def test_regression(filter, feature_sets, dataset):
       main_feature = features[0]
       main_feature_ext = get_feature_ext(main_feature)
 
-      # Gather the list of images
-      image_filenames = sorted(glob(os.path.join(dataset_dir, '**', f'*.{main_feature_ext}.pfm'), recursive=True))
-      if not image_filenames:
+      # Gather the list of input images
+      input_filenames = sorted(glob(os.path.join(baseline_dir, '**', f'*.input.{main_feature_ext}.pfm'), recursive=True))
+      if not input_filenames:
         print('Error: baseline input images missing (run with "baseline" first)')
         exit(1)
-      image_names = [os.path.relpath(filename, dataset_dir).rsplit('.', 3)[0] for filename in image_filenames]
-      if not cfg.full:
-        image_names = image_names[:1]
+      image_names = [os.path.relpath(filename, baseline_dir).rsplit('.', 3)[0] for filename in input_filenames]
 
       # Iterate over quality
       for quality in (['high', 'balanced'] if filter == 'RT' or cfg.full else ['high']):
@@ -194,23 +197,31 @@ def test_regression(filter, feature_sets, dataset):
                   test_name += '.inplace'
                 if maxmem:
                   test_name += f'.maxmem{maxmem}'
-                print_test(test_name)
 
                 denoise_cmd = os.path.join(bin_dir, 'oidnDenoise')
                 if cfg.device != 'default':
                   denoise_cmd += f' --device {cfg.device}'
+                denoise_cmd += f' -f {filter} -q {quality}'
 
-                ref_filename = os.path.join(cfg.baseline_dir, dataset, f'{image_name}.{result}.{main_feature_ext}.pfm')
-                if not os.path.isfile(ref_filename):
-                  print('Error: baseline output image missing (run with "baseline" first)')
-                  exit(1)
-                denoise_cmd += f' -f {filter} -q {quality} --ref "{ref_filename}" -n 3 -v 2'
-
+                features_exist = True
                 for feature in features:
                   feature_opt = get_feature_opt(feature)
                   feature_ext = get_feature_ext(feature)
-                  feature_filename = os.path.join(dataset_dir, image_name) + f'.{feature_ext}.pfm'
+                  feature_filename = os.path.join(baseline_dir, f'{image_name}.input.{feature_ext}.pfm')
+                  if not os.path.isfile(feature_filename):
+                    features_exist = False
+                    break
                   denoise_cmd += f' --{feature_opt} "{feature_filename}"'
+
+                if not features_exist:
+                  continue
+                print_test(test_name)
+
+                ref_filename = os.path.join(baseline_dir, f'{image_name}.{result}.{main_feature_ext}.pfm')
+                if not os.path.isfile(ref_filename):
+                  print('Error: baseline output image missing (run with "baseline" first)')
+                  exit(1)
+                denoise_cmd += f' --ref "{ref_filename}" -n 3 -v 2'
 
                 if set(features) & {'calb', 'cnrm'}:
                   denoise_cmd += ' --clean_aux'
@@ -241,7 +252,7 @@ if not cfg.minimal:
         (['hdr', 'calb', 'cnrm'], False),
         (['ldr', 'alb', 'nrm'],   False),
         (['ldr', 'alb'],          False),
-        (['ldr'],                 False),
+        (['ldr'],                 True),
         (['ldr', 'calb', 'cnrm'], False),
         (['alb'],                 True),
         (['nrm'],                 True)

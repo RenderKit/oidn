@@ -56,7 +56,7 @@ def main():
 
     # Load the target image
     print(target_name)
-    target_image = load_image_features(os.path.join(input_dir, target_name), target_features)
+    target_image, _ = load_image_features(os.path.join(input_dir, target_name), target_features)
 
     # Compute the autoexposure value
     exposure = autoexposure(target_image) if main_feature == 'hdr' else 1.
@@ -71,7 +71,7 @@ def main():
     for input_name in input_names:
       # Load the image
       print(input_name)
-      input_image = load_image_features(os.path.join(input_dir, input_name), input_features)
+      input_image, _ = load_image_features(os.path.join(input_dir, input_name), input_features)
 
       if input_image.shape[0:2] != target_image.shape[0:2]:
         error('the input and target images have different sizes')

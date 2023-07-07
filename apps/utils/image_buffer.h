@@ -17,7 +17,7 @@ OIDN_NAMESPACE_BEGIN
   public:
     ImageBuffer();
     ImageBuffer(const DeviceRef& device, int width, int height, int numChannels,
-                Format dataType = Format::Float,
+                DataType dataType = DataType::Float32,
                 Storage storage = Storage::Undefined,
                 bool forceHostCopy = false);
     ~ImageBuffer();
@@ -27,14 +27,8 @@ OIDN_NAMESPACE_BEGIN
     OIDN_INLINE int getC() const { return numChannels; }
     std::array<int, 3> getDims() const { return {width, height, numChannels}; }
 
-    OIDN_INLINE Format getDataType() const { return dataType; }
-
-    Format getFormat() const
-    {
-      if (dataType == Format::Undefined)
-        return Format::Undefined;
-      return Format(int(dataType) + numChannels - 1);
-    }
+    OIDN_INLINE DataType getDataType() const { return dataType; }
+    OIDN_INLINE Format getFormat() const { return format; }
 
     OIDN_INLINE size_t getSize() const { return numValues; }
     OIDN_INLINE size_t getByteSize() const { return byteSize; }
@@ -59,10 +53,10 @@ OIDN_NAMESPACE_BEGIN
     {
       switch (dataType)
       {
-      case Format::Float:
+      case DataType::Float32:
         reinterpret_cast<float*>(hostPtr)[i] = x;
         break;
-      case Format::Half:
+      case DataType::Float16:
         reinterpret_cast<half*>(hostPtr)[i] = half(x);
         break;
       default:
@@ -74,10 +68,10 @@ OIDN_NAMESPACE_BEGIN
     {
       switch (dataType)
       {
-      case Format::Float:
+      case DataType::Float32:
         reinterpret_cast<float*>(hostPtr)[i] = float(x);
         break;
-      case Format::Half:
+      case DataType::Float16:
         reinterpret_cast<half*>(hostPtr)[i] = x;
         break;
       default:
@@ -102,7 +96,8 @@ OIDN_NAMESPACE_BEGIN
     int width;
     int height;
     int numChannels;
-    Format dataType;
+    DataType dataType;
+    Format format;
   };
 
   template<>
@@ -110,9 +105,9 @@ OIDN_NAMESPACE_BEGIN
   {
     switch (dataType)
     {
-    case Format::Float:
+    case DataType::Float32:
       return reinterpret_cast<float*>(hostPtr)[i];
-    case Format::Half:
+    case DataType::Float16:
       return float(reinterpret_cast<half*>(hostPtr)[i]);
     default:
       assert(0);
@@ -125,9 +120,9 @@ OIDN_NAMESPACE_BEGIN
   {
     switch (dataType)
     {
-    case Format::Float:
+    case DataType::Float32:
       return half(reinterpret_cast<float*>(hostPtr)[i]);
-    case Format::Half:
+    case DataType::Float16:
       return reinterpret_cast<half*>(hostPtr)[i];
     default:
       assert(0);

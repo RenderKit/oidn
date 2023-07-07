@@ -149,6 +149,7 @@ OIDN_NAMESPACE_BEGIN
     checkError(hipGetDeviceProperties(&prop, deviceID));
     arch = getArch(prop);
     maxWorkGroupSize = prop.maxThreadsPerBlock;
+    subgroupSize = prop.warpSize;
 
     if (isVerbose())
     {

@@ -885,11 +885,12 @@ If the pixels and/or rows are stored contiguously (tightly packed without any
 gaps), you can set `pixelByteStride` and/or `rowByteStride` to 0 to let the
 library compute the actual strides automatically, as a convenience.
 
-Images support only the `OIDN_FORMAT_FLOAT3` and `OIDN_FORMAT_HALF3` pixel
-formats. Custom image layouts with extra channels (e.g. alpha channel) or other
-data are supported as well by specifying a non-zero pixel stride. This way,
-expensive image layout conversion and copying can be avoided but the extra data
-will be ignored by the filter.
+Images support only `FLOAT` and `HALF` pixel formats with up to 3 channels.
+Custom image layouts with extra channels (e.g. alpha channel) or other data are
+supported as well by specifying a non-zero pixel stride. This way, expensive
+image layout conversion and copying can be avoided but the extra channels will
+be ignored by the filter. If these channels also need to be denoised, separate
+filters can be used.
 
 To unset a previously set image parameter, returning it to a state as if it had
 not been set, call
@@ -1032,7 +1033,7 @@ the filter.
 ----------- --------------- ---------- ---------------------------------------------------------------
 Type        Name               Default Description
 ----------- --------------- ---------- ---------------------------------------------------------------
-`Image`     `color`         *optional* input beauty image (3 channels, LDR values in [0, 1] or HDR
+`Image`     `color`         *optional* input beauty image (1--3 channels, LDR values in [0, 1] or HDR
                                        values in [0, +∞), values being interpreted such that, after
                                        scaling with the `inputScale` parameter, a value of 1
                                        corresponds to a luminance level of 100 cd/m²)
@@ -1044,7 +1045,7 @@ Type        Name               Default Description
                                        (3 channels, world-space or view-space vectors with arbitrary
                                        length, values in [-1, 1])
 
-`Image`     `output`        *required* output image (3 channels); can be one of the input images
+`Image`     `output`        *required* output image (1--3 channels); can be one of the input images
 
 `Bool`      `hdr`              `false` the main input image is HDR
 

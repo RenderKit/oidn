@@ -1,6 +1,13 @@
 Version History
 ---------------
 
+### Changes in v2.1.0:
+
+-   Added support for 1-channel (e.g. alpha) and 2-channel images
+-   Added support for arbitrary combinations of input image data types
+    (e.g. `OIDN_FORMAT_FLOAT3` for `color` but `OIDN_FORMAT_HALF3` for `albedo`)
+-   Improved GPU performance
+
 ### Changes in v2.0.1:
 
 -   Fixed performance issue for Intel integrated GPUs using recent Linux drivers

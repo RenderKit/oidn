@@ -14,28 +14,31 @@ OIDN_NAMESPACE_BEGIN
     acc.hByteStride = desc.hByteStride;
     acc.wByteStride = desc.wByteStride;
 
-    if (desc.format != Format::Undefined)
+    switch (desc.getDataType())
     {
-      switch (desc.getDataType())
-      {
-      case DataType::Float32:
-        acc.dataType = ispc::DataType_Float32;
-        break;
-      case DataType::Float16:
-        acc.dataType = ispc::DataType_Float16;
-        break;
-      case DataType::UInt8:
-        acc.dataType = ispc::DataType_UInt8;
-        break;
-      default:
-        throw std::logic_error("unsupported data type");
-      }
-    }
-    else
+    case DataType::Void:
+      acc.dataType = ispc::DataType_Void;
+      break;
+    /*
+    case DataType::UInt8:
+      acc.dataType = ispc::DataType_UInt8;
+      break;
+    */
+    case DataType::Float16:
+      acc.dataType = ispc::DataType_Float16;
+      break;
+    case DataType::Float32:
       acc.dataType = ispc::DataType_Float32;
+      break;
+    default:
+      throw std::logic_error("unsupported data type");
+    }
 
-    acc.W = int(desc.width);
-    acc.H = int(desc.height);
+    acc.C = desc.getC();
+    if (acc.C > 3)
+      throw std::logic_error("unsupported number of channels for image accessor");
+    acc.H = desc.getH();
+    acc.W = desc.getW();
 
     return acc;
   }

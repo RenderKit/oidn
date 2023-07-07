@@ -1,10 +1,15 @@
 // Copyright 2018 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
+//#define OIDN_MICROBENCH 1000 // number of microbenchmark iterations
+
 #include "generic_graph.h"
 #include "concat_conv_chw.h"
 #include "concat_conv_hwc.h"
 #include "tensor_reorder.h"
+#if defined(OIDN_MICROBENCH)
+  #include "common/timer.h"
+#endif
 
 OIDN_NAMESPACE_BEGIN
 
@@ -485,9 +490,27 @@ OIDN_NAMESPACE_BEGIN
     if (!finalized)
       throw std::logic_error("graph not finalized");
 
+  #if defined(OIDN_MICROBENCH)
+    double totalTime = 0;
+    std::cerr << std::endl;
+    std::cerr << "op,name,msec" << std::endl;
+  #endif
+
     for (size_t i = 0; i < ops.size(); ++i)
     {
       ops[i]->submit();
+
+    #if defined(OIDN_MICROBENCH)
+      engine->wait();
+      const int numRuns = OIDN_MICROBENCH;
+      Timer timer;
+      for (int j = 0; j < numRuns; ++j)
+        ops[i]->submit();
+      engine->wait();
+      const double time = timer.query() / numRuns;
+      std::cerr << i << "," << ops[i]->getName() << "," << time * 1000 << std::endl;
+      totalTime += time;
+    #endif
 
     #if 0
       // Dump
@@ -509,6 +532,10 @@ OIDN_NAMESPACE_BEGIN
 
       progress.update(engine, 1);
     }
+
+  #if defined(OIDN_MICROBENCH)
+    std::cerr << ",total," << totalTime * 1000 << std::endl;
+  #endif
   }
 
 OIDN_NAMESPACE_END

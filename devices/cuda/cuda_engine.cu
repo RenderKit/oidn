@@ -58,7 +58,9 @@ OIDN_NAMESPACE_BEGIN
 
   std::shared_ptr<InputProcess> CUDAEngine::newInputProcess(const InputProcessDesc& desc)
   {
-    return std::make_shared<GPUInputProcess<CUDAEngine, half, TensorLayout::hwc>>(this, desc);
+    if (device->getTensorBlockC() != 8)
+      throw std::logic_error("unexpected tensor block channel size");
+    return std::make_shared<GPUInputProcess<CUDAEngine, half, TensorLayout::hwc, 8>>(this, desc);
   }
 
   std::shared_ptr<OutputProcess> CUDAEngine::newOutputProcess(const OutputProcessDesc& desc)

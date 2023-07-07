@@ -158,31 +158,23 @@ TEST_CASE("buffer", "[buffer]")
 void setFilterImage(FilterRef& filter, const char* name, const std::shared_ptr<ImageBuffer>& image,
                     bool useBuffer = true)
 {
-  Format format = Format::Undefined;
-  switch (image->getC())
-  {
-  case 1: format = Format::Float;  break;
-  case 2: format = Format::Float2; break;
-  case 3: format = Format::Float3; break;
-  case 4: format = Format::Float4; break;
-  default:
-    assert(0);
-  }
-
   if (useBuffer)
-    filter.setImage(name, image->getBuffer(), format, image->getW(), image->getH());
+    filter.setImage(name, image->getBuffer(), image->getFormat(), image->getW(), image->getH());
   else
-    filter.setImage(name, image->getData(), format, image->getW(), image->getH());
+    filter.setImage(name, image->getData(), image->getFormat(), image->getW(), image->getH());
 }
 
-std::shared_ptr<ImageBuffer> makeImage(DeviceRef& device, int W, int H, int C = 3)
+std::shared_ptr<ImageBuffer> makeImage(DeviceRef& device, int W, int H, int C = 3,
+                                       DataType dataType = DataType::Float32)
 {
-  return std::make_shared<ImageBuffer>(device, W, H, C);
+  return std::make_shared<ImageBuffer>(device, W, H, C, dataType);
 }
 
-std::shared_ptr<ImageBuffer> makeConstImage(DeviceRef& device, int W, int H, int C = 3, float value = 0.5f)
+std::shared_ptr<ImageBuffer> makeConstImage(DeviceRef& device, int W, int H, int C = 3,
+                                            DataType dataType = DataType::Float32,
+                                            float value = 0.5f)
 {
-  auto image = std::make_shared<ImageBuffer>(device, W, H, C);
+  auto image = std::make_shared<ImageBuffer>(device, W, H, C, dataType);
   for (size_t i = 0; i < image->getSize(); ++i)
     image->set(i, value);
   return image;
@@ -458,6 +450,12 @@ TEST_CASE("filter update", "[filter_update]")
     setFilterImage(filter, "output", output);
   }
 
+  SECTION("filter update: different image format")
+  {
+    albedo = makeConstImage(device, W, H, 3, DataType::Float16);
+    setFilterImage(filter, "albedo", albedo);
+  }
+
   SECTION("filter update: unset image")
   {
     filter.unsetImage("albedo");
@@ -596,8 +594,8 @@ void sanitizationTest(DeviceRef& device, bool hdr, float value)
   FilterRef filter = device.newFilter("RT");
   REQUIRE(bool(filter));
 
-  auto input  = makeConstImage(device, W, H, 3, value);
-  auto output = makeImage(device, W, H, 3);
+  auto input  = makeConstImage(device, W, H, 3, DataType::Float32, value);
+  auto output = makeImage(device, W, H, 3, DataType::Float32);
   setFilterImage(filter, "color",  input);
   setFilterImage(filter, "albedo", input);
   setFilterImage(filter, "normal", input);

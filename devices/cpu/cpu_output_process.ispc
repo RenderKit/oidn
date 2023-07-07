@@ -42,6 +42,10 @@ export void CPUOutputProcessKernel_run(uniform CPUOutputProcessKernel* uniform s
     // Apply the inverse transfer function
     value = self->transferFunc.inverse(&self->transferFunc, value);
 
+    // Average the channels if there is only one output channel
+    if (self->dst.C == 1)
+      value = make_vec3f((value.x + value.y + value.z) * (1.f / 3.f));
+
     // Sanitize
     if (self->snorm)
     {

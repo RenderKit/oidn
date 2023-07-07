@@ -69,6 +69,7 @@ OIDN_NAMESPACE_BEGIN
 
     HIPArch arch = HIPArch::Unknown;
     int maxWorkGroupSize = 0;
+    int subgroupSize = 0;
   };
 
 OIDN_NAMESPACE_END

@@ -102,18 +102,18 @@ OIDN_NAMESPACE_BEGIN
     OIDN_INLINE void* getPtr() const { return ptr; }
     OIDN_INLINE operator bool() const { return ptr || buffer; }
 
-    template<typename T>
-    operator ImageAccessor<T>()
+    operator ImageAccessor()
     {
-      if (format != Format::Undefined && getDataType() != DataTypeOf<T>::value)
-        throw std::logic_error("incompatible image accessor");
-
-      ImageAccessor<T> acc;
+      ImageAccessor acc;
       acc.ptr = ptr;
       acc.hByteStride = hByteStride;
       acc.wByteStride = wByteStride;
-      acc.W = static_cast<int>(width);
-      acc.H = static_cast<int>(height);
+      acc.dataType = getDataType();
+      acc.C = getC();
+      if (acc.C > 3)
+        throw std::logic_error("unsupported number of channels for image accessor");
+      acc.H = getH();
+      acc.W = getW();
       return acc;
     }
 

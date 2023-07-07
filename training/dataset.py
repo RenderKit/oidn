@@ -81,27 +81,29 @@ def get_image_feature(filename):
     else:
       return 'srgb' # assume sRGB
 
-# Loads image features in EXR format with given filename prefix
+# Loads image features in EXR format with given filename prefix, and returns the concatenated image
+# and the number of channels loaded for each feature
 def load_image_features(name, features):
   images = []
+  num_channels = {}
 
   # HDR color
   if 'hdr' in features:
-    hdr = load_image(name + '.hdr.exr', num_channels=3)
+    hdr, num_channels['hdr'] = load_image(name + '.hdr.exr', num_channels=3)
     hdr = np.maximum(hdr, 0.)
     images.append(hdr)
 
   # LDR color
   if 'ldr' in features:
-    ldr = load_image(name + '.ldr.exr', num_channels=3)
+    ldr, num_channels['ldr'] = load_image(name + '.ldr.exr', num_channels=3)
     ldr = np.clip(ldr, 0., 1.)
     images.append(ldr)
 
   # SH L1 color coefficients
   if 'sh1' in features:
-    sh1x = load_image(name + '.sh1x.exr', num_channels=3)
-    sh1y = load_image(name + '.sh1y.exr', num_channels=3)
-    sh1z = load_image(name + '.sh1z.exr', num_channels=3)
+    sh1x, num_channels['sh1x'] = load_image(name + '.sh1x.exr', num_channels=3)
+    sh1y, num_channels['sh1y'] = load_image(name + '.sh1y.exr', num_channels=3)
+    sh1z, num_channels['sh1z'] = load_image(name + '.sh1z.exr', num_channels=3)
 
     for sh1 in [sh1x, sh1y, sh1z]:
       # Clip to [-1..1] range (coefficients are assumed to be normalized)
@@ -114,22 +116,22 @@ def load_image_features(name, features):
 
   # Albedo
   if 'alb' in features:
-    albedo = load_image(name + '.alb.exr', num_channels=3)
+    albedo, num_channels['alb'] = load_image(name + '.alb.exr', num_channels=3)
     albedo = np.clip(albedo, 0., 1.)
     images.append(albedo)
 
   # Normal
   if 'nrm' in features:
-    normal = load_image(name + '.nrm.exr', num_channels=3)
+    normal, num_channels['nrm'] = load_image(name + '.nrm.exr', num_channels=3)
     normal = np.clip(normal, -1., 1.)
-    
+
     # Transform to [0..1] range
     normal = normal * 0.5 + 0.5
 
     images.append(normal)
 
   # Concatenate all feature images into one image
-  return np.concatenate(images, axis=2)
+  return np.concatenate(images, axis=2), num_channels
 
 # Tries to load metadata for an image with given filename/prefix, returns None if it fails
 def load_image_metadata(name):
@@ -259,7 +261,7 @@ def get_preproc_data_dir(cfg, name):
         if best_dir is None or num_channels <= best_num_channels:
           best_dir = data_dir
           best_num_channels = num_channels
-  
+
   if best_dir is None:
     error('no matching preproccessed dataset found')
   return best_dir
@@ -453,7 +455,7 @@ class ValidationDataset(PreprocessedDataset):
               self.tiles.append((sample_index, oy, ox, ch))
           else:
             self.tiles.append((sample_index, oy, ox, input_channel_indices))
-      
+
   def __len__(self):
     return len(self.tiles)
 

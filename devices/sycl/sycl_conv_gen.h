@@ -63,9 +63,9 @@ namespace xehpc {
       simd<float, blockOW * blockC> accumRows[blockOH] = {}; // = 0
     #endif
 
-      const int oc = it.getLocalId<0>()  * blockC;
-      const int oh = it.getGlobalId<1>() * blockOH;
-      const int ow = it.getGlobalId<2>() * blockOW;
+      const int oc = it.getLocalID<0>()  * blockC;
+      const int oh = it.getGlobalID<1>() * blockOH;
+      const int ow = it.getGlobalID<2>() * blockOW;
 
       // Iterate over input channel blocks
       for (int ic = 0; ic < src.C; ic += blockC)
@@ -249,7 +249,10 @@ namespace xehpc {
 
           #pragma unroll
           for (int bow = 0; bow < blockOW; ++bow)
-            upRow1x2.template select<blockC * 2, 1>(bow * blockC * 2) = outRows[boh].template replicate_w<2, blockC>(bow * blockC);
+          {
+            upRow1x2.template select<blockC * 2, 1>(bow * blockC * 2) =
+              outRows[boh].template replicate_w<2, blockC>(bow * blockC);
+          }
 
           // Store upsampled rows
           storeRow<2>(upRow1x2, oc, (oh + boh) * 2,     ow * 2);
@@ -289,7 +292,8 @@ namespace xehpc {
         for (int w = 0; w < W; ++w)
         {
           const T* srcPtr = reinterpret_cast<const T*>(uintptr_t(srcAddrVec[w]));
-          row.template select<blockC, 1>(w * blockC) = loadBlock<T, blockC>(srcPtr, predVec.template select<1, 1>(w));
+          row.template select<blockC, 1>(w * blockC) =
+            loadBlock<T, blockC>(srcPtr, predVec.template select<1, 1>(w));
         }
       }
     }
@@ -327,7 +331,8 @@ namespace xehpc {
         for (int i = 0; i < numChunks; ++i)
         {
           T* dstPtr = reinterpret_cast<T*>(uintptr_t(dstAddrVec[i]));
-          storeBlock(dstPtr, row.template select<chunkSize, 1>(i * chunkSize).read(), predVec.template select<1, 1>(i));
+          storeBlock(dstPtr, row.template select<chunkSize, 1>(i * chunkSize).read(),
+                     predVec.template select<1, 1>(i));
         }
       }
     }
