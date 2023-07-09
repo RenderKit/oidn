@@ -494,12 +494,14 @@ OIDN_NAMESPACE_BEGIN
       }
 
       // Get the scratch size of the graph
-      const size_t graphScratchByteSize = graph->getScratchAlignedSize();
+      const size_t graphScratchByteSize = round_up(graph->getScratchByteSize(), memoryAlignment);
       size_t scratchByteSize = graphScratchByteSize;
 
       // Allocate scratch for global operations
       if (instanceID == 0 && hdr)
-        scratchByteSize = max(scratchByteSize, autoexposure->getScratchAlignedSize());
+        scratchByteSize = max(scratchByteSize, autoexposure->getScratchByteSize());
+
+      scratchByteSize = round_up(scratchByteSize, memoryAlignment);
 
       // If doing in-place _tiled_ filtering, allocate a temporary output image
       ImageDesc outputTempDesc(output->getFormat(), W, H);
@@ -507,7 +509,7 @@ OIDN_NAMESPACE_BEGIN
       if (instanceID == 0 && inplace && (tileCountH * tileCountW) > 1)
       {
         outputTempByteOffset = scratchByteSize;
-        scratchByteSize += outputTempDesc.getAlignedSize();
+        scratchByteSize += round_up(outputTempDesc.getByteSize(), memoryAlignment);
       }
 
       // Check the total memory usage

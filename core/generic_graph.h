@@ -46,7 +46,7 @@ OIDN_NAMESPACE_BEGIN
 
     bool isSupported() const override;
 
-    size_t getScratchAlignedSize() override;
+    size_t getScratchByteSize() override;
     void setScratch(const Ref<Buffer>& scratch) override;
     size_t getPrivateByteSize() const override { return constByteSize; }
 
@@ -60,7 +60,7 @@ OIDN_NAMESPACE_BEGIN
     struct TensorAlloc
     {
       TensorDesc desc;   // tensor descriptor
-      size_t byteSize;   // aligned size of the tensor
+      size_t byteSize;   // size of the tensor in bytes
       int firstOpID;     // index of the first operation that uses this tensor
       int lastOpID;      // index of the last operation that uses this tensor
       TensorAlloc* next; // tensor allocated consecutively after this one
@@ -72,7 +72,7 @@ OIDN_NAMESPACE_BEGIN
 
       TensorAlloc(const TensorDesc& desc, int firstOpID)
         : desc(desc),
-          byteSize(desc.getAlignedSize()),
+          byteSize(desc.getByteSize()),
           firstOpID(firstOpID),
           lastOpID(firstOpID),
           next(nullptr),
