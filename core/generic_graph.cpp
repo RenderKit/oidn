@@ -125,7 +125,7 @@ OIDN_NAMESPACE_BEGIN
       conv->setBias(finalBias);
     });
 
-    constByteSize += finalWeightDesc.getByteSize() + finalBiasDesc.getByteSize();
+    privateByteSize += finalWeightDesc.getByteSize() + finalBiasDesc.getByteSize();
     return conv;
   }
 
@@ -192,9 +192,9 @@ OIDN_NAMESPACE_BEGIN
         concatConv->setBias(finalBias);
       });
 
-      constByteSize += concatConv->getWeight1Desc().getByteSize() +
-                       concatConv->getWeight2Desc().getByteSize() +
-                       finalBiasDesc.getByteSize();
+      privateByteSize += concatConv->getWeight1Desc().getByteSize() +
+                         concatConv->getWeight2Desc().getByteSize() +
+                         finalBiasDesc.getByteSize();
       return concatConv;
     }
     else
@@ -227,7 +227,7 @@ OIDN_NAMESPACE_BEGIN
         concatConv->setBias(finalBias);
       });
 
-      constByteSize += finalWeightDesc.getByteSize() + finalBiasDesc.getByteSize();
+      privateByteSize += finalWeightDesc.getByteSize() + finalBiasDesc.getByteSize();
       return concatConv;
     }
   }
@@ -357,7 +357,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Track the active allocations sorted by offset in ascending order
     std::vector<TensorAlloc*> activeAllocs;
-    tensorScratchByteSize = 0;
+    size_t tensorScratchByteSize = 0;
 
     // Iterate over the sorted chunks to allocate
     for (const Chunk& chunk : chunks)
@@ -414,6 +414,9 @@ OIDN_NAMESPACE_BEGIN
       opScratchByteSize = max(opScratchByteSize, op->getScratchByteSize());
     opScratchByteSize = round_up(opScratchByteSize, memoryAlignment);
 
+    tensorScratchByteOffset = opScratchByteSize;
+    scratchByteSize = opScratchByteSize + tensorScratchByteSize;
+
     dirty = false;
   }
 
@@ -439,11 +442,17 @@ OIDN_NAMESPACE_BEGIN
   {
     if (dirty)
       planAllocations();
-    return opScratchByteSize + tensorScratchByteSize;
+    return scratchByteSize;
   }
 
   void GenericGraph::setScratch(const Ref<Buffer>& scratch)
   {
+    if (dirty)
+      planAllocations();
+
+    if (!scratch || scratch->getByteSize() < scratchByteSize)
+      throw std::invalid_argument("invalid graph scratch buffer");
+
     this->scratch = scratch;
   }
 
@@ -459,9 +468,9 @@ OIDN_NAMESPACE_BEGIN
     cleanup();
     ops.clear();
     scratch.reset();
-    opScratchByteSize = 0;
-    tensorScratchByteSize = 0;
-    constByteSize = 0;
+    scratchByteSize = 0;
+    privateByteSize = 0;
+    tensorScratchByteOffset = 0;
     dirty = false;
   }
 
@@ -471,7 +480,10 @@ OIDN_NAMESPACE_BEGIN
       planAllocations();
 
     for (auto& tensorAlloc : tensorAllocs)
-      tensorAlloc->tensor = scratch->newTensor(tensorAlloc->desc, opScratchByteSize + tensorAlloc->byteOffset);
+    {
+      tensorAlloc->tensor =
+        scratch->newTensor(tensorAlloc->desc, tensorScratchByteOffset + tensorAlloc->byteOffset);
+    }
 
     for (auto& lazyInit : lazyInits)
       lazyInit();
