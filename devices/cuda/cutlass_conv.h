@@ -231,7 +231,8 @@ OIDN_NAMESPACE_BEGIN
 
     void setScratch(const Ref<Buffer>& scratch) override
     {
-      // FIXME: check size
+      if (scratch->getByteSize() < getScratchByteSize())
+        throw std::invalid_argument("convolution scratch buffer too small");
       this->scratch = scratch;
     }
 
