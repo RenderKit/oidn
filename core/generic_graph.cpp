@@ -373,11 +373,14 @@ OIDN_NAMESPACE_BEGIN
         if (alloc->lastOpID < chunk.firstOpID || alloc->firstOpID > chunk.lastOpID)
           continue;
 
-        // Check whether the current gap is large enough to fit the chunk
-        if (curByteOffset + chunk.byteSize <= alloc->byteOffset &&
+        const size_t curAlignedByteOffset = round_up(curByteOffset, memoryAlignment);
+
+        // Check whether the current gap is large enough to fit the chunk and
+        // is smaller than the previous best fit
+        if (curAlignedByteOffset + chunk.byteSize <= alloc->byteOffset &&
             alloc->byteOffset - curByteOffset < bestGapByteSize)
         {
-          bestByteOffset  = curByteOffset;
+          bestByteOffset  = curAlignedByteOffset;
           bestGapByteSize = alloc->byteOffset - curByteOffset;
         }
 
@@ -385,7 +388,7 @@ OIDN_NAMESPACE_BEGIN
       }
 
       if (bestByteOffset == SIZE_MAX)
-        bestByteOffset = curByteOffset;
+        bestByteOffset = round_up(curByteOffset, memoryAlignment);
 
       // Assign offsets to the allocations in the chunk, and add them to the sorted active allocations
       for (TensorAlloc* alloc = chunk.firstAlloc; alloc; alloc = alloc->next)
@@ -402,10 +405,13 @@ OIDN_NAMESPACE_BEGIN
       tensorScratchByteSize = max(tensorScratchByteSize, bestByteOffset);
     }
 
+    tensorScratchByteSize = round_up(tensorScratchByteSize, memoryAlignment);
+
     // Compute the size of the operation scratch
     size_t opScratchByteSize = 0;
     for (const auto& op : ops)
-      opScratchByteSize = max(opScratchByteSize, op->getScratchAlignedSize());
+      opScratchByteSize = max(opScratchByteSize, op->getScratchByteSize());
+    opScratchByteSize = round_up(opScratchByteSize, memoryAlignment);
 
     dirty = false;
   }
@@ -428,7 +434,7 @@ OIDN_NAMESPACE_BEGIN
     return true;
   }
 
-  size_t GenericGraph::getScratchAlignedSize()
+  size_t GenericGraph::getScratchByteSize()
   {
     if (dirty)
       planAllocations();

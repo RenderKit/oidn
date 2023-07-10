@@ -65,12 +65,6 @@ OIDN_NAMESPACE_BEGIN
       return (height - 1) * hByteStride + (width - 1) * wByteStride + getFormatSize(format);
     }
 
-    // Returns the aligned size in bytes of the image
-    OIDN_INLINE size_t getAlignedSize() const
-    {
-      return round_up(getByteSize(), memoryAlignment);
-    }
-
     OIDN_INLINE DataType getDataType() const
     {
       return getFormatDataType(format);
@@ -96,7 +90,6 @@ OIDN_NAMESPACE_BEGIN
     using ImageDesc::getW;
     using ImageDesc::getNumElements;
     using ImageDesc::getByteSize;
-    using ImageDesc::getAlignedSize;
     using ImageDesc::getDataType;
 
     OIDN_INLINE void* getPtr() const { return ptr; }

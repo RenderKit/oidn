@@ -83,29 +83,9 @@ OIDN_NAMESPACE_BEGIN
     }
   }
 
-  std::shared_ptr<Tensor> MetalEngine::newTensor(const TensorDesc& desc, Storage storage)
-  {
-    if (!isSupported(desc))
-      throw std::invalid_argument("unsupported tensor descriptor");
-
-    return std::make_shared<GenericTensor>(this, desc, storage);
-  }
-
-  std::shared_ptr<Tensor> MetalEngine::newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
-  {
-    if (!isSupported(desc))
-      throw std::invalid_argument("unsupported tensor descriptor");
-    if (buffer->getEngine() != this)
-      throw std::invalid_argument("buffer was created by a different engine");
-    if (byteOffset != 0)
-      throw std::invalid_argument("unsupported tensor descriptor");
-
-    return std::make_shared<GenericTensor>(buffer, desc, byteOffset);
-  }
-
   std::shared_ptr<Graph> MetalEngine::newGraph(const std::shared_ptr<TensorMap>& constTensors, bool fastMath)
   {
-    return std::make_shared<MetalGraph>(this, constTensors, fastMath);
+    return std::make_shared<MetalGraph>(this, constTensors);
   }
 
   std::shared_ptr<Conv> MetalEngine::newConv(const ConvDesc& desc)

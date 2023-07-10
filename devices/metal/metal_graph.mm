@@ -9,11 +9,9 @@
 OIDN_NAMESPACE_BEGIN
 
   MetalGraph::MetalGraph(const Ref<MetalEngine>& engine,
-                         const std::shared_ptr<TensorMap>& constTensors,
-                         bool fastMath)
+                         const std::shared_ptr<TensorMap>& constTensors)
     : engine(engine),
-      constTensors(constTensors),
-      fastMath(fastMath)
+      constTensors(constTensors)
   {}
 
   MetalGraph::~MetalGraph()
@@ -109,7 +107,7 @@ OIDN_NAMESPACE_BEGIN
 
     TensorNode* srcNode = tensorNodesByOp[srcOp.get()];
     const TensorDesc srcDesc = srcNode->desc;
-    auto conv = engine->newConv({srcDesc, finalWeightDesc, finalBiasDesc, activation, postOp, fastMath});
+    auto conv = engine->newConv({srcDesc, finalWeightDesc, finalBiasDesc, activation, postOp, false});
     conv->setName(name);
     const TensorDesc dstDesc = conv->getDstDesc();
     TensorNode* dstNode = addOp(conv, dstDesc);
@@ -243,13 +241,14 @@ OIDN_NAMESPACE_BEGIN
     return true;
   }
 
-  size_t MetalGraph::getScratchAlignedSize()
+  size_t MetalGraph::getScratchByteSize()
   {
     return opScratchByteSize + tensorScratchByteSize;
   }
 
   void MetalGraph::setScratch(const Ref<Buffer>& scratch)
   {
+    this->scratch = scratch;
   }
 
   void MetalGraph::cleanup()

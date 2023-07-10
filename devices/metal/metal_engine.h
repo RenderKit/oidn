@@ -29,10 +29,6 @@ OIDN_NAMESPACE_BEGIN
     Ref<Buffer> newBuffer(size_t byteSize, Storage storage) override;
     Ref<Buffer> newBuffer(void* ptr, size_t byteSize) override;
 
-    // Tensor
-    std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, Storage storage = Storage::Device) override;
-    std::shared_ptr<Tensor> newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset = 0) override;
-
     // Ops
     std::shared_ptr<Graph> newGraph(const std::shared_ptr<TensorMap>& constTensors, bool fastMath = false) override;
     std::shared_ptr<Conv> newConv(const ConvDesc& desc) override;

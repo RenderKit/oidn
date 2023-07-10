@@ -145,12 +145,6 @@ OIDN_NAMESPACE_BEGIN
       return num * getDataTypeSize(dataType);
     }
 
-    // Returns the aligned size in bytes of the tensor
-    OIDN_INLINE size_t getAlignedSize() const
-    {
-      return round_up(getByteSize(), memoryAlignment);
-    }
-
     bool operator ==(const TensorDesc& other) const
     {
       return (dims == other.dims) && (paddedDims == other.paddedDims) &&
@@ -188,7 +182,6 @@ OIDN_NAMESPACE_BEGIN
     using TensorDesc::getW;
     using TensorDesc::getNumElements;
     using TensorDesc::getByteSize;
-    using TensorDesc::getAlignedSize;
 
     template<typename T>
     operator TensorAccessor1D<T>()

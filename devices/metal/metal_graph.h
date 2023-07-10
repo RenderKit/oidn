@@ -30,8 +30,7 @@ OIDN_NAMESPACE_BEGIN
   {
   public:
     MetalGraph(const Ref<MetalEngine>& engine,
-               const std::shared_ptr<TensorMap>& constTensors,
-               bool fastMath = false);
+               const std::shared_ptr<TensorMap>& constTensors);
 
     ~MetalGraph();
 
@@ -66,7 +65,7 @@ OIDN_NAMESPACE_BEGIN
 
     bool isSupported() const override;
 
-    size_t getScratchAlignedSize() override;
+    size_t getScratchByteSize() override;
     void setScratch(const Ref<Buffer>& scratch) override;
     size_t getPrivateByteSize() const override { return constByteSize; }
 
@@ -95,9 +94,7 @@ OIDN_NAMESPACE_BEGIN
     MPSGraphTensor* graphInput = nullptr;
     MPSGraphTensor* graphOutput = nullptr;
 
-    Ref<Buffer> inputBuffer;
-    std::shared_ptr<Tensor> outputTensor;
-
+    Ref<Buffer> scratch;
     size_t opScratchByteSize     = 0; // total size of operation scratch
     size_t tensorScratchByteSize = 0; // total size of temporary tensors
     size_t constByteSize         = 0; // total size of constant tensors
@@ -109,7 +106,6 @@ OIDN_NAMESPACE_BEGIN
     std::unordered_map<Op*, TensorNode*> tensorNodesByOp;
     std::vector<std::function<void()>> lazyInits; // lazy initialization for ops
     std::shared_ptr<TensorMap> constTensors;
-    bool fastMath = false;
   };
 
 OIDN_NAMESPACE_END
