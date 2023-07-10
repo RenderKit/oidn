@@ -447,12 +447,8 @@ OIDN_NAMESPACE_BEGIN
 
   void GenericGraph::setScratch(const Ref<Buffer>& scratch)
   {
-    if (dirty)
-      planAllocations();
-
-    if (!scratch || scratch->getByteSize() < scratchByteSize)
-      throw std::invalid_argument("invalid graph scratch buffer");
-
+    if (scratch->getByteSize() < getScratchByteSize())
+      throw std::invalid_argument("graph scratch buffer too small");
     this->scratch = scratch;
   }
 

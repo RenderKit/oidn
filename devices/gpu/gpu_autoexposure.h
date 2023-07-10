@@ -168,9 +168,8 @@ OIDN_NAMESPACE_BEGIN
 
     void setScratch(const Ref<Buffer>& scratch) override
     {
-      if (!scratch || scratch->getByteSize() < scratchByteSize)
-        throw std::invalid_argument("invalid autoexposure scratch");
-
+      if (scratch->getByteSize() < getScratchByteSize())
+        throw std::invalid_argument("autoexposure scratch buffer too small");
       this->scratch = scratch;
     }
 
