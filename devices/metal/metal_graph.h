@@ -67,7 +67,7 @@ OIDN_NAMESPACE_BEGIN
 
     size_t getScratchByteSize() override;
     void setScratch(const Ref<Buffer>& scratch) override;
-    size_t getPrivateByteSize() const override { return constByteSize; }
+    size_t getPrivateByteSize() const override { return privateByteSize; }
 
     double getWorkAmount() const override;
     void clear() override;
@@ -94,10 +94,9 @@ OIDN_NAMESPACE_BEGIN
     MPSGraphTensor* graphInput = nullptr;
     MPSGraphTensor* graphOutput = nullptr;
 
-    Ref<Buffer> scratch;
-    size_t opScratchByteSize     = 0; // total size of operation scratch
-    size_t tensorScratchByteSize = 0; // total size of temporary tensors
-    size_t constByteSize         = 0; // total size of constant tensors
+    Ref<Buffer> scratch;        // scratch buffer
+    size_t scratchByteSize = 0; // total size of scratch data
+    size_t privateByteSize = 0; // total size of private data (e.g. constant tensors)
     bool dirty = false;
     bool finalized = false;
 

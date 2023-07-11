@@ -26,6 +26,8 @@ OIDN_NAMESPACE_BEGIN
   {
     if (finalized)
       throw std::logic_error("graph cannot be changed after finalization");
+    if (op->getScratchByteSize() > 0)
+      throw std::logic_error("scratch memory is not supported for MetalGraph ops");
 
     tensorNodes.emplace_back(new TensorNode{dstDesc, nullptr});
     TensorNode* dstNode = tensorNodes.back().get();
@@ -50,12 +52,13 @@ OIDN_NAMESPACE_BEGIN
 
     lazyInits.push_back([=]()
     {
-      MPSGraphTensor* dst = toMPSGraphPlaceholder(graph, inputProcess->getDstDesc());
+      MPSGraphTensor* dst = toMPSGraphPlaceholder(graph, dstNode->desc);
       dstNode->tensor = dst;
       graphInput = dst;
-      inputProcess->setDst(engine->newTensor(inputProcess->getDstDesc()));
+      inputProcess->setDst(scratch->newTensor(dstNode->desc, 0));
     });
 
+    scratchByteSize = max(scratchByteSize, dstNode->desc.getByteSize());
     return inputProcess;
   }
 
@@ -77,9 +80,10 @@ OIDN_NAMESPACE_BEGIN
     lazyInits.push_back([=]()
     {
       graphOutput = srcNode->tensor;
-      outputProcess->setSrc(engine->newTensor(srcDesc));
+      outputProcess->setSrc(scratch->newTensor(srcDesc, 0)); // alias the input tensor
     });
 
+    scratchByteSize = max(scratchByteSize, srcDesc.getByteSize());
     return outputProcess;
   }
 
@@ -243,11 +247,13 @@ OIDN_NAMESPACE_BEGIN
 
   size_t MetalGraph::getScratchByteSize()
   {
-    return opScratchByteSize + tensorScratchByteSize;
+    return scratchByteSize;
   }
 
   void MetalGraph::setScratch(const Ref<Buffer>& scratch)
   {
+    if (scratch->getByteSize() < getScratchByteSize())
+      throw std::invalid_argument("graph scratch buffer too small");
     this->scratch = scratch;
   }
 
@@ -265,9 +271,8 @@ OIDN_NAMESPACE_BEGIN
 
     cleanup();
     ops.clear();
-    opScratchByteSize = 0;
-    tensorScratchByteSize = 0;
-    constByteSize = 0;
+    scratchByteSize = 0;
+    privateByteSize = 0;
     dirty = false;
   }
 
@@ -287,10 +292,7 @@ OIDN_NAMESPACE_BEGIN
     lazyInits.clear();
 
     for (auto& op : ops)
-    {
-      //op->setScratch(scratch);
       op->finalize();
-    }
 
     cleanup();
     constTensors.reset();
