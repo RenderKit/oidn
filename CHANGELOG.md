@@ -1,11 +1,16 @@
 Version History
 ---------------
 
+### Changes in v2.0.1:
+
 -   Fixed performance issue for Intel integrated GPUs using recent Linux drivers
--   Fixed importing D3D12Resource, D3D11Resource, D3D11ResourceKMT, D3D11Texture
-    and D3D11TextureKMT external memory types on CUDA and HIP devices
+-   Fixed crash on systems with both dedicated and integrated AMD GPUs
+-   Fixed importing `D3D12_RESOURCE`, `D3D11_RESOURCE`, `D3D11_RESOURCE_KMT`,
+    `D3D11_TEXTURE` and `D3D11_TEXTURE_KMT` external memory types on CUDA and
+    HIP devices
 -   Fixed the macOS deployment target of the official x86 binaries (lowered from
     11.0 to 10.11)
+-   Minor improvements to verbose output
 
 ### Changes in v2.0.0:
 

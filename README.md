@@ -1,7 +1,7 @@
 # Intel® Open Image Denoise
 
-This is release v2.0.1-devel of Intel Open Image Denoise. For changes
-and new features see the [changelog](CHANGELOG.md). Visit
+This is release v2.0.1 of Intel Open Image Denoise. For changes and new
+features see the [changelog](CHANGELOG.md). Visit
 https://www.openimagedenoise.org for more information.
 
 # Overview
@@ -223,8 +223,8 @@ additional prerequisites are needed:
   - [Ninja](https://ninja-build.org) or Make as the CMake generator. The
     Visual Studio generator is *not* supported.
 
-  - [AMD ROCm](https://docs.amd.com) v5.5.0 or newer. Currently there
-    are no releases available for Windows but it can be build from
+  - [AMD ROCm](https://rocm.docs.amd.com) v5.5.0 or newer. Currently
+    there are no releases available for Windows but it can be build from
     source. This source distribution includes a script for downloading,
     building and installing a minimal version of ROCm with the HIP
     compiler for Windows: `scripts/rocm/build_rocm_windows.bat`

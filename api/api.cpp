@@ -53,6 +53,13 @@ OIDN_API_NAMESPACE_BEGIN
 
   namespace
   {
+    OIDN_INLINE Context& initContext()
+    {
+      Context& ctx = Context::get();
+      ctx.init();
+      return ctx;
+    }
+
     OIDN_INLINE void checkHandle(void* handle)
     {
       if (handle == nullptr)
@@ -109,7 +116,7 @@ OIDN_API_NAMESPACE_BEGIN
   {
     Ref<Device> device = nullptr; // dummy
     OIDN_TRY
-      Context& ctx = Context::get();
+      Context& ctx = initContext();
       return ctx.getNumPhysicalDevices();
     OIDN_CATCH(device)
     return 0;
@@ -119,7 +126,7 @@ OIDN_API_NAMESPACE_BEGIN
   {
     Ref<Device> device = nullptr; // dummy
     OIDN_TRY
-      Context& ctx = Context::get();
+      Context& ctx = initContext();
       return ctx.getPhysicalDevice(physicalDeviceID)->getInt(name);
     OIDN_CATCH(device)
     return 0;
@@ -129,7 +136,7 @@ OIDN_API_NAMESPACE_BEGIN
   {
     Ref<Device> device = nullptr; // dummy
     OIDN_TRY
-      Context& ctx = Context::get();
+      Context& ctx = initContext();
       return ctx.getPhysicalDevice(physicalDeviceID)->getInt(name);
     OIDN_CATCH(device)
     return 0;
@@ -139,7 +146,7 @@ OIDN_API_NAMESPACE_BEGIN
   {
     Ref<Device> device = nullptr; // dummy
     OIDN_TRY
-      Context& ctx = Context::get();
+      Context& ctx = initContext();
       return ctx.getPhysicalDevice(physicalDeviceID)->getString(name);
     OIDN_CATCH(device)
     return nullptr;
@@ -149,7 +156,7 @@ OIDN_API_NAMESPACE_BEGIN
   {
     Ref<Device> device = nullptr; // dummy
     OIDN_TRY
-      Context& ctx = Context::get();
+      Context& ctx = initContext();
       Data data = ctx.getPhysicalDevice(physicalDeviceID)->getData(name);
       if (byteSize != nullptr)
         *byteSize = data.size;
@@ -164,7 +171,7 @@ OIDN_API_NAMESPACE_BEGIN
     Ref<Device> device = nullptr;
 
     OIDN_TRY
-      Context& ctx = Context::get();
+      Context& ctx = initContext();
 
       if (type == DeviceType::Default)
       {
@@ -212,7 +219,7 @@ OIDN_API_NAMESPACE_BEGIN
     Ref<Device> device = nullptr;
 
     OIDN_TRY
-      Context& ctx = Context::get();
+      Context& ctx = initContext();
       device = ctx.newDevice(physicalDeviceID);
     OIDN_CATCH(device)
 
@@ -224,7 +231,7 @@ OIDN_API_NAMESPACE_BEGIN
     Ref<Device> device = nullptr;
 
     OIDN_TRY
-      Context& ctx = Context::get();
+      Context& ctx = initContext();
 
       // Find the physical device with the specified UUID
       const int numDevices = ctx.getNumPhysicalDevices();
@@ -255,7 +262,7 @@ OIDN_API_NAMESPACE_BEGIN
     Ref<Device> device = nullptr;
 
     OIDN_TRY
-      Context& ctx = Context::get();
+      Context& ctx = initContext();
 
       // Find the physical device with the specified LUID
       const int numDevices = ctx.getNumPhysicalDevices();
@@ -286,7 +293,7 @@ OIDN_API_NAMESPACE_BEGIN
     Ref<Device> device = nullptr;
 
     OIDN_TRY
-      Context& ctx = Context::get();
+      Context& ctx = initContext();
 
       // Find the physical device with the specified PCI address
       const int numDevices = ctx.getNumPhysicalDevices();
@@ -320,7 +327,7 @@ OIDN_API_NAMESPACE_BEGIN
     Ref<Device> device = nullptr;
 
     OIDN_TRY
-      Context& ctx = Context::get();
+      Context& ctx = initContext();
       auto factory = static_cast<SYCLDeviceFactoryBase*>(ctx.getDeviceFactory(DeviceType::SYCL));
       device = factory->newDevice(queues, numQueues);
     OIDN_CATCH(device)
@@ -332,7 +339,7 @@ OIDN_API_NAMESPACE_BEGIN
   {
     Ref<Device> device = nullptr;
     OIDN_TRY
-      Context& ctx = Context::get();
+      Context& ctx = initContext();
       auto factory = static_cast<CUDADeviceFactoryBase*>(ctx.getDeviceFactory(DeviceType::CUDA));
       device = factory->newDevice(deviceIDs, streams, numPairs);
     OIDN_CATCH(device)
@@ -343,7 +350,7 @@ OIDN_API_NAMESPACE_BEGIN
   {
     Ref<Device> device = nullptr;
     OIDN_TRY
-      Context& ctx = Context::get();
+      Context& ctx = initContext();
       auto factory = static_cast<HIPDeviceFactoryBase*>(ctx.getDeviceFactory(DeviceType::HIP));
       device = factory->newDevice(deviceIDs, streams, numPairs);
     OIDN_CATCH(device)

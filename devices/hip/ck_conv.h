@@ -3,6 +3,12 @@
 
 #pragma once
 
+// FIXME: workaround for compile error when building for target unsupported by CK
+#include "ck/ck.hpp"
+#if !defined(CK_BUFFER_RESOURCE_3RD_DWORD)
+  #define CK_BUFFER_RESOURCE_3RD_DWORD -1
+#endif
+
 #include "core/conv.h"
 #include "hip_engine.h"
 #include "ck/utility/data_type.hpp"

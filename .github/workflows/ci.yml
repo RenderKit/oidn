@@ -100,6 +100,20 @@ jobs:
       artifact-out: build-ubuntu2204
       artifact-path: build install deps
 
+  build-ubuntu2204-gta-aotjit:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    with:
+      project: oidn
+      image: oidn/ubuntu:22.04
+      cmd: >
+        scripts/build.py install --install_dir oidn-gta-aotjit-lin --compiler clang
+        -D OIDN_DEVICE_CPU=OFF
+        -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=ON -D OIDN_DEVICE_SYCL_JIT_FALLBACK=ON
+        -D OIDN_INSTALL_DEPENDENCIES=ON -D OIDN_ZIP_MODE=ON
+      artifact-out: build-ubuntu2204-gta-aotjit
+      artifact-path: oidn-gta-aotjit-lin
+
   build-ubuntu2204-gta-aot:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
@@ -513,6 +527,24 @@ jobs:
       artifact-path: build install
       cmd: python scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
 
+  build-windows-gta-aotjit:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "build", "cuda" ]'
+      msvc-version: "2022"
+      dpcpp-version: sycl-nightly/20221215
+      ocloc-version: 9926f1ea-209e-42b3-94db-a1f895ee56ce/ocloc_win_101.4314
+      rocm-version: rocm/5.5.0
+      artifact-out: build-windows-gta-aotjit
+      artifact-path: oidn-gta-aotjit-win
+      cmd: >
+        python scripts/build.py install --install_dir oidn-gta-aotjit-win --compiler clang
+        -D OIDN_DEVICE_CPU=OFF
+        -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=ON -D OIDN_DEVICE_SYCL_JIT_FALLBACK=ON
+        -D OIDN_INSTALL_DEPENDENCIES=ON -D OIDN_ZIP_MODE=ON
+
   build-windows-gta-aot:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
@@ -645,9 +677,10 @@ jobs:
 
   kw-build-scan-report:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/oidn_static_analysis.yml@devel
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/static_analysis.yml@main
     with:
       project: oidn
+      image: oidn/ubuntu:22.04
       build: scripts/build.py
 
   snyk-scan:
@@ -703,6 +736,26 @@ jobs:
         where $env:CXX
         python scripts/build.py package --full
       artifact-out: package-windows
+      artifact-path: build/oidn-*.zip
+
+  package-source-tgz:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    with:
+      project: oidn
+      image: oidn/rockylinux:8.6
+      cmd: scripts/build_src.py
+      artifact-out: package-source-tgz
+      artifact-path: build/oidn-*.tar.gz
+
+  package-source-zip:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "build", "cuda" ]'
+      cmd: python scripts/build_src.py
+      artifact-out: package-source-zip
       artifact-path: build/oidn-*.zip
 
   antivirus-scan:
