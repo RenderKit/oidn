@@ -43,9 +43,28 @@ configure_file(
 file(GLOB DNNL_SOURCES
   ${DNNL_SOURCE_DIR}/src/common/*.[ch]pp
   ${DNNL_SOURCE_DIR}/src/cpu/jit_utils/*.[ch]pp
+)
+
+if(OIDN_ARCH STREQUAL "X64")
+  file(GLOB DNNL_SOURCES_X64
   ${DNNL_SOURCE_DIR}/src/cpu/x64/injectors/*.[ch]pp
   ${DNNL_SOURCE_DIR}/src/cpu/x64/xbyak/*.h
 )
+  list(APPEND DNNL_SOURCES ${DNNL_SOURCES_X64})
+elseif(OIDN_ARCH STREQUAL "ARM64")
+  file(GLOB DNNL_SOURCES_ARM64
+    ${DNNL_SOURCE_DIR}/src/cpu/aarch64/injectors/*.[ch]pp
+    ${DNNL_SOURCE_DIR}/src/cpu/aarch64/xbyak_aarch64/xbyak_aarch64/*.h
+    ${DNNL_SOURCE_DIR}/src/cpu/aarch64/xbyak_aarch64/src/*.h
+    ${DNNL_SOURCE_DIR}/src/cpu/aarch64/xbyak_aarch64/src/*.cpp
+    ${DNNL_SOURCE_DIR}/src/cpu/gemm/*.[ch]pp
+    ${DNNL_SOURCE_DIR}/src/cpu/gemm/f32/*.[ch]pp
+    ${DNNL_SOURCE_DIR}/src/cpu/gemm/s8x8s32/*.[ch]pp
+  )
+  list(APPEND DNNL_SOURCES ${DNNL_SOURCES_ARM64})
+else()
+  message(fatal_error "Unknown Architecture")
+endif()
 
 list(APPEND DNNL_SOURCES
   ${DNNL_SOURCE_DIR}/src/cpu/bfloat16.cpp
@@ -70,31 +89,56 @@ list(APPEND DNNL_SOURCES
   ${DNNL_SOURCE_DIR}/src/cpu/simple_q10n.hpp
   ${DNNL_SOURCE_DIR}/src/cpu/zero_point_utils.cpp
   ${DNNL_SOURCE_DIR}/src/cpu/zero_point_utils.hpp
-  ${DNNL_SOURCE_DIR}/src/cpu/x64/amx_tile_configure.cpp
-  ${DNNL_SOURCE_DIR}/src/cpu/x64/amx_tile_configure.hpp
-  ${DNNL_SOURCE_DIR}/src/cpu/x64/cpu_barrier.hpp
-  ${DNNL_SOURCE_DIR}/src/cpu/x64/cpu_barrier.cpp
-  ${DNNL_SOURCE_DIR}/src/cpu/x64/cpu_isa_traits.cpp
-  ${DNNL_SOURCE_DIR}/src/cpu/x64/cpu_isa_traits.hpp
-  ${DNNL_SOURCE_DIR}/src/cpu/x64/cpu_reducer.cpp
-  ${DNNL_SOURCE_DIR}/src/cpu/x64/cpu_reducer.hpp
-  ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_avx2_conv_kernel_f32.cpp
-  ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_avx2_conv_kernel_f32.hpp
-  ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_avx2_convolution.cpp
-  ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_avx2_convolution.hpp
-  ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_avx512_common_convolution.cpp
-  ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_avx512_common_convolution.hpp
-  ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_avx512_common_conv_kernel.cpp
-  ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_avx512_common_conv_kernel.hpp
-  ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_generator.hpp
-  ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_primitive_conf.hpp
-  ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_sse41_conv_kernel_f32.cpp
-  ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_sse41_conv_kernel_f32.hpp
-  ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_sse41_convolution.cpp
-  ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_sse41_convolution.hpp
-  ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_transpose_utils.cpp
-  ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_transpose_utils.hpp
 )
+
+if(OIDN_ARCH STREQUAL "X64")
+  list(APPEND DNNL_SOURCES
+    ${DNNL_SOURCE_DIR}/src/cpu/x64/amx_tile_configure.cpp
+    ${DNNL_SOURCE_DIR}/src/cpu/x64/amx_tile_configure.hpp
+    ${DNNL_SOURCE_DIR}/src/cpu/x64/cpu_barrier.hpp
+    ${DNNL_SOURCE_DIR}/src/cpu/x64/cpu_barrier.cpp
+    ${DNNL_SOURCE_DIR}/src/cpu/x64/cpu_isa_traits.cpp
+    ${DNNL_SOURCE_DIR}/src/cpu/x64/cpu_isa_traits.hpp
+    ${DNNL_SOURCE_DIR}/src/cpu/x64/cpu_reducer.cpp
+    ${DNNL_SOURCE_DIR}/src/cpu/x64/cpu_reducer.hpp
+    ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_avx2_conv_kernel_f32.cpp
+    ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_avx2_conv_kernel_f32.hpp
+    ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_avx2_convolution.cpp
+    ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_avx2_convolution.hpp
+    ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_avx512_common_convolution.cpp
+    ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_avx512_common_convolution.hpp
+    ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_avx512_common_conv_kernel.cpp
+    ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_avx512_common_conv_kernel.hpp
+    ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_generator.hpp
+    ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_primitive_conf.hpp
+    ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_sse41_conv_kernel_f32.cpp
+    ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_sse41_conv_kernel_f32.hpp
+    ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_sse41_convolution.cpp
+    ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_sse41_convolution.hpp
+    ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_transpose_utils.cpp
+    ${DNNL_SOURCE_DIR}/src/cpu/x64/jit_transpose_utils.hpp
+  )
+elseif(OIDN_ARCH STREQUAL "ARM64")
+  list(APPEND DNNL_SOURCES
+    ${DNNL_SOURCE_DIR}/src/cpu/aarch64/cpu_barrier.hpp
+    ${DNNL_SOURCE_DIR}/src/cpu/aarch64/cpu_barrier.cpp
+    ${DNNL_SOURCE_DIR}/src/cpu/aarch64/cpu_isa_traits.cpp
+    ${DNNL_SOURCE_DIR}/src/cpu/aarch64/cpu_isa_traits.hpp
+    ${DNNL_SOURCE_DIR}/src/cpu/aarch64/cpu_reducer.cpp
+    ${DNNL_SOURCE_DIR}/src/cpu/aarch64/cpu_reducer.hpp
+    ${DNNL_SOURCE_DIR}/src/cpu/gemm_convolution_utils.cpp
+    ${DNNL_SOURCE_DIR}/src/cpu/gemm_convolution_utils.hpp
+    ${DNNL_SOURCE_DIR}/src/cpu/gemm_convolution.cpp
+    ${DNNL_SOURCE_DIR}/src/cpu/gemm_convolution.hpp
+    ${DNNL_SOURCE_DIR}/src/cpu/gemm/gemm.cpp
+    ${DNNL_SOURCE_DIR}/src/cpu/gemm/gemm.hpp
+    ${DNNL_SOURCE_DIR}/src/cpu/ref_convolution.cpp
+    ${DNNL_SOURCE_DIR}/src/cpu/ref_convolution.hpp
+    ${DNNL_SOURCE_DIR}/src/cpu/ref_convolution_utils.hpp
+    ${DNNL_SOURCE_DIR}/src/cpu/aarch64/jit_generator.hpp
+    ${DNNL_SOURCE_DIR}/src/cpu/aarch64/jit_primitive_conf.hpp
+)
+endif()
 
 if(DNNL_ENABLE_JIT_PROFILING OR DNNL_ENABLE_ITT_TASKS)
   file(GLOB ITT_SOURCES ${DNNL_SOURCE_DIR}/src/common/ittnotify/*.[ch])

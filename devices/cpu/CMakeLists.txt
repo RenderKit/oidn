@@ -4,7 +4,7 @@
 find_package(Threads REQUIRED)
 find_package(TBB 2017.0 REQUIRED tbb CONFIG)
 
-if(OIDN_ARCH STREQUAL "X64")
+if(OIDN_ARCH STREQUAL "X64" OR OIDN_ARCH STREQUAL "ARM64")
   # oneDNN
   set(OIDN_DNNL ON)
   include(oidn_dnnl)

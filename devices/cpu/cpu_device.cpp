@@ -10,6 +10,8 @@
 
 #if defined(OIDN_ARCH_X64)
   #include "mkl-dnn/src/cpu/x64/xbyak/xbyak_util.h"
+#elif defined(OIDN_ARCH_ARM64)
+  #include "mkl-dnn/src/cpu/aarch64/xbyak_aarch64/xbyak_aarch64/xbyak_aarch64_util.h"
 #endif
 
 /*
@@ -58,7 +60,7 @@ OIDN_NAMESPACE_BEGIN
     size_t nameSize = sizeof(name)-1;
     if (sysctlbyname("machdep.cpu.brand_string", &name, &nameSize, nullptr, 0) == 0 && strlen(name) > 0)
       return name;
-  #else
+  #elif !defined(OIDN_ARCH_ARM64)
     int regs[3][4];
     char name[sizeof(regs)+1] = {};
 
@@ -72,6 +74,9 @@ OIDN_NAMESPACE_BEGIN
       if (strlen(name) > 0)
         return name;
     }
+  #elif defined(OIDN_ARCH_ARM64)
+    Xbyak_aarch64::util::Cpu cpu;
+    return "ARM64-Based CPU (" + std::to_string(cpu.getNumCores(Xbyak_aarch64::util::Arm64CpuTopologyLevel::CoreLevel)) + " cores)";
   #endif
 
     return "CPU"; // fallback
