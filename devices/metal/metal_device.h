@@ -13,9 +13,9 @@ OIDN_NAMESPACE_BEGIN
   class MetalPhysicalDevice : public PhysicalDevice
   {
   public:
-    int deviceID;
+    id<MTLDevice> device;
 
-    MetalPhysicalDevice(int deviceID, std::string name, int score);
+    MetalPhysicalDevice(id<MTLDevice> device, int score);
   };
 
   class MetalDevice final : public Device
@@ -25,7 +25,7 @@ OIDN_NAMESPACE_BEGIN
   public:
     static std::vector<Ref<PhysicalDevice>> getPhysicalDevices();
 
-    MetalDevice(int deviceID = 0);
+    MetalDevice();
     MetalDevice(const Ref<MetalPhysicalDevice>& physicalDevice);
     ~MetalDevice();
 
@@ -42,10 +42,6 @@ OIDN_NAMESPACE_BEGIN
     id<MTLDevice> getMTLDevice() const { return device; }
 
     Storage getPtrStorage(const void* ptr) override;
-
-    int getInt(const std::string& name) override;
-    void setInt(const std::string& name, int value) override;
-
     bool isMemoryUsageLimitSupported() const override { return false; }
 
     void wait() override;
@@ -57,7 +53,7 @@ OIDN_NAMESPACE_BEGIN
     Ref<MetalEngine> engine;
 
     int deviceID = 0;
-    id<MTLDevice> device;
+    id<MTLDevice> device = nil;
   };
 
 OIDN_NAMESPACE_END

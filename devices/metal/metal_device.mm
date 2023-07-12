@@ -7,11 +7,11 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  MetalPhysicalDevice::MetalPhysicalDevice(int deviceID, std::string name, int score)
+  MetalPhysicalDevice::MetalPhysicalDevice(id<MTLDevice> device, int score)
     : PhysicalDevice(DeviceType::Metal, score),
-      deviceID(deviceID)
+      device(device)
   {
-    this->name = name;
+    name = [[device name] UTF8String];
   }
 
   std::vector<Ref<PhysicalDevice>> MetalDevice::getPhysicalDevices()
@@ -20,42 +20,48 @@ OIDN_NAMESPACE_BEGIN
     {
       std::vector<Ref<PhysicalDevice>> physicalDevices;
       NSArray* devices = [MTLCopyAllDevices() autorelease];
-      int numDevice = (int)[devices count];
-      for (int deviceID = 0 ; deviceID < numDevice ; deviceID++)
+      const int numDevices = static_cast<int>([devices count]);
+      for (int deviceID = 0; deviceID < numDevices; ++deviceID)
       {
-        id<MTLDevice>  device = devices[deviceID];
-        int score = (19 << 16) - 1 - deviceID;
-        std::string name = std::string([[device name] UTF8String]);
-        physicalDevices.push_back(makeRef<MetalPhysicalDevice>(deviceID, name, score));
+        id<MTLDevice> device = devices[deviceID];
+        const int score = (2 << 16) - 1 - deviceID;
+        physicalDevices.push_back(makeRef<MetalPhysicalDevice>(device, score));
       }
       return physicalDevices;
     }
   }
 
-  MetalDevice::MetalDevice(int deviceID)
-    : deviceID(deviceID)
+  MetalDevice::MetalDevice()
   {
     @autoreleasepool
     {
-      device = mtlDevice(deviceID);
+      device = MTLCreateSystemDefaultDevice();
+      if (!device)
+        throw Exception(Error::UnsupportedHardware, "could not create default Metal device");
     }
   }
 
   MetalDevice::MetalDevice(const Ref<MetalPhysicalDevice>& physicalDevice)
-    : deviceID(physicalDevice->deviceID)
-  {
-    @autoreleasepool
-    {
-      device = mtlDevice(deviceID);
-    }
-  }
+    : device(physicalDevice->device)
+  {}
 
   MetalDevice::~MetalDevice()
   {
+    [device release];
   }
 
   void MetalDevice::init()
   {
+    // Print device info
+    if (isVerbose())
+    {
+      const std::string name = [[device name] UTF8String];
+
+      std::cout << "  Device    : " << name << std::endl;
+      std::cout << "    Type    : Metal" << std::endl;
+    }
+
+    // Set device properties
     tensorLayout = TensorLayout::hwc;
     weightLayout = TensorLayout::oihw;
     tensorBlockC = 1;
@@ -73,17 +79,6 @@ OIDN_NAMESPACE_BEGIN
   {
     // USM not supported by Metal
     return Storage::Undefined;
-  }
-
-  int MetalDevice::getInt(const std::string& name)
-  {
-      // TODO: Need to implement something
-      return 0;
-  }
-
-  void MetalDevice::setInt(const std::string& name, int value)
-  {
-    // TODO: Need to implement something
   }
 
   void MetalDevice::wait()

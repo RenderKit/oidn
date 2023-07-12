@@ -9,15 +9,8 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  id<MTLDevice> mtlDevice(int deviceID)
+  MPSDataType toMPSDataType(DataType dataType)
   {
-    NSArray* devices = [MTLCopyAllDevices() autorelease];
-    int numDevice = (int)[devices count];
-    assert(deviceID < numDevice);
-    return [devices[deviceID] retain];
-  }
-
-  MPSDataType toMPSDataType(DataType dataType) {
     switch (dataType)
     {
     case DataType::Float32:

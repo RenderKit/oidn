@@ -19,8 +19,6 @@ OIDN_NAMESPACE_BEGIN
   struct PoolDesc;
   struct ConvDesc;
 
-  id<MTLDevice> mtlDevice(int deviceID);
-
   MPSDataType toMPSDataType(DataType dataType);
   MPSShape* toMPSShape(const TensorDesc& td);
 
