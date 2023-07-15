@@ -165,7 +165,7 @@ OIDN_NAMESPACE_BEGIN
           autoexposure->setSrc(color);
           autoexposure->submit();
           progress.update(mainEngine, 1);
-          transferFunc->setInputScale(autoexposure->getResult());
+          transferFunc->setInputScale(autoexposure->getDstPtr());
         }
         else
         {
@@ -455,7 +455,8 @@ OIDN_NAMESPACE_BEGIN
       auto& graph = instance.graph;
 
       // Create the model graph
-      auto inputProcess = graph->addInputProcess("input", inputDims, tileAlignment, transferFunc, hdr, snorm);
+      auto inputProcess = graph->addInputProcess("input", inputDims, tileAlignment,
+                                                 transferFunc, hdr, snorm);
 
       auto encConv0 = graph->addConv("enc_conv0", inputProcess, Activation::ReLU);
 
@@ -512,11 +513,21 @@ OIDN_NAMESPACE_BEGIN
         scratchByteSize += round_up(outputTempDesc.getByteSize(), memoryAlignment);
       }
 
+      // If denoising in HDR mode, allocate a tensor for the autoexposure result
+      size_t autoexposureDstOffset = SIZE_MAX;
+      if (instanceID == 0 && hdr)
+      {
+        autoexposureDstOffset = scratchByteSize;
+        scratchByteSize = round_up(scratchByteSize + autoexposure->getDstDesc().getByteSize(),
+                                   memoryAlignment);
+      }
+
       // Check the total memory usage
       if (instanceID == 0)
       {
-        totalMemoryByteSize = scratchByteSize + graph->getPrivateByteSize() +
-                              (graphScratchByteSize + graph->getPrivateByteSize()) * (device->getNumEngines() - 1);
+        totalMemoryByteSize = (scratchByteSize + graph->getPrivateByteSize()) +
+          (graphScratchByteSize + graph->getPrivateByteSize()) * (device->getNumEngines() - 1);
+
         if (totalMemoryByteSize > maxMemoryByteSize)
         {
           resetModel();
@@ -530,7 +541,10 @@ OIDN_NAMESPACE_BEGIN
       // Set the scratch buffer for the graph and the global operations
       graph->setScratch(scratch);
       if (instanceID == 0 && hdr)
+      {
         autoexposure->setScratch(scratch);
+        autoexposure->setDst(scratch->newTensor(autoexposure->getDstDesc(), autoexposureDstOffset));
+      }
 
       // Finalize the network
       graph->finalize();

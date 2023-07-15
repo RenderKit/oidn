@@ -41,8 +41,8 @@ OIDN_NAMESPACE_BEGIN
     virtual Engine* getEngine() const = 0;
     Device* getDevice() const;
 
-    virtual bool hasPtr() const = 0;  // not all buffers have a pointer to their data
-    virtual char* getPtr() const = 0; // nullptr if !hasPtr()
+    virtual char* getPtr() const = 0;     // pointer in device address space
+    virtual char* getHostPtr() const = 0; // pointer in host address space if available, nullptr otherwise
     virtual size_t getByteSize() const = 0;
     virtual Storage getStorage() const = 0;
 
@@ -77,10 +77,10 @@ OIDN_NAMESPACE_BEGIN
 
     Engine* getEngine() const override { return buffer->getEngine(); }
 
-    bool hasPtr() const override { return true; }
     char* getPtr() const override { return ptr; }
+    char* getHostPtr() const override { return ptr; }
     size_t getByteSize() const override { return byteSize; }
-    Storage getStorage() const override { return Storage::Host; }
+    Storage getStorage() const override { return Storage::Undefined; }
 
   private:
     char* ptr;
@@ -102,8 +102,8 @@ OIDN_NAMESPACE_BEGIN
 
     Engine* getEngine() const override { return engine.get(); }
 
-    bool hasPtr() const override { return true; }
     char* getPtr() const override { return ptr; }
+    char* getHostPtr() const override { return ptr; }
     size_t getByteSize() const override { return byteSize; }
     Storage getStorage() const override { return storage; }
 

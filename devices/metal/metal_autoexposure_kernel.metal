@@ -38,9 +38,9 @@ void autoexposure_downsample(const device ImageDataT* src,
 
   const int localId = lid.x + lid.y * tpg.x;
   const int localLinearId = gid.x + gid.y * tgpg.x;
-  
+
   const int groupSize = tpg.x * tpg.y;
-  
+
   float L;
   if (h < endH && w < endW)
   {
@@ -51,9 +51,9 @@ void autoexposure_downsample(const device ImageDataT* src,
   }
   else
     L = 0;
-  
+
   scratch[localId] = L;
-  
+
   for (int i = groupSize / 2; i > 0; i >>= 1)
   {
     if (localId < i)
@@ -62,9 +62,9 @@ void autoexposure_downsample(const device ImageDataT* src,
       scratch[localId] += scratch[localId + i];
     }
   }
-  
+
   threadgroup_barrier(mem_flags::mem_threadgroup);
-  
+
   if (localId == 0)
   {
     const float avgL = scratch[0] / float((endH - beginH) * (endW - beginW));
@@ -96,6 +96,7 @@ kernel void autoexposure_downsample(const device void* src,
 kernel void autoexposure_reduce(const device float* bins,
                                 device float* sums,
                                 device float* counts,
+                                device float* result,
                                 constant AutoexposureParams* params,
                                 uint gid [[ threadgroup_position_in_grid ]],
                                 uint lid [[ thread_position_in_threadgroup ]],
@@ -107,7 +108,7 @@ kernel void autoexposure_reduce(const device float* bins,
   const int localId = lid;
   const int offset = localId * size;
   const int groupSize = tpg;
-  
+
   float sum = 0;
   int count = 0;
   for (int i = offset; i < (offset + size); i++)
@@ -119,10 +120,10 @@ kernel void autoexposure_reduce(const device float* bins,
       count++;
     }
   }
-  
+
   sums[localId] = sum;
   counts[localId] = count;
-  
+
   for (int i = groupSize / 2; i > 0; i >>= 1)
   {
     threadgroup_barrier(mem_flags::mem_threadgroup);
@@ -132,4 +133,9 @@ kernel void autoexposure_reduce(const device float* bins,
       counts[localId] += counts[localId + i];
     }
   }
+
+  constexpr float key = 0.18f;
+
+  if (localId == 0)
+    *result = (counts[0] > 0) ? (key / exp2(sums[0] / float(counts[0]))) : 1.f;
 }

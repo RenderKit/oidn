@@ -223,16 +223,19 @@ OIDN_NAMESPACE_BEGIN
   class GenericTensor final : public Tensor
   {
   public:
+    explicit GenericTensor(const TensorDesc& desc);
     GenericTensor(const TensorDesc& desc, void* data);
     GenericTensor(const Ref<Engine>& engine, const TensorDesc& desc, Storage storage);
     GenericTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset = 0);
+    ~GenericTensor();
 
     void* getPtr() const override { return ptr; }
 
   private:
     void updatePtr() override;
 
-    void* ptr; // pointer to the tensor data (optional)
+    void* ptr;   // pointer to the tensor data
+    bool shared; // data owned and shared by someone else (buffer or user pointer)
   };
 
   using TensorMap = std::unordered_map<std::string, std::shared_ptr<Tensor>>;

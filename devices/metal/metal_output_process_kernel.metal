@@ -18,30 +18,39 @@ void output_kernel(device const TensorDataT* src,
   {
     return;
   }
-  
+
   auto transferFunction = TransferFunction<TensorDataT>(params->func, params->normScale);
-  
+
+  float outputScale;
+  if (params->inputScalePtr)
+  {
+    const float inputScale = *params->inputScalePtr;
+    outputScale = (inputScale != 0.f) ? (1.f / inputScale) : 0.f;
+  }
+  else
+    outputScale = params->outputScale;
+
   int offset = (gid.x + gid.y * params->W) * params->C;
-  
+
   for (int c = 0; c < params->C; c++)
   {
     float value = src[offset + c];
-    
+
     value = clamp(nan_to_zero(value), 0.f, POS_MAX);
-    
+
     value = transferFunction.inverse(value);
-    
+
     if (params->snorm)
     {
       value = value * 2.f - 1.f;
       value = max(value, -1.f);
     }
-    
+
     if (!params->hdr)
       value = min(value, 1.f);
-    
-    value = value * params->outputScale;
-    
+
+    value = value * outputScale;
+
     dst[offset + c] = value;
   }
 }

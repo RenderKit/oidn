@@ -34,18 +34,20 @@ OIDN_NAMESPACE_BEGIN
 
     ~MetalGraph();
 
-    std::shared_ptr<InputProcess> addInputProcess(const std::string& name,
-                                                  const TensorDims& srcDims,
-                                                  int tileAlignment,
-                                                  const std::shared_ptr<TransferFunction>& transferFunc,
-                                                  bool hdr,
-                                                  bool snorm) override;
+    std::shared_ptr<InputProcess> addInputProcess(
+                                    const std::string& name,
+                                    const TensorDims& srcDims,
+                                    int tileAlignment,
+                                    const std::shared_ptr<TransferFunction>& transferFunc,
+                                    bool hdr,
+                                    bool snorm) override;
 
-    std::shared_ptr<OutputProcess> addOutputProcess(const std::string& name,
-                                                    const std::shared_ptr<Op>& srcOp,
-                                                    const std::shared_ptr<TransferFunction>& transferFunc,
-                                                    bool hdr,
-                                                    bool snorm) override;
+    std::shared_ptr<OutputProcess> addOutputProcess(
+                                     const std::string& name,
+                                     const std::shared_ptr<Op>& srcOp,
+                                     const std::shared_ptr<TransferFunction>& transferFunc,
+                                     bool hdr,
+                                     bool snorm) override;
 
     std::shared_ptr<Op> addConv(const std::string& name,
                                 const std::shared_ptr<Op>& srcOp,

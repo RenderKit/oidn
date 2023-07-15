@@ -40,8 +40,8 @@ set(OIDN_METAL_SOURCES
 )
 
 # Set metal version
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=macos-metal2.0")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=macos-metal2.0")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=metal3.0")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=metal3.0")
 
 add_library(OpenImageDenoise_device_metal SHARED ${OIDN_METAL_SOURCES} ${OIDN_RESOURCE_FILE})
 set_property(TARGET OpenImageDenoise_device_metal PROPERTY VERSION ${PROJECT_VERSION})

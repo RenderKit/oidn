@@ -57,15 +57,14 @@ OIDN_NAMESPACE_BEGIN
     buffer = nullptr;
   }
 
-  bool MetalBuffer::hasPtr() const
-  {
-    // Metal buffers with device/private storage do not have a pointer
-    return storage != Storage::Device;
-  }
-
   char* MetalBuffer::getPtr() const
   {
-    return static_cast<char*>([buffer contents]);
+    return reinterpret_cast<char*>([buffer gpuAddress]);
+  }
+
+  char* MetalBuffer::getHostPtr() const
+  {
+    return storage != Storage::Device ? static_cast<char*>([buffer contents]) : nullptr;
   }
 
   void MetalBuffer::read(size_t byteOffset, size_t byteSize, void* dstHostPtr, SyncMode sync)

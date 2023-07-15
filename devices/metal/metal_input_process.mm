@@ -118,8 +118,9 @@ OIDN_NAMESPACE_BEGIN
     params.hdr = hdr;
     params.snorm = snorm;
     params.func = toTransferFunctionType(transferFunc->getType());
-    params.inputScale = transferFunc->getInputScale();
-    params.outputScale = transferFunc->getOutputScale();
+    params.inputScalePtr = transferFunc->inputScalePtr;
+    params.inputScale = transferFunc->inputScale;
+    params.outputScale = transferFunc->outputScale;
     params.normScale = transferFunc->getNormScale();
     params.color = color ? true : false;
     params.albedo = albedo ? true : false;

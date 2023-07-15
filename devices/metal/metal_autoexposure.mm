@@ -9,7 +9,6 @@ OIDN_NAMESPACE_BEGIN
   MetalAutoexposure::MetalAutoexposure(const Ref<MetalEngine>& engine, const ImageDesc& srcDesc)
     : Autoexposure(srcDesc),
       engine(engine),
-      result(0),
       pipelineDownsample(nullptr), pipelineReduce(nullptr),
       paramsBuffer(nullptr) {}
 
@@ -34,19 +33,17 @@ OIDN_NAMESPACE_BEGIN
 
   void MetalAutoexposure::finalize()
   {
-    @autoreleasepool {
-      id<MTLDevice> device = engine->getMTLDevice();
+    id<MTLDevice> device = engine->getMTLDevice();
 
-      pipelineDownsample = engine->newMTLComputePipelineState("autoexposure_downsample");
-      pipelineReduce = engine->newMTLComputePipelineState("autoexposure_reduce");
+    pipelineDownsample = engine->newMTLComputePipelineState("autoexposure_downsample");
+    pipelineReduce = engine->newMTLComputePipelineState("autoexposure_reduce");
 
-      paramsBuffer = [device newBufferWithLength: sizeof(ProcessParams)
-                                         options: MTLResourceStorageModeShared];
+    paramsBuffer = [device newBufferWithLength: sizeof(ProcessParams)
+                                       options: MTLResourceStorageModeShared];
 
-      binsTensor = engine->newTensor({{numBins}, TensorLayout::x, DataType::Float32});
-      sumsTensor = engine->newTensor({{numBins / maxBinSize}, TensorLayout::x, DataType::Float32}, Storage::Host);
-      countsTensor = engine->newTensor({{numBins / maxBinSize}, TensorLayout::x, DataType::Float32}, Storage::Host);
-    }
+    binsTensor = engine->newTensor({{numBins}, TensorLayout::x, DataType::Float32});
+    sumsTensor = engine->newTensor({{numBins / maxBinSize}, TensorLayout::x, DataType::Float32}, Storage::Host);
+    countsTensor = engine->newTensor({{numBins / maxBinSize}, TensorLayout::x, DataType::Float32}, Storage::Host);
   }
 
   void MetalAutoexposure::submit()
@@ -130,6 +127,10 @@ OIDN_NAMESPACE_BEGIN
                        offset: 0
                       atIndex: index++];
 
+    [computeEncoder setBuffer: getMTLBuffer(dst->getBuffer())
+                       offset: dst->getByteOffset()
+                      atIndex: index++];
+
     [computeEncoder setBuffer: paramsBuffer
                        offset: 0
                       atIndex: index++];
@@ -143,12 +144,6 @@ OIDN_NAMESPACE_BEGIN
 
     [computeEncoder endEncoding];
     [commandBuffer commit];
-    engine->wait(); // FIXME!!!
-
-    float sum = ((float*)[sums contents])[0];
-    float count = ((float*)[counts contents])[0];
-
-    result = (count > 0) ? (Autoexposure::key / math::exp2(sum / float(count))) : 1.f;
   }
 
   AutoexposureParams MetalAutoexposure::createProcessParams()

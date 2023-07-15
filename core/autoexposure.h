@@ -5,6 +5,7 @@
 
 #include "op.h"
 #include "image.h"
+#include "tensor.h"
 
 OIDN_NAMESPACE_BEGIN
 
@@ -15,8 +16,9 @@ OIDN_NAMESPACE_BEGIN
     static constexpr float key = 0.18f;
     static constexpr float eps = 1e-8f;
 
-    Autoexposure(const ImageDesc& srcDesc)
-      : srcDesc(srcDesc)
+    explicit Autoexposure(const ImageDesc& srcDesc)
+      : srcDesc(srcDesc),
+        dstDesc({1}, TensorLayout::x, DataType::Float32)
     {
       numBinsH = ceil_div(srcDesc.getH(), maxBinSize);
       numBinsW = ceil_div(srcDesc.getW(), maxBinSize);
@@ -27,16 +29,28 @@ OIDN_NAMESPACE_BEGIN
     {
       if (!src || src->getW() != srcDesc.getW() || src->getH() != srcDesc.getH())
         throw std::invalid_argument("invalid autoexposure source");
-
       this->src = src;
     }
 
-    // Returns pointer to the result in device memory
-    virtual const float* getResult() const = 0;
+    void setDst(const std::shared_ptr<Tensor>& dst)
+    {
+      if (!dst || dst->getDesc() != dstDesc)
+        throw std::invalid_argument("invalid autoexposure destination");
+      this->dst = dst;
+    }
+
+    TensorDesc getDstDesc() const { return dstDesc; }
+
+    float* getDstPtr() const
+    {
+      return static_cast<float*>(dst->getPtr());
+    }
 
   protected:
     ImageDesc srcDesc;
+    TensorDesc dstDesc;
     std::shared_ptr<Image> src;
+    std::shared_ptr<Tensor> dst;
 
     int numBinsH;
     int numBinsW;

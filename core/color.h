@@ -20,7 +20,8 @@ OIDN_NAMESPACE_BEGIN
 
     static constexpr float yMax = 65504.f; // maximum HDR value
 
-  private:
+  //private:
+  public: // FIXME!
     Type type;
     const float* inputScalePtr = nullptr;
     float inputScale   = 1.f;

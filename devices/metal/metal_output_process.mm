@@ -97,8 +97,9 @@ OIDN_NAMESPACE_BEGIN
     params.snorm = snorm;
     params.normScale = transferFunc->getNormScale();
     params.func = toTransferFunctionType(transferFunc->getType());
-    params.inputScale = transferFunc->getInputScale();
-    params.outputScale = transferFunc->getOutputScale();
+    params.inputScalePtr = transferFunc->inputScalePtr;
+    params.inputScale = transferFunc->inputScale;
+    params.outputScale = transferFunc->outputScale;
     params.inputDataType = toDataType(src->getDataType());
     params.outputDataType = toDataType(dst->getDataType());
     return params;

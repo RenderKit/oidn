@@ -43,8 +43,8 @@ OIDN_NAMESPACE_BEGIN
 
     Engine* getEngine() const override { return manager->buffer->getEngine(); }
 
-    bool hasPtr() const override { return manager->buffer->hasPtr(); }
     char* getPtr() const override { return manager->buffer->getPtr(); }
+    char* getHostPtr() const override { return manager->buffer->getHostPtr(); }
     size_t getByteSize() const override { return localSize; }
     Storage getStorage() const override { return manager->buffer->getStorage(); }
 

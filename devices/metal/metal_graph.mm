@@ -36,12 +36,13 @@ OIDN_NAMESPACE_BEGIN
     return dstNode;
   }
 
-  std::shared_ptr<InputProcess> MetalGraph::addInputProcess(const std::string& name,
-                                                            const TensorDims& srcDims,
-                                                            int tileAlignment,
-                                                            const std::shared_ptr<TransferFunction>& transferFunc,
-                                                            bool hdr,
-                                                            bool snorm)
+  std::shared_ptr<InputProcess> MetalGraph::addInputProcess(
+                                  const std::string& name,
+                                  const TensorDims& srcDims,
+                                  int tileAlignment,
+                                  const std::shared_ptr<TransferFunction>& transferFunc,
+                                  bool hdr,
+                                  bool snorm)
   {
     if (!ops.empty())
       throw std::logic_error("input processing must be added first to the graph");
@@ -62,11 +63,12 @@ OIDN_NAMESPACE_BEGIN
     return inputProcess;
   }
 
-  std::shared_ptr<OutputProcess> MetalGraph::addOutputProcess(const std::string& name,
-                                                              const std::shared_ptr<Op>& srcOp,
-                                                              const std::shared_ptr<TransferFunction>& transferFunc,
-                                                              bool hdr,
-                                                              bool snorm)
+  std::shared_ptr<OutputProcess> MetalGraph::addOutputProcess(
+                                   const std::string& name,
+                                   const std::shared_ptr<Op>& srcOp,
+                                   const std::shared_ptr<TransferFunction>& transferFunc,
+                                   bool hdr,
+                                   bool snorm)
   {
     if (!inputProcess || outputProcess)
       throw std::logic_error("output processing must be added last to the graph");
@@ -119,11 +121,11 @@ OIDN_NAMESPACE_BEGIN
     lazyInits.push_back([=]()
     {
       // Reorder the weight tensor
-      auto finalHostWeight = engine->newTensor(finalWeightDesc, Storage::Host);
+      auto finalHostWeight = std::make_shared<GenericTensor>(finalWeightDesc);
       reorderWeight(*weight, *finalHostWeight);
 
       // Reorder the bias tensor
-      auto finalHostBias = engine->newTensor(finalBiasDesc, Storage::Host);
+      auto finalHostBias = std::make_shared<GenericTensor>(finalBiasDesc);
       reorderBias(*bias, *finalHostBias);
 
       auto finalWeight = toMPSGraphTensor(graph, finalHostWeight);

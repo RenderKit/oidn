@@ -158,7 +158,6 @@ OIDN_NAMESPACE_BEGIN
     {
       numGroups = min(ceil_div(numBins, groupSize), groupSize);
       scratchByteSize = numBins * sizeof(float) + numGroups * (sizeof(float) + sizeof(int));
-      resultBuffer = engine->newBuffer(sizeof(float), Storage::Device);
     }
 
     size_t getScratchByteSize() const override
@@ -177,6 +176,8 @@ OIDN_NAMESPACE_BEGIN
     {
       if (!src)
         throw std::logic_error("autoexposure source not set");
+      if (!dst)
+        throw std::logic_error("autoexposure destination not set");
       if (!scratch)
         throw std::logic_error("autoexposure scratch not set");
 
@@ -200,16 +201,13 @@ OIDN_NAMESPACE_BEGIN
       reduceFinal.sums   = sums;
       reduceFinal.counts = counts;
       reduceFinal.size   = numGroups;
-      reduceFinal.result = (float*)resultBuffer->getPtr();
+      reduceFinal.result = getDstPtr();
       engine->submitKernel(WorkDim<1>(1), WorkDim<1>(groupSize), reduceFinal);
     }
-
-    const float* getResult() const override { return (float*)resultBuffer->getPtr(); }
 
   private:
     Ref<EngineT> engine;
     int numGroups;
-    Ref<Buffer> resultBuffer;
     size_t scratchByteSize;
     Ref<Buffer> scratch;
   };

@@ -25,27 +25,34 @@ struct Tile
   int32_t W;
 };
 
+#if defined(__METAL_VERSION__)
+  #define OIDN_GLOBAL device
+#else
+  #define OIDN_GLOBAL
+#endif
+
 struct ProcessParams {
+  const OIDN_GLOBAL float*                inputScalePtr;
   float                 inputScale;
   float                 outputScale;
-    
+
   float                 normScale;
-  
+
   bool                  snorm;
   bool                  hdr;
-  
+
   TransferFunctionType  func;
-  
+
   int32_t               C;
   int32_t               H;
   int32_t               W;
-  
+
   Tile                  tile;
-  
+
   bool                  color;
   bool                  albedo;
   bool                  normal;
-    
+
   KernelDataType        inputDataType;
   KernelDataType        outputDataType;
 };
@@ -53,12 +60,12 @@ struct ProcessParams {
 struct AutoexposureParams {
   int32_t               H;
   int32_t               W;
-  
+
   int32_t               numBinsH;
   int32_t               numBinsW;
-  
+
   int32_t               maxBinSize;
-  
+
   KernelDataType        inputDataType;
 };
 

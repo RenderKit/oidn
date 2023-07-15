@@ -9,13 +9,14 @@ OIDN_NAMESPACE_BEGIN
 
   CPUAutoexposure::CPUAutoexposure(const Ref<CPUEngine>& engine, const ImageDesc& srcDesc)
     : Autoexposure(srcDesc),
-      engine(engine),
-      result(0) {}
+      engine(engine) {}
 
   void CPUAutoexposure::submit()
   {
     if (!src)
       throw std::logic_error("autoexposure source not set");
+    if (!dst)
+      throw std::logic_error("autoexposure destination not set");
 
     // Downsample the image to minimize sensitivity to noise
     ispc::ImageAccessor srcAcc = toISPC(*src);
@@ -56,7 +57,7 @@ OIDN_NAMESPACE_BEGIN
         [](Sum a, Sum b) -> Sum { return Sum(a.first+b.first, a.second+b.second); }
       );
 
-    result = (sum.second > 0) ? (key / math::exp2(sum.first / float(sum.second))) : 1.f;
+    *getDstPtr() = (sum.second > 0) ? (key / math::exp2(sum.first / float(sum.second))) : 1.f;
   }
 
 OIDN_NAMESPACE_END

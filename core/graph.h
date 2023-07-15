@@ -15,18 +15,20 @@ OIDN_NAMESPACE_BEGIN
   class Graph
   {
   public:
-    virtual std::shared_ptr<InputProcess> addInputProcess(const std::string& name,
-                                                          const TensorDims& srcDims,
-                                                          int tileAlignment,
-                                                          const std::shared_ptr<TransferFunction>& transferFunc,
-                                                          bool hdr,
-                                                          bool snorm) = 0;
+    virtual std::shared_ptr<InputProcess> addInputProcess(
+                                            const std::string& name,
+                                            const TensorDims& srcDims,
+                                            int tileAlignment,
+                                            const std::shared_ptr<TransferFunction>& transferFunc,
+                                            bool hdr,
+                                            bool snorm) = 0;
 
-    virtual std::shared_ptr<OutputProcess> addOutputProcess(const std::string& name,
-                                                            const std::shared_ptr<Op>& srcOp,
-                                                            const std::shared_ptr<TransferFunction>& transferFunc,
-                                                            bool hdr,
-                                                            bool snorm) = 0;
+    virtual std::shared_ptr<OutputProcess> addOutputProcess(
+                                             const std::string& name,
+                                             const std::shared_ptr<Op>& srcOp,
+                                             const std::shared_ptr<TransferFunction>& transferFunc,
+                                             bool hdr,
+                                             bool snorm) = 0;
 
     virtual std::shared_ptr<Op> addConv(const std::string& name,
                                         const std::shared_ptr<Op>& srcOp,

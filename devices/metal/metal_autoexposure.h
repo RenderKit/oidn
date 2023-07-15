@@ -17,8 +17,6 @@ OIDN_NAMESPACE_BEGIN
     void finalize() override;
     void submit() override;
 
-    const float* getResult() const override { return &result; }
-
   private:
     void cleanup();
     void downsample();
@@ -27,7 +25,6 @@ OIDN_NAMESPACE_BEGIN
 
   private:
     Ref<MetalEngine> engine;
-    float result;
 
     id<MTLComputePipelineState> pipelineDownsample;
     id<MTLComputePipelineState> pipelineReduce;
