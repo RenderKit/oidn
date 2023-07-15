@@ -159,7 +159,7 @@ double runBenchmark(DeviceRef& device, const Benchmark& bench)
 
   filter.commit();
 
-  auto executeFilter = [&]()
+  auto executeFilterAsync = [&]()
   {
     if (bufferCopy)
     {
@@ -183,18 +183,18 @@ double runBenchmark(DeviceRef& device, const Benchmark& bench)
     numBenchmarkRuns = std::max(numRuns - 1, 1);
     const int numWarmupRuns = numRuns - numBenchmarkRuns;
     for (int i = 0; i < numWarmupRuns; ++i)
-      executeFilter();
+      executeFilterAsync();
     device.sync();
   }
   else
   {
     // First warmup run
-    executeFilter();
+    executeFilterAsync();
     device.sync();
 
     // Second warmup run, measure time
     Timer timer;
-    executeFilter();
+    executeFilterAsync();
     device.sync();
     double warmupTime = timer.query();
 
@@ -204,14 +204,20 @@ double runBenchmark(DeviceRef& device, const Benchmark& bench)
 
   // Benchmark loop
   Timer timer;
+  Timer asyncTimer;
+  double totalAsyncTime = 0;
 
   #ifdef VTUNE
     __itt_resume();
   #endif
 
   for (int i = 0; i < numBenchmarkRuns; ++i)
-    executeFilter();
-  device.sync();
+  {
+    asyncTimer.reset();
+    executeFilterAsync();
+    totalAsyncTime += asyncTimer.query();
+    device.sync();
+  }
 
   #ifdef VTUNE
     __itt_pause();
@@ -220,7 +226,10 @@ double runBenchmark(DeviceRef& device, const Benchmark& bench)
   // Print results
   const double totalTime = timer.query();
   const double avgTime = totalTime / numBenchmarkRuns;
-  std::cout << " " << avgTime * 1000. << " msec/image" << std::endl;
+  const double avgAsyncTime = totalAsyncTime / numBenchmarkRuns;
+  std::cout << " " << avgTime * 1000 << " msec/image"
+            << " (host " << avgAsyncTime * 1000 << " msec/image)"
+            << std::endl;
 
   return totalTime;
 }
