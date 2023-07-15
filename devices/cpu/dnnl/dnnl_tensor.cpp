@@ -19,7 +19,7 @@ OIDN_NAMESPACE_BEGIN
 
     mem = dnnl::memory(toDNNL(getDesc()),
                        static_cast<DNNLEngine*>(buffer->getEngine())->getDNNLEngine(),
-                       buffer->getPtr() + byteOffset);
+                       static_cast<char*>(buffer->getPtr()) + byteOffset);
   }
 
   void DNNLTensor::updatePtr()
@@ -29,7 +29,7 @@ OIDN_NAMESPACE_BEGIN
       if (byteOffset + getByteSize() > buffer->getByteSize())
         throw std::range_error("buffer region out of range");
 
-      mem.set_data_handle(buffer->getPtr() + byteOffset);
+      mem.set_data_handle(static_cast<char*>(buffer->getPtr()) + byteOffset);
     }
   }
 

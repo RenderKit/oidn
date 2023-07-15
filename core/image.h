@@ -114,7 +114,7 @@ OIDN_NAMESPACE_BEGIN
     bool overlaps(const Image& other) const;
 
   private:
-    char* ptr; // pointer to the first pixel (optional)
+    char* ptr; // pointer to the first pixel
   };
 
 OIDN_NAMESPACE_END

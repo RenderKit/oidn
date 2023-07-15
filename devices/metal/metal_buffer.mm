@@ -57,14 +57,14 @@ OIDN_NAMESPACE_BEGIN
     buffer = nullptr;
   }
 
-  char* MetalBuffer::getPtr() const
+  void* MetalBuffer::getPtr() const
   {
-    return reinterpret_cast<char*>([buffer gpuAddress]);
+    return reinterpret_cast<void*>([buffer gpuAddress]);
   }
 
-  char* MetalBuffer::getHostPtr() const
+  void* MetalBuffer::getHostPtr() const
   {
-    return storage != Storage::Device ? static_cast<char*>([buffer contents]) : nullptr;
+    return storage != Storage::Device ? [buffer contents] : nullptr;
   }
 
   void MetalBuffer::read(size_t byteOffset, size_t byteSize, void* dstHostPtr, SyncMode sync)

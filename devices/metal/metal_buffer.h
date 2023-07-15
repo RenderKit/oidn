@@ -20,8 +20,8 @@ OIDN_NAMESPACE_BEGIN
     Engine* getEngine() const override { return (Engine*)engine.get(); }
     id<MTLBuffer> getMTLBuffer() const { return buffer; }
 
-    char* getPtr() const override;
-    char* getHostPtr() const override;
+    void* getPtr() const override;
+    void* getHostPtr() const override;
     size_t getByteSize() const override { return byteSize; }
     Storage getStorage() const override { return storage; }
 

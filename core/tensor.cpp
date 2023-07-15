@@ -113,7 +113,7 @@ OIDN_NAMESPACE_BEGIN
     if (byteOffset + getByteSize() > buffer->getByteSize())
       throw Exception(Error::InvalidArgument, "buffer region out of range");
 
-    ptr = buffer->getPtr() + byteOffset;
+    ptr = static_cast<char*>(buffer->getPtr()) + byteOffset;
   }
 
   GenericTensor::~GenericTensor()
@@ -129,7 +129,7 @@ OIDN_NAMESPACE_BEGIN
       if (byteOffset + getByteSize() > buffer->getByteSize())
         throw std::range_error("buffer region out of range");
 
-      ptr = buffer->getPtr() + byteOffset;
+      ptr = static_cast<char*>(buffer->getPtr()) + byteOffset;
     }
   }
 
