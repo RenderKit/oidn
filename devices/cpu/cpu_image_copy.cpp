@@ -12,10 +12,7 @@ OIDN_NAMESPACE_BEGIN
 
   void CPUImageCopy::submit()
   {
-    if (!src || !dst)
-      throw std::logic_error("image copy source/destination not set");
-    if (dst->getH() < src->getH() || dst->getW() < src->getW())
-      throw std::out_of_range("image copy destination smaller than the source");
+    check();
 
     ispc::CPUImageCopyKernel kernel;
     kernel.src = toISPC(*src);

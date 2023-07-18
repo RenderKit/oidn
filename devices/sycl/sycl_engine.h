@@ -44,53 +44,67 @@ OIDN_NAMESPACE_BEGIN
     void submitUSMCopy(void* dstPtr, const void* srcPtr, size_t byteSize) override;
 
     // Enqueues a basic kernel
-    template<int N, typename F>
-    OIDN_INLINE void submitKernel(WorkDim<N> globalSize, const F& f)
+    template<int N, typename Kernel>
+    OIDN_INLINE void submitKernel(WorkDim<N> globalSize, const Kernel& kernel)
     {
-      lastEvent = syclQueue.parallel_for<F>(
+      lastEvent = syclQueue.parallel_for<Kernel>(
         globalSize,
         getDepEvents(),
-        [=](sycl::item<N> it) { f(it); });
+        [=](sycl::item<N> it) { kernel(it); });
     }
 
     // Enqueues a work-group kernel
-    template<int N, typename F>
-    OIDN_INLINE void submitKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const F& f)
+    template<int N, typename Kernel>
+    OIDN_INLINE void submitKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const Kernel& kernel,
+                                  typename std::enable_if<!HasLocal<Kernel>::value, bool>::type = true)
     {
-      lastEvent = syclQueue.parallel_for<F>(
+      lastEvent = syclQueue.parallel_for<Kernel>(
         sycl::nd_range<N>(numGroups * groupSize, groupSize),
         getDepEvents(),
-        [=](sycl::nd_item<N> it) { f(it); });
+        [=](sycl::nd_item<N> it) { kernel(it); });
+    }
+
+    // Enqueues a work-group kernel using shared local memory
+    template<int N, typename Kernel, typename Local = typename Kernel::Local>
+    OIDN_INLINE void submitKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const Kernel& kernel)
+    {
+      lastEvent = syclQueue.parallel_for<Kernel>(
+        sycl::nd_range<N>(numGroups * groupSize, groupSize),
+        getDepEvents(),
+        [=](sycl::nd_item<N> it)
+        {
+          kernel(it, sycl::ext::oneapi::group_local_memory<Local>(it.get_group()));
+        });
     }
 
     // Enqueues a work-group kernel with explicit subgroup size
-    template<int subgroupSize, int N, typename F>
-    OIDN_INLINE void submitKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const F& f)
+    template<int subgroupSize, int N, typename Kernel>
+    OIDN_INLINE void submitKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const Kernel& kernel)
     {
-      lastEvent = syclQueue.parallel_for<F>(
+      lastEvent = syclQueue.parallel_for<Kernel>(
         sycl::nd_range<N>(numGroups * groupSize, groupSize),
         getDepEvents(),
-        [=](sycl::nd_item<N> it) [[intel::reqd_sub_group_size(subgroupSize)]] { f(it); });
+        [=](sycl::nd_item<N> it) [[intel::reqd_sub_group_size(subgroupSize)]] { kernel(it); });
     }
 
     // Enqueues a basic ESIMD kernel
-    template<int N, typename F>
-    OIDN_INLINE void submitESIMDKernel(WorkDim<N> globalSize, const F& f)
+    template<int N, typename Kernel>
+    OIDN_INLINE void submitESIMDKernel(WorkDim<N> globalSize, const Kernel& kernel)
     {
-      lastEvent = syclQueue.parallel_for<F>(
+      lastEvent = syclQueue.parallel_for<Kernel>(
         globalSize,
         getDepEvents(),
-        [=](sycl::item<N> it) SYCL_ESIMD_KERNEL { f(it); });
+        [=](sycl::item<N> it) SYCL_ESIMD_KERNEL { kernel(it); });
     }
 
     // Enqueues a work-group ESIMD kernel
-    template<int N, typename F>
-    OIDN_INLINE void submitESIMDKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const F& f)
+    template<int N, typename Kernel>
+    OIDN_INLINE void submitESIMDKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const Kernel& kernel)
     {
-      lastEvent = syclQueue.parallel_for<F>(
+      lastEvent = syclQueue.parallel_for<Kernel>(
         sycl::nd_range<N>(numGroups * groupSize, groupSize),
         getDepEvents(),
-        [=](sycl::nd_item<N> it) SYCL_ESIMD_KERNEL { f(it); });
+        [=](sycl::nd_item<N> it) SYCL_ESIMD_KERNEL { kernel(it); });
     }
 
     void submitHostFunc(std::function<void()>&& f) override;

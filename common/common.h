@@ -15,15 +15,6 @@ OIDN_NAMESPACE_BEGIN
     Async // asynchronous
   };
 
-  // Data types sorted by precision in ascending order
-  enum class DataType
-  {
-    Void,
-    UInt8,
-    Float16,
-    Float32,
-  };
-
   template<typename T>
   struct DataTypeOf;
 

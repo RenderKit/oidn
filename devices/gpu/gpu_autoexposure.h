@@ -3,23 +3,29 @@
 
 #pragma once
 
-#include "core/autoexposure.h"
-#include "core/color.h"
-#include "core/kernel.h"
+#include "../../core/kernel.h"
+#include "../../core/image_accessor.h"
+#include "../../core/color.h"
+#include "../../core/autoexposure.h"
 
 OIDN_NAMESPACE_BEGIN
 
   template<int maxBinSize>
-  struct GPUAutoexposureDownsampleKernel : WorkGroup<2>
+  struct GPUAutoexposureDownsampleKernel
   {
+    static constexpr oidn_constant int groupSize = maxBinSize * maxBinSize;
+
     ImageAccessor src;
-    float* bins;
+    oidn_global float* bins;
 
-    OIDN_DEVICE_INLINE void operator ()(const WorkGroupItem<2>& it) const
+    // Shared local memory
+    struct Local
     {
-      constexpr int groupSize = maxBinSize * maxBinSize;
-      OIDN_SHARED LocalArray<float, groupSize> localSums;
+      float sums[groupSize];
+    };
 
+    OIDN_DEVICE_INLINE void operator ()(const oidn_private WorkGroupItem<2>& it, LocalPtr<Local> local) const
+    {
       const int beginH = it.getGroupID<0>() * src.H / it.getNumGroups<0>();
       const int beginW = it.getGroupID<1>() * src.W / it.getNumGroups<1>();
       const int endH = (it.getGroupID<0>()+1) * src.H / it.getNumGroups<0>();
@@ -41,42 +47,46 @@ OIDN_NAMESPACE_BEGIN
       }
 
       const int localID = it.getLocalLinearID();
-      localSums[localID] = L;
+      local->sums[localID] = L;
 
       for (int i = groupSize / 2; i > 0; i >>= 1)
       {
         it.groupBarrier();
         if (localID < i)
-          localSums[localID] += localSums[localID + i];
+          local->sums[localID] += local->sums[localID + i];
       }
 
       if (localID == 0)
       {
-        const float avgL = localSums[0] / float((endH - beginH) * (endW - beginW));
+        const float avgL = local->sums[0] / float((endH - beginH) * (endW - beginW));
         bins[it.getGroupLinearID()] = avgL;
       }
     }
   };
 
   template<int groupSize>
-  struct GPUAutoexposureReduceKernel : WorkGroup<1>
+  struct GPUAutoexposureReduceKernel
   {
-    const float* bins;
+    const oidn_global float* bins;
     int size;
-    float* sums;
-    int* counts;
+    oidn_global float* sums;
+    oidn_global int* counts;
 
-    OIDN_DEVICE_INLINE void operator ()(const WorkGroupItem<1>& it) const
+    // Shared local memory
+    struct Local
     {
-      OIDN_SHARED LocalArray<float, groupSize> localSums;
-      OIDN_SHARED LocalArray<int, groupSize> localCounts;
+      float sums[groupSize];
+      int counts[groupSize];
+    };
 
+    OIDN_DEVICE_INLINE void operator ()(const oidn_private WorkGroupItem<1>& it, LocalPtr<Local> local) const
+    {
       float sum = 0;
       int count = 0;
       for (int i = it.getGlobalID(); i < size; i += it.getGlobalSize())
       {
         const float L = bins[i];
-        if (L > Autoexposure::eps)
+        if (L > AutoexposureParams::eps)
         {
           sum += math::log2(L);
           ++count;
@@ -84,51 +94,55 @@ OIDN_NAMESPACE_BEGIN
       }
 
       const int localID = it.getLocalID();
-      localSums[localID] = sum;
-      localCounts[localID] = count;
+      local->sums[localID]   = sum;
+      local->counts[localID] = count;
 
       for (int i = groupSize / 2; i > 0; i >>= 1)
       {
         it.groupBarrier();
         if (localID < i)
         {
-          localSums[localID] += localSums[localID + i];
-          localCounts[localID] += localCounts[localID + i];
+          local->sums[localID]   += local->sums[localID + i];
+          local->counts[localID] += local->counts[localID + i];
         }
       }
 
       if (localID == 0)
       {
-        sums[it.getGroupID()] = localSums[0];
-        counts[it.getGroupID()] = localCounts[0];
+        sums[it.getGroupID()]   = local->sums[0];
+        counts[it.getGroupID()] = local->counts[0];
       }
     }
   };
 
   template<int groupSize>
-  struct GPUAutoexposureReduceFinalKernel : WorkGroup<1>
+  struct GPUAutoexposureReduceFinalKernel
   {
-    const float* sums;
-    const int* counts;
+    const oidn_global float* sums;
+    const oidn_global int* counts;
     int size;
-    float* result;
+    oidn_global float* result;
 
-    OIDN_DEVICE_INLINE void operator ()(const WorkGroupItem<1>& it) const
+    // Shared local memory
+    struct Local
     {
-      OIDN_SHARED LocalArray<float, groupSize> localSums;
-      OIDN_SHARED LocalArray<int, groupSize> localCounts;
+      float sums[groupSize];
+      int counts[groupSize];
+    };
 
+    OIDN_DEVICE_INLINE void operator ()(const oidn_private WorkGroupItem<1>& it, LocalPtr<Local> local) const
+    {
       const int localID = it.getLocalID();
 
       if (localID < size)
       {
-        localSums[localID] = sums[localID];
-        localCounts[localID] = counts[localID];
+        local->sums[localID]   = sums[localID];
+        local->counts[localID] = counts[localID];
       }
       else
       {
-        localSums[localID] = 0;
-        localCounts[localID] = 0;
+        local->sums[localID]   = 0;
+        local->counts[localID] = 0;
       }
 
       for (int i = groupSize / 2; i > 0; i >>= 1)
@@ -136,15 +150,20 @@ OIDN_NAMESPACE_BEGIN
         it.groupBarrier();
         if (localID < i)
         {
-          localSums[localID] += localSums[localID + i];
-          localCounts[localID] += localCounts[localID + i];
+          local->sums[localID]   += local->sums[localID + i];
+          local->counts[localID] += local->counts[localID + i];
         }
       }
 
       if (localID == 0)
-        *result = (localCounts[0] > 0) ? (Autoexposure::key / math::exp2(localSums[0] / float(localCounts[0]))) : 1.f;
+      {
+        *result = (local->counts[0] > 0) ?
+                  (AutoexposureParams::key / math::exp2(local->sums[0] / float(local->counts[0]))) : 1.f;
+      }
     }
   };
+
+#if !defined(OIDN_COMPILE_METAL_DEVICE)
 
   template<typename EngineT, int groupSize>
   class GPUAutoexposure final : public Autoexposure
@@ -159,6 +178,25 @@ OIDN_NAMESPACE_BEGIN
       numGroups = min(ceil_div(numBins, groupSize), groupSize);
       scratchByteSize = numBins * sizeof(float) + numGroups * (sizeof(float) + sizeof(int));
     }
+
+  #if defined(OIDN_COMPILE_METAL)
+    ~GPUAutoexposure()
+    {
+      if (downsamplePipeline)
+        [downsamplePipeline release];
+      if (reducePipeline)
+        [reducePipeline release];
+      if (reduceFinalPipeline)
+        [reduceFinalPipeline release];
+    }
+
+    void finalize() override
+    {
+      downsamplePipeline = engine->newMTLComputePipelineState("autoexposureDownsample");
+      reducePipeline = engine->newMTLComputePipelineState("autoexposureReduce_" + toString(groupSize));
+      reduceFinalPipeline = engine->newMTLComputePipelineState("autoexposureReduceFinal_" + toString(groupSize));
+    }
+  #endif
 
     size_t getScratchByteSize() const override
     {
@@ -186,23 +224,36 @@ OIDN_NAMESPACE_BEGIN
       int* counts = (int*)((char*)sums + numGroups * sizeof(float));
 
       GPUAutoexposureDownsampleKernel<maxBinSize> downsample;
-      downsample.src = *src;
+      downsample.src  = *src;
       downsample.bins = bins;
-      engine->submitKernel(WorkDim<2>(numBinsH, numBinsW), WorkDim<2>(maxBinSize, maxBinSize), downsample);
 
       GPUAutoexposureReduceKernel<groupSize> reduce;
       reduce.bins   = bins;
       reduce.size   = numBins;
       reduce.sums   = sums;
       reduce.counts = counts;
-      engine->submitKernel(WorkDim<1>(numGroups), WorkDim<1>(groupSize), reduce);
 
       GPUAutoexposureReduceFinalKernel<groupSize> reduceFinal;
       reduceFinal.sums   = sums;
       reduceFinal.counts = counts;
       reduceFinal.size   = numGroups;
       reduceFinal.result = getDstPtr();
+
+    #if defined(OIDN_COMPILE_METAL)
+      engine->submitKernel(WorkDim<2>(numBinsH, numBinsW), WorkDim<2>(maxBinSize, maxBinSize),
+                           downsample, downsamplePipeline,
+                           {getMTLBuffer(scratch), getMTLBuffer(src->getBuffer())});
+
+      engine->submitKernel(WorkDim<1>(numGroups), WorkDim<1>(groupSize), reduce, reducePipeline,
+                           {getMTLBuffer(scratch)});
+
+      engine->submitKernel(WorkDim<1>(1), WorkDim<1>(groupSize), reduceFinal, reduceFinalPipeline,
+                           {getMTLBuffer(scratch), getMTLBuffer(dst->getBuffer())});
+    #else
+      engine->submitKernel(WorkDim<2>(numBinsH, numBinsW), WorkDim<2>(maxBinSize, maxBinSize), downsample);
+      engine->submitKernel(WorkDim<1>(numGroups), WorkDim<1>(groupSize), reduce);
       engine->submitKernel(WorkDim<1>(1), WorkDim<1>(groupSize), reduceFinal);
+    #endif
     }
 
   private:
@@ -210,6 +261,14 @@ OIDN_NAMESPACE_BEGIN
     int numGroups;
     size_t scratchByteSize;
     Ref<Buffer> scratch;
+
+  #if defined(OIDN_COMPILE_METAL)
+    id<MTLComputePipelineState> downsamplePipeline = nil;
+    id<MTLComputePipelineState> reducePipeline = nil;
+    id<MTLComputePipelineState> reduceFinalPipeline = nil;
+  #endif
   };
+
+#endif
 
 OIDN_NAMESPACE_END

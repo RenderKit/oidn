@@ -1,4 +1,5 @@
 // Copyright 2023 Apple Inc.
+// Copyright 2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
@@ -21,7 +22,7 @@ OIDN_NAMESPACE_BEGIN
     // Metal
     id<MTLDevice> getMTLDevice() const { return device->getMTLDevice(); }
     id<MTLCommandQueue> getMTLCommandQueue() const { return commandQueue; }
-    id<MTLComputePipelineState> newMTLComputePipelineState(const std::string& functionName);
+    id<MTLComputePipelineState> newMTLComputePipelineState(const std::string& kernelName);
     id<MTLCommandBuffer> getMTLCommandBuffer();
     MPSCommandBuffer* getMPSCommandBuffer();
 
@@ -41,6 +42,69 @@ OIDN_NAMESPACE_BEGIN
 
     // Runs a parallel host task in the thread arena (if it exists)
     void runHostTask(std::function<void()>&& f) override;
+
+    // Enqueues a basic kernel
+    template<int N, typename Kernel>
+    OIDN_INLINE void submitKernel(WorkDim<N> globalSize, const Kernel& kernel,
+                                  id<MTLComputePipelineState> pipeline,
+                                  const std::vector<id<MTLBuffer>>& buffers)
+    {
+      auto commandBuffer = getMTLCommandBuffer();
+      auto computeEncoder = [commandBuffer computeCommandEncoder];
+
+      [computeEncoder setComputePipelineState: pipeline];
+
+      [computeEncoder setBytes: &kernel
+                        length: sizeof(kernel)
+                       atIndex: 0];
+
+      for (auto buffer : buffers)
+      {
+        if (buffer)
+        {
+          [computeEncoder useResource: buffer
+                                usage: MTLResourceUsageRead | MTLResourceUsageWrite];
+        }
+      }
+
+      // Metal 3 devices support non-uniform threadgroup sizes
+      [computeEncoder dispatchThreads: MTLSize(globalSize)
+                threadsPerThreadgroup: MTLSizeMake(pipeline.threadExecutionWidth, 1, 1)];
+
+      [computeEncoder endEncoding];
+      [commandBuffer commit];
+    }
+
+    // Enqueues a work-group kernel
+    template<int N, typename Kernel>
+    OIDN_INLINE void submitKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const Kernel& kernel,
+                                  id<MTLComputePipelineState> pipeline,
+                                  const std::vector<id<MTLBuffer>>& buffers)
+    {
+      auto commandBuffer = getMTLCommandBuffer();
+      auto computeEncoder = [commandBuffer computeCommandEncoder];
+
+      [computeEncoder setComputePipelineState: pipeline];
+
+      [computeEncoder setBytes: &kernel
+                        length: sizeof(kernel)
+                       atIndex: 0];
+
+      for (auto buffer : buffers)
+      {
+        if (buffer)
+        {
+          [computeEncoder useResource: buffer
+                                usage: MTLResourceUsageRead | MTLResourceUsageWrite];
+        }
+      }
+
+      [computeEncoder dispatchThreadgroups: MTLSize(numGroups)
+                     threadsPerThreadgroup: MTLSize(groupSize)];
+
+      [computeEncoder endEncoding];
+      [commandBuffer commit];
+    }
 
     // Enqueues a host function
     void submitHostFunc(std::function<void()>&& f) override;

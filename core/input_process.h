@@ -36,6 +36,7 @@ OIDN_NAMESPACE_BEGIN
 
   protected:
     virtual void updateSrc() {}
+    void check();
 
     Image* getMainSrc()
     {

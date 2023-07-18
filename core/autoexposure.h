@@ -3,19 +3,26 @@
 
 #pragma once
 
-#include "op.h"
-#include "image.h"
-#include "tensor.h"
+#if !defined(OIDN_COMPILE_METAL_DEVICE)
+  #include "op.h"
+  #include "image.h"
+  #include "tensor.h"
+#endif
 
 OIDN_NAMESPACE_BEGIN
 
-  class Autoexposure : public Op
+  struct AutoexposureParams
+  {
+    static constexpr oidn_constant int maxBinSize = 16;
+    static constexpr oidn_constant float key = 0.18f;
+    static constexpr oidn_constant float eps = 1e-8f;
+  };
+
+#if !defined(OIDN_COMPILE_METAL_DEVICE)
+
+  class Autoexposure : public Op, public AutoexposureParams
   {
   public:
-    static constexpr int maxBinSize = 16;
-    static constexpr float key = 0.18f;
-    static constexpr float eps = 1e-8f;
-
     explicit Autoexposure(const ImageDesc& srcDesc)
       : srcDesc(srcDesc),
         dstDesc({1}, TensorLayout::x, DataType::Float32)
@@ -56,5 +63,7 @@ OIDN_NAMESPACE_BEGIN
     int numBinsW;
     int numBins;
   };
+
+#endif // !defined(OIDN_COMPILE_METAL_DEVICE)
 
 OIDN_NAMESPACE_END

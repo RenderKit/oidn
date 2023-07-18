@@ -64,4 +64,15 @@ OIDN_NAMESPACE_BEGIN
     tile.W = W;
   }
 
+  void InputProcess::check()
+  {
+    if (!getMainSrc() || !dst)
+      throw std::logic_error("input processing source/destination not set");
+    if (tile.hSrcBegin + tile.H > getMainSrc()->getH() ||
+        tile.wSrcBegin + tile.W > getMainSrc()->getW() ||
+        tile.hDstBegin + tile.H > dst->getH() ||
+        tile.wDstBegin + tile.W > dst->getW())
+      throw std::out_of_range("input processing source/destination out of range");
+  }
+
 OIDN_NAMESPACE_END

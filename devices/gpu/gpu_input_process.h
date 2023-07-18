@@ -3,16 +3,20 @@
 
 #pragma once
 
-#include "core/input_process.h"
-#include "core/tensor_accessor.h"
-#include "core/image_accessor.h"
-#include "core/color.h"
-#include "core/tile.h"
+#include "../../core/kernel.h"
+#include "../../core/tensor_accessor.h"
+#include "../../core/image_accessor.h"
+#include "../../core/color.h"
+#include "../../core/tile.h"
+
+#if !defined(OIDN_COMPILE_METAL_DEVICE)
+  #include "../../core/input_process.h"
+#endif
 
 OIDN_NAMESPACE_BEGIN
 
   template<typename TensorDataT, TensorLayout tensorLayout, int dstPaddedC>
-  struct GPUInputProcessKernel : WorkGroup<2>
+  struct GPUInputProcessKernel
   {
     // Source
     ImageAccessor input;  // color, albedo or normal
@@ -75,7 +79,7 @@ OIDN_NAMESPACE_BEGIN
       return value;
     }
 
-    OIDN_DEVICE_INLINE void operator ()(const WorkGroupItem<2>& it) const
+    OIDN_DEVICE_INLINE void operator ()(const oidn_private WorkGroupItem<2>& it) const
     {
       const int hDst = it.getGlobalID<0>();
       const int wDst = it.getGlobalID<1>();
@@ -113,7 +117,7 @@ OIDN_NAMESPACE_BEGIN
         }
       }
 
-    #if !defined(OIDN_COMPILE_HIP) || defined(__gfx1030__)
+    #if defined(OIDN_COMPILE_SYCL) || defined(OIDN_COMPILE_CUDA) || defined(__gfx1030__)
       // Transpose the values in the subgroup into coalesced blocks and store them to memory (fast)
       // All work-items in the subgroup are assumed to be in the same row
       const int subgroupLocalID = it.getSubgroupLocalID();
@@ -172,6 +176,8 @@ OIDN_NAMESPACE_BEGIN
     }
   };
 
+#if !defined(OIDN_COMPILE_METAL_DEVICE)
+
   template<typename EngineT, typename TensorDataT, TensorLayout tensorLayout, int tensorBlockC>
   class GPUInputProcess : public InputProcess
   {
@@ -180,28 +186,42 @@ OIDN_NAMESPACE_BEGIN
       : InputProcess(engine, desc),
         engine(engine) {}
 
+  #if defined(OIDN_COMPILE_METAL)
+    ~GPUInputProcess()
+    {
+      if (pipeline)
+        [pipeline release];
+    }
+
+    void setScratch(const Ref<Buffer>& scratch) override
+    {
+      this->scratch = scratch;
+    }
+
+    void finalize() override
+    {
+      static_assert(std::is_same<TensorDataT, float>::value, "unsupported tensor data type");
+      static_assert(tensorLayout == TensorLayout::hwc, "unsupported tensor layout");
+      pipeline = engine->newMTLComputePipelineState("inputProcess_float_hwc_" + toString(dstDesc.getC()));
+    }
+  #endif
+
     void submit() override
     {
-      if (!getMainSrc() || !dst)
-        throw std::logic_error("input processing source/destination not set");
-      if (tile.hSrcBegin + tile.H > getMainSrc()->getH() ||
-          tile.wSrcBegin + tile.W > getMainSrc()->getW() ||
-          tile.hDstBegin + tile.H > dst->getH() ||
-          tile.wDstBegin + tile.W > dst->getW())
-        throw std::out_of_range("input processing source/destination out of range");
+      check();
 
       switch (dst->getC())
       {
-      case  3: runImpl<3>(); break;
-      case  6: runImpl<6>(); break;
-      case  9: runImpl<9>(); break;
+      case  3: submitImpl<3>(); break;
+      case  6: submitImpl<6>(); break;
+      case  9: submitImpl<9>(); break;
       default: throw std::logic_error("unsupported input processing source channel count");
       }
     }
 
   private:
     template<int dstC>
-    void runImpl()
+    void submitImpl()
     {
       constexpr int dstPaddedC = round_up(dstC, tensorBlockC);
       if (dst->getPaddedC() != dstPaddedC)
@@ -210,10 +230,13 @@ OIDN_NAMESPACE_BEGIN
     #if defined(OIDN_COMPILE_SYCL)
       // We request the subgroup size at compile time
       constexpr int subgroupSize = dstPaddedC;
+    #elif defined(OIDN_COMPILE_METAL)
+      // We know the subgroup size only at runtime
+      const int subgroupSize = static_cast<int>(pipeline.threadExecutionWidth);
     #else
       // We know the subgroup size only at runtime
       const int subgroupSize = engine->getSubgroupSize();
-      if (subgroupSize % dstPaddedC != 0)
+      if (tensorBlockC > 1 && subgroupSize % dstPaddedC != 0)
         throw std::logic_error("unsupported input processing destination channel count");
     #endif
 
@@ -236,12 +259,26 @@ OIDN_NAMESPACE_BEGIN
 
     #if defined(OIDN_COMPILE_SYCL)
       engine->template submitKernel<subgroupSize>(numGroups, groupSize, kernel);
+    #elif defined(OIDN_COMPILE_METAL)
+      engine->submitKernel(numGroups, groupSize, kernel, pipeline,
+                           {color  ? getMTLBuffer(color->getBuffer())  : nil,
+                            albedo ? getMTLBuffer(albedo->getBuffer()) : nil,
+                            normal ? getMTLBuffer(normal->getBuffer()) : nil,
+                            getMTLBuffer(dst->getBuffer()),
+                            getMTLBuffer(scratch)});
     #else
       engine->submitKernel(numGroups, groupSize, kernel);
     #endif
     }
 
     Ref<EngineT> engine;
+
+  #if defined(OIDN_COMPILE_METAL)
+    id<MTLComputePipelineState> pipeline = nil;
+    Ref<Buffer> scratch; // may contain autoexposure result, which must be tracked for Metal
+  #endif
   };
+
+#endif // !defined(OIDN_COMPILE_METAL_DEVICE)
 
 OIDN_NAMESPACE_END

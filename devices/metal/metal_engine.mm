@@ -1,13 +1,14 @@
 // Copyright 2023 Apple Inc.
+// Copyright 2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #include "metal_engine.h"
 #include "metal_buffer.h"
 #include "metal_graph.h"
-#include "metal_autoexposure.h"
-#include "metal_input_process.h"
-#include "metal_output_process.h"
-#include "metal_image_copy.h"
+#include "../gpu/gpu_autoexposure.h"
+#include "../gpu/gpu_input_process.h"
+#include "../gpu/gpu_output_process.h"
+#include "../gpu/gpu_image_copy.h"
 
 OIDN_NAMESPACE_BEGIN
 
@@ -29,9 +30,9 @@ OIDN_NAMESPACE_BEGIN
     [commandQueue release];
   }
 
-  id<MTLComputePipelineState> MetalEngine::newMTLComputePipelineState(const std::string& functionName)
+  id<MTLComputePipelineState> MetalEngine::newMTLComputePipelineState(const std::string& kernelName)
   {
-    auto function = [library newFunctionWithName: @(functionName.c_str())];
+    auto function = [library newFunctionWithName: @(kernelName.c_str())];
     if (!function)
       throw std::runtime_error("could not create Metal library function");
 
@@ -105,22 +106,22 @@ OIDN_NAMESPACE_BEGIN
 
   std::shared_ptr<Autoexposure> MetalEngine::newAutoexposure(const ImageDesc& srcDesc)
   {
-    return std::make_shared<MetalAutoexposure>(this, srcDesc);
+    return std::make_shared<GPUAutoexposure<MetalEngine, 1024>>(this, srcDesc);
   }
 
   std::shared_ptr<InputProcess> MetalEngine::newInputProcess(const InputProcessDesc& desc)
   {
-    return std::make_shared<MetalInputProcess>(this, desc);
+    return std::make_shared<GPUInputProcess<MetalEngine, float, TensorLayout::hwc, 1>>(this, desc);
   }
 
   std::shared_ptr<OutputProcess> MetalEngine::newOutputProcess(const OutputProcessDesc& desc)
   {
-    return std::make_shared<MetalOutputProcess>(this, desc);
+    return std::make_shared<GPUOutputProcess<MetalEngine, float, TensorLayout::hwc>>(this, desc);
   }
 
   std::shared_ptr<ImageCopy> MetalEngine::newImageCopy()
   {
-    return std::make_shared<MetalImageCopy>(this);
+    return std::make_shared<GPUImageCopy<MetalEngine>>(this);
   }
 
   void MetalEngine::submitHostFunc(std::function<void()>&& f)

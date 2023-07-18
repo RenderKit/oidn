@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "common/platform.h"
+#include "../common/platform.h"
 
 OIDN_NAMESPACE_BEGIN
 namespace math {
@@ -30,6 +30,17 @@ namespace math {
   using ::log2;
   using ::exp;
   using ::exp2;
+#elif defined(OIDN_COMPILE_METAL_DEVICE)
+  // Use the Metal math functions
+  using metal::min;
+  using metal::max;
+  using metal::isfinite;
+  using metal::isnan;
+  using metal::pow;
+  using metal::log;
+  using metal::log2;
+  using metal::exp;
+  using metal::exp2;
 #else
   using OIDN_NAMESPACE::min;
   using OIDN_NAMESPACE::max;

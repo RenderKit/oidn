@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "include/OpenImageDenoise/config.h"
+#include "../include/OpenImageDenoise/config.h"
 
 // -------------------------------------------------------------------------------------------------
 // Macros
@@ -36,7 +36,15 @@
   #define OIDN_COMPILE_HIP_DEVICE
 #endif
 
-#if defined(OIDN_COMPILE_SYCL_DEVICE) || defined(OIDN_COMPILE_CUDA_DEVICE) || defined(OIDN_COMPILE_HIP_DEVICE)
+#if defined(__METAL_VERSION__)
+  #define OIDN_COMPILE_METAL_DEVICE
+#endif
+#if defined(OIDN_COMPILE_METAL_HOST) || defined(OIDN_COMPILE_METAL_DEVICE)
+  #define OIDN_COMPILE_METAL
+#endif
+
+#if defined(OIDN_COMPILE_SYCL_DEVICE) || defined(OIDN_COMPILE_CUDA_DEVICE) || \
+    defined(OIDN_COMPILE_HIP_DEVICE)  || defined(OIDN_COMPILE_METAL_DEVICE)
   #define OIDN_COMPILE_DEVICE
 #endif
 
@@ -62,13 +70,26 @@
   #define OIDN_DEVICE_INLINE __device__ OIDN_INLINE
   #define OIDN_HOST_DEVICE __host__ __device__
   #define OIDN_HOST_DEVICE_INLINE __host__ __device__ OIDN_INLINE
-  #define OIDN_SHARED __shared__
+  #define oidn_constant
+  #define oidn_global
+  #define oidn_local
+  #define oidn_private
 #else
   #define OIDN_DEVICE
   #define OIDN_DEVICE_INLINE OIDN_INLINE
   #define OIDN_HOST_DEVICE
   #define OIDN_HOST_DEVICE_INLINE OIDN_INLINE
-  #define OIDN_SHARED
+  #if defined(OIDN_COMPILE_METAL_DEVICE)
+    #define oidn_constant constant
+    #define oidn_global device
+    #define oidn_local threadgroup
+    #define oidn_private thread
+  #else
+    #define oidn_constant
+    #define oidn_global
+    #define oidn_local
+    #define oidn_private
+  #endif
 #endif
 
 // Helper string macros
@@ -82,53 +103,56 @@
 // Includes
 // -------------------------------------------------------------------------------------------------
 
-#if defined(_WIN32)
-  #if !defined(WIN32_LEAN_AND_MEAN)
-    #define WIN32_LEAN_AND_MEAN
+#if defined(OIDN_COMPILE_METAL_DEVICE)
+  #include <metal_stdlib>
+#else
+  #if defined(_WIN32)
+    #if !defined(WIN32_LEAN_AND_MEAN)
+      #define WIN32_LEAN_AND_MEAN
+    #endif
+    #if !defined(NOMINMAX)
+      #define NOMINMAX
+    #endif
+    #include <Windows.h>
+  #elif defined(__APPLE__)
+    #include <sys/sysctl.h>
   #endif
-  #if !defined(NOMINMAX)
-    #define NOMINMAX
+
+  #if defined(OIDN_ARCH_X64)
+    #include <xmmintrin.h>
+    #include <pmmintrin.h>
   #endif
-  #include <Windows.h>
-#elif defined(__APPLE__)
-  #include <sys/sysctl.h>
-#endif
 
-#if defined(OIDN_ARCH_X64)
-  #include <xmmintrin.h>
-  #include <pmmintrin.h>
-#endif
+  #include <cstdint>
+  #include <cstddef>
+  #include <cstdlib>
+  #include <climits>
+  #include <cstring>
+  #include <limits>
+  #include <atomic>
+  #include <algorithm>
+  #include <memory>
+  #include <array>
+  #include <type_traits>
+  #include <cmath>
+  #include <cfloat>
+  #include <string>
+  #include <sstream>
+  #include <iostream>
+  #include <cassert>
+  #include <stdexcept>
 
-#include <cstdint>
-#include <cstddef>
-#include <cstdlib>
-#include <climits>
-#include <cstring>
-#include <limits>
-#include <atomic>
-#include <algorithm>
-#include <memory>
-#include <array>
-#include <type_traits>
-#include <cmath>
-#include <cfloat>
-#include <string>
-#include <sstream>
-#include <iostream>
-#include <cassert>
-
-#if defined(OIDN_COMPILE_SYCL)
-  #include <sycl/sycl.hpp>
-  #include <sycl/ext/intel/esimd.hpp>
-#endif
-
-#if defined(OIDN_COMPILE_CUDA)
-  #include <cuda_fp16.h>
-#elif defined(OIDN_COMPILE_HIP)
-  #include <hip/hip_runtime.h>
-  #include <hip/hip_fp16.h>
-#elif !defined(OIDN_COMPILE_SYCL)
-  #include "half.h"
+  #if defined(OIDN_COMPILE_SYCL)
+    #include <sycl/sycl.hpp>
+    #include <sycl/ext/intel/esimd.hpp>
+  #elif defined(OIDN_COMPILE_CUDA)
+    #include <cuda_fp16.h>
+  #elif defined(OIDN_COMPILE_HIP)
+    #include <hip/hip_runtime.h>
+    #include <hip/hip_fp16.h>
+  #else
+    #include "half.h"
+  #endif
 #endif
 
 OIDN_NAMESPACE_BEGIN
@@ -141,8 +165,10 @@ OIDN_NAMESPACE_BEGIN
   using sycl::half;
 #endif
 
+#if !defined(OIDN_COMPILE_METAL_DEVICE)
   template<bool B, class T = void>
   using enable_if_t = typename std::enable_if<B, T>::type;
+#endif
 
   // -----------------------------------------------------------------------------------------------
   // Common functions
@@ -175,6 +201,21 @@ OIDN_NAMESPACE_BEGIN
   {
     return ceil_div(a, b) * b;
   }
+
+  // -----------------------------------------------------------------------------------------------
+  // Data type
+  // -----------------------------------------------------------------------------------------------
+
+  // Data types sorted by precision in ascending order
+  enum class DataType
+  {
+    Void,
+    UInt8,
+    Float16,
+    Float32,
+  };
+
+#if !defined(OIDN_COMPILE_METAL_DEVICE)
 
   // -----------------------------------------------------------------------------------------------
   // Memory allocation
@@ -279,6 +320,8 @@ OIDN_NAMESPACE_BEGIN
   std::string getOSName();
   std::string getCompilerName();
   std::string getBuildName();
+
+#endif // !defined(OIDN_COMPILE_METAL_DEVICE)
 
 OIDN_NAMESPACE_END
 

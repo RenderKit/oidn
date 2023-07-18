@@ -3,14 +3,13 @@
 
 #pragma once
 
-#include "common/common.h"
 #include "vec.h"
 
 OIDN_NAMESPACE_BEGIN
 
   struct ImageAccessor
   {
-    char* ptr;
+    oidn_global char* ptr;
     size_t hByteStride; // row stride in number of bytes
     size_t wByteStride; // pixel stride in number of bytes
     DataType dataType;  // data type
@@ -24,10 +23,10 @@ OIDN_NAMESPACE_BEGIN
     template<typename T = float>
     OIDN_HOST_DEVICE_INLINE vec3<T> get3(int h, int w) const
     {
-      const void* pixelPtr = ptr + getByteOffset(h, w);
+      const oidn_global void* pixelPtr = ptr + getByteOffset(h, w);
       if (dataType == DataType::Float32)
       {
-        const float* pixel = static_cast<const float*>(pixelPtr);
+        const oidn_global float* pixel = static_cast<const oidn_global float*>(pixelPtr);
         if (C == 3)
           return vec3<T>(pixel[0], pixel[1], pixel[2]);
         else if (C == 2)
@@ -37,7 +36,7 @@ OIDN_NAMESPACE_BEGIN
       }
       else // if (dataType == DataType::Float16)
       {
-        const half* pixel = static_cast<const half*>(pixelPtr);
+        const oidn_global half* pixel = static_cast<const oidn_global half*>(pixelPtr);
         if (C == 3)
           return vec3<T>(pixel[0], pixel[1], pixel[2]);
         else if (C == 2)
@@ -48,12 +47,12 @@ OIDN_NAMESPACE_BEGIN
     }
 
     template<typename T>
-    OIDN_HOST_DEVICE_INLINE void set3(int h, int w, const vec3<T>& value) const
+    OIDN_HOST_DEVICE_INLINE void set3(int h, int w, vec3<T> value) const
     {
-      void* pixelPtr = ptr + getByteOffset(h, w);
+      oidn_global void* pixelPtr = ptr + getByteOffset(h, w);
       if (dataType == DataType::Float32)
       {
-        float* pixel = static_cast<float*>(pixelPtr);
+        oidn_global float* pixel = static_cast<oidn_global float*>(pixelPtr);
         if (C == 3)
         {
           pixel[0] = value.x;
@@ -70,7 +69,7 @@ OIDN_NAMESPACE_BEGIN
       }
       else // if (dataType == DataType::Float16)
       {
-        half* pixel = static_cast<half*>(pixelPtr);
+        oidn_global half* pixel = static_cast<oidn_global half*>(pixelPtr);
         if (C == 3)
         {
           pixel[0] = value.x;

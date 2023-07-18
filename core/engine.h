@@ -92,6 +92,20 @@ OIDN_NAMESPACE_BEGIN
     virtual int getMaxWorkGroupSize() const;
     virtual int getSubgroupSize() const;
 
+  protected:
+    // Checks whether a kernel has a nested Local type for shared local memory
+    template<typename T>
+    struct HasLocal
+    {
+      template<typename U>
+      static std::true_type test(typename U::Local*);
+
+      template<typename U>
+      static std::false_type test(...);
+
+      static constexpr bool value = decltype(test<T>(nullptr))::value;
+    };
+
   private:
     // Memory
     std::weak_ptr<ScratchBufferManager> scratchManagerWp;

@@ -15,6 +15,14 @@ OIDN_NAMESPACE_BEGIN
     void setDst(const std::shared_ptr<Image>& dst) { this->dst = dst; }
 
   protected:
+    void check()
+    {
+      if (!src || !dst)
+        throw std::logic_error("image copy source/destination not set");
+      if (dst->getH() < src->getH() || dst->getW() < src->getW())
+        throw std::out_of_range("image copy destination smaller than the source");
+    }
+
     std::shared_ptr<Image> src;
     std::shared_ptr<Image> dst;
   };

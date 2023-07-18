@@ -3,67 +3,105 @@
 
 #pragma once
 
-#include "common/platform.h"
+#include "../common/platform.h"
+#if defined(OIDN_COMPILE_METAL_HOST)
+  #include <Metal/Metal.h>
+#endif
 
 OIDN_NAMESPACE_BEGIN
+
+  // -----------------------------------------------------------------------------------------------
+  // GlobalPtr, LocalPtr
+  // -----------------------------------------------------------------------------------------------
+
+#if defined(OIDN_COMPILE_SYCL)
+
+  template<typename T>
+  using GlobalPtr = sycl::multi_ptr<T, sycl::access::address_space::global_space>;
+
+  template<typename T>
+  using LocalPtr  = sycl::multi_ptr<T, sycl::access::address_space::local_space>;
+
+#else
+  template<typename T>
+  using GlobalPtr = oidn_global T*;
+
+  template<typename T>
+  using LocalPtr  = oidn_local T*;
+#endif
 
   // -----------------------------------------------------------------------------------------------
   // WorkDim
   // -----------------------------------------------------------------------------------------------
 
   template<int N>
-  class WorkDim
+  class WorkDim;
+
+  template<>
+  class WorkDim<1>
   {
   public:
-    template<int n = N>
-    OIDN_HOST_DEVICE_INLINE WorkDim(enable_if_t<n == 1, int> dim0)
-      : dim{dim0} {}
-
-    template<int n = N>
-    OIDN_HOST_DEVICE_INLINE WorkDim(enable_if_t<n == 2, int> dim0, int dim1)
-      : dim{dim0, dim1} {}
-
-    template<int n = N>
-    OIDN_HOST_DEVICE_INLINE WorkDim(enable_if_t<n == 3, int> dim0, int dim1, int dim2)
-      : dim{dim0, dim1, dim2} {}
-
-    template<int n = N>
-    OIDN_HOST_DEVICE_INLINE operator enable_if_t<n == 1, int>() const { return dim[0]; }
-
-    OIDN_HOST_DEVICE_INLINE const int& operator [](int i) const { return dim[i]; }
-    OIDN_HOST_DEVICE_INLINE int& operator [](int i) { return dim[i]; }
+    OIDN_HOST_DEVICE_INLINE WorkDim(int dim0) : dim{dim0} {}
+    OIDN_HOST_DEVICE_INLINE operator int() const { return dim[0]; }
+    OIDN_HOST_DEVICE_INLINE const oidn_private int& operator [](int i) const { return dim[i]; }
+    OIDN_HOST_DEVICE_INLINE oidn_private int& operator [](int i) { return dim[i]; }
 
   #if defined(OIDN_COMPILE_SYCL)
-    template<int n = N>
-    OIDN_INLINE operator enable_if_t<n == 1, sycl::range<1>>() const { return sycl::range<1>(dim[0]); }
-
-    template<int n = N>
-    OIDN_INLINE operator enable_if_t<n == 2, sycl::range<2>>() const { return sycl::range<2>(dim[0], dim[1]); }
-
-    template<int n = N>
-    OIDN_INLINE operator enable_if_t<n == 3, sycl::range<3>>() const { return sycl::range<3>(dim[0], dim[1], dim[2]); }
+    OIDN_INLINE operator sycl::range<1>() const { return sycl::range<1>(dim[0]); }
   #elif defined(OIDN_COMPILE_CUDA) || defined(OIDN_COMPILE_HIP)
-    OIDN_INLINE operator dim3() const
-    {
-      if (N == 1)
-        return dim3(dim[0]);
-      else if (N == 2)
-        return dim3(dim[1], dim[0]);
-      else
-        return dim3(dim[2], dim[1], dim[0]);
-    }
+    OIDN_INLINE operator dim3() const { return dim3(dim[0]); }
+  #elif defined(OIDN_COMPILE_METAL_HOST)
+    OIDN_INLINE operator MTLSize() const { return MTLSizeMake(dim[0], 1, 1); }
   #endif
 
-    OIDN_INLINE int getLinearSize() const
-    {
-      int size = dim[0];
-      for (int i = 1; i < N; ++i)
-        size *= dim[i];
-      return size;
-    }
+    OIDN_INLINE int getLinearSize() const { return dim[0]; }
 
   private:
-    int dim[N];
+    int dim[1];
+  };
+
+  template<>
+  class WorkDim<2>
+  {
+  public:
+    OIDN_HOST_DEVICE_INLINE WorkDim(int dim0, int dim1) : dim{dim0, dim1} {}
+    OIDN_HOST_DEVICE_INLINE const oidn_private int& operator [](int i) const { return dim[i]; }
+    OIDN_HOST_DEVICE_INLINE oidn_private int& operator [](int i) { return dim[i]; }
+
+  #if defined(OIDN_COMPILE_SYCL)
+    OIDN_INLINE operator sycl::range<2>() const { return sycl::range<2>(dim[0], dim[1]); }
+  #elif defined(OIDN_COMPILE_CUDA) || defined(OIDN_COMPILE_HIP)
+    OIDN_INLINE operator dim3() const { return dim3(dim[1], dim[0]); }
+  #elif defined(OIDN_COMPILE_METAL_HOST)
+    OIDN_INLINE operator MTLSize() const { return MTLSizeMake(dim[1], dim[0], 1); }
+  #endif
+
+    OIDN_INLINE int getLinearSize() const { return dim[0] * dim[1]; }
+
+  private:
+    int dim[2];
+  };
+
+  template<>
+  class WorkDim<3>
+  {
+  public:
+    OIDN_HOST_DEVICE_INLINE WorkDim(int dim0, int dim1, int dim2) : dim{dim0, dim1, dim2} {}
+    OIDN_HOST_DEVICE_INLINE const oidn_private int& operator [](int i) const { return dim[i]; }
+    OIDN_HOST_DEVICE_INLINE oidn_private int& operator [](int i) { return dim[i]; }
+
+  #if defined(OIDN_COMPILE_SYCL)
+    OIDN_INLINE operator sycl::range<3>() const { return sycl::range<3>(dim[0], dim[1], dim[2]); }
+  #elif defined(OIDN_COMPILE_CUDA) || defined(OIDN_COMPILE_HIP)
+    OIDN_INLINE operator dim3() const { return dim3(dim[2], dim[1], dim[0]); }
+  #elif defined(OIDN_COMPILE_METAL_HOST)
+    OIDN_INLINE operator MTLSize() const { return MTLSizeMake(dim[2], dim[1], dim[0]); }
+  #endif
+
+    OIDN_INLINE int getLinearSize() const { return dim[0] * dim[1] * dim[2]; }
+
+  private:
+    int dim[3];
   };
 
   OIDN_INLINE WorkDim<1> operator *(WorkDim<1> a, WorkDim<1> b) { return {a[0] * b[0]}; }
@@ -84,14 +122,11 @@ OIDN_NAMESPACE_BEGIN
     return {ceil_div(a[0], b[0]), ceil_div(a[1], b[1]), ceil_div(a[2], b[2])};
   }
 
+  // -----------------------------------------------------------------------------------------------
+  // WorkItem, WorkGroupItem
+  // -----------------------------------------------------------------------------------------------
+
 #if defined(OIDN_COMPILE_SYCL)
-
-  template<typename T>
-  using GlobalPtr = sycl::multi_ptr<T, sycl::access::address_space::global_space>;
-
-  // -----------------------------------------------------------------------------------------------
-  // SYCL WorkItem
-  // -----------------------------------------------------------------------------------------------
 
   template<int N>
   class WorkItem
@@ -107,10 +142,6 @@ OIDN_NAMESPACE_BEGIN
   private:
     const sycl::item<N>& item;
   };
-
-  // -----------------------------------------------------------------------------------------------
-  // SYCL WorkGroupItem
-  // -----------------------------------------------------------------------------------------------
 
   template<int N>
   class WorkGroupItem
@@ -171,35 +202,7 @@ OIDN_NAMESPACE_BEGIN
     const sycl::nd_item<N>& item;
   };
 
-  // -----------------------------------------------------------------------------------------------
-  // SYCL WorkGroup
-  // -----------------------------------------------------------------------------------------------
-
-  template<int N>
-  struct WorkGroup
-  {
-    // Shared local array
-    template<typename T, int size>
-    class LocalArray
-    {
-    public:
-      OIDN_DEVICE_INLINE const T& operator [](unsigned int i) const { return (*ptr)[i]; }
-      OIDN_DEVICE_INLINE T& operator [](unsigned int i) { return (*ptr)[i]; }
-
-    private:
-      sycl::multi_ptr<T[size], sycl::access::address_space::local_space> ptr =
-        sycl::ext::oneapi::group_local_memory<T[size]>(sycl::ext::oneapi::experimental::this_nd_item<N>().get_group());
-    };
-  };
-
 #elif defined(OIDN_COMPILE_CUDA) || defined(OIDN_COMPILE_HIP)
-
-  template<typename T>
-  using GlobalPtr = T*;
-
-  // -----------------------------------------------------------------------------------------------
-  // CUDA/HIP WorkItem
-  // -----------------------------------------------------------------------------------------------
 
   template<int N>
   class WorkItem
@@ -230,10 +233,6 @@ OIDN_NAMESPACE_BEGIN
     WorkDim<N> globalID;
     WorkDim<N> globalSize;
   };
-
-  // -----------------------------------------------------------------------------------------------
-  // CUDA/HIP WorkGroupItem
-  // -----------------------------------------------------------------------------------------------
 
   class WorkGroupItemBase
   {
@@ -312,24 +311,152 @@ OIDN_NAMESPACE_BEGIN
     return getGlobalID<0>() * getGlobalSize<1>() + getGlobalID<1>();
   };
 
-  // -----------------------------------------------------------------------------------------------
-  // CUDA/HIP WorkGroup
-  // -----------------------------------------------------------------------------------------------
+#elif defined(OIDN_COMPILE_METAL_DEVICE)
 
   template<int N>
-  struct WorkGroup
-  {
-    // Shared local array, must be declared with OIDN_SHARED
-    template<typename T, int size>
-    class LocalArray
-    {
-    public:
-      OIDN_DEVICE_INLINE const T& operator [](unsigned int i) const { return v[i]; }
-      OIDN_DEVICE_INLINE T& operator [](unsigned int i) { return v[i]; }
+  class WorkItem;
 
-    private:
-      T v[size];
-    };
+  template<>
+  class WorkItem<2>
+  {
+  public:
+    WorkItem(uint2 globalID, uint2 globalSize)
+      : globalID(globalID), globalSize(globalSize) {}
+
+    template<int i> OIDN_DEVICE_INLINE int getGlobalID() const   { return globalID[1-i]; }
+    template<int i> OIDN_DEVICE_INLINE int getGlobalSize() const { return globalSize[1-i]; }
+
+  private:
+    uint2 globalID, globalSize; // reverse indexing!
+  };
+
+  template<int N>
+  class WorkGroupItem;
+
+  template<>
+  class WorkGroupItem<1>
+  {
+  public:
+    WorkGroupItem(uint globalID, uint globalSize, uint localID, uint localSize,
+                  uint groupID, uint numGroups)
+      : globalID(globalID), globalSize(globalSize), localID(localID), localSize(localSize),
+        groupID(groupID), numGroups(numGroups) {}
+
+    OIDN_DEVICE_INLINE int getGlobalID()   const { return globalID; }
+    OIDN_DEVICE_INLINE int getGlobalSize() const { return globalSize; }
+    OIDN_DEVICE_INLINE int getLocalID()    const { return localID; }
+    OIDN_DEVICE_INLINE int getLocalSize()  const { return localSize; }
+    OIDN_DEVICE_INLINE int getGroupID()    const { return groupID; }
+    OIDN_DEVICE_INLINE int getNumGroups()  const { return numGroups; }
+
+    OIDN_DEVICE_INLINE int getGlobalLinearID() const { return globalID; }
+    OIDN_DEVICE_INLINE int getLocalLinearID()  const { return localID; }
+    OIDN_DEVICE_INLINE int getGroupLinearID()  const { return groupID; }
+
+    OIDN_DEVICE_INLINE void groupBarrier() const
+    {
+      metal::threadgroup_barrier(metal::mem_flags::mem_threadgroup);
+    }
+
+  private:
+    uint globalID, globalSize, localID, localSize, groupID, numGroups;
+  };
+
+  template<>
+  class WorkGroupItem<2>
+  {
+  public:
+    WorkGroupItem(uint2 globalID, uint2 globalSize, uint2 localID, uint2 localSize,
+                  uint2 groupID, uint2 numGroups)
+      : globalID(globalID), globalSize(globalSize), localID(localID), localSize(localSize),
+        groupID(groupID), numGroups(numGroups) {}
+
+    template<int i> OIDN_DEVICE_INLINE int getGlobalID()   const { return globalID[1-i];   }
+    template<int i> OIDN_DEVICE_INLINE int getGlobalSize() const { return globalSize[1-i]; }
+    template<int i> OIDN_DEVICE_INLINE int getLocalID()    const { return localID[1-i];    }
+    template<int i> OIDN_DEVICE_INLINE int getLocalSize()  const { return localSize[1-i];  }
+    template<int i> OIDN_DEVICE_INLINE int getGroupID()    const { return groupID[1-i];    }
+    template<int i> OIDN_DEVICE_INLINE int getNumGroups()  const { return numGroups[1-i];  }
+
+    OIDN_DEVICE_INLINE int getGlobalLinearID() const { return globalID[1] * globalSize[0] + globalID[0]; }
+    OIDN_DEVICE_INLINE int getLocalLinearID()  const { return localID[1]  * localSize[0]  + localID[0];  }
+    OIDN_DEVICE_INLINE int getGroupLinearID()  const { return groupID[1]  * numGroups[0]  + groupID[0];  }
+
+    OIDN_DEVICE_INLINE void groupBarrier() const
+    {
+      metal::threadgroup_barrier(metal::mem_flags::mem_threadgroup);
+    }
+
+  private:
+    uint2 globalID, globalSize, localID, localSize, groupID, numGroups; // reverse indexing!
+  };
+
+#else
+
+  template<int N>
+  class WorkItem
+  {
+  public:
+    template<int i = 0> OIDN_INLINE int getGlobalID()   const { return globalID[i]; }
+    template<int i = 0> OIDN_INLINE int getGlobalSize() const { return globalSize[i]; }
+
+    OIDN_INLINE int getGlobalLinearID() const
+    {
+      int id = 0;
+      for (int i = 0; i < N; ++i)
+        id = id * globalSize[i] + globalID[i];
+      return id;
+    }
+
+  private:
+    int globalID[N];
+    int globalSize[N];
+  };
+
+  template<int N>
+  class WorkGroupItem
+  {
+  public:
+    template<int i = 0> OIDN_INLINE int getGlobalID()   const { return globalID[i]; }
+    template<int i = 0> OIDN_INLINE int getGlobalSize() const { return globalSize[i]; }
+    template<int i = 0> OIDN_INLINE int getLocalID()    const { return localID[i]; }
+    template<int i = 0> OIDN_INLINE int getLocalSize()  const { return localSize[i]; }
+    template<int i = 0> OIDN_INLINE int getGroupID()    const { return groupID[i]; }
+    template<int i = 0> OIDN_INLINE int getNumGroups()  const { return numGroups[i]; }
+
+    OIDN_INLINE int getGlobalLinearID() const
+    {
+      int id = 0;
+      for (int i = 0; i < N; ++i)
+        id = id * globalSize[i] + globalID[i];
+      return id;
+    }
+
+    OIDN_INLINE int getLocalLinearID() const
+    {
+      int id = 0;
+      for (int i = 0; i < N; ++i)
+        id = id * localSize[i] + localID[i];
+      return id;
+    }
+
+    OIDN_INLINE int getGroupLinearID() const
+    {
+      int id = 0;
+      for (int i = 0; i < N; ++i)
+        id = id * numGroups[i] + groupID[i];
+      return id;
+    }
+
+    OIDN_INLINE void groupBarrier() const {}
+
+  private:
+    int globalID[N];
+    int globalSize[N];
+    int localID[N];
+    int localSize[N];
+    int groupID[N];
+    int numGroups[N];
   };
 
 #endif

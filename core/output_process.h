@@ -32,6 +32,8 @@ OIDN_NAMESPACE_BEGIN
     void setTile(int hSrc, int wSrc, int hDst, int wDst, int H, int W);
 
   protected:
+    void check();
+
     std::shared_ptr<Tensor> src;
     std::shared_ptr<Image> dst;
     Tile tile;

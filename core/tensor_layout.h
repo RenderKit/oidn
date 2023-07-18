@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "common/common.h"
+#include "../common/platform.h"
 
 OIDN_NAMESPACE_BEGIN
 
@@ -34,13 +34,13 @@ OIDN_NAMESPACE_BEGIN
   struct TensorLayoutTraits<TensorLayout::x>
   {
     template<typename T>
-    struct Addressing
+    struct ByteOffset
     {
-      static constexpr uint32_t xByteStride = sizeof(T);
+      static constexpr oidn_constant uint32_t xByteStride = sizeof(T);
 
-      Addressing() = default;
+      ByteOffset() = default;
 
-      OIDN_HOST_DEVICE_INLINE uint32_t getByteOffset(int x) const
+      OIDN_HOST_DEVICE_INLINE uint32_t operator ()(int x) const
       {
         return uint32_t(x) * xByteStride;
       }
@@ -51,21 +51,21 @@ OIDN_NAMESPACE_BEGIN
   struct TensorLayoutTraits<TensorLayout::chw>
   {
     template<typename T>
-    struct Addressing
+    struct ByteOffset
     {
-      static constexpr uint32_t wByteStride = sizeof(T);
+      static constexpr oidn_constant uint32_t wByteStride = sizeof(T);
       uint32_t hByteStride;
       uint32_t cByteStride;
 
-      Addressing() = default;
+      ByteOffset() = default;
 
-      OIDN_HOST_DEVICE_INLINE Addressing(int C, int H, int W)
+      OIDN_HOST_DEVICE_INLINE ByteOffset(int C, int H, int W)
       {
         hByteStride = uint32_t(W) * wByteStride;
         cByteStride = uint32_t(H) * hByteStride;
       }
 
-      OIDN_HOST_DEVICE_INLINE uint32_t getByteOffset(int c, int h, int w) const
+      OIDN_HOST_DEVICE_INLINE uint32_t operator ()(int c, int h, int w) const
       {
         return uint32_t(c) * cByteStride +
                uint32_t(h) * hByteStride +
@@ -78,21 +78,21 @@ OIDN_NAMESPACE_BEGIN
   struct TensorLayoutTraits<TensorLayout::hwc>
   {
     template<typename T>
-    struct Addressing
+    struct ByteOffset
     {
-      static constexpr uint32_t cByteStride = sizeof(T);
+      static constexpr oidn_constant uint32_t cByteStride = sizeof(T);
       uint32_t wByteStride;
       uint32_t hByteStride;
 
-      Addressing() = default;
+      ByteOffset() = default;
 
-      OIDN_HOST_DEVICE_INLINE Addressing(int C, int H, int W)
+      OIDN_HOST_DEVICE_INLINE ByteOffset(int C, int H, int W)
       {
         wByteStride = uint32_t(C) * cByteStride;
         hByteStride = uint32_t(W) * wByteStride;
       }
 
-      OIDN_HOST_DEVICE_INLINE uint32_t getByteOffset(int c, int h, int w) const
+      OIDN_HOST_DEVICE_INLINE uint32_t operator ()(int c, int h, int w) const
       {
         return uint32_t(c) * cByteStride +
                uint32_t(h) * hByteStride +
@@ -102,24 +102,24 @@ OIDN_NAMESPACE_BEGIN
   };
 
   template<typename T, int B>
-  struct TensorAddressingChwBc
+  struct TensorByteOffsetChwBc
   {
-    static constexpr int blockC = B; // block channels
+    static constexpr oidn_constant int blockC = B; // block channels
 
-    static constexpr uint32_t cByteStride = sizeof(T);
-    static constexpr uint32_t wByteStride = B * cByteStride;
+    static constexpr oidn_constant uint32_t cByteStride = sizeof(T);
+    static constexpr oidn_constant uint32_t wByteStride = B * cByteStride;
     uint32_t hByteStride;
     uint32_t CByteStride;
 
-    TensorAddressingChwBc() = default;
+    TensorByteOffsetChwBc() = default;
 
-    OIDN_HOST_DEVICE_INLINE TensorAddressingChwBc(int C, int H, int W)
+    OIDN_HOST_DEVICE_INLINE TensorByteOffsetChwBc(int C, int H, int W)
     {
       hByteStride = uint32_t(W) * wByteStride;
       CByteStride = uint32_t(H) * hByteStride;
     }
 
-    OIDN_HOST_DEVICE_INLINE uint32_t getByteOffset(int c, int h, int w) const
+    OIDN_HOST_DEVICE_INLINE uint32_t operator ()(int c, int h, int w) const
     {
       return uint32_t(c/B) * CByteStride +
              uint32_t(h)   * hByteStride +
@@ -132,37 +132,37 @@ OIDN_NAMESPACE_BEGIN
   struct TensorLayoutTraits<TensorLayout::Chw8c>
   {
     template<typename T>
-    using Addressing = TensorAddressingChwBc<T, 8>;
+    using ByteOffset = TensorByteOffsetChwBc<T, 8>;
   };
 
   template<>
   struct TensorLayoutTraits<TensorLayout::Chw16c>
   {
     template<typename T>
-    using Addressing = TensorAddressingChwBc<T, 16>;
+    using ByteOffset = TensorByteOffsetChwBc<T, 16>;
   };
 
   template<>
   struct TensorLayoutTraits<TensorLayout::oihw>
   {
     template<typename T>
-    struct Addressing
+    struct ByteOffset
     {
-      static constexpr uint32_t wByteStride = sizeof(T);
+      static constexpr oidn_constant uint32_t wByteStride = sizeof(T);
       uint32_t hByteStride;
       uint32_t iByteStride;
       uint32_t oByteStride;
 
-      Addressing() = default;
+      ByteOffset() = default;
 
-      OIDN_HOST_DEVICE_INLINE Addressing(int O, int I, int H, int W)
+      OIDN_HOST_DEVICE_INLINE ByteOffset(int O, int I, int H, int W)
       {
         hByteStride = uint32_t(W) * wByteStride;
         iByteStride = uint32_t(H) * hByteStride;
         oByteStride = uint32_t(I) * iByteStride;
       }
 
-      OIDN_HOST_DEVICE_INLINE uint32_t getByteOffset(int o, int i, int h, int w) const
+      OIDN_HOST_DEVICE_INLINE uint32_t operator ()(int o, int i, int h, int w) const
       {
         return uint32_t(o) * oByteStride +
                uint32_t(i) * iByteStride +
@@ -173,27 +173,27 @@ OIDN_NAMESPACE_BEGIN
   };
 
   template<typename T, int B>
-  struct TensorAddressingOIhwBiBo
+  struct TensorByteOffsetOIhwBiBo
   {
-    static constexpr int blockC = B; // block channels
+    static constexpr oidn_constant int blockC = B; // block channels
 
-    static constexpr uint32_t BoByteStride = sizeof(T);
-    static constexpr uint32_t BiByteStride = B * BoByteStride;
-    static constexpr uint32_t wByteStride  = B * BiByteStride;
+    static constexpr oidn_constant uint32_t BoByteStride = sizeof(T);
+    static constexpr oidn_constant uint32_t BiByteStride = B * BoByteStride;
+    static constexpr oidn_constant uint32_t wByteStride  = B * BiByteStride;
     uint32_t hByteStride;
     uint32_t IByteStride;
     uint32_t OByteStride;
 
-    TensorAddressingOIhwBiBo() = default;
+    TensorByteOffsetOIhwBiBo() = default;
 
-    OIDN_HOST_DEVICE_INLINE TensorAddressingOIhwBiBo(int O, int I, int H, int W)
+    OIDN_HOST_DEVICE_INLINE TensorByteOffsetOIhwBiBo(int O, int I, int H, int W)
     {
       hByteStride = uint32_t(W)     * wByteStride;
       IByteStride = uint32_t(H)     * hByteStride;
       OByteStride = uint32_t(I / B) * IByteStride;
     }
 
-    OIDN_HOST_DEVICE_INLINE uint32_t getByteOffset(int o, int i, int h, int w) const
+    OIDN_HOST_DEVICE_INLINE uint32_t operator ()(int o, int i, int h, int w) const
     {
       return uint32_t(o / B) * OByteStride  +
              uint32_t(i / B) * IByteStride  +
@@ -208,43 +208,43 @@ OIDN_NAMESPACE_BEGIN
   struct TensorLayoutTraits<TensorLayout::OIhw8i8o>
   {
     template<typename T>
-    using Addressing = TensorAddressingOIhwBiBo<T, 8>;
+    using ByteOffset = TensorByteOffsetOIhwBiBo<T, 8>;
   };
 
   template<>
   struct TensorLayoutTraits<TensorLayout::OIhw16i16o>
   {
     template<typename T>
-    using Addressing = TensorAddressingOIhwBiBo<T, 16>;
+    using ByteOffset = TensorByteOffsetOIhwBiBo<T, 16>;
   };
 
   template<typename T, int P, int Q, int R, int S>
-  struct TensorAddressingOIhwPoQiRoSi
+  struct TensorByteOffsetOIhwPoQiRoSi
   {
     static_assert(P * R == Q * S, "invalid tensor layout parameters");
 
-    static constexpr int B = P * R;
-    static constexpr int blockC = B; // block channels
+    static constexpr oidn_constant int B = P * R;
+    static constexpr oidn_constant int blockC = B; // block channels
 
-    static constexpr uint32_t SiByteStride = sizeof(T);
-    static constexpr uint32_t RoByteStride = S * SiByteStride;
-    static constexpr uint32_t QiByteStride = R * RoByteStride;
-    static constexpr uint32_t PoByteStride = Q * QiByteStride;
-    static constexpr uint32_t wByteStride  = P * PoByteStride;
+    static constexpr oidn_constant uint32_t SiByteStride = sizeof(T);
+    static constexpr oidn_constant uint32_t RoByteStride = S * SiByteStride;
+    static constexpr oidn_constant uint32_t QiByteStride = R * RoByteStride;
+    static constexpr oidn_constant uint32_t PoByteStride = Q * QiByteStride;
+    static constexpr oidn_constant uint32_t wByteStride  = P * PoByteStride;
     uint32_t hByteStride;
     uint32_t IByteStride;
     uint32_t OByteStride;
 
-    TensorAddressingOIhwPoQiRoSi() = default;
+    TensorByteOffsetOIhwPoQiRoSi() = default;
 
-    OIDN_HOST_DEVICE_INLINE TensorAddressingOIhwPoQiRoSi(int O, int I, int H, int W)
+    OIDN_HOST_DEVICE_INLINE TensorByteOffsetOIhwPoQiRoSi(int O, int I, int H, int W)
     {
       hByteStride = uint32_t(W)     * wByteStride;
       IByteStride = uint32_t(H)     * hByteStride;
       OByteStride = uint32_t(I / B) * IByteStride;
     }
 
-    OIDN_HOST_DEVICE_INLINE uint32_t getByteOffset(int o, int i, int h, int w) const
+    OIDN_HOST_DEVICE_INLINE uint32_t operator ()(int o, int i, int h, int w) const
     {
       return uint32_t(o / B)     * OByteStride  +
              uint32_t(i / B)     * IByteStride  +
@@ -261,37 +261,37 @@ OIDN_NAMESPACE_BEGIN
   struct TensorLayoutTraits<TensorLayout::OIhw2o8i8o2i>
   {
     template<typename T>
-    using Addressing = TensorAddressingOIhwPoQiRoSi<T, 2, 8, 8, 2>;
+    using ByteOffset = TensorByteOffsetOIhwPoQiRoSi<T, 2, 8, 8, 2>;
   };
 
   template<>
   struct TensorLayoutTraits<TensorLayout::OIhw8i16o2i>
   {
     template<typename T>
-    using Addressing = TensorAddressingOIhwPoQiRoSi<T, 1, 8, 16, 2>;
+    using ByteOffset = TensorByteOffsetOIhwPoQiRoSi<T, 1, 8, 16, 2>;
   };
 
   template<>
   struct TensorLayoutTraits<TensorLayout::ohwi>
   {
     template<typename T>
-    struct Addressing
+    struct ByteOffset
     {
-      static constexpr uint32_t iByteStride = sizeof(T);
+      static constexpr oidn_constant uint32_t iByteStride = sizeof(T);
       uint32_t wByteStride;
       uint32_t hByteStride;
       uint32_t oByteStride;
 
-      Addressing() = default;
+      ByteOffset() = default;
 
-      OIDN_HOST_DEVICE_INLINE Addressing(int O, int I, int H, int W)
+      OIDN_HOST_DEVICE_INLINE ByteOffset(int O, int I, int H, int W)
       {
         wByteStride = uint32_t(I) * iByteStride;
         hByteStride = uint32_t(W) * wByteStride;
         oByteStride = uint32_t(H) * hByteStride;
       }
 
-      OIDN_HOST_DEVICE_INLINE uint32_t getByteOffset(int o, int i, int h, int w) const
+      OIDN_HOST_DEVICE_INLINE uint32_t operator ()(int o, int i, int h, int w) const
       {
         return uint32_t(o) * oByteStride +
                uint32_t(i) * iByteStride +
@@ -302,10 +302,11 @@ OIDN_NAMESPACE_BEGIN
   };
 
   template<typename T, TensorLayout layout>
-  using TensorAddressing = typename TensorLayoutTraits<layout>::template Addressing<T>;
+  using TensorByteOffset = typename TensorLayoutTraits<layout>::template ByteOffset<T>;
 
   // -----------------------------------------------------------------------------------------------
 
+#if !defined(OIDN_COMPILE_METAL_DEVICE)
   struct TensorLayoutInfo
   {
     int rank;
@@ -339,5 +340,6 @@ OIDN_NAMESPACE_BEGIN
       throw std::invalid_argument("invalid tensor layout");
     }
   }
+#endif
 
 OIDN_NAMESPACE_END

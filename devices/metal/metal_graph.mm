@@ -56,10 +56,12 @@ OIDN_NAMESPACE_BEGIN
       MPSGraphTensor* dst = toMPSGraphPlaceholder(graph, dstNode->desc);
       dstNode->tensor = dst;
       graphInput = dst;
-      inputProcess->setDst(scratch->newTensor(dstNode->desc, 0));
+      //inputProcess->setDst(scratch->newTensor(dstNode->desc, 0));
+      inputProcess->setDst(engine->newTensor(dstNode->desc));
     });
 
-    scratchByteSize = max(scratchByteSize, dstNode->desc.getByteSize());
+    //scratchByteSize = max(scratchByteSize, dstNode->desc.getByteSize());
+    privateByteSize += dstNode->desc.getByteSize();
     return inputProcess;
   }
 
@@ -82,10 +84,12 @@ OIDN_NAMESPACE_BEGIN
     lazyInits.push_back([=]()
     {
       graphOutput = srcNode->tensor;
-      outputProcess->setSrc(scratch->newTensor(srcDesc, 0)); // alias the input tensor
+      //outputProcess->setSrc(scratch->newTensor(srcDesc, 0)); // alias the input tensor
+      outputProcess->setSrc(engine->newTensor(srcDesc));
     });
 
-    scratchByteSize = max(scratchByteSize, srcDesc.getByteSize());
+    //scratchByteSize = max(scratchByteSize, srcDesc.getByteSize());
+    privateByteSize += srcDesc.getByteSize();
     return outputProcess;
   }
 
@@ -294,7 +298,10 @@ OIDN_NAMESPACE_BEGIN
     lazyInits.clear();
 
     for (auto& op : ops)
+    {
+      op->setScratch(scratch);
       op->finalize();
+    }
 
     cleanup();
     constTensors.reset();

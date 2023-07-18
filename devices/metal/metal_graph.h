@@ -1,4 +1,5 @@
 // Copyright 2023 Apple Inc.
+// Copyright 2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once

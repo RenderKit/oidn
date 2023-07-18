@@ -1,17 +1,15 @@
 // Copyright 2023 Apple Inc.
+// Copyright 2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
 #pragma once
 
 #include "core/tensor.h"
-#include "core/color.h"
 
 #include <Foundation/Foundation.h>
 #include <Metal/Metal.h>
-#include <MetalPerformanceShadersGraph/MetalPerformanceShadersGraph.h>
 #include <MetalPerformanceShaders/MetalPerformanceShaders.h>
-
-#include "metal_kernel_common.h"
+#include <MetalPerformanceShadersGraph/MetalPerformanceShadersGraph.h>
 
 OIDN_NAMESPACE_BEGIN
 
@@ -26,9 +24,6 @@ OIDN_NAMESPACE_BEGIN
   MPSGraphTensor* toMPSGraphPlaceholder(MPSGraph* graph, TensorDesc td);
   MPSGraphTensor* toMPSGraphPlaceholder(MPSGraph* graph, ImageDesc imd);
   MPSGraphTensorData* newMPSGraphTensorData(const std::shared_ptr<Tensor>& tensor);
-
-  TransferFunctionType toTransferFunctionType(TransferFunction::Type type);
-  KernelDataType toDataType(DataType type);
 
   id<MTLBuffer> getMTLBuffer(Ref<Buffer> buffer);
 

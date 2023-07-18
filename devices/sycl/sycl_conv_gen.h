@@ -26,7 +26,7 @@ namespace xehpc {
     static constexpr int dpasDepth  = 8; // DPAS depth
     static constexpr int dpasRepeat = 8; // DPAS repeat count
 
-    static constexpr int blockC = TensorAccessor3D<T, tensorLayout>::blockC; // block input/output channels
+    static constexpr int blockC = TensorByteOffset<T, tensorLayout>::blockC; // block input/output channels
 
   #if defined(OIDN_ARCH_XEHPG)
     static constexpr int blockAC = 8;                   // block accumulator channels (exec width)
@@ -285,7 +285,8 @@ namespace xehpc {
         // Slow path: load the in-bounds pixels of the row
         const simd<int, W> iwVec(iw, 1); // iw, iw+1, iw+2, ...
         simd_mask<W> predVec = (iwVec >= 0) & (iwVec < src.W);
-        simd<uint32_t,  W> srcOffsetVec = src.getByteOffset(ic, ih, 0) + iwVec * src.wByteStride;
+        simd<uint32_t,  W> srcOffsetVec = src.getByteOffset(ic, ih, 0) +
+                                          iwVec * src.getByteOffset.wByteStride;
         simd<uintptr_t, W> srcAddrVec   = reinterpret_cast<uintptr_t>(src.ptr) + srcOffsetVec;
 
         #pragma unroll
@@ -324,7 +325,8 @@ namespace xehpc {
 
         const simd<int, numChunks> owVec(ow, K); // ow, ow+K, ow+2*K, ...
         simd_mask<numChunks> predVec = owVec < dst.W;
-        simd<uint32_t,  numChunks> dstOffsetVec = dst.getByteOffset(oc, oh, 0) + owVec * dst.wByteStride;
+        simd<uint32_t,  numChunks> dstOffsetVec = dst.getByteOffset(oc, oh, 0) +
+                                                  owVec * dst.getByteOffset.wByteStride;
         simd<uintptr_t, numChunks> dstAddrVec   = reinterpret_cast<uintptr_t>(dst.ptr) + dstOffsetVec;
 
         #pragma unroll

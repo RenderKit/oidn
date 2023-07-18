@@ -74,34 +74,6 @@ OIDN_NAMESPACE_BEGIN
                                                 dataType: toMPSDataType(tensor->getDataType())];
   }
 
-  TransferFunctionType toTransferFunctionType(TransferFunction::Type type)
-  {
-    switch (type) {
-      case TransferFunction::Type::PU:
-        return TransferFunctionType::PU;
-      case TransferFunction::Type::Log:
-        return TransferFunctionType::Log;
-      case TransferFunction::Type::Linear:
-        return TransferFunctionType::Linear;
-      case TransferFunction::Type::SRGB:
-        return TransferFunctionType::SRGB;
-      default:
-        throw std::logic_error("unknown transfer function");
-    }
-  }
-
-  KernelDataType toDataType(DataType type)
-  {
-    switch (type) {
-      case DataType::Float32:
-        return KernelDataType::f32;
-      case DataType::Float16:
-        return KernelDataType::f16;
-      default:
-        throw std::logic_error("unknown data type");
-    }
-  }
-
   id<MTLBuffer> getMTLBuffer(Ref<Buffer> buffer)
   {
     if (!buffer)

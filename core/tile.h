@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "common/common.h"
+#include "../common/platform.h"
 
 OIDN_NAMESPACE_BEGIN
 

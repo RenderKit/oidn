@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "image.h"
+#include "vec.h"
 
 OIDN_NAMESPACE_BEGIN
 
@@ -18,12 +18,11 @@ OIDN_NAMESPACE_BEGIN
       Log,
     };
 
-    static constexpr float yMax = 65504.f; // maximum HDR value
+    static constexpr oidn_constant float yMax = 65504.f; // maximum HDR value
 
-  //private:
-  public: // FIXME!
+  private:
     Type type;
-    const float* inputScalePtr = nullptr;
+    const oidn_global float* inputScalePtr = nullptr;
     float inputScale   = 1.f;
     float outputScale  = 1.f;
     float normScale    = 1.f;
@@ -31,12 +30,12 @@ OIDN_NAMESPACE_BEGIN
 
     struct SRGB
     {
-      static constexpr float a  =  12.92f;
-      static constexpr float b  =  1.055f;
-      static constexpr float c  =  1.f/2.4f;
-      static constexpr float d  = -0.055f;
-      static constexpr float y0 =  0.0031308f;
-      static constexpr float x0 =  0.04045f;
+      static constexpr oidn_constant float a  =  12.92f;
+      static constexpr oidn_constant float b  =  1.055f;
+      static constexpr oidn_constant float c  =  1.f/2.4f;
+      static constexpr oidn_constant float d  = -0.055f;
+      static constexpr oidn_constant float y0 =  0.0031308f;
+      static constexpr oidn_constant float x0 =  0.04045f;
 
       static OIDN_HOST_DEVICE_INLINE float forward(float y)
       {
@@ -57,17 +56,17 @@ OIDN_NAMESPACE_BEGIN
 
     struct PU
     {
-      static constexpr float a  =  1.41283765e+03f;
-      static constexpr float b  =  1.64593172e+00f;
-      static constexpr float c  =  4.31384981e-01f;
-      static constexpr float d  = -2.94139609e-03f;
-      static constexpr float e  =  1.92653254e-01f;
-      static constexpr float f  =  6.26026094e-03f;
-      static constexpr float g  =  9.98620152e-01f;
-      static constexpr float y0 =  1.57945760e-06f;
-      static constexpr float y1 =  3.22087631e-02f;
-      static constexpr float x0 =  2.23151711e-03f;
-      static constexpr float x1 =  3.70974749e-01f;
+      static constexpr oidn_constant float a  =  1.41283765e+03f;
+      static constexpr oidn_constant float b  =  1.64593172e+00f;
+      static constexpr oidn_constant float c  =  4.31384981e-01f;
+      static constexpr oidn_constant float d  = -2.94139609e-03f;
+      static constexpr oidn_constant float e  =  1.92653254e-01f;
+      static constexpr oidn_constant float f  =  6.26026094e-03f;
+      static constexpr oidn_constant float g  =  9.98620152e-01f;
+      static constexpr oidn_constant float y0 =  1.57945760e-06f;
+      static constexpr oidn_constant float y1 =  3.22087631e-02f;
+      static constexpr oidn_constant float x0 =  2.23151711e-03f;
+      static constexpr oidn_constant float x1 =  3.70974749e-01f;
 
       static OIDN_HOST_DEVICE_INLINE float forward(float y)
       {
@@ -91,6 +90,7 @@ OIDN_NAMESPACE_BEGIN
     };
 
   public:
+  #if !defined(OIDN_COMPILE_METAL_DEVICE)
     explicit TransferFunction(Type type = Type::Linear);
 
     Type getType() const { return type; }
@@ -108,6 +108,7 @@ OIDN_NAMESPACE_BEGIN
       this->inputScale  = 1.f;
       this->outputScale = 1.f;
     }
+  #endif
 
     OIDN_HOST_DEVICE_INLINE float getInputScale() const
     {
@@ -122,12 +123,6 @@ OIDN_NAMESPACE_BEGIN
         return (inputScale != 0.f) ? (1.f / inputScale) : 0.f;
       }
       return outputScale;
-    }
-
-    // FIXME: remove
-    OIDN_HOST_DEVICE_INLINE float getNormScale() const
-    {
-      return normScale;
     }
 
     OIDN_HOST_DEVICE_INLINE vec3f forward(vec3f y) const

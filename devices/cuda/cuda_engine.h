@@ -12,37 +12,44 @@ OIDN_NAMESPACE_BEGIN
   // Main kernel functions
   namespace
   {
-    template<typename F>
-    __global__ void basicCUDAKernel(WorkDim<1> globalSize, const F f)
+    template<typename Kernel>
+    __global__ void basicCUDAKernel(WorkDim<1> globalSize, const Kernel kernel)
     {
       WorkItem<1> it(globalSize);
       if (it.getGlobalID() < it.getGlobalSize())
-        f(it);
+        kernel(it);
     }
 
-    template<typename F>
-    __global__ void basicCUDAKernel(WorkDim<2> globalSize, const F f)
+    template<typename Kernel>
+    __global__ void basicCUDAKernel(WorkDim<2> globalSize, const Kernel kernel)
     {
       WorkItem<2> it(globalSize);
       if (it.getGlobalID<0>() < it.getGlobalSize<0>() &&
           it.getGlobalID<1>() < it.getGlobalSize<1>())
-        f(it);
+        kernel(it);
     }
 
-    template<typename F>
-    __global__ void basicCUDAKernel(WorkDim<3> globalSize, const F f)
+    template<typename Kernel>
+    __global__ void basicCUDAKernel(WorkDim<3> globalSize, const Kernel kernel)
     {
       WorkItem<3> it(globalSize);
       if (it.getGlobalID<0>() < it.getGlobalSize<0>() &&
           it.getGlobalID<1>() < it.getGlobalSize<1>() &&
           it.getGlobalID<2>() < it.getGlobalSize<2>())
-        f(it);
+        kernel(it);
     }
 
-    template<int N, typename F>
-    __global__ void groupCUDAKernel(const F f)
+    template<int N, typename Kernel>
+    __global__ void groupCUDAKernel(const Kernel kernel)
     {
-      f(WorkGroupItem<N>());
+      kernel(WorkGroupItem<N>());
+    }
+
+    template<int N, typename Kernel>
+    __global__ void groupLocalCUDAKernel(const Kernel kernel)
+    {
+      __shared__ typename Kernel::Local local;
+      kernel(WorkGroupItem<N>(), &local);
     }
   }
 #endif
@@ -83,27 +90,36 @@ OIDN_NAMESPACE_BEGIN
 
   #if defined(OIDN_COMPILE_CUDA)
     // Enqueues a basic kernel
-    template<int N, typename F>
-    OIDN_INLINE void submitKernel(WorkDim<N> globalSize, const F& f)
+    template<int N, typename Kernel>
+    OIDN_INLINE void submitKernel(WorkDim<N> globalSize, const Kernel& kernel)
     {
       // TODO: improve group size computation
       /*
       int minGridSize = 0, blockSize = 0;
       checkError(cudaOccupancyMaxPotentialBlockSize(
-        &minGridSize, &blockSize, static_cast<void(*)(WorkDim<N>, const F)>(basicCUDAKernel)));
+        &minGridSize, &blockSize, static_cast<void(*)(WorkDim<N>, const Kernel)>(basicCUDAKernel)));
       */
       WorkDim<N> groupSize = suggestWorkGroupSize(globalSize);
       WorkDim<N> numGroups = ceil_div(globalSize, groupSize);
 
-      basicCUDAKernel<<<numGroups, groupSize, 0, stream>>>(globalSize, f);
+      basicCUDAKernel<<<numGroups, groupSize, 0, stream>>>(globalSize, kernel);
       checkError(cudaGetLastError());
     }
 
     // Enqueues a work-group kernel
-    template<int N, typename F>
-    OIDN_INLINE void submitKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const F& f)
+    template<int N, typename Kernel>
+    OIDN_INLINE void submitKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const Kernel& kernel,
+                                  typename std::enable_if<!HasLocal<Kernel>::value, bool>::type = true)
     {
-      groupCUDAKernel<N><<<numGroups, groupSize, 0, stream>>>(f);
+      groupCUDAKernel<N><<<numGroups, groupSize, 0, stream>>>(kernel);
+      checkError(cudaGetLastError());
+    }
+
+    // Enqueues a work-group kernel using shared local memory
+    template<int N, typename Kernel, typename Local = typename Kernel::Local>
+    OIDN_INLINE void submitKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const Kernel& kernel)
+    {
+      groupLocalCUDAKernel<N><<<numGroups, groupSize, 0, stream>>>(kernel);
       checkError(cudaGetLastError());
     }
   #endif
