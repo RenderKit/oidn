@@ -277,6 +277,9 @@ OIDN_NAMESPACE_BEGIN
 
     cleanup();
     ops.clear();
+    inputProcess.reset();
+    outputProcess.reset();
+    scratch.reset();
     scratchByteSize = 0;
     privateByteSize = 0;
     dirty = false;
