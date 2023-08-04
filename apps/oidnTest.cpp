@@ -350,22 +350,25 @@ TEST_CASE("shared image", "[shared_image]")
   device.commit();
   REQUIRE(device.getError() == Error::None);
 
-  // FIXME: don't run on Metal
   SECTION("buffer allocator")
   {
-    FilterRef filter = device.newFilter("RT");
-    REQUIRE(bool(filter));
+    // Not supported on Metal
+    if (device.get<DeviceType>("type") != DeviceType::Metal)
+    {
+      FilterRef filter = device.newFilter("RT");
+      REQUIRE(bool(filter));
 
-    auto color  = makeConstImage(device, W, H);
-    auto output = makeImage(device, W, H);
-    setFilterImage(filter, "color",  color,  false);
-    setFilterImage(filter, "output", output, false);
+      auto color  = makeConstImage(device, W, H);
+      auto output = makeImage(device, W, H);
+      setFilterImage(filter, "color",  color,  false);
+      setFilterImage(filter, "output", output, false);
 
-    filter.commit();
-    REQUIRE(device.getError() == Error::None);
+      filter.commit();
+      REQUIRE(device.getError() == Error::None);
 
-    filter.execute();
-    REQUIRE(device.getError() == Error::None);
+      filter.execute();
+      REQUIRE(device.getError() == Error::None);
+    }
   }
 
   SECTION("system allocator")
