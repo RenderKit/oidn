@@ -68,6 +68,7 @@ OIDN_NAMESPACE_BEGIN
       }
 
       // Metal 3 devices support non-uniform threadgroup sizes
+      // FIXME: improve threadsPerThreadgroup
       [computeEncoder dispatchThreads: MTLSize(globalSize)
                 threadsPerThreadgroup: MTLSizeMake(pipeline.threadExecutionWidth, 1, 1)];
 
