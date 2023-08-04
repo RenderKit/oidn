@@ -126,8 +126,16 @@ OIDN_NAMESPACE_BEGIN
 
   void MetalEngine::submitHostFunc(std::function<void()>&& f)
   {
-    // FIXME: implement
-    f();
+    auto fPtr = new std::function<void()>(std::move(f));
+    auto commandBuffer = getMTLCommandBuffer();
+
+    [commandBuffer addCompletedHandler: ^(id<MTLCommandBuffer> commandBuffer)
+    {
+      std::unique_ptr<std::function<void()>> fSmartPtr(fPtr);
+      (*fSmartPtr)();
+    }];
+
+    [commandBuffer commit];
   }
 
   void MetalEngine::wait()
