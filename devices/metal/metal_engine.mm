@@ -111,12 +111,12 @@ OIDN_NAMESPACE_BEGIN
 
   std::shared_ptr<InputProcess> MetalEngine::newInputProcess(const InputProcessDesc& desc)
   {
-    return std::make_shared<GPUInputProcess<MetalEngine, float, TensorLayout::hwc, 1>>(this, desc);
+    return std::make_shared<GPUInputProcess<MetalEngine, half, TensorLayout::hwc, 1>>(this, desc);
   }
 
   std::shared_ptr<OutputProcess> MetalEngine::newOutputProcess(const OutputProcessDesc& desc)
   {
-    return std::make_shared<GPUOutputProcess<MetalEngine, float, TensorLayout::hwc>>(this, desc);
+    return std::make_shared<GPUOutputProcess<MetalEngine, half, TensorLayout::hwc>>(this, desc);
   }
 
   std::shared_ptr<ImageCopy> MetalEngine::newImageCopy()

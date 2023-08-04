@@ -97,9 +97,9 @@ OIDN_NAMESPACE_BEGIN
 
     void finalize() override
     {
-      static_assert(std::is_same<TensorDataT, float>::value, "unsupported tensor data type");
+      static_assert(std::is_same<TensorDataT, half>::value, "unsupported tensor data type");
       static_assert(tensorLayout == TensorLayout::hwc, "unsupported tensor layout");
-      pipeline = engine->newMTLComputePipelineState("outputProcess_float_hwc");
+      pipeline = engine->newMTLComputePipelineState("outputProcess_half_hwc");
     }
   #endif
 

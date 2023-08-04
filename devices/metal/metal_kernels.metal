@@ -70,10 +70,10 @@ OIDN_DEFINE_GROUP_LOCAL_KERNEL_2D(autoexposureDownsample, GPUAutoexposureDownsam
 OIDN_DEFINE_GROUP_LOCAL_KERNEL_1D(autoexposureReduce_1024, GPUAutoexposureReduceKernel<1024>)
 OIDN_DEFINE_GROUP_LOCAL_KERNEL_1D(autoexposureReduceFinal_1024, GPUAutoexposureReduceFinalKernel<1024>)
 
-OIDN_DEFINE_GROUP_KERNEL_2D(inputProcess_float_hwc_3, GPUInputProcessKernel<float COMMA TensorLayout::hwc COMMA 3>)
-OIDN_DEFINE_GROUP_KERNEL_2D(inputProcess_float_hwc_6, GPUInputProcessKernel<float COMMA TensorLayout::hwc COMMA 6>)
-OIDN_DEFINE_GROUP_KERNEL_2D(inputProcess_float_hwc_9, GPUInputProcessKernel<float COMMA TensorLayout::hwc COMMA 9>)
+OIDN_DEFINE_GROUP_KERNEL_2D(inputProcess_half_hwc_3, GPUInputProcessKernel<half COMMA TensorLayout::hwc COMMA 3>)
+OIDN_DEFINE_GROUP_KERNEL_2D(inputProcess_half_hwc_6, GPUInputProcessKernel<half COMMA TensorLayout::hwc COMMA 6>)
+OIDN_DEFINE_GROUP_KERNEL_2D(inputProcess_half_hwc_9, GPUInputProcessKernel<half COMMA TensorLayout::hwc COMMA 9>)
 
-OIDN_DEFINE_BASIC_KERNEL_2D(outputProcess_float_hwc, GPUOutputProcessKernel<float COMMA TensorLayout::hwc>)
+OIDN_DEFINE_BASIC_KERNEL_2D(outputProcess_half_hwc, GPUOutputProcessKernel<half COMMA TensorLayout::hwc>)
 
 OIDN_DEFINE_BASIC_KERNEL_2D(imageCopy, GPUImageCopyKernel)

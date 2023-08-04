@@ -62,9 +62,10 @@ OIDN_NAMESPACE_BEGIN
     }
 
     // Set device properties
-    tensorLayout = TensorLayout::hwc;
-    weightLayout = TensorLayout::oihw;
-    tensorBlockC = 1;
+    tensorDataType = DataType::Float16;
+    tensorLayout   = TensorLayout::hwc;
+    weightLayout   = TensorLayout::oihw;
+    tensorBlockC   = 1;
 
     systemMemorySupported  = false;
     managedMemorySupported = false;
