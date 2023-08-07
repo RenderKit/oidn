@@ -5,6 +5,7 @@
 #include "metal_graph.h"
 #include "metal_common.h"
 #include "core/tensor_reorder.h"
+#include "core/scratch.h"
 
 OIDN_NAMESPACE_BEGIN
 
@@ -22,18 +23,18 @@ OIDN_NAMESPACE_BEGIN
       [graph release];
   }
 
-  MetalGraph::TensorNode* MetalGraph::addOp(const std::shared_ptr<Op>& op, const TensorDesc& dstDesc)
+  MetalGraph::TensorAlloc* MetalGraph::addOp(const std::shared_ptr<Op>& op, const TensorDesc& dstDesc)
   {
     if (finalized)
       throw std::logic_error("graph cannot be changed after finalization");
     if (op->getScratchByteSize() > 0)
       throw std::logic_error("scratch memory is not supported for MetalGraph ops");
 
-    tensorNodes.emplace_back(new TensorNode{dstDesc, nullptr});
-    TensorNode* dstNode = tensorNodes.back().get();
-    tensorNodesByOp[op.get()] = dstNode;
+    tensorAllocs.emplace_back(new TensorAlloc{dstDesc, nullptr});
+    TensorAlloc* dstAlloc = tensorAllocs.back().get();
+    tensorAllocsByOp[op.get()] = dstAlloc;
     ops.push_back(op);
-    return dstNode;
+    return dstAlloc;
   }
 
   std::shared_ptr<InputProcess> MetalGraph::addInputProcess(
@@ -49,19 +50,18 @@ OIDN_NAMESPACE_BEGIN
 
     inputProcess = engine->newInputProcess({srcDims, tileAlignment, transferFunc, hdr, snorm});
     inputProcess->setName(name);
-    TensorNode* dstNode = addOp(inputProcess, inputProcess->getDstDesc());
+    TensorAlloc* dstAlloc = addOp(inputProcess, inputProcess->getDstDesc());
 
     lazyInits.push_back([=]()
     {
-      MPSGraphTensor* dst = toMPSGraphPlaceholder(graph, dstNode->desc);
-      dstNode->tensor = dst;
+      MPSGraphTensor* dst = toMPSGraphPlaceholder(graph, dstAlloc->desc);
+      dstAlloc->tensor = dst;
       graphInput = dst;
-      //inputProcess->setDst(scratch->newTensor(dstNode->desc, 0));
-      inputProcess->setDst(engine->newTensor(dstNode->desc));
+      auto graphInputBuffer = engine->newScratchBuffer(dstAlloc->desc.getByteSize(), "graphInput");
+      inputProcess->setDst(graphInputBuffer->newTensor(dstAlloc->desc));
     });
 
-    //scratchByteSize = max(scratchByteSize, dstNode->desc.getByteSize());
-    privateByteSize += dstNode->desc.getByteSize();
+    privateByteSize += dstAlloc->desc.getByteSize();
     return inputProcess;
   }
 
@@ -75,20 +75,19 @@ OIDN_NAMESPACE_BEGIN
     if (!inputProcess || outputProcess)
       throw std::logic_error("output processing must be added last to the graph");
 
-    TensorNode* srcNode = tensorNodesByOp[srcOp.get()];
-    const TensorDesc srcDesc = srcNode->desc;
+    TensorAlloc* srcAlloc = tensorAllocsByOp[srcOp.get()];
+    const TensorDesc srcDesc = srcAlloc->desc;
     outputProcess = engine->newOutputProcess({srcDesc, transferFunc, hdr, snorm});
     outputProcess->setName(name);
     addOp(outputProcess, srcDesc);
 
     lazyInits.push_back([=]()
     {
-      graphOutput = srcNode->tensor;
-      //outputProcess->setSrc(scratch->newTensor(srcDesc, 0)); // alias the input tensor
-      outputProcess->setSrc(engine->newTensor(srcDesc));
+      graphOutput = srcAlloc->tensor;
+      auto graphOutputBuffer = engine->newScratchBuffer(srcDesc.getByteSize(), "graphOutput");
+      outputProcess->setSrc(graphOutputBuffer->newTensor(srcDesc));
     });
 
-    //scratchByteSize = max(scratchByteSize, srcDesc.getByteSize());
     privateByteSize += srcDesc.getByteSize();
     return outputProcess;
   }
@@ -115,12 +114,12 @@ OIDN_NAMESPACE_BEGIN
                                 TensorLayout::x,
                                 engine->getDevice()->getTensorDataType()};
 
-    TensorNode* srcNode = tensorNodesByOp[srcOp.get()];
-    const TensorDesc srcDesc = srcNode->desc;
+    TensorAlloc* srcAlloc = tensorAllocsByOp[srcOp.get()];
+    const TensorDesc srcDesc = srcAlloc->desc;
     auto conv = engine->newConv({srcDesc, finalWeightDesc, finalBiasDesc, activation, postOp, false});
     conv->setName(name);
     const TensorDesc dstDesc = conv->getDstDesc();
-    TensorNode* dstNode = addOp(conv, dstDesc);
+    TensorAlloc* dstAlloc = addOp(conv, dstDesc);
 
     lazyInits.push_back([=]()
     {
@@ -146,7 +145,7 @@ OIDN_NAMESPACE_BEGIN
                   weightsLayout: MPSGraphTensorNamedDataLayout::MPSGraphTensorNamedDataLayoutOIHW
       ];
 
-      auto dst = [graph convolution2DWithSourceTensor: srcNode->tensor
+      auto dst = [graph convolution2DWithSourceTensor: srcAlloc->tensor
                                         weightsTensor: finalWeight
                                            descriptor: descr
                                                  name: nil];
@@ -189,7 +188,7 @@ OIDN_NAMESPACE_BEGIN
       else if (postOp != PostOp::None)
         throw std::invalid_argument("unsupported convolution postop");
 
-      dstNode->tensor = dst;
+      dstAlloc->tensor = dst;
     });
 
     return conv;
@@ -203,21 +202,21 @@ OIDN_NAMESPACE_BEGIN
     if (!inputProcess || outputProcess)
       throw std::logic_error("op must be added to the graph between input and output processing");
 
-    TensorNode* src1Node = tensorNodesByOp[src1Op.get()];
-    TensorNode* src2Node = tensorNodesByOp[src2Op.get()];
+    TensorAlloc* src1Alloc = tensorAllocsByOp[src1Op.get()];
+    TensorAlloc* src2Alloc = tensorAllocsByOp[src2Op.get()];
 
-    TensorDesc src1Desc = src1Node->desc;
-    TensorDesc src2Desc = src2Node->desc;
+    TensorDesc src1Desc = src1Alloc->desc;
+    TensorDesc src2Desc = src2Alloc->desc;
 
     TensorDims dstDims{src1Desc.getC() + src2Desc.getC(), src1Desc.getH(), src1Desc.getW()};
     TensorDesc dstDesc{dstDims, src1Desc.layout, src1Desc.dataType};
 
     auto concat = std::make_shared<MetalOp>();
-    TensorNode* concatDstNode = addOp(concat, dstDesc);
+    TensorAlloc* concatDstAlloc = addOp(concat, dstDesc);
 
     lazyInits.push_back([=]()
     {
-      concatDstNode->tensor = [graph concatTensors: @[src1Node->tensor, src2Node->tensor]
+      concatDstAlloc->tensor = [graph concatTensors: @[src1Alloc->tensor, src2Alloc->tensor]
                                          dimension: 3
                                               name: nil];
     });
@@ -266,8 +265,8 @@ OIDN_NAMESPACE_BEGIN
   void MetalGraph::cleanup()
   {
     lazyInits.clear();
-    tensorNodesByOp.clear();
-    tensorNodes.clear();
+    tensorAllocsByOp.clear();
+    tensorAllocs.clear();
   }
 
   void MetalGraph::clear()

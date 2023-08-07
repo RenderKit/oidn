@@ -55,8 +55,8 @@ OIDN_NAMESPACE_BEGIN
     // Reallocates the buffer with a new size discarding its current contents
     virtual void realloc(size_t newByteSize);
 
-    std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, size_t byteOffset);
-    std::shared_ptr<Image> newImage(const ImageDesc& desc, size_t byteOffset);
+    std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, size_t byteOffset = 0);
+    std::shared_ptr<Image> newImage(const ImageDesc& desc, size_t byteOffset = 0);
 
   private:
     // Memory objects backed by the buffer must attach themselves

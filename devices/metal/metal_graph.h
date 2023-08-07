@@ -78,13 +78,14 @@ OIDN_NAMESPACE_BEGIN
     void run(Progress& progress) override;
 
   private:
-    struct TensorNode
+    // Temporary tensor allocation record
+    struct TensorAlloc
     {
       TensorDesc desc;
-      MPSGraphTensor* tensor;
+      MPSGraphTensor* tensor; // later set while finalizing the graph
     };
 
-    TensorNode* addOp(const std::shared_ptr<Op>& op, const TensorDesc& dstDesc);
+    TensorAlloc* addOp(const std::shared_ptr<Op>& op, const TensorDesc& dstDesc);
     void cleanup();
 
     Ref<MetalEngine> engine;
@@ -104,8 +105,8 @@ OIDN_NAMESPACE_BEGIN
     bool finalized = false;
 
     // Used only while building the graph
-    std::vector<std::unique_ptr<TensorNode>> tensorNodes;
-    std::unordered_map<Op*, TensorNode*> tensorNodesByOp;
+    std::vector<std::unique_ptr<TensorAlloc>> tensorAllocs;
+    std::unordered_map<Op*, TensorAlloc*> tensorAllocsByOp;
     std::vector<std::function<void()>> lazyInits; // lazy initialization for ops
     std::shared_ptr<TensorMap> constTensors;
   };

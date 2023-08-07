@@ -31,12 +31,12 @@ OIDN_NAMESPACE_BEGIN
       "creating a shared buffer from a Win32 handle is not supported by the device");
   }
 
-  Ref<ScratchBuffer> Engine::newScratchBuffer(size_t byteSize)
+  Ref<ScratchBuffer> Engine::newScratchBuffer(size_t byteSize, const std::string& id)
   {
     auto scratchManager = scratchManagerWp.lock();
     if (!scratchManager)
       scratchManagerWp = scratchManager = std::make_shared<ScratchBufferManager>(this);
-    return makeRef<ScratchBuffer>(scratchManager, byteSize);
+    return makeRef<ScratchBuffer>(scratchManager, byteSize, id);
   }
 
   bool Engine::isSupported(const TensorDesc& desc) const

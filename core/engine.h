@@ -53,7 +53,7 @@ OIDN_NAMESPACE_BEGIN
     virtual Ref<Buffer> newExternalBuffer(ExternalMemoryTypeFlag handleType,
                                           void* handle, const void* name, size_t byteSize);
 
-    Ref<ScratchBuffer> newScratchBuffer(size_t byteSize);
+    Ref<ScratchBuffer> newScratchBuffer(size_t byteSize, const std::string& id = "");
 
     // Tensor
     virtual bool isSupported(const TensorDesc& desc) const;

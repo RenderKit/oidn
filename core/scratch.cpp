@@ -7,51 +7,78 @@
 OIDN_NAMESPACE_BEGIN
 
   ScratchBufferManager::ScratchBufferManager(const Ref<Engine>& engine)
-    : buffer(engine->newBuffer(0, Storage::Device))
-  {
-  }
+    : engine(engine)
+  {}
 
-  void ScratchBufferManager::attach(ScratchBuffer* scratch)
+  // Attaches a scratch buffer and returns the parent buffer that backs its memory
+  Buffer* ScratchBufferManager::attach(ScratchBuffer* scratch)
   {
-    scratches.insert(scratch);
+    Alloc& alloc = allocs[scratch->id];
 
-    if (scratch->localSize > buffer->getByteSize())
+    if (alloc.buffer)
     {
-      buffer->realloc(scratch->localSize);
-      updatePtrs();
+      // Increase the size of the allocation if necessary
+      if (scratch->byteSize > alloc.buffer->getByteSize())
+      {
+        alloc.buffer->realloc(scratch->byteSize);
+        updatePtrs(alloc);
+      }
     }
+    else
+    {
+      // Allocate a new buffer
+      alloc.buffer = engine->newBuffer(scratch->byteSize, Storage::Device);
+    }
+
+    alloc.scratches.insert(scratch);
+    return alloc.buffer.get();
   }
 
+  // Detaches the scratch buffer
   void ScratchBufferManager::detach(ScratchBuffer* scratch)
   {
-    scratches.erase(scratch);
+    Alloc& alloc = allocs[scratch->id];
 
-    if (scratch->localSize == buffer->getByteSize())
+    alloc.scratches.erase(scratch);
+
+    if (alloc.scratches.empty())
     {
-      size_t newGlobalSize = 0;
-      for (auto scratch : scratches)
-        newGlobalSize = max(newGlobalSize, scratch->getByteSize());
-
-      if (newGlobalSize < buffer->getByteSize())
+      // Free the allocation because no more scratch buffers are attached
+      allocs.erase(scratch->id);
+    }
+    else
+    {
+      // Shrink the size of the allocation if possible
+      if (scratch->byteSize == alloc.buffer->getByteSize())
       {
-        buffer->realloc(newGlobalSize);
-        updatePtrs();
+        size_t newBufferByteSize = 0;
+        for (auto otherScratch : alloc.scratches)
+          newBufferByteSize = max(newBufferByteSize, otherScratch->byteSize);
+
+        if (newBufferByteSize < alloc.buffer->getByteSize())
+        {
+          alloc.buffer->realloc(newBufferByteSize);
+          updatePtrs(alloc);
+        }
       }
     }
   }
 
-  void ScratchBufferManager::updatePtrs()
+  void ScratchBufferManager::updatePtrs(Alloc& alloc)
   {
-    for (auto scratch : scratches)
+    for (auto scratch : alloc.scratches)
       for (auto mem : scratch->mems)
         mem->updatePtr();
   }
 
-  ScratchBuffer::ScratchBuffer(const std::shared_ptr<ScratchBufferManager>& manager, size_t size)
+  ScratchBuffer::ScratchBuffer(const std::shared_ptr<ScratchBufferManager>& manager, size_t byteSize,
+                               const std::string& id)
     : manager(manager),
-      localSize(size)
+      parentBuffer(nullptr),
+      byteSize(byteSize),
+      id(id)
   {
-    manager->attach(this);
+    parentBuffer = manager->attach(this);
   }
 
   ScratchBuffer::~ScratchBuffer()
