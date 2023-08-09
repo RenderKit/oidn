@@ -27,8 +27,8 @@ OIDN_NAMESPACE_BEGIN
       const int blockC = getTensorLayoutInfo(srcDesc.layout).blockC;
 
       ispc::CPUUpsampleKernel kernel;
-      kernel.src = toISPC(*src);
-      kernel.dst = toISPC(*dst);
+      kernel.src = toISPC<ispc::TensorAccessor3D>(*src);
+      kernel.dst = toISPC<ispc::TensorAccessor3D>(*dst);
 
       parallel_nd(src->getPaddedC() / blockC, src->getH(), [&](int cb, int h)
       {

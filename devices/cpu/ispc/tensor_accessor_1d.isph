@@ -1,0 +1,14 @@
+// Copyright 2018 Intel Corporation
+// Copyright 2023 Linaro Ltd.
+#pragma once
+
+#include "vec.isph"
+
+#define B programCount // channel block size
+
+// Weights/tensor in in vector layout
+struct TensorAccessor1D
+{
+  uniform float* uniform ptr;
+  uniform int X;
+};

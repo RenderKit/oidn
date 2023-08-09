@@ -1,0 +1,48 @@
+// Copyright 2018 Intel Corporation
+// Copyright 2023 Linaro Ltd.
+#pragma once
+
+#include "vec.isph"
+
+#define B programCount // channel block size
+
+// Weights/tensor in OIHW layout
+struct TensorAccessor4D
+{
+  uniform float* uniform ptr;
+  uniform int O, I, H, W;
+};
+
+inline size_t getIndex(uniform TensorAccessor4D& tz, uniform int o, uniform int i, uniform int h, int w)
+{
+#if defined(OIDN_DNNL)
+  #error "DNNL unsupported"
+#else
+  // oihw layout
+  return ((((((size_t)tz.I * o) + i) * (size_t)tz.H) + h) * (size_t)tz.W) + w;
+#endif
+}
+
+inline float get1f(uniform TensorAccessor4D& tz, uniform int o, uniform int i, uniform int h, int w)
+{
+  return tz.ptr[getIndex(tz, o, i, h, w)];
+}
+
+inline void set1f(uniform TensorAccessor4D& tz, uniform int o, uniform int i, uniform int h, int w, float value)
+{
+  tz.ptr[getIndex(tz, o, i, h, w)] = value;
+}
+
+/*inline vec3f get3f(uniform TensorAccessor4D& tz, uniform int o, uniform int i, uniform int h, int w)
+{
+  return make_vec3f(get1f(tz, c,   h, w),
+                    get1f(tz, c+1, h, w),
+                    get1f(tz, c+2, h, w));
+}
+
+inline void set3f(uniform TensorAccessor3D& tz, uniform int c, uniform int h, int w, const vec3f& value)
+{
+  set1f(tz, c,   h, w, value.x);
+  set1f(tz, c+1, h, w, value.y);
+  set1f(tz, c+2, h, w, value.z);
+}*/

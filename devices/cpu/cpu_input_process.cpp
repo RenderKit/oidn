@@ -27,7 +27,7 @@ OIDN_NAMESPACE_BEGIN
     kernel.color  = toISPC(color  ? *color  : nullImage);
     kernel.albedo = toISPC(albedo ? *albedo : nullImage);
     kernel.normal = toISPC(normal ? *normal : nullImage);
-    kernel.dst    = toISPC(*dst);
+    kernel.dst    = toISPC<ispc::TensorAccessor3D>(*dst);
     kernel.tile   = toISPC(tile);
     kernel.transferFunc = toISPC(*transferFunc);
     kernel.hdr   = hdr;

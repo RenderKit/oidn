@@ -6,6 +6,8 @@
   #include "dnnl/dnnl_engine.h"
 #elif defined(OIDN_BNNS)
   #include "bnns/bnns_engine.h"
+#elif defined(OIDN_ISPC)
+  #include "ispc/ispc_engine.h"
 #endif
 
 #if defined(OIDN_ARCH_X64)
@@ -58,7 +60,7 @@ OIDN_NAMESPACE_BEGIN
     size_t nameSize = sizeof(name)-1;
     if (sysctlbyname("machdep.cpu.brand_string", &name, &nameSize, nullptr, 0) == 0 && strlen(name) > 0)
       return name;
-  #else
+  #elif defined(OIDN_ARCH_X64)
     int regs[3][4];
     char name[sizeof(regs)+1] = {};
 
@@ -72,6 +74,8 @@ OIDN_NAMESPACE_BEGIN
       if (strlen(name) > 0)
         return name;
     }
+  #elif defined(OIDN_ARCH_ARM64)
+    return "ARM64-Based CPU";
   #endif
 
     return "CPU"; // fallback
@@ -171,6 +175,8 @@ OIDN_NAMESPACE_BEGIN
     engine = makeRef<DNNLEngine>(this);
   #elif defined(OIDN_BNNS)
     engine = makeRef<BNNSEngine>(this);
+  #elif defined(OIDN_ISPC)
+    engine = makeRef<ISPCEngine>(this);
   #endif
   }
 

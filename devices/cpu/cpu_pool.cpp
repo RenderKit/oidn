@@ -11,26 +11,37 @@ OIDN_NAMESPACE_BEGIN
     : Pool(desc),
       engine(engine)
   {
-    if (srcDesc.layout != TensorLayout::Chw8c &&
+    /*if (srcDesc.layout != TensorLayout::Chw8c &&
         srcDesc.layout != TensorLayout::Chw16c)
       throw std::invalid_argument("unsupported pooling source layout");
-  }
+  */}
 
   void CPUPool::submit()
   {
     if (!src || !dst)
       throw std::logic_error("pooling source/destination not set");
 
-    const int blockC = getTensorLayoutInfo(dstDesc.layout).blockC;
-
     ispc::CPUPoolKernel kernel;
-    kernel.src = toISPC(*src);
-    kernel.dst = toISPC(*dst);
+    kernel.src = toISPC<ispc::TensorAccessor3D>(*src);
+    kernel.dst = toISPC<ispc::TensorAccessor3D>(*dst);
 
-    parallel_nd(dst->getPaddedC() / blockC, dst->getH(), [&](int cb, int h)
+    // Blocked layout
+    if(src->getLayout() == TensorLayout::Chw8c || src->getLayout() == TensorLayout::Chw16c)
     {
-      ispc::CPUPoolKernel_run(&kernel, cb, h);
-    });
+      const int blockC = getTensorLayoutInfo(dstDesc.layout).blockC;
+
+      parallel_nd(dst->getPaddedC() / blockC, dst->getH(), [&](int cb, int h)
+      {
+        ispc::CPUPoolKernel_run_blocked(&kernel, cb, h);
+      });
+    }
+    else // Non-blocked layout
+    {
+      parallel_nd(dst->getPaddedC(), dst->getH(), dst->getW(), [&](int c, int h, int w)
+      {
+        ispc::CPUPoolKernel_run_nonblocked(&kernel, c, h, w);
+      });
+    }
   }
 
 OIDN_NAMESPACE_END

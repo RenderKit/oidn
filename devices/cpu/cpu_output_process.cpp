@@ -23,7 +23,7 @@ OIDN_NAMESPACE_BEGIN
 
     ispc::CPUOutputProcessKernel kernel;
 
-    kernel.src = toISPC(*src);
+    kernel.src = toISPC<ispc::TensorAccessor3D>(*src);
     kernel.dst = toISPC(*dst);
     kernel.tile = toISPC(tile);
     kernel.transferFunc = toISPC(*transferFunc);

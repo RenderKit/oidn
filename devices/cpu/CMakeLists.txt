@@ -8,6 +8,9 @@ if(OIDN_ARCH STREQUAL "X64")
   # oneDNN
   set(OIDN_DNNL ON)
   include(oidn_dnnl)
+elseif(OIDN_ARCH STREQUAL "ARM64")
+  set(OIDN_ISPC ON)
+  include(oidn_ispc)
 elseif(APPLE AND OIDN_ARCH STREQUAL "ARM64")
   # BNNS
   set(OIDN_BNNS ON)
@@ -58,7 +61,7 @@ set(CPU_SOURCES_ISPC
   color.ispc
   image_accessor.isph
   math.isph
-  tensor_accessor.isph
+  tensor_accessor_3d.isph
   tile.isph
   vec.isph
 )
@@ -85,6 +88,19 @@ elseif(OIDN_BNNS)
     bnns/bnns_pool.h
     bnns/bnns_pool.cpp
   )
+elseif(OIDN_ISPC)
+  list(APPEND CPU_SOURCES_ISPC
+    ispc/tensor_accessor_4d.isph
+    ispc/tensor_accessor_1d.isph
+    ispc/cpu_convolution.ispc
+  )
+
+  list(APPEND OIDN_CPU_SOURCES
+    ispc/ispc_conv.h
+    ispc/ispc_conv.cpp
+    ispc/ispc_engine.h
+    ispc/ispc_engine.cpp
+  )
 endif()
 
 add_library(OpenImageDenoise_device_cpu SHARED ${OIDN_CPU_SOURCES} ${OIDN_RESOURCE_FILE})
@@ -98,6 +114,10 @@ elseif(OIDN_BNNS)
   target_compile_definitions(OpenImageDenoise_device_cpu PRIVATE OIDN_BNNS)
   ispc_add_definitions(-DOIDN_BNNS)
   target_link_libraries(OpenImageDenoise_device_cpu PRIVATE "-framework Accelerate")
+elseif(OIDN_ISPC)
+  target_compile_definitions(OpenImageDenoise_device_cpu PRIVATE OIDN_ISPC)
+  ispc_add_definitions(-DOIDN_ISPC)
+  #target_link_libraries(OpenImageDenoise_device_cpu PRIVATE ispc)
 endif()
 
 ispc_target_add_sources(OpenImageDenoise_device_cpu ${CPU_SOURCES_ISPC})

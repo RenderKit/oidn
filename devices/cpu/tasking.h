@@ -34,6 +34,7 @@
 #include "tbb/parallel_reduce.h"
 #include "tbb/blocked_range.h"
 #include "tbb/blocked_range2d.h"
+#include "tbb/blocked_range3d.h"
 
 OIDN_NAMESPACE_BEGIN
 
@@ -78,6 +79,22 @@ OIDN_NAMESPACE_BEGIN
       {
         for (T1 j = r.cols().begin(); j != r.cols().end(); ++j)
           f(i, j);
+      }
+    });
+  }
+
+  template<typename T0, typename T1, typename T2, typename F>
+  OIDN_INLINE void parallel_nd(const T0& D0, const T1& D1, const T2& D2, const F& f)
+  {
+    tbb::parallel_for(tbb::blocked_range3d<T0, T1, T2>(0, D0, 0, D1, 0, D2), [&](const tbb::blocked_range3d<T0, T1, T2>& r)
+    {
+      for (T0 i = r.pages().begin(); i != r.pages().end(); ++i)
+      {
+        for (T1 j = r.rows().begin(); j != r.rows().end(); ++j)
+        {
+          for (T2 k = r.cols().begin(); k != r.cols().end(); ++k)
+            f(i, j, k);
+        }
       }
     });
   }
