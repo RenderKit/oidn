@@ -12,7 +12,9 @@ else()
 endif()
 
 # Check the generator
-if(NOT CMAKE_GENERATOR MATCHES "Ninja" AND NOT CMAKE_GENERATOR MATCHES "Unix Makefiles")
+# FIXME: Make support is currently broken due to IGC_EnableZEBinary
+#if(NOT CMAKE_GENERATOR MATCHES "Ninja" AND NOT CMAKE_GENERATOR MATCHES "Unix Makefiles")
+if(NOT CMAKE_GENERATOR MATCHES "Ninja")
   message(FATAL_ERROR "Building with SYCL support requires Ninja or Make")
 endif()
 
@@ -89,6 +91,7 @@ set(OIDN_SYCL_SOURCES
 if(OIDN_DEVICE_SYCL_AOT)
   # FIXME: IGC currently ignores "--format zebin" for TGL/ADL, so we need to set an environment variable
   # instead but IGC supports this only on Linux. On Windows we're stuck with the old format.
+  # Make support should be re-enabled after removing this workaround.
   if(UNIX)
     set(CMAKE_CXX_LINKER_LAUNCHER "IGC_EnableZEBinary=1" ${CMAKE_CXX_LINKER_LAUNCHER})
   endif()
