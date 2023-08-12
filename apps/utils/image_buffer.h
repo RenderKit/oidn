@@ -35,6 +35,11 @@ OIDN_NAMESPACE_BEGIN
 
     OIDN_INLINE const void* getData() const { return devPtr; }
     OIDN_INLINE void* getData() { return devPtr; }
+    OIDN_INLINE const void* getHostData() const { return hostPtr; }
+    OIDN_INLINE void* getHostData() { return hostPtr; }
+
+    void read(size_t byteOffset, size_t byteSize, void* dstHostPtr) const;
+    void write(size_t byteOffset, size_t byteSize, const void* srcHostPtr);
 
     OIDN_INLINE const BufferRef& getBuffer() const { return buffer; }
 

@@ -191,51 +191,58 @@ def test_regression(filter, feature_sets, dataset):
             for inplace in ([False, True] if full_test or cfg.full else [False]):
               # Iterate over memory usage
               for maxmem in ([None, 200] if full_test or cfg.full else [None]):
-                # Run test
-                test_name = f'{filter}.{quality}.{features_str}.{image_name}.{precision}'
-                if inplace:
-                  test_name += '.inplace'
-                if maxmem:
-                  test_name += f'.maxmem{maxmem}'
+                # Iterate over buffer storage
+                for storage in ([None] if inplace or maxmem else [None, 'device']):
+                  # Run test
+                  test_name = f'{filter}.{quality}.{features_str}.{image_name}.{precision}'
+                  if inplace:
+                    test_name += '.inplace'
+                  if storage:
+                    test_name += f'.{storage}'
+                  if maxmem:
+                    test_name += f'.maxmem{maxmem}'
 
-                denoise_cmd = os.path.join(bin_dir, 'oidnDenoise')
-                if cfg.device != 'default':
-                  denoise_cmd += f' --device {cfg.device}'
-                denoise_cmd += f' -f {filter} -q {quality}'
+                  denoise_cmd = os.path.join(bin_dir, 'oidnDenoise')
+                  if cfg.device != 'default':
+                    denoise_cmd += f' --device {cfg.device}'
+                  denoise_cmd += f' -f {filter} -q {quality}'
 
-                features_exist = True
-                for feature in features:
-                  feature_opt = get_feature_opt(feature)
-                  feature_ext = get_feature_ext(feature)
-                  feature_filename = os.path.join(baseline_dir, f'{image_name}.input.{feature_ext}.pfm')
-                  if not os.path.isfile(feature_filename):
-                    features_exist = False
-                    break
-                  denoise_cmd += f' --{feature_opt} "{feature_filename}"'
+                  features_exist = True
+                  for feature in features:
+                    feature_opt = get_feature_opt(feature)
+                    feature_ext = get_feature_ext(feature)
+                    feature_filename = os.path.join(baseline_dir, f'{image_name}.input.{feature_ext}.pfm')
+                    if not os.path.isfile(feature_filename):
+                      features_exist = False
+                      break
+                    denoise_cmd += f' --{feature_opt} "{feature_filename}"'
 
-                if not features_exist:
-                  continue
-                print_test(test_name)
+                  if not features_exist:
+                    continue
+                  print_test(test_name)
 
-                ref_filename = os.path.join(baseline_dir, f'{image_name}.{result}.{main_feature_ext}.pfm')
-                if not os.path.isfile(ref_filename):
-                  print('Error: baseline output image missing (run with "baseline" first)')
-                  exit(1)
-                denoise_cmd += f' --ref "{ref_filename}" -n 3 -v 2'
+                  ref_filename = os.path.join(baseline_dir, f'{image_name}.{result}.{main_feature_ext}.pfm')
+                  if not os.path.isfile(ref_filename):
+                    print('Error: baseline output image missing (run with "baseline" first)')
+                    exit(1)
+                  denoise_cmd += f' --ref "{ref_filename}" -n 3 -v 2'
 
-                if set(features) & {'calb', 'cnrm'}:
-                  denoise_cmd += ' --clean_aux'
+                  if set(features) & {'calb', 'cnrm'}:
+                    denoise_cmd += ' --clean_aux'
 
-                if precision == 'fp16':
-                  denoise_cmd += ' -t half'
+                  if precision == 'fp16':
+                    denoise_cmd += ' -t half'
 
-                if inplace:
-                  denoise_cmd += ' --inplace'
+                  if inplace:
+                    denoise_cmd += ' --inplace'
 
-                if maxmem:
-                  denoise_cmd += f' --maxmem {maxmem}'
+                  if storage:
+                    denoise_cmd += f' --buffer {storage}'
 
-                run_test(denoise_cmd, cfg.arch)
+                  if maxmem:
+                    denoise_cmd += f' --maxmem {maxmem}'
+
+                  run_test(denoise_cmd, cfg.arch)
 
 # Main tests
 test()

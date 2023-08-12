@@ -49,7 +49,8 @@ OIDN_NAMESPACE_BEGIN
 
     std::shared_ptr<ImageBuffer> loadImagePFM(const DeviceRef& device,
                                               const std::string& filename,
-                                              DataType dataType)
+                                              DataType dataType,
+                                              Storage storage)
     {
       // Open the file
       std::ifstream file(filename, std::ios::binary);
@@ -88,7 +89,7 @@ OIDN_NAMESPACE_BEGIN
       scale = fabs(scale);
 
       // Read the pixels
-      auto image = std::make_shared<ImageBuffer>(device, W, H, C, dataType);
+      auto image = std::make_shared<ImageBuffer>(device, W, H, C, dataType, storage);
 
       for (int h = 0; h < H; ++h)
       {
@@ -152,7 +153,8 @@ OIDN_NAMESPACE_BEGIN
 
     std::shared_ptr<ImageBuffer> loadImagePHM(const DeviceRef& device,
                                               const std::string& filename,
-                                              DataType dataType)
+                                              DataType dataType,
+                                              Storage storage)
     {
       // Open the file
       std::ifstream file(filename, std::ios::binary);
@@ -191,7 +193,7 @@ OIDN_NAMESPACE_BEGIN
       scale = fabs(scale);
 
       // Read the pixels
-      auto image = std::make_shared<ImageBuffer>(device, W, H, C, dataType);
+      auto image = std::make_shared<ImageBuffer>(device, W, H, C, dataType, storage);
 
       for (int h = 0; h < H; ++h)
       {
@@ -299,7 +301,8 @@ OIDN_NAMESPACE_BEGIN
   #ifdef OIDN_USE_OPENIMAGEIO
     std::shared_ptr<ImageBuffer> loadImageOIIO(const DeviceRef& device,
                                                const std::string& filename,
-                                               DataType dataType)
+                                               DataType dataType,
+                                               Storage storage)
     {
       auto in = OIIO::ImageInput::open(filename);
       if (!in)
@@ -311,9 +314,11 @@ OIDN_NAMESPACE_BEGIN
       if (dataType == DataType::Void)
         dataType = (spec.channelformat(0) == OIIO::TypeDesc::HALF) ? DataType::Float16 : DataType::Float32;
 
-      auto image = std::make_shared<ImageBuffer>(device, spec.width, spec.height, numChannels, dataType);
+      auto image = std::make_shared<ImageBuffer>(device, spec.width, spec.height, numChannels,
+                                                 dataType, storage);
       bool success = in->read_image(0, 0, 0, numChannels,
-        dataType == DataType::Float16 ? OIIO::TypeDesc::HALF : OIIO::TypeDesc::FLOAT, image->getData());
+        dataType == DataType::Float16 ? OIIO::TypeDesc::HALF : OIIO::TypeDesc::FLOAT, image->getHostData());
+
       in->close();
 
   #if OIIO_VERSION < 10903
@@ -352,7 +357,7 @@ OIDN_NAMESPACE_BEGIN
 
       if (!out->open(filename, spec))
         throw std::runtime_error("cannot create image file: '" + filename + "'");
-      bool success = out->write_image(format, image.getData());
+      bool success = out->write_image(format, image.getHostData());
       out->close();
 
   #if OIIO_VERSION < 10903
@@ -368,18 +373,19 @@ OIDN_NAMESPACE_BEGIN
 
   std::shared_ptr<ImageBuffer> loadImage(const DeviceRef& device,
                                          const std::string& filename,
-                                         DataType dataType)
+                                         DataType dataType,
+                                         Storage storage)
   {
     const std::string ext = getExtension(filename);
     std::shared_ptr<ImageBuffer> image;
 
     if (ext == "pfm")
-      image = loadImagePFM(device, filename, dataType);
+      image = loadImagePFM(device, filename, dataType, storage);
     else if (ext == "phm")
-      image = loadImagePHM(device, filename, dataType);
+      image = loadImagePHM(device, filename, dataType, storage);
     else
 #if OIDN_USE_OPENIMAGEIO
-      image = loadImageOIIO(device, filename, dataType);
+      image = loadImageOIIO(device, filename, dataType, storage);
 #else
       throw std::runtime_error("cannot load unsupported image file format: '" + filename + "'");
 #endif
@@ -413,9 +419,10 @@ OIDN_NAMESPACE_BEGIN
   std::shared_ptr<ImageBuffer> loadImage(const DeviceRef& device,
                                          const std::string& filename,
                                          bool srgb,
-                                         DataType dataType)
+                                         DataType dataType,
+                                         Storage storage)
   {
-    auto image = loadImage(device, filename, dataType);
+    auto image = loadImage(device, filename, dataType, storage);
     if (!srgb && isSrgbImage(filename))
       srgbInverse(*image);
     return image;

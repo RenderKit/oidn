@@ -40,6 +40,16 @@ OIDN_NAMESPACE_BEGIN
       free(hostPtr);
   }
 
+  void ImageBuffer::read(size_t byteOffset, size_t byteSize, void* dstHostPtr) const
+  {
+    buffer.read(byteOffset, byteSize, dstHostPtr);
+  }
+
+  void ImageBuffer::write(size_t byteOffset, size_t byteSize, const void* srcHostPtr)
+  {
+    buffer.write(byteOffset, byteSize, srcHostPtr);
+  }
+
   void ImageBuffer::toHost()
   {
     if (hostPtr != devPtr)
@@ -67,17 +77,7 @@ OIDN_NAMESPACE_BEGIN
   std::shared_ptr<ImageBuffer> ImageBuffer::clone() const
   {
     auto result = std::make_shared<ImageBuffer>(device, width, height, numChannels, dataType);
-
-    if (devPtr)
-      result->buffer.write(0, byteSize, devPtr);
-    else
-    {
-      void* temp = alignedMalloc(byteSize);
-      buffer.read(0, byteSize, temp);
-      result->buffer.write(0, byteSize, temp);
-      alignedFree(temp);
-    }
-
+    buffer.read(0, byteSize, result->getHostData());
     return result;
   }
 

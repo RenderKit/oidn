@@ -32,6 +32,7 @@ void printUsage()
             << "                   [-q/--quality default|h|high|b|balanced]" << std::endl
             << "                   [-w/--weights weights.tza]" << std::endl
             << "                   [--threads n] [--affinity 0|1] [--maxmem MB] [--inplace]" << std::endl
+            << "                   [--buffer host|device|managed]" << std::endl
             << "                   [-n times_to_run] [-v/--verbose 0-3]" << std::endl
             << "                   [--ld|--list_devices] [-h/--help]" << std::endl;
 }
@@ -83,6 +84,7 @@ int main(int argc, char* argv[])
   std::string outputFilename, refFilename;
   std::string weightsFilename;
   Quality quality = Quality::Default;
+  Storage bufferStorage = Storage::Undefined;
   bool hdr = false;
   bool srgb = false;
   bool directional = false;
@@ -182,6 +184,18 @@ int main(int argc, char* argv[])
         maxMemoryMB = args.getNextValue<int>();
       else if (opt == "inplace")
         inplace = true;
+      else if (opt == "buffer")
+      {
+        const auto val = toLower(args.getNextValue());
+        if (val == "host")
+          bufferStorage = Storage::Host;
+        else if (val == "device")
+          bufferStorage = Storage::Device;
+        else if (val == "managed")
+          bufferStorage = Storage::Managed;
+        else
+          throw std::runtime_error("invalid storage mode");
+      }
       else if (opt == "v" || opt == "verbose")
         verbose = args.getNextValue<int>();
       else if (opt == "ld" || opt == "list_devices" || opt == "list-devices" || opt == "listDevices" || opt == "listdevices")
@@ -252,13 +266,22 @@ int main(int argc, char* argv[])
     std::cout << "Loading input" << std::endl;
 
     if (!albedoFilename.empty())
-      input = albedo = loadImage(device, albedoFilename, false, dataType);
+    {
+      input = albedo = loadImage(device, albedoFilename, false, dataType, bufferStorage);
+      albedo->toDevice();
+    }
 
     if (!normalFilename.empty())
-      input = normal = loadImage(device, normalFilename, dataType);
+    {
+      input = normal = loadImage(device, normalFilename, dataType, bufferStorage);
+      normal->toDevice();
+    }
 
     if (!colorFilename.empty())
-      input = color = loadImage(device, colorFilename, srgb, dataType);
+    {
+      input = color = loadImage(device, colorFilename, srgb, dataType, bufferStorage);
+      color->toDevice();
+    }
 
     if (!input)
       throw std::runtime_error("no input image specified");
@@ -279,7 +302,10 @@ int main(int argc, char* argv[])
     if (inplace)
       output = input;
     else
-      output = std::make_shared<ImageBuffer>(device, width, height, input->getC(), input->getDataType());
+    {
+      output = std::make_shared<ImageBuffer>(device, width, height, input->getC(),
+                                             input->getDataType(), bufferStorage);
+    }
 
     std::shared_ptr<ImageBuffer> inputCopy;
     if (inplace && numRuns > 1)
@@ -355,7 +381,7 @@ int main(int argc, char* argv[])
     for (int run = 0; run < numRuns; ++run)
     {
       if (inplace && run > 0)
-        memcpy(input->getData(), inputCopy->getData(), inputCopy->getByteSize());
+        input->write(0, input->getByteSize(), inputCopy->getHostData());
 
       if (!showProgress)
         std::cout << "Denoising" << std::endl;
@@ -369,11 +395,13 @@ int main(int argc, char* argv[])
         std::cout << std::endl;
       std::cout << "  msec=" << (1000. * denoiseTime);
 
+      output->toHost();
+
       if (numRuns > 1 || verbose >= 2)
       {
         // Compute a hash of the output
         const size_t numBytes = output->getByteSize();
-        const uint8_t* outputBytes = static_cast<const uint8_t*>(output->getData());
+        const uint8_t* outputBytes = static_cast<const uint8_t*>(output->getHostData());
         uint32_t hash = 0x811c9dc5;
         for (size_t i = 0; i < numBytes; ++i)
         {
