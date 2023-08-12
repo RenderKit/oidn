@@ -321,17 +321,16 @@ OIDN_NAMESPACE_BEGIN
     progress.update(engine, 1);
 
     // Submit graph
+    MPSCommandBuffer* commandBuffer = engine->getMPSCommandBuffer();
+
     MPSGraphTensorData* graphInputData  = newMPSGraphTensorData(inputProcess->getDst());
     MPSGraphTensorData* graphOutputData = newMPSGraphTensorData(outputProcess->getSrc());
-    MPSCommandBuffer* commandBuffer = engine->getMPSCommandBuffer();
 
     [graph encodeToCommandBuffer: commandBuffer
                            feeds: @{graphInput: graphInputData}
                 targetOperations: nil
                resultsDictionary: @{graphOutput: graphOutputData}
              executionDescriptor: graphExecDesc];
-
-    [commandBuffer commit];
 
     [graphInputData release];
     [graphOutputData release];

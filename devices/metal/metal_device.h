@@ -45,6 +45,7 @@ OIDN_NAMESPACE_BEGIN
     Storage getPtrStorage(const void* ptr) override;
     bool isMemoryUsageLimitSupported() const override { return false; }
 
+    void flush() override;
     void wait() override;
 
   protected:

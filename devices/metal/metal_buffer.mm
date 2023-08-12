@@ -98,10 +98,10 @@ OIDN_NAMESPACE_BEGIN
         [tempBuffer release];
       }];
 
-      [commandBuffer commit];
-
       if (sync == SyncMode::Sync)
         engine->wait();
+      else
+        engine->flush();
     }
   }
 
@@ -129,11 +129,12 @@ OIDN_NAMESPACE_BEGIN
                              size: byteSize];
       [blitEncoder endEncoding];
 
-      [commandBuffer commit];
       [tempBuffer release];
 
       if (sync == SyncMode::Sync)
         engine->wait();
+      else
+        engine->flush();
     }
   }
 

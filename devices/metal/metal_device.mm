@@ -82,6 +82,12 @@ OIDN_NAMESPACE_BEGIN
     return Storage::Undefined;
   }
 
+  void MetalDevice::flush()
+  {
+    if (engine)
+      engine->flush();
+  }
+
   void MetalDevice::wait()
   {
     if (engine)

@@ -91,7 +91,10 @@ OIDN_NAMESPACE_BEGIN
     // Synchronizes all engines (does not block)
     virtual void submitBarrier() {}
 
-    // Waits for all asynchronous commands to complete (blocks)
+    // Issues all previously submitted commands (does not block)
+    virtual void flush() {}
+
+    // Waits for all previously submitted commands to complete (blocks)
     virtual void wait() = 0;
 
     Ref<Filter> newFilter(const std::string& type);

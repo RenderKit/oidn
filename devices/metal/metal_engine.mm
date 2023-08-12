@@ -15,7 +15,8 @@ OIDN_NAMESPACE_BEGIN
   MetalEngine::MetalEngine(const Ref<MetalDevice>& device)
     : device(device.get()),
       commandQueue([device->getMTLDevice() newCommandQueue]),
-      lastCommandBuffer(nil),
+      commandBuffer(nullptr),
+      flushed(false),
       library([device->getMTLDevice() newDefaultLibrary])
   {
     if (!library)
@@ -25,8 +26,8 @@ OIDN_NAMESPACE_BEGIN
   MetalEngine::~MetalEngine()
   {
     [library release];
-    if (lastCommandBuffer)
-      [lastCommandBuffer release];
+    if (commandBuffer)
+      [commandBuffer release];
     [commandQueue release];
   }
 
@@ -48,22 +49,24 @@ OIDN_NAMESPACE_BEGIN
 
   id<MTLCommandBuffer> MetalEngine::getMTLCommandBuffer()
   {
-    if (lastCommandBuffer)
-      [lastCommandBuffer release];
-
-    lastCommandBuffer = [commandQueue commandBuffer].retain;
-    return lastCommandBuffer;
+    return getMPSCommandBuffer();
   }
 
   MPSCommandBuffer* MetalEngine::getMPSCommandBuffer()
   {
-    if (lastCommandBuffer)
-      [lastCommandBuffer release];
+    if (commandBuffer && flushed)
+    {
+      [commandBuffer release];
+      commandBuffer = nullptr;
+    }
 
-    MPSCommandBuffer* mpsCommandBuffer =
-      [MPSCommandBuffer commandBufferFromCommandQueue: commandQueue].retain;
-    lastCommandBuffer = mpsCommandBuffer;
-    return mpsCommandBuffer;
+    if (!commandBuffer)
+    {
+      commandBuffer = [MPSCommandBuffer commandBufferFromCommandQueue: commandQueue].retain;
+      flushed = false;
+    }
+
+    return commandBuffer;
   }
 
   Ref<Buffer> MetalEngine::newBuffer(size_t byteSize, Storage storage)
@@ -127,24 +130,35 @@ OIDN_NAMESPACE_BEGIN
   void MetalEngine::submitHostFunc(std::function<void()>&& f)
   {
     auto fPtr = new std::function<void()>(std::move(f));
-    auto commandBuffer = getMTLCommandBuffer();
 
+    auto commandBuffer = getMTLCommandBuffer();
     [commandBuffer addCompletedHandler: ^(id<MTLCommandBuffer> commandBuffer)
     {
       std::unique_ptr<std::function<void()>> fSmartPtr(fPtr);
       (*fSmartPtr)();
     }];
 
-    [commandBuffer commit];
+    flush();
+  }
+
+  void MetalEngine::flush()
+  {
+    if (commandBuffer && !flushed)
+    {
+      [commandBuffer commit];
+      flushed = true;
+    }
   }
 
   void MetalEngine::wait()
   {
-    if (lastCommandBuffer)
+    flush();
+
+    if (commandBuffer)
     {
-      [lastCommandBuffer waitUntilCompleted];
-      [lastCommandBuffer release];
-      lastCommandBuffer = nil;
+      [commandBuffer waitUntilCompleted];
+      [commandBuffer release];
+      commandBuffer = nullptr;
     }
   }
 

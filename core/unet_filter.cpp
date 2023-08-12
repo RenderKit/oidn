@@ -244,6 +244,8 @@ OIDN_NAMESPACE_BEGIN
 
     if (sync == SyncMode::Sync)
       device->wait();
+    else
+      device->flush();
   }
 
   void UNetFilter::init()

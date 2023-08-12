@@ -73,7 +73,6 @@ OIDN_NAMESPACE_BEGIN
                 threadsPerThreadgroup: MTLSizeMake(pipeline.threadExecutionWidth, 1, 1)];
 
       [computeEncoder endEncoding];
-      [commandBuffer commit];
     }
 
     // Enqueues a work-group kernel
@@ -104,18 +103,19 @@ OIDN_NAMESPACE_BEGIN
                      threadsPerThreadgroup: MTLSize(groupSize)];
 
       [computeEncoder endEncoding];
-      [commandBuffer commit];
     }
 
     // Enqueues a host function
     void submitHostFunc(std::function<void()>&& f) override;
 
+    void flush() override;
     void wait() override;
 
   private:
     MetalDevice* device;
     id<MTLCommandQueue> commandQueue;
-    id<MTLCommandBuffer> lastCommandBuffer;
+    MPSCommandBuffer* commandBuffer;
+    bool flushed; // command buffer has been committed
     id<MTLLibrary> library;
   };
 

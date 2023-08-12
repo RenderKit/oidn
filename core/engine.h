@@ -86,7 +86,10 @@ OIDN_NAMESPACE_BEGIN
     // Enqueues a host function
     virtual void submitHostFunc(std::function<void()>&& f) = 0;
 
-    // Waits for all asynchronous commands to complete (blocks)
+    // Issues all previously submitted commands (does not block)
+    virtual void flush() {}
+
+    // Waits for all previously submitted commands to complete (blocks)
     virtual void wait() = 0;
 
     virtual int getMaxWorkGroupSize() const;
