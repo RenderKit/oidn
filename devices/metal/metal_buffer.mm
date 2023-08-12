@@ -31,7 +31,7 @@ OIDN_NAMESPACE_BEGIN
     id<MTLDevice> device = engine->getMTLDevice();
 
     if (byteSize > [device maxBufferLength])
-      throw std::bad_alloc();
+      throw Exception(Error::OutOfMemory, "buffer size exceeds device limit");
 
     MTLResourceOptions options;
     switch (storage)
@@ -48,6 +48,8 @@ OIDN_NAMESPACE_BEGIN
 
     buffer = [device newBufferWithLength: byteSize
                                  options: options];
+    if (!buffer)
+      throw Exception(Error::OutOfMemory, "failed to allocate buffer");
   }
 
   void MetalBuffer::free()
@@ -72,25 +74,30 @@ OIDN_NAMESPACE_BEGIN
     if (byteOffset + byteSize > this->byteSize)
       throw Exception(Error::InvalidArgument, "buffer region out of range");
 
-    id<MTLDevice> device = static_cast<MetalDevice*>(getDevice())->getMTLDevice();
-
     @autoreleasepool
     {
       const MTLResourceOptions options = MTLResourceStorageModeShared | MTLResourceOptionCPUCacheModeDefault;
-      id dstBuffer = [device newBufferWithBytesNoCopy: dstHostPtr
-                                               length: byteSize
-                                              options: options
-                                          deallocator: nil];
+      id<MTLBuffer> tempBuffer = [engine->getMTLDevice() newBufferWithLength: byteSize
+                                                                     options: options];
+      if (!tempBuffer)
+        throw Exception(Error::OutOfMemory, "failed to allocate temporary buffer");
 
       id<MTLCommandBuffer> commandBuffer = engine->getMTLCommandBuffer();
-      id<MTLBlitCommandEncoder> blitEncoder = [commandBuffer blitCommandEncoder];
 
+      id<MTLBlitCommandEncoder> blitEncoder = [commandBuffer blitCommandEncoder];
       [blitEncoder copyFromBuffer: buffer
                      sourceOffset: byteOffset
-                         toBuffer: dstBuffer
+                         toBuffer: tempBuffer
                 destinationOffset: 0
                              size: byteSize];
       [blitEncoder endEncoding];
+
+      [commandBuffer addCompletedHandler: ^(id<MTLCommandBuffer> commandBuffer)
+      {
+        memcpy(dstHostPtr, [tempBuffer contents], byteSize);
+        [tempBuffer release];
+      }];
+
       [commandBuffer commit];
 
       if (sync == SyncMode::Sync)
@@ -103,25 +110,27 @@ OIDN_NAMESPACE_BEGIN
     if (byteOffset + byteSize > this->byteSize)
       throw Exception(Error::InvalidArgument, "buffer region out of range");
 
-    id<MTLDevice> device = static_cast<MetalDevice*>(getDevice())->getMTLDevice();
-
     @autoreleasepool
     {
       const MTLResourceOptions options = MTLResourceStorageModeShared | MTLResourceOptionCPUCacheModeDefault;
-      id srcBuffer = [device newBufferWithBytes: srcHostPtr
-                                         length: byteSize
-                                        options: options];
+      id<MTLBuffer> tempBuffer = [engine->getMTLDevice() newBufferWithBytes: srcHostPtr
+                                                                     length: byteSize
+                                                                    options: options];
+      if (!tempBuffer)
+        throw Exception(Error::OutOfMemory, "failed to allocate temporary buffer");
 
       id<MTLCommandBuffer> commandBuffer = engine->getMTLCommandBuffer();
-      id<MTLBlitCommandEncoder> blitCommandEncoder = [commandBuffer blitCommandEncoder];
 
-      [blitCommandEncoder copyFromBuffer: srcBuffer
-                            sourceOffset: 0
-                                toBuffer: buffer
-                       destinationOffset: byteOffset
-                                    size: byteSize];
-      [blitCommandEncoder endEncoding];
+      id<MTLBlitCommandEncoder> blitEncoder = [commandBuffer blitCommandEncoder];
+      [blitEncoder copyFromBuffer: tempBuffer
+                     sourceOffset: 0
+                         toBuffer: buffer
+                destinationOffset: byteOffset
+                             size: byteSize];
+      [blitEncoder endEncoding];
+
       [commandBuffer commit];
+      [tempBuffer release];
 
       if (sync == SyncMode::Sync)
         engine->wait();
