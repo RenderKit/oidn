@@ -21,7 +21,6 @@ OIDN_NAMESPACE_BEGIN
 
     // Metal
     id<MTLDevice> getMTLDevice() const { return device->getMTLDevice(); }
-    id<MTLCommandQueue> getMTLCommandQueue() const { return commandQueue; }
     id<MTLComputePipelineState> newMTLComputePipelineState(const std::string& kernelName);
     id<MTLCommandBuffer> getMTLCommandBuffer();
     MPSCommandBuffer* getMPSCommandBuffer();
@@ -115,7 +114,6 @@ OIDN_NAMESPACE_BEGIN
     MetalDevice* device;
     id<MTLCommandQueue> commandQueue;
     MPSCommandBuffer* commandBuffer;
-    bool flushed; // command buffer has been committed
     id<MTLLibrary> library;
   };
 

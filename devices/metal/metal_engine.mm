@@ -16,7 +16,6 @@ OIDN_NAMESPACE_BEGIN
     : device(device.get()),
       commandQueue([device->getMTLDevice() newCommandQueue]),
       commandBuffer(nullptr),
-      flushed(false),
       library([device->getMTLDevice() newDefaultLibrary])
   {
     if (!library)
@@ -54,18 +53,8 @@ OIDN_NAMESPACE_BEGIN
 
   MPSCommandBuffer* MetalEngine::getMPSCommandBuffer()
   {
-    if (commandBuffer && flushed)
-    {
-      [commandBuffer release];
-      commandBuffer = nullptr;
-    }
-
     if (!commandBuffer)
-    {
       commandBuffer = [MPSCommandBuffer commandBufferFromCommandQueue: commandQueue].retain;
-      flushed = false;
-    }
-
     return commandBuffer;
   }
 
@@ -143,19 +132,15 @@ OIDN_NAMESPACE_BEGIN
 
   void MetalEngine::flush()
   {
-    if (commandBuffer && !flushed)
-    {
-      [commandBuffer commit];
-      flushed = true;
-    }
+    if (commandBuffer)
+      [commandBuffer commitAndContinue];
   }
 
   void MetalEngine::wait()
   {
-    flush();
-
     if (commandBuffer)
     {
+      [commandBuffer commit];
       [commandBuffer waitUntilCompleted];
       [commandBuffer release];
       commandBuffer = nullptr;
