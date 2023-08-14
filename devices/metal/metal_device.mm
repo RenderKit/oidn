@@ -52,26 +52,26 @@ OIDN_NAMESPACE_BEGIN
 
   void MetalDevice::init()
   {
-    // Print device info
-    if (isVerbose())
-    {
-      const std::string name = [[device name] UTF8String];
-
-      std::cout << "  Device    : " << name << std::endl;
-      std::cout << "    Type    : Metal" << std::endl;
-    }
-
-    // Set device properties
-    tensorDataType = DataType::Float16;
-    tensorLayout   = TensorLayout::hwc;
-    weightLayout   = TensorLayout::oihw;
-    tensorBlockC   = 1;
-
-    systemMemorySupported  = false;
-    managedMemorySupported = false;
-
     @autoreleasepool
     {
+      // Print device info
+      if (isVerbose())
+      {
+        const std::string name = [[device name] UTF8String];
+
+        std::cout << "  Device    : " << name << std::endl;
+        std::cout << "    Type    : Metal" << std::endl;
+      }
+
+      // Set device properties
+      tensorDataType = DataType::Float16;
+      tensorLayout   = TensorLayout::hwc;
+      weightLayout   = TensorLayout::oihw;
+      tensorBlockC   = 1;
+
+      systemMemorySupported  = false;
+      managedMemorySupported = false;
+
       engine = makeRef<MetalEngine>(this);
     }
   }
