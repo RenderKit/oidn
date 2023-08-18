@@ -5,7 +5,7 @@ set(API_SOURCES
   api.cpp
 )
 
-add_library(OpenImageDenoise SHARED ${API_SOURCES} ${OIDN_RESOURCE_FILE})
+add_library(OpenImageDenoise ${OIDN_LIB_TYPE} ${API_SOURCES} ${OIDN_RESOURCE_FILE})
 set_property(TARGET OpenImageDenoise PROPERTY VERSION ${PROJECT_VERSION})
 set_property(TARGET OpenImageDenoise PROPERTY SOVERSION ${PROJECT_VERSION_MAJOR})
 
@@ -16,7 +16,10 @@ target_include_directories(OpenImageDenoise
 )
 
 target_link_libraries(OpenImageDenoise PRIVATE OpenImageDenoise_core)
-oidn_strip_symbols(OpenImageDenoise)
+
+if(NOT OIDN_STATIC_LIB)
+  oidn_strip_symbols(OpenImageDenoise)
+endif()
 
 install(TARGETS OpenImageDenoise
   EXPORT

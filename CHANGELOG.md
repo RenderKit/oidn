@@ -7,6 +7,8 @@ Version History
 -   Added support for arbitrary combinations of input image data types
     (e.g. `OIDN_FORMAT_FLOAT3` for `color` but `OIDN_FORMAT_HALF3` for `albedo`)
 -   Improved GPU performance
+-   Re-added `OIDN_STATIC_LIB` CMake option which enables building as a static
+    (CPU support only) or a hybrid static/shared (GPU support as well) library
 
 ### Changes in v2.0.1:
 

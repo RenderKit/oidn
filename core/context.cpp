@@ -11,37 +11,6 @@ OIDN_NAMESPACE_BEGIN
     return instance;
   }
 
-  void Context::init()
-  {
-    std::call_once(initFlag, [this]()
-    {
-      getEnvVar("OIDN_VERBOSE", verbose);
-
-      // Load the modules
-    #if defined(OIDN_DEVICE_CPU)
-      if (getEnvVarOrDefault("OIDN_DEVICE_CPU", 1))
-        modules.load("device_cpu");
-    #endif
-    #if defined(OIDN_DEVICE_SYCL)
-      if (getEnvVarOrDefault("OIDN_DEVICE_SYCL", 1))
-        modules.load("device_sycl");
-    #endif
-    #if defined(OIDN_DEVICE_CUDA)
-      if (getEnvVarOrDefault("OIDN_DEVICE_CUDA", 1))
-        modules.load("device_cuda");
-    #endif
-    #if defined(OIDN_DEVICE_HIP)
-      if (getEnvVarOrDefault("OIDN_DEVICE_HIP", 1))
-        modules.load("device_hip");
-    #endif
-
-      // Sort the physical devices by score
-      std::sort(physicalDevices.begin(), physicalDevices.end(),
-                [](const Ref<PhysicalDevice>& a, const Ref<PhysicalDevice>& b)
-                { return a->score > b->score; });
-    });
-  }
-
   bool Context::isDeviceSupported(DeviceType type) const
   {
     return deviceFactories.find(type) != deviceFactories.end();

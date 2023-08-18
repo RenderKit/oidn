@@ -10,43 +10,85 @@
 
 OIDN_NAMESPACE_BEGIN
 
-// Global library context
-class Context : public Verbose
-{
-public:
-  // Returns the global context without initialization
-  static Context& get();
+#if defined(OIDN_STATIC_LIB)
+#if defined(OIDN_DEVICE_CPU)
+  void init_device_cpu();
+#endif
+#endif
 
-  // Initializes the global context (should be called by API functions)
-  void init();
-
-  template<typename DeviceFactoryT>
-  static void registerDeviceType(DeviceType type, const std::vector<Ref<PhysicalDevice>>& physicalDevices)
+  // Global library context
+  class Context : public Verbose
   {
-    if (physicalDevices.empty())
-      return;
+  public:
+    // Returns the global context without initialization
+    static Context& get();
 
-    Context& ctx = get();
-    ctx.deviceFactories[type] = std::unique_ptr<DeviceFactory>(new DeviceFactoryT);
-    ctx.physicalDevices.insert(ctx.physicalDevices.end(), physicalDevices.begin(), physicalDevices.end());
-  }
+    // Registers a device type (should be called by device modules)
+    template<typename DeviceFactoryT>
+    static void registerDeviceType(DeviceType type, const std::vector<Ref<PhysicalDevice>>& physicalDevices)
+    {
+      if (physicalDevices.empty())
+        return;
 
-  bool isDeviceSupported(DeviceType type) const;
-  DeviceFactory* getDeviceFactory(DeviceType type) const;
-  int getNumPhysicalDevices() const { return static_cast<int>(physicalDevices.size()); }
-  const Ref<PhysicalDevice>& getPhysicalDevice(int id) const;
+      Context& ctx = get();
+      ctx.deviceFactories[type] = std::unique_ptr<DeviceFactory>(new DeviceFactoryT);
+      ctx.physicalDevices.insert(ctx.physicalDevices.end(), physicalDevices.begin(), physicalDevices.end());
+    }
 
-  Ref<Device> newDevice(int physicalDeviceID);
+    // Initializes the global context (should be called by API functions)
+    void init()
+    {
+      std::call_once(initFlag, [this]()
+      {
+        getEnvVar("OIDN_VERBOSE", verbose);
 
-private:
-  Context() = default;
-  Context(const Context&) = delete;
-  Context& operator =(const Context&) = delete;
+        // Load the modules
+      #if defined(OIDN_DEVICE_CPU)
+        if (getEnvVarOrDefault("OIDN_DEVICE_CPU", 1))
+        {
+        #if defined(OIDN_STATIC_LIB)
+          init_device_cpu();
+        #else
+          modules.load("device_cpu");
+        #endif
+        }
+      #endif
+      #if defined(OIDN_DEVICE_SYCL)
+        if (getEnvVarOrDefault("OIDN_DEVICE_SYCL", 1))
+          modules.load("device_sycl");
+      #endif
+      #if defined(OIDN_DEVICE_CUDA)
+        if (getEnvVarOrDefault("OIDN_DEVICE_CUDA", 1))
+          modules.load("device_cuda");
+      #endif
+      #if defined(OIDN_DEVICE_HIP)
+        if (getEnvVarOrDefault("OIDN_DEVICE_HIP", 1))
+          modules.load("device_hip");
+      #endif
 
-  std::once_flag initFlag;
-  ModuleLoader modules;
-  std::map<DeviceType, std::unique_ptr<DeviceFactory>> deviceFactories;
-  std::vector<Ref<PhysicalDevice>> physicalDevices;
-};
+        // Sort the physical devices by score
+        std::sort(physicalDevices.begin(), physicalDevices.end(),
+                  [](const Ref<PhysicalDevice>& a, const Ref<PhysicalDevice>& b)
+                  { return a->score > b->score; });
+      });
+    }
+
+    bool isDeviceSupported(DeviceType type) const;
+    DeviceFactory* getDeviceFactory(DeviceType type) const;
+    int getNumPhysicalDevices() const { return static_cast<int>(physicalDevices.size()); }
+    const Ref<PhysicalDevice>& getPhysicalDevice(int id) const;
+
+    Ref<Device> newDevice(int physicalDeviceID);
+
+  private:
+    Context() = default;
+    Context(const Context&) = delete;
+    Context& operator =(const Context&) = delete;
+
+    std::once_flag initFlag;
+    ModuleLoader modules;
+    std::map<DeviceType, std::unique_ptr<DeviceFactory>> deviceFactories;
+    std::vector<Ref<PhysicalDevice>> physicalDevices;
+  };
 
 OIDN_NAMESPACE_END

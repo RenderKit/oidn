@@ -39,6 +39,16 @@ jobs:
       artifact-out: build-rockylinux8-jit
       artifact-path: build install deps
 
+  build-rockylinux8-static:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    with:
+      project: oidn
+      image: oidn/rockylinux:8.6
+      cmd: scripts/build.py install --full -D OIDN_STATIC_LIB=ON
+      artifact-out: build-rockylinux8-static
+      artifact-path: build install deps
+
   build-rockylinux8-namespace:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
@@ -47,6 +57,16 @@ jobs:
       image: oidn/rockylinux:8.6
       cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
       artifact-out: build-rockylinux8-namespace
+      artifact-path: build install deps
+
+  build-rockylinux8-namespace-static:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    with:
+      project: oidn
+      image: oidn/rockylinux:8.6
+      cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn -D OIDN_STATIC_LIB=ON
+      artifact-out: build-rockylinux8-namespace-static
       artifact-path: build install deps
 
   # FIXME: enable AOT and HIP
@@ -242,6 +262,20 @@ jobs:
       artifact-on-failure: true
       cmd: scripts/test.py --device cpu --log test.log
 
+  test-rockylinux8-static-avx512:
+    needs: build-rockylinux8-static
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Linux", "avx512" ]'
+      image: oidn/rockylinux:8.6
+      artifact-in: build-rockylinux8-static
+      artifact-out: test-rockylinux8-static-avx512
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: scripts/test.py --device cpu --log test.log
+
   # TODO: Install SDE
   # test-rockylinux8-sse4:
   #   needs: build-rockylinux8
@@ -350,6 +384,16 @@ jobs:
       artifact-path: build install deps
       cmd: scripts/build.py install --full
 
+  build-macos-arm-static:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "macOS", "build", "arm" ]'
+      artifact-out: build-macos-arm-static
+      artifact-path: build install deps
+      cmd: scripts/build.py install --full -D OIDN_STATIC_LIB=ON
+
   build-macos-debug-arm:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
@@ -370,6 +414,16 @@ jobs:
       artifact-path: build install deps
       cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
 
+  build-macos-namespace-arm-static:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "macOS", "build", "arm" ]'
+      artifact-out: build-macos-namespace-arm-static
+      artifact-path: build install deps
+      cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn -D OIDN_STATIC_LIB=ON
+
   test-macos-arm:
     needs: build-macos-arm
     secrets: inherit
@@ -379,6 +433,18 @@ jobs:
       runs-on: '[ "macOS", "build", "arm" ]'
       artifact-in: build-macos-arm
       artifact-out: test-macos-arm
+      artifact-path: test.log
+      cmd: scripts/test.py --device cpu --log test.log
+
+  test-macos-arm-static:
+    needs: build-macos-arm-static
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "macOS", "build", "arm" ]'
+      artifact-in: build-macos-arm-static
+      artifact-out: test-macos-arm-static
       artifact-path: test.log
       cmd: scripts/test.py --device cpu --log test.log
 
@@ -498,6 +564,20 @@ jobs:
       artifact-path: build install
       cmd: python scripts/build.py install --full
 
+  build-windows-static:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "build", "cuda" ]'
+      msvc-version: "2022"
+      dpcpp-version: sycl-nightly/20221215
+      ocloc-version: 9926f1ea-209e-42b3-94db-a1f895ee56ce/ocloc_win_101.4314
+      rocm-version: rocm/5.5.0
+      artifact-out: build-windows-static
+      artifact-path: build install
+      cmd: python scripts/build.py install --full -D OIDN_STATIC_LIB=ON
+
   # FIXME: enable AOT and HIP
   build-windows-debug:
     secrets: inherit
@@ -526,6 +606,19 @@ jobs:
       artifact-out: build-windows-namespace
       artifact-path: build install
       cmd: python scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
+
+  build-windows-namespace-static:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "build", "cuda" ]'
+      dpcpp-version: sycl-nightly/20221215
+      ocloc-version: 9926f1ea-209e-42b3-94db-a1f895ee56ce/ocloc_win_101.4314
+      rocm-version: rocm/5.5.0
+      artifact-out: build-windows-namespace-static
+      artifact-path: build install
+      cmd: python scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn -D OIDN_STATIC_LIB=ON
 
   build-windows-gta-aotjit:
     secrets: inherit
@@ -588,6 +681,14 @@ jobs:
       project: oidn
       runs-on: '[ "Windows", "build" ]'
       cmd: python scripts/build.py install --compiler msvc15
+
+  build-windows-msvc15-static:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "build" ]'
+      cmd: python scripts/build.py install --compiler msvc15 -D OIDN_STATIC_LIB=ON
 
   build-windows-msvc15-debug:
     secrets: inherit
@@ -660,6 +761,18 @@ jobs:
       runs-on: '[ "Windows", "avx2", "NAS" ]'
       artifact-in: build-windows-namespace
       artifact-out: test-windows-namespace-avx2
+      artifact-path: test.log
+      cmd: python scripts/test.py --device cpu --log test.log
+
+  test-windows-namespace-static-avx2:
+    needs: build-windows-namespace-static
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "avx2", "NAS" ]'
+      artifact-in: build-windows-namespace-static
+      artifact-out: test-windows-namespace-static-avx2
       artifact-path: test.log
       cmd: python scripts/test.py --device cpu --log test.log
 

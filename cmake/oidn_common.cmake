@@ -30,6 +30,15 @@ else()
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${CONFIGURATION_TYPES})
 endif()
 
+# Build as shared or static library
+option(OIDN_STATIC_LIB "Build Open Image Denoise as a static or hybrid static/shared library.")
+mark_as_advanced(CLEAR OIDN_STATIC_LIB)
+if(OIDN_STATIC_LIB)
+  set(OIDN_LIB_TYPE STATIC)
+else()
+  set(OIDN_LIB_TYPE SHARED)
+endif()
+
 # API namespace
 set(OIDN_API_NAMESPACE "" CACHE STRING "C++ namespace to put API symbols into.")
 if(OIDN_API_NAMESPACE)

@@ -243,6 +243,10 @@ The following list describes the options that can be configured in CMake:
   (Debug), Release mode (Release) (default), and Release mode with
   enabled assertions and debug symbols (RelWithDebInfo).
 
+- `OIDN_STATIC_LIB`: Build Open Image Denoise as a static (if only CPU support
+  is enabled) or a hybrid static/shared (if GPU support is enabled as well)
+  library.
+
 - `OIDN_API_NAMESPACE`: Specifies a namespace to put all Intel Open Image
   Denoise API symbols inside. This is also added as an outer namespace for the
   C++ wrapper API. By default no namespace is used and plain C symbols are
