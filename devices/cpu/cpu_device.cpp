@@ -151,9 +151,15 @@ OIDN_NAMESPACE_BEGIN
 
     initTasking();
 
-  #if defined(OIDN_DNNL)
+  #if defined(OIDN_DNNL) || defined(OIDN_ISPC)
     tensorDataType = DataType::Float32;
-    if (arch == CPUArch::AVX512)
+    if (arch == CPUArch::NEON)
+    {
+      tensorLayout = TensorLayout::Chw8c;
+      weightLayout = TensorLayout::oihw;
+      tensorBlockC = 8;
+    }
+    else if (arch == CPUArch::AVX512)
     {
       tensorLayout = TensorLayout::Chw16c;
       weightLayout = TensorLayout::OIhw16i16o;

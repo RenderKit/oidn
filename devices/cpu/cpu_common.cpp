@@ -61,7 +61,7 @@ OIDN_NAMESPACE_BEGIN
         {
           throw std::logic_error("incompatible template and layout");
         }
-      case TensorLayout::chw:
+      case TensorLayout::Chw8c:
         assert(td.getRank() == 3);
         if constexpr(std::is_same<U, ispc::TensorAccessor3D>::value)
         {
@@ -81,6 +81,7 @@ OIDN_NAMESPACE_BEGIN
         if constexpr(std::is_same<U, ispc::TensorAccessor4D>::value)
         {
           ispc::TensorAccessor4D acc4;
+          acc4.ptr = static_cast<float*>(tensor.getData());
           acc4.O = tensor.getPaddedO();
           acc4.I = tensor.getPaddedI();
           acc4.H = tensor.getH();
