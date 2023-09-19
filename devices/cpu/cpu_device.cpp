@@ -156,7 +156,7 @@ OIDN_NAMESPACE_BEGIN
     if (arch == CPUArch::NEON)
     {
       tensorLayout = TensorLayout::Chw8c;
-      weightLayout = TensorLayout::oihw;
+      weightLayout = TensorLayout::OIhw8i8o;
       tensorBlockC = 8;
     }
     else if (arch == CPUArch::AVX512)
