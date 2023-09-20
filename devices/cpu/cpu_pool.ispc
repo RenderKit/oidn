@@ -30,3 +30,24 @@ export void CPUPoolKernel_run_blocked(uniform CPUPoolKernel* uniform self, unifo
     streaming_store(&dstPtr_line[w*B], value);
   }
 }
+
+export void CPUPoolKernel_run_nonblocked(uniform CPUPoolKernel* uniform self, uniform int c, uniform int h)
+{
+  const uniform size_t H = (size_t)self->dst.H;
+  const uniform size_t W = (size_t)self->dst.W;
+
+  uniform float* const uniform dstPtr = self->dst.ptr;
+  uniform float* const uniform srcPtr_line0 = self->src.ptr + (self->src.H * c + (h * 2)  )*(self->src.W);
+  uniform float* const uniform srcPtr_line1 = self->src.ptr + (self->src.H * c + (h * 2)+1)*(self->src.W);
+
+  for (uniform size_t w = 0; w < W; ++w)
+  {
+    const float value0 = *((varying float* uniform)&srcPtr_line0[w*2]);
+    const float value1 = *((varying float* uniform)&srcPtr_line0[w*2+1]);
+    const float value2 = *((varying float* uniform)&srcPtr_line1[w*2]);
+    const float value3 = *((varying float* uniform)&srcPtr_line1[w*2+1]);
+
+    const float value = max(max(value0, value1), max(value2, value3));
+    streaming_store(&dstPtr[(H*c+h)*(W)+w], value);
+  }
+}
