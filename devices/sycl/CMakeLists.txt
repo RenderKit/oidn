@@ -15,7 +15,7 @@ endif()
 # FIXME: Make support is currently broken due to IGC_EnableZEBinary
 #if(NOT CMAKE_GENERATOR MATCHES "Ninja" AND NOT CMAKE_GENERATOR MATCHES "Unix Makefiles")
 if(NOT CMAKE_GENERATOR MATCHES "Ninja")
-  message(FATAL_ERROR "Building with SYCL support requires Ninja or Make")
+  message(FATAL_ERROR "Building with SYCL support requires Ninja")
 endif()
 
 # Check the DPC++ compiler
@@ -37,7 +37,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     endif()
   endif()
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM")
-  set(OIDN_ICX_MIN_VERSION 2023.1)
+  set(OIDN_ICX_MIN_VERSION 2024.0)
   if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS ${OIDN_ICX_MIN_VERSION})
     message(FATAL_ERROR "Building with SYCL support requires Intel oneAPI DPC++/C++ Compiler ${OIDN_ICX_MIN_VERSION} or newer")
   endif()

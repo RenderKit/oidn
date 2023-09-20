@@ -6,7 +6,6 @@
 
 #include "sycl_conv.h"
 #include "sycl_common.h"
-#include <sycl/ext/intel/experimental/kernel_properties.hpp>
 
 OIDN_NAMESPACE_BEGIN
 
@@ -51,8 +50,6 @@ namespace xehpc {
     OIDN_INLINE void operator ()(const WorkGroupItem<3>& it) const SYCL_ESIMD_FUNCTION
     {
     #if defined(OIDN_ARCH_XEHPG)
-      syclx::set_kernel_properties(syclx::kernel_properties::use_large_grf);
-
       // FP32 accumulator rows
       simd<float, blockOW * blockAC> accumRows[blockOH][numBlockAC] = {}; // = 0
     #elif defined(OIDN_ARCH_XEHPC_FAST)
@@ -448,7 +445,11 @@ namespace xehpc {
           break;
       }
 
+    #if defined(OIDN_ARCH_XEHPG)
+      engine->submitESIMDKernelWithGRF<256>(globalSize / groupSize, groupSize, kernel);
+    #else
       engine->submitESIMDKernel(globalSize / groupSize, groupSize, kernel);
+    #endif
     }
 
     Ref<SYCLEngine> engine;

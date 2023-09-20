@@ -50,8 +50,8 @@ prerequisites are needed:
 #### SYCL device for Intel GPUs: {-}
 
 -   [Intel® oneAPI DPC++/C++ Compiler](https://www.intel.com/content/www/us/en/developer/tools/oneapi/dpc-compiler.html)
-    2023.1 or newer, or the open source
-    [oneAPI DPC++ Compiler 2022-12-15](https://github.com/intel/llvm/releases/tag/sycl-nightly%2F20221215).
+    2024.0 or newer, or the open source
+    [oneAPI DPC++ Compiler 2023-09-20](https://github.com/intel/llvm/releases/tag/nightly-2023-09-20).
     Other SYCL compilers are *not* supported. The open source version of the
     compiler is more up-to-date but less stable, so we *strongly* recommend to
     use the exact version listed here.

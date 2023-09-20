@@ -5,6 +5,7 @@
 
 #include "core/engine.h"
 #include "sycl_device.h"
+#include <sycl/ext/intel/experimental/grf_size_properties.hpp>
 #include <optional>
 
 OIDN_NAMESPACE_BEGIN
@@ -90,6 +91,19 @@ OIDN_NAMESPACE_BEGIN
       lastEvent = syclQueue.parallel_for<F>(
         sycl::nd_range<N>(numGroups * groupSize, groupSize),
         getDepEvents(),
+        [=](sycl::nd_item<N> it) SYCL_ESIMD_KERNEL { f(it); });
+    }
+
+    // Enqueues a work-group ESIMD kernel with specified GRF size
+    template<int grfSize, int N, typename F>
+    OIDN_INLINE void submitESIMDKernelWithGRF(WorkDim<N> numGroups, WorkDim<N> groupSize, const F& f)
+    {
+      sycl::ext::oneapi::experimental::properties props{sycl::ext::intel::experimental::grf_size<grfSize>};
+
+      lastEvent = syclQueue.parallel_for<F>(
+        sycl::nd_range<N>(numGroups * groupSize, groupSize),
+        getDepEvents(),
+        props,
         [=](sycl::nd_item<N> it) SYCL_ESIMD_KERNEL { f(it); });
     }
 
