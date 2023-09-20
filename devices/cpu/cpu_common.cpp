@@ -49,7 +49,7 @@ OIDN_NAMESPACE_BEGIN
     switch(tensor.getLayout())
     {
       case TensorLayout::x:
-        assert(td.getRank() == 1);
+        assert(tensor.getRank() == 1);
         if constexpr(std::is_same<U, ispc::TensorAccessor1D>::value)
         {
           ispc::TensorAccessor1D acc1;
@@ -61,8 +61,8 @@ OIDN_NAMESPACE_BEGIN
         {
           throw std::logic_error("incompatible template and layout");
         }
-      case TensorLayout::Chw8c:
-        assert(td.getRank() == 3);
+      case TensorLayout::chw:
+        assert(tensor.getRank() == 3);
         if constexpr(std::is_same<U, ispc::TensorAccessor3D>::value)
         {
           ispc::TensorAccessor3D acc3;
@@ -77,7 +77,7 @@ OIDN_NAMESPACE_BEGIN
           throw std::logic_error("incompatible template and layout");
         }
       case TensorLayout::oihw:
-        assert(td.getRank() == 4);
+        assert(tensor.getRank() == 4);
         if constexpr(std::is_same<U, ispc::TensorAccessor4D>::value)
         {
           ispc::TensorAccessor4D acc4;

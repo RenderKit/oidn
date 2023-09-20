@@ -19,9 +19,9 @@ OIDN_NAMESPACE_BEGIN
     //cKernel.dst = toISPC<ispc::TensorAccessor3D>(*dst);
     const int blockC = getTensorLayoutInfo(dstDesc.layout).blockC;
     //ispc::CPUConvolutionKernel_Run(&cKernel);
-    TensorAccessor4D<float, TensorLayout::OIhw8i8o> weightAccessor = *weight;
-    TensorAccessor3D<float, TensorLayout::Chw8c> srcAccessor = *src;
-    TensorAccessor3D<float, TensorLayout::Chw8c> dstAccessor = *dst;
+    TensorAccessor4D<float, TensorLayout::oihw> weightAccessor = *weight;
+    TensorAccessor3D<float, TensorLayout::chw> srcAccessor = *src;
+    TensorAccessor3D<float, TensorLayout::chw> dstAccessor = *dst;
     TensorAccessor1D<float> biasAccessor = *bias;
     std::stringstream sstream;
     sstream << "\nSrc CHW is " << src->getPaddedC() << "," << src->getH() << "," << src->getW() << std::endl;
@@ -32,22 +32,26 @@ OIDN_NAMESPACE_BEGIN
 
     //for(int cb = 0; cb < dst->getPaddedC() / blockC; cb++)
     // Uncomment line above, and comment out line below (and L85 - bracket and colon) for single-threading
-    parallel_nd(dst->getPaddedC() / blockC, [&](int cb)
+    parallel_nd(dst->getPaddedC(), [&](int oc)
     {
       // Incredibly slow, naive implementation, but here we go - right now, better correct than fast
       // Loop through the output channels
-      for(int i = 0; i < blockC; i++)
+      //for(int i = 0; i < blockC; i++)
       {
-        int oc = (cb * blockC) + i;
+        //int oc = (cb * blockC) + i;
         std::stringstream sstream;
         sstream << "Running for CHW: " << oc << "," << src->getH() << "," << src->getW() << std::endl;
         //std::cout << sstream.str();
+        
         // Loop through output height
         for(int oh = 0; oh < src->getH(); oh++)
         {
           // Loop through output width
           for(int ow = 0; ow < src->getW(); ow++)
           {
+            // Initialise the dest value to 0
+            dstAccessor(oc, oh, ow) = 0.0f;
+
             // Loop through the input channels
             for(int ic = 0; ic < src->getPaddedC(); ic++)
             {

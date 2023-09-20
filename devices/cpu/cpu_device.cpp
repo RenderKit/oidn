@@ -155,9 +155,9 @@ OIDN_NAMESPACE_BEGIN
     tensorDataType = DataType::Float32;
     if (arch == CPUArch::NEON)
     {
-      tensorLayout = TensorLayout::Chw8c;
-      weightLayout = TensorLayout::OIhw8i8o;
-      tensorBlockC = 8;
+      tensorLayout = TensorLayout::chw;
+      weightLayout = TensorLayout::oihw;
+      tensorBlockC = 1;
     }
     else if (arch == CPUArch::AVX512)
     {
