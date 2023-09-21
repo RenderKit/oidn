@@ -10,14 +10,41 @@ struct CPUConvolutionKernel
   uniform TensorAccessor3D dst;
 };
 
-export void CPUConvolutionKernel_Run(uniform CPUConvolutionKernel* uniform self)
+export void CPUConvolutionKernel_Run(uniform CPUConvolutionKernel* uniform self, uniform int c)
 {
-    // Do convolution stuff here.
-    // For now, print out to ensure data has been passed correctly.
+    const uniform size_t W = self->dst.W;
+    const uniform size_t H = self->dst.H;
+    const uniform size_t srcC = self->src.C;
 
-    print("We hit the ISPC conv kernel successfully! We have the following sizes:\n");
-    print("SRC: C=% H=% W=%\n", self->src.C, self->src.H, self->src.W);
-    print("WEI: O=% I=% H=% W=%\n", self->weight.O, self->weight.I, self->weight.H, self->weight.W);
-    print("BIA: X=%\n", self->bias.X);
-    print("DST: C=% H=% W=%\n", self->dst.C, self->dst.H, self->dst.W);
+    // value(n, c, h, w) = n * CHW + c * HW + h * W + w
+    const uniform size_t dstOffset = c*H*W;
+    uniform float* const uniform dstPtr = self->dst.ptr + dstOffset;
+
+    for(uniform int oh = 0; oh < H; oh++)
+    {
+      for(uniform int ow = 0; ow < W; ow++)
+      {
+        varying float value = 0.0f;
+
+        for(uniform int ic = 0; ic < srcC; ic++)
+        {
+          for(uniform int ih = (oh == 0 ? 0 : -1); ih <= (oh == (H-1) ? 0 : 1); ih++)
+          {
+            for(uniform int iw = (ow == 0 ? 0 : -1); iw <= (ow == (W - 1) ? 0 : 1); iw++)
+            {
+              value += (get1f(self->src, ic, oh+ih, ow+iw) * get1f(self->weight, c, ic, ih+1, iw+1));
+            }
+          }
+        }
+
+        // Bias
+        value += self->bias.ptr[c];
+
+        // Activator
+        value = max(value, 0.0f);
+
+        // Store it non-temporally
+        streaming_store(&dstPtr[((oh)*W) + (ow)], value);
+      }
+    }
 }
