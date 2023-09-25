@@ -40,62 +40,45 @@ OIDN_NAMESPACE_BEGIN
     return acc;
   }
 
-  template<class U>
-  U toISPC(Tensor& tensor)
+  template<> ispc::TensorAccessor3D toISPC<ispc::TensorAccessor3D>(Tensor& tensor)
   {
-    if (tensor.getDataType() != DataType::Float32)
+    if (tensor.getRank() != 3 || tensor.getDataType() != DataType::Float32)
       throw std::logic_error("incompatible tensor accessor");
 
-    switch(tensor.getLayout())
-    {
-      case TensorLayout::x:
-        assert(tensor.getRank() == 1);
-        if constexpr(std::is_same<U, ispc::TensorAccessor1D>::value)
-        {
-          ispc::TensorAccessor1D acc1;
-          acc1.ptr = static_cast<float*>(tensor.getData());
-          acc1.X = tensor.getPaddedX();
-          return acc1;
-        }
-        else
-        {
-          throw std::logic_error("incompatible template and layout");
-        }
-      case TensorLayout::chw:
-        assert(tensor.getRank() == 3);
-        if constexpr(std::is_same<U, ispc::TensorAccessor3D>::value)
-        {
-          ispc::TensorAccessor3D acc3;
-          acc3.ptr = static_cast<float*>(tensor.getData());
-          acc3.C = tensor.getPaddedC();
-          acc3.H = tensor.getH();
-          acc3.W = tensor.getW();
-          return acc3;
-        }
-        else
-        {
-          throw std::logic_error("incompatible template and layout");
-        }
-      case TensorLayout::oihw:
-        assert(tensor.getRank() == 4);
-        if constexpr(std::is_same<U, ispc::TensorAccessor4D>::value)
-        {
-          ispc::TensorAccessor4D acc4;
-          acc4.ptr = static_cast<float*>(tensor.getData());
-          acc4.O = tensor.getPaddedO();
-          acc4.I = tensor.getPaddedI();
-          acc4.H = tensor.getH();
-          acc4.W = tensor.getW();
-          return acc4;
-        }
-        else
-        {
-          throw std::logic_error("incompatible template and layout");
-        }
-      default:
-        throw std::invalid_argument("unsupported tensor layout");
-    }
+    ispc::TensorAccessor3D acc3;
+    acc3.ptr = static_cast<float*>(tensor.getData());
+    acc3.C = tensor.getPaddedC();
+    acc3.H = tensor.getH();
+    acc3.W = tensor.getW();
+    return acc3;
   }
+
+#if defined(OIDN_ISPC)
+  template<> ispc::TensorAccessor1D toISPC<ispc::TensorAccessor1D>(Tensor& tensor)
+  {
+    if (tensor.getRank() != 1 || tensor.getDataType() != DataType::Float32)
+      throw std::logic_error("incompatible tensor accessor");
+
+    ispc::TensorAccessor1D acc1;
+    acc1.ptr = static_cast<float*>(tensor.getData());
+    acc1.X = tensor.getPaddedX();
+    return acc1;
+  }
+
+  template<> ispc::TensorAccessor4D toISPC<ispc::TensorAccessor4D>(Tensor& tensor)
+  {
+    if (tensor.getRank() != 4 || tensor.getDataType() != DataType::Float32)
+      throw std::logic_error("incompatible tensor accessor");
+
+    ispc::TensorAccessor4D acc4;
+    acc4.ptr = static_cast<float*>(tensor.getData());
+    acc4.O = tensor.getPaddedO();
+    acc4.I = tensor.getPaddedI();
+    acc4.H = tensor.getH();
+    acc4.W = tensor.getW();
+    return acc4;
+  }
+#endif
 
   ispc::Tile toISPC(const Tile& tile)
   {

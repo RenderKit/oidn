@@ -15,13 +15,13 @@ OIDN_NAMESPACE_BEGIN
 
   ispc::ImageAccessor toISPC(Image& image);
 
-  template<class U>
-  U toISPC(Tensor& tensor);
-  template ispc::TensorAccessor3D toISPC(Tensor& tensor);
+  template<typename T> T toISPC(Tensor& tensor);
+
+  template<> ispc::TensorAccessor3D toISPC<ispc::TensorAccessor3D>(Tensor& tensor);
 
 #if defined(OIDN_ISPC)
-  template ispc::TensorAccessor1D toISPC(Tensor& tensor);
-  template ispc::TensorAccessor4D toISPC(Tensor& tensor);
+  template<> ispc::TensorAccessor1D toISPC<ispc::TensorAccessor1D>(Tensor& tensor);
+  template<> ispc::TensorAccessor4D toISPC(Tensor& tensor);
 #endif
 
   ispc::Tile toISPC(const Tile& tile);
