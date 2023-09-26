@@ -74,8 +74,8 @@ prerequisites are needed:
 -   If using Intel® oneAPI DPC++/C++ Compiler:
     [CMake](http://www.cmake.org) 3.25.2 or newer
 
--   [Ninja](https://ninja-build.org) as the CMake generator. Make and the Visual
-    Studio generator are *not* supported.
+-   [Ninja](https://ninja-build.org) or Make as the CMake generator. The Visual
+    Studio generator is *not* supported.
 
 #### CUDA device for NVIDIA GPUs: {-}
 
