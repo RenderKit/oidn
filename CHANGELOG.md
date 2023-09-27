@@ -9,6 +9,7 @@ Version History
 -   Improved GPU performance
 -   Re-added `OIDN_STATIC_LIB` CMake option which enables building as a static
     (CPU support only) or a hybrid static/shared (GPU support as well) library
+-   Fixed future Windows driver compatibility for Intel integrated GPUs
 
 ### Changes in v2.0.1:
 
