@@ -17,7 +17,7 @@ BASELINE_VERSION='v2.1.0'
 parser = argparse.ArgumentParser(description='Runs all tests, including comparing images produced by the library with generated baseline images.')
 parser.usage = '\rIntel(R) Open Image Denoise - Test\n' + parser.format_usage()
 parser.add_argument('command', type=str, nargs='?', choices=['baseline', 'run'], default='run')
-parser.add_argument('--device', '-d', type=str, choices=['default', 'cpu', 'sycl', 'cuda', 'hip'], default='default', help='device to test')
+parser.add_argument('--device', '-d', type=str, default='default', help='device to test')
 parser.add_argument('--filter', '-f', type=str, nargs='*', choices=['RT', 'RTLightmap'], default=None, help='filters to test')
 parser.add_argument('--build_dir', '-B', type=str, help='build directory')
 parser.add_argument('--install_dir', '-I', type=str, help='install directory')
