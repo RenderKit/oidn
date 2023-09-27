@@ -51,14 +51,14 @@ prerequisites are needed:
 
 -   [Intel® oneAPI DPC++/C++ Compiler](https://www.intel.com/content/www/us/en/developer/tools/oneapi/dpc-compiler.html)
     2024.0 or newer, or the open source
-    [oneAPI DPC++ Compiler 2023-09-20](https://github.com/intel/llvm/releases/tag/nightly-2023-09-20).
+    [oneAPI DPC++ Compiler 2023-09-22](https://github.com/intel/llvm/releases/tag/nightly-2023-09-22).
     Other SYCL compilers are *not* supported. The open source version of the
     compiler is more up-to-date but less stable, so we *strongly* recommend to
     use the exact version listed here.
 
 -   Intel® Graphics Offline Compiler for OpenCL™ Code (OCLOC)
     -   Windows:
-        Version [31.0.101.4314](https://registrationcenter-download.intel.com/akdlm/IRC_NAS/9926f1ea-209e-42b3-94db-a1f895ee56ce/ocloc_win_101.4314.zip)
+        Version [31.0.101.4824](https://registrationcenter-download.intel.com/akdlm/IRC_NAS/fcd74e0e-43b3-4930-9bad-29c8b9581339/ocloc_win_101.4824.zip)
         or newer as a
         [standalone component of Intel® oneAPI Toolkits](https://www.intel.com/content/www/us/en/developer/articles/tool/oneapi-standalone-components.html),
         which must be extracted and its contents added to the `PATH`.
@@ -66,7 +66,7 @@ prerequisites are needed:
         [Intel® oneAPI Base Toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/toolkits.html#base-kit).
 
     -   Linux: Included with [Intel® software for General Purpose GPU capabilities](https://dgpu-docs.intel.com)
-        release [20230323](https://dgpu-docs.intel.com/releases/stable_602_20230323.html) or newer
+        release [20230918](https://dgpu-docs.intel.com/releases/stable_704_30_20230918.html) or newer
         (install at least `intel-opencl-icd` on Ubuntu, `intel-ocloc` on RHEL or SLES).
         Also available with
         [Intel® Graphics Compute Runtime for oneAPI Level Zero and OpenCL™ Driver](https://github.com/intel/compute-runtime).
