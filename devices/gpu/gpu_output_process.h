@@ -11,11 +11,11 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  template<typename TensorDataT, TensorLayout tensorLayout>
+  template<typename SrcT, TensorLayout srcLayout>
   struct GPUOutputProcessKernel
   {
     // Source
-    TensorAccessor3D<TensorDataT, tensorLayout> src;
+    TensorAccessor3D<SrcT, srcLayout> src;
 
     // Destination
     ImageAccessor dst;
@@ -69,7 +69,7 @@ OIDN_NAMESPACE_BEGIN
     }
   };
 
-  template<typename EngineT, typename TensorDataT, TensorLayout tensorLayout>
+  template<typename EngineT, typename SrcT, TensorLayout srcLayout>
   class GPUOutputProcess : public OutputProcess
   {
   public:
@@ -87,7 +87,7 @@ OIDN_NAMESPACE_BEGIN
           tile.wDstBegin + tile.W > dst->getW())
         throw std::out_of_range("output processing source/destination out of range");
 
-      GPUOutputProcessKernel<TensorDataT, tensorLayout> kernel;
+      GPUOutputProcessKernel<SrcT, srcLayout> kernel;
       kernel.src = *src;
       kernel.dst = *dst;
       kernel.tile = tile;

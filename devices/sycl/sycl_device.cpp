@@ -293,13 +293,18 @@ OIDN_NAMESPACE_BEGIN
     switch (arch)
     {
     case SYCLArch::XeHPG:
-      weightLayout = TensorLayout::OIhw2o8i8o2i;
+      weightDataType = DataType::Float16;
+      weightLayout   = TensorLayout::OIhw2o8i8o2i;
       break;
+
     case SYCLArch::XeHPC:
-      weightLayout = TensorLayout::OIhw8i16o2i;
+      weightDataType = DataType::Float16;
+      weightLayout   = TensorLayout::OIhw8i16o2i;
       break;
+
     default:
-      weightLayout = TensorLayout::OIhw16i16o;
+      weightDataType = DataType::Float32;
+      weightLayout   = TensorLayout::OIhw16i16o;
     }
 
     if (zeContext)

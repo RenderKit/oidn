@@ -144,6 +144,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Set device properties
     tensorDataType = DataType::Float16;
+    weightDataType = DataType::Float16;
     tensorLayout   = TensorLayout::hwc;
     weightLayout   = TensorLayout::ohwi;
     tensorBlockC   = 8; // required by Tensor Core operations

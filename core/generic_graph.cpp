@@ -95,7 +95,7 @@ OIDN_NAMESPACE_BEGIN
     TensorDesc finalWeightDesc = {weight->getDims(),
                                   finalWeightDims,
                                   engine->getDevice()->getWeightLayout(),
-                                  engine->getDevice()->getTensorDataType()};
+                                  engine->getDevice()->getWeightDataType()};
 
     TensorDesc finalBiasDesc = {bias->getDims(),
                                 {round_up(bias->getX(), blockC)},
@@ -155,7 +155,7 @@ OIDN_NAMESPACE_BEGIN
     TensorDesc finalWeightDesc = {weight->getDims(),
                                   finalWeightDims,
                                   engine->getDevice()->getWeightLayout(),
-                                  engine->getDevice()->getTensorDataType()};
+                                  engine->getDevice()->getWeightDataType()};
 
     TensorDesc finalBiasDesc = {bias->getDims(),
                                 {round_up(bias->getX(), blockC)},

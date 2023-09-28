@@ -11,7 +11,7 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  template<typename TensorDataT, TensorLayout tensorLayout, int dstPaddedC>
+  template<typename DstT, TensorLayout dstLayout, int dstPaddedC>
   struct GPUInputProcessKernel : WorkGroup<2>
   {
     // Source
@@ -20,7 +20,7 @@ OIDN_NAMESPACE_BEGIN
     ImageAccessor normal; // auxiliary normal
 
     // Destination
-    TensorAccessor3D<TensorDataT, tensorLayout> dst;
+    TensorAccessor3D<DstT, dstLayout> dst;
 
     // Tile
     Tile tile;
@@ -118,7 +118,7 @@ OIDN_NAMESPACE_BEGIN
       // All work-items in the subgroup are assumed to be in the same row
       const int subgroupLocalID = it.getSubgroupLocalID();
       const int wDstBegin = it.subgroupBroadcast(wDst, 0);
-      GlobalPtr<TensorDataT> dstPtr = &dst(0, hDst, wDstBegin);
+      GlobalPtr<DstT> dstPtr = &dst(0, hDst, wDstBegin);
 
       #if defined(OIDN_COMPILE_SYCL)
       // The subgroup size is assumed to be equal to the channel count
@@ -137,7 +137,7 @@ OIDN_NAMESPACE_BEGIN
         }
 
         if (wDstBegin + i < dst.W)
-          it.subgroupStore(dstPtr + i * dstPaddedC, TensorDataT(dstBlock));
+          it.subgroupStore(dstPtr + i * dstPaddedC, DstT(dstBlock));
       }
       #else
       // The subgroup size is assumed to be divisible by the channel count
@@ -157,7 +157,7 @@ OIDN_NAMESPACE_BEGIN
         }
 
         if (wDstBegin + wBlock < dst.W)
-          dstPtr[i * dstPaddedC + subgroupLocalID] = TensorDataT(dstBlock);
+          dstPtr[i * dstPaddedC + subgroupLocalID] = DstT(dstBlock);
       }
       #endif
     #else
@@ -172,7 +172,7 @@ OIDN_NAMESPACE_BEGIN
     }
   };
 
-  template<typename EngineT, typename TensorDataT, TensorLayout tensorLayout, int tensorBlockC>
+  template<typename EngineT, typename DstT, TensorLayout dstLayout, int tensorBlockC>
   class GPUInputProcess : public InputProcess
   {
   public:
@@ -217,7 +217,7 @@ OIDN_NAMESPACE_BEGIN
         throw std::logic_error("unsupported input processing destination channel count");
     #endif
 
-      using Kernel = GPUInputProcessKernel<TensorDataT, tensorLayout, dstPaddedC>;
+      using Kernel = GPUInputProcessKernel<DstT, dstLayout, dstPaddedC>;
 
       Kernel kernel;
       Image nullImage;

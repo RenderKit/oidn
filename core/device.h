@@ -76,6 +76,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Native tensor layout
     DataType getTensorDataType() const { return tensorDataType; }
+    DataType getWeightDataType() const { return weightDataType; }
     TensorLayout getTensorLayout() const { return tensorLayout; }
     TensorLayout getWeightLayout() const { return weightLayout; }
     int getTensorBlockC() const { return tensorBlockC; }
@@ -101,6 +102,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Native tensor layout
     DataType tensorDataType = DataType::Float32;
+    DataType weightDataType = DataType::Float32;
     TensorLayout tensorLayout = TensorLayout::chw;
     TensorLayout weightLayout = TensorLayout::oihw;
     int tensorBlockC = 1;

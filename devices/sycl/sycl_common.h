@@ -107,6 +107,14 @@ OIDN_NAMESPACE_BEGIN
       loadLargeBlock<T, N, blockSize / 2, offset>(ptr, dst);
   }
 
+  template<typename T, int N, int blockSize = maxLSCBlockByteSize / sizeof(T)>
+  OIDN_INLINE simd<T, N> loadLargeBlock(const T* ptr)
+  {
+    simd<T, N> dst;
+    loadLargeBlock<T, N, blockSize>(ptr, dst);
+    return dst;
+  }
+
   template<typename T, int N, int blockSize = maxLSCBlockByteSize / sizeof(T), int offset = 0>
   OIDN_INLINE void storeLargeBlock(T* ptr, simd<T, N>& src)
   {

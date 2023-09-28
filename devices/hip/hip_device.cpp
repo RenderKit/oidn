@@ -163,6 +163,7 @@ OIDN_NAMESPACE_BEGIN
       throw Exception(Error::UnsupportedHardware, "unsupported HIP device architecture");
 
     tensorDataType = DataType::Float16;
+    weightDataType = DataType::Float16;
     tensorLayout   = TensorLayout::hwc;
     weightLayout   = TensorLayout::ohwi;
     tensorBlockC   = (arch == HIPArch::DL) ? 32 : 8;

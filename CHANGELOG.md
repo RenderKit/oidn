@@ -6,9 +6,10 @@ Version History
 -   Added support for 1-channel (e.g. alpha) and 2-channel images
 -   Added support for arbitrary combinations of input image data types
     (e.g. `OIDN_FORMAT_FLOAT3` for `color` but `OIDN_FORMAT_HALF3` for `albedo`)
--   Improved GPU performance
+-   Improved performance for most dedicated GPU architectures
 -   Re-added `OIDN_STATIC_LIB` CMake option which enables building as a static
     (CPU support only) or a hybrid static/shared (GPU support as well) library
+-   Fixed image quality inconsistency for Intel integrated GPUs
 -   Fixed future Windows driver compatibility for Intel integrated GPUs
 
 ### Changes in v2.0.1:
