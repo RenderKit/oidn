@@ -174,7 +174,8 @@ if(OIDN_INSTALL_DEPENDENCIES)
     file(GLOB _sycl_deps LIST_DIRECTORIES FALSE
       "${_dpcpp_compiler_dir}/../bin/sycl?.dll"
       "${_dpcpp_compiler_dir}/../bin/pi_level_zero.dll"
-      "${_dpcpp_compiler_dir}/../bin/win_proxy_loader.dll"
+      "${_dpcpp_compiler_dir}/../bin/pi_win_proxy_loader.dll"
+      "${_dpcpp_compiler_dir}/../bin/win_proxy_loader.dll"    # deprecated
     )
   else()
     file(GLOB _sycl_deps LIST_DIRECTORIES FALSE
