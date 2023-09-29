@@ -11,6 +11,8 @@ Version History
     (CPU support only) or a hybrid static/shared (GPU support as well) library
 -   Fixed image quality inconsistency for Intel integrated GPUs
 -   Fixed future Windows driver compatibility for Intel integrated GPUs
+-   Fixed device detection on Windows when the path to the library has non-ANSI
+    characters
 
 ### Changes in v2.0.1:
 
