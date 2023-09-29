@@ -34,7 +34,7 @@ macro(append_if condition var value)
 endmacro()
 
 # Generates C++ files from the specified binary blobs
-find_package(PythonInterp REQUIRED)
+find_package(Python REQUIRED)
 function(oidn_generate_cpp_from_blob out_sources namespace)
   set(${out_sources})
   foreach(in_file ${ARGN})
