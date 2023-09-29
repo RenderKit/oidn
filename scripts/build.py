@@ -12,8 +12,8 @@ import argparse
 
 from common import *
 
-ISPC_VERSION = '1.20.0'
-TBB_VERSION  = '2021.9.0'
+ISPC_VERSION = '1.21.0'
+TBB_VERSION  = '2021.10.0'
 
 def check_symbols(filename, label, max_version):
   with os.popen("nm \"%s\" | tr ' ' '\n' | grep @@%s_" % (filename, label)) as out:
