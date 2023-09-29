@@ -56,7 +56,10 @@ endif()
 
 set(OIDN_SYCL_LINK_FLAGS ${OIDN_SYCL_COMPILE_FLAGS})
 
-# FIXME: DPCPP issues a warning when WINAPI is used:
+# FIXME: multi_ptr specialization is deprecated
+list(APPEND OIDN_SYCL_COMPILE_FLAGS -Wno-deprecated-declarations)
+
+# FIXME: DPC++ issues a warning when WINAPI is used:
 # warning: '__stdcall' calling convention is not supported for this target
 if(WIN32)
   list(APPEND OIDN_SYCL_COMPILE_FLAGS -Wno-ignored-attributes)
