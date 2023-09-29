@@ -28,7 +28,7 @@ following basic prerequisites:
 -   A C++11 compiler (we recommend using a Clang-based compiler but also support
     GCC and Microsoft Visual Studio 2015 and newer)
 
--   Python 2.7 or newer
+-   Python 3
 
 To build support for different types of CPUs and GPUs, the following additional
 prerequisites are needed:
