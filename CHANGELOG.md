@@ -13,6 +13,8 @@ Version History
 -   Fixed future Windows driver compatibility for Intel integrated GPUs
 -   Fixed device detection on Windows when the path to the library has non-ANSI
     characters
+-   Added support for Intel® oneAPI DPC++/C++ Compiler 2024.0 and compatible
+    open source compiler versions
 
 ### Changes in v2.0.1:
 

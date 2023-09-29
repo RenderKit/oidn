@@ -445,7 +445,7 @@ namespace xehpc {
       }
 
     #if defined(OIDN_ARCH_XEHPG)
-      engine->submitESIMDKernelWithGRF<256>(globalSize / groupSize, groupSize, kernel);
+      engine->submitESIMDKernelWithLargeGRF(globalSize / groupSize, groupSize, kernel);
     #else
       engine->submitESIMDKernel(globalSize / groupSize, groupSize, kernel);
     #endif
