@@ -13,7 +13,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
-      image: oidn/rockylinux:8.6
+      image: oidn/rockylinux:8.8-aafra-oidn
       dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       cmd: scripts/build.py install --full
       artifact-out: build-rockylinux8
@@ -25,7 +25,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
-      image: oidn/rockylinux:8.6
+      image: oidn/rockylinux:8.8-aafra-oidn
       dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       cmd: scripts/build.py install --compiler clang --config Debug -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=OFF -D OIDN_DEVICE_CUDA=ON
       artifact-out: build-rockylinux8-debug
@@ -36,7 +36,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
-      image: oidn/rockylinux:8.6
+      image: oidn/rockylinux:8.8-aafra-oidn
       dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       cmd: scripts/build.py install --full -D OIDN_DEVICE_SYCL_AOT=OFF
       artifact-out: build-rockylinux8-jit
@@ -47,7 +47,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
-      image: oidn/rockylinux:8.6
+      image: oidn/rockylinux:8.8-aafra-oidn
       dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       cmd: scripts/build.py install --full -D OIDN_STATIC_LIB=ON
       artifact-out: build-rockylinux8-static
@@ -58,7 +58,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
-      image: oidn/rockylinux:8.6
+      image: oidn/rockylinux:8.8-aafra-oidn
       dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
       artifact-out: build-rockylinux8-namespace
@@ -69,7 +69,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
-      image: oidn/rockylinux:8.6
+      image: oidn/rockylinux:8.8-aafra-oidn
       dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn -D OIDN_STATIC_LIB=ON
       artifact-out: build-rockylinux8-namespace-static
@@ -81,7 +81,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
-      image: oidn/rockylinux:8.6
+      image: oidn/rockylinux:8.8-aafra-oidn
       dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       cmd: scripts/build.py install --compiler clang --config Debug -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=OFF -D OIDN_DEVICE_CUDA=ON -D OIDN_API_NAMESPACE=myoidn
       artifact-out: build-rockylinux8-namespace-debug
@@ -92,7 +92,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
-      image: oidn/rockylinux:8.6
+      image: oidn/rockylinux:8.8-aafra-oidn
       dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       cmd: scripts/build.py install --compiler gcc -D OIDN_DEVICE_CUDA=ON -D OIDN_DEVICE_HIP=ON
       artifact-out: build-rockylinux8-gcc
@@ -103,7 +103,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
-      image: oidn/rockylinux:8.6
+      image: oidn/rockylinux:8.8-aafra-oidn
       dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       cmd: scripts/build.py install --compiler gcc --config Debug -D OIDN_DEVICE_CUDA=ON
       artifact-out: build-rockylinux8-gcc-debug
@@ -114,7 +114,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
-      image: oidn/rockylinux:8.6
+      image: oidn/rockylinux:8.8-aafra-oidn
       dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       cmd: scripts/build.py install --compiler gcc -D OIDN_FILTER_RT=OFF -D OIDN_FILTER_RTLIGHTMAP=OFF
       artifact-out: build-rockylinux8-gcc-minimal
@@ -125,7 +125,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
-      image: oidn/ubuntu:22.04
+      image: oidn/ubuntu:22.04-aafra-oidn
       cmd: scripts/build.py install --full
       artifact-out: build-ubuntu2204
       artifact-path: build install deps
@@ -135,7 +135,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
-      image: oidn/ubuntu:22.04
+      image: oidn/ubuntu:22.04-aafra-oidn
       cmd: >
         scripts/build.py install --install_dir oidn-gta-aotjit-lin --compiler clang
         -D OIDN_DEVICE_CPU=OFF
@@ -149,7 +149,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
-      image: oidn/ubuntu:22.04
+      image: oidn/ubuntu:22.04-aafra-oidn
       cmd: >
         scripts/build.py install --install_dir oidn-gta-aot-lin --compiler clang
         -D OIDN_DEVICE_CPU=OFF
@@ -163,7 +163,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
-      image: oidn/ubuntu:22.04
+      image: oidn/ubuntu:22.04-aafra-oidn
       cmd: >
         scripts/build.py install --install_dir oidn-gta-jit-lin --compiler clang
         -D OIDN_DEVICE_CPU=OFF
@@ -251,7 +251,7 @@ jobs:
     with:
       project: oidn
       runs-on: '[ "Linux", "avx2" ]'
-      image: oidn/rockylinux:8.6
+      image: oidn/rockylinux:8.8-aafra-oidn
       artifact-in: build-rockylinux8
       artifact-out: test-rockylinux8-avx2
       artifact-path: test.log
@@ -265,7 +265,7 @@ jobs:
     with:
       project: oidn
       runs-on: '[ "Linux", "avx512" ]'
-      image: oidn/rockylinux:8.6
+      image: oidn/rockylinux:8.8-aafra-oidn
       artifact-in: build-rockylinux8
       artifact-out: test-rockylinux8-avx512
       artifact-path: test.log
@@ -279,7 +279,7 @@ jobs:
     with:
       project: oidn
       runs-on: '[ "Linux", "avx512" ]'
-      image: oidn/rockylinux:8.6
+      image: oidn/rockylinux:8.8-aafra-oidn
       artifact-in: build-rockylinux8-static
       artifact-out: test-rockylinux8-static-avx512
       artifact-path: test.log
@@ -294,7 +294,7 @@ jobs:
   #   with:
   #     project: oidn
   #     runs-on: '[ "Linux", "build" ]'
-  #     image: oidn/rockylinux:8.6
+  #     image: oidn/rockylinux:8.8-aafra-oidn
   #     artifact-in: build-rockylinux8
   #     artifact-out: test-rockylinux8-sse4
   #     artifact-path: test.log
@@ -308,7 +308,7 @@ jobs:
     with:
       project: oidn
       runs-on: '[ "Linux", "avx2" ]'
-      image: oidn/rockylinux:8.6
+      image: oidn/rockylinux:8.8-aafra-oidn
       artifact-in: build-rockylinux8-debug
       artifact-out: test-rockylinux8-debug-avx2
       artifact-path: test.log
@@ -322,7 +322,7 @@ jobs:
     with:
       project: oidn
       runs-on: '[ "Linux", "avx2" ]'
-      image: oidn/rockylinux:8.6
+      image: oidn/rockylinux:8.8-aafra-oidn
       artifact-in: build-rockylinux8-namespace
       artifact-out: test-rockylinux8-namespace-avx2
       artifact-path: test.log
@@ -819,7 +819,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
-      image: oidn/rockylinux:8.6
+      image: oidn/rockylinux:8.8-aafra-oidn
       dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       cmd: scripts/build.py package --full
       artifact-out: package-linux
@@ -869,7 +869,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
-      image: oidn/rockylinux:8.6
+      image: oidn/rockylinux:8.8-aafra-oidn
       cmd: scripts/build_src.py
       artifact-out: package-source-tgz
       artifact-path: build/oidn-*.tar.gz
