@@ -16,6 +16,7 @@ Version History
 -   Added support for Intel® oneAPI DPC++/C++ Compiler 2024.0 and compatible
     open source compiler versions
 -   Upgraded to oneTBB 2021.10.0 in the official binaries
+-   Improved detection of old oneTBB versions
 
 ### Changes in v2.0.1:
 

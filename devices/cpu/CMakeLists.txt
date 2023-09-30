@@ -2,7 +2,19 @@
 ## SPDX-License-Identifier: Apache-2.0
 
 find_package(Threads REQUIRED)
-find_package(TBB 2017.0 REQUIRED tbb CONFIG)
+
+# oneTBB
+set(OIDN_TBB_MIN_VERSION 2017.0)
+if(TBB_ROOT)
+  find_package(TBB ${OIDN_TBB_MIN_VERSION} COMPONENTS tbb CONFIG NO_DEFAULT_PATH)
+else()
+  find_package(TBB ${OIDN_TBB_MIN_VERSION} COMPONENTS tbb CONFIG)
+endif()
+if(NOT TBB_FOUND)
+  # Fall back to our FindTBB.cmake
+  unset(TBB_DIR CACHE)
+  find_package(TBB ${OIDN_TBB_MIN_VERSION} REQUIRED tbb)
+endif()
 
 if(OIDN_ARCH STREQUAL "X64")
   # oneDNN
