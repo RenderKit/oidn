@@ -788,17 +788,19 @@ jobs:
       artifact-path: test.log
       cmd: python scripts/test.py --device cpu --minimal --log test.log
 
-  kw-build-scan-report:
+  static-analysis:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/static_analysis.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/static_analysis.yml@tgt/oidn-coverity
     with:
-      project: oidn
-      image: oidn/ubuntu:22.04
+      coverity: true
+      project: Open Image Denoise
+      prebuild: >
+        apt install -y ninja-build
       build: scripts/build.py
 
-  snyk-scan:
+  composition-analysis:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/snyk.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/composition_analysis.yml@main
     with:
       project: oidn
 
