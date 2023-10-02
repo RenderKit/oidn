@@ -79,10 +79,11 @@ OIDN_NAMESPACE_BEGIN
 
     OIDN_INLINE Ref& operator =(Ref&& other)
     {
+      T* otherPtr = other.ptr;
+      other.ptr = nullptr;
       if (ptr)
         ptr->decRef();
-      ptr = other.ptr;
-      other.ptr = nullptr;
+      ptr = otherPtr;
       return *this;
     }
 
