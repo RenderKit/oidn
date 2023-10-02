@@ -167,6 +167,10 @@ OIDN_NAMESPACE_BEGIN
     virtual void updatePtr() = 0;
 
   protected:
+    // Disable copying
+    Memory(const Memory&) = delete;
+    Memory& operator =(const Memory&) = delete;
+
     Ref<Buffer> buffer; // buffer containing the data
     size_t byteOffset;  // offset in the buffer
   };

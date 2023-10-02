@@ -47,6 +47,10 @@ OIDN_API_NAMESPACE_BEGIN
     }
 
   private:
+    // Disable copying
+    DeviceGuard(const DeviceGuard&) = delete;
+    DeviceGuard& operator =(const DeviceGuard&) = delete;
+
     Device* device;
     std::lock_guard<std::mutex> lock;
   };
