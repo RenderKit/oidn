@@ -65,6 +65,7 @@ OIDN_NAMESPACE_BEGIN
     if (initAddress == nullptr)
     {
       Context::get().printWarning("invalid module: '" + filename + "'");
+      closeModule(module);
       return false;
     }
 
