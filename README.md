@@ -1,6 +1,6 @@
 # Intel® Open Image Denoise
 
-This is release v2.0.1 of Intel Open Image Denoise. For changes and new
+This is release v2.1.0 of Intel Open Image Denoise. For changes and new
 features see the [changelog](CHANGELOG.md). Visit
 https://www.openimagedenoise.org for more information.
 
@@ -157,7 +157,7 @@ you need the following basic prerequisites:
   - A C++11 compiler (we recommend using a Clang-based compiler but also
     support GCC and Microsoft Visual Studio 2015 and newer)
 
-  - Python 2.7 or newer
+  - Python 3
 
 To build support for different types of CPUs and GPUs, the following
 additional prerequisites are needed:
@@ -179,16 +179,18 @@ additional prerequisites are needed:
 
   - [Intel® oneAPI DPC++/C++
     Compiler](https://www.intel.com/content/www/us/en/developer/tools/oneapi/dpc-compiler.html)
-    2023.1 or newer, or the open source [oneAPI DPC++
-    Compiler 2022-12-15](https://github.com/intel/llvm/releases/tag/sycl-nightly%2F20221215).
+    2024.0 or newer, or the open source [oneAPI DPC++
+    Compiler 2023-09-22](https://github.com/intel/llvm/releases/tag/nightly-2023-09-22).
     Other SYCL compilers are *not* supported. The open source version of
     the compiler is more up-to-date but less stable, so we *strongly*
-    recommend to use the exact version listed here.
+    recommend to use the exact version listed here, and on Linux we also
+    recommend to rebuild it from source with the `--disable-fusion`
+    flag.
 
   - Intel® Graphics Offline Compiler for OpenCL™ Code (OCLOC)
     
       - Windows: Version
-        [31.0.101.4314](https://registrationcenter-download.intel.com/akdlm/IRC_NAS/9926f1ea-209e-42b3-94db-a1f895ee56ce/ocloc_win_101.4314.zip)
+        [31.0.101.4824](https://registrationcenter-download.intel.com/akdlm/IRC_NAS/fcd74e0e-43b3-4930-9bad-29c8b9581339/ocloc_win_101.4824.zip)
         or newer as a [standalone component of Intel® oneAPI
         Toolkits](https://www.intel.com/content/www/us/en/developer/articles/tool/oneapi-standalone-components.html),
         which must be extracted and its contents added to the `PATH`.
@@ -197,7 +199,7 @@ additional prerequisites are needed:
     
       - Linux: Included with [Intel® software for General Purpose GPU
         capabilities](https://dgpu-docs.intel.com) release
-        [20230323](https://dgpu-docs.intel.com/releases/stable_602_20230323.html)
+        [20230918](https://dgpu-docs.intel.com/releases/stable_704_30_20230918.html)
         or newer (install at least `intel-opencl-icd` on Ubuntu,
         `intel-ocloc` on RHEL or SLES). Also available with [Intel®
         Graphics Compute Runtime for oneAPI Level Zero and OpenCL™
@@ -223,14 +225,7 @@ additional prerequisites are needed:
   - [Ninja](https://ninja-build.org) or Make as the CMake generator. The
     Visual Studio generator is *not* supported.
 
-  - [AMD ROCm](https://rocm.docs.amd.com) v5.5.0 or newer. Currently
-    there are no releases available for Windows but it can be build from
-    source. This source distribution includes a script for downloading,
-    building and installing a minimal version of ROCm with the HIP
-    compiler for Windows: `scripts/rocm/build_rocm_windows.bat`
-
-  - If building on Windows using a HIP compiler built from source: Perl
-    (e.g. [Strawberry Perl](https://strawberryperl.com))
+  - [AMD ROCm (HIP SDK)](https://rocm.docs.amd.com) v5.5.0 or newer.
 
 Depending on your operating system, you can install some required
 dependencies (e.g., TBB) using `yum` or `apt-get` on Linux,
@@ -378,6 +373,10 @@ CMake:
   - `CMAKE_BUILD_TYPE`: Can be used to switch between Debug mode
     (Debug), Release mode (Release) (default), and Release mode with
     enabled assertions and debug symbols (RelWithDebInfo).
+
+  - `OIDN_STATIC_LIB`: Build Open Image Denoise as a static (if only CPU
+    support is enabled) or a hybrid static/shared (if GPU support is
+    enabled as well) library.
 
   - `OIDN_API_NAMESPACE`: Specifies a namespace to put all Intel Open
     Image Denoise API symbols inside. This is also added as an outer
@@ -1331,11 +1330,12 @@ without any gaps), you can set `pixelByteStride` and/or `rowByteStride`
 to 0 to let the library compute the actual strides automatically, as a
 convenience.
 
-Images support only the `OIDN_FORMAT_FLOAT3` and `OIDN_FORMAT_HALF3`
-pixel formats. Custom image layouts with extra channels (e.g. alpha
-channel) or other data are supported as well by specifying a non-zero
-pixel stride. This way, expensive image layout conversion and copying
-can be avoided but the extra data will be ignored by the filter.
+Images support only `FLOAT` and `HALF` pixel formats with up to 3
+channels. Custom image layouts with extra channels (e.g. alpha channel)
+or other data are supported as well by specifying a non-zero pixel
+stride. This way, expensive image layout conversion and copying can be
+avoided but the extra channels will be ignored by the filter. If these
+channels also need to be denoised, separate filters can be used.
 
 To unset a previously set image parameter, returning it to a state as if
 it had not been set, call
@@ -1506,10 +1506,10 @@ snippets that demonstrate the usage of the filter.
 
 | Type    | Name            |    Default | Description                                                                                                                                                                                                                                                                                                                                                                                      |
 | :------ | :-------------- | ---------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Image` | `color`         | *optional* | input beauty image (3 channels, LDR values in \[0, 1\] or HDR values in \[0, +∞), values being interpreted such that, after scaling with the `inputScale` parameter, a value of 1 corresponds to a luminance level of 100 cd/m²)                                                                                                                                                                 |
+| `Image` | `color`         | *optional* | input beauty image (1–3 channels, LDR values in \[0, 1\] or HDR values in \[0, +∞), values being interpreted such that, after scaling with the `inputScale` parameter, a value of 1 corresponds to a luminance level of 100 cd/m²)                                                                                                                                                               |
 | `Image` | `albedo`        | *optional* | input auxiliary image containing the albedo per pixel (3 channels, values in \[0, 1\])                                                                                                                                                                                                                                                                                                           |
 | `Image` | `normal`        | *optional* | input auxiliary image containing the shading normal per pixel (3 channels, world-space or view-space vectors with arbitrary length, values in \[-1, 1\])                                                                                                                                                                                                                                         |
-| `Image` | `output`        | *required* | output image (3 channels); can be one of the input images                                                                                                                                                                                                                                                                                                                                        |
+| `Image` | `output`        | *required* | output image (1–3 channels); can be one of the input images                                                                                                                                                                                                                                                                                                                                      |
 | `Bool`  | `hdr`           |    `false` | the main input image is HDR                                                                                                                                                                                                                                                                                                                                                                      |
 | `Bool`  | `srgb`          |    `false` | the main input image is encoded with the sRGB (or 2.2 gamma) curve (LDR only) or is linear; the output will be encoded with the same curve                                                                                                                                                                                                                                                       |
 | `Float` | `inputScale`    |        NaN | scales values in the main input image before filtering, without scaling the output too, which can be used to map color or auxiliary feature values to the expected range, e.g. for mapping HDR values to physical units (which affects the quality of the output but *not* the range of the output values); if set to NaN, the scale is computed implicitly for HDR images or set to 1 otherwise |

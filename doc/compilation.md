@@ -54,7 +54,8 @@ prerequisites are needed:
     [oneAPI DPC++ Compiler 2023-09-22](https://github.com/intel/llvm/releases/tag/nightly-2023-09-22).
     Other SYCL compilers are *not* supported. The open source version of the
     compiler is more up-to-date but less stable, so we *strongly* recommend to
-    use the exact version listed here.
+    use the exact version listed here, and on Linux we also recommend to
+    rebuild it from source with the `--disable-fusion` flag.
 
 -   Intel® Graphics Offline Compiler for OpenCL™ Code (OCLOC)
     -   Windows:
