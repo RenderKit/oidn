@@ -569,7 +569,6 @@ jobs:
       msvc-version: "2022"
       dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       ocloc-version: fcd74e0e-43b3-4930-9bad-29c8b9581339/ocloc_win_101.4824
-      rocm-version: rocm/5.5.0
       artifact-out: build-windows
       artifact-path: build install
       cmd: python scripts/build.py install --full
@@ -583,7 +582,6 @@ jobs:
       msvc-version: "2022"
       dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       ocloc-version: fcd74e0e-43b3-4930-9bad-29c8b9581339/ocloc_win_101.4824
-      rocm-version: rocm/5.5.0
       artifact-out: build-windows-static
       artifact-path: build install
       cmd: python scripts/build.py install --full -D OIDN_STATIC_LIB=ON
@@ -597,7 +595,6 @@ jobs:
       runs-on: '[ "Windows", "build", "cuda" ]'
       dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       ocloc-version: fcd74e0e-43b3-4930-9bad-29c8b9581339/ocloc_win_101.4824
-      rocm-version: rocm/5.5.0
       artifact-out: build-windows-debug
       artifact-path: build install
       cmd: >
@@ -612,7 +609,6 @@ jobs:
       runs-on: '[ "Windows", "build", "cuda" ]'
       dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       ocloc-version: fcd74e0e-43b3-4930-9bad-29c8b9581339/ocloc_win_101.4824
-      rocm-version: rocm/5.5.0
       artifact-out: build-windows-namespace
       artifact-path: build install
       cmd: python scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
@@ -625,7 +621,6 @@ jobs:
       runs-on: '[ "Windows", "build", "cuda" ]'
       dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       ocloc-version: fcd74e0e-43b3-4930-9bad-29c8b9581339/ocloc_win_101.4824
-      rocm-version: rocm/5.5.0
       artifact-out: build-windows-namespace-static
       artifact-path: build install
       cmd: python scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn -D OIDN_STATIC_LIB=ON
@@ -639,7 +634,6 @@ jobs:
       msvc-version: "2022"
       dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       ocloc-version: fcd74e0e-43b3-4930-9bad-29c8b9581339/ocloc_win_101.4824
-      rocm-version: rocm/5.5.0
       artifact-out: build-windows-gta-aotjit
       artifact-path: oidn-gta-aotjit-win
       cmd: >
@@ -657,7 +651,6 @@ jobs:
       msvc-version: "2022"
       dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       ocloc-version: fcd74e0e-43b3-4930-9bad-29c8b9581339/ocloc_win_101.4824
-      rocm-version: rocm/5.5.0
       artifact-out: build-windows-gta-aot
       artifact-path: oidn-gta-aot-win
       cmd: >
@@ -675,7 +668,6 @@ jobs:
       msvc-version: "2022"
       dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       ocloc-version: fcd74e0e-43b3-4930-9bad-29c8b9581339/ocloc_win_101.4824
-      rocm-version: rocm/5.5.0
       artifact-out: build-windows-gta-jit
       artifact-path: oidn-gta-jit-win
       cmd: >
@@ -854,7 +846,6 @@ jobs:
       msvc-version: "2022"
       dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       ocloc-version: fcd74e0e-43b3-4930-9bad-29c8b9581339/ocloc_win_101.4824
-      rocm-version: rocm/5.5.0
       cmd: |
         echo $env:ROCM_PATH
         where ocloc.exe

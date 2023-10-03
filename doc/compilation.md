@@ -90,14 +90,7 @@ prerequisites are needed:
 -   [Ninja](https://ninja-build.org) or Make as the CMake generator. The Visual
     Studio generator is *not* supported.
 
--   [AMD ROCm](https://rocm.docs.amd.com) v5.5.0 or newer. Currently there are no
-    releases available for Windows but it can be build from source. This source
-    distribution includes a script for downloading, building and installing a
-    minimal version of ROCm with the HIP compiler for Windows:
-    `scripts/rocm/build_rocm_windows.bat`
-
--   If building on Windows using a HIP compiler built from source: Perl
-    (e.g. [Strawberry Perl](https://strawberryperl.com))
+-   [AMD ROCm (HIP SDK)](https://rocm.docs.amd.com) v5.5.0 or newer.
 
 Depending on your operating system, you can install some required dependencies
 (e.g., TBB) using `yum` or `apt-get` on Linux, [Homebrew](https://brew.sh) or
