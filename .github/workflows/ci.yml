@@ -286,6 +286,51 @@ jobs:
       artifact-on-failure: true
       cmd: scripts/test.py --device cpu --log test.log
 
+  test-rockylinux8-dg2:
+    needs: build-rockylinux8
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Linux", "dg2" ]'
+      image: oidn/ubuntu:22.04
+      options: --device=/dev/dri:/dev/dri
+      artifact-in: build-rockylinux8
+      artifact-out: test-rockylinux8-dg2
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: scripts/test.py --device sycl --log test.log
+
+  test-rockylinux8-pvc:
+    needs: build-rockylinux8
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Linux", "pvc" ]'
+      image: oidn/ubuntu:22.04
+      options: --device=/dev/dri:/dev/dri
+      artifact-in: build-rockylinux8
+      artifact-out: test-rockylinux8-pvc
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: scripts/test.py --device sycl --log test.log
+
+  test-rockylinux8-namespace-static-dg2:
+    needs: build-rockylinux8-namespace-static
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Linux", "dg2" ]'
+      image: oidn/ubuntu:22.04
+      options: --device=/dev/dri:/dev/dri
+      artifact-in: build-rockylinux8-namespace-static
+      artifact-out: test-rockylinux8-namespace-static-dg2
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: scripts/test.py --device sycl --log test.log
+
   # TODO: Install SDE
   # test-rockylinux8-sse4:
   #   needs: build-rockylinux8
@@ -789,6 +834,32 @@ jobs:
       artifact-out: test-windows-msvc16-avx512
       artifact-path: test.log
       cmd: python scripts/test.py --device cpu --minimal --log test.log
+
+  test-windows-dg2:
+    needs: build-windows
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "dg2", "NAS" ]'
+      env-from-files: ./.github/workflows/gfx-windows-public.env
+      artifact-in: build-windows
+      artifact-out: test-windows-dg2
+      artifact-path: test.log
+      cmd: python scripts/test.py --device sycl --log test.log
+
+  test-windows-namespace-static-dg2:
+    needs: build-windows-namespace-static
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "dg2", "NAS" ]'
+      env-from-files: ./.github/workflows/gfx-windows-public.env
+      artifact-in: build-windows-namespace-static
+      artifact-out: test-windows-namespace-static-dg2
+      artifact-path: test.log
+      cmd: python scripts/test.py --device sycl --log test.log
 
   static-analysis:
     secrets: inherit
