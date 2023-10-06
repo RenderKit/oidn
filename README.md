@@ -1446,6 +1446,17 @@ otherwise (CPUs):
 void oidnExecuteFilterAsync(OIDNFilter filter);
 ```
 
+For filters created on a SYCL device it is also possible to specify
+dependent SYCL events (`depEvents` and `numDepEvents` arguments, may be
+`NULL`/0) and get a completion event as well (`doneEvent` argument, may
+be `NULL`):
+
+``` cpp
+void oidnExecuteSYCLFilterAsync(OIDNFilter filter,
+                                const sycl::event* depEvents, int numDepEvents,
+                                sycl::event* doneEvent);
+```
+
 When filtering asynchronously, the user must ensure correct
 synchronization with the device by calling `oidnSyncDevice` before
 accessing the output image data or releasing the filter. Failure to do
