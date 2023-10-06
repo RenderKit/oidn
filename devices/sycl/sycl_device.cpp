@@ -395,6 +395,11 @@ OIDN_NAMESPACE_BEGIN
 
   void SYCLDevice::setDepEvents(const sycl::event* events, int numEvents)
   {
+    if (numEvents < 0)
+      throw Exception(Error::InvalidArgument, "invalid number of dependent events");
+    if (events == nullptr && numEvents > 0)
+      throw Exception(Error::InvalidArgument, "array of dependent events is null");
+
     setDepEvents({events, events + numEvents});
   }
 

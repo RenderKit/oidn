@@ -103,7 +103,7 @@ OIDN_NAMESPACE_BEGIN
     : Tensor(buffer, desc, byteOffset)
   {
     if (byteOffset + getByteSize() > buffer->getByteSize())
-      throw Exception(Error::InvalidArgument, "buffer region out of range");
+      throw Exception(Error::InvalidArgument, "buffer region is out of range");
 
     ptr = buffer->getData() + byteOffset;
   }
@@ -113,7 +113,7 @@ OIDN_NAMESPACE_BEGIN
     if (buffer)
     {
       if (byteOffset + getByteSize() > buffer->getByteSize())
-        throw std::range_error("buffer region out of range");
+        throw std::range_error("buffer region is out of range");
 
       ptr = buffer->getData() + byteOffset;
     }

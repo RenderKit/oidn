@@ -17,7 +17,10 @@ OIDN_NAMESPACE_BEGIN
     Ref<Device> newDevice(const sycl::queue* queues, int numQueues) override
     {
       if (numQueues < 0)
-        throw Exception(Error::InvalidArgument, "invalid number of queues");
+        throw Exception(Error::InvalidArgument, "invalid number of SYCL queues");
+      if (queues == nullptr && numQueues > 0)
+        throw Exception(Error::InvalidArgument, "array of SYCL queues is null");
+
       return makeRef<SYCLDevice>(std::vector<sycl::queue>{queues, queues + numQueues});
     }
 

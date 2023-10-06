@@ -67,7 +67,13 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_INLINE void checkHandle(void* handle)
     {
       if (handle == nullptr)
-        throw Exception(Error::InvalidArgument, "invalid handle");
+        throw Exception(Error::InvalidArgument, "handle is null");
+    }
+
+    OIDN_INLINE void checkString(const char* str)
+    {
+      if (str == nullptr)
+        throw Exception(Error::InvalidArgument, "string pointer is null");
     }
 
     template<typename T>
@@ -131,6 +137,7 @@ OIDN_API_NAMESPACE_BEGIN
     Ref<Device> device = nullptr; // dummy
     OIDN_TRY
       Context& ctx = initContext();
+      checkString(name);
       return ctx.getPhysicalDevice(physicalDeviceID)->getInt(name);
     OIDN_CATCH(device)
     return 0;
@@ -141,6 +148,7 @@ OIDN_API_NAMESPACE_BEGIN
     Ref<Device> device = nullptr; // dummy
     OIDN_TRY
       Context& ctx = initContext();
+      checkString(name);
       return ctx.getPhysicalDevice(physicalDeviceID)->getInt(name);
     OIDN_CATCH(device)
     return 0;
@@ -151,6 +159,7 @@ OIDN_API_NAMESPACE_BEGIN
     Ref<Device> device = nullptr; // dummy
     OIDN_TRY
       Context& ctx = initContext();
+      checkString(name);
       return ctx.getPhysicalDevice(physicalDeviceID)->getString(name);
     OIDN_CATCH(device)
     return nullptr;
@@ -161,6 +170,7 @@ OIDN_API_NAMESPACE_BEGIN
     Ref<Device> device = nullptr; // dummy
     OIDN_TRY
       Context& ctx = initContext();
+      checkString(name);
       Data data = ctx.getPhysicalDevice(physicalDeviceID)->getData(name);
       if (byteSize != nullptr)
         *byteSize = data.size;
@@ -237,6 +247,9 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_TRY
       Context& ctx = initContext();
 
+      if (uuid == nullptr)
+        throw Exception(Error::InvalidArgument, "UUID pointer is null");
+
       // Find the physical device with the specified UUID
       const int numDevices = ctx.getNumPhysicalDevices();
       int foundID = -1;
@@ -267,6 +280,9 @@ OIDN_API_NAMESPACE_BEGIN
 
     OIDN_TRY
       Context& ctx = initContext();
+
+      if (luid == nullptr)
+        throw Exception(Error::InvalidArgument, "LUID pointer is null");
 
       // Find the physical device with the specified LUID
       const int numDevices = ctx.getNumPhysicalDevices();
@@ -379,6 +395,7 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_TRY
       checkHandle(hDevice);
       OIDN_LOCK(device);
+      checkString(name);
       device->setInt(name, value);
     OIDN_CATCH(device)
   }
@@ -389,6 +406,7 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_TRY
       checkHandle(hDevice);
       OIDN_LOCK(device);
+      checkString(name);
       device->setInt(name, value);
     OIDN_CATCH(device)
   }
@@ -399,6 +417,7 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_TRY
       checkHandle(hDevice);
       OIDN_LOCK(device);
+      checkString(name);
       return device->getInt(name);
     OIDN_CATCH(device)
     return false;
@@ -410,6 +429,7 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_TRY
       checkHandle(hDevice);
       OIDN_LOCK(device);
+      checkString(name);
       return device->getInt(name);
     OIDN_CATCH(device)
     return 0;
@@ -628,6 +648,7 @@ OIDN_API_NAMESPACE_BEGIN
       checkHandle(hDevice);
       OIDN_LOCK(device);
       device->checkCommitted();
+      checkString(type);
       Ref<Filter> filter = device->newFilter(type);
       return reinterpret_cast<OIDNFilter>(filter.detach());
     OIDN_CATCH(device)
@@ -655,8 +676,9 @@ OIDN_API_NAMESPACE_BEGIN
     Filter* filter = reinterpret_cast<Filter*>(hFilter);
     OIDN_TRY
       checkHandle(hFilter);
-      checkHandle(hBuffer);
       OIDN_LOCK(filter);
+      checkString(name);
+      checkHandle(hBuffer);
       Ref<Buffer> buffer = reinterpret_cast<Buffer*>(hBuffer);
       if (buffer->getDevice() != filter->getDevice())
         throw Exception(Error::InvalidArgument, "the specified objects are bound to different devices");
@@ -677,6 +699,7 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_TRY
       checkHandle(hFilter);
       OIDN_LOCK(filter);
+      checkString(name);
       auto image = std::make_shared<Image>(devPtr, static_cast<Format>(format),
                                            static_cast<int>(width), static_cast<int>(height),
                                            byteOffset, pixelByteStride, rowByteStride);
@@ -690,6 +713,7 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_TRY
       checkHandle(hFilter);
       OIDN_LOCK(filter);
+      checkString(name);
       filter->unsetImage(name);
     OIDN_CATCH(filter)
   }
@@ -701,6 +725,7 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_TRY
       checkHandle(hFilter);
       OIDN_LOCK(filter);
+      checkString(name);
       Data data(hostPtr, byteSize);
       filter->setData(name, data);
     OIDN_CATCH(filter)
@@ -712,6 +737,7 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_TRY
       checkHandle(hFilter);
       OIDN_LOCK(filter);
+      checkString(name);
       filter->updateData(name);
     OIDN_CATCH(filter)
   }
@@ -722,6 +748,7 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_TRY
       checkHandle(hFilter);
       OIDN_LOCK(filter);
+      checkString(name);
       filter->unsetData(name);
     OIDN_CATCH(filter)
   }
@@ -732,6 +759,7 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_TRY
       checkHandle(hFilter);
       OIDN_LOCK(filter);
+      checkString(name);
       filter->setInt(name, int(value));
     OIDN_CATCH(filter)
   }
@@ -742,6 +770,7 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_TRY
       checkHandle(hFilter);
       OIDN_LOCK(filter);
+      checkString(name);
       return filter->getInt(name);
     OIDN_CATCH(filter)
     return false;
@@ -753,6 +782,7 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_TRY
       checkHandle(hFilter);
       OIDN_LOCK(filter);
+      checkString(name);
       filter->setInt(name, value);
     OIDN_CATCH(filter)
   }
@@ -763,6 +793,7 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_TRY
       checkHandle(hFilter);
       OIDN_LOCK(filter);
+      checkString(name);
       return filter->getInt(name);
     OIDN_CATCH(filter)
     return 0;
@@ -774,6 +805,7 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_TRY
       checkHandle(hFilter);
       OIDN_LOCK(filter);
+      checkString(name);
       filter->setFloat(name, value);
     OIDN_CATCH(filter)
   }
@@ -784,6 +816,7 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_TRY
       checkHandle(hFilter);
       OIDN_LOCK(filter);
+      checkString(name);
       return filter->getFloat(name);
     OIDN_CATCH(filter)
     return 0;
@@ -836,11 +869,7 @@ OIDN_API_NAMESPACE_BEGIN
   {
     Filter* filter = reinterpret_cast<Filter*>(hFilter);
     OIDN_TRY
-      // Check the parameters
       checkHandle(hFilter);
-      if (numDepEvents < 0)
-        throw Exception(Error::InvalidArgument, "invalid number of dependent events");
-
       OIDN_LOCK(filter);
 
       // Check whether the filter belongs to a SYCL device

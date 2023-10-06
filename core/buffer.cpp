@@ -99,7 +99,7 @@ OIDN_NAMESPACE_BEGIN
       engine(engine)
   {
     if (ptr == nullptr)
-      throw Exception(Error::InvalidArgument, "buffer pointer null");
+      throw Exception(Error::InvalidArgument, "buffer pointer is null");
 
     if (storage == Storage::Undefined)
       this->storage = engine->getDevice()->getPointerStorage(ptr);
@@ -118,7 +118,7 @@ OIDN_NAMESPACE_BEGIN
   void* USMBuffer::map(size_t byteOffset, size_t byteSize, Access access)
   {
     if (byteOffset + byteSize > this->byteSize)
-      throw Exception(Error::InvalidArgument, "buffer region out of range");
+      throw Exception(Error::InvalidArgument, "buffer region is out of range");
 
     if (byteSize == 0)
       byteSize = this->byteSize - byteOffset; // rest of the buffer
@@ -170,7 +170,9 @@ OIDN_NAMESPACE_BEGIN
     if (!mappedRegions.empty())
       throw Exception(Error::InvalidOperation, "buffer cannot be read while mapped");
     if (byteOffset + byteSize > this->byteSize)
-      throw Exception(Error::InvalidArgument, "buffer region out of range");
+      throw Exception(Error::InvalidArgument, "buffer region is out of range");
+    if (dstHostPtr == nullptr && byteSize > 0)
+      throw Exception(Error::InvalidArgument, "destination host pointer is null");
 
     if (sync == SyncMode::Sync)
       engine->usmCopy(dstHostPtr, ptr + byteOffset, byteSize);
@@ -183,7 +185,9 @@ OIDN_NAMESPACE_BEGIN
     if (!mappedRegions.empty())
       throw Exception(Error::InvalidOperation, "buffer cannot be written while mapped");
     if (byteOffset + byteSize > this->byteSize)
-      throw Exception(Error::InvalidArgument, "buffer region out of range");
+      throw Exception(Error::InvalidArgument, "buffer region is out of range");
+    if (srcHostPtr == nullptr && byteSize > 0)
+      throw Exception(Error::InvalidArgument, "source host pointer is null");
 
     if (sync == SyncMode::Sync)
       engine->usmCopy(ptr + byteOffset, srcHostPtr, byteSize);
