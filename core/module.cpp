@@ -73,8 +73,11 @@ OIDN_NAMESPACE_BEGIN
     auto initFunc = reinterpret_cast<void (*)()>(initAddress);
     initFunc();
 
-    // The module has been loaded successfully
-    // We won't unload the module manually, so we don't need to keep the handle
+    // The module has been loaded successfully.
+    // We won't unload the module manually to avoid issues due to the undefined module unloading
+    // and static object destruction order at process exit. This intentional "leak" is fine
+    // because the modules are owned by the context which is static, and the modules will be
+    // unloaded at process exit anyway. Thus we don't need the module handle anymore.
     modules.insert(name);
 
     Context::get().printDebug("Loaded module: '" + filename + "'");

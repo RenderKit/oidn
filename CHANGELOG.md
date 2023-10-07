@@ -10,6 +10,7 @@ Version History
 -   Re-added `OIDN_STATIC_LIB` CMake option which enables building as a static
     (CPU support only) or a hybrid static/shared (GPU support as well) library
 -   Fixed possible crash when releasing GPU devices, buffers or filters
+-   Fixed possible crash at process exit for some SYCL runtime versions
 -   Fixed image quality inconsistency for Intel integrated GPUs
 -   Fixed future Windows driver compatibility for Intel integrated GPUs
 -   Fixed device detection on Windows when the path to the library has non-ANSI
