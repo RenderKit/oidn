@@ -37,16 +37,19 @@ OIDN_API_NAMESPACE_BEGIN
   public:
     template<typename T>
     DeviceGuard(T* obj)
-      : device(obj->getDevice())
+      : device(obj->getDevice()),
+        lock(device->getMutex())
     {
-      device->getMutex().lock();
       device->enter(); // save state
     }
 
     ~DeviceGuard()
     {
-      device->leave(); // restore state
-      device->getMutex().unlock();
+      try
+      {
+        device->leave(); // restore state
+      }
+      catch (...) {}
     }
 
   private:
@@ -54,7 +57,8 @@ OIDN_API_NAMESPACE_BEGIN
     DeviceGuard(const DeviceGuard&) = delete;
     DeviceGuard& operator =(const DeviceGuard&) = delete;
 
-    Ref<Device> device;
+    Ref<Device> device;               // ref needed to keep the device alive
+    std::lock_guard<std::mutex> lock; // must be declared *after* the device
   };
 
   namespace
@@ -103,6 +107,7 @@ OIDN_API_NAMESPACE_BEGIN
           OIDN_LOCK_DEVICE(obj);
           obj->getDevice()->wait(); // wait for all async operations to complete
           obj->destroy();
+          obj = nullptr;
         OIDN_CATCH_DEVICE(obj)
       }
     }
@@ -119,6 +124,7 @@ OIDN_API_NAMESPACE_BEGIN
           device->wait();  // wait for all async operations to complete
           device->leave(); // restore state
           device->destroy();
+          device = nullptr;
         OIDN_CATCH
       }
     }

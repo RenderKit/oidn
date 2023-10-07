@@ -83,9 +83,8 @@ OIDN_NAMESPACE_BEGIN
 
   CUDAExternalBuffer::~CUDAExternalBuffer()
   {
-    unmapAll();
-    checkError(cudaFree(ptr));
-    checkError(cudaDestroyExternalMemory(extMem));
+    cudaFree(ptr);
+    cudaDestroyExternalMemory(extMem);
   }
 
 OIDN_NAMESPACE_END

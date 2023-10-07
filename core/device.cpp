@@ -109,10 +109,11 @@ OIDN_NAMESPACE_BEGIN
       device->printError(message);
 
       // Call the error callback function
-      ErrorFunction errorFunc;
-      void* errorUserPtr;
+      ErrorFunction errorFunc = nullptr;
+      void* errorUserPtr = nullptr;
 
       {
+        // setError is called outside the device lock, so we need to lock it here
         std::lock_guard<std::mutex> lock(device->mutex);
         errorFunc = device->errorFunc;
         errorUserPtr = device->errorUserPtr;

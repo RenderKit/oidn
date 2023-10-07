@@ -117,7 +117,6 @@ OIDN_NAMESPACE_BEGIN
 
   protected:
     explicit USMBuffer(const Ref<Engine>& engine);
-    void unmapAll();
 
     char* ptr;
     size_t byteSize;

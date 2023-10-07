@@ -63,7 +63,11 @@ OIDN_NAMESPACE_BEGIN
 
   MappedBuffer::~MappedBuffer()
   {
-    buffer->unmap(ptr);
+    try
+    {
+      buffer->unmap(ptr);
+    }
+    catch (...) {}
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -107,12 +111,17 @@ OIDN_NAMESPACE_BEGIN
 
   USMBuffer::~USMBuffer()
   {
-    // Unmap all mapped regions
-    unmapAll();
+    try
+    {
+      // Free the host memory for the remaining mapped regions (should be none)
+      for (const auto& region : mappedRegions)
+        alignedFree(region.first);
 
-    // Free the memory
-    if (!shared && ptr)
-      engine->usmFree(ptr, storage);
+      // Free the buffer memory
+      if (!shared && ptr)
+        engine->usmFree(ptr, storage);
+    }
+    catch (...) {}
   }
 
   void* USMBuffer::map(size_t byteOffset, size_t byteSize, Access access)
@@ -157,12 +166,6 @@ OIDN_NAMESPACE_BEGIN
     alignedFree(hostPtr);
 
     mappedRegions.erase(region);
-  }
-
-  void USMBuffer::unmapAll()
-  {
-    for (const auto& region : mappedRegions)
-      unmap(region.first);
   }
 
   void USMBuffer::read(size_t byteOffset, size_t byteSize, void* dstHostPtr, SyncMode sync)

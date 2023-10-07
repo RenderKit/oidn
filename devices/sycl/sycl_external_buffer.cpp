@@ -70,7 +70,6 @@ OIDN_NAMESPACE_BEGIN
 
   SYCLExternalBuffer::~SYCLExternalBuffer()
   {
-    unmapAll();
     zeMemFree(static_cast<SYCLDevice*>(getDevice())->getZeContext(), ptr);
   }
 

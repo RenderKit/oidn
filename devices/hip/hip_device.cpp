@@ -115,10 +115,14 @@ OIDN_NAMESPACE_BEGIN
 
   HIPDevice::~HIPDevice()
   {
-    // Make sure to free up all resources inside an enter/leave block
-    enter();
-    engine = nullptr;
-    leave();
+    // We *must* free all HIP resources inside an enter/leave block
+    try
+    {
+      enter();
+      engine.reset();
+      leave();
+    }
+    catch (...) {}
   }
 
   void HIPDevice::enter()
