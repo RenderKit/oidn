@@ -31,8 +31,8 @@ OIDN_NAMESPACE_BEGIN
     explicit CUDADevice(const Ref<CUDAPhysicalDevice>& physicalDevice);
     ~CUDADevice();
 
-    void begin() override;
-    void end() override;
+    void enter() override;
+    void leave() override;
 
     DeviceType getType() const override { return DeviceType::CUDA; }
 

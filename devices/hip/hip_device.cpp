@@ -115,13 +115,13 @@ OIDN_NAMESPACE_BEGIN
 
   HIPDevice::~HIPDevice()
   {
-    // Make sure to free up all resources inside a begin/end block
-    begin();
+    // Make sure to free up all resources inside an enter/leave block
+    enter();
     engine = nullptr;
-    end();
+    leave();
   }
 
-  void HIPDevice::begin()
+  void HIPDevice::enter()
   {
     assert(prevDeviceID < 0);
 
@@ -133,7 +133,7 @@ OIDN_NAMESPACE_BEGIN
       checkError(hipSetDevice(deviceID));
   }
 
-  void HIPDevice::end()
+  void HIPDevice::leave()
   {
     assert(prevDeviceID >= 0);
 

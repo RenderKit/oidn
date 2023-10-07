@@ -3,14 +3,14 @@
 
 // Locks the device that owns the specified object and saves/restores state
 // Use *only* inside OIDN_TRY/CATCH!
-#define OIDN_LOCK(obj) \
+#define OIDN_LOCK_DEVICE(obj) \
   DeviceGuard guard(obj);
 
 // Try/catch for converting exceptions to errors
 #define OIDN_TRY \
   try {
 
-#define OIDN_CATCH(obj) \
+#define OIDN_CATCH_DEVICE(obj) \
   } catch (const Exception& e) {                                                                    \
     Device::setError(obj ? obj->getDevice() : nullptr, e.code(), e.what());                         \
   } catch (const std::bad_alloc&) {                                                                 \
@@ -20,6 +20,8 @@
   } catch (...) {                                                                                   \
     Device::setError(obj ? obj->getDevice() : nullptr, Error::Unknown, "unknown exception caught"); \
   }
+
+#define OIDN_CATCH OIDN_CATCH_DEVICE(((Device*){nullptr}))
 
 #include "common/common.h"
 #include "core/context.h"
@@ -38,12 +40,12 @@ OIDN_API_NAMESPACE_BEGIN
       : device(obj->getDevice())
     {
       device->getMutex().lock();
-      device->begin(); // save state
+      device->enter(); // save state
     }
 
     ~DeviceGuard()
     {
-      device->end(); // restore state
+      device->leave(); // restore state
       device->getMutex().unlock();
     }
 
@@ -87,7 +89,7 @@ OIDN_API_NAMESPACE_BEGIN
       {
         OIDN_TRY
           checkHandle(obj);
-        OIDN_CATCH(obj)
+        OIDN_CATCH_DEVICE(obj)
       }
     }
 
@@ -98,76 +100,71 @@ OIDN_API_NAMESPACE_BEGIN
       {
         OIDN_TRY
           checkHandle(obj);
-          OIDN_LOCK(obj);
+          OIDN_LOCK_DEVICE(obj);
           obj->getDevice()->wait(); // wait for all async operations to complete
           obj->destroy();
-        OIDN_CATCH(obj)
+        OIDN_CATCH_DEVICE(obj)
       }
     }
 
     template<>
-    OIDN_INLINE void releaseObject(Device* obj)
+    OIDN_INLINE void releaseObject(Device* device)
     {
-      if (obj == nullptr || obj->decRefKeep() == 0)
+      if (device == nullptr || device->decRefKeep() == 0)
       {
         OIDN_TRY
-          checkHandle(obj);
-          // Do NOT lock the device because it owns the mutex
-          obj->begin(); // save state
-          obj->wait();  // wait for all async operations to complete
-          obj->end();   // restore state
-          obj->destroy();
-        OIDN_CATCH(obj)
+          checkHandle(device);
+          // No need to lock the device because we're just destroying it
+          device->enter(); // save state
+          device->wait();  // wait for all async operations to complete
+          device->leave(); // restore state
+          device->destroy();
+        OIDN_CATCH
       }
     }
   }
 
   OIDN_API int oidnGetNumPhysicalDevices()
   {
-    Ref<Device> device = nullptr; // dummy
     OIDN_TRY
       Context& ctx = initContext();
       return ctx.getNumPhysicalDevices();
-    OIDN_CATCH(device)
+    OIDN_CATCH
     return 0;
   }
 
   OIDN_API bool oidnGetPhysicalDeviceBool(int physicalDeviceID, const char* name)
   {
-    Ref<Device> device = nullptr; // dummy
     OIDN_TRY
       Context& ctx = initContext();
       checkString(name);
       return ctx.getPhysicalDevice(physicalDeviceID)->getInt(name);
-    OIDN_CATCH(device)
+    OIDN_CATCH
     return 0;
   }
 
   OIDN_API int oidnGetPhysicalDeviceInt(int physicalDeviceID, const char* name)
   {
-    Ref<Device> device = nullptr; // dummy
     OIDN_TRY
       Context& ctx = initContext();
       checkString(name);
       return ctx.getPhysicalDevice(physicalDeviceID)->getInt(name);
-    OIDN_CATCH(device)
+    OIDN_CATCH
     return 0;
   }
 
   OIDN_API const char* oidnGetPhysicalDeviceString(int physicalDeviceID, const char* name)
   {
-    Ref<Device> device = nullptr; // dummy
     OIDN_TRY
       Context& ctx = initContext();
       checkString(name);
       return ctx.getPhysicalDevice(physicalDeviceID)->getString(name);
-    OIDN_CATCH(device)
+    OIDN_CATCH
     return nullptr;
   }
 
   OIDN_API const void* oidnGetPhysicalDeviceData(int physicalDeviceID, const char* name, size_t* byteSize)
   {
-    Ref<Device> device = nullptr; // dummy
     OIDN_TRY
       Context& ctx = initContext();
       checkString(name);
@@ -175,7 +172,7 @@ OIDN_API_NAMESPACE_BEGIN
       if (byteSize != nullptr)
         *byteSize = data.size;
       return data.ptr;
-    OIDN_CATCH(device)
+    OIDN_CATCH
     return nullptr;
   }
 
@@ -223,7 +220,7 @@ OIDN_API_NAMESPACE_BEGIN
       {
         device = ctx.getDeviceFactory(type)->newDevice();
       }
-    OIDN_CATCH(device)
+    OIDN_CATCH
 
     return reinterpret_cast<OIDNDevice>(device.detach());
   }
@@ -231,12 +228,10 @@ OIDN_API_NAMESPACE_BEGIN
   OIDN_API OIDNDevice oidnNewDeviceByID(int physicalDeviceID)
   {
     Ref<Device> device = nullptr;
-
     OIDN_TRY
       Context& ctx = initContext();
       device = ctx.newDevice(physicalDeviceID);
-    OIDN_CATCH(device)
-
+    OIDN_CATCH
     return reinterpret_cast<OIDNDevice>(device.detach());
   }
 
@@ -269,7 +264,7 @@ OIDN_API_NAMESPACE_BEGIN
         throw Exception(Error::InvalidArgument, "no physical device found with specified UUID");
 
       device = ctx.newDevice(foundID);
-    OIDN_CATCH(device)
+    OIDN_CATCH
 
     return reinterpret_cast<OIDNDevice>(device.detach());
   }
@@ -303,7 +298,7 @@ OIDN_API_NAMESPACE_BEGIN
         throw Exception(Error::InvalidArgument, "no physical device found with specified LUID");
 
       device = ctx.newDevice(foundID);
-    OIDN_CATCH(device)
+    OIDN_CATCH
 
     return reinterpret_cast<OIDNDevice>(device.detach());
   }
@@ -337,7 +332,7 @@ OIDN_API_NAMESPACE_BEGIN
         throw Exception(Error::InvalidArgument, "no physical device found with specified PCI address");
 
       device = ctx.newDevice(foundID);
-    OIDN_CATCH(device)
+    OIDN_CATCH
 
     return reinterpret_cast<OIDNDevice>(device.detach());
   }
@@ -345,13 +340,11 @@ OIDN_API_NAMESPACE_BEGIN
   OIDN_API OIDNDevice oidnNewSYCLDevice(const sycl::queue* queues, int numQueues)
   {
     Ref<Device> device = nullptr;
-
     OIDN_TRY
       Context& ctx = initContext();
       auto factory = static_cast<SYCLDeviceFactoryBase*>(ctx.getDeviceFactory(DeviceType::SYCL));
       device = factory->newDevice(queues, numQueues);
-    OIDN_CATCH(device)
-
+    OIDN_CATCH
     return reinterpret_cast<OIDNDevice>(device.detach());
   }
 
@@ -362,7 +355,7 @@ OIDN_API_NAMESPACE_BEGIN
       Context& ctx = initContext();
       auto factory = static_cast<CUDADeviceFactoryBase*>(ctx.getDeviceFactory(DeviceType::CUDA));
       device = factory->newDevice(deviceIDs, streams, numPairs);
-    OIDN_CATCH(device)
+    OIDN_CATCH
     return reinterpret_cast<OIDNDevice>(device.detach());
   }
 
@@ -373,7 +366,7 @@ OIDN_API_NAMESPACE_BEGIN
       Context& ctx = initContext();
       auto factory = static_cast<HIPDeviceFactoryBase*>(ctx.getDeviceFactory(DeviceType::HIP));
       device = factory->newDevice(deviceIDs, streams, numPairs);
-    OIDN_CATCH(device)
+    OIDN_CATCH
     return reinterpret_cast<OIDNDevice>(device.detach());
   }
 
@@ -394,10 +387,10 @@ OIDN_API_NAMESPACE_BEGIN
     Device* device = reinterpret_cast<Device*>(hDevice);
     OIDN_TRY
       checkHandle(hDevice);
-      OIDN_LOCK(device);
+      OIDN_LOCK_DEVICE(device);
       checkString(name);
       device->setInt(name, value);
-    OIDN_CATCH(device)
+    OIDN_CATCH_DEVICE(device)
   }
 
   OIDN_API void oidnSetDeviceInt(OIDNDevice hDevice, const char* name, int value)
@@ -405,10 +398,10 @@ OIDN_API_NAMESPACE_BEGIN
     Device* device = reinterpret_cast<Device*>(hDevice);
     OIDN_TRY
       checkHandle(hDevice);
-      OIDN_LOCK(device);
+      OIDN_LOCK_DEVICE(device);
       checkString(name);
       device->setInt(name, value);
-    OIDN_CATCH(device)
+    OIDN_CATCH_DEVICE(device)
   }
 
   OIDN_API bool oidnGetDeviceBool(OIDNDevice hDevice, const char* name)
@@ -416,10 +409,10 @@ OIDN_API_NAMESPACE_BEGIN
     Device* device = reinterpret_cast<Device*>(hDevice);
     OIDN_TRY
       checkHandle(hDevice);
-      OIDN_LOCK(device);
+      OIDN_LOCK_DEVICE(device);
       checkString(name);
       return device->getInt(name);
-    OIDN_CATCH(device)
+    OIDN_CATCH_DEVICE(device)
     return false;
   }
 
@@ -428,10 +421,10 @@ OIDN_API_NAMESPACE_BEGIN
     Device* device = reinterpret_cast<Device*>(hDevice);
     OIDN_TRY
       checkHandle(hDevice);
-      OIDN_LOCK(device);
+      OIDN_LOCK_DEVICE(device);
       checkString(name);
       return device->getInt(name);
-    OIDN_CATCH(device)
+    OIDN_CATCH_DEVICE(device)
     return 0;
   }
 
@@ -440,9 +433,9 @@ OIDN_API_NAMESPACE_BEGIN
     Device* device = reinterpret_cast<Device*>(hDevice);
     OIDN_TRY
       checkHandle(hDevice);
-      OIDN_LOCK(device);
+      OIDN_LOCK_DEVICE(device);
       device->setErrorFunction(reinterpret_cast<ErrorFunction>(func), userPtr);
-    OIDN_CATCH(device)
+    OIDN_CATCH_DEVICE(device)
   }
 
   OIDN_API OIDNError oidnGetDeviceError(OIDNDevice hDevice, const char** outMessage)
@@ -450,7 +443,7 @@ OIDN_API_NAMESPACE_BEGIN
     Device* device = reinterpret_cast<Device*>(hDevice);
     OIDN_TRY
       return static_cast<OIDNError>(Device::getError(device, outMessage));
-    OIDN_CATCH(device)
+    OIDN_CATCH_DEVICE(device)
     if (outMessage) *outMessage = "";
     return OIDN_ERROR_UNKNOWN;
   }
@@ -460,9 +453,9 @@ OIDN_API_NAMESPACE_BEGIN
     Device* device = reinterpret_cast<Device*>(hDevice);
     OIDN_TRY
       checkHandle(hDevice);
-      OIDN_LOCK(device);
+      OIDN_LOCK_DEVICE(device);
       device->commit();
-    OIDN_CATCH(device)
+    OIDN_CATCH_DEVICE(device)
   }
 
   OIDN_API void oidnSyncDevice(OIDNDevice hDevice)
@@ -470,10 +463,10 @@ OIDN_API_NAMESPACE_BEGIN
     Device* device = reinterpret_cast<Device*>(hDevice);
     OIDN_TRY
       checkHandle(hDevice);
-      OIDN_LOCK(device);
+      OIDN_LOCK_DEVICE(device);
       device->checkCommitted();
       device->wait();
-    OIDN_CATCH(device)
+    OIDN_CATCH_DEVICE(device)
   }
 
   OIDN_API OIDNBuffer oidnNewBuffer(OIDNDevice hDevice, size_t byteSize)
@@ -481,11 +474,11 @@ OIDN_API_NAMESPACE_BEGIN
     Device* device = reinterpret_cast<Device*>(hDevice);
     OIDN_TRY
       checkHandle(hDevice);
-      OIDN_LOCK(device);
+      OIDN_LOCK_DEVICE(device);
       device->checkCommitted();
       Ref<Buffer> buffer = device->getEngine()->newBuffer(byteSize, Storage::Undefined);
       return reinterpret_cast<OIDNBuffer>(buffer.detach());
-    OIDN_CATCH(device)
+    OIDN_CATCH_DEVICE(device)
     return nullptr;
   }
 
@@ -494,11 +487,11 @@ OIDN_API_NAMESPACE_BEGIN
     Device* device = reinterpret_cast<Device*>(hDevice);
     OIDN_TRY
       checkHandle(hDevice);
-      OIDN_LOCK(device);
+      OIDN_LOCK_DEVICE(device);
       device->checkCommitted();
       Ref<Buffer> buffer = device->getEngine()->newBuffer(byteSize, static_cast<Storage>(storage));
       return reinterpret_cast<OIDNBuffer>(buffer.detach());
-    OIDN_CATCH(device)
+    OIDN_CATCH_DEVICE(device)
     return nullptr;
   }
 
@@ -507,11 +500,11 @@ OIDN_API_NAMESPACE_BEGIN
     Device* device = reinterpret_cast<Device*>(hDevice);
     OIDN_TRY
       checkHandle(hDevice);
-      OIDN_LOCK(device);
+      OIDN_LOCK_DEVICE(device);
       device->checkCommitted();
       Ref<Buffer> buffer = device->getEngine()->newBuffer(devPtr, byteSize);
       return reinterpret_cast<OIDNBuffer>(buffer.detach());
-    OIDN_CATCH(device)
+    OIDN_CATCH_DEVICE(device)
     return nullptr;
   }
 
@@ -522,14 +515,14 @@ OIDN_API_NAMESPACE_BEGIN
     Device* device = reinterpret_cast<Device*>(hDevice);
     OIDN_TRY
       checkHandle(hDevice);
-      OIDN_LOCK(device);
+      OIDN_LOCK_DEVICE(device);
       device->checkCommitted();
       if (!(static_cast<ExternalMemoryTypeFlag>(fdType) & device->getExternalMemoryTypes()))
         throw Exception(Error::InvalidArgument, "external memory type not supported by the device");
       Ref<Buffer> buffer = device->getEngine()->newExternalBuffer(
         static_cast<ExternalMemoryTypeFlag>(fdType), fd, byteSize);
       return reinterpret_cast<OIDNBuffer>(buffer.detach());
-    OIDN_CATCH(device)
+    OIDN_CATCH_DEVICE(device)
     return nullptr;
   }
 
@@ -540,7 +533,7 @@ OIDN_API_NAMESPACE_BEGIN
     Device* device = reinterpret_cast<Device*>(hDevice);
     OIDN_TRY
       checkHandle(hDevice);
-      OIDN_LOCK(device);
+      OIDN_LOCK_DEVICE(device);
       device->checkCommitted();
       if (!(static_cast<ExternalMemoryTypeFlag>(handleType) & device->getExternalMemoryTypes()))
         throw Exception(Error::InvalidArgument, "external memory type not supported by the device");
@@ -549,7 +542,7 @@ OIDN_API_NAMESPACE_BEGIN
       Ref<Buffer> buffer = device->getEngine()->newExternalBuffer(
         static_cast<ExternalMemoryTypeFlag>(handleType), handle, name, byteSize);
       return reinterpret_cast<OIDNBuffer>(buffer.detach());
-    OIDN_CATCH(device)
+    OIDN_CATCH_DEVICE(device)
     return nullptr;
   }
 
@@ -570,9 +563,9 @@ OIDN_API_NAMESPACE_BEGIN
     Buffer* buffer = reinterpret_cast<Buffer*>(hBuffer);
     OIDN_TRY
       checkHandle(hBuffer);
-      OIDN_LOCK(buffer);
+      OIDN_LOCK_DEVICE(buffer);
       buffer->read(byteOffset, byteSize, dstHostPtr);
-    OIDN_CATCH(buffer);
+    OIDN_CATCH_DEVICE(buffer);
   }
 
   OIDN_API void oidnReadBufferAsync(OIDNBuffer hBuffer,
@@ -581,9 +574,9 @@ OIDN_API_NAMESPACE_BEGIN
     Buffer* buffer = reinterpret_cast<Buffer*>(hBuffer);
     OIDN_TRY
       checkHandle(hBuffer);
-      OIDN_LOCK(buffer);
+      OIDN_LOCK_DEVICE(buffer);
       buffer->read(byteOffset, byteSize, dstHostPtr, SyncMode::Async);
-    OIDN_CATCH(buffer);
+    OIDN_CATCH_DEVICE(buffer);
   }
 
   OIDN_API void oidnWriteBuffer(OIDNBuffer hBuffer,
@@ -592,9 +585,9 @@ OIDN_API_NAMESPACE_BEGIN
     Buffer* buffer = reinterpret_cast<Buffer*>(hBuffer);
     OIDN_TRY
       checkHandle(hBuffer);
-      OIDN_LOCK(buffer);
+      OIDN_LOCK_DEVICE(buffer);
       buffer->write(byteOffset, byteSize, srcHostPtr);
-    OIDN_CATCH(buffer);
+    OIDN_CATCH_DEVICE(buffer);
   }
 
   OIDN_API void oidnWriteBufferAsync(OIDNBuffer hBuffer,
@@ -603,9 +596,9 @@ OIDN_API_NAMESPACE_BEGIN
     Buffer* buffer = reinterpret_cast<Buffer*>(hBuffer);
     OIDN_TRY
       checkHandle(hBuffer);
-      OIDN_LOCK(buffer);
+      OIDN_LOCK_DEVICE(buffer);
       buffer->write(byteOffset, byteSize, srcHostPtr, SyncMode::Async);
-    OIDN_CATCH(buffer);
+    OIDN_CATCH_DEVICE(buffer);
   }
 
   OIDN_API size_t oidnGetBufferSize(OIDNBuffer hBuffer)
@@ -613,9 +606,9 @@ OIDN_API_NAMESPACE_BEGIN
     Buffer* buffer = reinterpret_cast<Buffer*>(hBuffer);
     OIDN_TRY
       checkHandle(hBuffer);
-      OIDN_LOCK(buffer);
+      OIDN_LOCK_DEVICE(buffer);
       return buffer->getByteSize();
-    OIDN_CATCH(buffer)
+    OIDN_CATCH_DEVICE(buffer)
     return 0;
   }
 
@@ -624,9 +617,9 @@ OIDN_API_NAMESPACE_BEGIN
     Buffer* buffer = reinterpret_cast<Buffer*>(hBuffer);
     OIDN_TRY
       checkHandle(hBuffer);
-      OIDN_LOCK(buffer);
+      OIDN_LOCK_DEVICE(buffer);
       return static_cast<OIDNStorage>(buffer->getStorage());
-    OIDN_CATCH(buffer)
+    OIDN_CATCH_DEVICE(buffer)
     return OIDN_STORAGE_UNDEFINED;
   }
 
@@ -635,9 +628,9 @@ OIDN_API_NAMESPACE_BEGIN
     Buffer* buffer = reinterpret_cast<Buffer*>(hBuffer);
     OIDN_TRY
       checkHandle(hBuffer);
-      OIDN_LOCK(buffer);
+      OIDN_LOCK_DEVICE(buffer);
       return buffer->getData();
-    OIDN_CATCH(buffer)
+    OIDN_CATCH_DEVICE(buffer)
     return nullptr;
   }
 
@@ -646,12 +639,12 @@ OIDN_API_NAMESPACE_BEGIN
     Device* device = reinterpret_cast<Device*>(hDevice);
     OIDN_TRY
       checkHandle(hDevice);
-      OIDN_LOCK(device);
+      OIDN_LOCK_DEVICE(device);
       device->checkCommitted();
       checkString(type);
       Ref<Filter> filter = device->newFilter(type);
       return reinterpret_cast<OIDNFilter>(filter.detach());
-    OIDN_CATCH(device)
+    OIDN_CATCH_DEVICE(device)
     return nullptr;
   }
 
@@ -676,7 +669,7 @@ OIDN_API_NAMESPACE_BEGIN
     Filter* filter = reinterpret_cast<Filter*>(hFilter);
     OIDN_TRY
       checkHandle(hFilter);
-      OIDN_LOCK(filter);
+      OIDN_LOCK_DEVICE(filter);
       checkString(name);
       checkHandle(hBuffer);
       Ref<Buffer> buffer = reinterpret_cast<Buffer*>(hBuffer);
@@ -686,7 +679,7 @@ OIDN_API_NAMESPACE_BEGIN
                                            static_cast<int>(width), static_cast<int>(height),
                                            byteOffset, pixelByteStride, rowByteStride);
       filter->setImage(name, image);
-    OIDN_CATCH(filter)
+    OIDN_CATCH_DEVICE(filter)
   }
 
   OIDN_API void oidnSetSharedFilterImage(OIDNFilter hFilter, const char* name,
@@ -698,13 +691,13 @@ OIDN_API_NAMESPACE_BEGIN
     Filter* filter = reinterpret_cast<Filter*>(hFilter);
     OIDN_TRY
       checkHandle(hFilter);
-      OIDN_LOCK(filter);
+      OIDN_LOCK_DEVICE(filter);
       checkString(name);
       auto image = std::make_shared<Image>(devPtr, static_cast<Format>(format),
                                            static_cast<int>(width), static_cast<int>(height),
                                            byteOffset, pixelByteStride, rowByteStride);
       filter->setImage(name, image);
-    OIDN_CATCH(filter)
+    OIDN_CATCH_DEVICE(filter)
   }
 
   OIDN_API void oidnUnsetFilterImage(OIDNFilter hFilter, const char* name)
@@ -712,10 +705,10 @@ OIDN_API_NAMESPACE_BEGIN
     Filter* filter = reinterpret_cast<Filter*>(hFilter);
     OIDN_TRY
       checkHandle(hFilter);
-      OIDN_LOCK(filter);
+      OIDN_LOCK_DEVICE(filter);
       checkString(name);
       filter->unsetImage(name);
-    OIDN_CATCH(filter)
+    OIDN_CATCH_DEVICE(filter)
   }
 
   OIDN_API void oidnSetSharedFilterData(OIDNFilter hFilter, const char* name,
@@ -724,11 +717,11 @@ OIDN_API_NAMESPACE_BEGIN
     Filter* filter = reinterpret_cast<Filter*>(hFilter);
     OIDN_TRY
       checkHandle(hFilter);
-      OIDN_LOCK(filter);
+      OIDN_LOCK_DEVICE(filter);
       checkString(name);
       Data data(hostPtr, byteSize);
       filter->setData(name, data);
-    OIDN_CATCH(filter)
+    OIDN_CATCH_DEVICE(filter)
   }
 
   OIDN_API void oidnUpdateFilterData(OIDNFilter hFilter, const char* name)
@@ -736,10 +729,10 @@ OIDN_API_NAMESPACE_BEGIN
     Filter* filter = reinterpret_cast<Filter*>(hFilter);
     OIDN_TRY
       checkHandle(hFilter);
-      OIDN_LOCK(filter);
+      OIDN_LOCK_DEVICE(filter);
       checkString(name);
       filter->updateData(name);
-    OIDN_CATCH(filter)
+    OIDN_CATCH_DEVICE(filter)
   }
 
   OIDN_API void oidnUnsetFilterData(OIDNFilter hFilter, const char* name)
@@ -747,10 +740,10 @@ OIDN_API_NAMESPACE_BEGIN
     Filter* filter = reinterpret_cast<Filter*>(hFilter);
     OIDN_TRY
       checkHandle(hFilter);
-      OIDN_LOCK(filter);
+      OIDN_LOCK_DEVICE(filter);
       checkString(name);
       filter->unsetData(name);
-    OIDN_CATCH(filter)
+    OIDN_CATCH_DEVICE(filter)
   }
 
   OIDN_API void oidnSetFilterBool(OIDNFilter hFilter, const char* name, bool value)
@@ -758,10 +751,10 @@ OIDN_API_NAMESPACE_BEGIN
     Filter* filter = reinterpret_cast<Filter*>(hFilter);
     OIDN_TRY
       checkHandle(hFilter);
-      OIDN_LOCK(filter);
+      OIDN_LOCK_DEVICE(filter);
       checkString(name);
       filter->setInt(name, int(value));
-    OIDN_CATCH(filter)
+    OIDN_CATCH_DEVICE(filter)
   }
 
   OIDN_API bool oidnGetFilterBool(OIDNFilter hFilter, const char* name)
@@ -769,10 +762,10 @@ OIDN_API_NAMESPACE_BEGIN
     Filter* filter = reinterpret_cast<Filter*>(hFilter);
     OIDN_TRY
       checkHandle(hFilter);
-      OIDN_LOCK(filter);
+      OIDN_LOCK_DEVICE(filter);
       checkString(name);
       return filter->getInt(name);
-    OIDN_CATCH(filter)
+    OIDN_CATCH_DEVICE(filter)
     return false;
   }
 
@@ -781,10 +774,10 @@ OIDN_API_NAMESPACE_BEGIN
     Filter* filter = reinterpret_cast<Filter*>(hFilter);
     OIDN_TRY
       checkHandle(hFilter);
-      OIDN_LOCK(filter);
+      OIDN_LOCK_DEVICE(filter);
       checkString(name);
       filter->setInt(name, value);
-    OIDN_CATCH(filter)
+    OIDN_CATCH_DEVICE(filter)
   }
 
   OIDN_API int oidnGetFilterInt(OIDNFilter hFilter, const char* name)
@@ -792,10 +785,10 @@ OIDN_API_NAMESPACE_BEGIN
     Filter* filter = reinterpret_cast<Filter*>(hFilter);
     OIDN_TRY
       checkHandle(hFilter);
-      OIDN_LOCK(filter);
+      OIDN_LOCK_DEVICE(filter);
       checkString(name);
       return filter->getInt(name);
-    OIDN_CATCH(filter)
+    OIDN_CATCH_DEVICE(filter)
     return 0;
   }
 
@@ -804,10 +797,10 @@ OIDN_API_NAMESPACE_BEGIN
     Filter* filter = reinterpret_cast<Filter*>(hFilter);
     OIDN_TRY
       checkHandle(hFilter);
-      OIDN_LOCK(filter);
+      OIDN_LOCK_DEVICE(filter);
       checkString(name);
       filter->setFloat(name, value);
-    OIDN_CATCH(filter)
+    OIDN_CATCH_DEVICE(filter)
   }
 
   OIDN_API float oidnGetFilterFloat(OIDNFilter hFilter, const char* name)
@@ -815,10 +808,10 @@ OIDN_API_NAMESPACE_BEGIN
     Filter* filter = reinterpret_cast<Filter*>(hFilter);
     OIDN_TRY
       checkHandle(hFilter);
-      OIDN_LOCK(filter);
+      OIDN_LOCK_DEVICE(filter);
       checkString(name);
       return filter->getFloat(name);
-    OIDN_CATCH(filter)
+    OIDN_CATCH_DEVICE(filter)
     return 0;
   }
 
@@ -828,9 +821,9 @@ OIDN_API_NAMESPACE_BEGIN
     Filter* filter = reinterpret_cast<Filter*>(hFilter);
     OIDN_TRY
       checkHandle(hFilter);
-      OIDN_LOCK(filter);
+      OIDN_LOCK_DEVICE(filter);
       filter->setProgressMonitorFunction(func, userPtr);
-    OIDN_CATCH(filter)
+    OIDN_CATCH_DEVICE(filter)
   }
 
   OIDN_API void oidnCommitFilter(OIDNFilter hFilter)
@@ -838,9 +831,9 @@ OIDN_API_NAMESPACE_BEGIN
     Filter* filter = reinterpret_cast<Filter*>(hFilter);
     OIDN_TRY
       checkHandle(hFilter);
-      OIDN_LOCK(filter);
+      OIDN_LOCK_DEVICE(filter);
       filter->commit();
-    OIDN_CATCH(filter)
+    OIDN_CATCH_DEVICE(filter)
   }
 
   OIDN_API void oidnExecuteFilter(OIDNFilter hFilter)
@@ -848,9 +841,9 @@ OIDN_API_NAMESPACE_BEGIN
     Filter* filter = reinterpret_cast<Filter*>(hFilter);
     OIDN_TRY
       checkHandle(hFilter);
-      OIDN_LOCK(filter);
+      OIDN_LOCK_DEVICE(filter);
       filter->execute();
-    OIDN_CATCH(filter)
+    OIDN_CATCH_DEVICE(filter)
   }
 
   OIDN_API void oidnExecuteFilterAsync(OIDNFilter hFilter)
@@ -858,9 +851,9 @@ OIDN_API_NAMESPACE_BEGIN
     Filter* filter = reinterpret_cast<Filter*>(hFilter);
     OIDN_TRY
       checkHandle(hFilter);
-      OIDN_LOCK(filter);
+      OIDN_LOCK_DEVICE(filter);
       filter->execute(SyncMode::Async);
-    OIDN_CATCH(filter)
+    OIDN_CATCH_DEVICE(filter)
   }
 
   OIDN_API void oidnExecuteSYCLFilterAsync(OIDNFilter hFilter,
@@ -870,7 +863,7 @@ OIDN_API_NAMESPACE_BEGIN
     Filter* filter = reinterpret_cast<Filter*>(hFilter);
     OIDN_TRY
       checkHandle(hFilter);
-      OIDN_LOCK(filter);
+      OIDN_LOCK_DEVICE(filter);
 
       // Check whether the filter belongs to a SYCL device
       if (filter->getDevice()->getType() != DeviceType::SYCL)
@@ -884,7 +877,7 @@ OIDN_API_NAMESPACE_BEGIN
       // Output the completion event (optional)
       if (doneEvent != nullptr)
         device->getDoneEvent(*doneEvent);
-    OIDN_CATCH(filter)
+    OIDN_CATCH_DEVICE(filter)
   }
 
 OIDN_API_NAMESPACE_END

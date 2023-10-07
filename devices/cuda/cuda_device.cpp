@@ -91,13 +91,13 @@ OIDN_NAMESPACE_BEGIN
 
   CUDADevice::~CUDADevice()
   {
-    // Make sure to free up all resources inside a begin/end block
-    begin();
+    // Make sure to free up all resources inside an enter/leave block
+    enter();
     engine = nullptr;
-    end();
+    leave();
   }
 
-  void CUDADevice::begin()
+  void CUDADevice::enter()
   {
     assert(prevDeviceID < 0);
 
@@ -109,7 +109,7 @@ OIDN_NAMESPACE_BEGIN
       checkError(cudaSetDevice(deviceID));
   }
 
-  void CUDADevice::end()
+  void CUDADevice::leave()
   {
     assert(prevDeviceID >= 0);
 

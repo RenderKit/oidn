@@ -41,8 +41,8 @@ OIDN_NAMESPACE_BEGIN
     explicit HIPDevice(const Ref<HIPPhysicalDevice>& physicalDevice);
     ~HIPDevice();
 
-    void begin() override;
-    void end() override;
+    void enter() override;
+    void leave() override;
 
     DeviceType getType() const override { return DeviceType::HIP; }
 

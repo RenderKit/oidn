@@ -55,9 +55,9 @@ OIDN_NAMESPACE_BEGIN
     void setErrorFunction(ErrorFunction func, void* userPtr);
 
     // Some devices (e.g. CUDA, HIP) need to change some per-thread state, which must be later restored
-    // Most device calls must be between begin() and end() calls
-    virtual void begin() {}
-    virtual void end() {}
+    // Most device calls must be between enter() and leave() calls
+    virtual void enter() {}
+    virtual void leave() {}
 
     virtual DeviceType getType() const = 0;
 
