@@ -409,6 +409,10 @@ TEST_CASE("single filter", "[single_filter]")
       REQUIRE(device.getError() == Error::None);
     }
   }
+
+  // Release the device manually to test destroying it when some other object that holds a reference
+  // to it gets destroyed
+  device = {};
 }
 
 // -------------------------------------------------------------------------------------------------

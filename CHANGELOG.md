@@ -9,6 +9,7 @@ Version History
 -   Improved performance for most dedicated GPU architectures
 -   Re-added `OIDN_STATIC_LIB` CMake option which enables building as a static
     (CPU support only) or a hybrid static/shared (GPU support as well) library
+-   Fixed crash when releasing CUDA or HIP objects in a particular order
 -   Fixed image quality inconsistency for Intel integrated GPUs
 -   Fixed future Windows driver compatibility for Intel integrated GPUs
 -   Fixed device detection on Windows when the path to the library has non-ANSI
