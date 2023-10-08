@@ -20,6 +20,10 @@ OIDN_NAMESPACE_BEGIN
     return sm;
   }
 
+  // -----------------------------------------------------------------------------------------------
+  // Tensor
+  // -----------------------------------------------------------------------------------------------
+
   Tensor::Tensor(const TensorDesc& desc)
     : TensorDesc(desc)
   {
@@ -31,13 +35,6 @@ OIDN_NAMESPACE_BEGIN
       TensorDesc(desc)
   {
     assert(desc.isValid());
-  }
-
-  std::shared_ptr<Tensor> Tensor::map(Access access)
-  {
-    if (!buffer)
-      throw std::logic_error("tensor not backed by a buffer cannot be mapped");
-    return buffer->getEngine()->newTensor(makeRef<MappedBuffer>(buffer, byteOffset, getByteSize(), access), getDesc());
   }
 
   void Tensor::dump(const std::string& filenamePrefix)
@@ -88,18 +85,46 @@ OIDN_NAMESPACE_BEGIN
     }
   }
 
-  GenericTensor::GenericTensor(const TensorDesc& desc, void* data)
-    : Tensor(desc),
-      ptr(data) {}
+  // -----------------------------------------------------------------------------------------------
+  // HostTensor
+  // -----------------------------------------------------------------------------------------------
 
-  GenericTensor::GenericTensor(const Ref<Engine>& engine, const TensorDesc& desc, Storage storage)
+  HostTensor::HostTensor(const TensorDesc& desc)
+    : Tensor(desc),
+      ptr(alignedMalloc(getByteSize())),
+      shared(false) {}
+
+  HostTensor::HostTensor(const TensorDesc& desc, void* data)
+    : Tensor(desc),
+      ptr(data),
+      shared(true) {}
+
+  HostTensor::~HostTensor()
+  {
+    if (!shared)
+      alignedFree(ptr);
+  }
+
+  std::shared_ptr<Tensor> HostTensor::toDevice(const Ref<Engine>& engine, Storage storage)
+  {
+    const size_t byteSize = getByteSize();
+    auto bufferCopy = engine->newBuffer(byteSize, storage);
+    bufferCopy->write(0, byteSize, getData());
+    return engine->newTensor(bufferCopy, getDesc());
+  }
+
+  // -----------------------------------------------------------------------------------------------
+  // DeviceTensor
+  // -----------------------------------------------------------------------------------------------
+
+  DeviceTensor::DeviceTensor(const Ref<Engine>& engine, const TensorDesc& desc, Storage storage)
     : Tensor(desc)
   {
     buffer = engine->newBuffer(getByteSize(), storage);
     ptr = buffer->getData();
   }
 
-  GenericTensor::GenericTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
+  DeviceTensor::DeviceTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
     : Tensor(buffer, desc, byteOffset)
   {
     if (byteOffset + getByteSize() > buffer->getByteSize())
@@ -108,7 +133,7 @@ OIDN_NAMESPACE_BEGIN
     ptr = buffer->getData() + byteOffset;
   }
 
-  void GenericTensor::updatePtr()
+  void DeviceTensor::updatePtr()
   {
     if (buffer)
     {

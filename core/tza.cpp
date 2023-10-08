@@ -95,7 +95,7 @@ OIDN_NAMESPACE_BEGIN
       checkBounds(tensorData, bufferEnd, tensorDesc.getByteSize());
 
       // Add the tensor to the map
-      auto tensor = std::make_shared<GenericTensor>(tensorDesc, const_cast<char*>(tensorData));
+      auto tensor = std::make_shared<HostTensor>(tensorDesc, const_cast<char*>(tensorData));
       tensorMap->emplace(name, tensor);
     }
 

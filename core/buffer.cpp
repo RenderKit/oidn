@@ -17,16 +17,6 @@ OIDN_NAMESPACE_BEGIN
     return getEngine()->getDevice();
   }
 
-  void* Buffer::map(size_t byteOffset, size_t byteSize, Access access)
-  {
-    throw Exception(Error::InvalidOperation, "mapping the buffer is not supported");
-  }
-
-  void Buffer::unmap(void* hostPtr)
-  {
-    throw Exception(Error::InvalidOperation, "unmapping the buffer is not supported");
-  }
-
   void Buffer::read(size_t byteOffset, size_t byteSize, void* dstHostPtr, SyncMode sync)
   {
     throw Exception(Error::InvalidOperation, "reading the buffer is not supported");
@@ -50,24 +40,6 @@ OIDN_NAMESPACE_BEGIN
   std::shared_ptr<Image> Buffer::newImage(const ImageDesc& desc, size_t byteOffset)
   {
     return std::make_shared<Image>(this, desc, byteOffset);
-  }
-
-  // -----------------------------------------------------------------------------------------------
-  // MappedBuffer
-  // -----------------------------------------------------------------------------------------------
-
-  MappedBuffer::MappedBuffer(const Ref<Buffer>& buffer, size_t byteOffset, size_t byteSize, Access access)
-    : ptr(static_cast<char*>(buffer->map(byteOffset, byteSize, access))),
-      byteSize(byteSize),
-      buffer(buffer) {}
-
-  MappedBuffer::~MappedBuffer()
-  {
-    try
-    {
-      buffer->unmap(ptr);
-    }
-    catch (...) {}
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -111,67 +83,18 @@ OIDN_NAMESPACE_BEGIN
 
   USMBuffer::~USMBuffer()
   {
-    try
+    if (!shared && ptr)
     {
-      // Free the host memory for the remaining mapped regions (should be none)
-      for (const auto& region : mappedRegions)
-        alignedFree(region.first);
-
-      // Free the buffer memory
-      if (!shared && ptr)
+      try
+      {
         engine->usmFree(ptr, storage);
+      }
+      catch (...) {}
     }
-    catch (...) {}
-  }
-
-  void* USMBuffer::map(size_t byteOffset, size_t byteSize, Access access)
-  {
-    if (byteOffset + byteSize > this->byteSize)
-      throw Exception(Error::InvalidArgument, "buffer region is out of range");
-
-    if (byteSize == 0)
-      byteSize = this->byteSize - byteOffset; // rest of the buffer
-
-    void* devPtr = ptr + byteOffset;
-    if (storage != Storage::Device)
-      return devPtr;
-
-    // Check whether the region overlaps with an already mapped region
-    for (const auto& region : mappedRegions)
-    {
-      if (byteOffset < region.second.byteOffset + region.second.byteSize &&
-          byteOffset + byteSize > region.second.byteOffset)
-        throw Exception(Error::InvalidArgument, "mapping overlapping buffer regions is not supported");
-    }
-
-    void* hostPtr = alignedMalloc(byteSize);
-    if (access != Access::WriteDiscard)
-      engine->usmCopy(hostPtr, devPtr, byteSize);
-
-    mappedRegions.insert({hostPtr, {devPtr, byteOffset, byteSize, access}});
-    return hostPtr;
-  }
-
-  void USMBuffer::unmap(void* hostPtr)
-  {
-    if (storage != Storage::Device)
-      return;
-
-    auto region = mappedRegions.find(hostPtr);
-    if (region == mappedRegions.end())
-      throw Exception(Error::InvalidArgument, "invalid mapped region");
-
-    if (region->second.access != Access::Read)
-      engine->usmCopy(region->second.devPtr, hostPtr, region->second.byteSize);
-    alignedFree(hostPtr);
-
-    mappedRegions.erase(region);
   }
 
   void USMBuffer::read(size_t byteOffset, size_t byteSize, void* dstHostPtr, SyncMode sync)
   {
-    if (!mappedRegions.empty())
-      throw Exception(Error::InvalidOperation, "buffer cannot be read while mapped");
     if (byteOffset + byteSize > this->byteSize)
       throw Exception(Error::InvalidArgument, "buffer region is out of range");
     if (dstHostPtr == nullptr && byteSize > 0)
@@ -185,8 +108,6 @@ OIDN_NAMESPACE_BEGIN
 
   void USMBuffer::write(size_t byteOffset, size_t byteSize, const void* srcHostPtr, SyncMode sync)
   {
-    if (!mappedRegions.empty())
-      throw Exception(Error::InvalidOperation, "buffer cannot be written while mapped");
     if (byteOffset + byteSize > this->byteSize)
       throw Exception(Error::InvalidArgument, "buffer region is out of range");
     if (srcHostPtr == nullptr && byteSize > 0)
@@ -202,8 +123,6 @@ OIDN_NAMESPACE_BEGIN
   {
     if (shared)
       throw std::logic_error("shared buffers cannot be reallocated");
-    if (!mappedRegions.empty())
-      throw std::logic_error("mapped buffers cannot be reallocated");
 
     engine->usmFree(ptr, storage);
     ptr = static_cast<char*>(engine->usmAlloc(newByteSize, storage));
