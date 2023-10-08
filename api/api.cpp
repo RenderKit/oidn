@@ -11,17 +11,17 @@
   try {
 
 #define OIDN_CATCH_DEVICE(obj) \
-  } catch (const Exception& e) {                                                                    \
-    Device::setError(obj ? obj->getDevice() : nullptr, e.code(), e.what());                         \
-  } catch (const std::bad_alloc&) {                                                                 \
-    Device::setError(obj ? obj->getDevice() : nullptr, Error::OutOfMemory, "out of memory");        \
-  } catch (const std::exception& e) {                                                               \
-    Device::setError(obj ? obj->getDevice() : nullptr, Error::Unknown, e.what());                   \
-  } catch (...) {                                                                                   \
-    Device::setError(obj ? obj->getDevice() : nullptr, Error::Unknown, "unknown exception caught"); \
+  } catch (const Exception& e) {                                                  \
+    Device::setError(getDevice(obj), e.code(), e.what());                         \
+  } catch (const std::bad_alloc&) {                                               \
+    Device::setError(getDevice(obj), Error::OutOfMemory, "out of memory");        \
+  } catch (const std::exception& e) {                                             \
+    Device::setError(getDevice(obj), Error::Unknown, e.what());                   \
+  } catch (...) {                                                                 \
+    Device::setError(getDevice(obj), Error::Unknown, "unknown exception caught"); \
   }
 
-#define OIDN_CATCH OIDN_CATCH_DEVICE(nullDevice)
+#define OIDN_CATCH OIDN_CATCH_DEVICE(nullptr)
 
 #include "common/common.h"
 #include "core/context.h"
@@ -63,8 +63,6 @@ OIDN_API_NAMESPACE_BEGIN
 
   namespace
   {
-    constexpr Device* nullDevice = nullptr;
-
     OIDN_INLINE Context& initContext()
     {
       Context& ctx = Context::get();
@@ -82,6 +80,17 @@ OIDN_API_NAMESPACE_BEGIN
     {
       if (str == nullptr)
         throw Exception(Error::InvalidArgument, "string pointer is null");
+    }
+
+    template<typename T>
+    OIDN_INLINE Device* getDevice(T* obj)
+    {
+      return obj ? obj->getDevice() : nullptr;
+    }
+
+    OIDN_INLINE Device* getDevice(std::nullptr_t)
+    {
+      return nullptr;
     }
 
     template<typename T>

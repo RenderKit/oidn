@@ -172,6 +172,50 @@ jobs:
       artifact-out: build-ubuntu2204-gta-jit
       artifact-path: oidn-gta-jit-lin
 
+  build-ubuntu2204-gcc:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      image: oidn/ubuntu:22.04
+      cmd: scripts/build.py install --compiler gcc -D OIDN_DEVICE_CUDA=ON -D OIDN_DEVICE_HIP=ON
+      artifact-out: build-ubuntu2204-gcc
+      artifact-path: build install deps
+
+  build-ubuntu2204-gcc-debug:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      image: oidn/ubuntu:22.04
+      cmd: scripts/build.py install --compiler gcc --config Debug -D OIDN_DEVICE_CUDA=ON
+      artifact-out: build-ubuntu2204-gcc-debug
+      artifact-path: build install deps
+
+  build-ubuntu2204-gcc-namespace:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      image: oidn/ubuntu:22.04
+      cmd: >
+        scripts/build.py install --compiler gcc -D OIDN_DEVICE_CUDA=ON -D OIDN_DEVICE_HIP=ON
+        -D OIDN_API_NAMESPACE=myoidn
+      artifact-out: build-ubuntu2204-gcc-namespace
+      artifact-path: build install deps
+
+  build-ubuntu2204-gcc-namespace-static:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      image: oidn/ubuntu:22.04
+      cmd: >
+        scripts/build.py install --compiler gcc -D OIDN_DEVICE_CUDA=ON -D OIDN_DEVICE_HIP=ON
+        -D OIDN_API_NAMESPACE=myoidn -D OIDN_STATIC_LIB=ON
+      artifact-out: build-ubuntu2204-gcc-namespace-static
+      artifact-path: build install deps
+
   # build-ubuntu1804-gcc:
   #   secrets: inherit
   #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
