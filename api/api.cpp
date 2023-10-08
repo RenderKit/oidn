@@ -21,7 +21,7 @@
     Device::setError(obj ? obj->getDevice() : nullptr, Error::Unknown, "unknown exception caught"); \
   }
 
-#define OIDN_CATCH OIDN_CATCH_DEVICE(((Device*){nullptr}))
+#define OIDN_CATCH OIDN_CATCH_DEVICE(nullDevice)
 
 #include "common/common.h"
 #include "core/context.h"
@@ -63,6 +63,8 @@ OIDN_API_NAMESPACE_BEGIN
 
   namespace
   {
+    constexpr Device* nullDevice = nullptr;
+
     OIDN_INLINE Context& initContext()
     {
       Context& ctx = Context::get();
