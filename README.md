@@ -128,6 +128,20 @@ Join our [mailing
 list](https://groups.google.com/d/forum/openimagedenoise/) to receive
 release announcements and major news regarding Intel Open Image Denoise.
 
+## Citation
+
+If you use Intel Open Image Denoise in a research publication, please
+cite the project using the following BibTeX entry:
+
+``` bibtex
+@misc{OpenImageDenoise,
+  author = {Attila T. {\'A}fra},
+  title  = {{Intel\textsuperscript{\textregistered} Open Image Denoise}},
+  year   = {2023},
+  note   = {\url{https://www.openimagedenoise.org}}
+}
+```
+
 # Compilation
 
 The latest Intel Open Image Denoise sources are always available at the
