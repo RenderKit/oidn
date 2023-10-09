@@ -410,9 +410,9 @@ TEST_CASE("single filter", "[single_filter]")
     }
   }
 
-  // Release the device manually to test destroying it when some other object that holds a reference
-  // to it gets destroyed
-  device = {};
+  // Release the device manually to test destroying it when some other object that holds the last
+  // reference to it gets destroyed
+  device.release();
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -695,7 +695,7 @@ TEST_CASE("async filter", "[async_filter]")
   REQUIRE(device.getError() == Error::None);
 
   filter.executeAsync();
-  filter = nullptr;
+  filter.release();
 
   REQUIRE(device.getError() == Error::None);
 }

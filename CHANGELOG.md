@@ -9,6 +9,8 @@ Version History
 -   Improved performance for most dedicated GPU architectures
 -   Re-added `OIDN_STATIC_LIB` CMake option which enables building as a static
     (CPU support only) or a hybrid static/shared (GPU support as well) library
+-   Added `release()` method to C++ API objects (`DeviceRef`, `BufferRef`,
+    `FilterRef`)
 -   Fixed possible crash when releasing GPU devices, buffers or filters
 -   Fixed possible crash at process exit for some SYCL runtime versions
 -   Fixed image quality inconsistency for Intel integrated GPUs
