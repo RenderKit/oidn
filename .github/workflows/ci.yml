@@ -120,17 +120,7 @@ jobs:
       artifact-out: build-rockylinux8-gcc-minimal
       artifact-path: build install deps
 
-  build-ubuntu2204:
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
-    with:
-      project: oidn
-      image: oidn/ubuntu:22.04
-      cmd: scripts/build.py install --full
-      artifact-out: build-ubuntu2204
-      artifact-path: build install deps
-
-  build-ubuntu2204-gta-aotjit:
+  build-rockylinux8-gta-aotjit:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
@@ -142,10 +132,10 @@ jobs:
         -D OIDN_DEVICE_CPU=OFF
         -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=ON -D OIDN_DEVICE_SYCL_JIT_FALLBACK=ON
         -D OIDN_INSTALL_DEPENDENCIES=ON -D OIDN_ZIP_MODE=ON
-      artifact-out: build-ubuntu2204-gta-aotjit
+      artifact-out: build-rockylinux8-gta-aotjit
       artifact-path: oidn-gta-aotjit-lin
 
-  build-ubuntu2204-gta-aot:
+  build-rockylinux8-gta-aot:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
@@ -157,10 +147,10 @@ jobs:
         -D OIDN_DEVICE_CPU=OFF
         -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=ON -D OIDN_DEVICE_SYCL_JIT_FALLBACK=OFF
         -D OIDN_INSTALL_DEPENDENCIES=ON -D OIDN_ZIP_MODE=ON
-      artifact-out: build-ubuntu2204-gta-aot
+      artifact-out: build-rockylinux8-gta-aot
       artifact-path: oidn-gta-aot-lin
 
-  build-ubuntu2204-gta-jit:
+  build-rockylinux8-gta-jit:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
@@ -172,8 +162,18 @@ jobs:
         -D OIDN_DEVICE_CPU=OFF
         -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=OFF -D OIDN_DEVICE_SYCL_JIT_CACHE=OFF
         -D OIDN_INSTALL_DEPENDENCIES=ON -D OIDN_ZIP_MODE=ON
-      artifact-out: build-ubuntu2204-gta-jit
+      artifact-out: build-rockylinux8-gta-jit
       artifact-path: oidn-gta-jit-lin
+
+  build-ubuntu2204:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      image: oidn/ubuntu:22.04
+      cmd: scripts/build.py install --full
+      artifact-out: build-ubuntu2204
+      artifact-path: build install deps
 
   build-ubuntu2204-gcc:
     secrets: inherit
