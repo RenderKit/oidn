@@ -135,7 +135,8 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
-      image: oidn/ubuntu:22.04
+      image: oidn/rockylinux:8.8
+      dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       cmd: >
         scripts/build.py install --install_dir oidn-gta-aotjit-lin --compiler clang
         -D OIDN_DEVICE_CPU=OFF
@@ -149,7 +150,8 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
-      image: oidn/ubuntu:22.04
+      image: oidn/rockylinux:8.8
+      dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       cmd: >
         scripts/build.py install --install_dir oidn-gta-aot-lin --compiler clang
         -D OIDN_DEVICE_CPU=OFF
@@ -163,7 +165,8 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
-      image: oidn/ubuntu:22.04
+      image: oidn/rockylinux:8.8
+      dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       cmd: >
         scripts/build.py install --install_dir oidn-gta-jit-lin --compiler clang
         -D OIDN_DEVICE_CPU=OFF
