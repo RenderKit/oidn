@@ -13,7 +13,8 @@ Version History
     `FilterRef`)
 -   Fixed possible crash when releasing GPU devices, buffers or filters
 -   Fixed possible crash at process exit for some SYCL runtime versions
--   Fixed image quality inconsistency on Intel integrated GPUs
+-   Fixed image quality inconsistency on Intel integrated GPUs, but at the cost
+    of some performance loss
 -   Fixed future Windows driver compatibility for Intel integrated GPUs
 -   Fixed rare output corruption on AMD RDNA2 GPUs
 -   Fixed device detection on Windows when the path to the library has non-ANSI
