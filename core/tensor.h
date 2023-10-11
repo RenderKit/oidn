@@ -191,7 +191,7 @@ OIDN_NAMESPACE_BEGIN
     {
       if (layout != TensorLayout::x || dataType != DataTypeOf<T>::value)
         throw std::logic_error("incompatible tensor accessor");
-      return TensorAccessor1D<T>(getData(), dims[0]);
+      return TensorAccessor1D<T>(getData(), getPaddedX());
     }
 
     template<typename T, TensorLayout accessorLayout>
@@ -210,7 +210,11 @@ OIDN_NAMESPACE_BEGIN
       return TensorAccessor4D<T, accessorLayout>(getData(), getPaddedO(), getPaddedI(), getH(), getW());
     }
 
+    // Debug
+  #if 0
+    uint32_t getHash() const;
     void dump(const std::string& filenamePrefix);
+  #endif
 
   protected:
     explicit Tensor(const TensorDesc& desc);

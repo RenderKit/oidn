@@ -37,6 +37,23 @@ OIDN_NAMESPACE_BEGIN
     assert(desc.isValid());
   }
 
+#if 0
+  uint32_t Tensor::getHash() const
+  {
+    if (buffer && buffer->getStorage() == Storage::Device)
+      throw std::runtime_error("tensor hash not implemented for device storage");
+
+    const uint8_t* bytes = static_cast<const uint8_t*>(getData());
+    const size_t numBytes = getByteSize();
+    uint32_t hash = 0x811c9dc5;
+    for (size_t i = 0; i < numBytes; ++i)
+    {
+      hash ^= bytes[i];
+      hash *= 0x1000193;
+    }
+    return hash;
+  }
+
   void Tensor::dump(const std::string& filenamePrefix)
   {
     if (dataType == DataType::Float32 && layout == TensorLayout::chw)
@@ -58,6 +75,9 @@ OIDN_NAMESPACE_BEGIN
   template<typename T, TensorLayout accessorLayout>
   void Tensor::dumpImpl(const std::string& filenamePrefix)
   {
+    if (buffer && buffer->getStorage() == Storage::Device)
+      throw std::runtime_error("tensor dump not implemented for device storage");
+
     TensorAccessor3D<T, accessorLayout> acc = *this;
 
     for (int c = 0; c < acc.C; ++c)
@@ -84,6 +104,7 @@ OIDN_NAMESPACE_BEGIN
       }
     }
   }
+#endif
 
   // -----------------------------------------------------------------------------------------------
   // HostTensor

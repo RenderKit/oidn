@@ -13,8 +13,9 @@ Version History
     `FilterRef`)
 -   Fixed possible crash when releasing GPU devices, buffers or filters
 -   Fixed possible crash at process exit for some SYCL runtime versions
--   Fixed image quality inconsistency for Intel integrated GPUs
+-   Fixed image quality inconsistency on Intel integrated GPUs
 -   Fixed future Windows driver compatibility for Intel integrated GPUs
+-   Fixed rare output corruption on AMD RDNA2 GPUs
 -   Fixed device detection on Windows when the path to the library has non-ANSI
     characters
 -   Added support for Intel® oneAPI DPC++/C++ Compiler 2024.0 and compatible

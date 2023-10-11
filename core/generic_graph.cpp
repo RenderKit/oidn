@@ -533,7 +533,13 @@ OIDN_NAMESPACE_BEGIN
         dst = upsample->getDst();
 
       if (dst)
+      {
+        std::cout << std::setfill('0') << std::setw(2) << i << ": "
+                  << std::hex << std::setfill('0') << std::setw(8) << dst->getHash() << std::dec
+                  << " " << ops[i]->getName() << std::endl;
+
         dst->dump(toString(i) + "_" + ops[i]->getName() + "_");
+      }
     #endif
 
       progress.update(engine, 1);
