@@ -37,7 +37,7 @@
 #===============================================================================
 
 # We use INTERFACE libraries, which are only supported in 3.x
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.5)
 
 
 # CMake before 3.12 used to ignore <PKGNAME>_ROOT, but we always use this

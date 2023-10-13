@@ -14,11 +14,11 @@ OIDN_NAMESPACE_BEGIN
   ModuleLoader::ModuleLoader()
   {
     // Get the path of the current module
-    const std::string path = getModulePath();
+    const Path path = getModulePath();
 
     // Remove the filename from the path
-    const size_t lastPathSep = path.find_last_of("/\\");
-    if (lastPathSep == std::string::npos)
+    const size_t lastPathSep = path.find_last_of(pathSeps);
+    if (lastPathSep == Path::npos)
       throw std::runtime_error("could not get absolute path of module directory");
     modulePathPrefix = path.substr(0, lastPathSep + 1);
   }
@@ -43,14 +43,14 @@ OIDN_NAMESPACE_BEGIN
   #endif
   #endif
 
-    const std::string path = modulePathPrefix + filename;
+    const Path path = modulePathPrefix + Path(filename.begin(), filename.end());
 
     // Load the module
   #if defined(_WIN32)
     // Prevent the system from displaying a message box when the module fails to load
     UINT prevErrorMode = GetErrorMode();
     SetErrorMode(prevErrorMode | SEM_FAILCRITICALERRORS);
-    void* module = LoadLibrary(path.c_str());
+    void* module = LoadLibraryW(path.c_str());
     SetErrorMode(prevErrorMode);
   #else
     void* module = dlopen(path.c_str(), RTLD_NOW | RTLD_LOCAL);
@@ -65,6 +65,7 @@ OIDN_NAMESPACE_BEGIN
     if (initAddress == nullptr)
     {
       Context::get().printWarning("invalid module: '" + filename + "'");
+      closeModule(module);
       return false;
     }
 
@@ -72,8 +73,11 @@ OIDN_NAMESPACE_BEGIN
     auto initFunc = reinterpret_cast<void (*)()>(initAddress);
     initFunc();
 
-    // The module has been loaded successfully
-    // We won't unload the module manually, so we don't need to keep the handle
+    // The module has been loaded successfully.
+    // We won't unload the module manually to avoid issues due to the undefined module unloading
+    // and static object destruction order at process exit. This intentional "leak" is fine
+    // because the modules are owned by the context which is static, and the modules will be
+    // unloaded at process exit anyway. Thus we don't need the module handle anymore.
     modules.insert(name);
 
     Context::get().printDebug("Loaded module: '" + filename + "'");
@@ -98,7 +102,7 @@ OIDN_NAMESPACE_BEGIN
   #endif
   }
 
-  std::string ModuleLoader::getModulePath(void* address)
+  ModuleLoader::Path ModuleLoader::getModulePath(void* address)
   {
     if (address == nullptr)
       address = reinterpret_cast<void*>(&getModulePath); // any other function in this module would work
@@ -117,10 +121,10 @@ OIDN_NAMESPACE_BEGIN
     DWORD pathSize = MAX_PATH + 1;
     for (; ;)
     {
-      std::vector<char> path(pathSize);
-      DWORD result = GetModuleFileNameA(module, path.data(), pathSize);
+      std::vector<wchar_t> path(pathSize);
+      DWORD result = GetModuleFileNameW(module, path.data(), pathSize);
       if (result == 0)
-        throw std::runtime_error("GetModuleFileNameA failed");
+        throw std::runtime_error("GetModuleFileNameW failed");
       else if (result < pathSize)
         return path.data();
       else

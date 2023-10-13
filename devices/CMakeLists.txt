@@ -82,7 +82,7 @@ if(OIDN_DEVICE_HIP)
   # Find ROCm
   if(NOT ROCM_PATH)
     if(WIN32)
-      set(_rocm_search_paths "$ENV{PROGRAMFILES}/AMD/ROCm")
+      set(_rocm_search_paths "$ENV{PROGRAMFILES}/AMD/ROCm/*")
     else()
       set(_rocm_search_paths "/opt/rocm")
     endif()

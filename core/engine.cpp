@@ -50,7 +50,7 @@ OIDN_NAMESPACE_BEGIN
     if (!isSupported(desc))
       throw std::invalid_argument("unsupported tensor descriptor");
 
-    return std::make_shared<GenericTensor>(this, desc, storage);
+    return std::make_shared<DeviceTensor>(this, desc, storage);
   }
 
   std::shared_ptr<Tensor> Engine::newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
@@ -60,7 +60,7 @@ OIDN_NAMESPACE_BEGIN
     if (buffer->getEngine() != this)
       throw std::invalid_argument("buffer was created by a different engine");
 
-    return std::make_shared<GenericTensor>(buffer, desc, byteOffset);
+    return std::make_shared<DeviceTensor>(buffer, desc, byteOffset);
   }
 
   std::shared_ptr<Graph> Engine::newGraph(const std::shared_ptr<TensorMap>& constTensors, bool fastMath)

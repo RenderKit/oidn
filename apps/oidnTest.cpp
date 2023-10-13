@@ -3,6 +3,7 @@
 
 #include "common/common.h"
 #include "utils/image_buffer.h"
+#include "utils/random.h"
 #include <cassert>
 #include <cmath>
 #include <limits>
@@ -23,7 +24,18 @@ PhysicalDeviceRef physicalDevice;
 
 DeviceRef makeDevice()
 {
-  return physicalDevice ? physicalDevice.newDevice() : newDevice(deviceType);
+  DeviceRef device = physicalDevice ? physicalDevice.newDevice() : newDevice(deviceType);
+  REQUIRE(bool(device));
+  REQUIRE(getError() == Error::None);
+  return device;
+}
+
+DeviceRef makeAndCommitDevice()
+{
+  DeviceRef device = makeDevice();
+  device.commit();
+  REQUIRE(device.getError() == Error::None);
+  return device;
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -34,73 +46,87 @@ TEST_CASE("physical device", "[physical_device]")
   REQUIRE(getError() == Error::None);
   REQUIRE(numDevices >= 0);
 
-  for (int i = 0; i < numDevices; ++i)
+  SECTION("enumeration")
   {
-    PhysicalDeviceRef physicalDevice(i);
+    for (int i = 0; i < numDevices; ++i)
+    {
+      PhysicalDeviceRef physicalDevice(i);
 
-    const DeviceType type = physicalDevice.get<DeviceType>("type");
-    REQUIRE(getError() == Error::None);
-    REQUIRE(type != DeviceType::Default);
+      const DeviceType type = physicalDevice.get<DeviceType>("type");
+      REQUIRE(getError() == Error::None);
+      REQUIRE(type != DeviceType::Default);
 
-    physicalDevice.get<int>("qwertyuiop");
+      // Try invalid parameter name
+      physicalDevice.get<int>("qwertyuiop");
+      REQUIRE(getError() == Error::InvalidArgument);
+      physicalDevice.get<int>(nullptr);
+      REQUIRE(getError() == Error::InvalidArgument);
+
+      const std::string name = physicalDevice.get<std::string>("name");
+      REQUIRE(getError() == Error::None);
+      REQUIRE(!name.empty());
+
+      const bool uuidSupported = physicalDevice.get<bool>("uuidSupported");
+      REQUIRE(getError() == Error::None);
+      physicalDevice.get<OIDN_NAMESPACE::UUID>("uuid");
+      if (uuidSupported)
+        REQUIRE(getError() == Error::None);
+      else
+        REQUIRE(getError() == Error::InvalidArgument);
+
+      const bool luidSupported = physicalDevice.get<bool>("luidSupported");
+      REQUIRE(getError() == Error::None);
+
+      physicalDevice.get<OIDN_NAMESPACE::LUID>("luid");
+      if (luidSupported)
+        REQUIRE(getError() == Error::None);
+      else
+        REQUIRE(getError() == Error::InvalidArgument);
+
+      const uint32_t nodeMask = physicalDevice.get<uint32_t>("nodeMask");
+      if (luidSupported)
+      {
+        REQUIRE(getError() == Error::None);
+        REQUIRE(nodeMask != 0);
+      }
+      else
+        REQUIRE(getError() == Error::InvalidArgument);
+
+      const bool pciAddressSupported = physicalDevice.get<bool>("pciAddressSupported");
+      REQUIRE(getError() == Error::None);
+      physicalDevice.get<int>("pciDomain");
+      physicalDevice.get<int>("pciBus");
+      physicalDevice.get<int>("pciDevice");
+      physicalDevice.get<int>("pciFunction");
+      if (pciAddressSupported)
+        REQUIRE(getError() == Error::None);
+      else
+        REQUIRE(getError() == Error::InvalidArgument);
+
+      DeviceRef device = physicalDevice.newDevice();
+      REQUIRE(device.getError() == Error::None);
+      device.commit();
+      REQUIRE(device.getError() == Error::None);
+    }
+  }
+
+  SECTION("invalid ID")
+  {
+    PhysicalDeviceRef physicalDevice(-1);
+    physicalDevice.get<DeviceType>("type");
     REQUIRE(getError() == Error::InvalidArgument);
 
-    const std::string name = physicalDevice.get<std::string>("name");
-    REQUIRE(getError() == Error::None);
-    REQUIRE(!name.empty());
-
-    const bool uuidSupported = physicalDevice.get<bool>("uuidSupported");
-    REQUIRE(getError() == Error::None);
-    physicalDevice.get<OIDN_NAMESPACE::UUID>("uuid");
-    if (uuidSupported)
-      REQUIRE(getError() == Error::None);
-    else
-      REQUIRE(getError() == Error::InvalidArgument);
-
-    const bool luidSupported = physicalDevice.get<bool>("luidSupported");
-    REQUIRE(getError() == Error::None);
-
-    physicalDevice.get<OIDN_NAMESPACE::LUID>("luid");
-    if (luidSupported)
-      REQUIRE(getError() == Error::None);
-    else
-      REQUIRE(getError() == Error::InvalidArgument);
-
-    const uint32_t nodeMask = physicalDevice.get<uint32_t>("nodeMask");
-    if (luidSupported)
-    {
-      REQUIRE(getError() == Error::None);
-      REQUIRE(nodeMask != 0);
-    }
-    else
-      REQUIRE(getError() == Error::InvalidArgument);
-
-    const bool pciAddressSupported = physicalDevice.get<bool>("pciAddressSupported");
-    REQUIRE(getError() == Error::None);
-    physicalDevice.get<int>("pciDomain");
-    physicalDevice.get<int>("pciBus");
-    physicalDevice.get<int>("pciDevice");
-    physicalDevice.get<int>("pciFunction");
-    if (pciAddressSupported)
-      REQUIRE(getError() == Error::None);
-    else
-      REQUIRE(getError() == Error::InvalidArgument);
-
-    DeviceRef device = physicalDevice.newDevice();
-    REQUIRE(device.getError() == Error::None);
-    device.commit();
-    REQUIRE(device.getError() == Error::None);
+    physicalDevice = PhysicalDeviceRef(numDevices);
+    physicalDevice.get<DeviceType>("type");
+    REQUIRE(getError() == Error::InvalidArgument);
   }
 }
 
 // -------------------------------------------------------------------------------------------------
 
-TEST_CASE("buffer", "[buffer]")
+TEST_CASE("buffer creation", "[buffer]")
 {
-  DeviceRef device = makeDevice();
-  REQUIRE(bool(device));
-  device.commit();
-  REQUIRE(device.getError() == Error::None);
+  DeviceRef device = makeAndCommitDevice();
 
   SECTION("default buffer")
   {
@@ -149,6 +175,97 @@ TEST_CASE("buffer", "[buffer]")
     BufferRef buffer = device.newBuffer(INTPTR_MAX, Storage::Device);
     REQUIRE(device.getError() == Error::OutOfMemory);
   }
+
+  SECTION("invalid buffer storage")
+  {
+    BufferRef buffer = device.newBuffer(10000, static_cast<Storage>(-42));
+    REQUIRE(device.getError() == Error::InvalidArgument);
+  }
+}
+
+TEST_CASE("buffer read/write", "[buffer_rw]")
+{
+  DeviceRef device = makeAndCommitDevice();
+
+  const int N = 128*1024;
+  const size_t bufferSize = N * sizeof(int);
+  BufferRef buffer = device.newBuffer(bufferSize, Storage::Device);
+  REQUIRE(device.getError() == Error::None);
+
+  std::vector<int> src(N);
+  std::vector<int> dst(N);
+  for (int i = 0; i < N; ++i)
+  {
+    src[i] = i+1;
+    dst[i] = 0;
+  }
+
+  SECTION("sync")
+  {
+    // Try writing to the buffer from nullptr
+    buffer.write(0, bufferSize, nullptr);
+    REQUIRE(device.getError() == Error::InvalidArgument);
+    // Try writing with buffer overflow
+    buffer.write(0, bufferSize+256, src.data());
+    REQUIRE(device.getError() == Error::InvalidArgument);
+    buffer.write(256, bufferSize, src.data());
+    REQUIRE(device.getError() == Error::InvalidArgument);
+
+    // Write to the buffer
+    buffer.write(0, bufferSize, src.data());
+    REQUIRE(device.getError() == Error::None);
+
+    // Try reading from the buffer to nullptr
+    buffer.read(0, bufferSize, nullptr);
+    REQUIRE(device.getError() == Error::InvalidArgument);
+    // Try reading with buffer overflow
+    buffer.read(0, bufferSize+256, dst.data());
+    REQUIRE(device.getError() == Error::InvalidArgument);
+    buffer.read(256, bufferSize, dst.data());
+    REQUIRE(device.getError() == Error::InvalidArgument);
+
+    // Read from the buffer
+    buffer.read(0, bufferSize, dst.data());
+    REQUIRE(device.getError() == Error::None);
+
+    // Verify the data
+    REQUIRE(memcmp(src.data(), dst.data(), bufferSize) == 0);
+  }
+
+  SECTION("async")
+  {
+    // Try writing to the buffer from nullptr
+    buffer.writeAsync(0, bufferSize, nullptr);
+    REQUIRE(device.getError() == Error::InvalidArgument);
+    // Try writing with buffer overflow
+    buffer.writeAsync(0, bufferSize+256, src.data());
+    REQUIRE(device.getError() == Error::InvalidArgument);
+    buffer.writeAsync(256, bufferSize, src.data());
+    REQUIRE(device.getError() == Error::InvalidArgument);
+
+    // Write to the buffer
+    buffer.writeAsync(0, bufferSize, src.data());
+    REQUIRE(device.getError() == Error::None);
+
+    // Try reading from the buffer to nullptr
+    buffer.readAsync(0, bufferSize, nullptr);
+    REQUIRE(device.getError() == Error::InvalidArgument);
+    // Try reading with buffer overflow
+    buffer.readAsync(0, bufferSize+256, dst.data());
+    REQUIRE(device.getError() == Error::InvalidArgument);
+    buffer.readAsync(256, bufferSize, dst.data());
+    REQUIRE(device.getError() == Error::InvalidArgument);
+
+    // Read from the buffer
+    buffer.readAsync(0, bufferSize, dst.data());
+    REQUIRE(device.getError() == Error::None);
+
+    device.sync();
+    REQUIRE(device.getError() == Error::None);
+
+    // Verify the data
+    REQUIRE(memcmp(src.data(), dst.data(), bufferSize) == 0);
+  }
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -195,21 +312,86 @@ bool isBetween(const std::shared_ptr<ImageBuffer>& image, float a, float b)
 
 TEST_CASE("single filter", "[single_filter]")
 {
+  const char* filterType = "RT";
   const int W = 257;
   const int H = 89;
 
+  // Try creating a filter from a nullptr device
+  DeviceRef nullDevice;
+  FilterRef nullFilter = nullDevice.newFilter(filterType);
+  REQUIRE(!nullFilter);
+  REQUIRE(getError() == Error::InvalidArgument);
+
+  // Create the device
   DeviceRef device = makeDevice();
-  REQUIRE(bool(device));
+
+  // Try creating a filter without committing the device
+  FilterRef filter = device.newFilter(filterType);
+  REQUIRE(!filter);
+  REQUIRE(device.getError() == Error::InvalidOperation);
+
+  // Commit the device
   device.commit();
   REQUIRE(device.getError() == Error::None);
 
-  FilterRef filter = device.newFilter("RT");
+  // Try creating an invalid filter type
+  filter = device.newFilter("*");
+  REQUIRE(!filter);
+  REQUIRE(device.getError() == Error::InvalidArgument);
+  filter = device.newFilter(nullptr);
+  REQUIRE(!filter);
+  REQUIRE(device.getError() == Error::InvalidArgument);
+
+  // Create the filter
+  filter = device.newFilter(filterType);
   REQUIRE(bool(filter));
+  REQUIRE(device.getError() == Error::None);
 
+  // Try executing the filter without committing it
+  filter.execute();
+  REQUIRE(device.getError() == Error::InvalidOperation);
+
+  // Try committing the filter without setting any images
+  filter.commit();
+  REQUIRE(device.getError() == Error::InvalidOperation);
+
+  // Set the output image
   auto image = makeConstImage(device, W, H);
-  setFilterImage(filter, "color",  image);
   setFilterImage(filter, "output", image);
+  REQUIRE(device.getError() == Error::None);
 
+  // Try committing without setting all required images
+  filter.commit();
+  REQUIRE(device.getError() == Error::InvalidOperation);
+
+  // Try setting an image with nullptr buffer
+  auto nullImage = std::make_shared<ImageBuffer>();
+  setFilterImage(filter, "color", nullImage);
+  REQUIRE(device.getError() == Error::InvalidArgument);
+
+  // Try setting an image with invalid name
+  setFilterImage(filter, nullptr, image);
+  REQUIRE(device.getError() == Error::InvalidArgument);
+
+  // Try setting an image with invalid format
+  filter.setImage("color", image->getBuffer(), static_cast<Format>(-1), W, H);
+  REQUIRE(device.getError() == Error::InvalidArgument);
+
+  // Try setting an image with buffer overflow
+  filter.setImage("color", image->getBuffer(), image->getFormat(), W+1, H);
+  REQUIRE(device.getError() == Error::InvalidArgument);
+  filter.setImage("color", image->getBuffer(), image->getFormat(), W, H, 1);
+  REQUIRE(device.getError() == Error::InvalidArgument);
+  filter.setImage("color", image->getBuffer(), image->getFormat(), W, H, 0, 100);
+  REQUIRE(device.getError() == Error::InvalidArgument);
+  filter.setImage("color", image->getBuffer(), image->getFormat(), W, H, 0, 0, W*100);
+  REQUIRE(device.getError() == Error::InvalidArgument);
+
+  // Set the input image
+  setFilterImage(filter, "color", image);
+  REQUIRE(device.getError() == Error::None);
+
+  // Commit the filter
   filter.commit();
   REQUIRE(device.getError() == Error::None);
 
@@ -227,6 +409,10 @@ TEST_CASE("single filter", "[single_filter]")
       REQUIRE(device.getError() == Error::None);
     }
   }
+
+  // Release the device manually to test destroying it when some other object that holds the last
+  // reference to it gets destroyed
+  device.release();
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -277,10 +463,7 @@ void multiFilterNPerDeviceTest(DeviceRef& device, const std::vector<int>& sizes)
 
 TEST_CASE("multiple filters", "[multi_filter]")
 {
-  DeviceRef device = makeDevice();
-  REQUIRE(bool(device));
-  device.commit();
-  REQUIRE(device.getError() == Error::None);
+  DeviceRef device = makeAndCommitDevice();
 
   SECTION("1 filter / device: small -> large -> medium")
   {
@@ -315,10 +498,7 @@ TEST_CASE("multiple devices", "[multi_device]")
 
   for (size_t i = 0; i < sizes.size(); ++i)
   {
-    devices.push_back(makeDevice());
-    REQUIRE(devices[i]);
-    devices[i].commit();
-    REQUIRE(devices[i].getError() == Error::None);
+    devices.push_back(makeAndCommitDevice());
 
     filters.push_back(devices[i].newFilter("RT"));
     REQUIRE(bool(filters[i]));
@@ -345,10 +525,7 @@ TEST_CASE("shared image", "[shared_image]")
   const int W = 198;
   const int H = 300;
 
-  DeviceRef device = makeDevice();
-  REQUIRE(bool(device));
-  device.commit();
-  REQUIRE(device.getError() == Error::None);
+  DeviceRef device = makeAndCommitDevice();
 
   SECTION("buffer allocator")
   {
@@ -407,10 +584,7 @@ TEST_CASE("filter update", "[filter_update]")
   const int W = 211;
   const int H = 599;
 
-  DeviceRef device = makeDevice();
-  REQUIRE(bool(device));
-  device.commit();
-  REQUIRE(device.getError() == Error::None);
+  DeviceRef device = makeAndCommitDevice();
 
   FilterRef filter = device.newFilter("RT");
   REQUIRE(bool(filter));
@@ -432,18 +606,18 @@ TEST_CASE("filter update", "[filter_update]")
   filter.execute();
   REQUIRE(device.getError() == Error::None);
 
-  SECTION("filter update: none")
+  SECTION("no updates")
   {
     // No changes
   }
 
-  SECTION("filter update: same image size")
+  SECTION("same image size")
   {
     color = makeConstImage(device, W, H);
     setFilterImage(filter, "color", color);
   }
 
-  SECTION("filter update: different image size")
+  SECTION("different image size")
   {
     color  = makeConstImage(device, W*2, H*2);
     albedo = makeConstImage(device, W*2, H*2);
@@ -453,28 +627,28 @@ TEST_CASE("filter update", "[filter_update]")
     setFilterImage(filter, "output", output);
   }
 
-  SECTION("filter update: different image format")
+  SECTION("different image format")
   {
     albedo = makeConstImage(device, W, H, 3, DataType::Float16);
     setFilterImage(filter, "albedo", albedo);
   }
 
-  SECTION("filter update: unset image")
+  SECTION("unset image")
   {
     filter.unsetImage("albedo");
   }
 
-  SECTION("filter update: unset image by setting to null")
+  SECTION("unset image by setting to nullptr")
   {
     filter.setImage("albedo", nullptr, Format::Float3, 0, 0);
   }
 
-  SECTION("filter update: different mode")
+  SECTION("different mode")
   {
     filter.set("hdr", false);
   }
 
-  SECTION("filter update: different quality")
+  SECTION("different quality")
   {
     filter.set("quality", Quality::Balanced);
   }
@@ -493,10 +667,7 @@ TEST_CASE("async filter", "[async_filter]")
   const int W = 799;
   const int H = 601;
 
-  DeviceRef device = makeDevice();
-  REQUIRE(bool(device));
-  device.commit();
-  REQUIRE(device.getError() == Error::None);
+  DeviceRef device = makeAndCommitDevice();
 
   FilterRef filter = device.newFilter("RT");
   REQUIRE(bool(filter));
@@ -528,7 +699,7 @@ TEST_CASE("async filter", "[async_filter]")
   REQUIRE(device.getError() == Error::None);
 
   filter.executeAsync();
-  filter = nullptr;
+  filter.release();
 
   REQUIRE(device.getError() == Error::None);
 }
@@ -557,10 +728,7 @@ void imageSizeTest(DeviceRef& device, int W, int H, bool execute = true)
 
 TEST_CASE("image size", "[size]")
 {
-  DeviceRef device = makeDevice();
-  REQUIRE(bool(device));
-  device.commit();
-  REQUIRE(device.getError() == Error::None);
+  DeviceRef device = makeAndCommitDevice();
 
   SECTION("image size: 0x0")
   {
@@ -619,10 +787,7 @@ void sanitizationTest(DeviceRef& device, bool hdr, float value)
 
 TEST_CASE("image sanitization", "[sanitization]")
 {
-  DeviceRef device = makeDevice();
-  REQUIRE(bool(device));
-  device.commit();
-  REQUIRE(device.getError() == Error::None);
+  DeviceRef device = makeAndCommitDevice();
 
   SECTION("image sanitization: HDR")
   {
@@ -701,10 +866,7 @@ void progressTest(DeviceRef& device, double nMax = 1000)
 
 TEST_CASE("progress monitor", "[progress]")
 {
-  DeviceRef device = makeDevice();
-  REQUIRE(bool(device));
-  device.commit();
-  REQUIRE(device.getError() == Error::None);
+  DeviceRef device = makeAndCommitDevice();
 
   SECTION("progress monitor: complete")
   {
@@ -724,6 +886,58 @@ TEST_CASE("progress monitor", "[progress]")
   SECTION("progress monitor: cancel at the end")
   {
     progressTest(device, 1);
+  }
+}
+
+// -------------------------------------------------------------------------------------------------
+
+TEST_CASE("user weights", "[user_weights]")
+{
+  DeviceRef device = makeAndCommitDevice();
+
+  FilterRef filter = device.newFilter("RT");
+  REQUIRE(bool(filter));
+
+  const int W = 23;
+  const int H = 99;
+  auto image = makeConstImage(device, W, H);
+  setFilterImage(filter, "color",  image);
+  setFilterImage(filter, "output", image); // in-place
+
+  REQUIRE(device.getError() == Error::None);
+
+  std::vector<uint8_t> data(900);
+  Random rng;
+  for (size_t i = 0; i < data.size(); ++i)
+    data[i] = uint8_t(rng.getUInt());
+
+  SECTION("invalid parameter name")
+  {
+    filter.setData(nullptr, data.data(), data.size());
+    REQUIRE(device.getError() == Error::InvalidArgument);
+
+    filter.commit();
+    REQUIRE(device.getError() == Error::None);
+  }
+
+  SECTION("nullptr data")
+  {
+    filter.setData("weights", nullptr, 0);
+    REQUIRE(device.getError() == Error::None);
+    filter.setData("weights", nullptr, data.size());
+    REQUIRE(device.getError() == Error::InvalidArgument);
+
+    filter.commit();
+    REQUIRE(device.getError() == Error::None);
+  }
+
+  SECTION("invalid data")
+  {
+    filter.setData("weights", data.data(), data.size());
+    REQUIRE(device.getError() == Error::None);
+
+    filter.commit();
+    REQUIRE(device.getError() == Error::InvalidOperation);
   }
 }
 

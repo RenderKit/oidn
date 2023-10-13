@@ -60,6 +60,9 @@ OIDN_NAMESPACE_BEGIN
 
   void* CPUEngine::usmAlloc(size_t byteSize, Storage storage)
   {
+    if (storage != Storage::Host && storage != Storage::Device && storage != Storage::Managed)
+      throw Exception(Error::InvalidArgument, "invalid storage mode");
+
     if (byteSize == 0)
       return nullptr;
     return alignedMalloc(byteSize);

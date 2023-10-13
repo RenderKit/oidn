@@ -188,7 +188,7 @@ OIDN_NAMESPACE_BEGIN
     {
       if (layout != TensorLayout::x || dataType != DataTypeOf<T>::value)
         throw std::logic_error("incompatible tensor accessor");
-      return TensorAccessor1D<T>(getPtr(), dims[0]);
+      return TensorAccessor1D<T>(getPtr(), getPaddedX());
     }
 
     template<typename T, TensorLayout accessorLayout>
@@ -207,9 +207,11 @@ OIDN_NAMESPACE_BEGIN
       return TensorAccessor4D<T, accessorLayout>(getPtr(), getPaddedO(), getPaddedI(), getH(), getW());
     }
 
-    std::shared_ptr<Tensor> map(Access access);
-
+    // Debug
+  #if 0
+    uint32_t getHash() const;
     void dump(const std::string& filenamePrefix);
+  #endif
 
   protected:
     explicit Tensor(const TensorDesc& desc);
@@ -220,22 +222,34 @@ OIDN_NAMESPACE_BEGIN
     void dumpImpl(const std::string& filenamePrefix);
   };
 
-  class GenericTensor final : public Tensor
+  class HostTensor final : public Tensor
   {
   public:
-    explicit GenericTensor(const TensorDesc& desc);
-    GenericTensor(const TensorDesc& desc, void* data);
-    GenericTensor(const Ref<Engine>& engine, const TensorDesc& desc, Storage storage);
-    GenericTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset = 0);
-    ~GenericTensor();
+    explicit HostTensor(const TensorDesc& desc);
+    HostTensor(const TensorDesc& desc, void* data);
+    ~HostTensor();
 
     void* getPtr() const override { return ptr; }
+    void updatePtr() override {}
+
+    std::shared_ptr<Tensor> toDevice(const Ref<Engine>& engine, Storage storage = Storage::Device);
 
   private:
+    void* ptr;   // pointer to the tensor data
+    bool shared; // data owned and shared by the user
+  };
+
+  class DeviceTensor final : public Tensor
+  {
+  public:
+    DeviceTensor(const Ref<Engine>& engine, const TensorDesc& desc, Storage storage);
+    DeviceTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset = 0);
+
+    void* getPtr() const override { return ptr; }
     void updatePtr() override;
 
-    void* ptr;   // pointer to the tensor data
-    bool shared; // data owned and shared by someone else (buffer or user pointer)
+  private:
+    void* ptr; // pointer to the tensor data
   };
 
   using TensorMap = std::unordered_map<std::string, std::shared_ptr<Tensor>>;

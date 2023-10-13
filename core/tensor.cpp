@@ -20,6 +20,10 @@ OIDN_NAMESPACE_BEGIN
     return sm;
   }
 
+  // -----------------------------------------------------------------------------------------------
+  // Tensor
+  // -----------------------------------------------------------------------------------------------
+
   Tensor::Tensor(const TensorDesc& desc)
     : TensorDesc(desc)
   {
@@ -33,11 +37,21 @@ OIDN_NAMESPACE_BEGIN
     assert(desc.isValid());
   }
 
-  std::shared_ptr<Tensor> Tensor::map(Access access)
+#if 0
+  uint32_t Tensor::getHash() const
   {
-    if (!buffer)
-      throw std::logic_error("tensor not backed by a buffer cannot be mapped");
-    return buffer->getEngine()->newTensor(makeRef<MappedBuffer>(buffer, byteOffset, getByteSize(), access), getDesc());
+    if (buffer && buffer->getStorage() == Storage::Device)
+      throw std::runtime_error("tensor hash not implemented for device storage");
+
+    const uint8_t* bytes = static_cast<const uint8_t*>(getData());
+    const size_t numBytes = getByteSize();
+    uint32_t hash = 0x811c9dc5;
+    for (size_t i = 0; i < numBytes; ++i)
+    {
+      hash ^= bytes[i];
+      hash *= 0x1000193;
+    }
+    return hash;
   }
 
   void Tensor::dump(const std::string& filenamePrefix)
@@ -61,6 +75,9 @@ OIDN_NAMESPACE_BEGIN
   template<typename T, TensorLayout accessorLayout>
   void Tensor::dumpImpl(const std::string& filenamePrefix)
   {
+    if (buffer && buffer->getStorage() == Storage::Device)
+      throw std::runtime_error("tensor dump not implemented for device storage");
+
     TensorAccessor3D<T, accessorLayout> acc = *this;
 
     for (int c = 0; c < acc.C; ++c)
@@ -87,47 +104,62 @@ OIDN_NAMESPACE_BEGIN
       }
     }
   }
+#endif
 
-  GenericTensor::GenericTensor(const TensorDesc& desc)
+  // -----------------------------------------------------------------------------------------------
+  // HostTensor
+  // -----------------------------------------------------------------------------------------------
+
+  HostTensor::HostTensor(const TensorDesc& desc)
     : Tensor(desc),
       ptr(alignedMalloc(getByteSize())),
       shared(false) {}
 
-  GenericTensor::GenericTensor(const TensorDesc& desc, void* data)
+  HostTensor::HostTensor(const TensorDesc& desc, void* data)
     : Tensor(desc),
       ptr(data),
       shared(true) {}
 
-  GenericTensor::GenericTensor(const Ref<Engine>& engine, const TensorDesc& desc, Storage storage)
-    : Tensor(desc),
-      shared(true)
-  {
-    buffer = engine->newBuffer(getByteSize(), storage);
-    ptr = buffer->getPtr();
-  }
-
-  GenericTensor::GenericTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
-    : Tensor(buffer, desc, byteOffset),
-      shared(true)
-  {
-    if (byteOffset + getByteSize() > buffer->getByteSize())
-      throw Exception(Error::InvalidArgument, "buffer region out of range");
-
-    ptr = static_cast<char*>(buffer->getPtr()) + byteOffset;
-  }
-
-  GenericTensor::~GenericTensor()
+  HostTensor::~HostTensor()
   {
     if (!shared)
       alignedFree(ptr);
   }
 
-  void GenericTensor::updatePtr()
+  std::shared_ptr<Tensor> HostTensor::toDevice(const Ref<Engine>& engine, Storage storage)
+  {
+    const size_t byteSize = getByteSize();
+    auto bufferCopy = engine->newBuffer(byteSize, storage);
+    bufferCopy->write(0, byteSize, getPtr());
+    return engine->newTensor(bufferCopy, getDesc());
+  }
+
+  // -----------------------------------------------------------------------------------------------
+  // DeviceTensor
+  // -----------------------------------------------------------------------------------------------
+
+  DeviceTensor::DeviceTensor(const Ref<Engine>& engine, const TensorDesc& desc, Storage storage)
+    : Tensor(desc)
+  {
+    buffer = engine->newBuffer(getByteSize(), storage);
+    ptr = buffer->getPtr();
+  }
+
+  DeviceTensor::DeviceTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
+    : Tensor(buffer, desc, byteOffset)
+  {
+    if (byteOffset + getByteSize() > buffer->getByteSize())
+      throw Exception(Error::InvalidArgument, "buffer region is out of range");
+
+    ptr = static_cast<char*>(buffer->getPtr()) + byteOffset;
+  }
+
+  void DeviceTensor::updatePtr()
   {
     if (buffer)
     {
       if (byteOffset + getByteSize() > buffer->getByteSize())
-        throw std::range_error("buffer region out of range");
+        throw std::range_error("buffer region is out of range");
 
       ptr = static_cast<char*>(buffer->getPtr()) + byteOffset;
     }

@@ -25,14 +25,22 @@ OIDN_NAMESPACE_BEGIN
     bool load(const std::string& name);
 
   private:
+  #if defined(_WIN32)
+    using Path = std::wstring;
+    static constexpr const wchar_t* pathSeps = L"/\\";
+  #else
+    using Path = std::string;
+    static constexpr const char* pathSeps = "/\\";
+  #endif
+
     static void* getSymbolAddress(void* module, const std::string& name);
     static void closeModule(void* module);
 
     // Returns the absolute path of the module that contains the given address
     // If address is nullptr, returns the path of this module
-    static std::string getModulePath(void* address = nullptr);
+    static Path getModulePath(void* address = nullptr);
 
-    std::string modulePathPrefix; // absolute path of the module directory with trailing path separator
+    Path modulePathPrefix; // absolute path of the module directory with trailing path separator
     std::unordered_set<std::string> modules; // loaded module names
   };
 

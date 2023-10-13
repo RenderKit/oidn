@@ -2,7 +2,19 @@
 ## SPDX-License-Identifier: Apache-2.0
 
 find_package(Threads REQUIRED)
-find_package(TBB 2017.0 REQUIRED tbb CONFIG)
+
+# oneTBB
+set(OIDN_TBB_MIN_VERSION 2017.0)
+if(TBB_ROOT)
+  find_package(TBB ${OIDN_TBB_MIN_VERSION} COMPONENTS tbb CONFIG NO_DEFAULT_PATH)
+else()
+  find_package(TBB ${OIDN_TBB_MIN_VERSION} COMPONENTS tbb CONFIG)
+endif()
+if(NOT TBB_FOUND)
+  # Fall back to our FindTBB.cmake
+  unset(TBB_DIR CACHE)
+  find_package(TBB ${OIDN_TBB_MIN_VERSION} REQUIRED tbb)
+endif()
 
 if(OIDN_ARCH STREQUAL "X64")
   # oneDNN
@@ -87,7 +99,7 @@ elseif(OIDN_BNNS)
   )
 endif()
 
-add_library(OpenImageDenoise_device_cpu SHARED ${OIDN_CPU_SOURCES} ${OIDN_RESOURCE_FILE})
+add_library(OpenImageDenoise_device_cpu ${OIDN_LIB_TYPE} ${OIDN_CPU_SOURCES} ${OIDN_RESOURCE_FILE})
 set_property(TARGET OpenImageDenoise_device_cpu PROPERTY VERSION ${PROJECT_VERSION})
 
 if(OIDN_DNNL)
@@ -102,8 +114,20 @@ endif()
 
 ispc_target_add_sources(OpenImageDenoise_device_cpu ${CPU_SOURCES_ISPC})
 target_link_libraries(OpenImageDenoise_device_cpu PRIVATE OpenImageDenoise_core ${CMAKE_THREAD_LIBS_INIT} TBB::tbb)
-oidn_strip_symbols(OpenImageDenoise_device_cpu)
-oidn_install_module(OpenImageDenoise_device_cpu)
+
+if(OIDN_STATIC_LIB)
+  install(TARGETS OpenImageDenoise_device_cpu
+    EXPORT
+      OpenImageDenoise_Exports
+    ARCHIVE
+      DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT devel
+  )
+
+  target_link_libraries(OpenImageDenoise PRIVATE OpenImageDenoise_device_cpu)
+else()
+  oidn_strip_symbols(OpenImageDenoise_device_cpu)
+  oidn_install_module(OpenImageDenoise_device_cpu)
+endif()
 
 ## -------------------------------------------------------------------------------------------------
 ## Install dependencies

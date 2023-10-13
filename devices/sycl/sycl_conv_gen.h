@@ -6,7 +6,6 @@
 
 #include "sycl_conv.h"
 #include "sycl_common.h"
-#include <sycl/ext/intel/experimental/kernel_properties.hpp>
 
 OIDN_NAMESPACE_BEGIN
 
@@ -20,44 +19,45 @@ namespace xehpc_fast {
 namespace xehpc {
 #endif
 
-  template<typename T, TensorLayout tensorLayout, TensorLayout weightLayout, PostOp postOp>
+  template<typename SrcDstT, typename WeightT, TensorLayout srcDstLayout, TensorLayout weightLayout,
+           PostOp postOp>
   struct SYCLConvKernel
   {
     static constexpr int dpasDepth  = 8; // DPAS depth
     static constexpr int dpasRepeat = 8; // DPAS repeat count
 
-    static constexpr int blockC = TensorByteOffset<T, tensorLayout>::blockC; // block input/output channels
+    static constexpr int blockC = TensorByteOffset<SrcDstT, srcDstLayout>::blockC; // block input/output channels
 
   #if defined(OIDN_ARCH_XEHPG)
+    using MatmulT = SrcDstT;
     static constexpr int blockAC = 8;                   // block accumulator channels (exec width)
     static constexpr int numBlockAC = blockC / blockAC; // number of accumulator channel blocks
-
     static constexpr int blockOH = (postOp == PostOp::Pool) ? 6 : 5; // block output height
   #elif defined(OIDN_ARCH_XEHPC)
+    using MatmulT = SrcDstT;
     static constexpr int blockOH = 4; // block output height
   #else
+    using MatmulT = float; // no DPAS -> use FP32 FMAs
     static constexpr int blockOH = 2; // block output height
   #endif
 
     static constexpr int blockOW = dpasRepeat;      // block output width
     static constexpr int blockIW = blockOW + 3 - 1; // block input width
 
-    TensorAccessor3D<T, tensorLayout> src;
-    TensorAccessor4D<T, weightLayout> weight;
-    TensorAccessor1D<T> bias;
-    TensorAccessor3D<T, tensorLayout> dst;
+    TensorAccessor3D<SrcDstT, srcDstLayout> src;
+    TensorAccessor4D<WeightT, weightLayout> weight;
+    TensorAccessor1D<SrcDstT> bias;
+    TensorAccessor3D<SrcDstT, srcDstLayout> dst;
     //Activation activation;
 
     OIDN_INLINE void operator ()(const WorkGroupItem<3>& it) const SYCL_ESIMD_FUNCTION
     {
     #if defined(OIDN_ARCH_XEHPG)
-      syclx::set_kernel_properties(syclx::kernel_properties::use_large_grf);
-
       // FP32 accumulator rows
       simd<float, blockOW * blockAC> accumRows[blockOH][numBlockAC] = {}; // = 0
     #elif defined(OIDN_ARCH_XEHPC_FAST)
-      // FP16 output rows
-      simd<T, blockOW * blockC> outRows[blockOH] = {}; // = 0
+      // Output rows
+      simd<SrcDstT, blockOW * blockC> outRows[blockOH] = {}; // = 0
     #else
       // FP32 accumulator rows
       simd<float, blockOW * blockC> accumRows[blockOH] = {}; // = 0
@@ -74,7 +74,7 @@ namespace xehpc {
         const int iw = ow - 1;
 
         // Load input rows into a ring buffer
-        simd<T, blockIW * blockC> inRows[blockOH];
+        simd<MatmulT, blockIW * blockC> inRows[blockOH];
 
         #pragma unroll
         for (int boh = 0; boh < blockOH - 1; ++boh)
@@ -88,7 +88,7 @@ namespace xehpc {
           loadRow(inRows[(kh + blockOH - 1) % blockOH], ic, ih + (kh + blockOH - 1), iw);
 
           // Get pointer to weights for kernel row
-          const T* weightPtr = &weight(oc, ic, kh, 0);
+          const WeightT* weightPtr = &weight(oc, ic, kh, 0);
 
           // Iterate over kernel width
           #pragma unroll
@@ -96,16 +96,15 @@ namespace xehpc {
           {
             // Load weight matrix for kernel tap
           #if defined(OIDN_ARCH_XEHPG)
-            simd<T, blockAC * blockC> weightMat[numBlockAC];
+            simd<MatmulT, blockAC * blockC> weightMat[numBlockAC];
             #pragma unroll
             for (int i = 0; i < numBlockAC; ++i)
             {
-              weightMat[i] = loadBlock<T, blockAC * blockC>(weightPtr);
+              weightMat[i] = loadBlock<WeightT, blockAC * blockC>(weightPtr);
               weightPtr += blockAC * blockC;
             }
           #else
-            simd<T, blockC * blockC> weightMat;
-            loadLargeBlock<T, blockC * blockC>(weightPtr, weightMat);
+            simd<MatmulT, blockC * blockC> weightMat = loadLargeBlock<WeightT, blockC * blockC>(weightPtr);
             weightPtr += blockC * blockC;
           #endif
 
@@ -127,7 +126,7 @@ namespace xehpc {
             #pragma unroll
             for (int boh = 0; boh < blockOH; ++boh)
             {
-              outRows[boh] = xmx::dpas<dpasDepth, dpasRepeat, T>(
+              outRows[boh] = xmx::dpas<dpasDepth, dpasRepeat, SrcDstT>(
                 outRows[boh],
                 weightMat,
                 inRows[(kh + boh) % blockOH].template select<blockOW * blockC, 1>(kw * blockC).read());
@@ -148,20 +147,13 @@ namespace xehpc {
               #pragma unroll
               for (int bow = 0; bow < blockOW; ++bow)
               {
-                // Intermediate 16-bit accumulator to be able to use FMAs
-                simd<T, blockC> localAccum =
-                  inRows[(kh + boh) % blockOH].template replicate_w<blockC, 1>((kw + bow) * blockC + 0) *
-                  weightMat.template select<blockC, 1>(0 * blockC);
-
                 #pragma unroll
-                for (int i = 1; i < blockC; ++i)
+                for (int i = 0; i < blockC; ++i)
                 {
-                  localAccum +=
+                  accumRows[boh].template select<blockC, 1>(bow * blockC) +=
                     inRows[(kh + boh) % blockOH].template replicate_w<blockC, 1>((kw + bow) * blockC + i) *
                     weightMat.template select<blockC, 1>(i * blockC);
                 }
-
-                accumRows[boh].template select<blockC, 1>(bow * blockC) += localAccum;
               }
             }
           #endif
@@ -171,19 +163,19 @@ namespace xehpc {
 
     #if defined(OIDN_ARCH_XEHPG)
       // Shuffle and down-convert accumulator rows to output rows
-      simd<T, blockOW * blockC> outRows[blockOH];
+      simd<SrcDstT, blockOW * blockC> outRows[blockOH];
 
       #pragma unroll
       for (int boh = 0; boh < blockOH; ++boh)
       {
-        auto outRowView = outRows[boh].template bit_cast_view<T, blockOW, blockC>();
+        auto outRowView = outRows[boh].template bit_cast_view<SrcDstT, blockOW, blockC>();
         #pragma unroll
         for (int i = 0; i < numBlockAC; ++i)
           outRowView.template select<blockOW, 1, blockAC, 1>(0, i * blockAC) = accumRows[boh][i];
       }
     #elif !defined(OIDN_ARCH_XEHPC_FAST)
       // Down-convert accumulator rows to output rows
-      simd<T, blockOW * blockC> outRows[blockOH];
+      simd<SrcDstT, blockOW * blockC> outRows[blockOH];
 
       #pragma unroll
       for (int boh = 0; boh < blockOH; ++boh)
@@ -191,7 +183,7 @@ namespace xehpc {
     #endif
 
       // Load bias vector
-      const auto biasVec = loadBlock<T, blockC>(&bias(oc));
+      const auto biasVec = loadBlock<SrcDstT, blockC>(&bias(oc));
 
       // Add bias
       #pragma unroll
@@ -203,7 +195,7 @@ namespace xehpc {
       {
         #pragma unroll
         for (int boh = 0; boh < blockOH; ++boh)
-          outRows[boh] = max(outRows[boh], simd<T, blockOW * blockC>(0));
+          outRows[boh] = max(outRows[boh], simd<SrcDstT, blockOW * blockC>(0));
       }
 
       // Store output rows
@@ -245,7 +237,7 @@ namespace xehpc {
             break;
 
           // Upsample output row
-          simd<T, blockOW * blockC * 2> upRow1x2;
+          simd<SrcDstT, blockOW * blockC * 2> upRow1x2;
 
           #pragma unroll
           for (int bow = 0; bow < blockOW; ++bow)
@@ -263,7 +255,7 @@ namespace xehpc {
 
     // Loads a row from the src tensor
     template<int N>
-    OIDN_INLINE void loadRow(simd<T, N>& row, int ic, int ih, int iw) const
+    OIDN_INLINE void loadRow(simd<MatmulT, N>& row, int ic, int ih, int iw) const
     {
       static_assert(N % blockC == 0, "non-integer width");
       constexpr int W = N / blockC;
@@ -277,8 +269,8 @@ namespace xehpc {
       if (iw >= 0 && iw + W <= src.W)
       {
         // Fast path: load the entire row
-        const T* srcPtr = &src(ic, ih, iw);
-        loadLargeBlock(srcPtr, row);
+        const SrcDstT* srcPtr = &src(ic, ih, iw);
+        row = loadLargeBlock<SrcDstT, N>(srcPtr);
       }
       else
       {
@@ -292,9 +284,9 @@ namespace xehpc {
         #pragma unroll
         for (int w = 0; w < W; ++w)
         {
-          const T* srcPtr = reinterpret_cast<const T*>(uintptr_t(srcAddrVec[w]));
+          const SrcDstT* srcPtr = reinterpret_cast<const SrcDstT*>(uintptr_t(srcAddrVec[w]));
           row.template select<blockC, 1>(w * blockC) =
-            loadBlock<T, blockC>(srcPtr, predVec.template select<1, 1>(w));
+            loadBlock<SrcDstT, blockC>(srcPtr, predVec.template select<1, 1>(w));
         }
       }
     }
@@ -302,7 +294,7 @@ namespace xehpc {
     // Stores a row to the dst tensor
     // Pixels can be stored in chunks of K to improve performance
     template<int K = 1, int N>
-    OIDN_INLINE void storeRow(simd<T, N>& row, int oc, int oh, int ow) const
+    OIDN_INLINE void storeRow(simd<SrcDstT, N>& row, int oc, int oh, int ow) const
     {
       static_assert(N % blockC == 0, "non-integer width");
       constexpr int W = N / blockC;
@@ -314,7 +306,7 @@ namespace xehpc {
       if (ow + W <= dst.W)
       {
         // Fast path: store the entire row
-        T* dstPtr = &dst(oc, oh, ow);
+        SrcDstT* dstPtr = &dst(oc, oh, ow);
         storeLargeBlock(dstPtr, row);
       }
       else
@@ -332,7 +324,7 @@ namespace xehpc {
         #pragma unroll
         for (int i = 0; i < numChunks; ++i)
         {
-          T* dstPtr = reinterpret_cast<T*>(uintptr_t(dstAddrVec[i]));
+          SrcDstT* dstPtr = reinterpret_cast<SrcDstT*>(uintptr_t(dstAddrVec[i]));
           storeBlock(dstPtr, row.template select<chunkSize, 1>(i * chunkSize).read(),
                      predVec.template select<1, 1>(i));
         }
@@ -340,6 +332,7 @@ namespace xehpc {
     }
   };
 
+  template<typename SrcDstT>
   class SYCLConv : public Conv
   {
   public:
@@ -347,11 +340,11 @@ namespace xehpc {
       : Conv(desc),
         engine(engine)
     {
-      if (srcDesc.layout != tensorLayout || srcDesc.dataType != DataType::Float16)
+      if (srcDesc.layout != srcDstLayout || srcDesc.dataType != DataTypeOf<SrcDstT>::value)
         throw std::invalid_argument("unsupported convolution source layout/data type");
-      if (weightDesc.layout != weightLayout || weightDesc.dataType != DataType::Float16)
+      if (weightDesc.layout != weightLayout || weightDesc.dataType != DataTypeOf<WeightT>::value)
         throw std::invalid_argument("unsupported convolution weight layout/data type");
-      if (biasDesc.layout != TensorLayout::x || biasDesc.dataType != DataType::Float16)
+      if (biasDesc.layout != TensorLayout::x || biasDesc.dataType != DataTypeOf<SrcDstT>::value)
         throw std::invalid_argument("unsupported convolution bias layout/data type");
 
       if (desc.activation != Activation::ReLU)
@@ -378,20 +371,23 @@ namespace xehpc {
     }
 
   private:
-    static constexpr TensorLayout tensorLayout = TensorLayout::Chw16c;
+    static constexpr TensorLayout srcDstLayout = TensorLayout::Chw16c;
 
   #if defined(OIDN_ARCH_XEHPG)
+    using WeightT = SrcDstT;
     static constexpr TensorLayout weightLayout = TensorLayout::OIhw2o8i8o2i;
   #elif defined(OIDN_ARCH_XEHPC)
+    using WeightT = SrcDstT;
     static constexpr TensorLayout weightLayout = TensorLayout::OIhw8i16o2i;
   #else
+    using WeightT = float;
     static constexpr TensorLayout weightLayout = TensorLayout::OIhw16i16o;
   #endif
 
     template<PostOp kernelPostOp>
     void submitImpl()
     {
-      using Kernel = SYCLConvKernel<half, tensorLayout, weightLayout, kernelPostOp>;
+      using Kernel = SYCLConvKernel<SrcDstT, WeightT, srcDstLayout, weightLayout, kernelPostOp>;
 
       Kernel kernel;
       kernel.src    = *src;
@@ -450,7 +446,11 @@ namespace xehpc {
           break;
       }
 
+    #if defined(OIDN_ARCH_XEHPG)
+      engine->submitESIMDKernelWithLargeGRF(globalSize / groupSize, groupSize, kernel);
+    #else
       engine->submitESIMDKernel(globalSize / groupSize, groupSize, kernel);
+    #endif
     }
 
     Ref<SYCLEngine> engine;
@@ -458,7 +458,7 @@ namespace xehpc {
 
   std::shared_ptr<Conv> newSYCLConv(const Ref<SYCLEngine>& engine, const ConvDesc& desc)
   {
-    return std::make_shared<SYCLConv>(engine, desc);
+    return std::make_shared<SYCLConv<half>>(engine, desc);
   }
 
 } // namespace arch

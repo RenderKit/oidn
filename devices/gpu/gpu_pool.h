@@ -51,7 +51,7 @@ OIDN_NAMESPACE_BEGIN
     }
   };
 
-  template<typename EngineT, typename TensorDataT, TensorLayout tensorLayout>
+  template<typename EngineT, typename SrcDstT, TensorLayout srcDstLayout>
   class GPUPool : public Pool
   {
   public:
@@ -65,11 +65,11 @@ OIDN_NAMESPACE_BEGIN
       if (!src || !dst)
         throw std::logic_error("pooling source/destination not set");
 
-      GPUPoolKernel<TensorDataT, tensorLayout> kernel;
+      GPUPoolKernel<SrcDstT, srcDstLayout> kernel;
       kernel.src = *src;
       kernel.dst = *dst;
 
-      if (tensorLayout == TensorLayout::hwc)
+      if (srcDstLayout == TensorLayout::hwc)
         engine->submitKernel(WorkDim<3>(dst->getH(), dst->getW(), dst->getPaddedC()), kernel);
       else
         engine->submitKernel(WorkDim<3>(dst->getPaddedC(), dst->getH(), dst->getW()), kernel);

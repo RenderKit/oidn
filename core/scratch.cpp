@@ -83,7 +83,11 @@ OIDN_NAMESPACE_BEGIN
 
   ScratchBuffer::~ScratchBuffer()
   {
-    manager->detach(this);
+    try
+    {
+      manager->detach(this);
+    }
+    catch (...) {}
   }
 
   void ScratchBuffer::attach(Memory* mem)

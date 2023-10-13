@@ -15,11 +15,11 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  template<typename TensorDataT, TensorLayout tensorLayout>
+  template<typename SrcT, TensorLayout srcLayout>
   struct GPUOutputProcessKernel
   {
     // Source
-    TensorAccessor3D<TensorDataT, tensorLayout> src;
+    TensorAccessor3D<SrcT, srcLayout> src;
 
     // Destination
     ImageAccessor dst;
@@ -75,7 +75,7 @@ OIDN_NAMESPACE_BEGIN
 
 #if !defined(OIDN_COMPILE_METAL_DEVICE)
 
-  template<typename EngineT, typename TensorDataT, TensorLayout tensorLayout>
+  template<typename EngineT, typename SrcT, TensorLayout srcLayout>
   class GPUOutputProcess : public OutputProcess
   {
   public:
@@ -97,8 +97,8 @@ OIDN_NAMESPACE_BEGIN
 
     void finalize() override
     {
-      static_assert(std::is_same<TensorDataT, half>::value, "unsupported tensor data type");
-      static_assert(tensorLayout == TensorLayout::hwc, "unsupported tensor layout");
+      static_assert(std::is_same<SrcT, half>::value, "unsupported tensor data type");
+      static_assert(srcLayout == TensorLayout::hwc, "unsupported tensor layout");
       pipeline = engine->newMTLComputePipelineState("outputProcess_half_hwc");
     }
   #endif
@@ -107,7 +107,7 @@ OIDN_NAMESPACE_BEGIN
     {
       check();
 
-      GPUOutputProcessKernel<TensorDataT, tensorLayout> kernel;
+      GPUOutputProcessKernel<SrcT, srcLayout> kernel;
       kernel.src = *src;
       kernel.dst = *dst;
       kernel.tile = tile;

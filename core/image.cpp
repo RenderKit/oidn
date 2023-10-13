@@ -12,13 +12,13 @@ OIDN_NAMESPACE_BEGIN
       format(format)
   {
     if (width > maxDim || height > maxDim || width * height * getC() > std::numeric_limits<int>::max())
-      throw Exception(Error::InvalidArgument, "image size too large");
+      throw Exception(Error::InvalidArgument, "image size is too large");
 
     const size_t pixelByteSize = getFormatSize(format);
     if (pixelByteStride != 0)
     {
       if (pixelByteStride < pixelByteSize)
-        throw Exception(Error::InvalidArgument, "pixel stride smaller than pixel size");
+        throw Exception(Error::InvalidArgument, "pixel stride is smaller than pixel size");
       wByteStride = pixelByteStride;
     }
     else
@@ -27,7 +27,7 @@ OIDN_NAMESPACE_BEGIN
     if (rowByteStride != 0)
     {
       if (rowByteStride < width * wByteStride)
-        throw Exception(Error::InvalidArgument, "row stride smaller than width * pixel stride");
+        throw Exception(Error::InvalidArgument, "row stride is smaller than width * pixel stride");
       hByteStride = rowByteStride;
     }
     else
@@ -42,7 +42,7 @@ OIDN_NAMESPACE_BEGIN
     : ImageDesc(format, width, height, pixelByteStride, rowByteStride)
   {
     if ((ptr == nullptr) && (byteOffset + getByteSize() > 0))
-      throw Exception(Error::InvalidArgument, "buffer region out of range");
+      throw Exception(Error::InvalidArgument, "image pointer is null");
 
     this->ptr = static_cast<char*>(ptr) + byteOffset;
   }
@@ -52,7 +52,7 @@ OIDN_NAMESPACE_BEGIN
       ImageDesc(desc)
   {
     if (byteOffset + getByteSize() > buffer->getByteSize())
-      throw Exception(Error::InvalidArgument, "buffer region out of range");
+      throw Exception(Error::InvalidArgument, "buffer region is out of range");
 
     this->ptr = static_cast<char*>(buffer->getPtr()) + byteOffset;
   }
@@ -62,7 +62,7 @@ OIDN_NAMESPACE_BEGIN
       ImageDesc(format, width, height, pixelByteStride, rowByteStride)
   {
     if (byteOffset + getByteSize() > buffer->getByteSize())
-      throw Exception(Error::InvalidArgument, "buffer region out of range");
+      throw Exception(Error::InvalidArgument, "buffer region is out of range");
 
     this->ptr = static_cast<char*>(buffer->getPtr()) + byteOffset;
   }
@@ -79,7 +79,7 @@ OIDN_NAMESPACE_BEGIN
     if (buffer)
     {
       if (byteOffset + getByteSize() > buffer->getByteSize())
-        throw std::range_error("buffer region out of range");
+        throw std::range_error("buffer region is out of range");
 
       ptr = static_cast<char*>(buffer->getPtr()) + byteOffset;
     }

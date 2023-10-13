@@ -97,7 +97,7 @@ OIDN_NAMESPACE_BEGIN
     TensorDesc finalWeightDesc = {weight->getDims(),
                                   finalWeightDims,
                                   engine->getDevice()->getWeightLayout(),
-                                  engine->getDevice()->getTensorDataType()};
+                                  engine->getDevice()->getWeightDataType()};
 
     TensorDesc finalBiasDesc = {bias->getDims(),
                                 {round_up(bias->getX(), blockC)},
@@ -116,14 +116,14 @@ OIDN_NAMESPACE_BEGIN
       conv->setDst(dstAlloc->tensor);
 
       // Reorder the weight tensor
-      auto finalWeight = engine->newTensor(finalWeightDesc);
-      reorderWeight(*weight, *finalWeight->map(Access::WriteDiscard));
-      conv->setWeight(finalWeight);
+      auto finalWeight = std::make_shared<HostTensor>(finalWeightDesc);
+      reorderWeight(*weight, *finalWeight);
+      conv->setWeight(finalWeight->toDevice(engine));
 
       // Reorder the bias tensor
-      auto finalBias = engine->newTensor(finalBiasDesc);
-      reorderBias(*bias, *finalBias->map(Access::WriteDiscard));
-      conv->setBias(finalBias);
+      auto finalBias = std::make_shared<HostTensor>(finalBiasDesc);
+      reorderBias(*bias, *finalBias);
+      conv->setBias(finalBias->toDevice(engine));
     });
 
     privateByteSize += finalWeightDesc.getByteSize() + finalBiasDesc.getByteSize();
@@ -156,7 +156,7 @@ OIDN_NAMESPACE_BEGIN
     TensorDesc finalWeightDesc = {weight->getDims(),
                                   finalWeightDims,
                                   engine->getDevice()->getWeightLayout(),
-                                  engine->getDevice()->getTensorDataType()};
+                                  engine->getDevice()->getWeightDataType()};
 
     TensorDesc finalBiasDesc = {bias->getDims(),
                                 {round_up(bias->getX(), blockC)},
@@ -177,20 +177,20 @@ OIDN_NAMESPACE_BEGIN
         concatConv->setDst(dstAlloc->tensor);
 
         // Reorder the weight tensor
-        auto finalWeight1 = engine->newTensor(concatConv->getWeight1Desc());
-        auto finalWeight2 = engine->newTensor(concatConv->getWeight2Desc());
+        auto finalWeight1 = std::make_shared<HostTensor>(concatConv->getWeight1Desc());
+        auto finalWeight2 = std::make_shared<HostTensor>(concatConv->getWeight2Desc());
 
         reorderWeight(*weight, 0, src1Desc.getC(),
-                      *finalWeight1->map(Access::WriteDiscard), 0, src1Desc.getPaddedC());
+                      *finalWeight1, 0, src1Desc.getPaddedC());
         reorderWeight(*weight, src1Desc.getC(), src2Desc.getC(),
-                      *finalWeight2->map(Access::WriteDiscard), 0, src2Desc.getPaddedC());
+                      *finalWeight2, 0, src2Desc.getPaddedC());
 
-        concatConv->setWeight(finalWeight1, finalWeight2);
+        concatConv->setWeight(finalWeight1->toDevice(engine), finalWeight2->toDevice(engine));
 
         // Reorder the bias tensor
-        auto finalBias = engine->newTensor(finalBiasDesc);
-        reorderBias(*bias, *finalBias->map(Access::WriteDiscard));
-        concatConv->setBias(finalBias);
+        auto finalBias = std::make_shared<HostTensor>(finalBiasDesc);
+        reorderBias(*bias, *finalBias);
+        concatConv->setBias(finalBias->toDevice(engine));
       });
 
       privateByteSize += concatConv->getWeight1Desc().getByteSize() +
@@ -210,22 +210,19 @@ OIDN_NAMESPACE_BEGIN
         concatConv->setDst(dstAlloc->tensor);
 
         // Reorder the weight tensor
-        auto finalWeight = engine->newTensor(finalWeightDesc);
+        auto finalWeight = std::make_shared<HostTensor>(finalWeightDesc);
 
-        {
-          auto finalWeightHost = finalWeight->map(Access::WriteDiscard);
-          reorderWeight(*weight, 0, src1Desc.getC(),
-                        *finalWeightHost, 0, src1Desc.getPaddedC());
-          reorderWeight(*weight, src1Desc.getC(), src2Desc.getC(),
-                        *finalWeightHost, src1Desc.getPaddedC(), src2Desc.getPaddedC());
-        }
+        reorderWeight(*weight, 0, src1Desc.getC(),
+                      *finalWeight, 0, src1Desc.getPaddedC());
+        reorderWeight(*weight, src1Desc.getC(), src2Desc.getC(),
+                      *finalWeight, src1Desc.getPaddedC(), src2Desc.getPaddedC());
 
-        concatConv->setWeight(finalWeight);
+        concatConv->setWeight(finalWeight->toDevice(engine));
 
         // Reorder the bias tensor
-        auto finalBias = engine->newTensor(finalBiasDesc);
-        reorderBias(*bias, *finalBias->map(Access::WriteDiscard));
-        concatConv->setBias(finalBias);
+        auto finalBias = std::make_shared<HostTensor>(finalBiasDesc);
+        reorderBias(*bias, *finalBias);
+        concatConv->setBias(finalBias->toDevice(engine));
       });
 
       privateByteSize += finalWeightDesc.getByteSize() + finalBiasDesc.getByteSize();
@@ -543,7 +540,13 @@ OIDN_NAMESPACE_BEGIN
         dst = upsample->getDst();
 
       if (dst)
+      {
+        std::cout << std::setfill('0') << std::setw(2) << i << ": "
+                  << std::hex << std::setfill('0') << std::setw(8) << dst->getHash() << std::dec
+                  << " " << ops[i]->getName() << std::endl;
+
         dst->dump(toString(i) + "_" + ops[i]->getName() + "_");
+      }
     #endif
 
       progress.update(engine, 1);

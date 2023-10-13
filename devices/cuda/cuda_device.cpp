@@ -91,13 +91,17 @@ OIDN_NAMESPACE_BEGIN
 
   CUDADevice::~CUDADevice()
   {
-    // Make sure to free up all resources inside a begin/end block
-    begin();
-    engine = nullptr;
-    end();
+    // We *must* free all CUDA resources inside an enter/leave block
+    try
+    {
+      enter();
+      engine.reset();
+      leave();
+    }
+    catch (...) {}
   }
 
-  void CUDADevice::begin()
+  void CUDADevice::enter()
   {
     assert(prevDeviceID < 0);
 
@@ -109,7 +113,7 @@ OIDN_NAMESPACE_BEGIN
       checkError(cudaSetDevice(deviceID));
   }
 
-  void CUDADevice::end()
+  void CUDADevice::leave()
   {
     assert(prevDeviceID >= 0);
 
@@ -144,6 +148,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Set device properties
     tensorDataType = DataType::Float16;
+    weightDataType = DataType::Float16;
     tensorLayout   = TensorLayout::hwc;
     weightLayout   = TensorLayout::ohwi;
     tensorBlockC   = 8; // required by Tensor Core operations

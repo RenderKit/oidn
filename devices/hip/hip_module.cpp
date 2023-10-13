@@ -18,6 +18,11 @@ OIDN_NAMESPACE_BEGIN
     {
       if (numPairs != 1)
         throw Exception(Error::InvalidArgument, "invalid number of HIP devices/streams");
+      if (deviceIDs == nullptr)
+        throw Exception(Error::InvalidArgument, "array of HIP devices is null");
+      if (streams == nullptr)
+        throw Exception(Error::InvalidArgument, "array of HIP streams is null");
+
       return makeRef<HIPDevice>(deviceIDs[0], streams[0]);
     }
 

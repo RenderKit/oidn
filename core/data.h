@@ -16,7 +16,13 @@ OIDN_NAMESPACE_BEGIN
     Data() : ptr(nullptr), size(0) {}
 
     template<typename T>
-    Data(T* ptr, size_t size) : ptr(ptr), size(size) {}
+    Data(T* ptr, size_t size)
+      : ptr(ptr),
+        size(size)
+    {
+      if (ptr == nullptr && size > 0)
+        throw Exception(Error::InvalidArgument, "data pointer is null");
+    }
 
     template<typename T, size_t N>
     Data(T (&array)[N]) : ptr(array), size(sizeof(array)) {}

@@ -72,7 +72,9 @@ OIDN_NAMESPACE_BEGIN
   void MetalBuffer::read(size_t byteOffset, size_t byteSize, void* dstHostPtr, SyncMode sync)
   {
     if (byteOffset + byteSize > this->byteSize)
-      throw Exception(Error::InvalidArgument, "buffer region out of range");
+      throw Exception(Error::InvalidArgument, "buffer region is out of range");
+    if (dstHostPtr == nullptr && byteSize > 0)
+      throw Exception(Error::InvalidArgument, "destination host pointer is null");
 
     @autoreleasepool
     {
@@ -108,7 +110,9 @@ OIDN_NAMESPACE_BEGIN
   void MetalBuffer::write(size_t byteOffset, size_t byteSize, const void* srcHostPtr, SyncMode sync)
   {
     if (byteOffset + byteSize > this->byteSize)
-      throw Exception(Error::InvalidArgument, "buffer region out of range");
+      throw Exception(Error::InvalidArgument, "buffer region is out of range");
+    if (srcHostPtr == nullptr && byteSize > 0)
+      throw Exception(Error::InvalidArgument, "source host pointer is null");
 
     @autoreleasepool
     {

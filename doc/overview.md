@@ -73,6 +73,11 @@ For Intel GPU support, please also install the latest Intel graphics drivers:
     31.0.101.4314 or newer for Intel® Arc™ Graphics, 11th-13th Gen Intel® Core™
     processor graphics, and related Intel Pentium® and Celeron® processors
 
+    **Note:** Vulkan interop on Intel® Arc™ Graphics is broken in driver
+    versions 31.0.101.4887 and 31.0.101.4885. We strongly recommend to use a
+    different driver. As of 10/12/2023, the last known good version is
+    31.0.101.4826.
+
 -   Linux:
     [Intel® software for General Purpose GPU capabilities](https://dgpu-docs.intel.com/driver/installation.html)
     release [20230323](https://dgpu-docs.intel.com/releases/stable_602_20230323.html)
@@ -114,3 +119,19 @@ request); for missing features please contact us via email at
 
 Join our [mailing list](https://groups.google.com/d/forum/openimagedenoise/) to
 receive release announcements and major news regarding Intel Open Image Denoise.
+
+
+Citation
+--------
+
+If you use Intel Open Image Denoise in a research publication, please cite the
+project using the following BibTeX entry:
+
+```bibtex
+@misc{OpenImageDenoise,
+  author = {Attila T. {\'A}fra},
+  title  = {{Intel\textsuperscript{\textregistered} Open Image Denoise}},
+  year   = {2023},
+  note   = {\url{https://www.openimagedenoise.org}}
+}
+```

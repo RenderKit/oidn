@@ -7,6 +7,12 @@
 #include "sycl_device.h"
 #include <optional>
 
+#if __LIBSYCL_MAJOR_VERSION >= 7
+  #include <sycl/ext/intel/experimental/grf_size_properties.hpp>
+#else
+  #include <sycl/ext/intel/experimental/kernel_properties.hpp>
+#endif
+
 OIDN_NAMESPACE_BEGIN
 
   class SYCLEngine : public Engine
@@ -105,6 +111,29 @@ OIDN_NAMESPACE_BEGIN
         sycl::nd_range<N>(numGroups * groupSize, groupSize),
         getDepEvents(),
         [=](sycl::nd_item<N> it) SYCL_ESIMD_KERNEL { kernel(it); });
+    }
+
+    // Enqueues a work-group ESIMD kernel with large GRF
+    template<int N, typename F>
+    OIDN_INLINE void submitESIMDKernelWithLargeGRF(WorkDim<N> numGroups, WorkDim<N> groupSize, const F& f)
+    {
+    #if __LIBSYCL_MAJOR_VERSION >= 7
+      sycl::ext::oneapi::experimental::properties props{sycl::ext::intel::experimental::grf_size<256>};
+      lastEvent = syclQueue.parallel_for<F>(
+        sycl::nd_range<N>(numGroups * groupSize, groupSize),
+        getDepEvents(),
+        props,
+        [=](sycl::nd_item<N> it) SYCL_ESIMD_KERNEL { f(it); });
+    #else
+      lastEvent = syclQueue.parallel_for<F>(
+        sycl::nd_range<N>(numGroups * groupSize, groupSize),
+        getDepEvents(),
+        [=](sycl::nd_item<N> it) SYCL_ESIMD_KERNEL
+        {
+          syclx::set_kernel_properties(syclx::kernel_properties::use_large_grf);
+          f(it);
+        });
+    #endif
     }
 
     void submitHostFunc(std::function<void()>&& f) override;

@@ -124,11 +124,11 @@ OIDN_NAMESPACE_BEGIN
     lazyInits.push_back([=]()
     {
       // Reorder the weight tensor
-      auto finalHostWeight = std::make_shared<GenericTensor>(finalWeightDesc);
+      auto finalHostWeight = std::make_shared<HostTensor>(finalWeightDesc);
       reorderWeight(*weight, *finalHostWeight);
 
       // Reorder the bias tensor
-      auto finalHostBias = std::make_shared<GenericTensor>(finalBiasDesc);
+      auto finalHostBias = std::make_shared<HostTensor>(finalBiasDesc);
       reorderBias(*bias, *finalHostBias);
 
       auto finalWeight = toMPSGraphTensor(graph, finalHostWeight);

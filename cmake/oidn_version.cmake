@@ -2,7 +2,7 @@
 ## SPDX-License-Identifier: Apache-2.0
 
 set(OIDN_VERSION_MAJOR 2)
-set(OIDN_VERSION_MINOR 1)
+set(OIDN_VERSION_MINOR 2)
 set(OIDN_VERSION_PATCH 0)
 set(OIDN_VERSION_NOTE "-devel")
 

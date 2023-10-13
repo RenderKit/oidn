@@ -149,6 +149,8 @@ OIDN_NAMESPACE_BEGIN
 
   #if defined(OIDN_DNNL)
     tensorDataType = DataType::Float32;
+    weightDataType = DataType::Float32;
+
     if (arch == CPUArch::AVX512)
     {
       tensorLayout = TensorLayout::Chw16c;

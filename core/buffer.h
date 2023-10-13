@@ -19,15 +19,6 @@ OIDN_NAMESPACE_BEGIN
   class Device;
   class Engine;
 
-  // Access modes for mapping buffers
-  enum class Access
-  {
-    Read,         // read-only access
-    Write,        // write-only access
-    ReadWrite,    // read and write access
-    WriteDiscard, // write-only access, previous contents discarded
-  };
-
   // -----------------------------------------------------------------------------------------------
   // Buffer
   // -----------------------------------------------------------------------------------------------
@@ -49,9 +40,6 @@ OIDN_NAMESPACE_BEGIN
     virtual void read(size_t byteOffset, size_t byteSize, void* dstHostPtr, SyncMode sync = SyncMode::Sync);
     virtual void write(size_t byteOffset, size_t byteSize, const void* srcHostPtr, SyncMode sync = SyncMode::Sync);
 
-    virtual void* map(size_t byteOffset, size_t byteSize, Access access);
-    virtual void unmap(void* hostPtr);
-
     // Reallocates the buffer with a new size discarding its current contents
     virtual void realloc(size_t newByteSize);
 
@@ -62,30 +50,6 @@ OIDN_NAMESPACE_BEGIN
     // Memory objects backed by the buffer must attach themselves
     virtual void attach(Memory* mem) {}
     virtual void detach(Memory* mem) {}
-  };
-
-  // -----------------------------------------------------------------------------------------------
-  // MappedBuffer
-  // -----------------------------------------------------------------------------------------------
-
-  // Memory mapped version of a buffer
-  class MappedBuffer final : public Buffer
-  {
-  public:
-    MappedBuffer(const Ref<Buffer>& buffer, size_t byteOffset, size_t byteSize, Access access);
-    ~MappedBuffer();
-
-    Engine* getEngine() const override { return buffer->getEngine(); }
-
-    void* getPtr() const override { return ptr; }
-    void* getHostPtr() const override { return ptr; }
-    size_t getByteSize() const override { return byteSize; }
-    Storage getStorage() const override { return Storage::Undefined; }
-
-  private:
-    char* ptr;
-    size_t byteSize;
-    Ref<Buffer> buffer;
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -107,9 +71,6 @@ OIDN_NAMESPACE_BEGIN
     size_t getByteSize() const override { return byteSize; }
     Storage getStorage() const override { return storage; }
 
-    void* map(size_t byteOffset, size_t byteSize, Access access) override;
-    void unmap(void* hostPtr) override;
-
     void read(size_t byteOffset, size_t byteSize, void* dstHostPtr, SyncMode sync) override;
     void write(size_t byteOffset, size_t byteSize, const void* srcHostPtr, SyncMode sync) override;
 
@@ -117,23 +78,11 @@ OIDN_NAMESPACE_BEGIN
 
   protected:
     explicit USMBuffer(const Ref<Engine>& engine);
-    void unmapAll();
 
     char* ptr;
     size_t byteSize;
     bool shared;
     Storage storage;
-
-  private:
-    struct MappedRegion
-    {
-      void* devPtr;
-      size_t byteOffset;
-      size_t byteSize;
-      Access access;
-    };
-
-    std::unordered_map<void*, MappedRegion> mappedRegions;
     Ref<Engine> engine;
   };
 
@@ -167,6 +116,10 @@ OIDN_NAMESPACE_BEGIN
     virtual void updatePtr() = 0;
 
   protected:
+    // Disable copying
+    Memory(const Memory&) = delete;
+    Memory& operator =(const Memory&) = delete;
+
     Ref<Buffer> buffer; // buffer containing the data
     size_t byteOffset;  // offset in the buffer
   };

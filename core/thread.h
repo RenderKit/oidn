@@ -83,6 +83,10 @@ OIDN_NAMESPACE_BEGIN
     }
 
   private:
+    // Disable copying
+    ThreadLocal(const ThreadLocal&) = delete;
+    ThreadLocal& operator =(const ThreadLocal&) = delete;
+
   #if defined(_WIN32)
     DWORD key;
   #else

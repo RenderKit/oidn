@@ -51,7 +51,7 @@ OIDN_NAMESPACE_BEGIN
     }
   };
 
-  template<typename EngineT, typename TensorDataT, TensorLayout tensorLayout>
+  template<typename EngineT, typename SrcDstT, TensorLayout srcDstLayout>
   class GPUUpsample : public Upsample
   {
   public:
@@ -65,11 +65,11 @@ OIDN_NAMESPACE_BEGIN
       if (!src || !dst)
         throw std::logic_error("upsampling source/destination not set");
 
-      GPUUpsampleKernel<TensorDataT, tensorLayout> kernel;
+      GPUUpsampleKernel<SrcDstT, srcDstLayout> kernel;
       kernel.src = *src;
       kernel.dst = *dst;
 
-      if (tensorLayout == TensorLayout::hwc)
+      if (srcDstLayout == TensorLayout::hwc)
         engine->submitKernel(WorkDim<3>(src->getH(), src->getW(), src->getPaddedC()), kernel);
       else
         engine->submitKernel(WorkDim<3>(src->getPaddedC(), src->getH(), src->getW()), kernel);

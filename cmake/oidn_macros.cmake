@@ -34,7 +34,7 @@ macro(append_if condition var value)
 endmacro()
 
 # Generates C++ files from the specified binary blobs
-find_package(PythonInterp REQUIRED)
+find_package(Python REQUIRED)
 function(oidn_generate_cpp_from_blob out_sources namespace)
   set(${out_sources})
   foreach(in_file ${ARGN})
@@ -48,7 +48,7 @@ function(oidn_generate_cpp_from_blob out_sources namespace)
     add_custom_command(
       OUTPUT ${out_cpp_path} ${out_hpp_path}
       COMMAND ${CMAKE_COMMAND} -E make_directory ${out_dir}
-      COMMAND ${PYTHON_EXECUTABLE}
+      COMMAND ${Python_EXECUTABLE}
       ARGS ${OIDN_ROOT_SOURCE_DIR}/scripts/blob_to_cpp.py ${in_path} -o ${out_cpp_path} -H ${out_hpp_path} -n ${namespace}
       DEPENDS ${in_path}
       COMMENT "Generating CXX source files from blob ${in_path}"

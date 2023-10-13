@@ -15,7 +15,7 @@ OIDN_NAMESPACE_BEGIN
     : Tensor(buffer, desc, byteOffset)
   {
     if (byteOffset + getByteSize() > buffer->getByteSize())
-      throw Exception(Error::InvalidArgument, "buffer region out of range");
+      throw Exception(Error::InvalidArgument, "buffer region is out of range");
 
     mem = dnnl::memory(toDNNL(getDesc()),
                        static_cast<DNNLEngine*>(buffer->getEngine())->getDNNLEngine(),
@@ -27,7 +27,7 @@ OIDN_NAMESPACE_BEGIN
     if (buffer)
     {
       if (byteOffset + getByteSize() > buffer->getByteSize())
-        throw std::range_error("buffer region out of range");
+        throw std::range_error("buffer region is out of range");
 
       mem.set_data_handle(static_cast<char*>(buffer->getPtr()) + byteOffset);
     }

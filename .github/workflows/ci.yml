@@ -10,10 +10,11 @@ concurrency:
 jobs:
   build-rockylinux8:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
-      image: oidn/rockylinux:8.6
+      image: oidn/rockylinux:8.8
+      dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       cmd: scripts/build.py install --full
       artifact-out: build-rockylinux8
       artifact-path: build install deps
@@ -21,78 +22,152 @@ jobs:
   # FIXME: enable AOT and HIP
   build-rockylinux8-debug:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
-      image: oidn/rockylinux:8.6
+      image: oidn/rockylinux:8.8
+      dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       cmd: scripts/build.py install --compiler clang --config Debug -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=OFF -D OIDN_DEVICE_CUDA=ON
       artifact-out: build-rockylinux8-debug
       artifact-path: build install deps
 
   build-rockylinux8-jit:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
-      image: oidn/rockylinux:8.6
+      image: oidn/rockylinux:8.8
+      dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       cmd: scripts/build.py install --full -D OIDN_DEVICE_SYCL_AOT=OFF
       artifact-out: build-rockylinux8-jit
       artifact-path: build install deps
 
-  build-rockylinux8-namespace:
+  build-rockylinux8-static:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
-      image: oidn/rockylinux:8.6
+      image: oidn/rockylinux:8.8
+      dpcpp-version: intel-llvm/nightly-2023-09-22-rk
+      cmd: scripts/build.py install --full -D OIDN_STATIC_LIB=ON
+      artifact-out: build-rockylinux8-static
+      artifact-path: build install deps
+
+  build-rockylinux8-namespace:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      image: oidn/rockylinux:8.8
+      dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
       artifact-out: build-rockylinux8-namespace
+      artifact-path: build install deps
+
+  build-rockylinux8-namespace-static:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      image: oidn/rockylinux:8.8
+      dpcpp-version: intel-llvm/nightly-2023-09-22-rk
+      cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn -D OIDN_STATIC_LIB=ON
+      artifact-out: build-rockylinux8-namespace-static
       artifact-path: build install deps
 
   # FIXME: enable AOT and HIP
   build-rockylinux8-namespace-debug:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
-      image: oidn/rockylinux:8.6
+      image: oidn/rockylinux:8.8
+      dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       cmd: scripts/build.py install --compiler clang --config Debug -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=OFF -D OIDN_DEVICE_CUDA=ON -D OIDN_API_NAMESPACE=myoidn
       artifact-out: build-rockylinux8-namespace-debug
       artifact-path: build install deps
 
   build-rockylinux8-gcc:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
-      image: oidn/rockylinux:8.6
+      image: oidn/rockylinux:8.8
+      dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       cmd: scripts/build.py install --compiler gcc -D OIDN_DEVICE_CUDA=ON -D OIDN_DEVICE_HIP=ON
       artifact-out: build-rockylinux8-gcc
       artifact-path: build install deps
 
   build-rockylinux8-gcc-debug:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
-      image: oidn/rockylinux:8.6
+      image: oidn/rockylinux:8.8
+      dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       cmd: scripts/build.py install --compiler gcc --config Debug -D OIDN_DEVICE_CUDA=ON
       artifact-out: build-rockylinux8-gcc-debug
       artifact-path: build install deps
 
   build-rockylinux8-gcc-minimal:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
-      image: oidn/rockylinux:8.6
+      image: oidn/rockylinux:8.8
+      dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       cmd: scripts/build.py install --compiler gcc -D OIDN_FILTER_RT=OFF -D OIDN_FILTER_RTLIGHTMAP=OFF
       artifact-out: build-rockylinux8-gcc-minimal
       artifact-path: build install deps
 
+  build-rockylinux8-gta-aotjit:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      image: oidn/rockylinux:8.8
+      dpcpp-version: intel-llvm/nightly-2023-09-22-rk
+      cmd: >
+        scripts/build.py install --install_dir oidn-gta-aotjit-lin --compiler clang
+        -D OIDN_DEVICE_CPU=OFF
+        -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=ON -D OIDN_DEVICE_SYCL_JIT_FALLBACK=ON
+        -D OIDN_INSTALL_DEPENDENCIES=ON -D OIDN_ZIP_MODE=ON
+      artifact-out: build-rockylinux8-gta-aotjit
+      artifact-path: oidn-gta-aotjit-lin
+
+  build-rockylinux8-gta-aot:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      image: oidn/rockylinux:8.8
+      dpcpp-version: intel-llvm/nightly-2023-09-22-rk
+      cmd: >
+        scripts/build.py install --install_dir oidn-gta-aot-lin --compiler clang
+        -D OIDN_DEVICE_CPU=OFF
+        -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=ON -D OIDN_DEVICE_SYCL_JIT_FALLBACK=OFF
+        -D OIDN_INSTALL_DEPENDENCIES=ON -D OIDN_ZIP_MODE=ON
+      artifact-out: build-rockylinux8-gta-aot
+      artifact-path: oidn-gta-aot-lin
+
+  build-rockylinux8-gta-jit:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      image: oidn/rockylinux:8.8
+      dpcpp-version: intel-llvm/nightly-2023-09-22-rk
+      cmd: >
+        scripts/build.py install --install_dir oidn-gta-jit-lin --compiler clang
+        -D OIDN_DEVICE_CPU=OFF
+        -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=OFF -D OIDN_DEVICE_SYCL_JIT_CACHE=OFF
+        -D OIDN_INSTALL_DEPENDENCIES=ON -D OIDN_ZIP_MODE=ON
+      artifact-out: build-rockylinux8-gta-jit
+      artifact-path: oidn-gta-jit-lin
+
   build-ubuntu2204:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
       image: oidn/ubuntu:22.04
@@ -100,51 +175,53 @@ jobs:
       artifact-out: build-ubuntu2204
       artifact-path: build install deps
 
-  build-ubuntu2204-gta-aotjit:
+  build-ubuntu2204-gcc:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
       image: oidn/ubuntu:22.04
-      cmd: >
-        scripts/build.py install --install_dir oidn-gta-aotjit-lin --compiler clang
-        -D OIDN_DEVICE_CPU=OFF
-        -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=ON -D OIDN_DEVICE_SYCL_JIT_FALLBACK=ON
-        -D OIDN_INSTALL_DEPENDENCIES=ON -D OIDN_ZIP_MODE=ON
-      artifact-out: build-ubuntu2204-gta-aotjit
-      artifact-path: oidn-gta-aotjit-lin
+      cmd: scripts/build.py install --compiler gcc -D OIDN_DEVICE_CUDA=ON -D OIDN_DEVICE_HIP=ON
+      artifact-out: build-ubuntu2204-gcc
+      artifact-path: build install deps
 
-  build-ubuntu2204-gta-aot:
+  build-ubuntu2204-gcc-debug:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
       image: oidn/ubuntu:22.04
-      cmd: >
-        scripts/build.py install --install_dir oidn-gta-aot-lin --compiler clang
-        -D OIDN_DEVICE_CPU=OFF
-        -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=ON -D OIDN_DEVICE_SYCL_JIT_FALLBACK=OFF
-        -D OIDN_INSTALL_DEPENDENCIES=ON -D OIDN_ZIP_MODE=ON
-      artifact-out: build-ubuntu2204-gta-aot
-      artifact-path: oidn-gta-aot-lin
+      cmd: scripts/build.py install --compiler gcc --config Debug -D OIDN_DEVICE_CUDA=ON
+      artifact-out: build-ubuntu2204-gcc-debug
+      artifact-path: build install deps
 
-  build-ubuntu2204-gta-jit:
+  build-ubuntu2204-gcc-namespace:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
       image: oidn/ubuntu:22.04
       cmd: >
-        scripts/build.py install --install_dir oidn-gta-jit-lin --compiler clang
-        -D OIDN_DEVICE_CPU=OFF
-        -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=OFF -D OIDN_DEVICE_SYCL_JIT_CACHE=OFF
-        -D OIDN_INSTALL_DEPENDENCIES=ON -D OIDN_ZIP_MODE=ON
-      artifact-out: build-ubuntu2204-gta-jit
-      artifact-path: oidn-gta-jit-lin
+        scripts/build.py install --compiler gcc -D OIDN_DEVICE_CUDA=ON -D OIDN_DEVICE_HIP=ON
+        -D OIDN_API_NAMESPACE=myoidn
+      artifact-out: build-ubuntu2204-gcc-namespace
+      artifact-path: build install deps
+
+  build-ubuntu2204-gcc-namespace-static:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      image: oidn/ubuntu:22.04
+      cmd: >
+        scripts/build.py install --compiler gcc -D OIDN_DEVICE_CUDA=ON -D OIDN_DEVICE_HIP=ON
+        -D OIDN_API_NAMESPACE=myoidn -D OIDN_STATIC_LIB=ON
+      artifact-out: build-ubuntu2204-gcc-namespace-static
+      artifact-path: build install deps
 
   # build-ubuntu1804-gcc:
   #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
   #   with:
   #     project: oidn
   #     image: oidn-build:ubuntu18.04
@@ -154,7 +231,7 @@ jobs:
 
   # build-ubuntu1804-gcc-debug:
   #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
   #   with:
   #     project: oidn
   #     image: oidn-build:ubuntu18.04
@@ -164,7 +241,7 @@ jobs:
 
   # build-ubuntu1804-clang:
   #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
   #   with:
   #     project: oidn
   #     image: oidn-build:ubuntu18.04
@@ -172,7 +249,7 @@ jobs:
 
   # build-ubuntu1804-gcc-tbb2007:
   #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
   #   with:
   #     project: oidn
   #     image: oidn-build:ubuntu18.04
@@ -184,7 +261,7 @@ jobs:
 
   build-ubuntu2004-gcc-oiio:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
       image: oidn-build:ubuntu20.04
@@ -196,7 +273,7 @@ jobs:
 
   # build-ubuntu2004-gcc-minimal:
   #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
   #   with:
   #     project: oidn
   #     image: oidn-build:ubuntu20.04
@@ -204,7 +281,7 @@ jobs:
 
   build-arch-gcc-oiio:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
       image: oidn-build:arch
@@ -217,11 +294,11 @@ jobs:
   test-rockylinux8-avx2:
     needs: build-rockylinux8
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "avx2" ]'
-      image: oidn/rockylinux:8.6
+      image: oidn/rockylinux:8.8
       artifact-in: build-rockylinux8
       artifact-out: test-rockylinux8-avx2
       artifact-path: test.log
@@ -231,26 +308,85 @@ jobs:
   test-rockylinux8-avx512:
     needs: build-rockylinux8
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "avx512" ]'
-      image: oidn/rockylinux:8.6
+      image: oidn/rockylinux:8.8
       artifact-in: build-rockylinux8
       artifact-out: test-rockylinux8-avx512
       artifact-path: test.log
       artifact-on-failure: true
       cmd: scripts/test.py --device cpu --log test.log
 
+  test-rockylinux8-static-avx512:
+    needs: build-rockylinux8-static
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Linux", "avx512" ]'
+      image: oidn/rockylinux:8.8
+      artifact-in: build-rockylinux8-static
+      artifact-out: test-rockylinux8-static-avx512
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: scripts/test.py --device cpu --log test.log
+
+  test-rockylinux8-dg2:
+    needs: build-rockylinux8
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Linux", "dg2" ]'
+      image: oidn/ubuntu:22.04
+      options: --device=/dev/dri:/dev/dri
+      artifact-in: build-rockylinux8
+      artifact-out: test-rockylinux8-dg2
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: scripts/test.py --device sycl --log test.log
+
+  test-rockylinux8-pvc:
+    needs: build-rockylinux8
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Linux", "pvc" ]'
+      image: oidn/ubuntu:22.04
+      options: --device=/dev/dri:/dev/dri
+      artifact-in: build-rockylinux8
+      artifact-out: test-rockylinux8-pvc
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: scripts/test.py --device sycl --log test.log
+
+  test-rockylinux8-namespace-static-dg2:
+    needs: build-rockylinux8-namespace-static
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Linux", "dg2" ]'
+      image: oidn/ubuntu:22.04
+      options: --device=/dev/dri:/dev/dri
+      artifact-in: build-rockylinux8-namespace-static
+      artifact-out: test-rockylinux8-namespace-static-dg2
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: scripts/test.py --device sycl --log test.log
+
   # TODO: Install SDE
   # test-rockylinux8-sse4:
   #   needs: build-rockylinux8
   #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
   #   with:
   #     project: oidn
   #     runs-on: '[ "Linux", "build" ]'
-  #     image: oidn/rockylinux:8.6
+  #     image: oidn/rockylinux:8.8
   #     artifact-in: build-rockylinux8
   #     artifact-out: test-rockylinux8-sse4
   #     artifact-path: test.log
@@ -260,11 +396,11 @@ jobs:
   test-rockylinux8-debug-avx2:
     needs: build-rockylinux8-debug
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "avx2" ]'
-      image: oidn/rockylinux:8.6
+      image: oidn/rockylinux:8.8
       artifact-in: build-rockylinux8-debug
       artifact-out: test-rockylinux8-debug-avx2
       artifact-path: test.log
@@ -274,11 +410,11 @@ jobs:
   test-rockylinux8-namespace-avx2:
     needs: build-rockylinux8-namespace
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "avx2" ]'
-      image: oidn/rockylinux:8.6
+      image: oidn/rockylinux:8.8
       artifact-in: build-rockylinux8-namespace
       artifact-out: test-rockylinux8-namespace-avx2
       artifact-path: test.log
@@ -288,7 +424,7 @@ jobs:
   # test-ubuntu1804-gcc-avx2:
   #   needs: build-ubuntu1804-gcc
   #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
   #   with:
   #     project: oidn
   #     runs-on: '[ "Linux", "avx2" ]'
@@ -299,7 +435,7 @@ jobs:
   # test-ubuntu1804-gcc-avx512:
   #   needs: build-ubuntu1804-gcc
   #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
   #   with:
   #     project: oidn
   #     runs-on: '[ "Linux", "avx512" ]'
@@ -310,7 +446,7 @@ jobs:
   # test-ubuntu1804-gcc-sse4:
   #   needs: build-ubuntu1804-gcc
   #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
   #   with:
   #     project: oidn
   #     runs-on: '[ "Linux", "build" ]'
@@ -321,7 +457,7 @@ jobs:
   # test-ubuntu1804-gcc-debug-avx2:
   #   needs: build-ubuntu1804-gcc-debug
   #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
   #   with:
   #     project: oidn
   #     runs-on: '[ "Linux", "avx2" ]'
@@ -332,7 +468,7 @@ jobs:
   # test-ubuntu1804-gcc-debug-avx512:
   #   needs: build-ubuntu1804-gcc-debug
   #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
   #   with:
   #     project: oidn
   #     runs-on: '[ "Linux", "avx512" ]'
@@ -349,6 +485,16 @@ jobs:
       artifact-out: build-macos-arm
       artifact-path: build install deps
       cmd: scripts/build.py install --full
+
+  build-macos-arm-static:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "macOS", "build", "arm" ]'
+      artifact-out: build-macos-arm-static
+      artifact-path: build install deps
+      cmd: scripts/build.py install --full -D OIDN_STATIC_LIB=ON
 
   build-macos-debug-arm:
     secrets: inherit
@@ -370,6 +516,16 @@ jobs:
       artifact-path: build install deps
       cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
 
+  build-macos-namespace-arm-static:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "macOS", "build", "arm" ]'
+      artifact-out: build-macos-namespace-arm-static
+      artifact-path: build install deps
+      cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn -D OIDN_STATIC_LIB=ON
+
   test-macos-arm:
     needs: build-macos-arm
     secrets: inherit
@@ -380,6 +536,20 @@ jobs:
       artifact-in: build-macos-arm
       artifact-out: test-macos-arm
       artifact-path: test.log
+      artifact-on-failure: true
+      cmd: scripts/test.py --device cpu --log test.log
+
+  test-macos-arm-static:
+    needs: build-macos-arm-static
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "macOS", "build", "arm" ]'
+      artifact-in: build-macos-arm-static
+      artifact-out: test-macos-arm-static
+      artifact-path: test.log
+      artifact-on-failure: true
       cmd: scripts/test.py --device cpu --log test.log
 
   test-macos-debug-arm:
@@ -392,6 +562,7 @@ jobs:
       artifact-in: build-macos-debug-arm
       artifact-out: test-macos-debug-arm
       artifact-path: test.log
+      artifact-on-failure: true
       cmd: scripts/test.py --device cpu --minimal --log test.log
 
   test-macos-namespace-arm:
@@ -404,6 +575,7 @@ jobs:
       artifact-in: build-macos-namespace-arm
       artifact-out: test-macos-namespace-arm
       artifact-path: test.log
+      artifact-on-failure: true
       cmd: scripts/test.py --device cpu --log test.log
 
   build-macos:
@@ -446,6 +618,7 @@ jobs:
       artifact-in: build-macos
       artifact-out: test-macos-avx2
       artifact-path: test.log
+      artifact-on-failure: true
       cmd: scripts/test.py --device cpu --minimal --log test.log
 
   test-macos-avx512:
@@ -458,6 +631,7 @@ jobs:
       artifact-in: build-macos
       artifact-out: test-macos-avx512
       artifact-path: test.log
+      artifact-on-failure: true
       cmd: scripts/test.py --device cpu --log test.log
 
   test-macos-debug-avx2:
@@ -470,6 +644,7 @@ jobs:
       artifact-in: build-macos-debug
       artifact-out: test-macos-debug-avx2
       artifact-path: test.log
+      artifact-on-failure: true
       cmd: scripts/test.py --device cpu --minimal --log test.log
 
   test-macos-namespace-avx2:
@@ -482,6 +657,7 @@ jobs:
       artifact-in: build-macos-namespace
       artifact-out: test-macos-namespace-avx2
       artifact-path: test.log
+      artifact-on-failure: true
       cmd: scripts/test.py --device cpu --minimal --log test.log
 
   build-windows:
@@ -491,12 +667,24 @@ jobs:
       project: oidn
       runs-on: '[ "Windows", "build", "cuda" ]'
       msvc-version: "2022"
-      dpcpp-version: sycl-nightly/20221215
-      ocloc-version: 9926f1ea-209e-42b3-94db-a1f895ee56ce/ocloc_win_101.4314
-      rocm-version: rocm/5.5.0
+      dpcpp-version: intel-llvm/nightly-2023-09-22-rk
+      ocloc-version: fcd74e0e-43b3-4930-9bad-29c8b9581339/ocloc_win_101.4824
       artifact-out: build-windows
       artifact-path: build install
       cmd: python scripts/build.py install --full
+
+  build-windows-static:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "build", "cuda" ]'
+      msvc-version: "2022"
+      dpcpp-version: intel-llvm/nightly-2023-09-22-rk
+      ocloc-version: fcd74e0e-43b3-4930-9bad-29c8b9581339/ocloc_win_101.4824
+      artifact-out: build-windows-static
+      artifact-path: build install
+      cmd: python scripts/build.py install --full -D OIDN_STATIC_LIB=ON
 
   # FIXME: enable AOT and HIP
   build-windows-debug:
@@ -505,9 +693,8 @@ jobs:
     with:
       project: oidn
       runs-on: '[ "Windows", "build", "cuda" ]'
-      dpcpp-version: sycl-nightly/20221215
-      ocloc-version: 9926f1ea-209e-42b3-94db-a1f895ee56ce/ocloc_win_101.4314
-      rocm-version: rocm/5.5.0
+      dpcpp-version: intel-llvm/nightly-2023-09-22-rk
+      ocloc-version: fcd74e0e-43b3-4930-9bad-29c8b9581339/ocloc_win_101.4824
       artifact-out: build-windows-debug
       artifact-path: build install
       cmd: >
@@ -520,12 +707,23 @@ jobs:
     with:
       project: oidn
       runs-on: '[ "Windows", "build", "cuda" ]'
-      dpcpp-version: sycl-nightly/20221215
-      ocloc-version: 9926f1ea-209e-42b3-94db-a1f895ee56ce/ocloc_win_101.4314
-      rocm-version: rocm/5.5.0
+      dpcpp-version: intel-llvm/nightly-2023-09-22-rk
+      ocloc-version: fcd74e0e-43b3-4930-9bad-29c8b9581339/ocloc_win_101.4824
       artifact-out: build-windows-namespace
       artifact-path: build install
       cmd: python scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
+
+  build-windows-namespace-static:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "build", "cuda" ]'
+      dpcpp-version: intel-llvm/nightly-2023-09-22-rk
+      ocloc-version: fcd74e0e-43b3-4930-9bad-29c8b9581339/ocloc_win_101.4824
+      artifact-out: build-windows-namespace-static
+      artifact-path: build install
+      cmd: python scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn -D OIDN_STATIC_LIB=ON
 
   build-windows-gta-aotjit:
     secrets: inherit
@@ -534,9 +732,8 @@ jobs:
       project: oidn
       runs-on: '[ "Windows", "build", "cuda" ]'
       msvc-version: "2022"
-      dpcpp-version: sycl-nightly/20221215
-      ocloc-version: 9926f1ea-209e-42b3-94db-a1f895ee56ce/ocloc_win_101.4314
-      rocm-version: rocm/5.5.0
+      dpcpp-version: intel-llvm/nightly-2023-09-22-rk
+      ocloc-version: fcd74e0e-43b3-4930-9bad-29c8b9581339/ocloc_win_101.4824
       artifact-out: build-windows-gta-aotjit
       artifact-path: oidn-gta-aotjit-win
       cmd: >
@@ -552,9 +749,8 @@ jobs:
       project: oidn
       runs-on: '[ "Windows", "build", "cuda" ]'
       msvc-version: "2022"
-      dpcpp-version: sycl-nightly/20221215
-      ocloc-version: 9926f1ea-209e-42b3-94db-a1f895ee56ce/ocloc_win_101.4314
-      rocm-version: rocm/5.5.0
+      dpcpp-version: intel-llvm/nightly-2023-09-22-rk
+      ocloc-version: fcd74e0e-43b3-4930-9bad-29c8b9581339/ocloc_win_101.4824
       artifact-out: build-windows-gta-aot
       artifact-path: oidn-gta-aot-win
       cmd: >
@@ -570,9 +766,8 @@ jobs:
       project: oidn
       runs-on: '[ "Windows", "build", "cuda" ]'
       msvc-version: "2022"
-      dpcpp-version: sycl-nightly/20221215
-      ocloc-version: 9926f1ea-209e-42b3-94db-a1f895ee56ce/ocloc_win_101.4314
-      rocm-version: rocm/5.5.0
+      dpcpp-version: intel-llvm/nightly-2023-09-22-rk
+      ocloc-version: fcd74e0e-43b3-4930-9bad-29c8b9581339/ocloc_win_101.4824
       artifact-out: build-windows-gta-jit
       artifact-path: oidn-gta-jit-win
       cmd: >
@@ -588,6 +783,14 @@ jobs:
       project: oidn
       runs-on: '[ "Windows", "build" ]'
       cmd: python scripts/build.py install --compiler msvc15
+
+  build-windows-msvc15-static:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "build" ]'
+      cmd: python scripts/build.py install --compiler msvc15 -D OIDN_STATIC_LIB=ON
 
   build-windows-msvc15-debug:
     secrets: inherit
@@ -625,6 +828,7 @@ jobs:
       artifact-in: build-windows
       artifact-out: test-windows-avx2
       artifact-path: test.log
+      artifact-on-failure: true
       cmd: python scripts/test.py --device cpu --log test.log
 
   test-windows-avx512:
@@ -637,6 +841,7 @@ jobs:
       artifact-in: build-windows
       artifact-out: test-windows-avx512
       artifact-path: test.log
+      artifact-on-failure: true
       cmd: python scripts/test.py --device cpu --log test.log
 
   test-windows-debug-avx2:
@@ -649,6 +854,7 @@ jobs:
       artifact-in: build-windows-debug
       artifact-out: test-windows-debug-avx2
       artifact-path: test.log
+      artifact-on-failure: true
       cmd: python scripts/test.py --device cpu --minimal --log test.log
 
   test-windows-namespace-avx2:
@@ -661,6 +867,20 @@ jobs:
       artifact-in: build-windows-namespace
       artifact-out: test-windows-namespace-avx2
       artifact-path: test.log
+      artifact-on-failure: true
+      cmd: python scripts/test.py --device cpu --log test.log
+
+  test-windows-namespace-static-avx2:
+    needs: build-windows-namespace-static
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "avx2", "NAS" ]'
+      artifact-in: build-windows-namespace-static
+      artifact-out: test-windows-namespace-static-avx2
+      artifact-path: test.log
+      artifact-on-failure: true
       cmd: python scripts/test.py --device cpu --log test.log
 
   test-windows-msvc16-avx512:
@@ -673,28 +893,60 @@ jobs:
       artifact-in: build-windows-msvc16
       artifact-out: test-windows-msvc16-avx512
       artifact-path: test.log
+      artifact-on-failure: true
       cmd: python scripts/test.py --device cpu --minimal --log test.log
 
-  kw-build-scan-report:
+  test-windows-dg2:
+    needs: build-windows
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/static_analysis.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
     with:
       project: oidn
-      image: oidn/ubuntu:22.04
+      runs-on: '[ "Windows", "dg2", "NAS" ]'
+      env-from-files: ./.github/workflows/gfx-windows-public.env
+      artifact-in: build-windows
+      artifact-out: test-windows-dg2
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: python scripts/test.py --device sycl --log test.log
+
+  test-windows-namespace-static-dg2:
+    needs: build-windows-namespace-static
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "dg2", "NAS" ]'
+      env-from-files: ./.github/workflows/gfx-windows-public.env
+      artifact-in: build-windows-namespace-static
+      artifact-out: test-windows-namespace-static-dg2
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: python scripts/test.py --device sycl --log test.log
+
+  static-analysis:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/static_analysis.yml@tgt/oidn-coverity
+    with:
+      coverity: true
+      project: Open Image Denoise
+      prebuild: >
+        apt install -y ninja-build
       build: scripts/build.py
 
-  snyk-scan:
+  composition-analysis:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/snyk.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/composition_analysis.yml@main
     with:
       project: oidn
 
   package-linux:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
-      image: oidn/rockylinux:8.6
+      image: oidn/rockylinux:8.8
+      dpcpp-version: intel-llvm/nightly-2023-09-22-rk
       cmd: scripts/build.py package --full
       artifact-out: package-linux
       artifact-path: build/oidn-*.tar.gz
@@ -726,9 +978,8 @@ jobs:
       project: oidn
       runs-on: '[ "Windows", "build", "cuda" ]'
       msvc-version: "2022"
-      dpcpp-version: sycl-nightly/20221215
-      ocloc-version: 9926f1ea-209e-42b3-94db-a1f895ee56ce/ocloc_win_101.4314
-      rocm-version: rocm/5.5.0
+      dpcpp-version: intel-llvm/nightly-2023-09-22-rk
+      ocloc-version: fcd74e0e-43b3-4930-9bad-29c8b9581339/ocloc_win_101.4824
       cmd: |
         echo $env:ROCM_PATH
         where ocloc.exe
@@ -740,10 +991,10 @@ jobs:
 
   package-source-tgz:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
-      image: oidn/rockylinux:8.6
+      image: oidn/rockylinux:8.8
       cmd: scripts/build_src.py
       artifact-out: package-source-tgz
       artifact-path: build/oidn-*.tar.gz

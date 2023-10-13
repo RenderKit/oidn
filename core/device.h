@@ -55,9 +55,9 @@ OIDN_NAMESPACE_BEGIN
     void setErrorFunction(ErrorFunction func, void* userPtr);
 
     // Some devices (e.g. CUDA, HIP) need to change some per-thread state, which must be later restored
-    // Most device calls must be between begin() and end() calls
-    virtual void begin() {}
-    virtual void end() {}
+    // Most device calls must be between enter() and leave() calls
+    virtual void enter() {}
+    virtual void leave() {}
 
     virtual DeviceType getType() const = 0;
 
@@ -76,6 +76,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Native tensor layout
     DataType getTensorDataType() const { return tensorDataType; }
+    DataType getWeightDataType() const { return weightDataType; }
     TensorLayout getTensorLayout() const { return tensorLayout; }
     TensorLayout getWeightLayout() const { return weightLayout; }
     int getTensorBlockC() const { return tensorBlockC; }
@@ -104,6 +105,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Native tensor layout
     DataType tensorDataType = DataType::Float32;
+    DataType weightDataType = DataType::Float32;
     TensorLayout tensorLayout = TensorLayout::chw;
     TensorLayout weightLayout = TensorLayout::oihw;
     int tensorBlockC = 1;
