@@ -36,13 +36,13 @@ prerequisites are needed:
 #### CPU device: {-}
 
 -   [Intel® SPMD Program Compiler (ISPC)](http://ispc.github.io) 1.14.1 or
-    newer. Please obtain a release of ISPC from the [ISPC downloads
-    page](https://ispc.github.io/downloads.html). The build system looks for
-    ISPC in the `PATH` and in the directory right "next to" the checked-out
-    Intel Open Image Denoise sources.^[For example, if Intel Open Image Denoise
-    is in `~/Projects/oidn`, ISPC will also be searched in `~/Projects/ispc-v1.14.1-linux`]
-    Alternatively set the CMake variable `ISPC_EXECUTABLE` to the location of
-    the ISPC compiler.
+    newer, *except* 1.21.0 and 1.21.1. Please obtain a release of ISPC from the
+    [ISPC downloads page](https://ispc.github.io/downloads.html). The build
+    system looks for ISPC in the `PATH` and in the directory right "next to" the
+    checked-out Intel Open Image Denoise sources. For example, if Intel Open
+    Image Denoise is in `~/Projects/oidn`, ISPC will also be searched in
+    `~/Projects/ispc-v1.14.1-linux`. Alternatively set the CMake variable
+    `ISPC_EXECUTABLE` to the location of the ISPC compiler.
 
 -   [Intel® Threading Building Blocks](https://github.com/oneapi-src/oneTBB)
     (TBB) 2017 or newer
