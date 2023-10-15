@@ -2,13 +2,14 @@
 ## SPDX-License-Identifier: Apache-2.0
 
 # ISPC versions to look for, in descending order (newest first)
-set(ISPC_VERSION_WORKING "1.21.0" "1.20.0" "1.19.0" "1.18.0" "1.17.0" "1.16.1" "1.16.0" "1.15.0" "1.14.1")
+set(ISPC_VERSION_WORKING "1.20.0" "1.19.0" "1.18.0" "1.17.0" "1.16.1" "1.16.0" "1.15.0" "1.14.1")
 list(GET ISPC_VERSION_WORKING -1 ISPC_VERSION_REQUIRED)
+list(GET ISPC_VERSION_WORKING 0 ISPC_VERSION_LATEST)
 
 if(NOT ISPC_EXECUTABLE)
   # try sibling folder as hint for path of ISPC
   if(APPLE)
-    set(ISPC_DIR_SUFFIX "macOS" "osx" "Darwin")
+    set(ISPC_DIR_SUFFIX "macOS" "macOS.universal" "macOS.x86_64" "macOS.arm64" "osx" "Darwin")
   elseif(WIN32)
     set(ISPC_DIR_SUFFIX "windows" "win32")
     if(MSVC_VERSION LESS 1900)
@@ -17,7 +18,7 @@ if(NOT ISPC_EXECUTABLE)
       list(APPEND ISPC_DIR_SUFFIX "windows-vs2015")
     endif()
   else()
-    set(ISPC_DIR_SUFFIX "linux" "Linux")
+    set(ISPC_DIR_SUFFIX "linux" "linux.aarch64" "Linux")
   endif()
   foreach(ver ${ISPC_VERSION_WORKING})
    foreach(v "" "v")
@@ -51,6 +52,9 @@ if(NOT ISPC_VERSION)
 
   if(ISPC_VERSION VERSION_LESS ISPC_VERSION_REQUIRED)
     message(FATAL_ERROR "Need at least version ${ISPC_VERSION_REQUIRED} of Intel SPMD Compiler (ISPC).")
+  elseif((ISPC_VERSION VERSION_EQUAL "1.21.0" OR ISPC_VERSION VERSION_EQUAL "1.21.1")
+         AND OIDN_ARCH STREQUAL "ARM64")
+    message(FATAL_ERROR "Unsupported version of Intel SPMD Compiler (ISPC). Please use version ${ISPC_VERSION_LATEST}.")
   endif()
 
   set(ISPC_VERSION ${ISPC_VERSION} CACHE STRING "ISPC Version")

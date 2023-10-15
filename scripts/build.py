@@ -12,7 +12,7 @@ import argparse
 
 from common import *
 
-ISPC_VERSION = '1.21.0'
+ISPC_VERSION = '1.20.0'
 TBB_VERSION  = '2021.10.0'
 
 def check_symbols(filename, label, max_version):
