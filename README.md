@@ -184,8 +184,7 @@ additional prerequisites are needed:
 #### CPU device:
 
   - [Intel® SPMD Program Compiler (ISPC)](http://ispc.github.io) 1.14.1
-    or newer, *except* 1.21.0 and 1.21.1. Please obtain a release of
-    ISPC from the [ISPC downloads
+    or newer. Please obtain a release of ISPC from the [ISPC downloads
     page](https://ispc.github.io/downloads.html). The build system looks
     for ISPC in the `PATH` and in the directory right “next to” the
     checked-out Intel Open Image Denoise sources. For example, if Intel
