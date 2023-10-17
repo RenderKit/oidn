@@ -2,7 +2,7 @@
 ## SPDX-License-Identifier: Apache-2.0
 
 # ISPC versions to look for, in descending order (newest first)
-set(ISPC_VERSION_WORKING "1.20.0" "1.19.0" "1.18.0" "1.17.0" "1.16.1" "1.16.0" "1.15.0" "1.14.1")
+set(ISPC_VERSION_WORKING "1.21.1" "1.21.0" "1.20.0" "1.19.0" "1.18.0" "1.17.0" "1.16.1" "1.16.0" "1.15.0" "1.14.1")
 list(GET ISPC_VERSION_WORKING -1 ISPC_VERSION_REQUIRED)
 list(GET ISPC_VERSION_WORKING 0 ISPC_VERSION_LATEST)
 
@@ -52,9 +52,6 @@ if(NOT ISPC_VERSION)
 
   if(ISPC_VERSION VERSION_LESS ISPC_VERSION_REQUIRED)
     message(FATAL_ERROR "Need at least version ${ISPC_VERSION_REQUIRED} of Intel SPMD Compiler (ISPC).")
-  elseif((ISPC_VERSION VERSION_EQUAL "1.21.0" OR ISPC_VERSION VERSION_EQUAL "1.21.1")
-         AND OIDN_ARCH STREQUAL "ARM64")
-    message(FATAL_ERROR "Unsupported version of Intel SPMD Compiler (ISPC). Please use version ${ISPC_VERSION_LATEST}.")
   endif()
 
   set(ISPC_VERSION ${ISPC_VERSION} CACHE STRING "ISPC Version")

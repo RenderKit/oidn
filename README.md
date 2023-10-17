@@ -184,8 +184,7 @@ additional prerequisites are needed:
 #### CPU device:
 
   - [Intel® SPMD Program Compiler (ISPC)](http://ispc.github.io) 1.14.1
-    or newer, *except* 1.21.0 and 1.21.1. Please obtain a release of
-    ISPC from the [ISPC downloads
+    or newer. Please obtain a release of ISPC from the [ISPC downloads
     page](https://ispc.github.io/downloads.html). The build system looks
     for ISPC in the `PATH` and in the directory right “next to” the
     checked-out Intel Open Image Denoise sources. For example, if Intel
@@ -605,13 +604,13 @@ filter.execute();
 
 ## Upgrading from Open Image Denoise 1.x
 
-Open Image Denoise 2.0 introduces GPU support, which requires
-implementing some minor changes in applications. There are also small
-API changes, additions and improvements in this new version. In this
-section we summarize the necessary code modifications and also briefly
-mention the new features that users might find useful when upgrading to
-2.0. For a full description of the changes and new functionality, please
-see the API reference.
+Open Image Denoise 2 introduces GPU support, which requires implementing
+some minor changes in applications. There are also small API changes,
+additions and improvements in this new version. In this section we
+summarize the necessary code modifications and also briefly mention the
+new features that users might find useful when upgrading to version 2.x.
+For a full description of the changes and new functionality, please see
+the API reference.
 
 ### Buffers
 
@@ -724,14 +723,13 @@ especially if the system has multiple devices of the same type, and with
 GPU support it is very common that there are multiple different types of
 supported devices in the system (e.g. a CPU and one or more GPUs).
 
-The 2.0 version of the library introduces a simple *physical device*
-API, which enables the application to query the list of supported
-physical devices in the system, including their name, type, UUID, LUID,
-PCI address, etc. (see `oidnGetNumPhysicalDevices`,
-`oidnGetPhysicalDeviceString`, etc.). New logical device
-(i.e. `OIDNDevice`) creation functions for have been also introduced,
-which enable creating a logical device on a specific physical device:
-`oidnNewDeviceByID`, `oidnNewDeviceByUUID`, etc.
+Open Image Denoise 2 introduces a simple *physical device* API, which
+enables the application to query the list of supported physical devices
+in the system, including their name, type, UUID, LUID, PCI address, etc.
+(see `oidnGetNumPhysicalDevices`, `oidnGetPhysicalDeviceString`, etc.).
+New logical device (i.e. `OIDNDevice`) creation functions for have been
+also introduced, which enable creating a logical device on a specific
+physical device: `oidnNewDeviceByID`, `oidnNewDeviceByUUID`, etc.
 
 Creating a logical device on a physical device having a particular UUID,
 LUID or PCI address is particularly important when importing external
@@ -783,9 +781,11 @@ warnings will be emitted at runtime.
 ### Building as a Static Library
 
 The support to build Open Image Denoise as a static library
-(`OIDN_STATIC_LIB` CMake option) has been removed due to switching to a
-modular library design, which was necessary for adding multi-vendor GPU
-support.
+(`OIDN_STATIC_LIB` CMake option) has been limited to CPU-only builds due
+to switching to a modular library design that was necessary for adding
+multi-vendor GPU support. If the library is built with GPU support as
+well, the `OIDN_STATIC_LIB` option is still available but enabling it
+results in a hybrid static/shared library.
 
 If the main reason for building as a static library would be is the
 ability to use multiple versions of Open Image Denoise in the same
@@ -1540,8 +1540,8 @@ snippets that demonstrate the usage of the filter.
 | Type    | Name            |    Default | Description                                                                                                                                                                                                                                                                                                                                                                                      |
 | :------ | :-------------- | ---------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `Image` | `color`         | *optional* | input beauty image (1–3 channels, LDR values in \[0, 1\] or HDR values in \[0, +∞), values being interpreted such that, after scaling with the `inputScale` parameter, a value of 1 corresponds to a luminance level of 100 cd/m²)                                                                                                                                                               |
-| `Image` | `albedo`        | *optional* | input auxiliary image containing the albedo per pixel (3 channels, values in \[0, 1\])                                                                                                                                                                                                                                                                                                           |
-| `Image` | `normal`        | *optional* | input auxiliary image containing the shading normal per pixel (3 channels, world-space or view-space vectors with arbitrary length, values in \[-1, 1\])                                                                                                                                                                                                                                         |
+| `Image` | `albedo`        | *optional* | input auxiliary image containing the albedo per pixel (1–3 channels, values in \[0, 1\])                                                                                                                                                                                                                                                                                                         |
+| `Image` | `normal`        | *optional* | input auxiliary image containing the shading normal per pixel (1–3 channels, world-space or view-space vectors with arbitrary length, values in \[-1, 1\])                                                                                                                                                                                                                                       |
 | `Image` | `output`        | *required* | output image (1–3 channels); can be one of the input images                                                                                                                                                                                                                                                                                                                                      |
 | `Bool`  | `hdr`           |    `false` | the main input image is HDR                                                                                                                                                                                                                                                                                                                                                                      |
 | `Bool`  | `srgb`          |    `false` | the main input image is encoded with the sRGB (or 2.2 gamma) curve (LDR only) or is linear; the output will be encoded with the same curve                                                                                                                                                                                                                                                       |
@@ -1728,8 +1728,8 @@ following parameters:
 
 | Type    | Name            |    Default | Description                                                                                                                                                                                                                                                                                                                                                         |
 | :------ | :-------------- | ---------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `Image` | `color`         | *required* | input beauty image (3 channels, HDR values in \[0, +∞), interpreted such that, after scaling with the `inputScale` parameter, a value of 1 corresponds to a luminance level of 100 cd/m²; directional values in \[-1, 1\])                                                                                                                                          |
-| `Image` | `output`        | *required* | output image (3 channels); can be one of the input images                                                                                                                                                                                                                                                                                                           |
+| `Image` | `color`         | *required* | input beauty image (1–3 channels, HDR values in \[0, +∞), interpreted such that, after scaling with the `inputScale` parameter, a value of 1 corresponds to a luminance level of 100 cd/m²; directional values in \[-1, 1\])                                                                                                                                        |
+| `Image` | `output`        | *required* | output image (1–3 channels); can be one of the input images                                                                                                                                                                                                                                                                                                         |
 | `Bool`  | `directional`   |    `false` | whether the input contains normalized coefficients (in \[-1, 1\]) of a directional lightmap (e.g. normalized L1 or higher spherical harmonics band with the L0 band divided out); if the range of the coefficients is different from \[-1, 1\], the `inputScale` parameter can be used to adjust the range without changing the stored values                       |
 | `Float` | `inputScale`    |        NaN | scales input color values before filtering, without scaling the output too, which can be used to map color values to the expected range, e.g. for mapping HDR values to physical units (which affects the quality of the output but *not* the range of the output values); if set to NaN, the scale is computed implicitly for HDR images or set to 1 otherwise     |
 | `Int`   | `quality`       |       high | image quality mode as an `OIDNQuality` value                                                                                                                                                                                                                                                                                                                        |

@@ -154,8 +154,15 @@ if(APPLE)
   else()
     set(CMAKE_OSX_DEPLOYMENT_TARGET 10.11)
   endif()
+
   # Link against libc++ which supports C++11 features
   append(OIDN_CXX_FLAGS "-stdlib=libc++")
+
+  # FIXME: force old linker to avoid corrupted binary when using ISPC with new linker in Xcode 15
+  if(CMAKE_CXX_COMPILER_ID MATCHES "AppleClang" AND
+     CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 15)
+    add_link_options("-Wl,-ld_classic")
+  endif()
 endif()
 
 ## -------------------------------------------------------------------------------------------------
