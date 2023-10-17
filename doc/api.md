@@ -143,12 +143,12 @@ simple example code snippets.
 Upgrading from Open Image Denoise 1.x
 -------------------------------------
 
-Open Image Denoise 2.0 introduces GPU support, which requires implementing some
+Open Image Denoise 2 introduces GPU support, which requires implementing some
 minor changes in applications. There are also small API changes, additions and
 improvements in this new version. In this section we summarize the necessary
 code modifications and also briefly mention the new features that users might
-find useful when upgrading to 2.0. For a full description of the changes and new
-functionality, please see the API reference.
+find useful when upgrading to version 2.x. For a full description of the changes
+and new functionality, please see the API reference.
 
 ### Buffers
 
@@ -254,7 +254,7 @@ the system has multiple devices of the same type, and with GPU support it is
 very common that there are multiple different types of supported devices in the
 system (e.g. a CPU and one or more GPUs).
 
-The 2.0 version of the library introduces a simple *physical device* API, which
+Open Image Denoise 2 introduces a simple *physical device* API, which
 enables the application to query the list of supported physical devices in the
 system, including their name, type, UUID, LUID, PCI address, etc. (see
 `oidnGetNumPhysicalDevices`, `oidnGetPhysicalDeviceString`, etc.). New logical
@@ -309,8 +309,10 @@ at runtime.
 ### Building as a Static Library
 
 The support to build Open Image Denoise as a static library (`OIDN_STATIC_LIB`
-CMake option) has been removed due to switching to a modular library design,
-which was necessary for adding multi-vendor GPU support.
+CMake option) has been limited to CPU-only builds due to switching to a modular
+library design that was necessary for adding multi-vendor GPU support. If the
+library is built with GPU support as well, the `OIDN_STATIC_LIB` option is still
+available but enabling it results in a hybrid static/shared library.
 
 If the main reason for building as a static library would be is the ability to
 use multiple versions of Open Image Denoise in the same process, please use the
@@ -1045,11 +1047,11 @@ Type        Name               Default Description
                                        scaling with the `inputScale` parameter, a value of 1
                                        corresponds to a luminance level of 100 cd/m²)
 
-`Image`     `albedo`        *optional* input auxiliary image containing the albedo per pixel (3
+`Image`     `albedo`        *optional* input auxiliary image containing the albedo per pixel (1--3
                                        channels, values in [0, 1])
 
 `Image`     `normal`        *optional* input auxiliary image containing the shading normal per pixel
-                                       (3 channels, world-space or view-space vectors with arbitrary
+                                       (1--3 channels, world-space or view-space vectors with arbitrary
                                        length, values in [-1, 1])
 
 `Image`     `output`        *required* output image (1--3 channels); can be one of the input images
@@ -1249,12 +1251,12 @@ function as the filter type. The filter supports the following parameters:
 ----------- --------------- ---------- ---------------------------------------------------------------
 Type        Name               Default Description
 ----------- --------------- ---------- ---------------------------------------------------------------
-`Image`     `color`         *required* input beauty image (3 channels, HDR values in [0, +∞),
+`Image`     `color`         *required* input beauty image (1--3 channels, HDR values in [0, +∞),
                                        interpreted such that, after scaling with the `inputScale`
                                        parameter, a value of 1 corresponds to a luminance level of 100
                                        cd/m²; directional values in [-1, 1])
 
-`Image`     `output`        *required* output image (3 channels); can be one of the input images
+`Image`     `output`        *required* output image (1--3 channels); can be one of the input images
 
 `Bool`      `directional`      `false` whether the input contains normalized coefficients (in [-1, 1])
                                        of a directional lightmap (e.g. normalized L1 or higher
