@@ -484,7 +484,6 @@ OIDN_NAMESPACE_BEGIN
 
     for (auto& lazyInit : lazyInits)
       lazyInit();
-    lazyInits.clear();
 
     for (auto& op : ops)
     {

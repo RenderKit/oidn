@@ -142,8 +142,7 @@ OIDN_NAMESPACE_BEGIN
                          groups: 1
                    paddingStyle: MPSGraphPaddingStyle::MPSGraphPaddingStyleTF_SAME
                      dataLayout: MPSGraphTensorNamedDataLayout::MPSGraphTensorNamedDataLayoutNHWC
-                  weightsLayout: MPSGraphTensorNamedDataLayout::MPSGraphTensorNamedDataLayoutOIHW
-      ];
+                  weightsLayout: MPSGraphTensorNamedDataLayout::MPSGraphTensorNamedDataLayoutOIHW];
 
       auto dst = [graph convolution2DWithSourceTensor: srcAlloc->tensor
                                         weightsTensor: finalWeight
@@ -168,8 +167,7 @@ OIDN_NAMESPACE_BEGIN
                           strideInX: 2
                           strideInY: 2
                        paddingStyle: MPSGraphPaddingStyle::MPSGraphPaddingStyleTF_SAME
-                         dataLayout: MPSGraphTensorNamedDataLayout::MPSGraphTensorNamedDataLayoutNHWC
-        ];
+                         dataLayout: MPSGraphTensorNamedDataLayout::MPSGraphTensorNamedDataLayoutNHWC];
 
         dst = [graph maxPooling2DWithSourceTensor: dst
                                        descriptor: descr
@@ -217,8 +215,8 @@ OIDN_NAMESPACE_BEGIN
     lazyInits.push_back([=]()
     {
       concatDstAlloc->tensor = [graph concatTensors: @[src1Alloc->tensor, src2Alloc->tensor]
-                                         dimension: 3
-                                              name: nil];
+                                          dimension: 3
+                                               name: nil];
     });
 
     return addConv(name, concat, activation);
