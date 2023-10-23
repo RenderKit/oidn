@@ -3,14 +3,14 @@
 
 #pragma once
 
-#include "../../core/kernel.h"
-#include "../../core/tensor_accessor.h"
-#include "../../core/image_accessor.h"
-#include "../../core/color.h"
-#include "../../core/tile.h"
+#include "core/kernel.h"
+#include "core/tensor_accessor.h"
+#include "core/image_accessor.h"
+#include "core/color.h"
+#include "core/tile.h"
 
 #if !defined(OIDN_COMPILE_METAL_DEVICE)
-  #include "../../core/output_process.h"
+  #include "core/output_process.h"
 #endif
 
 OIDN_NAMESPACE_BEGIN

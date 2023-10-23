@@ -3,10 +3,10 @@
 
 #pragma once
 
-#include "../../core/kernel.h"
-#include "../../core/image_accessor.h"
-#include "../../core/color.h"
-#include "../../core/autoexposure.h"
+#include "core/kernel.h"
+#include "core/image_accessor.h"
+#include "core/color.h"
+#include "core/autoexposure.h"
 
 OIDN_NAMESPACE_BEGIN
 

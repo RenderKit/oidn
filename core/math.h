@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "../common/platform.h"
+#include "common/platform.h"
 
 OIDN_NAMESPACE_BEGIN
 namespace math {

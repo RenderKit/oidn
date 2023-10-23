@@ -3,11 +3,11 @@
 
 #pragma once
 
-#include "../../core/kernel.h"
-#include "../../core/image_accessor.h"
+#include "core/kernel.h"
+#include "core/image_accessor.h"
 
 #if !defined(OIDN_COMPILE_METAL_DEVICE)
-  #include "../../core/image_copy.h"
+  #include "core/image_copy.h"
 #endif
 
 OIDN_NAMESPACE_BEGIN

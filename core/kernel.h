@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "../common/platform.h"
+#include "common/platform.h"
 #if defined(OIDN_COMPILE_METAL_HOST)
   #include <Metal/Metal.h>
 #endif
