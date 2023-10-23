@@ -33,27 +33,49 @@ macro(append_if condition var value)
   endif()
 endmacro()
 
+# Helper function for converting a source path to a corresponding build path
+function(oidn_get_build_path build_path path)
+  get_filename_component(path "${path}" ABSOLUTE)
+  string(FIND "${path}" "${CMAKE_CURRENT_BINARY_DIR}" _path_binary_dir_pos)
+  if(_path_binary_dir_pos EQUAL 0)
+    set(build_path ${path})
+  else()
+    file(RELATIVE_PATH bpath ${CMAKE_CURRENT_SOURCE_DIR} ${path})
+    string(REGEX REPLACE "^[/]+" "" bpath "${bpath}")
+    string(REPLACE ":" "_" bpath "${bpath}")
+    string(REPLACE "../" "__/" bpath "${bpath}")
+    get_filename_component(bpath "${bpath}" ABSOLUTE BASE_DIR ${CMAKE_CURRENT_BINARY_DIR})
+  endif()
+  set(${build_path} "${bpath}" PARENT_SCOPE)
+endfunction()
+
 # Generates C++ files from the specified binary blobs
 find_package(Python REQUIRED)
 function(oidn_generate_cpp_from_blob out_sources namespace)
   set(${out_sources})
-  foreach(in_file ${ARGN})
-    get_filename_component(in_file_we ${in_file} NAME_WE)
-    get_filename_component(in_dir ${in_file} PATH)
-    get_filename_component(in_path ${in_file} ABSOLUTE)
-    set(out_dir ${CMAKE_CURRENT_BINARY_DIR}/${in_dir})
-    set(out_cpp_path ${out_dir}/${in_file_we}.cpp)
-    set(out_hpp_path ${out_dir}/${in_file_we}.h)
-    list(APPEND ${out_sources} ${out_cpp_path} ${out_hpp_path})
+  foreach(in ${ARGN})
+    get_filename_component(in_file ${in} ABSOLUTE)
+    get_filename_component(in_name ${in} NAME_WE)
+    get_filename_component(in_dir  ${in_file} DIRECTORY)
+    file(RELATIVE_PATH in_file_rel ${CMAKE_BINARY_DIR} ${in_file})
+
+    oidn_get_build_path(out_dir ${in_dir})
+    set(out_cpp_file ${out_dir}/${in_name}.cpp)
+    set(out_hpp_file ${out_dir}/${in_name}.h)
+    list(APPEND ${out_sources} ${out_cpp_file} ${out_hpp_file})
+
+    set(blob_to_cpp ${OIDN_ROOT_SOURCE_DIR}/scripts/blob_to_cpp.py)
     add_custom_command(
-      OUTPUT ${out_cpp_path} ${out_hpp_path}
+      OUTPUT ${out_cpp_file} ${out_hpp_file}
       COMMAND ${CMAKE_COMMAND} -E make_directory ${out_dir}
       COMMAND ${Python_EXECUTABLE}
-      ARGS ${OIDN_ROOT_SOURCE_DIR}/scripts/blob_to_cpp.py ${in_path} -o ${out_cpp_path} -H ${out_hpp_path} -n ${namespace}
-      DEPENDS ${in_path}
-      COMMENT "Generating CXX source files from blob ${in_path}"
-      VERBATIM)
+      ARGS ${blob_to_cpp} ${in_file} -o ${out_cpp_file} -H ${out_hpp_file} -n ${namespace}
+      DEPENDS ${in_file} ${blob_to_cpp}
+      COMMENT "Generating CXX source files from blob ${in_file_rel}"
+      VERBATIM
+    )
   endforeach()
+
   set_source_files_properties(${${out_sources}} PROPERTIES GENERATED TRUE)
   set(${out_sources} ${${out_sources}} PARENT_SCOPE)
 endfunction()
