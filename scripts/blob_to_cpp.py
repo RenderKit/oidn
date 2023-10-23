@@ -51,13 +51,15 @@ def generate(in_path, cpp_path, hpp_path, namespace):
     write_namespace_begin(cpp_file, scopes)
 
     cpp_file.write('extern const unsigned char %s[%d] = {' % (var_name, in_size))
+    line_length = 1000
     for i in range(in_size):
       c = in_data[i]
-      if i > 0:
-        cpp_file.write(',')
-      if (i+1) % 20 == 1:
+      cstr = ('%d,' if i < in_size-1 else '%d') % c
+      if line_length + len(cstr) > 80:
         cpp_file.write('\n')
-      cpp_file.write('%d' % c)
+        line_length = 0
+      cpp_file.write(cstr)
+      line_length += len(cstr)
     cpp_file.write('\n};\n')
 
     write_namespace_end(cpp_file, scopes)
