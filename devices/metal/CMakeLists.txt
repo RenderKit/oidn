@@ -2,10 +2,10 @@
 ## Copyright 2023 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
-find_library(METAL_LIBRARY Metal)
-find_library(METALKIT_LIBRARY MetalKit)
+cmake_minimum_required(VERSION 3.21)
 
-# Shaders
+include(oidn_metal)
+
 set(OIDN_METAL_SOURCES
   metal_buffer.mm
   metal_buffer.h
@@ -20,24 +20,25 @@ set(OIDN_METAL_SOURCES
   metal_module.mm
 )
 
-set(OIDN_METAL_KERNEL_SOURCES
+add_library(OpenImageDenoise_device_metal SHARED ${OIDN_METAL_SOURCES} ${OIDN_RESOURCE_FILE})
+
+metallib_target_add_sources(OpenImageDenoise_device_metal metal_kernels
   metal_kernels.metal
+  INCLUDE_DIRECTORIES
+    ${PROJECT_SOURCE_DIR}
+  COMPILE_OPTIONS
+    -std=metal3.0 -fno-fast-math
 )
 
-set_source_files_properties(${OIDN_METAL_KERNEL_SOURCES} PROPERTIES LANGUAGE METAL)
-
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=metal3.0 -fno-fast-math")
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=metal3.0 -fno-fast-math")
-
-add_library(OpenImageDenoise_device_metal SHARED ${OIDN_METAL_SOURCES} ${OIDN_METAL_KERNEL_SOURCES} ${OIDN_RESOURCE_FILE})
 set_property(TARGET OpenImageDenoise_device_metal PROPERTY VERSION ${PROJECT_VERSION})
 
 target_compile_definitions(OpenImageDenoise_device_metal PRIVATE OIDN_COMPILE_METAL_HOST)
+
 target_link_libraries(OpenImageDenoise_device_metal PRIVATE "-framework Foundation")
 target_link_libraries(OpenImageDenoise_device_metal PRIVATE "-framework Metal")
 target_link_libraries(OpenImageDenoise_device_metal PRIVATE "-framework MetalPerformanceShadersGraph")
 target_link_libraries(OpenImageDenoise_device_metal PRIVATE "-framework MetalPerformanceShaders")
-
 target_link_libraries(OpenImageDenoise_device_metal PRIVATE OpenImageDenoise_core)
+
 oidn_strip_symbols(OpenImageDenoise_device_metal)
 oidn_install_module(OpenImageDenoise_device_metal)

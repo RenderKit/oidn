@@ -5,6 +5,7 @@
 #include "metal_engine.h"
 #include "metal_buffer.h"
 #include "metal_graph.h"
+#include "devices/metal/metal_kernels.h" // generated
 #include "../gpu/gpu_autoexposure.h"
 #include "../gpu/gpu_input_process.h"
 #include "../gpu/gpu_output_process.h"
@@ -15,11 +16,19 @@ OIDN_NAMESPACE_BEGIN
   MetalEngine::MetalEngine(const Ref<MetalDevice>& device)
     : device(device.get()),
       commandQueue([device->getMTLDevice() newCommandQueue]),
-      commandBuffer(nullptr),
-      library([device->getMTLDevice() newDefaultLibrary])
+      commandBuffer(nullptr)
   {
+    dispatch_data_t libraryData = dispatch_data_create(blobs::metal_kernels, sizeof(blobs::metal_kernels),
+                                                       nil, DISPATCH_DATA_DESTRUCTOR_DEFAULT);
+
+    NSError* error = nullptr;
+    library = [device->getMTLDevice() newLibraryWithData: libraryData
+                                                   error: &error];
+
+    dispatch_release(libraryData);
+
     if (!library)
-      throw std::runtime_error("could not create default Metal library");
+      throw std::runtime_error("could not create Metal library");
   }
 
   MetalEngine::~MetalEngine()
@@ -36,7 +45,7 @@ OIDN_NAMESPACE_BEGIN
     if (!function)
       throw std::runtime_error("could not create Metal library function");
 
-    NSError* error = nil;
+    NSError* error = nullptr;
     auto pipeline = [device->getMTLDevice() newComputePipelineStateWithFunction: function
                                             error: &error];
 
