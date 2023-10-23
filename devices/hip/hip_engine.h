@@ -12,37 +12,44 @@ OIDN_NAMESPACE_BEGIN
   // Main kernel functions
   namespace
   {
-    template<typename F>
-    __global__ void basicHIPKernel(WorkDim<1> globalSize, const F f)
+    template<typename Kernel>
+    __global__ void basicHIPKernel(WorkDim<1> globalSize, const Kernel kernel)
     {
       WorkItem<1> it(globalSize);
       if (it.getGlobalID() < it.getGlobalSize())
-        f(it);
+        kernel(it);
     }
 
-    template<typename F>
-    __global__ void basicHIPKernel(WorkDim<2> globalSize, const F f)
+    template<typename Kernel>
+    __global__ void basicHIPKernel(WorkDim<2> globalSize, const Kernel kernel)
     {
       WorkItem<2> it(globalSize);
       if (it.getGlobalID<0>() < it.getGlobalSize<0>() &&
           it.getGlobalID<1>() < it.getGlobalSize<1>())
-        f(it);
+        kernel(it);
     }
 
-    template<typename F>
-    __global__ void basicHIPKernel(WorkDim<3> globalSize, const F f)
+    template<typename Kernel>
+    __global__ void basicHIPKernel(WorkDim<3> globalSize, const Kernel kernel)
     {
       WorkItem<3> it(globalSize);
       if (it.getGlobalID<0>() < it.getGlobalSize<0>() &&
           it.getGlobalID<1>() < it.getGlobalSize<1>() &&
           it.getGlobalID<2>() < it.getGlobalSize<2>())
-        f(it);
+        kernel(it);
     }
 
-    template<int N, typename F>
-    __global__ void groupHIPKernel(const F f)
+    template<int N, typename Kernel>
+    __global__ void groupHIPKernel(const Kernel kernel)
     {
-      f(WorkGroupItem<N>());
+      kernel(WorkGroupItem<N>());
+    }
+
+    template<int N, typename Kernel>
+    __global__ void groupLocalHIPKernel(const Kernel kernel)
+    {
+      __shared__ typename Kernel::Local local;
+      kernel(WorkGroupItem<N>(), &local);
     }
   }
 #endif
@@ -83,28 +90,37 @@ OIDN_NAMESPACE_BEGIN
 
   #if defined(OIDN_COMPILE_HIP)
     // Enqueues a basic kernel
-    template<int N, typename F>
-    OIDN_INLINE void submitKernel(WorkDim<N> globalSize, const F& f)
+    template<int N, typename Kernel>
+    OIDN_INLINE void submitKernel(WorkDim<N> globalSize, const Kernel& kernel)
     {
       // TODO: improve group size computation
       WorkDim<N> groupSize = suggestWorkGroupSize(globalSize);
       WorkDim<N> numGroups = ceil_div(globalSize, groupSize);
 
-      basicHIPKernel<<<numGroups, groupSize, 0, stream>>>(globalSize, f);
+      basicHIPKernel<<<numGroups, groupSize, 0, stream>>>(globalSize, kernel);
       checkError(hipGetLastError());
     }
 
     // Enqueues a work-group kernel
-    template<int N, typename F>
-    OIDN_INLINE void submitKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const F& f)
+    template<int N, typename Kernel>
+    OIDN_INLINE void submitKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const Kernel& kernel,
+                                  typename std::enable_if<!HasLocal<Kernel>::value, bool>::type = true)
     {
-      groupHIPKernel<N><<<numGroups, groupSize, 0, stream>>>(f);
+      groupHIPKernel<N><<<numGroups, groupSize, 0, stream>>>(kernel);
+      checkError(hipGetLastError());
+    }
+
+    // Enqueues a work-group kernel using shared local memory
+    template<int N, typename Kernel, typename Local = typename Kernel::Local>
+    OIDN_INLINE void submitKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const Kernel& kernel)
+    {
+      groupLocalHIPKernel<N><<<numGroups, groupSize, 0, stream>>>(kernel);
       checkError(hipGetLastError());
     }
   #endif
 
     // Enqueues a host function
-    void submitHostFunc(std::function<void()>&& f) override;
+    void submitHostFunc(std::function<void()>&& kernel) override;
 
     void wait() override;
 
