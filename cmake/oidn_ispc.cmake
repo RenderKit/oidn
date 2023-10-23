@@ -138,18 +138,12 @@ macro(ispc_compile)
   endif()
 
   foreach(src ${ARGN})
+    get_filename_component(input ${src} ABSOLUTE)
     get_filename_component(fname ${src} NAME_WE)
-    get_filename_component(dir ${src} PATH)
+    get_filename_component(dir ${input} DIRECTORY)
 
-    set(input ${src})
-    if("${dir}" MATCHES "^/") # absolute unix-style path to input
-      set(outdir "${ISPC_TARGET_DIR}/rebased${dir}")
-    elseif("${dir}" MATCHES "^[A-Z]:") # absolute DOS-style path to input
-      string(REGEX REPLACE "^[A-Z]:" "${ISPC_TARGET_DIR}/rebased/" outdir "${dir}")
-    else() # relative path to input
-      set(outdir "${ISPC_TARGET_DIR}/local_${OIDN_ISPC_TARGET_NAME}_${dir}")
-      set(input ${CMAKE_CURRENT_SOURCE_DIR}/${src})
-    endif()
+    oidn_get_build_path(outdir ${dir})
+    set(outdir ${outdir}/CMakeFiles/${target}.dir)
 
     set(deps "")
     if(EXISTS ${outdir}/${fname}.dev.idep)
@@ -175,6 +169,9 @@ macro(ispc_compile)
       endforeach()
     endif()
 
+    set(output ${outdir}/${fname}.dev${ISPC_TARGET_EXT})
+    file(RELATIVE_PATH output_rel ${CMAKE_BINARY_DIR} ${output})
+
     add_custom_command(
       OUTPUT ${results} ${ISPC_TARGET_DIR}/${fname}_ispc.h
       COMMAND ${CMAKE_COMMAND} -E make_directory ${outdir}
@@ -189,12 +186,12 @@ macro(ispc_compile)
       --woff
       ${ISPC_ADDITIONAL_ARGS}
       -h ${ISPC_TARGET_DIR}/${fname}_ispc.h
-      -MMM  ${outdir}/${fname}.dev.idep
-      -o ${outdir}/${fname}.dev${ISPC_TARGET_EXT}
+      -MMM ${outdir}/${fname}.dev.idep
+      -o ${output}
       ${ISPC_TARGET_OS}
       ${input}
       DEPENDS ${input} ${deps}
-      COMMENT "Building ISPC object ${outdir}/${fname}.dev${ISPC_TARGET_EXT}"
+      COMMENT "Building ISPC object ${output_rel}"
     )
 
     list(APPEND ISPC_OBJECTS ${results})
@@ -205,8 +202,8 @@ endmacro()
 ## Macro to add both C/C++ and ISPC sources to a given target
 ## -----------------------------------------------------------------------------
 
-function(ispc_target_add_sources name)
-  ## Split-out C/C++ from ISPC files ##
+function(ispc_target_add_sources target)
+  # Split-out C/C++ from ISPC files
 
   set(ISPC_SOURCES "")
   set(OTHER_SOURCES "")
@@ -220,24 +217,22 @@ function(ispc_target_add_sources name)
     endif()
   endforeach()
 
-  ## Get existing target definitions and include dirs ##
+  # Get existing target definitions and include dirs
 
   # NOTE(jda) - This needs work: BUILD_INTERFACE vs. INSTALL_INTERFACE isn't
   #             handled automatically.
 
-  #get_property(TARGET_DEFINITIONS TARGET ${name} PROPERTY COMPILE_DEFINITIONS)
-  #get_property(TARGET_INCLUDES TARGET ${name} PROPERTY INCLUDE_DIRECTORIES)
+  #get_property(TARGET_DEFINITIONS TARGET ${target} PROPERTY COMPILE_DEFINITIONS)
+  #get_property(TARGET_INCLUDES TARGET ${target} PROPERTY INCLUDE_DIRECTORIES)
 
   #set(ISPC_DEFINITIONS ${TARGET_DEFINITIONS})
   #set(ISPC_INCLUDE_DIR ${TARGET_INCLUDES})
 
-  ## Compile ISPC files ##
-
+  # Compile ISPC files
   ispc_compile(${ISPC_SOURCES})
 
-  ## Set final sources on target ##
-
-  get_property(TARGET_SOURCES TARGET ${name} PROPERTY SOURCES)
+  # Set final sources on target
+  get_property(TARGET_SOURCES TARGET ${target} PROPERTY SOURCES)
   list(APPEND TARGET_SOURCES ${ISPC_OBJECTS} ${OTHER_SOURCES})
-  set_target_properties(${name} PROPERTIES SOURCES "${TARGET_SOURCES}")
+  set_target_properties(${target} PROPERTIES SOURCES "${TARGET_SOURCES}")
 endfunction()
