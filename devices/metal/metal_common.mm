@@ -5,7 +5,7 @@
 #include "metal_common.h"
 #include "metal_engine.h"
 #include "metal_buffer.h"
-#include "core/scratch.h"
+#include "core/scratch_buffer.h"
 
 OIDN_NAMESPACE_BEGIN
 

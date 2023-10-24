@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "engine.h"
-#include "scratch.h"
+#include "scratch_buffer.h"
 #include "generic_graph.h"
 
 OIDN_NAMESPACE_BEGIN

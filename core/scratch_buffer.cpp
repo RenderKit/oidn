@@ -1,7 +1,7 @@
 // Copyright 2021 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include "scratch.h"
+#include "scratch_buffer.h"
 #include "engine.h"
 
 OIDN_NAMESPACE_BEGIN

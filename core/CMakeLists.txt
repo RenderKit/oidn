@@ -54,8 +54,8 @@ set(OIDN_CORE_SOURCES
   rt_filter.cpp
   rtlightmap_filter.h
   rtlightmap_filter.cpp
-  scratch.h
-  scratch.cpp
+  scratch_buffer.h
+  scratch_buffer.cpp
   tensor.h
   tensor.cpp
   tensor_accessor.h

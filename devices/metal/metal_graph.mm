@@ -5,7 +5,7 @@
 #include "metal_graph.h"
 #include "metal_common.h"
 #include "core/tensor_reorder.h"
-#include "core/scratch.h"
+#include "core/scratch_buffer.h"
 
 OIDN_NAMESPACE_BEGIN
 

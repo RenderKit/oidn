@@ -5,7 +5,7 @@
 
 #include "filter.h"
 #include "graph.h"
-#include "scratch.h"
+#include "scratch_buffer.h"
 #include "color.h"
 #include "image_copy.h"
 
