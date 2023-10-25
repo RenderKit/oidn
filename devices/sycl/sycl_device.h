@@ -15,6 +15,7 @@ OIDN_NAMESPACE_BEGIN
   {
     Unknown,
     XeLP,
+    XeLPG,
     XeHPG,
     XeHPC,
   };

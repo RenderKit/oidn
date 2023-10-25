@@ -48,6 +48,7 @@ OIDN_NAMESPACE_BEGIN
     switch (device->getArch())
     {
     case SYCLArch::XeLP:
+    case SYCLArch::XeLPG:
       return xelp::newSYCLConv(this, desc);
     case SYCLArch::XeHPG:
       return xehpg::newSYCLConv(this, desc);

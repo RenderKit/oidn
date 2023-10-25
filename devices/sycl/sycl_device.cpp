@@ -153,6 +153,7 @@ OIDN_NAMESPACE_BEGIN
     switch (arch)
     {
     case SYCLArch::XeLP:  score = 1;  break;
+    case SYCLArch::XeLPG: score = 2;  break;
     case SYCLArch::XeHPG: score = 20; break;
     case SYCLArch::XeHPC: score = 30; break;
     default:
@@ -265,6 +266,7 @@ OIDN_NAMESPACE_BEGIN
         switch (arch)
         {
         case SYCLArch::XeLP:  std::cout << "Xe-LP";  break;
+        case SYCLArch::XeLPG: std::cout << "Xe-LPG"; break;
         case SYCLArch::XeHPG: std::cout << "Xe-HPG"; break;
         case SYCLArch::XeHPC: std::cout << "Xe-HPC"; break;
         default:              std::cout << "Unknown";

@@ -45,6 +45,16 @@ OIDN_NAMESPACE_BEGIN
       }
     },
     {
+      SYCLArch::XeLPG,
+      {
+        // mtl-m
+        0x7D40, 0x7D45, 0x7D60, 0x7D67,
+
+        // mtl-p
+        0x7D55, 0x7DD5,
+      }
+    },
+    {
       SYCLArch::XeHPG,
       {
         // acm-g10

@@ -4,6 +4,7 @@ Version History
 ### Changes in v2.2.0:
 
 -   Improved denoising quality (better fine detail reconstruction)
+-   Added support for Intel Meteor Lake GPUs
 -   Added Metal device for Apple silicon GPUs (requires macOS Ventura or newer)
 
 ### Changes in v2.1.0:

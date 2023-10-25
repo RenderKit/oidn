@@ -39,11 +39,11 @@ vendors:
 
 -   Apple silicon CPUs and GPUs (M1 and newer)
 
--   Intel Xe architecture GPUs, both dedicated and integrated, including
-    Intel® Arc™ A-Series Graphics, Intel® Data Center GPU Flex Series (Xe-HPG
-    microarchitecture), Intel® Data Center GPU Max Series (Xe-HPC),
-    11th-13th Gen Intel® Core™ processor graphics, and related Intel Pentium®
-    and Celeron® processors (Xe-LP)
+-   Intel Xe architecture dedicated and integrated GPUs, including Intel® Arc™
+    Graphics, Intel® Data Center GPU Flex Series, Intel® Data Center GPU Max
+    Series, 11th-14th Gen Intel® Core™ processor graphics, and related Intel
+    Pentium® and Celeron® processors (Xe-LP, Xe-LPG, Xe-HPG, and Xe-HPC
+    microarchitectures)
 
 -   NVIDIA GPUs with Volta, Turing, Ampere, Ada Lovelace, and Hopper
     architectures

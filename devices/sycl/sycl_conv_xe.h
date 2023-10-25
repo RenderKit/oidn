@@ -140,7 +140,7 @@ namespace xehpc {
                 weightMat,
                 inRows[(kh + boh) % blockOH].template select<blockOW * blockC, 1>(kw * blockC).read());
             }
-          #elif defined(OIDN_ARCH_XELP)
+          #else
             #pragma unroll
             for (int boh = 0; boh < blockOH; ++boh)
             {

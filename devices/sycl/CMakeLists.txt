@@ -107,8 +107,8 @@ if(OIDN_DEVICE_SYCL_AOT)
     target_link_options(${target} PRIVATE -Xsycl-target-backend=spir64_gen "${_final_options}")
   endmacro()
 
-  # Xe-LP AOT kernel library
-  set(OIDN_SYCL_AOT_TARGETS_XELP tgllp,rkl,adl-s,adl-p,adl-n,dg1)
+  # Xe-LP/Xe-LPG AOT kernel library
+  set(OIDN_SYCL_AOT_TARGETS_XELP tgllp,rkl,adl-s,adl-p,adl-n,dg1,mtl-m,mtl-p)
   oidn_add_sycl_arch_library(OpenImageDenoise_device_sycl_xelp sycl_conv_xelp.cpp)
   oidn_set_sycl_aot_options(OpenImageDenoise_device_sycl_xelp "-device ${OIDN_SYCL_AOT_TARGETS_XELP}")
 
