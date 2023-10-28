@@ -42,7 +42,12 @@ def save_config(dir, cfg):
 # Parses the config from the command line arguments
 def parse_args(cmd=None, description=None):
   def get_default_device():
-    return 'cuda' if torch.cuda.is_available() else 'cpu'
+    if torch.cuda.is_available():
+      return 'cuda'
+    elif torch.backends.mps.is_available():
+      return 'mps'
+    else:
+      return 'cpu'
 
   if cmd is None:
     cmd, _ = os.path.splitext(os.path.basename(sys.argv[0]))
@@ -177,7 +182,7 @@ def parse_args(cmd=None, description=None):
 
   if cmd in {'preprocess', 'train', 'find_lr', 'infer', 'export'}:
     parser.add_argument('--device', '-d', type=str,
-                        choices=['cpu', 'cuda'], default=get_default_device(),
+                        choices=['cpu', 'cuda', 'mps'], default=get_default_device(),
                         help='type of device(s) to use')
     parser.add_argument('--device_id', '-k', type=int, default=0,
                         help='ID of the first device to use')
@@ -240,7 +245,7 @@ def parse_args(cmd=None, description=None):
     # Set the default training precision
     if cfg.precision is None:
       cfg.precision = 'mixed' if cfg.device == 'cuda' else 'fp32'
-      
+
     # Set the default maximum learning rate
     if cfg.max_lr is None:
       cfg.max_lr = 3.125e-6 * cfg.batch_size

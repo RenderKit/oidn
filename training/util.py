@@ -141,6 +141,9 @@ def init_device(cfg, id=0):
 
     torch.cuda.set_device(id)
     device_name = torch.cuda.get_device_name()
+  elif cfg.device == 'mps':
+    device = torch.device(cfg.device)
+    device_name = 'MPS'
   elif cfg.device == 'cpu':
     device = torch.device(cfg.device)
     device_name = 'CPU'
