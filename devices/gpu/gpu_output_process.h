@@ -11,14 +11,14 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  template<typename ImageDataT, typename TensorDataT, TensorLayout tensorLayout>
+  template<typename SrcT, TensorLayout srcLayout>
   struct GPUOutputProcessKernel
   {
     // Source
-    TensorAccessor3D<TensorDataT, tensorLayout> src;
+    TensorAccessor3D<SrcT, srcLayout> src;
 
     // Destination
-    ImageAccessor<ImageDataT> dst;
+    ImageAccessor dst;
 
     // Tile
     Tile tile;
@@ -30,8 +30,8 @@ OIDN_NAMESPACE_BEGIN
 
     OIDN_DEVICE_INLINE void operator ()(const WorkItem<2>& it) const
     {
-      const int h = it.getId<0>();
-      const int w = it.getId<1>();
+      const int h = it.getGlobalID<0>();
+      const int w = it.getGlobalID<1>();
 
       const int hSrc = h + tile.hSrcBegin;
       const int hDst = h + tile.hDstBegin;
@@ -46,6 +46,10 @@ OIDN_NAMESPACE_BEGIN
 
       // Apply the inverse transfer function
       value = transferFunc.inverse(value);
+
+      // Average the channels if there is only one output channel
+      if (dst.C == 1)
+        value = (value.x + value.y + value.z) * (1.f / 3.f);
 
       // Sanitize
       if (snorm)
@@ -65,7 +69,7 @@ OIDN_NAMESPACE_BEGIN
     }
   };
 
-  template<typename EngineT, typename TensorDataT, TensorLayout tensorLayout>
+  template<typename EngineT, typename SrcT, TensorLayout srcLayout>
   class GPUOutputProcess : public OutputProcess
   {
   public:
@@ -83,19 +87,7 @@ OIDN_NAMESPACE_BEGIN
           tile.wDstBegin + tile.W > dst->getW())
         throw std::out_of_range("output processing source/destination out of range");
 
-      switch (dst->getDataType())
-      {
-      case DataType::Float32: runImpl<float>(); break;
-      case DataType::Float16: runImpl<half>();  break;
-      default:                assert(0);
-      }
-    }
-
-  private:
-    template<typename ImageDataT>
-    void runImpl()
-    {
-      GPUOutputProcessKernel<ImageDataT, TensorDataT, tensorLayout> kernel;
+      GPUOutputProcessKernel<SrcT, srcLayout> kernel;
       kernel.src = *src;
       kernel.dst = *dst;
       kernel.tile = tile;
@@ -106,6 +98,7 @@ OIDN_NAMESPACE_BEGIN
       engine->submitKernel(WorkDim<2>(tile.H, tile.W), kernel);
     }
 
+  private:
     Ref<EngineT> engine;
   };
 

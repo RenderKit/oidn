@@ -256,6 +256,16 @@ OIDN_NAMESPACE_BEGIN
       return handle != nullptr;
     }
 
+    // Releases the buffer (decrements the reference count).
+    void release()
+    {
+      if (handle)
+      {
+        oidnReleaseBuffer(handle);
+        handle = nullptr;
+      }
+    }
+
     // Gets the size of the buffer in bytes.
     size_t getSize() const
     {
@@ -381,6 +391,16 @@ OIDN_NAMESPACE_BEGIN
     operator bool() const
     {
       return handle != nullptr;
+    }
+
+    // Releases the filter (decrements the reference count).
+    void release()
+    {
+      if (handle)
+      {
+        oidnReleaseFilter(handle);
+        handle = nullptr;
+      }
     }
 
     // Sets an image parameter of the filter with data stored in a buffer.
@@ -648,6 +668,16 @@ OIDN_NAMESPACE_BEGIN
     operator bool() const
     {
       return handle != nullptr;
+    }
+
+    // Releases the device (decrements the reference count).
+    void release()
+    {
+      if (handle)
+      {
+        oidnReleaseDevice(handle);
+        handle = nullptr;
+      }
     }
 
     // Sets a boolean parameter of the device.

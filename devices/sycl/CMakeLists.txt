@@ -56,7 +56,10 @@ endif()
 
 set(OIDN_SYCL_LINK_FLAGS ${OIDN_SYCL_COMPILE_FLAGS})
 
-# FIXME: DPCPP issues a warning when WINAPI is used:
+# FIXME: multi_ptr specialization is deprecated
+list(APPEND OIDN_SYCL_COMPILE_FLAGS -Wno-deprecated-declarations)
+
+# FIXME: DPC++ issues a warning when WINAPI is used:
 # warning: '__stdcall' calling convention is not supported for this target
 if(WIN32)
   list(APPEND OIDN_SYCL_COMPILE_FLAGS -Wno-ignored-attributes)
@@ -87,12 +90,6 @@ set(OIDN_SYCL_SOURCES
 )
 
 if(OIDN_DEVICE_SYCL_AOT)
-  # FIXME: IGC currently ignores "--format zebin" for TGL/ADL, so we need to set an environment variable
-  # instead but IGC supports this only on Linux. On Windows we're stuck with the old format.
-  if(UNIX)
-    set(CMAKE_CXX_LINKER_LAUNCHER "IGC_EnableZEBinary=1" ${CMAKE_CXX_LINKER_LAUNCHER})
-  endif()
-
   macro(oidn_add_sycl_arch_library target)
     oidn_add_sycl_library(${target} ${ARGN})
     target_include_directories(${target} PRIVATE ${LevelZero_INCLUDE_DIRS})
@@ -101,7 +98,7 @@ if(OIDN_DEVICE_SYCL_AOT)
 
   macro(oidn_set_sycl_aot_options target options)
     set(_final_options ${options})
-    # We need to force using the new zebin format because it's not the default for TGL/ADL yet
+    # Make sure the new zebin format is used
     set(_final_options "${_final_options} --format zebin")
     if(NOT OIDN_DEVICE_SYCL_JIT_FALLBACK)
       # Do not include SPIRV in the binary
@@ -180,7 +177,8 @@ if(OIDN_INSTALL_DEPENDENCIES)
     file(GLOB _sycl_deps LIST_DIRECTORIES FALSE
       "${_dpcpp_compiler_dir}/../bin/sycl?.dll"
       "${_dpcpp_compiler_dir}/../bin/pi_level_zero.dll"
-      "${_dpcpp_compiler_dir}/../bin/win_proxy_loader.dll"
+      "${_dpcpp_compiler_dir}/../bin/pi_win_proxy_loader.dll"
+      "${_dpcpp_compiler_dir}/../bin/win_proxy_loader.dll"    # deprecated
     )
   else()
     file(GLOB _sycl_deps LIST_DIRECTORIES FALSE

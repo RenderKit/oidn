@@ -74,7 +74,14 @@ set(OIDN_CORE_SOURCES
   vec.h
 )
 
-add_library(OpenImageDenoise_core SHARED ${OIDN_CORE_SOURCES} ${OIDN_RESOURCE_FILE})
+# Fully static build is supported only for the CPU device
+if(OIDN_STATIC_LIB AND NOT OIDN_DEVICE_SYCL AND NOT OIDN_DEVICE_CUDA AND NOT OIDN_DEVICE_HIP)
+  set(OIDN_CORE_LIB_TYPE STATIC)
+else()
+  set(OIDN_CORE_LIB_TYPE SHARED)
+endif()
+
+add_library(OpenImageDenoise_core ${OIDN_CORE_LIB_TYPE} ${OIDN_CORE_SOURCES} ${OIDN_RESOURCE_FILE})
 set_property(TARGET OpenImageDenoise_core PROPERTY VERSION ${PROJECT_VERSION})
 
 target_link_libraries(OpenImageDenoise_core
@@ -88,11 +95,15 @@ if(TARGET OpenImageDenoise_weights)
   target_link_libraries(OpenImageDenoise_core PRIVATE OpenImageDenoise_weights)
 endif()
 
-oidn_export_all_symbols(OpenImageDenoise_core)
+if(OIDN_CORE_LIB_TYPE STREQUAL "SHARED")
+  oidn_export_all_symbols(OpenImageDenoise_core)
+endif()
 
 install(TARGETS OpenImageDenoise_core
   EXPORT
     OpenImageDenoise_Exports
+  ARCHIVE
+    DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT devel
   LIBRARY
     DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT devel
     NAMELINK_SKIP

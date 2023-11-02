@@ -21,7 +21,7 @@ OIDN_NAMESPACE_USING
 
 int width  = -1;
 int height = -1;
-Format dataType = Format::Float;
+DataType dataType = DataType::Float32;
 Quality quality = Quality::Default;
 Storage bufferStorage = Storage::Device; // maximize performance by default
 bool bufferCopy = false; // include copying between host and device in the measurements
@@ -298,9 +298,9 @@ int main(int argc, char* argv[])
       {
         const auto val = toLower(args.getNextValue());
         if (val == "f" || val == "float" || val == "fp32")
-          dataType = Format::Float;
+          dataType = DataType::Float32;
         else if (val == "h" || val == "half" || val == "fp16")
-          dataType = Format::Half;
+          dataType = DataType::Float16;
         else
           throw std::runtime_error("invalid data type");
       }

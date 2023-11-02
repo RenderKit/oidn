@@ -30,13 +30,15 @@ OIDN_NAMESPACE_BEGIN
   void PinningObserver::on_scheduler_entry(bool isWorker)
   {
     const int threadIndex = tbb::this_task_arena::current_thread_index();
-    affinity->set(threadIndex);
+    if (threadIndex >= 0)
+      affinity->set(threadIndex);
   }
 
   void PinningObserver::on_scheduler_exit(bool isWorker)
   {
     const int threadIndex = tbb::this_task_arena::current_thread_index();
-    affinity->restore(threadIndex);
+    if (threadIndex >= 0)
+      affinity->restore(threadIndex);
   }
 
 OIDN_NAMESPACE_END

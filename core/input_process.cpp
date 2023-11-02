@@ -39,9 +39,9 @@ OIDN_NAMESPACE_BEGIN
                             const std::shared_ptr<Image>& normal)
   {
     int C = 0;
-    if (color)  C += color->getC();
-    if (albedo) C += albedo->getC();
-    if (normal) C += normal->getC();
+    if (color)  C += 3; // always broadcast to 3 channels
+    if (albedo) C += 3;
+    if (normal) C += 3;
     if (C != srcDims[0])
       throw std::invalid_argument("invalid input processing source");
 

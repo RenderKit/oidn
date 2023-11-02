@@ -115,13 +115,17 @@ OIDN_NAMESPACE_BEGIN
 
   HIPDevice::~HIPDevice()
   {
-    // Make sure to free up all resources inside a begin/end block
-    begin();
-    engine = nullptr;
-    end();
+    // We *must* free all HIP resources inside an enter/leave block
+    try
+    {
+      enter();
+      engine.reset();
+      leave();
+    }
+    catch (...) {}
   }
 
-  void HIPDevice::begin()
+  void HIPDevice::enter()
   {
     assert(prevDeviceID < 0);
 
@@ -133,7 +137,7 @@ OIDN_NAMESPACE_BEGIN
       checkError(hipSetDevice(deviceID));
   }
 
-  void HIPDevice::end()
+  void HIPDevice::leave()
   {
     assert(prevDeviceID >= 0);
 
@@ -149,6 +153,7 @@ OIDN_NAMESPACE_BEGIN
     checkError(hipGetDeviceProperties(&prop, deviceID));
     arch = getArch(prop);
     maxWorkGroupSize = prop.maxThreadsPerBlock;
+    subgroupSize = prop.warpSize;
 
     if (isVerbose())
     {
@@ -162,6 +167,7 @@ OIDN_NAMESPACE_BEGIN
       throw Exception(Error::UnsupportedHardware, "unsupported HIP device architecture");
 
     tensorDataType = DataType::Float16;
+    weightDataType = DataType::Float16;
     tensorLayout   = TensorLayout::hwc;
     weightLayout   = TensorLayout::ohwi;
     tensorBlockC   = (arch == HIPArch::DL) ? 32 : 8;

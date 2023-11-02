@@ -9,10 +9,10 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  template<typename ImageDataT, int maxBinSize>
+  template<int maxBinSize>
   struct GPUAutoexposureDownsampleKernel : WorkGroup<2>
   {
-    ImageAccessor<ImageDataT> src;
+    ImageAccessor src;
     float* bins;
 
     OIDN_DEVICE_INLINE void operator ()(const WorkGroupItem<2>& it) const
@@ -20,13 +20,13 @@ OIDN_NAMESPACE_BEGIN
       constexpr int groupSize = maxBinSize * maxBinSize;
       OIDN_SHARED LocalArray<float, groupSize> localSums;
 
-      const int beginH = it.getGroupId<0>() * src.H / it.getGroupRange<0>();
-      const int beginW = it.getGroupId<1>() * src.W / it.getGroupRange<1>();
-      const int endH = (it.getGroupId<0>()+1) * src.H / it.getGroupRange<0>();
-      const int endW = (it.getGroupId<1>()+1) * src.W / it.getGroupRange<1>();
+      const int beginH = it.getGroupID<0>() * src.H / it.getNumGroups<0>();
+      const int beginW = it.getGroupID<1>() * src.W / it.getNumGroups<1>();
+      const int endH = (it.getGroupID<0>()+1) * src.H / it.getNumGroups<0>();
+      const int endW = (it.getGroupID<1>()+1) * src.W / it.getNumGroups<1>();
 
-      const int h = beginH + it.getLocalId<0>();
-      const int w = beginW + it.getLocalId<1>();
+      const int h = beginH + it.getLocalID<0>();
+      const int w = beginW + it.getLocalID<1>();
 
       float L;
       if (h < endH && w < endW)
@@ -40,20 +40,20 @@ OIDN_NAMESPACE_BEGIN
         L = 0;
       }
 
-      const int localId = it.getLocalLinearId();
-      localSums[localId] = L;
+      const int localID = it.getLocalLinearID();
+      localSums[localID] = L;
 
       for (int i = groupSize / 2; i > 0; i >>= 1)
       {
-        it.syncGroup();
-        if (localId < i)
-          localSums[localId] += localSums[localId + i];
+        it.groupBarrier();
+        if (localID < i)
+          localSums[localID] += localSums[localID + i];
       }
 
-      if (localId == 0)
+      if (localID == 0)
       {
         const float avgL = localSums[0] / float((endH - beginH) * (endW - beginW));
-        bins[it.getGroupLinearId()] = avgL;
+        bins[it.getGroupLinearID()] = avgL;
       }
     }
   };
@@ -73,7 +73,7 @@ OIDN_NAMESPACE_BEGIN
 
       float sum = 0;
       int count = 0;
-      for (int i = it.getGlobalId(); i < size; i += it.getGlobalRange())
+      for (int i = it.getGlobalID(); i < size; i += it.getGlobalSize())
       {
         const float L = bins[i];
         if (L > Autoexposure::eps)
@@ -83,24 +83,24 @@ OIDN_NAMESPACE_BEGIN
         }
       }
 
-      const int localId = it.getLocalId();
-      localSums[localId] = sum;
-      localCounts[localId] = count;
+      const int localID = it.getLocalID();
+      localSums[localID] = sum;
+      localCounts[localID] = count;
 
       for (int i = groupSize / 2; i > 0; i >>= 1)
       {
-        it.syncGroup();
-        if (localId < i)
+        it.groupBarrier();
+        if (localID < i)
         {
-          localSums[localId] += localSums[localId + i];
-          localCounts[localId] += localCounts[localId + i];
+          localSums[localID] += localSums[localID + i];
+          localCounts[localID] += localCounts[localID + i];
         }
       }
 
-      if (localId == 0)
+      if (localID == 0)
       {
-        sums[it.getGroupId()] = localSums[0];
-        counts[it.getGroupId()] = localCounts[0];
+        sums[it.getGroupID()] = localSums[0];
+        counts[it.getGroupID()] = localCounts[0];
       }
     }
   };
@@ -118,30 +118,30 @@ OIDN_NAMESPACE_BEGIN
       OIDN_SHARED LocalArray<float, groupSize> localSums;
       OIDN_SHARED LocalArray<int, groupSize> localCounts;
 
-      const int localId = it.getLocalId();
+      const int localID = it.getLocalID();
 
-      if (localId < size)
+      if (localID < size)
       {
-        localSums[localId] = sums[localId];
-        localCounts[localId] = counts[localId];
+        localSums[localID] = sums[localID];
+        localCounts[localID] = counts[localID];
       }
       else
       {
-        localSums[localId] = 0;
-        localCounts[localId] = 0;
+        localSums[localID] = 0;
+        localCounts[localID] = 0;
       }
 
       for (int i = groupSize / 2; i > 0; i >>= 1)
       {
-        it.syncGroup();
-        if (localId < i)
+        it.groupBarrier();
+        if (localID < i)
         {
-          localSums[localId] += localSums[localId + i];
-          localCounts[localId] += localCounts[localId + i];
+          localSums[localID] += localSums[localID + i];
+          localCounts[localID] += localCounts[localID + i];
         }
       }
 
-      if (localId == 0)
+      if (localID == 0)
         *result = (localCounts[0] > 0) ? (Autoexposure::key / math::exp2(localSums[0] / float(localCounts[0]))) : 1.f;
     }
   };
@@ -168,9 +168,8 @@ OIDN_NAMESPACE_BEGIN
 
     void setScratch(const Ref<Buffer>& scratch) override
     {
-      if (!scratch || scratch->getByteSize() < scratchByteSize)
-        throw std::invalid_argument("invalid autoexposure scratch");
-
+      if (scratch->getByteSize() < getScratchByteSize())
+        throw std::invalid_argument("autoexposure scratch buffer too small");
       this->scratch = scratch;
     }
 
@@ -181,25 +180,11 @@ OIDN_NAMESPACE_BEGIN
       if (!scratch)
         throw std::logic_error("autoexposure scratch not set");
 
-      switch (src->getDataType())
-      {
-      case DataType::Float32: runImpl<float>(); break;
-      case DataType::Float16: runImpl<half>();  break;
-      default:                assert(0);
-      }
-    }
-
-    const float* getResult() const override { return (float*)resultBuffer->getData(); }
-
-  private:
-    template<typename ImageDataT>
-    void runImpl()
-    {
       float* bins = (float*)scratch->getData();
       float* sums = (float*)((char*)bins + numBins * sizeof(float));
       int* counts = (int*)((char*)sums + numGroups * sizeof(float));
 
-      GPUAutoexposureDownsampleKernel<ImageDataT, maxBinSize> downsample;
+      GPUAutoexposureDownsampleKernel<maxBinSize> downsample;
       downsample.src = *src;
       downsample.bins = bins;
       engine->submitKernel(WorkDim<2>(numBinsH, numBinsW), WorkDim<2>(maxBinSize, maxBinSize), downsample);
@@ -219,6 +204,9 @@ OIDN_NAMESPACE_BEGIN
       engine->submitKernel(WorkDim<1>(1), WorkDim<1>(groupSize), reduceFinal);
     }
 
+    const float* getResult() const override { return (float*)resultBuffer->getData(); }
+
+  private:
     Ref<EngineT> engine;
     int numGroups;
     Ref<Buffer> resultBuffer;

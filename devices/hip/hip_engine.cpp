@@ -66,7 +66,15 @@ OIDN_NAMESPACE_BEGIN
 
   std::shared_ptr<InputProcess> HIPEngine::newInputProcess(const InputProcessDesc& desc)
   {
-    return std::make_shared<GPUInputProcess<HIPEngine, half, TensorLayout::hwc>>(this, desc);
+    switch (device->getTensorBlockC())
+    {
+    case 8:
+      return std::make_shared<GPUInputProcess<HIPEngine, half, TensorLayout::hwc,  8>>(this, desc);
+    case 32:
+      return std::make_shared<GPUInputProcess<HIPEngine, half, TensorLayout::hwc, 32>>(this, desc);
+    default:
+      throw std::logic_error("unexpected tensor block channel size");
+    }
   }
 
   std::shared_ptr<OutputProcess> HIPEngine::newOutputProcess(const OutputProcessDesc& desc)

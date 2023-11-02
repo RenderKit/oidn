@@ -293,13 +293,18 @@ OIDN_NAMESPACE_BEGIN
     switch (arch)
     {
     case SYCLArch::XeHPG:
-      weightLayout = TensorLayout::OIhw2o8i8o2i;
+      weightDataType = DataType::Float16;
+      weightLayout   = TensorLayout::OIhw2o8i8o2i;
       break;
+
     case SYCLArch::XeHPC:
-      weightLayout = TensorLayout::OIhw8i16o2i;
+      weightDataType = DataType::Float16;
+      weightLayout   = TensorLayout::OIhw8i16o2i;
       break;
+
     default:
-      weightLayout = TensorLayout::OIhw16i16o;
+      weightDataType = DataType::Float32;
+      weightLayout   = TensorLayout::OIhw16i16o;
     }
 
     if (zeContext)
@@ -390,6 +395,11 @@ OIDN_NAMESPACE_BEGIN
 
   void SYCLDevice::setDepEvents(const sycl::event* events, int numEvents)
   {
+    if (numEvents < 0)
+      throw Exception(Error::InvalidArgument, "invalid number of dependent SYCL events");
+    if (events == nullptr && numEvents > 0)
+      throw Exception(Error::InvalidArgument, "array of dependent SYCL events is null");
+
     setDepEvents({events, events + numEvents});
   }
 

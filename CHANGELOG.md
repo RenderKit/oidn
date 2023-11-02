@@ -1,6 +1,29 @@
 Version History
 ---------------
 
+### Changes in v2.1.0:
+
+-   Added support for denoising 1-channel (e.g. alpha) and 2-channel images
+-   Added support for arbitrary combinations of input image data types
+    (e.g. `OIDN_FORMAT_FLOAT3` for `color` but `OIDN_FORMAT_HALF3` for `albedo`)
+-   Improved performance for most dedicated GPU architectures
+-   Re-added `OIDN_STATIC_LIB` CMake option which enables building as a static
+    (CPU support only) or a hybrid static/shared (GPU support as well) library
+-   Added `release()` method to C++ API objects (`DeviceRef`, `BufferRef`,
+    `FilterRef`)
+-   Fixed possible crash when releasing GPU devices, buffers or filters
+-   Fixed possible crash at process exit for some SYCL runtime versions
+-   Fixed image quality inconsistency on Intel integrated GPUs, but at the cost
+    of some performance loss
+-   Fixed future Windows driver compatibility for Intel integrated GPUs
+-   Fixed rare output corruption on AMD RDNA2 GPUs
+-   Fixed device detection on Windows when the path to the library has non-ANSI
+    characters
+-   Added support for Intel® oneAPI DPC++/C++ Compiler 2024.0 and compatible
+    open source compiler versions
+-   Upgraded to oneTBB 2021.10.0 in the official binaries
+-   Improved detection of old oneTBB versions
+
 ### Changes in v2.0.1:
 
 -   Fixed performance issue for Intel integrated GPUs using recent Linux drivers

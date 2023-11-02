@@ -10,6 +10,7 @@
 #define OIDN_VERSION_STRING "@OIDN_VERSION_MAJOR@.@OIDN_VERSION_MINOR@.@OIDN_VERSION_PATCH@@OIDN_VERSION_NOTE@"
 
 #cmakedefine OIDN_API_NAMESPACE @OIDN_API_NAMESPACE@
+#cmakedefine OIDN_STATIC_LIB
 
 #if defined(OIDN_API_NAMESPACE)
   #define OIDN_API_NAMESPACE_BEGIN namespace @OIDN_API_NAMESPACE@ {
@@ -37,7 +38,10 @@
 
 #define OIDN_NAMESPACE_USING using namespace OIDN_NAMESPACE;
 
-#if defined(_WIN32)
+#if defined(OIDN_STATIC_LIB)
+  #define OIDN_API_IMPORT OIDN_API_EXTERN_C
+  #define OIDN_API_EXPORT OIDN_API_EXTERN_C
+#elif defined(_WIN32)
   #define OIDN_API_IMPORT OIDN_API_EXTERN_C __declspec(dllimport)
   #define OIDN_API_EXPORT OIDN_API_EXTERN_C __declspec(dllexport)
 #else

@@ -15,7 +15,7 @@ def main():
   cfg = parse_args(description='Converts a feature image to a different image format.')
 
   # Load the input image
-  image = load_image(cfg.input, num_channels=3)
+  image, _ = load_image(cfg.input)
 
   # Load metadata for the image if it exists
   tonemap_exposure = cfg.exposure

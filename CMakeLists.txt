@@ -75,6 +75,7 @@ endif()
 oidn_generate_cpp_from_blob(OIDN_WEIGHTS_SOURCES "${OIDN_NAMESPACE}::blobs::weights" ${OIDN_WEIGHTS})
 if(OIDN_WEIGHTS_SOURCES)
   add_library(OpenImageDenoise_weights OBJECT ${OIDN_WEIGHTS_SOURCES})
+  install(TARGETS OpenImageDenoise_weights EXPORT OpenImageDenoise_Exports)
 endif()
 
 ## -----------------------------------------------------------------------------
@@ -165,14 +166,24 @@ endif()
 # Install CMake configuration files
 install(EXPORT OpenImageDenoise_Exports
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/OpenImageDenoise-${OIDN_VERSION}
-  FILE OpenImageDenoiseConfig.cmake
+  FILE OpenImageDenoiseTargets.cmake
   COMPONENT devel
 )
 
 include(CMakePackageConfigHelpers)
-write_basic_package_version_file(OpenImageDenoiseConfigVersion.cmake
+
+configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Config.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/OpenImageDenoiseConfig.cmake
+  INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/OpenImageDenoise-${OIDN_VERSION}
+)
+
+write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/OpenImageDenoiseConfigVersion.cmake
   COMPATIBILITY SameMajorVersion)
-install(FILES ${CMAKE_BINARY_DIR}/OpenImageDenoiseConfigVersion.cmake
+
+install(
+  FILES
+    ${CMAKE_CURRENT_BINARY_DIR}/OpenImageDenoiseConfig.cmake
+    ${CMAKE_CURRENT_BINARY_DIR}/OpenImageDenoiseConfigVersion.cmake
   DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/OpenImageDenoise-${OIDN_VERSION}
   COMPONENT devel
 )

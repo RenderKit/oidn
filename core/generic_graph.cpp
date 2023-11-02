@@ -1,10 +1,15 @@
 // Copyright 2018 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
+//#define OIDN_MICROBENCH 1000 // number of microbenchmark iterations
+
 #include "generic_graph.h"
 #include "concat_conv_chw.h"
 #include "concat_conv_hwc.h"
 #include "tensor_reorder.h"
+#if defined(OIDN_MICROBENCH)
+  #include "common/timer.h"
+#endif
 
 OIDN_NAMESPACE_BEGIN
 
@@ -90,7 +95,7 @@ OIDN_NAMESPACE_BEGIN
     TensorDesc finalWeightDesc = {weight->getDims(),
                                   finalWeightDims,
                                   engine->getDevice()->getWeightLayout(),
-                                  engine->getDevice()->getTensorDataType()};
+                                  engine->getDevice()->getWeightDataType()};
 
     TensorDesc finalBiasDesc = {bias->getDims(),
                                 {round_up(bias->getX(), blockC)},
@@ -109,18 +114,18 @@ OIDN_NAMESPACE_BEGIN
       conv->setDst(dstAlloc->tensor);
 
       // Reorder the weight tensor
-      auto finalWeight = engine->newTensor(finalWeightDesc);
+      auto finalWeight = std::make_shared<HostTensor>(finalWeightDesc);
       reorderWeight(*weight, 0, weight->getI(),
-                    *finalWeight->map(Access::WriteDiscard), 0, finalWeight->getPaddedI());
-      conv->setWeight(finalWeight);
+                    *finalWeight, 0, finalWeight->getPaddedI());
+      conv->setWeight(finalWeight->toDevice(engine));
 
       // Reorder the bias tensor
-      auto finalBias = engine->newTensor(finalBiasDesc);
-      reorderBias(*bias, *finalBias->map(Access::WriteDiscard));
-      conv->setBias(finalBias);
+      auto finalBias = std::make_shared<HostTensor>(finalBiasDesc);
+      reorderBias(*bias, *finalBias);
+      conv->setBias(finalBias->toDevice(engine));
     });
 
-    constByteSize += finalWeightDesc.getByteSize() + finalBiasDesc.getByteSize();
+    privateByteSize += finalWeightDesc.getByteSize() + finalBiasDesc.getByteSize();
     return conv;
   }
 
@@ -150,7 +155,7 @@ OIDN_NAMESPACE_BEGIN
     TensorDesc finalWeightDesc = {weight->getDims(),
                                   finalWeightDims,
                                   engine->getDevice()->getWeightLayout(),
-                                  engine->getDevice()->getTensorDataType()};
+                                  engine->getDevice()->getWeightDataType()};
 
     TensorDesc finalBiasDesc = {bias->getDims(),
                                 {round_up(bias->getX(), blockC)},
@@ -171,25 +176,25 @@ OIDN_NAMESPACE_BEGIN
         concatConv->setDst(dstAlloc->tensor);
 
         // Reorder the weight tensor
-        auto finalWeight1 = engine->newTensor(concatConv->getWeight1Desc());
-        auto finalWeight2 = engine->newTensor(concatConv->getWeight2Desc());
+        auto finalWeight1 = std::make_shared<HostTensor>(concatConv->getWeight1Desc());
+        auto finalWeight2 = std::make_shared<HostTensor>(concatConv->getWeight2Desc());
 
         reorderWeight(*weight, 0, src1Desc.getC(),
-                      *finalWeight1->map(Access::WriteDiscard), 0, src1Desc.getPaddedC());
+                      *finalWeight1, 0, src1Desc.getPaddedC());
         reorderWeight(*weight, src1Desc.getC(), src2Desc.getC(),
-                      *finalWeight2->map(Access::WriteDiscard), 0, src2Desc.getPaddedC());
+                      *finalWeight2, 0, src2Desc.getPaddedC());
 
-        concatConv->setWeight(finalWeight1, finalWeight2);
+        concatConv->setWeight(finalWeight1->toDevice(engine), finalWeight2->toDevice(engine));
 
         // Reorder the bias tensor
-        auto finalBias = engine->newTensor(finalBiasDesc);
-        reorderBias(*bias, *finalBias->map(Access::WriteDiscard));
-        concatConv->setBias(finalBias);
+        auto finalBias = std::make_shared<HostTensor>(finalBiasDesc);
+        reorderBias(*bias, *finalBias);
+        concatConv->setBias(finalBias->toDevice(engine));
       });
 
-      constByteSize += concatConv->getWeight1Desc().getByteSize() +
-                       concatConv->getWeight2Desc().getByteSize() +
-                       finalBiasDesc.getByteSize();
+      privateByteSize += concatConv->getWeight1Desc().getByteSize() +
+                         concatConv->getWeight2Desc().getByteSize() +
+                         finalBiasDesc.getByteSize();
       return concatConv;
     }
     else
@@ -204,25 +209,22 @@ OIDN_NAMESPACE_BEGIN
         concatConv->setDst(dstAlloc->tensor);
 
         // Reorder the weight tensor
-        auto finalWeight = engine->newTensor(finalWeightDesc);
+        auto finalWeight = std::make_shared<HostTensor>(finalWeightDesc);
 
-        {
-          auto finalWeightHost = finalWeight->map(Access::WriteDiscard);
-          reorderWeight(*weight, 0, src1Desc.getC(),
-                        *finalWeightHost, 0, src1Desc.getPaddedC());
-          reorderWeight(*weight, src1Desc.getC(), src2Desc.getC(),
-                        *finalWeightHost, src1Desc.getPaddedC(), src2Desc.getPaddedC());
-        }
+        reorderWeight(*weight, 0, src1Desc.getC(),
+                      *finalWeight, 0, src1Desc.getPaddedC());
+        reorderWeight(*weight, src1Desc.getC(), src2Desc.getC(),
+                      *finalWeight, src1Desc.getPaddedC(), src2Desc.getPaddedC());
 
-        concatConv->setWeight(finalWeight);
+        concatConv->setWeight(finalWeight->toDevice(engine));
 
         // Reorder the bias tensor
-        auto finalBias = engine->newTensor(finalBiasDesc);
-        reorderBias(*bias, *finalBias->map(Access::WriteDiscard));
-        concatConv->setBias(finalBias);
+        auto finalBias = std::make_shared<HostTensor>(finalBiasDesc);
+        reorderBias(*bias, *finalBias);
+        concatConv->setBias(finalBias->toDevice(engine));
       });
 
-      constByteSize += finalWeightDesc.getByteSize() + finalBiasDesc.getByteSize();
+      privateByteSize += finalWeightDesc.getByteSize() + finalBiasDesc.getByteSize();
       return concatConv;
     }
   }
@@ -352,7 +354,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Track the active allocations sorted by offset in ascending order
     std::vector<TensorAlloc*> activeAllocs;
-    tensorScratchByteSize = 0;
+    size_t tensorScratchByteSize = 0;
 
     // Iterate over the sorted chunks to allocate
     for (const Chunk& chunk : chunks)
@@ -369,11 +371,14 @@ OIDN_NAMESPACE_BEGIN
         if (alloc->lastOpID < chunk.firstOpID || alloc->firstOpID > chunk.lastOpID)
           continue;
 
-        // Check whether the current gap is large enough to fit the chunk
-        if (curByteOffset + chunk.byteSize <= alloc->byteOffset &&
+        const size_t curAlignedByteOffset = round_up(curByteOffset, memoryAlignment);
+
+        // Check whether the current gap is large enough to fit the chunk and
+        // is smaller than the previous best fit
+        if (curAlignedByteOffset + chunk.byteSize <= alloc->byteOffset &&
             alloc->byteOffset - curByteOffset < bestGapByteSize)
         {
-          bestByteOffset  = curByteOffset;
+          bestByteOffset  = curAlignedByteOffset;
           bestGapByteSize = alloc->byteOffset - curByteOffset;
         }
 
@@ -381,7 +386,7 @@ OIDN_NAMESPACE_BEGIN
       }
 
       if (bestByteOffset == SIZE_MAX)
-        bestByteOffset = curByteOffset;
+        bestByteOffset = round_up(curByteOffset, memoryAlignment);
 
       // Assign offsets to the allocations in the chunk, and add them to the sorted active allocations
       for (TensorAlloc* alloc = chunk.firstAlloc; alloc; alloc = alloc->next)
@@ -398,10 +403,16 @@ OIDN_NAMESPACE_BEGIN
       tensorScratchByteSize = max(tensorScratchByteSize, bestByteOffset);
     }
 
+    tensorScratchByteSize = round_up(tensorScratchByteSize, memoryAlignment);
+
     // Compute the size of the operation scratch
     size_t opScratchByteSize = 0;
     for (const auto& op : ops)
-      opScratchByteSize = max(opScratchByteSize, op->getScratchAlignedSize());
+      opScratchByteSize = max(opScratchByteSize, op->getScratchByteSize());
+    opScratchByteSize = round_up(opScratchByteSize, memoryAlignment);
+
+    tensorScratchByteOffset = opScratchByteSize;
+    scratchByteSize = opScratchByteSize + tensorScratchByteSize;
 
     dirty = false;
   }
@@ -424,15 +435,17 @@ OIDN_NAMESPACE_BEGIN
     return true;
   }
 
-  size_t GenericGraph::getScratchAlignedSize()
+  size_t GenericGraph::getScratchByteSize()
   {
     if (dirty)
       planAllocations();
-    return opScratchByteSize + tensorScratchByteSize;
+    return scratchByteSize;
   }
 
   void GenericGraph::setScratch(const Ref<Buffer>& scratch)
   {
+    if (scratch->getByteSize() < getScratchByteSize())
+      throw std::invalid_argument("graph scratch buffer too small");
     this->scratch = scratch;
   }
 
@@ -448,9 +461,9 @@ OIDN_NAMESPACE_BEGIN
     cleanup();
     ops.clear();
     scratch.reset();
-    opScratchByteSize = 0;
-    tensorScratchByteSize = 0;
-    constByteSize = 0;
+    scratchByteSize = 0;
+    privateByteSize = 0;
+    tensorScratchByteOffset = 0;
     dirty = false;
   }
 
@@ -460,7 +473,10 @@ OIDN_NAMESPACE_BEGIN
       planAllocations();
 
     for (auto& tensorAlloc : tensorAllocs)
-      tensorAlloc->tensor = scratch->newTensor(tensorAlloc->desc, opScratchByteSize + tensorAlloc->byteOffset);
+    {
+      tensorAlloc->tensor =
+        scratch->newTensor(tensorAlloc->desc, tensorScratchByteOffset + tensorAlloc->byteOffset);
+    }
 
     for (auto& lazyInit : lazyInits)
       lazyInit();
@@ -480,9 +496,27 @@ OIDN_NAMESPACE_BEGIN
 
   void GenericGraph::run(Progress& progress)
   {
+  #if defined(OIDN_MICROBENCH)
+    double totalTime = 0;
+    std::cerr << std::endl;
+    std::cerr << "op,name,msec" << std::endl;
+  #endif
+
     for (size_t i = 0; i < ops.size(); ++i)
     {
       ops[i]->submit();
+
+    #if defined(OIDN_MICROBENCH)
+      engine->wait();
+      const int numRuns = OIDN_MICROBENCH;
+      Timer timer;
+      for (int j = 0; j < numRuns; ++j)
+        ops[i]->submit();
+      engine->wait();
+      const double time = timer.query() / numRuns;
+      std::cerr << i << "," << ops[i]->getName() << "," << time * 1000 << std::endl;
+      totalTime += time;
+    #endif
 
     #if 0
       // Dump
@@ -499,11 +533,21 @@ OIDN_NAMESPACE_BEGIN
         dst = upsample->getDst();
 
       if (dst)
+      {
+        std::cout << std::setfill('0') << std::setw(2) << i << ": "
+                  << std::hex << std::setfill('0') << std::setw(8) << dst->getHash() << std::dec
+                  << " " << ops[i]->getName() << std::endl;
+
         dst->dump(toString(i) + "_" + ops[i]->getName() + "_");
+      }
     #endif
 
       progress.update(engine, 1);
     }
+
+  #if defined(OIDN_MICROBENCH)
+    std::cerr << ",total," << totalTime * 1000 << std::endl;
+  #endif
   }
 
 OIDN_NAMESPACE_END

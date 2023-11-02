@@ -46,7 +46,7 @@ OIDN_NAMESPACE_BEGIN
 
     virtual bool isSupported() const = 0;
 
-    virtual size_t getScratchAlignedSize() = 0;
+    virtual size_t getScratchByteSize() = 0;
     virtual void setScratch(const Ref<Buffer>& scratch) = 0;
     virtual size_t getPrivateByteSize() const = 0;
 

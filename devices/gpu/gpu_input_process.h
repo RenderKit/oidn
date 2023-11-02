@@ -11,16 +11,16 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  template<typename ImageDataT, typename TensorDataT, TensorLayout tensorLayout>
-  struct GPUInputProcessKernel
+  template<typename DstT, TensorLayout dstLayout, int dstPaddedC>
+  struct GPUInputProcessKernel : WorkGroup<2>
   {
     // Source
-    ImageAccessor<ImageDataT> color;
-    ImageAccessor<ImageDataT> albedo;
-    ImageAccessor<ImageDataT> normal;
+    ImageAccessor input;  // color, albedo or normal
+    ImageAccessor albedo; // auxiliary albedo
+    ImageAccessor normal; // auxiliary normal
 
     // Destination
-    TensorAccessor3D<TensorDataT, tensorLayout> dst;
+    TensorAccessor3D<DstT, dstLayout> dst;
 
     // Tile
     Tile tile;
@@ -30,14 +30,10 @@ OIDN_NAMESPACE_BEGIN
     bool hdr;
     bool snorm; // signed normalized ([-1..1])
 
-    OIDN_DEVICE_INLINE void storeZero(int c, int h, int w) const
+    OIDN_DEVICE_INLINE vec3f getInput(int h, int w) const
     {
-      dst(c, h, w) = 0.f;
-    }
+      vec3f value = input.get3(h, w);
 
-    // Stores a color value
-    OIDN_DEVICE_INLINE void storeColor(int c, int h, int w, vec3f value) const
-    {
       // Scale
       value = value * transferFunc.getInputScale();
 
@@ -53,34 +49,22 @@ OIDN_NAMESPACE_BEGIN
       // Apply the transfer function
       value = transferFunc.forward(value);
 
-      // Store
-      dst.set3(c, h, w, value);
+      return value;
     }
 
-    // Stores an albedo value
-    OIDN_DEVICE_INLINE void storeAlbedo(int c, int h, int w, vec3f value) const
+    OIDN_DEVICE_INLINE vec3f getAlbedo(int h, int w) const
     {
-      // Scale
-      if (!color.ptr)
-        value = value * transferFunc.getInputScale();
+      vec3f value = albedo.get3(h, w);
 
       // Sanitize
       value = math::clamp(math::nan_to_zero(value), 0.f, 1.f);
 
-      // Apply the transfer function
-      if (!color.ptr)
-        value = transferFunc.forward(value);
-
-      // Store
-      dst.set3(c, h, w, value);
+      return value;
     }
 
-    // Stores a normal value
-    OIDN_DEVICE_INLINE void storeNormal(int c, int h, int w, vec3f value) const
+    OIDN_DEVICE_INLINE vec3f getNormal(int h, int w) const
     {
-      // Scale
-      if (!color.ptr)
-        value = value * transferFunc.getInputScale();
+      vec3f value = normal.get3(h, w);
 
       // Sanitize
       value = math::clamp(math::nan_to_zero(value), -1.f, 1.f);
@@ -88,57 +72,107 @@ OIDN_NAMESPACE_BEGIN
       // Transform to [0..1]
       value = value * 0.5f + 0.5f;
 
-      // Store
-      dst.set3(c, h, w, value);
+      return value;
     }
 
-    OIDN_DEVICE_INLINE void operator ()(const WorkItem<2>& it) const
+    OIDN_DEVICE_INLINE void operator ()(const WorkGroupItem<2>& it) const
     {
-      const int hDst = it.getId<0>();
-      const int wDst = it.getId<1>();
+      const int hDst = it.getGlobalID<0>();
+      const int wDst = it.getGlobalID<1>();
 
       const int h = hDst - tile.hDstBegin;
       const int w = wDst - tile.wDstBegin;
+
+      // Gather and process the input channel values
+      float values[dstPaddedC] = {}; // = 0
 
       if (h >= 0 && h < tile.H && w >= 0 && w < tile.W)
       {
         const int hSrc = h + tile.hSrcBegin;
         const int wSrc = w + tile.wSrcBegin;
-        const int wDst = w + tile.wDstBegin;
 
-        int c = 0;
+        const vec3f inputValue = getInput(hSrc, wSrc);
+        values[0] = inputValue.x;
+        values[1] = inputValue.y;
+        values[2] = inputValue.z;
 
-        if (color.ptr)
+        if (dstPaddedC >= 6 && albedo.ptr)
         {
-          storeColor(c, hDst, wDst, color.get3(hSrc, wSrc));
-          c += 3;
-        }
+          const vec3f albedoValue = getAlbedo(hSrc, wSrc);
+          values[3] = albedoValue.x;
+          values[4] = albedoValue.y;
+          values[5] = albedoValue.z;
 
-        if (albedo.ptr)
-        {
-          storeAlbedo(c, hDst, wDst, albedo.get3(hSrc, wSrc));
-          c += 3;
+          if (dstPaddedC >= 9 && normal.ptr)
+          {
+            const vec3f normalValue = getNormal(hSrc, wSrc);
+            values[6] = normalValue.x;
+            values[7] = normalValue.y;
+            values[8] = normalValue.z;
+          }
         }
-
-        if (normal.ptr)
-        {
-          storeNormal(c, hDst, wDst, normal.get3(hSrc, wSrc));
-          c += 3;
-        }
-
-        for (; c < dst.C; ++c)
-          storeZero(c, hDst, wDst);
       }
-      else
+
+    #if !defined(OIDN_COMPILE_HIP) || defined(__gfx1030__)
+      // Transpose the values in the subgroup into coalesced blocks and store them to memory (fast)
+      // All work-items in the subgroup are assumed to be in the same row
+      const int subgroupLocalID = it.getSubgroupLocalID();
+      const int wDstBegin = it.subgroupBroadcast(wDst, 0);
+      GlobalPtr<DstT> dstPtr = &dst(0, hDst, wDstBegin);
+
+      #if defined(OIDN_COMPILE_SYCL)
+      // The subgroup size is assumed to be equal to the channel count
+      constexpr int subgroupSize = dstPaddedC;
+
+      #pragma unroll
+      for (int i = 0; i < subgroupSize; ++i)
       {
-        // Zero pad
-        for (int c = 0; c < dst.C; ++c)
-          storeZero(c, hDst, wDst);
+        float dstBlock = 0;
+
+        #pragma unroll
+        for (int c = 0; c < min(dstPaddedC, 9); ++c) // only up to 9 non-zero channels
+        {
+          const auto value = it.subgroupBroadcast(values[c], i);
+          dstBlock = (subgroupLocalID == c) ? value : dstBlock;
+        }
+
+        if (wDstBegin + i < dst.W)
+          it.subgroupStore(dstPtr + i * dstPaddedC, DstT(dstBlock));
       }
+      #else
+      // The subgroup size is assumed to be divisible by the channel count
+      const int subgroupSize = it.getSubgroupSize();
+
+      for (int i = 0; i < subgroupSize; i += subgroupSize / dstPaddedC)
+      {
+        // We may store multiple pixels in the same block
+        const int wBlock = i + subgroupLocalID / dstPaddedC;
+        float dstBlock = 0;
+
+        #pragma unroll
+        for (int c = 0; c < min(dstPaddedC, 9); ++c) // only up to 9 non-zero channels
+        {
+          const auto value = it.subgroupShuffle(values[c], wBlock);
+          dstBlock = (subgroupLocalID % dstPaddedC) == c ? value : dstBlock;
+        }
+
+        if (wDstBegin + wBlock < dst.W)
+          dstPtr[i * dstPaddedC + subgroupLocalID] = DstT(dstBlock);
+      }
+      #endif
+    #else
+      // Scatter the values to memory (slow on most architectures)
+      if (wDst < dst.W)
+      {
+        #pragma unroll
+        for (int c = 0; c < dstPaddedC; ++c)
+          dst(c, hDst, wDst) = values[c];
+      }
+    #endif
     }
   };
 
-  template<typename EngineT, typename TensorDataT, TensorLayout tensorLayout>
+  template<typename EngineT, typename DstT, TensorLayout dstLayout, int tensorBlockC>
   class GPUInputProcess : public InputProcess
   {
   public:
@@ -156,39 +190,55 @@ OIDN_NAMESPACE_BEGIN
           tile.wDstBegin + tile.W > dst->getW())
         throw std::out_of_range("input processing source/destination out of range");
 
-      switch (getMainSrc()->getDataType())
+      switch (dst->getC())
       {
-      case DataType::Float32: runImpl<float>(); break;
-      case DataType::Float16: runImpl<half>();  break;
-      default:                assert(0);
+      case  3: runImpl<3>(); break;
+      case  6: runImpl<6>(); break;
+      case  9: runImpl<9>(); break;
+      default: throw std::logic_error("unsupported input processing source channel count");
       }
     }
 
   private:
-    void updateSrc() override
-    {
-      if ((color  && color->getDataType()  != getMainSrc()->getDataType()) ||
-          (albedo && albedo->getDataType() != getMainSrc()->getDataType()) ||
-          (normal && normal->getDataType() != getMainSrc()->getDataType()))
-        throw std::invalid_argument("input processing sources have different data types");
-    }
-
-    template<typename ImageDataT>
+    template<int dstC>
     void runImpl()
     {
-      GPUInputProcessKernel<ImageDataT, TensorDataT, tensorLayout> kernel;
+      constexpr int dstPaddedC = round_up(dstC, tensorBlockC);
+      if (dst->getPaddedC() != dstPaddedC)
+        throw std::logic_error("unexpected input processing destination channel count");
+
+    #if defined(OIDN_COMPILE_SYCL)
+      // We request the subgroup size at compile time
+      constexpr int subgroupSize = dstPaddedC;
+    #else
+      // We know the subgroup size only at runtime
+      const int subgroupSize = engine->getSubgroupSize();
+      if (subgroupSize % dstPaddedC != 0)
+        throw std::logic_error("unsupported input processing destination channel count");
+    #endif
+
+      using Kernel = GPUInputProcessKernel<DstT, dstLayout, dstPaddedC>;
+
+      Kernel kernel;
       Image nullImage;
 
-      kernel.color  = color  ? *color  : nullImage;
-      kernel.albedo = albedo ? *albedo : nullImage;
-      kernel.normal = normal ? *normal : nullImage;
+      kernel.input  = color ? *color : (albedo ? *albedo : *normal);
+      kernel.albedo = (color && albedo) ? *albedo : nullImage;
+      kernel.normal = (color && normal) ? *normal : nullImage;
       kernel.dst    = *dst;
       kernel.tile   = tile;
       kernel.transferFunc = *transferFunc;
       kernel.hdr   = hdr;
       kernel.snorm = snorm;
 
-      engine->submitKernel(WorkDim<2>(dst->getH(), dst->getW()), kernel);
+      const WorkDim<2> numGroups{dst->getH(), ceil_div(dst->getW(), subgroupSize)};
+      const WorkDim<2> groupSize{1, subgroupSize};
+
+    #if defined(OIDN_COMPILE_SYCL)
+      engine->template submitKernel<subgroupSize>(numGroups, groupSize, kernel);
+    #else
+      engine->submitKernel(numGroups, groupSize, kernel);
+    #endif
     }
 
     Ref<EngineT> engine;

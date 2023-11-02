@@ -18,6 +18,11 @@ OIDN_NAMESPACE_BEGIN
     {
       if (numPairs != 1)
         throw Exception(Error::InvalidArgument, "invalid number of CUDA devices/streams");
+      if (deviceIDs == nullptr)
+        throw Exception(Error::InvalidArgument, "array of CUDA devices is null");
+      if (streams == nullptr)
+        throw Exception(Error::InvalidArgument, "array of CUDA streams is null");
+
       return makeRef<CUDADevice>(deviceIDs[0], streams[0]);
     }
 

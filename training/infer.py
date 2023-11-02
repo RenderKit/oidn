@@ -105,7 +105,7 @@ class Infer(object):
       image /= exposure
     else:
       image = torch.clamp(image, max=1.)
-        
+
     return image
 
 def main():
@@ -131,11 +131,11 @@ def main():
   metric_count = 0
 
   # Saves an image in different formats
-  def save_images(path, image, image_srgb, feature_ext=infer.main_feature):
+  def save_images(path, image, image_srgb, num_channels, feature_ext=infer.main_feature):
     if feature_ext == 'sh1':
       # Iterate over x, y, z
       for i, axis in [(0, 'x'), (3, 'y'), (6, 'z')]:
-        save_images(path, image[:, i:i+3, ...], image_srgb[:, i:i+3, ...], 'sh1' + axis)
+        save_images(path, image[:, i:i+3, ...], image_srgb[:, i:i+3, ...], num_channels, 'sh1' + axis)
       return
 
     image      = tensor_to_image(image)
@@ -146,9 +146,9 @@ def main():
         # Transform to original range
         if infer.main_feature in {'sh1', 'nrm'}:
           image = image * 2. - 1. # [0..1] -> [-1..1]
-        save_image(filename_prefix + format, image)
+        save_image(filename_prefix + format, image, num_channels=num_channels[feature_ext])
       else:
-        save_image(filename_prefix + format, image_srgb)
+        save_image(filename_prefix + format, image_srgb, num_channels=num_channels[feature_ext])
 
   with torch.no_grad():
     for group, input_names, target_name in image_sample_groups:
@@ -166,7 +166,7 @@ def main():
 
       # Load the target image if it exists
       if target_name:
-        target = load_image_features(os.path.join(data_dir, target_name), infer.main_feature)
+        target, target_num_channels = load_image_features(os.path.join(data_dir, target_name), infer.main_feature)
         target = image_to_tensor(target, batch=True).to(device)
         target_srgb = transform_feature(target, infer.main_feature, 'srgb', tonemap_exposure)
 
@@ -175,7 +175,7 @@ def main():
         print(input_name, '...', end='', flush=True)
 
         # Load the input image
-        input = load_image_features(os.path.join(data_dir, input_name), infer.features)
+        input, input_num_channels = load_image_features(os.path.join(data_dir, input_name), infer.features)
 
         # Compute the autoexposure value
         exposure = autoexposure(input) if infer.main_feature == 'hdr' else 1.
@@ -205,8 +205,8 @@ def main():
         if cfg.num_epochs:
           output_name += f'_{epoch}'
         if cfg.save_all:
-          save_images(os.path.join(output_dir, input_name), input, input_srgb)
-        save_images(os.path.join(output_dir, output_name), output, output_srgb)
+          save_images(os.path.join(output_dir, input_name), input, input_srgb, input_num_channels)
+        save_images(os.path.join(output_dir, output_name), output, output_srgb, input_num_channels)
 
         # Print metrics
         if metric_str:
@@ -215,7 +215,7 @@ def main():
 
       # Save the target image if it exists
       if cfg.save_all and target_name:
-        save_images(os.path.join(output_dir, target_name), target, target_srgb)
+        save_images(os.path.join(output_dir, target_name), target, target_srgb, target_num_channels)
 
   # Print summary
   if metric_count > 0:

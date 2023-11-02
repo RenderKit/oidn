@@ -18,7 +18,6 @@ OIDN_NAMESPACE_BEGIN
 
     // Scratch memory
     virtual size_t getScratchByteSize() const { return 0; }
-    size_t getScratchAlignedSize() const { return round_up(getScratchByteSize(), memoryAlignment); }
     virtual void setScratch(const Ref<Buffer>& scratch) {}
 
     // Finalization is required before running

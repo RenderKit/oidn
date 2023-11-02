@@ -21,7 +21,11 @@ OIDN_NAMESPACE_BEGIN
     }
   };
 
+#if defined(OIDN_STATIC_LIB)
+  void init_device_cpu()
+#else
   OIDN_DECLARE_INIT_MODULE(device_cpu)
+#endif
   {
     Context::registerDeviceType<CPUDeviceFactory>(DeviceType::CPU, CPUDevice::getPhysicalDevices());
   }

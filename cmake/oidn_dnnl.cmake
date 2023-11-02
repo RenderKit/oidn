@@ -155,3 +155,12 @@ endif()
 if(NOT DNNL_ENABLE_JIT_PROFILING)
   target_compile_definitions(dnnl PUBLIC -DDNNL_ENABLE_JIT_PROFILING=0)
 endif()
+
+if(OIDN_STATIC_LIB)
+  install(TARGETS dnnl
+    EXPORT
+      OpenImageDenoise_Exports
+    ARCHIVE
+      DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT devel
+  )
+endif()

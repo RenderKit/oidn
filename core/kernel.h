@@ -86,6 +86,9 @@ OIDN_NAMESPACE_BEGIN
 
 #if defined(OIDN_COMPILE_SYCL)
 
+  template<typename T>
+  using GlobalPtr = sycl::multi_ptr<T, sycl::access::address_space::global_space>;
+
   // -----------------------------------------------------------------------------------------------
   // SYCL WorkItem
   // -----------------------------------------------------------------------------------------------
@@ -96,10 +99,10 @@ OIDN_NAMESPACE_BEGIN
   public:
     OIDN_DEVICE_INLINE WorkItem(const sycl::item<N>& item) : item(item) {}
 
-    template<int i = 0> OIDN_DEVICE_INLINE int getId()    const { return int(item.get_id(i)); }
-    template<int i = 0> OIDN_DEVICE_INLINE int getRange() const { return int(item.get_range(i)); }
+    template<int i = 0> OIDN_DEVICE_INLINE int getGlobalID()   const { return int(item.get_id(i)); }
+    template<int i = 0> OIDN_DEVICE_INLINE int getGlobalSize() const { return int(item.get_range(i)); }
 
-    OIDN_DEVICE_INLINE int getLinearId() const { return int(item.get_linear_id()); }
+    OIDN_DEVICE_INLINE int getGlobalLinearID() const { return int(item.get_linear_id()); }
 
   private:
     const sycl::item<N>& item;
@@ -115,20 +118,53 @@ OIDN_NAMESPACE_BEGIN
   public:
     OIDN_DEVICE_INLINE WorkGroupItem(const sycl::nd_item<N>& item) : item(item) {}
 
-    template<int i = 0> OIDN_DEVICE_INLINE int getGlobalId()    const { return int(item.get_global_id(i)); }
-    template<int i = 0> OIDN_DEVICE_INLINE int getGlobalRange() const { return int(item.get_global_range(i)); }
-    template<int i = 0> OIDN_DEVICE_INLINE int getLocalId()     const { return int(item.get_local_id(i)); }
-    template<int i = 0> OIDN_DEVICE_INLINE int getLocalRange()  const { return int(item.get_local_range(i)); }
-    template<int i = 0> OIDN_DEVICE_INLINE int getGroupId()     const { return int(item.get_group(i)); }
-    template<int i = 0> OIDN_DEVICE_INLINE int getGroupRange()  const { return int(item.get_group_range(i)); }
+    template<int i = 0> OIDN_DEVICE_INLINE int getGlobalID()   const { return int(item.get_global_id(i)); }
+    template<int i = 0> OIDN_DEVICE_INLINE int getGlobalSize() const { return int(item.get_global_range(i)); }
+    template<int i = 0> OIDN_DEVICE_INLINE int getLocalID()    const { return int(item.get_local_id(i)); }
+    template<int i = 0> OIDN_DEVICE_INLINE int getLocalSize()  const { return int(item.get_local_range(i)); }
+    template<int i = 0> OIDN_DEVICE_INLINE int getGroupID()    const { return int(item.get_group(i)); }
+    template<int i = 0> OIDN_DEVICE_INLINE int getNumGroups()  const { return int(item.get_group_range(i)); }
 
-    OIDN_DEVICE_INLINE int getGlobalLinearId() const { return int(item.get_global_linear_id()); }
-    OIDN_DEVICE_INLINE int getLocalLinearId()  const { return int(item.get_local_linear_id()); }
-    OIDN_DEVICE_INLINE int getGroupLinearId()  const { return int(item.get_group_linear_id()); }
+    OIDN_DEVICE_INLINE int getGlobalLinearID() const { return int(item.get_global_linear_id()); }
+    OIDN_DEVICE_INLINE int getLocalLinearID()  const { return int(item.get_local_linear_id()); }
+    OIDN_DEVICE_INLINE int getGroupLinearID()  const { return int(item.get_group_linear_id()); }
 
-    OIDN_DEVICE_INLINE void syncGroup() const
+    OIDN_DEVICE_INLINE void groupBarrier() const
     {
       item.barrier(sycl::access::fence_space::local_space);
+    }
+
+    OIDN_DEVICE_INLINE int getSubgroupLocalID() const
+    {
+      return int(item.get_sub_group().get_local_linear_id());
+    }
+
+    OIDN_DEVICE_INLINE int getSubgroupSize() const
+    {
+      return int(item.get_sub_group().get_max_local_range()[0]);
+    }
+
+    template<typename T>
+    OIDN_DEVICE_INLINE T subgroupBroadcast(T x, int id) const
+    {
+      return sycl::group_broadcast(item.get_sub_group(), x, id);
+    }
+
+    template<typename T>
+    OIDN_DEVICE_INLINE T subgroupShuffle(T x, int id) const
+    {
+      return sycl::select_from_group(item.get_sub_group(), x, id);
+    }
+
+    template<typename T>
+    OIDN_DEVICE_INLINE void subgroupStore(GlobalPtr<T> dst, const T& x) const
+    {
+      item.get_sub_group().store(dst, x);
+    }
+
+    OIDN_DEVICE_INLINE void subgroupBarrier() const
+    {
+      sycl::group_barrier(item.get_sub_group());
     }
 
   private:
@@ -158,6 +194,9 @@ OIDN_NAMESPACE_BEGIN
 
 #elif defined(OIDN_COMPILE_CUDA) || defined(OIDN_COMPILE_HIP)
 
+  template<typename T>
+  using GlobalPtr = T*;
+
   // -----------------------------------------------------------------------------------------------
   // CUDA/HIP WorkItem
   // -----------------------------------------------------------------------------------------------
@@ -167,86 +206,110 @@ OIDN_NAMESPACE_BEGIN
   {
   public:
     template<int n = N>
-    OIDN_DEVICE_INLINE WorkItem(typename std::enable_if<n == 1, const WorkDim<1>&>::type range)
-      : id(blockIdx.x * blockDim.x + threadIdx.x),
-        range(range) {}
+    OIDN_DEVICE_INLINE WorkItem(typename std::enable_if<n == 1, const WorkDim<1>&>::type globalSize)
+      : globalID(blockIdx.x * blockDim.x + threadIdx.x),
+        globalSize(globalSize) {}
 
     template<int n = N>
-    OIDN_DEVICE_INLINE WorkItem(typename std::enable_if<n == 2, const WorkDim<2>&>::type range)
-      : id(blockIdx.y * blockDim.y + threadIdx.y,
-           blockIdx.x * blockDim.x + threadIdx.x),
-        range(range) {}
+    OIDN_DEVICE_INLINE WorkItem(typename std::enable_if<n == 2, const WorkDim<2>&>::type globalSize)
+      : globalID(blockIdx.y * blockDim.y + threadIdx.y,
+                 blockIdx.x * blockDim.x + threadIdx.x),
+        globalSize(globalSize) {}
 
     template<int n = N>
-    OIDN_DEVICE_INLINE WorkItem(typename std::enable_if<n == 3, const WorkDim<3>&>::type range)
-      : id(blockIdx.z * blockDim.z + threadIdx.z,
-           blockIdx.y * blockDim.y + threadIdx.y,
-           blockIdx.x * blockDim.x + threadIdx.x),
-        range(range) {}
+    OIDN_DEVICE_INLINE WorkItem(typename std::enable_if<n == 3, const WorkDim<3>&>::type globalSize)
+      : globalID(blockIdx.z * blockDim.z + threadIdx.z,
+                 blockIdx.y * blockDim.y + threadIdx.y,
+                 blockIdx.x * blockDim.x + threadIdx.x),
+        globalSize(globalSize) {}
 
-    template<int i = 0> OIDN_DEVICE_INLINE int getId()    const { return id[i]; }
-    template<int i = 0> OIDN_DEVICE_INLINE int getRange() const { return range[i]; }
+    template<int i = 0> OIDN_DEVICE_INLINE int getGlobalID()   const { return globalID[i]; }
+    template<int i = 0> OIDN_DEVICE_INLINE int getGlobalSize() const { return globalSize[i]; }
 
   private:
-    WorkDim<N> id;
-    WorkDim<N> range;
+    WorkDim<N> globalID;
+    WorkDim<N> globalSize;
   };
 
   // -----------------------------------------------------------------------------------------------
   // CUDA/HIP WorkGroupItem
   // -----------------------------------------------------------------------------------------------
 
+  class WorkGroupItemBase
+  {
+  public:
+    OIDN_DEVICE_INLINE void groupBarrier() const { __syncthreads(); }
+
+    OIDN_DEVICE_INLINE int getSubgroupSize() const { return warpSize; }
+
+    template<typename T>
+    OIDN_DEVICE_INLINE T subgroupShuffle(T x, int id) const
+    {
+    #if defined(OIDN_COMPILE_CUDA)
+      return __shfl_sync(0xFFFFFFFF, x, id);
+    #else
+      return __shfl(x, id); // HIP doesn't support __shfl_sync
+    #endif
+    }
+
+    template<typename T>
+    OIDN_DEVICE_INLINE T subgroupBroadcast(T x, int id) const { return subgroupShuffle(x, id); }
+
+  #if defined(OIDN_COMPILE_CUDA)
+    OIDN_DEVICE_INLINE void subgroupBarrier() const { __syncwarp(); }
+  #endif
+  };
+
   template<int N>
   class WorkGroupItem;
 
   template<>
-  class WorkGroupItem<1>
+  class WorkGroupItem<1> : public WorkGroupItemBase
   {
   public:
-    OIDN_DEVICE_INLINE int getGlobalId()    const { return blockIdx.x * blockDim.x + threadIdx.x; }
-    OIDN_DEVICE_INLINE int getGlobalRange() const { return gridDim.x * blockDim.x; }
-    OIDN_DEVICE_INLINE int getLocalId()     const { return threadIdx.x; };
-    OIDN_DEVICE_INLINE int getLocalRange()  const { return blockDim.x; };
-    OIDN_DEVICE_INLINE int getGroupId()     const { return blockIdx.x; };
-    OIDN_DEVICE_INLINE int getGroupRange()  const { return gridDim.x; }
+    OIDN_DEVICE_INLINE int getGlobalID()   const { return blockIdx.x * blockDim.x + threadIdx.x; }
+    OIDN_DEVICE_INLINE int getGlobalSize() const { return gridDim.x * blockDim.x; }
+    OIDN_DEVICE_INLINE int getLocalID()    const { return threadIdx.x; };
+    OIDN_DEVICE_INLINE int getLocalSize()  const { return blockDim.x; };
+    OIDN_DEVICE_INLINE int getGroupID()    const { return blockIdx.x; };
+    OIDN_DEVICE_INLINE int getNumGroups()  const { return gridDim.x; }
 
-    OIDN_DEVICE_INLINE void syncGroup() const { __syncthreads(); }
+    OIDN_DEVICE_INLINE int getSubgroupLocalID() const { return threadIdx.x % warpSize; }
   };
 
   template<>
-  class WorkGroupItem<2>
+  class WorkGroupItem<2> : public WorkGroupItemBase
   {
   public:
-    template<int i> OIDN_DEVICE_INLINE int getGlobalId()    const;
-    template<int i> OIDN_DEVICE_INLINE int getGlobalRange() const;
-    template<int i> OIDN_DEVICE_INLINE int getLocalId()     const;
-    template<int i> OIDN_DEVICE_INLINE int getLocalRange()  const;
-    template<int i> OIDN_DEVICE_INLINE int getGroupId()     const;
-    template<int i> OIDN_DEVICE_INLINE int getGroupRange()  const;
+    template<int i> OIDN_DEVICE_INLINE int getGlobalID()   const;
+    template<int i> OIDN_DEVICE_INLINE int getGlobalSize() const;
+    template<int i> OIDN_DEVICE_INLINE int getLocalID()    const;
+    template<int i> OIDN_DEVICE_INLINE int getLocalSize()  const;
+    template<int i> OIDN_DEVICE_INLINE int getGroupID()    const;
+    template<int i> OIDN_DEVICE_INLINE int getNumGroups()  const;
 
-    OIDN_DEVICE_INLINE int getGlobalLinearId() const;
-    OIDN_DEVICE_INLINE int getLocalLinearId()  const { return threadIdx.y * blockDim.x + threadIdx.x; };
-    OIDN_DEVICE_INLINE int getGroupLinearId()  const { return blockIdx.y * gridDim.x + blockIdx.x; }
-
-    OIDN_DEVICE_INLINE void syncGroup() const { __syncthreads(); }
+    OIDN_DEVICE_INLINE int getGlobalLinearID()  const;
+    OIDN_DEVICE_INLINE int getLocalLinearID()   const { return threadIdx.y * blockDim.x + threadIdx.x; };
+    OIDN_DEVICE_INLINE int getGroupLinearID()   const { return blockIdx.y * gridDim.x + blockIdx.x; }
+    OIDN_DEVICE_INLINE int getSubgroupLocalID() const { return getLocalLinearID() % warpSize; }
   };
 
-  template<> OIDN_DEVICE_INLINE int WorkGroupItem<2>::getGlobalId<0>() const { return blockIdx.y * blockDim.y + threadIdx.y; }
-  template<> OIDN_DEVICE_INLINE int WorkGroupItem<2>::getGlobalId<1>() const { return blockIdx.x * blockDim.x + threadIdx.x; }
-  template<> OIDN_DEVICE_INLINE int WorkGroupItem<2>::getGlobalRange<0>() const { return gridDim.y * blockDim.y; }
-  template<> OIDN_DEVICE_INLINE int WorkGroupItem<2>::getGlobalRange<1>() const { return gridDim.x * blockDim.x; }
-  template<> OIDN_DEVICE_INLINE int WorkGroupItem<2>::getLocalId<0>() const { return threadIdx.y; }
-  template<> OIDN_DEVICE_INLINE int WorkGroupItem<2>::getLocalId<1>() const { return threadIdx.x; }
-  template<> OIDN_DEVICE_INLINE int WorkGroupItem<2>::getLocalRange<0>() const { return blockDim.y; }
-  template<> OIDN_DEVICE_INLINE int WorkGroupItem<2>::getLocalRange<1>() const { return blockDim.x; }
-  template<> OIDN_DEVICE_INLINE int WorkGroupItem<2>::getGroupId<0>() const { return blockIdx.y; }
-  template<> OIDN_DEVICE_INLINE int WorkGroupItem<2>::getGroupId<1>() const { return blockIdx.x; }
-  template<> OIDN_DEVICE_INLINE int WorkGroupItem<2>::getGroupRange<0>() const { return gridDim.y; }
-  template<> OIDN_DEVICE_INLINE int WorkGroupItem<2>::getGroupRange<1>() const { return gridDim.x; }
+  template<> OIDN_DEVICE_INLINE int WorkGroupItem<2>::getGlobalID<0>() const { return blockIdx.y * blockDim.y + threadIdx.y; }
+  template<> OIDN_DEVICE_INLINE int WorkGroupItem<2>::getGlobalID<1>() const { return blockIdx.x * blockDim.x + threadIdx.x; }
+  template<> OIDN_DEVICE_INLINE int WorkGroupItem<2>::getGlobalSize<0>() const { return gridDim.y * blockDim.y; }
+  template<> OIDN_DEVICE_INLINE int WorkGroupItem<2>::getGlobalSize<1>() const { return gridDim.x * blockDim.x; }
+  template<> OIDN_DEVICE_INLINE int WorkGroupItem<2>::getLocalID<0>() const { return threadIdx.y; }
+  template<> OIDN_DEVICE_INLINE int WorkGroupItem<2>::getLocalID<1>() const { return threadIdx.x; }
+  template<> OIDN_DEVICE_INLINE int WorkGroupItem<2>::getLocalSize<0>() const { return blockDim.y; }
+  template<> OIDN_DEVICE_INLINE int WorkGroupItem<2>::getLocalSize<1>() const { return blockDim.x; }
+  template<> OIDN_DEVICE_INLINE int WorkGroupItem<2>::getGroupID<0>() const { return blockIdx.y; }
+  template<> OIDN_DEVICE_INLINE int WorkGroupItem<2>::getGroupID<1>() const { return blockIdx.x; }
+  template<> OIDN_DEVICE_INLINE int WorkGroupItem<2>::getNumGroups<0>() const { return gridDim.y; }
+  template<> OIDN_DEVICE_INLINE int WorkGroupItem<2>::getNumGroups<1>() const { return gridDim.x; }
 
-  OIDN_DEVICE_INLINE int WorkGroupItem<2>::getGlobalLinearId() const
+  OIDN_DEVICE_INLINE int WorkGroupItem<2>::getGlobalLinearID() const
   {
-    return getGlobalId<0>() * getGlobalRange<1>() + getGlobalId<1>();
+    return getGlobalID<0>() * getGlobalSize<1>() + getGlobalID<1>();
   };
 
   // -----------------------------------------------------------------------------------------------

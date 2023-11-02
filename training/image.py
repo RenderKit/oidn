@@ -55,23 +55,39 @@ def compare_images(a, b, metric='psnr'):
 ## Image I/O
 ## -----------------------------------------------------------------------------
 
-# Loads an image and returns it as a float NumPy array
+# Loads an image and returns the pixels as a float NumPy array and the number of loaded channels
 def load_image(filename, num_channels=None):
   input = oiio.ImageInput.open(filename)
   if not input:
     raise RuntimeError('could not open image: "' + filename + '"')
+  load_num_channels = min(input.spec().nchannels, 3)
   if num_channels:
-    image = input.read_image(subimage=0, miplevel=0, chbegin=0, chend=num_channels, format=oiio.FLOAT)
-  else:
-    image = input.read_image(format=oiio.FLOAT)
+    load_num_channels = min(load_num_channels, num_channels)
+  image = input.read_image(subimage=0, miplevel=0, chbegin=0, chend=load_num_channels, format=oiio.FLOAT)
   if image is None:
     raise RuntimeError('could not read image')
-  image = np.nan_to_num(image)
   input.close()
-  return image
+
+  if num_channels and image.shape[2] < num_channels:
+    # Repeat the last channel to fill in the missing channels
+    repeats = [1] * (image.shape[2] - 1) + [num_channels - image.shape[2] + 1]
+    image = np.repeat(image, repeats, axis=2)
+
+  image = np.nan_to_num(image)
+  return image, load_num_channels
 
 # Saves a float NumPy image
-def save_image(filename, image):
+def save_image(filename, image, num_channels=None):
+  if num_channels and num_channels != image.shape[2]:
+    if image.shape[2] < num_channels:
+      raise RuntimeError('image to save has fewer channels than expected')
+    elif num_channels == 1:
+      # Compute the average of all channels
+      image = np.mean(image, axis=2, keepdims=True)
+    else:
+      # Truncate to the specified number of channels
+      image = image[:, :, :num_channels]
+
   ext = get_path_ext(filename).lower()
   if ext == 'pfm':
     save_pfm(filename, image)
@@ -101,9 +117,12 @@ def save_pfm(filename, image):
     if num_channels >= 3:
       f.write('PF\n')
       data = image[..., 0:3]
-    else:
+    elif num_channels == 1:
       f.write('Pf\n')
       data = image[..., 0]
+    else:
+      f.write('P=\n') # non-standard 2-channel format
+      data = image
     data = np.flip(data, 0).astype(np.float32)
 
     f.write('%d %d\n' % (image.shape[1], image.shape[0]))
@@ -117,9 +136,12 @@ def save_phm(filename, image):
     if num_channels >= 3:
       f.write('PH\n')
       data = image[..., 0:3]
-    else:
+    elif num_channels == 1:
       f.write('Ph\n')
       data = image[..., 0]
+    else:
+      f.write('P:\n') # non-standard 2-channel format
+      data = image
     data = np.flip(data, 0).astype(np.float16)
 
     f.write('%d %d\n' % (image.shape[1], image.shape[0]))

@@ -60,6 +60,8 @@ set_source_files_properties(
   PROPERTIES COMPILE_FLAGS "-mcumode -mno-wavefrontsize64" # Navi3x optimizations
 )
 
+# Fix warning: ignoring return value of function declared with 'nodiscard' attribute (HIP API)
+target_compile_options(OpenImageDenoise_device_hip PRIVATE -Wno-unused-result)
 if(WIN32)
   # Fix warning: __declspec attribute 'dllexport' is not supported
   target_compile_options(OpenImageDenoise_device_hip PRIVATE -Wno-ignored-attributes)

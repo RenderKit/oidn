@@ -46,9 +46,9 @@ OIDN_NAMESPACE_BEGIN
 
     bool isSupported() const override;
 
-    size_t getScratchAlignedSize() override;
+    size_t getScratchByteSize() override;
     void setScratch(const Ref<Buffer>& scratch) override;
-    size_t getPrivateByteSize() const override { return constByteSize; }
+    size_t getPrivateByteSize() const override { return privateByteSize; }
 
     double getWorkAmount() const override;
     void clear() override;
@@ -60,7 +60,7 @@ OIDN_NAMESPACE_BEGIN
     struct TensorAlloc
     {
       TensorDesc desc;   // tensor descriptor
-      size_t byteSize;   // aligned size of the tensor
+      size_t byteSize;   // size of the tensor in bytes
       int firstOpID;     // index of the first operation that uses this tensor
       int lastOpID;      // index of the last operation that uses this tensor
       TensorAlloc* next; // tensor allocated consecutively after this one
@@ -72,7 +72,7 @@ OIDN_NAMESPACE_BEGIN
 
       TensorAlloc(const TensorDesc& desc, int firstOpID)
         : desc(desc),
-          byteSize(desc.getAlignedSize()),
+          byteSize(desc.getByteSize()),
           firstOpID(firstOpID),
           lastOpID(firstOpID),
           next(nullptr),
@@ -91,10 +91,10 @@ OIDN_NAMESPACE_BEGIN
 
     Ref<Engine> engine;
     std::vector<std::shared_ptr<Op>> ops;
-    Ref<Buffer> scratch;
-    size_t opScratchByteSize     = 0; // total size of operation scratch
-    size_t tensorScratchByteSize = 0; // total size of temporary tensors
-    size_t constByteSize         = 0; // total size of constant tensors
+    Ref<Buffer> scratch;        // scratch buffer
+    size_t scratchByteSize = 0; // total size of scratch data
+    size_t privateByteSize = 0; // total size of private data (e.g. constant tensors)
+    size_t tensorScratchByteOffset = 0; // offset of tensor data in the scratch buffer
     bool dirty = false;
     bool finalized = false;
 

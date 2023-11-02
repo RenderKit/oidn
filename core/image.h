@@ -65,12 +65,6 @@ OIDN_NAMESPACE_BEGIN
       return (height - 1) * hByteStride + (width - 1) * wByteStride + getFormatSize(format);
     }
 
-    // Returns the aligned size in bytes of the image
-    OIDN_INLINE size_t getAlignedSize() const
-    {
-      return round_up(getByteSize(), memoryAlignment);
-    }
-
     OIDN_INLINE DataType getDataType() const
     {
       return getFormatDataType(format);
@@ -96,7 +90,6 @@ OIDN_NAMESPACE_BEGIN
     using ImageDesc::getW;
     using ImageDesc::getNumElements;
     using ImageDesc::getByteSize;
-    using ImageDesc::getAlignedSize;
     using ImageDesc::getDataType;
 
     OIDN_INLINE       void* getData()       { return ptr; }
@@ -110,18 +103,18 @@ OIDN_NAMESPACE_BEGIN
 
     OIDN_INLINE operator bool() const { return ptr != nullptr; }
 
-    template<typename T>
-    operator ImageAccessor<T>()
+    operator ImageAccessor()
     {
-      if (format != Format::Undefined && getDataType() != DataTypeOf<T>::value)
-        throw std::logic_error("incompatible image accessor");
-
-      ImageAccessor<T> acc;
+      ImageAccessor acc;
       acc.ptr = ptr;
       acc.hByteStride = hByteStride;
       acc.wByteStride = wByteStride;
-      acc.W = static_cast<int>(width);
-      acc.H = static_cast<int>(height);
+      acc.dataType = getDataType();
+      acc.C = getC();
+      if (acc.C > 3)
+        throw std::logic_error("unsupported number of channels for image accessor");
+      acc.H = getH();
+      acc.W = getW();
       return acc;
     }
 

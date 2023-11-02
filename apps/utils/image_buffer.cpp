@@ -13,30 +13,20 @@ OIDN_NAMESPACE_BEGIN
       width(0),
       height(0),
       numChannels(0),
-      dataType(Format::Undefined) {}
+      dataType(DataType::Void),
+      format(Format::Undefined) {}
 
-  ImageBuffer::ImageBuffer(const DeviceRef& device, int width, int height, int numChannels, Format dataType,
-                           Storage storage, bool forceHostCopy)
+  ImageBuffer::ImageBuffer(const DeviceRef& device, int width, int height, int numChannels,
+                           DataType dataType, Storage storage, bool forceHostCopy)
     : device(device),
       numValues(size_t(width) * height * numChannels),
       width(width),
       height(height),
       numChannels(numChannels),
-      dataType(dataType)
+      dataType(dataType),
+      format(makeFormat(dataType, numChannels))
   {
-    size_t valueByteSize = 0;
-    switch (dataType)
-    {
-    case Format::Float:
-      valueByteSize = sizeof(float);
-      break;
-    case Format::Half:
-      valueByteSize = sizeof(int16_t);
-      break;
-    default:
-      assert(0);
-    }
-
+    const size_t valueByteSize = getDataTypeSize(dataType);
     byteSize = std::max(numValues * valueByteSize, size_t(1)); // avoid zero-sized buffer
     buffer = device.newBuffer(byteSize, storage);
     storage = buffer.getStorage(); // get actual storage mode

@@ -153,6 +153,8 @@ OIDN_NAMESPACE_BEGIN
 
   #if defined(OIDN_DNNL) || defined(OIDN_ISPC)
     tensorDataType = DataType::Float32;
+    weightDataType = DataType::Float32;
+
     if (arch == CPUArch::NEON)
     {
       tensorLayout = TensorLayout::chw;

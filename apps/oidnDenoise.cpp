@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
   bool directional = false;
   float inputScale = std::numeric_limits<float>::quiet_NaN();
   bool cleanAux = false;
-  Format dataType = Format::Undefined;
+  DataType dataType = DataType::Void;
   int numRuns = 1;
   int numThreads = -1;
   int setAffinity = -1;
@@ -152,9 +152,9 @@ int main(int argc, char* argv[])
       {
         const auto val = toLower(args.getNextValue());
         if (val == "f" || val == "float" || val == "fp32")
-          dataType = Format::Float;
+          dataType = DataType::Float32;
         else if (val == "h" || val == "half" || val == "fp16")
-          dataType = Format::Half;
+          dataType = DataType::Float16;
         else
           throw std::runtime_error("invalid data type");
       }
@@ -252,20 +252,20 @@ int main(int argc, char* argv[])
     std::cout << "Loading input" << std::endl;
 
     if (!albedoFilename.empty())
-      input = albedo = loadImage(device, albedoFilename, 3, false, dataType);
+      input = albedo = loadImage(device, albedoFilename, false, dataType);
 
     if (!normalFilename.empty())
-      input = normal = loadImage(device, normalFilename, 3, dataType);
+      input = normal = loadImage(device, normalFilename, dataType);
 
     if (!colorFilename.empty())
-      input = color = loadImage(device, colorFilename, 3, srgb, dataType);
+      input = color = loadImage(device, colorFilename, srgb, dataType);
 
     if (!input)
       throw std::runtime_error("no input image specified");
 
     if (!refFilename.empty())
     {
-      ref = loadImage(device, refFilename, 3, srgb, dataType);
+      ref = loadImage(device, refFilename, srgb, dataType);
       if (ref->getDims() != input->getDims())
         throw std::runtime_error("invalid reference output image");
     }
@@ -279,7 +279,7 @@ int main(int argc, char* argv[])
     if (inplace)
       output = input;
     else
-      output = std::make_shared<ImageBuffer>(device, width, height, 3, input->getDataType());
+      output = std::make_shared<ImageBuffer>(device, width, height, input->getC(), input->getDataType());
 
     std::shared_ptr<ImageBuffer> inputCopy;
     if (inplace && numRuns > 1)

@@ -1,6 +1,7 @@
 .*
 !.gitignore
 !.github
+venv/
 
 *~
 *.autosave

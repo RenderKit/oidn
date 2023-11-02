@@ -31,8 +31,8 @@ OIDN_NAMESPACE_BEGIN
     explicit CUDADevice(const Ref<CUDAPhysicalDevice>& physicalDevice);
     ~CUDADevice();
 
-    void begin() override;
-    void end() override;
+    void enter() override;
+    void leave() override;
 
     DeviceType getType() const override { return DeviceType::CUDA; }
 
@@ -62,6 +62,7 @@ OIDN_NAMESPACE_BEGIN
     cudaStream_t stream = nullptr;
 
     int maxWorkGroupSize = 0;
+    int subgroupSize = 0;
     int smArch = 0; // compute capability
   };
 
