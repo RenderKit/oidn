@@ -5,7 +5,6 @@
 
 #include "filter.h"
 #include "graph.h"
-#include "scratch_buffer.h"
 #include "color.h"
 #include "image_copy.h"
 
@@ -38,10 +37,10 @@ OIDN_NAMESPACE_BEGIN
     static constexpr int defaultMaxTileSize = 2160*2160; // default maximum number of pixels per tile
 
     // Images
-    std::shared_ptr<Image> color;
-    std::shared_ptr<Image> albedo;
-    std::shared_ptr<Image> normal;
-    std::shared_ptr<Image> output;
+    Ref<Image> color;
+    Ref<Image> albedo;
+    Ref<Image> normal;
+    Ref<Image> output;
 
     // Options
     static constexpr Quality defaultQuality = Quality::High;
@@ -101,7 +100,7 @@ OIDN_NAMESPACE_BEGIN
     std::shared_ptr<Autoexposure> autoexposure;
     // In-place tiled filtering
     std::shared_ptr<ImageCopy> imageCopy;
-    std::shared_ptr<Image> outputTemp;
+    Ref<Image> outputTemp;
 
     Progress progress;
   };

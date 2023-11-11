@@ -19,7 +19,7 @@ OIDN_NAMESPACE_BEGIN
     const dnnl::memory& getDNNLMemory() const { return mem; }
 
   private:
-    void updatePtr() override;
+    void postRealloc() override;
 
     dnnl::memory mem;
   };

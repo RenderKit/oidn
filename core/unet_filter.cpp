@@ -165,7 +165,7 @@ OIDN_NAMESPACE_BEGIN
           autoexposure->setSrc(color);
           autoexposure->submit();
           progress.update(mainEngine, 1);
-          transferFunc->setInputScale(autoexposure->getDstPtr());
+          transferFunc->setInputScale(autoexposure->getDst());
         }
         else
         {
@@ -270,7 +270,7 @@ OIDN_NAMESPACE_BEGIN
     // Divide the image into tiles until the number of tiles is a multiple of the number of engines
     // and the memory usage gets below the specified threshold
     const int minTileDim = 3*tileOverlap;
-    const int maxTileSize = (maxMemoryMB < 0 || !device->isMemoryUsageLimitSupported()) ? defaultMaxTileSize : INT_MAX;
+    const int maxTileSize = (maxMemoryMB < 0) ? defaultMaxTileSize : INT_MAX;
     const size_t maxMemoryByteSize = (maxMemoryMB >= 0) ? size_t(maxMemoryMB)*1024*1024 : SIZE_MAX;
 
     H = output->getH();
@@ -520,8 +520,7 @@ OIDN_NAMESPACE_BEGIN
       if (instanceID == 0 && hdr)
       {
         autoexposureDstOffset = scratchByteSize;
-        scratchByteSize = round_up(scratchByteSize + autoexposure->getDstDesc().getByteSize(),
-                                   memoryAlignment);
+        scratchByteSize += round_up(sizeof(float), memoryAlignment);
       }
 
       // Check the total memory usage
@@ -538,14 +537,15 @@ OIDN_NAMESPACE_BEGIN
       }
 
       // Allocate the scratch buffer
-      auto scratch = device->getEngine(instanceID)->newScratchBuffer(scratchByteSize);
+      auto scratchArena = device->getEngine(instanceID)->newScratchArena(scratchByteSize);
+      auto scratch = scratchArena->newBuffer(scratchByteSize);
 
       // Set the scratch buffer for the graph and the global operations
       graph->setScratch(scratch);
       if (instanceID == 0 && hdr)
       {
         autoexposure->setScratch(scratch);
-        autoexposure->setDst(scratch->newTensor(autoexposure->getDstDesc(), autoexposureDstOffset));
+        autoexposure->setDst((float*)((char*)scratch->getPtr() + autoexposureDstOffset));
       }
 
       // Finalize the network

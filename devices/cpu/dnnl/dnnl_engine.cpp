@@ -20,22 +20,22 @@ OIDN_NAMESPACE_BEGIN
     dnnlStream.wait();
   }
 
-  std::shared_ptr<Tensor> DNNLEngine::newTensor(const TensorDesc& desc, Storage storage)
+  Ref<Tensor> DNNLEngine::newTensor(const TensorDesc& desc, Storage storage)
   {
     if (!isSupported(desc))
       throw std::invalid_argument("unsupported tensor descriptor");
 
-    return std::make_shared<DNNLTensor>(this, desc, storage);
+    return makeRef<DNNLTensor>(this, desc, storage);
   }
 
-  std::shared_ptr<Tensor> DNNLEngine::newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
+  Ref<Tensor> DNNLEngine::newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
   {
     if (!isSupported(desc))
       throw std::invalid_argument("unsupported tensor descriptor");
     if (buffer->getEngine() != this)
       throw std::invalid_argument("buffer was created by a different engine");
 
-    return std::make_shared<DNNLTensor>(buffer, desc, byteOffset);
+    return makeRef<DNNLTensor>(buffer, desc, byteOffset);
   }
 
   std::shared_ptr<Conv> DNNLEngine::newConv(const ConvDesc& desc)

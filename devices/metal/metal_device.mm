@@ -93,6 +93,8 @@ OIDN_NAMESPACE_BEGIN
   {
     if (engine)
       engine->wait();
+
+    //std::cout << "Metal device memory: " << [engine->getMTLDevice() currentAllocatedSize] << std::endl;
   }
 
 OIDN_NAMESPACE_END

@@ -48,7 +48,7 @@ OIDN_NAMESPACE_BEGIN
       throw std::invalid_argument("invalid convolution bias shape");
   }
 
-  void Conv::setSrc(const std::shared_ptr<Tensor>& src)
+  void Conv::setSrc(const Ref<Tensor>& src)
   {
     if (!src || src->getDesc() != srcDesc)
       throw std::invalid_argument("invalid convolution source");
@@ -57,7 +57,7 @@ OIDN_NAMESPACE_BEGIN
     updateSrc();
   }
 
-  void Conv::setWeight(const std::shared_ptr<Tensor>& weight)
+  void Conv::setWeight(const Ref<Tensor>& weight)
   {
     if (!weight || weight->getDesc() != weightDesc)
       throw std::invalid_argument("invalid convolution weight");
@@ -66,7 +66,7 @@ OIDN_NAMESPACE_BEGIN
     updateWeight();
   }
 
-  void Conv::setBias(const std::shared_ptr<Tensor>& bias)
+  void Conv::setBias(const Ref<Tensor>& bias)
   {
     if (!bias || bias->getDesc() != biasDesc)
       throw std::invalid_argument("invalid convolution bias");
@@ -75,7 +75,7 @@ OIDN_NAMESPACE_BEGIN
     updateBias();
   }
 
-  void Conv::setDst(const std::shared_ptr<Tensor>& dst)
+  void Conv::setDst(const Ref<Tensor>& dst)
   {
     if (!dst || dst->getDesc() != dstDesc)
       throw std::invalid_argument("invalid convolution destination");

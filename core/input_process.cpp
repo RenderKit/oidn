@@ -29,9 +29,9 @@ OIDN_NAMESPACE_BEGIN
     setTile(0, 0, 0, 0, 0, 0);
   }
 
-  void InputProcess::setSrc(const std::shared_ptr<Image>& color,
-                            const std::shared_ptr<Image>& albedo,
-                            const std::shared_ptr<Image>& normal)
+  void InputProcess::setSrc(const Ref<Image>& color,
+                            const Ref<Image>& albedo,
+                            const Ref<Image>& normal)
   {
     int C = 0;
     if (color)  C += 3; // always broadcast to 3 channels
@@ -46,7 +46,7 @@ OIDN_NAMESPACE_BEGIN
     updateSrc();
   }
 
-  void InputProcess::setDst(const std::shared_ptr<Tensor>& dst)
+  void InputProcess::setDst(const Ref<Tensor>& dst)
   {
     if (!dst || dst->getDesc() != dstDesc)
       throw std::invalid_argument("invalid input processing destination");
@@ -72,7 +72,7 @@ OIDN_NAMESPACE_BEGIN
         tile.wSrcBegin + tile.W > getMainSrc()->getW() ||
         tile.hDstBegin + tile.H > dst->getH() ||
         tile.wDstBegin + tile.W > dst->getW())
-      throw std::out_of_range("input processing source/destination out of range");
+      throw std::out_of_range("input processing source/destination out of bounds");
   }
 
 OIDN_NAMESPACE_END

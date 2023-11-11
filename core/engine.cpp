@@ -2,10 +2,28 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "engine.h"
-#include "scratch_buffer.h"
 #include "generic_graph.h"
 
 OIDN_NAMESPACE_BEGIN
+
+  Ref<Heap> Engine::newHeap(size_t byteSize, Storage storage)
+  {
+    return makeRef<USMHeap>(this, byteSize, storage);
+  }
+
+  Ref<Arena> Engine::newScratchArena(size_t byteSize, const std::string& name)
+  {
+    auto scratchArenaManager = scratchArenaManagerWp.lock();
+    if (!scratchArenaManager)
+      scratchArenaManagerWp = scratchArenaManager = std::make_shared<ScratchArenaManager>(this);
+    return makeRef<ScratchArena>(scratchArenaManager, byteSize, name);
+  }
+
+  // Returns the actual size and required alignment of a buffer allocated from a heap/arena
+  SizeAndAlignment Engine::getBufferByteSizeAndAlignment(size_t byteSize, Storage storage)
+  {
+    return {byteSize, memoryAlignment};
+  }
 
   Ref<Buffer> Engine::newBuffer(size_t byteSize, Storage storage)
   {
@@ -15,6 +33,11 @@ OIDN_NAMESPACE_BEGIN
   Ref<Buffer> Engine::newBuffer(void* ptr, size_t byteSize)
   {
     return makeRef<USMBuffer>(this, ptr, byteSize);
+  }
+
+  Ref<Buffer> Engine::newBuffer(const Ref<Arena>& arena, size_t byteSize, size_t byteOffset)
+  {
+    return makeRef<USMBuffer>(arena, byteSize, byteOffset);
   }
 
   Ref<Buffer> Engine::newExternalBuffer(ExternalMemoryTypeFlag fdType,
@@ -31,36 +54,28 @@ OIDN_NAMESPACE_BEGIN
       "creating a shared buffer from a Win32 handle is not supported by the device");
   }
 
-  Ref<ScratchBuffer> Engine::newScratchBuffer(size_t byteSize, const std::string& id)
-  {
-    auto scratchManager = scratchManagerWp.lock();
-    if (!scratchManager)
-      scratchManagerWp = scratchManager = std::make_shared<ScratchBufferManager>(this);
-    return makeRef<ScratchBuffer>(scratchManager, byteSize, id);
-  }
-
   bool Engine::isSupported(const TensorDesc& desc) const
   {
     // We store tensor byte offsets in 32-bit unsigned integers
     return desc.getByteSize() <= UINT32_MAX;
   }
 
-  std::shared_ptr<Tensor> Engine::newTensor(const TensorDesc& desc, Storage storage)
+  Ref<Tensor> Engine::newTensor(const TensorDesc& desc, Storage storage)
   {
     if (!isSupported(desc))
       throw std::invalid_argument("unsupported tensor descriptor");
 
-    return std::make_shared<DeviceTensor>(this, desc, storage);
+    return makeRef<DeviceTensor>(this, desc, storage);
   }
 
-  std::shared_ptr<Tensor> Engine::newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
+  Ref<Tensor> Engine::newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
   {
     if (!isSupported(desc))
       throw std::invalid_argument("unsupported tensor descriptor");
     if (buffer->getEngine() != this)
       throw std::invalid_argument("buffer was created by a different engine");
 
-    return std::make_shared<DeviceTensor>(buffer, desc, byteOffset);
+    return makeRef<DeviceTensor>(buffer, desc, byteOffset);
   }
 
   std::shared_ptr<Graph> Engine::newGraph(const std::shared_ptr<TensorMap>& constTensors, bool fastMath)

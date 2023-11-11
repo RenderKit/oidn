@@ -15,6 +15,6 @@ OIDN_NAMESPACE_BEGIN
   dnnl::memory toDNNL(const Ref<Buffer>& buffer);
 
   // Returns the internal DNNL memory structure of a DNNLTensor
-  const dnnl::memory& getDNNL(const std::shared_ptr<Tensor>& tensor);
+  const dnnl::memory& getDNNL(const Ref<Tensor>& tensor);
 
 OIDN_NAMESPACE_END

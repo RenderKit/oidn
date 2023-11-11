@@ -31,7 +31,7 @@ OIDN_NAMESPACE_BEGIN
     dst = src;
   }
 
-  void Filter::setParam(std::shared_ptr<Image>& dst, const std::shared_ptr<Image>& src)
+  void Filter::setParam(Ref<Image>& dst, const Ref<Image>& src)
   {
     // Check whether the image is accessible by the device
     if (src && *src && !device->isSystemMemorySupported())
@@ -54,7 +54,7 @@ OIDN_NAMESPACE_BEGIN
       dst = nullptr;
   }
 
-  void Filter::removeParam(std::shared_ptr<Image>& dst)
+  void Filter::removeParam(Ref<Image>& dst)
   {
     dirtyParam |= bool(dst);
     dst = nullptr;

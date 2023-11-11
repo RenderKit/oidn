@@ -452,6 +452,9 @@ void multiFilterNPerDeviceTest(DeviceRef& device, const std::vector<int>& sizes)
 
     filters[i].commit();
     REQUIRE(device.getError() == Error::None);
+
+    filters[i].execute();
+    REQUIRE(device.getError() == Error::None);
   }
 
   for (size_t i = 0; i < filters.size(); ++i)
@@ -483,6 +486,11 @@ TEST_CASE("multiple filters", "[multi_filter]")
   SECTION("3 filters / device: large -> small -> medium")
   {
     multiFilterNPerDeviceTest(device, {3001, 257, 1024});
+  }
+
+  SECTION("3 filters / device: small -> medium -> large")
+  {
+    multiFilterNPerDeviceTest(device, {400, 1100, 3000});
   }
 }
 

@@ -37,6 +37,11 @@ OIDN_NAMESPACE_BEGIN
     assert(desc.isValid());
   }
 
+  Ref<Tensor> Tensor::toDevice(const Ref<Engine>& engine, Storage storage)
+  {
+    return this;
+  }
+
 #if 0
   uint32_t Tensor::getHash() const
   {
@@ -126,7 +131,7 @@ OIDN_NAMESPACE_BEGIN
       alignedFree(ptr);
   }
 
-  std::shared_ptr<Tensor> HostTensor::toDevice(const Ref<Engine>& engine, Storage storage)
+  Ref<Tensor> HostTensor::toDevice(const Ref<Engine>& engine, Storage storage)
   {
     const size_t byteSize = getByteSize();
     auto bufferCopy = engine->newBuffer(byteSize, storage);
@@ -149,20 +154,15 @@ OIDN_NAMESPACE_BEGIN
     : Tensor(buffer, desc, byteOffset)
   {
     if (byteOffset + getByteSize() > buffer->getByteSize())
-      throw Exception(Error::InvalidArgument, "buffer region is out of range");
+      throw Exception(Error::InvalidArgument, "buffer region is out of bounds");
 
     ptr = static_cast<char*>(buffer->getPtr()) + byteOffset;
   }
 
-  void DeviceTensor::updatePtr()
+  void DeviceTensor::postRealloc()
   {
     if (buffer)
-    {
-      if (byteOffset + getByteSize() > buffer->getByteSize())
-        throw std::range_error("buffer region is out of range");
-
       ptr = static_cast<char*>(buffer->getPtr()) + byteOffset;
-    }
   }
 
 OIDN_NAMESPACE_END

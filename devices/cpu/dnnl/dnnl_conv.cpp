@@ -56,11 +56,13 @@ OIDN_NAMESPACE_BEGIN
 
   void DNNLConv::updateWeight()
   {
+    weight = weight->toDevice(engine);
     args[DNNL_ARG_WEIGHTS] = getDNNL(weight);
   }
 
   void DNNLConv::updateBias()
   {
+    bias = bias->toDevice(engine);
     args[DNNL_ARG_BIAS] = getDNNL(bias);
   }
 

@@ -83,7 +83,7 @@ OIDN_NAMESPACE_BEGIN
     return {desc, engine->getDNNLEngine(), buffer->getPtr()};
   }
 
-  const dnnl::memory& getDNNL(const std::shared_ptr<Tensor>& tensor)
+  const dnnl::memory& getDNNL(const Ref<Tensor>& tensor)
   {
     if (auto dnnlTensor = dynamic_cast<const DNNLTensor*>(tensor.get()))
       return dnnlTensor->getDNNLMemory();

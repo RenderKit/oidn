@@ -13,7 +13,7 @@ OIDN_NAMESPACE_BEGIN
   public:
     explicit RTLightmapFilter(const Ref<Device>& device);
 
-    void setImage(const std::string& name, const std::shared_ptr<Image>& image) override;
+    void setImage(const std::string& name, const Ref<Image>& image) override;
     void unsetImage(const std::string& name) override;
     void setInt(const std::string& name, int value) override;
     int getInt(const std::string& name) override;

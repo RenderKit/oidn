@@ -29,7 +29,7 @@ OIDN_NAMESPACE_BEGIN
       return std::make_shared<TransferFunction>(TransferFunction::Type::Linear);
   }
 
-  void RTLightmapFilter::setImage(const std::string& name, const std::shared_ptr<Image>& image)
+  void RTLightmapFilter::setImage(const std::string& name, const Ref<Image>& image)
   {
     if (name == "color")
       setParam(color, image);

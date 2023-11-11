@@ -5,6 +5,8 @@
 
 #include "device.h"
 #include "kernel.h"
+#include "heap.h"
+#include "arena.h"
 #include "buffer.h"
 #include "tensor.h"
 #include "image.h"
@@ -32,8 +34,7 @@ OIDN_NAMESPACE_BEGIN
   class OutputProcess;
   class ImageCopy;
 
-  class ScratchBuffer;
-  class ScratchBufferManager;
+  class ScratchArenaManager;
 
   // A device consists of one or more execution "engines"
   class Engine : public RefCount
@@ -43,9 +44,15 @@ OIDN_NAMESPACE_BEGIN
 
     virtual Device* getDevice() const = 0;
 
+    // Heap / arena
+    virtual Ref<Heap> newHeap(size_t byteSize, Storage storage);
+    Ref<Arena> newScratchArena(size_t byteSize, const std::string& name = "");
+
     // Buffer
+    virtual SizeAndAlignment getBufferByteSizeAndAlignment(size_t byteSize, Storage storage);
     virtual Ref<Buffer> newBuffer(size_t byteSize, Storage storage);
     virtual Ref<Buffer> newBuffer(void* ptr, size_t byteSize);
+    virtual Ref<Buffer> newBuffer(const Ref<Arena>& arena, size_t byteSize, size_t byteOffset);
 
     virtual Ref<Buffer> newExternalBuffer(ExternalMemoryTypeFlag fdType,
                                           int fd, size_t byteSize);
@@ -53,12 +60,10 @@ OIDN_NAMESPACE_BEGIN
     virtual Ref<Buffer> newExternalBuffer(ExternalMemoryTypeFlag handleType,
                                           void* handle, const void* name, size_t byteSize);
 
-    Ref<ScratchBuffer> newScratchBuffer(size_t byteSize, const std::string& id = "");
-
     // Tensor
     virtual bool isSupported(const TensorDesc& desc) const;
-    virtual std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, Storage storage = Storage::Device);
-    virtual std::shared_ptr<Tensor> newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset = 0);
+    virtual Ref<Tensor> newTensor(const TensorDesc& desc, Storage storage = Storage::Device);
+    virtual Ref<Tensor> newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset = 0);
 
     // Ops
     virtual std::shared_ptr<Graph> newGraph(const std::shared_ptr<TensorMap>& constTensors, bool fastMath = false);
@@ -111,7 +116,7 @@ OIDN_NAMESPACE_BEGIN
 
   private:
     // Memory
-    std::weak_ptr<ScratchBufferManager> scratchManagerWp;
+    std::weak_ptr<ScratchArenaManager> scratchArenaManagerWp;
   };
 
 OIDN_NAMESPACE_END

@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "buffer.h"
+#include "heap.h"
+#include "arena.h"
 #include "tensor.h"
 #include "image.h"
 #include "engine.h"
@@ -11,6 +13,19 @@ OIDN_NAMESPACE_BEGIN
   // -----------------------------------------------------------------------------------------------
   // Buffer
   // -----------------------------------------------------------------------------------------------
+
+  Buffer::Buffer(const Ref<Arena>& arena, size_t byteOffset)
+    : arena(arena),
+      byteOffset(byteOffset)
+  {
+    arena->getHeap()->attach(this);
+  }
+
+  Buffer::~Buffer()
+  {
+    if (arena)
+      arena->getHeap()->detach(this);
+  }
 
   Device* Buffer::getDevice() const
   {
@@ -27,19 +42,46 @@ OIDN_NAMESPACE_BEGIN
     throw Exception(Error::InvalidOperation, "writing the buffer is not supported");
   }
 
-  void Buffer::realloc(size_t newByteSize)
+  Ref<Buffer> Buffer::newBuffer(size_t byteSize, size_t byteOffset)
   {
-    throw std::logic_error("reallocating the buffer is not supported");
+    if (!arena)
+      throw Exception(Error::InvalidOperation, "cannot suballocate a buffer without an arena");
+    if (byteOffset + byteSize > getByteSize())
+      throw Exception(Error::InvalidArgument, "buffer region is out of bounds");
+
+    return arena->newBuffer(byteSize, this->byteOffset + byteOffset);
   }
 
-  std::shared_ptr<Tensor> Buffer::newTensor(const TensorDesc& desc, size_t byteOffset)
+  Ref<Tensor> Buffer::newTensor(const TensorDesc& desc, size_t byteOffset)
   {
     return getEngine()->newTensor(this, desc, byteOffset);
   }
 
-  std::shared_ptr<Image> Buffer::newImage(const ImageDesc& desc, size_t byteOffset)
+  Ref<Image> Buffer::newImage(const ImageDesc& desc, size_t byteOffset)
   {
-    return std::make_shared<Image>(this, desc, byteOffset);
+    return makeRef<Image>(this, desc, byteOffset);
+  }
+
+  void Buffer::attach(Memory* mem)
+  {
+    mems.insert(mem);
+  }
+
+  void Buffer::detach(Memory* mem)
+  {
+    mems.erase(mem);
+  }
+
+  void Buffer::preRealloc()
+  {
+    for (Memory* mem : mems)
+      mem->preRealloc();
+  }
+
+  void Buffer::postRealloc()
+  {
+    for (Memory* mem : mems)
+      mem->postRealloc();
   }
 
   // -----------------------------------------------------------------------------------------------
@@ -81,6 +123,24 @@ OIDN_NAMESPACE_BEGIN
       this->storage = engine->getDevice()->getPtrStorage(ptr);
   }
 
+  USMBuffer::USMBuffer(const Ref<Arena>& arena, size_t byteSize, size_t byteOffset)
+    : Buffer(arena, byteOffset),
+      ptr(nullptr),
+      byteSize(byteSize),
+      shared(true),
+      storage(arena->getHeap()->getStorage()),
+      engine(arena->getHeap()->getEngine())
+  {
+    if (byteOffset + byteSize > arena->getByteSize())
+      throw Exception(Error::InvalidArgument, "arena region is out of bounds");
+
+    USMHeap* heap = dynamic_cast<USMHeap*>(arena->getHeap());
+    if (!heap)
+      throw Exception(Error::InvalidArgument, "buffer is incompatible with arena");
+
+    ptr = heap->ptr + byteOffset;
+  }
+
   USMBuffer::~USMBuffer()
   {
     if (!shared && ptr)
@@ -93,10 +153,21 @@ OIDN_NAMESPACE_BEGIN
     }
   }
 
+  void USMBuffer::postRealloc()
+  {
+    if (arena)
+    {
+      USMHeap* heap = static_cast<USMHeap*>(arena->getHeap());
+      ptr = heap->ptr + byteOffset;
+    }
+
+    Buffer::postRealloc();
+  }
+
   void USMBuffer::read(size_t byteOffset, size_t byteSize, void* dstHostPtr, SyncMode sync)
   {
     if (byteOffset + byteSize > this->byteSize)
-      throw Exception(Error::InvalidArgument, "buffer region is out of range");
+      throw Exception(Error::InvalidArgument, "buffer region is out of bounds");
     if (dstHostPtr == nullptr && byteSize > 0)
       throw Exception(Error::InvalidArgument, "destination host pointer is null");
 
@@ -109,7 +180,7 @@ OIDN_NAMESPACE_BEGIN
   void USMBuffer::write(size_t byteOffset, size_t byteSize, const void* srcHostPtr, SyncMode sync)
   {
     if (byteOffset + byteSize > this->byteSize)
-      throw Exception(Error::InvalidArgument, "buffer region is out of range");
+      throw Exception(Error::InvalidArgument, "buffer region is out of bounds");
     if (srcHostPtr == nullptr && byteSize > 0)
       throw Exception(Error::InvalidArgument, "source host pointer is null");
 
@@ -117,16 +188,6 @@ OIDN_NAMESPACE_BEGIN
       engine->usmCopy(ptr + byteOffset, srcHostPtr, byteSize);
     else
       engine->submitUSMCopy(ptr + byteOffset, srcHostPtr, byteSize);
-  }
-
-  void USMBuffer::realloc(size_t newByteSize)
-  {
-    if (shared)
-      throw std::logic_error("shared buffers cannot be reallocated");
-
-    engine->usmFree(ptr, storage);
-    ptr = static_cast<char*>(engine->usmAlloc(newByteSize, storage));
-    byteSize = newByteSize;
   }
 
 OIDN_NAMESPACE_END

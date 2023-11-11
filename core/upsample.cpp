@@ -16,7 +16,7 @@ OIDN_NAMESPACE_BEGIN
     dstDesc = {dstDims, dstPaddedDims, srcDesc.layout, srcDesc.dataType};
   }
 
-  void Upsample::setSrc(const std::shared_ptr<Tensor>& src)
+  void Upsample::setSrc(const Ref<Tensor>& src)
   {
     if (!src || src->getDesc() != srcDesc)
       throw std::invalid_argument("invalid upsampling source");
@@ -25,7 +25,7 @@ OIDN_NAMESPACE_BEGIN
     updateSrc();
   }
 
-  void Upsample::setDst(const std::shared_ptr<Tensor>& dst)
+  void Upsample::setDst(const Ref<Tensor>& dst)
   {
     if (!dst || dst->getDesc() != dstDesc)
       throw std::invalid_argument("invalid upsampling destination");

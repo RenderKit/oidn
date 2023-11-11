@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "metal_buffer.h"
+#include "core/arena.h"
+#include "metal_heap.h"
 #include "metal_engine.h"
 
 OIDN_NAMESPACE_BEGIN
@@ -10,11 +12,29 @@ OIDN_NAMESPACE_BEGIN
   MetalBuffer::MetalBuffer(const Ref<MetalEngine>& engine,
                            size_t byteSize,
                            Storage storage)
-    : engine(engine),
+    : buffer(nullptr),
       byteSize(byteSize),
       storage((storage == Storage::Undefined) ? Storage::Host : storage),
-      buffer(nullptr)
+      engine(engine)
   {
+    init();
+  }
+
+  MetalBuffer::MetalBuffer(const Ref<Arena>& arena, size_t byteSize, size_t byteOffset)
+    : Buffer(arena, byteOffset),
+      buffer(nullptr),
+      byteSize(byteSize),
+      storage(arena->getHeap()->getStorage()),
+      engine(dynamic_cast<MetalEngine*>(arena->getEngine()))
+  {
+    if (!engine)
+      throw Exception(Error::InvalidArgument, "buffer is incompatible with arena");
+    const auto byteSizeAndAlignment = engine->getBufferByteSizeAndAlignment(byteSize, storage);
+    if (byteOffset % byteSizeAndAlignment.alignment != 0)
+      throw Exception(Error::InvalidArgument, "buffer offset is unaligned");
+    if (byteOffset + byteSizeAndAlignment.size > arena->getByteSize())
+      throw Exception(Error::InvalidArgument, "arena region is out of bounds");
+
     init();
   }
 
@@ -33,23 +53,24 @@ OIDN_NAMESPACE_BEGIN
     if (byteSize > [device maxBufferLength])
       throw Exception(Error::OutOfMemory, "buffer size exceeds device limit");
 
-    MTLResourceOptions options;
-    switch (storage)
+    MTLResourceOptions options = toMTLResourceOptions(storage);
+
+    if (arena)
     {
-    case Storage::Host:
-      options = MTLResourceStorageModeShared | MTLResourceCPUCacheModeDefaultCache;
-      break;
-    case Storage::Device:
-      options = MTLResourceStorageModePrivate;
-      break;
-    default:
-      throw Exception(Error::InvalidArgument, "invalid storage mode");
+      MetalHeap* heap = static_cast<MetalHeap*>(arena->getHeap());
+
+      buffer = [heap->heap newBufferWithLength: byteSize
+                                       options: options
+                                        offset: byteOffset];
+    }
+    else
+    {
+      buffer = [device newBufferWithLength: byteSize
+                                   options: options];
     }
 
-    buffer = [device newBufferWithLength: byteSize
-                                 options: options];
     if (!buffer)
-      throw Exception(Error::OutOfMemory, "failed to allocate buffer");
+      throw Exception(Error::OutOfMemory, "failed to create buffer");
   }
 
   void MetalBuffer::free()
@@ -57,6 +78,18 @@ OIDN_NAMESPACE_BEGIN
     if (buffer)
       [buffer release];
     buffer = nullptr;
+  }
+
+  void MetalBuffer::preRealloc()
+  {
+    Buffer::preRealloc();
+    free();
+  }
+
+  void MetalBuffer::postRealloc()
+  {
+    init();
+    Buffer::postRealloc();
   }
 
   void* MetalBuffer::getPtr() const
@@ -72,7 +105,7 @@ OIDN_NAMESPACE_BEGIN
   void MetalBuffer::read(size_t byteOffset, size_t byteSize, void* dstHostPtr, SyncMode sync)
   {
     if (byteOffset + byteSize > this->byteSize)
-      throw Exception(Error::InvalidArgument, "buffer region is out of range");
+      throw Exception(Error::InvalidArgument, "buffer region is out of bounds");
     if (dstHostPtr == nullptr && byteSize > 0)
       throw Exception(Error::InvalidArgument, "destination host pointer is null");
 
@@ -82,7 +115,7 @@ OIDN_NAMESPACE_BEGIN
       id<MTLBuffer> tempBuffer = [engine->getMTLDevice() newBufferWithLength: byteSize
                                                                      options: options];
       if (!tempBuffer)
-        throw Exception(Error::OutOfMemory, "failed to allocate temporary buffer");
+        throw Exception(Error::OutOfMemory, "failed to create temporary buffer");
 
       id<MTLCommandBuffer> commandBuffer = engine->getMTLCommandBuffer();
 
@@ -110,7 +143,7 @@ OIDN_NAMESPACE_BEGIN
   void MetalBuffer::write(size_t byteOffset, size_t byteSize, const void* srcHostPtr, SyncMode sync)
   {
     if (byteOffset + byteSize > this->byteSize)
-      throw Exception(Error::InvalidArgument, "buffer region is out of range");
+      throw Exception(Error::InvalidArgument, "buffer region is out of bounds");
     if (srcHostPtr == nullptr && byteSize > 0)
       throw Exception(Error::InvalidArgument, "source host pointer is null");
 
@@ -121,7 +154,7 @@ OIDN_NAMESPACE_BEGIN
                                                                      length: byteSize
                                                                     options: options];
       if (!tempBuffer)
-        throw Exception(Error::OutOfMemory, "failed to allocate temporary buffer");
+        throw Exception(Error::OutOfMemory, "failed to create temporary buffer");
 
       id<MTLCommandBuffer> commandBuffer = engine->getMTLCommandBuffer();
 
@@ -140,14 +173,6 @@ OIDN_NAMESPACE_BEGIN
       else
         engine->flush();
     }
-  }
-
-  void MetalBuffer::realloc(size_t newByteSize)
-  {
-    free();
-
-    byteSize = newByteSize;
-    init();
   }
 
 OIDN_NAMESPACE_END

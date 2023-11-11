@@ -26,12 +26,12 @@ OIDN_NAMESPACE_BEGIN
     InputProcess(const Ref<Engine>& engine, const InputProcessDesc& desc);
 
     TensorDesc getDstDesc() const { return dstDesc; }
-    std::shared_ptr<Tensor> getDst() const { return dst; }
+    Ref<Tensor> getDst() const { return dst; }
 
-    void setSrc(const std::shared_ptr<Image>& color,
-                const std::shared_ptr<Image>& albedo,
-                const std::shared_ptr<Image>& normal);
-    void setDst(const std::shared_ptr<Tensor>& dst);
+    void setSrc(const Ref<Image>& color,
+                const Ref<Image>& albedo,
+                const Ref<Image>& normal);
+    void setDst(const Ref<Tensor>& dst);
     void setTile(int hSrc, int wSrc, int hDst, int wDst, int H, int W);
 
   protected:
@@ -44,10 +44,10 @@ OIDN_NAMESPACE_BEGIN
     }
 
     TensorDesc dstDesc;
-    std::shared_ptr<Image> color;
-    std::shared_ptr<Image> albedo;
-    std::shared_ptr<Image> normal;
-    std::shared_ptr<Tensor> dst;
+    Ref<Image> color;
+    Ref<Image> albedo;
+    Ref<Image> normal;
+    Ref<Tensor> dst;
     Tile tile;
   };
 

@@ -14,7 +14,7 @@ OIDN_NAMESPACE_BEGIN
     setTile(0, 0, 0, 0, 0, 0);
   }
 
-  void OutputProcess::setSrc(const std::shared_ptr<Tensor>& src)
+  void OutputProcess::setSrc(const Ref<Tensor>& src)
   {
     if (!src || src->getDesc() != srcDesc)
       throw std::invalid_argument("invalid output processing source");
@@ -22,7 +22,7 @@ OIDN_NAMESPACE_BEGIN
     this->src = src;
   }
 
-  void OutputProcess::setDst(const std::shared_ptr<Image>& dst)
+  void OutputProcess::setDst(const Ref<Image>& dst)
   {
     if (!dst || dst->getC() > srcDesc.getC())
       throw std::invalid_argument("invalid output processing destination");
@@ -48,7 +48,7 @@ OIDN_NAMESPACE_BEGIN
         tile.wSrcBegin + tile.W > src->getW() ||
         tile.hDstBegin + tile.H > dst->getH() ||
         tile.wDstBegin + tile.W > dst->getW())
-      throw std::out_of_range("output processing source/destination out of range");
+      throw std::out_of_range("output processing source/destination out of bounds");
   }
 
 OIDN_NAMESPACE_END

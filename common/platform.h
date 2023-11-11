@@ -202,6 +202,26 @@ OIDN_NAMESPACE_BEGIN
     return ceil_div(a, b) * b;
   }
 
+  // Returns the greatest common divisor of a and b
+  template<typename Int>
+  OIDN_HOST_DEVICE_INLINE Int gcd(Int a, Int b)
+  {
+    while (b != 0)
+    {
+      const Int t = b;
+      b = a % b;
+      a = t;
+    }
+    return a;
+  }
+
+  // Returns the least common multiple of a and b
+  template<typename Int>
+  OIDN_HOST_DEVICE_INLINE Int lcm(Int a, Int b)
+  {
+    return (a * b) / gcd(a, b);
+  }
+
   // -----------------------------------------------------------------------------------------------
   // Data type
   // -----------------------------------------------------------------------------------------------
@@ -221,7 +241,13 @@ OIDN_NAMESPACE_BEGIN
   // Memory allocation
   // -----------------------------------------------------------------------------------------------
 
-  constexpr size_t memoryAlignment = 128;
+  struct SizeAndAlignment
+  {
+    size_t size;
+    size_t alignment;
+  };
+
+  constexpr size_t memoryAlignment = 256;
 
   void* alignedMalloc(size_t size, size_t alignment = memoryAlignment);
   void alignedFree(void* ptr);

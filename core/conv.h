@@ -40,12 +40,12 @@ OIDN_NAMESPACE_BEGIN
     Conv(const ConvDesc& desc);
 
     TensorDesc getDstDesc() const { return dstDesc; }
-    std::shared_ptr<Tensor> getDst() const { return dst; }
+    Ref<Tensor> getDst() const { return dst; }
 
-    void setSrc(const std::shared_ptr<Tensor>& src);
-    void setWeight(const std::shared_ptr<Tensor>& weight);
-    void setBias(const std::shared_ptr<Tensor>& bias);
-    void setDst(const std::shared_ptr<Tensor>& dst);
+    void setSrc(const Ref<Tensor>& src);
+    void setWeight(const Ref<Tensor>& weight);
+    void setBias(const Ref<Tensor>& bias);
+    void setDst(const Ref<Tensor>& dst);
 
   protected:
     virtual void updateSrc() {}
@@ -54,10 +54,10 @@ OIDN_NAMESPACE_BEGIN
     virtual void updateDst() {}
 
     TensorDesc dstDesc;
-    std::shared_ptr<Tensor> src;
-    std::shared_ptr<Tensor> weight;
-    std::shared_ptr<Tensor> bias;
-    std::shared_ptr<Tensor> dst;
+    Ref<Tensor> src;
+    Ref<Tensor> weight;
+    Ref<Tensor> bias;
+    Ref<Tensor> dst;
   };
 
 OIDN_NAMESPACE_END

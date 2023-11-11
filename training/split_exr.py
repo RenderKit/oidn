@@ -44,7 +44,8 @@ def main():
     'hdr' : [
               ('R', 'G', 'B'),
               ('Noisy Image.R', 'Noisy Image.G', 'Noisy Image.B'),
-              ('Beauty.R', 'Beauty.G', 'Beauty.B')
+              ('Beauty.R', 'Beauty.G', 'Beauty.B'),
+              ('Combined.R', 'Combined.G', 'Combined.B')
             ],
     'a' : [('A',)],
     'alb' : [

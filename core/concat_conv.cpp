@@ -24,7 +24,7 @@ OIDN_NAMESPACE_BEGIN
     dstDesc = {dstDims, dstPaddedDims, src1Desc.layout, src1Desc.dataType};
   }
 
-  void ConcatConv::setSrc(const std::shared_ptr<Tensor>& src1, const std::shared_ptr<Tensor>& src2)
+  void ConcatConv::setSrc(const Ref<Tensor>& src1, const Ref<Tensor>& src2)
   {
     if (!src1 || src1->getDesc() != src1Desc || !src2 || src2->getDesc() != src2Desc)
       throw std::invalid_argument("invalid concat+conv source");
@@ -34,7 +34,7 @@ OIDN_NAMESPACE_BEGIN
     updateSrc();
   }
 
-  void ConcatConv::setBias(const std::shared_ptr<Tensor>& bias)
+  void ConcatConv::setBias(const Ref<Tensor>& bias)
   {
     if (!bias || bias->getDesc() != biasDesc)
       throw std::invalid_argument("invalid concat+conv bias");
@@ -43,7 +43,7 @@ OIDN_NAMESPACE_BEGIN
     updateBias();
   }
 
-  void ConcatConv::setDst(const std::shared_ptr<Tensor>& dst)
+  void ConcatConv::setDst(const Ref<Tensor>& dst)
   {
     if (!dst || dst->getDesc() != dstDesc)
       throw std::invalid_argument("invalid concat+conv destination");

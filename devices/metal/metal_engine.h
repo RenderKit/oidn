@@ -25,12 +25,20 @@ OIDN_NAMESPACE_BEGIN
     id<MTLCommandBuffer> getMTLCommandBuffer();
     MPSCommandBuffer* getMPSCommandBuffer();
 
+    // Heap
+    Ref<Heap> newHeap(size_t byteSize, Storage storage) override;
+
     // Buffer
+    SizeAndAlignment getBufferByteSizeAndAlignment(size_t byteSize, Storage storage) override;
     Ref<Buffer> newBuffer(size_t byteSize, Storage storage) override;
     Ref<Buffer> newBuffer(void* ptr, size_t byteSize) override;
+    Ref<Buffer> newBuffer(const Ref<Arena>& arena, size_t byteSize, size_t byteOffset) override;
+
+    // Tensor
+    Ref<Tensor> newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset) override;
 
     // Ops
-    std::shared_ptr<Graph> newGraph(const std::shared_ptr<TensorMap>& constTensors, bool fastMath = false) override;
+    bool isConvSupported(PostOp postOp) override;
     std::shared_ptr<Conv> newConv(const ConvDesc& desc) override;
     std::shared_ptr<Pool> newPool(const PoolDesc& desc) override;
     std::shared_ptr<Upsample> newUpsample(const UpsampleDesc& desc) override;

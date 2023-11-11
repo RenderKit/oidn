@@ -15,11 +15,11 @@ OIDN_NAMESPACE_BEGIN
   {
   public:
     MetalBuffer(const Ref<MetalEngine>& engine, size_t byteSize, Storage storage);
+    MetalBuffer(const Ref<Arena>& arena, size_t byteSize, size_t byteOffset);
     ~MetalBuffer();
 
     Engine* getEngine() const override { return (Engine*)engine.get(); }
     id<MTLBuffer> getMTLBuffer() const { return buffer; }
-
     void* getPtr() const override;
     void* getHostPtr() const override;
     size_t getByteSize() const override { return byteSize; }
@@ -28,18 +28,18 @@ OIDN_NAMESPACE_BEGIN
     void read(size_t byteOffset, size_t byteSize, void* dstHostPtr, SyncMode sync = SyncMode::Sync) override;
     void write(size_t byteOffset, size_t byteSize, const void* srcHostPtr, SyncMode sync = SyncMode::Sync) override;
 
-    // Reallocates the buffer with a new size discarding its current contents
-    void realloc(size_t newByteSize) override;
+  protected:
+    void preRealloc() override;
+    void postRealloc() override;
 
   private:
     void init();
     void free();
 
-  private:
-    Ref<MetalEngine> engine;
+    id<MTLBuffer> buffer;
     size_t byteSize;
     Storage storage;
-    id<MTLBuffer> buffer;
+    Ref<MetalEngine> engine;
   };
 
 OIDN_NAMESPACE_END

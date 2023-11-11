@@ -62,12 +62,12 @@ OIDN_NAMESPACE_BEGIN
 
   std::shared_ptr<Pool> SYCLEngine::newPool(const PoolDesc& desc)
   {
-    throw std::logic_error("operation not implemented");
+    throw std::logic_error("operation is not implemented");
   }
 
   std::shared_ptr<Upsample> SYCLEngine::newUpsample(const UpsampleDesc& desc)
   {
-    throw std::logic_error("operation not implemented");
+    throw std::logic_error("operation is not implemented");
   }
 
   std::shared_ptr<Autoexposure> SYCLEngine::newAutoexposure(const ImageDesc& srcDesc)

@@ -17,13 +17,15 @@ OIDN_NAMESPACE_BEGIN
   struct PoolDesc;
   struct ConvDesc;
 
+  MTLResourceOptions toMTLResourceOptions(Storage storage);
+
   MPSDataType toMPSDataType(DataType dataType);
   MPSShape* toMPSShape(const TensorDesc& td);
 
-  MPSGraphTensor* toMPSGraphTensor(MPSGraph* graph, const std::shared_ptr<Tensor>& t);
+  MPSGraphTensor* toMPSGraphConst(MPSGraph* graph, const Ref<Tensor>& t);
   MPSGraphTensor* toMPSGraphPlaceholder(MPSGraph* graph, TensorDesc td);
   MPSGraphTensor* toMPSGraphPlaceholder(MPSGraph* graph, ImageDesc imd);
-  MPSGraphTensorData* newMPSGraphTensorData(const std::shared_ptr<Tensor>& tensor);
+  MPSGraphTensorData* newMPSGraphTensorData(const Ref<Tensor>& tensor);
 
   id<MTLBuffer> getMTLBuffer(Ref<Buffer> buffer);
 

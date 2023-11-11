@@ -83,7 +83,6 @@ OIDN_NAMESPACE_BEGIN
 
     // Memory
     virtual Storage getPtrStorage(const void* ptr) { return Storage::Undefined; }
-    virtual bool isMemoryUsageLimitSupported() const { return true; }
 
     bool isSystemMemorySupported()  const { return systemMemorySupported; }
     bool isManagedMemorySupported() const { return managedMemorySupported; }

@@ -80,7 +80,7 @@ OIDN_NAMESPACE_BEGIN
     Image(const Ref<Buffer>& buffer, Format format, size_t width, size_t height, size_t byteOffset, size_t pixelByteStride, size_t rowByteStride);
     Image(const Ref<Engine>& engine, Format format, size_t width, size_t height);
 
-    void updatePtr() override;
+    void postRealloc() override;
 
     OIDN_INLINE const ImageDesc& getDesc() const { return *this; }
     OIDN_INLINE Format getFormat() const { return format; }

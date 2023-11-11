@@ -115,7 +115,7 @@ OIDN_NAMESPACE_BEGIN
   }
 
   template<typename T>
-  cutlass::TensorRef<T, cutlass::layout::TensorNHWC> toCutlassTensorRef(const std::shared_ptr<Tensor>& t)
+  cutlass::TensorRef<T, cutlass::layout::TensorNHWC> toCutlassTensorRef(const Ref<Tensor>& t)
   {
     if (t->getDataType() != DataTypeOf<T>::value)
       throw std::logic_error("tensor data type mismatch");
@@ -267,6 +267,16 @@ OIDN_NAMESPACE_BEGIN
     }
 
   private:
+    void updateWeight() override
+    {
+      weight = weight->toDevice(engine);
+    }
+
+    void updateBias() override
+    {
+      bias = bias->toDevice(engine);
+    }
+
     Ref<CUDAEngine> engine;
     bool finalized = false;
     cutlass::conv::Conv2dProblemSize problemSize;

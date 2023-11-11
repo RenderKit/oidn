@@ -24,7 +24,10 @@ OIDN_NAMESPACE_BEGIN
     virtual void finalize() {}
 
     // Runs the operation which may be asynchronous
-    virtual void submit() = 0;
+    virtual void submit()
+    {
+      throw std::logic_error("operation is not implemented");
+    }
 
     // Name for debugging purposes
     std::string getName() const { return name; }

@@ -17,7 +17,7 @@ OIDN_NAMESPACE_BEGIN
     size_t getScratchByteSize() const override { return conv->getScratchByteSize(); }
     void setScratch(const Ref<Buffer>& scratch) override { conv->setScratch(scratch); }
 
-    void setWeight(const std::shared_ptr<Tensor>& weight) { conv->setWeight(weight); }
+    void setWeight(const Ref<Tensor>& weight) { conv->setWeight(weight); }
 
     void finalize() override { conv->finalize(); }
     void submit() override { conv->submit(); }

@@ -4,6 +4,10 @@
 find_package(Threads REQUIRED)
 
 set(OIDN_CORE_SOURCES
+  arena.h
+  arena.cpp
+  arena_planner.h
+  arena_planner.cpp
   autoexposure.h
   buffer.h
   buffer.cpp
@@ -33,6 +37,8 @@ set(OIDN_CORE_SOURCES
   generic_graph.h
   generic_graph.cpp
   graph.h
+  heap.h
+  heap.cpp
   image_accessor.h
   image_copy.h
   image.h
@@ -54,8 +60,6 @@ set(OIDN_CORE_SOURCES
   rt_filter.cpp
   rtlightmap_filter.h
   rtlightmap_filter.cpp
-  scratch_buffer.h
-  scratch_buffer.cpp
   tensor.h
   tensor.cpp
   tensor_accessor.h

@@ -30,7 +30,7 @@ OIDN_NAMESPACE_BEGIN
   {
     auto op = engine->newInputProcess({srcDims, tileAlignment, transferFunc, hdr, snorm});
     op->setName(name);
-    TensorAlloc* dstAlloc = addOp(op, {}, op->getDstDesc());
+    auto dstAlloc = addOp(op, {}, op->getDstDesc());
 
     lazyInits.push_back([=]()
     {
@@ -47,9 +47,8 @@ OIDN_NAMESPACE_BEGIN
                                    bool hdr,
                                    bool snorm)
   {
-    TensorAlloc* srcAlloc = tensorAllocsByOp[srcOp.get()];
-    const TensorDesc srcDesc = srcAlloc->desc;
-    auto op = engine->newOutputProcess({srcDesc, transferFunc, hdr, snorm});
+    auto srcAlloc = tensorAllocs[srcOp.get()];
+    auto op = engine->newOutputProcess({srcAlloc->desc, transferFunc, hdr, snorm});
     op->setName(name);
     addOp(op, {srcOp});
 
@@ -104,11 +103,10 @@ OIDN_NAMESPACE_BEGIN
                                 TensorLayout::x,
                                 engine->getDevice()->getTensorDataType()};
 
-    TensorAlloc* srcAlloc = tensorAllocsByOp[srcOp.get()];
-    const TensorDesc srcDesc = srcAlloc->desc;
-    auto conv = engine->newConv({srcDesc, finalWeightDesc, finalBiasDesc, activation, postOp, fastMath});
+    auto srcAlloc = tensorAllocs[srcOp.get()];
+    auto conv = engine->newConv({srcAlloc->desc, finalWeightDesc, finalBiasDesc, activation, postOp, fastMath});
     conv->setName(name);
-    TensorAlloc* dstAlloc = addOp(conv, {srcOp}, conv->getDstDesc());
+    auto dstAlloc = addOp(conv, {srcOp}, conv->getDstDesc());
 
     lazyInits.push_back([=]()
     {
@@ -116,14 +114,14 @@ OIDN_NAMESPACE_BEGIN
       conv->setDst(dstAlloc->tensor);
 
       // Reorder the weight tensor
-      auto finalWeight = std::make_shared<HostTensor>(finalWeightDesc);
+      auto finalWeight = makeRef<HostTensor>(finalWeightDesc);
       reorderWeight(*weight, *finalWeight);
-      conv->setWeight(finalWeight->toDevice(engine));
+      conv->setWeight(finalWeight);
 
       // Reorder the bias tensor
-      auto finalBias = std::make_shared<HostTensor>(finalBiasDesc);
+      auto finalBias = makeRef<HostTensor>(finalBiasDesc);
       reorderBias(*bias, *finalBias);
-      conv->setBias(finalBias->toDevice(engine));
+      conv->setBias(finalBias);
     });
 
     privateByteSize += finalWeightDesc.getByteSize() + finalBiasDesc.getByteSize();
@@ -143,8 +141,8 @@ OIDN_NAMESPACE_BEGIN
 
     const int blockC = engine->getDevice()->getTensorBlockC();
 
-    TensorAlloc* src1Alloc = tensorAllocsByOp[src1Op.get()];
-    TensorAlloc* src2Alloc = tensorAllocsByOp[src2Op.get()];
+    auto src1Alloc = tensorAllocs[src1Op.get()];
+    auto src2Alloc = tensorAllocs[src2Op.get()];
     const TensorDesc src1Desc = src1Alloc->desc;
     const TensorDesc src2Desc = src2Alloc->desc;
 
@@ -169,7 +167,7 @@ OIDN_NAMESPACE_BEGIN
     {
       auto concatConv = std::make_shared<ConcatConvHWC>(engine, concatConvDesc);
       concatConv->setName(name);
-      TensorAlloc* dstAlloc = addOp(concatConv, {src1Op, src2Op}, concatConv->getDstDesc());
+      auto dstAlloc = addOp(concatConv, {src1Op, src2Op}, concatConv->getDstDesc());
 
       lazyInits.push_back([=]()
       {
@@ -177,20 +175,20 @@ OIDN_NAMESPACE_BEGIN
         concatConv->setDst(dstAlloc->tensor);
 
         // Reorder the weight tensor
-        auto finalWeight1 = std::make_shared<HostTensor>(concatConv->getWeight1Desc());
-        auto finalWeight2 = std::make_shared<HostTensor>(concatConv->getWeight2Desc());
+        auto finalWeight1 = makeRef<HostTensor>(concatConv->getWeight1Desc());
+        auto finalWeight2 = makeRef<HostTensor>(concatConv->getWeight2Desc());
 
         reorderWeight(*weight, 0, src1Desc.getC(),
                       *finalWeight1, 0, src1Desc.getPaddedC());
         reorderWeight(*weight, src1Desc.getC(), src2Desc.getC(),
                       *finalWeight2, 0, src2Desc.getPaddedC());
 
-        concatConv->setWeight(finalWeight1->toDevice(engine), finalWeight2->toDevice(engine));
+        concatConv->setWeight(finalWeight1, finalWeight2);
 
         // Reorder the bias tensor
-        auto finalBias = std::make_shared<HostTensor>(finalBiasDesc);
+        auto finalBias = makeRef<HostTensor>(finalBiasDesc);
         reorderBias(*bias, *finalBias);
-        concatConv->setBias(finalBias->toDevice(engine));
+        concatConv->setBias(finalBias);
       });
 
       privateByteSize += concatConv->getWeight1Desc().getByteSize() +
@@ -202,7 +200,7 @@ OIDN_NAMESPACE_BEGIN
     {
       auto concatConv = std::make_shared<ConcatConvCHW>(engine, concatConvDesc);
       concatConv->setName(name);
-      TensorAlloc* dstAlloc = addOp(concatConv, {src1Op, src2Op}, concatConv->getDstDesc(), true);
+      auto dstAlloc = addOp(concatConv, {src1Op, src2Op}, concatConv->getDstDesc(), true);
 
       lazyInits.push_back([=]()
       {
@@ -210,19 +208,19 @@ OIDN_NAMESPACE_BEGIN
         concatConv->setDst(dstAlloc->tensor);
 
         // Reorder the weight tensor
-        auto finalWeight = std::make_shared<HostTensor>(finalWeightDesc);
+        auto finalWeight = makeRef<HostTensor>(finalWeightDesc);
 
         reorderWeight(*weight, 0, src1Desc.getC(),
                       *finalWeight, 0, src1Desc.getPaddedC());
         reorderWeight(*weight, src1Desc.getC(), src2Desc.getC(),
                       *finalWeight, src1Desc.getPaddedC(), src2Desc.getPaddedC());
 
-        concatConv->setWeight(finalWeight->toDevice(engine));
+        concatConv->setWeight(finalWeight);
 
         // Reorder the bias tensor
-        auto finalBias = std::make_shared<HostTensor>(finalBiasDesc);
+        auto finalBias = makeRef<HostTensor>(finalBiasDesc);
         reorderBias(*bias, *finalBias);
-        concatConv->setBias(finalBias->toDevice(engine));
+        concatConv->setBias(finalBias);
       });
 
       privateByteSize += finalWeightDesc.getByteSize() + finalBiasDesc.getByteSize();
@@ -233,11 +231,10 @@ OIDN_NAMESPACE_BEGIN
   std::shared_ptr<Op> GenericGraph::addPool(const std::string& name,
                                             const std::shared_ptr<Op>& srcOp)
   {
-    TensorAlloc* srcAlloc = tensorAllocsByOp[srcOp.get()];
-    const TensorDesc srcDesc = srcAlloc->desc;
-    auto op = engine->newPool({srcDesc});
+    auto srcAlloc = tensorAllocs[srcOp.get()];
+    auto op = engine->newPool({srcAlloc->desc});
     op->setName(name);
-    TensorAlloc* dstAlloc = addOp(op, {srcOp}, op->getDstDesc());
+    auto dstAlloc = addOp(op, {srcOp}, op->getDstDesc());
 
     lazyInits.push_back([=]()
     {
@@ -251,11 +248,10 @@ OIDN_NAMESPACE_BEGIN
   std::shared_ptr<Op> GenericGraph::addUpsample(const std::string& name,
                                                 const std::shared_ptr<Op>& srcOp)
   {
-    TensorAlloc* srcAlloc = tensorAllocsByOp[srcOp.get()];
-    const TensorDesc srcDesc = srcAlloc->desc;
-    auto op = engine->newUpsample({srcDesc});
+    auto srcAlloc = tensorAllocs[srcOp.get()];
+    auto op = engine->newUpsample({srcAlloc->desc});
     op->setName(name);
-    TensorAlloc* dstAlloc = addOp(op, {srcOp}, op->getDstDesc());
+    auto dstAlloc = addOp(op, {srcOp}, op->getDstDesc());
 
     lazyInits.push_back([=]()
     {
@@ -275,144 +271,50 @@ OIDN_NAMESPACE_BEGIN
 
     const int opID = int(ops.size());
 
-    TensorAlloc* prev = nullptr;
+    // Add the source tensor allocations as dependencies for the operation
+    std::vector<int> srcAllocIDs;
     for (const auto& srcOp : srcOps)
-    {
-      TensorAlloc* cur = tensorAllocsByOp[srcOp.get()];
-      cur->lastOpID = opID;
-
-      if (concatSrcs && prev)
-      {
-        if (cur->prev || prev->next)
-          throw std::logic_error("invalid tensor allocation constraints");
-        cur->prev = prev;
-        prev->next = cur;
-      }
-
-      prev = cur;
-    }
+      srcAllocIDs.push_back(tensorAllocs[srcOp.get()]->id);
+    tensorScratchPlanner.addDepAllocs(opID, srcAllocIDs, concatSrcs);
 
     ops.push_back(op);
     dirty = true;
   }
 
-  GenericGraph::TensorAlloc* GenericGraph::addOp(const std::shared_ptr<Op>& op,
-                                                 const std::vector<std::shared_ptr<Op>>& srcOps,
-                                                 const TensorDesc& dstDesc, bool concatSrcs)
+  std::shared_ptr<GenericGraph::TensorAlloc> GenericGraph::addOp(
+                                               const std::shared_ptr<Op>& op,
+                                               const std::vector<std::shared_ptr<Op>>& srcOps,
+                                               const TensorDesc& dstDesc,
+                                               bool concatSrcs)
   {
     const int opID = int(ops.size());
 
     // Create a tensor allocation record for the destination of the operation
-    tensorAllocs.emplace_back(new TensorAlloc(dstDesc, opID));
-    TensorAlloc* dstAlloc = tensorAllocs.back().get();
-    tensorAllocsByOp[op.get()] = dstAlloc;
+    const auto dstByteSizeAndAlignment =
+      engine->getBufferByteSizeAndAlignment(dstDesc.getByteSize(), Storage::Device);
+    const int dstAllocID = tensorScratchPlanner.newAlloc(opID, dstByteSizeAndAlignment);
+    auto dstAlloc = std::make_shared<TensorAlloc>(dstDesc, dstAllocID);
+    tensorAllocs[op.get()] = dstAlloc;
 
     addOp(op, srcOps, concatSrcs);
     return dstAlloc;
   }
 
-  void GenericGraph::planAllocations()
+  void GenericGraph::planAllocs()
   {
-    // Determine the chunks to allocate. Each chunk contains one or more tensors consecutively
-    struct Chunk
-    {
-      TensorAlloc* firstAlloc;
-      int firstOpID;
-      int lastOpID;
-      size_t byteSize;
-    };
-
-    std::vector<Chunk> chunks;
-
-    // Iterate over all tensor allocations and find the first allocation in each chunk
-    for (const auto& alloc : tensorAllocs)
-    {
-      // If the allocation is not the first in a chunk, skip it
-      if (alloc->prev)
-        continue;
-
-      // Initialize the chunk
-      Chunk chunk;
-      chunk.firstAlloc = alloc.get();
-      chunk.byteSize   = 0;
-      chunk.firstOpID  = alloc->firstOpID;
-      chunk.lastOpID   = alloc->lastOpID;
-
-      // Iterate over all allocations in the chunk
-      for (TensorAlloc* curAlloc = chunk.firstAlloc; curAlloc; curAlloc = curAlloc->next)
-      {
-        chunk.byteSize += curAlloc->byteSize;
-        chunk.firstOpID = min(chunk.firstOpID, curAlloc->firstOpID);
-        chunk.lastOpID  = max(chunk.lastOpID,  curAlloc->lastOpID);
-      }
-
-      chunks.push_back(chunk);
-    }
-
-    // Sort the chunks by size in descending order
-    std::sort(chunks.begin(), chunks.end(),
-              [](const Chunk& a, const Chunk& b) { return a.byteSize > b.byteSize; });
-
-    // Track the active allocations sorted by offset in ascending order
-    std::vector<TensorAlloc*> activeAllocs;
-    size_t tensorScratchByteSize = 0;
-
-    // Iterate over the sorted chunks to allocate
-    for (const Chunk& chunk : chunks)
-    {
-      size_t curByteOffset   = 0;
-      size_t bestByteOffset  = SIZE_MAX;
-      size_t bestGapByteSize = SIZE_MAX;
-
-      // Iterate over the active allocations sorted by offset in ascending order
-      // Find the smallest gap between them that is large enough to fit the chunk
-      for (const TensorAlloc* alloc : activeAllocs)
-      {
-        // If the allocation does not overlap with the chunk in time, skip it
-        if (alloc->lastOpID < chunk.firstOpID || alloc->firstOpID > chunk.lastOpID)
-          continue;
-
-        const size_t curAlignedByteOffset = round_up(curByteOffset, memoryAlignment);
-
-        // Check whether the current gap is large enough to fit the chunk and
-        // is smaller than the previous best fit
-        if (curAlignedByteOffset + chunk.byteSize <= alloc->byteOffset &&
-            alloc->byteOffset - curByteOffset < bestGapByteSize)
-        {
-          bestByteOffset  = curAlignedByteOffset;
-          bestGapByteSize = alloc->byteOffset - curByteOffset;
-        }
-
-        curByteOffset = max(curByteOffset, alloc->byteOffset + alloc->byteSize);
-      }
-
-      if (bestByteOffset == SIZE_MAX)
-        bestByteOffset = round_up(curByteOffset, memoryAlignment);
-
-      // Assign offsets to the allocations in the chunk, and add them to the sorted active allocations
-      for (TensorAlloc* alloc = chunk.firstAlloc; alloc; alloc = alloc->next)
-      {
-        alloc->byteOffset = bestByteOffset;
-
-        auto it = std::upper_bound(activeAllocs.begin(), activeAllocs.end(), alloc,
-                    [](const TensorAlloc* a, const TensorAlloc* b) { return a->byteOffset < b->byteOffset; });
-        activeAllocs.insert(it, alloc);
-
-        bestByteOffset += alloc->byteSize;
-      }
-
-      tensorScratchByteSize = max(tensorScratchByteSize, bestByteOffset);
-    }
-
-    tensorScratchByteSize = round_up(tensorScratchByteSize, memoryAlignment);
+    tensorScratchPlanner.commit();
 
     // Compute the size of the operation scratch
     size_t opScratchByteSize = 0;
     for (const auto& op : ops)
       opScratchByteSize = max(opScratchByteSize, op->getScratchByteSize());
-    opScratchByteSize = round_up(opScratchByteSize, memoryAlignment);
+    opScratchByteSize = round_up(opScratchByteSize, tensorScratchPlanner.getByteAlignment());
 
+    // Compute the size of the tensor scratch
     tensorScratchByteOffset = opScratchByteSize;
+    size_t tensorScratchByteSize = round_up(tensorScratchPlanner.getByteSize(), memoryAlignment);
+
+    // Compute the total scratch size
     scratchByteSize = opScratchByteSize + tensorScratchByteSize;
 
     dirty = false;
@@ -425,8 +327,8 @@ OIDN_NAMESPACE_BEGIN
 
   bool GenericGraph::isSupported() const
   {
-    for (const auto& tensorAlloc : tensorAllocs)
-      if (!engine->isSupported(tensorAlloc->desc))
+    for (const auto& opTensorAllocPair : tensorAllocs)
+      if (!engine->isSupported(opTensorAllocPair.second->desc))
         return false;
 
     for (const auto& op : ops)
@@ -439,22 +341,22 @@ OIDN_NAMESPACE_BEGIN
   size_t GenericGraph::getScratchByteSize()
   {
     if (dirty)
-      planAllocations();
+      planAllocs();
     return scratchByteSize;
   }
 
   void GenericGraph::setScratch(const Ref<Buffer>& scratch)
   {
     if (scratch->getByteSize() < getScratchByteSize())
-      throw std::invalid_argument("graph scratch buffer too small");
+      throw std::invalid_argument("graph scratch buffer is too small");
     this->scratch = scratch;
   }
 
   void GenericGraph::cleanup()
   {
     lazyInits.clear();
-    tensorAllocsByOp.clear();
     tensorAllocs.clear();
+    tensorScratchPlanner.clear();
   }
 
   void GenericGraph::clear()
@@ -474,12 +376,13 @@ OIDN_NAMESPACE_BEGIN
   void GenericGraph::finalize()
   {
     if (dirty)
-      planAllocations();
+      planAllocs();
 
-    for (auto& tensorAlloc : tensorAllocs)
+    for (const auto& opTensorAllocPair : tensorAllocs)
     {
-      tensorAlloc->tensor =
-        scratch->newTensor(tensorAlloc->desc, tensorScratchByteOffset + tensorAlloc->byteOffset);
+      auto& alloc = opTensorAllocPair.second;
+      const size_t byteOffset = tensorScratchPlanner.getAllocByteOffset(alloc->id);
+      alloc->tensor = scratch->newTensor(alloc->desc, tensorScratchByteOffset + byteOffset);
     }
 
     for (auto& lazyInit : lazyInits)
@@ -527,7 +430,7 @@ OIDN_NAMESPACE_BEGIN
     #if 0
       // Dump
       engine->wait();
-      std::shared_ptr<Tensor> dst;
+      Ref<Tensor> dst;
 
       if (auto conv = std::dynamic_pointer_cast<Conv>(ops[i]))
         dst = conv->getDst();

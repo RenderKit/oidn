@@ -207,6 +207,8 @@ OIDN_NAMESPACE_BEGIN
       return TensorAccessor4D<T, accessorLayout>(getPtr(), getPaddedO(), getPaddedI(), getH(), getW());
     }
 
+    virtual Ref<Tensor> toDevice(const Ref<Engine>& engine, Storage storage = Storage::Device);
+
     // Debug
   #if 0
     uint32_t getHash() const;
@@ -230,9 +232,8 @@ OIDN_NAMESPACE_BEGIN
     ~HostTensor();
 
     void* getPtr() const override { return ptr; }
-    void updatePtr() override {}
 
-    std::shared_ptr<Tensor> toDevice(const Ref<Engine>& engine, Storage storage = Storage::Device);
+    Ref<Tensor> toDevice(const Ref<Engine>& engine, Storage storage = Storage::Device) override;
 
   private:
     void* ptr;   // pointer to the tensor data
@@ -246,12 +247,13 @@ OIDN_NAMESPACE_BEGIN
     DeviceTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset = 0);
 
     void* getPtr() const override { return ptr; }
-    void updatePtr() override;
 
   private:
+    void postRealloc() override;
+
     void* ptr; // pointer to the tensor data
   };
 
-  using TensorMap = std::unordered_map<std::string, std::shared_ptr<Tensor>>;
+  using TensorMap = std::unordered_map<std::string, Ref<Tensor>>;
 
 OIDN_NAMESPACE_END

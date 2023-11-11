@@ -21,18 +21,18 @@ OIDN_NAMESPACE_BEGIN
     Pool(const PoolDesc& desc);
 
     TensorDesc getDstDesc() const { return dstDesc; }
-    std::shared_ptr<Tensor> getDst() const { return dst; }
+    Ref<Tensor> getDst() const { return dst; }
 
-    void setSrc(const std::shared_ptr<Tensor>& src);
-    void setDst(const std::shared_ptr<Tensor>& dst);
+    void setSrc(const Ref<Tensor>& src);
+    void setDst(const Ref<Tensor>& dst);
 
   protected:
     virtual void updateSrc() {}
     virtual void updateDst() {}
 
     TensorDesc dstDesc;
-    std::shared_ptr<Tensor> src;
-    std::shared_ptr<Tensor> dst;
+    Ref<Tensor> src;
+    Ref<Tensor> dst;
   };
 
 OIDN_NAMESPACE_END

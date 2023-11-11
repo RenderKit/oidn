@@ -48,7 +48,7 @@ OIDN_NAMESPACE_BEGIN
     conv2->setScratch(scratch);
   }
 
-  void ConcatConvHWC::setWeight(const std::shared_ptr<Tensor>& weight1, const std::shared_ptr<Tensor>& weight2)
+  void ConcatConvHWC::setWeight(const Ref<Tensor>& weight1, const Ref<Tensor>& weight2)
   {
     conv1->setWeight(weight1);
     conv2->setWeight(weight2);

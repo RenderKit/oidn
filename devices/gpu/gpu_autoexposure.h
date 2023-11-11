@@ -237,7 +237,7 @@ OIDN_NAMESPACE_BEGIN
       reduceFinal.sums   = sums;
       reduceFinal.counts = counts;
       reduceFinal.size   = numGroups;
-      reduceFinal.result = getDstPtr();
+      reduceFinal.result = getDst();
 
     #if defined(OIDN_COMPILE_METAL)
       engine->submitKernel(WorkDim<2>(numBinsH, numBinsW), WorkDim<2>(maxBinSize, maxBinSize),
@@ -248,7 +248,7 @@ OIDN_NAMESPACE_BEGIN
                            {getMTLBuffer(scratch)});
 
       engine->submitKernel(WorkDim<1>(1), WorkDim<1>(groupSize), reduceFinal, reduceFinalPipeline,
-                           {getMTLBuffer(scratch), getMTLBuffer(dst->getBuffer())});
+                           {getMTLBuffer(scratch)});
     #else
       engine->submitKernel(WorkDim<2>(numBinsH, numBinsW), WorkDim<2>(maxBinSize, maxBinSize), downsample);
       engine->submitKernel(WorkDim<1>(numGroups), WorkDim<1>(groupSize), reduce);

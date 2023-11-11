@@ -3,8 +3,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "metal_engine.h"
+#include "metal_heap.h"
 #include "metal_buffer.h"
-#include "metal_graph.h"
+#include "metal_conv.h"
 #include "devices/metal/metal_kernels.h" // generated
 #include "../gpu/gpu_autoexposure.h"
 #include "../gpu/gpu_input_process.h"
@@ -67,6 +68,20 @@ OIDN_NAMESPACE_BEGIN
     return commandBuffer;
   }
 
+  Ref<Heap> MetalEngine::newHeap(size_t byteSize, Storage storage)
+  {
+    return makeRef<MetalHeap>(this, byteSize, storage);
+  }
+
+  SizeAndAlignment MetalEngine::getBufferByteSizeAndAlignment(size_t byteSize, Storage storage)
+  {
+    MTLSizeAndAlign sizeAndAlign =
+      [device->getMTLDevice() heapBufferSizeAndAlignWithLength: byteSize
+                                                       options: toMTLResourceOptions(storage)];
+
+    return {sizeAndAlign.size, sizeAndAlign.align};
+  }
+
   Ref<Buffer> MetalEngine::newBuffer(size_t byteSize, Storage storage)
   {
     return makeRef<MetalBuffer>(this, byteSize, storage);
@@ -77,6 +92,22 @@ OIDN_NAMESPACE_BEGIN
     throw Exception(Error::InvalidOperation, "creating shared buffers is not supported by the device");
   }
 
+  Ref<Buffer> MetalEngine::newBuffer(const Ref<Arena>& arena, size_t byteSize, size_t byteOffset)
+  {
+    return makeRef<MetalBuffer>(arena, byteSize, byteOffset);
+  }
+
+  Ref<Tensor> MetalEngine::newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc,
+                                     size_t byteOffset)
+  {
+    // MPS requires the tensor to be in its own buffer so we suballocate a new buffer from the
+    // provided one, if possible
+    if (buffer->getArena())
+      return makeRef<DeviceTensor>(buffer->newBuffer(desc.getByteSize(), byteOffset), desc);
+    else
+      return makeRef<DeviceTensor>(buffer, desc, byteOffset);
+  }
+
   void MetalEngine::runHostTask(std::function<void()>&& f)
   {
     @autoreleasepool
@@ -85,24 +116,26 @@ OIDN_NAMESPACE_BEGIN
     }
   }
 
-  std::shared_ptr<Graph> MetalEngine::newGraph(const std::shared_ptr<TensorMap>& constTensors, bool fastMath)
+  bool MetalEngine::isConvSupported(PostOp postOp)
   {
-    return std::make_shared<MetalGraph>(this, constTensors);
+    return postOp == PostOp::None ||
+           postOp == PostOp::Pool ||
+           postOp == PostOp::Upsample;
   }
 
   std::shared_ptr<Conv> MetalEngine::newConv(const ConvDesc& desc)
   {
-    return std::make_shared<MetalConv>(desc);
+    return std::make_shared<MetalConv>(this, desc);
   }
 
   std::shared_ptr<Pool> MetalEngine::newPool(const PoolDesc& desc)
   {
-    throw std::logic_error("newPool is not supported");
+    throw std::logic_error("operation is not implemented");
   }
 
   std::shared_ptr<Upsample> MetalEngine::newUpsample(const UpsampleDesc& desc)
   {
-    throw std::logic_error("newUpsample is not supported");
+    throw std::logic_error("operation is not implemented");
   }
 
   std::shared_ptr<Autoexposure> MetalEngine::newAutoexposure(const ImageDesc& srcDesc)

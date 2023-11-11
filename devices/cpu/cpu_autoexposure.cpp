@@ -57,7 +57,7 @@ OIDN_NAMESPACE_BEGIN
         [](Sum a, Sum b) -> Sum { return Sum(a.first+b.first, a.second+b.second); }
       );
 
-    *getDstPtr() = (sum.second > 0) ? (key / math::exp2(sum.first / float(sum.second))) : 1.f;
+    *getDst() = (sum.second > 0) ? (key / math::exp2(sum.first / float(sum.second))) : 1.f;
   }
 
 OIDN_NAMESPACE_END

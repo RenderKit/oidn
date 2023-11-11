@@ -43,7 +43,6 @@ OIDN_NAMESPACE_BEGIN
     id<MTLDevice> getMTLDevice() const { return device; }
 
     Storage getPtrStorage(const void* ptr) override;
-    bool isMemoryUsageLimitSupported() const override { return false; }
 
     void flush() override;
     void wait() override;

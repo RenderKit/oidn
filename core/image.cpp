@@ -52,7 +52,7 @@ OIDN_NAMESPACE_BEGIN
       ImageDesc(desc)
   {
     if (byteOffset + getByteSize() > buffer->getByteSize())
-      throw Exception(Error::InvalidArgument, "buffer region is out of range");
+      throw Exception(Error::InvalidArgument, "buffer region is out of bounds");
 
     this->ptr = static_cast<char*>(buffer->getPtr()) + byteOffset;
   }
@@ -62,7 +62,7 @@ OIDN_NAMESPACE_BEGIN
       ImageDesc(format, width, height, pixelByteStride, rowByteStride)
   {
     if (byteOffset + getByteSize() > buffer->getByteSize())
-      throw Exception(Error::InvalidArgument, "buffer region is out of range");
+      throw Exception(Error::InvalidArgument, "buffer region is out of bounds");
 
     this->ptr = static_cast<char*>(buffer->getPtr()) + byteOffset;
   }
@@ -74,15 +74,10 @@ OIDN_NAMESPACE_BEGIN
     this->ptr = static_cast<char*>(buffer->getPtr());
   }
 
-  void Image::updatePtr()
+  void Image::postRealloc()
   {
     if (buffer)
-    {
-      if (byteOffset + getByteSize() > buffer->getByteSize())
-        throw std::range_error("buffer region is out of range");
-
       ptr = static_cast<char*>(buffer->getPtr()) + byteOffset;
-    }
   }
 
   bool Image::overlaps(const Image& other) const

@@ -17,8 +17,8 @@ OIDN_NAMESPACE_BEGIN
 
     void wait() override;
 
-    std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, Storage storage) override;
-    std::shared_ptr<Tensor> newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset) override;
+    Ref<Tensor> newTensor(const TensorDesc& desc, Storage storage) override;
+    Ref<Tensor> newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset) override;
 
     // Ops
     std::shared_ptr<Conv> newConv(const ConvDesc& desc) override;

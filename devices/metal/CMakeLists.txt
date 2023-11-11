@@ -13,10 +13,12 @@ set(OIDN_METAL_SOURCES
   metal_common.mm
   metal_device.mm
   metal_device.h
+  metal_conv.mm
+  metal_conv.h
   metal_engine.mm
   metal_engine.h
-  metal_graph.mm
-  metal_graph.h
+  metal_heap.h
+  metal_heap.mm
   metal_module.mm
 )
 

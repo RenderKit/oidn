@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "graph.h"
+#include "arena_planner.h"
 #include <vector>
 #include <unordered_map>
 
@@ -50,7 +51,7 @@ OIDN_NAMESPACE_BEGIN
 
     size_t getScratchByteSize() override;
     void setScratch(const Ref<Buffer>& scratch) override;
-    size_t getPrivateByteSize() const override { return privateByteSize; }
+    size_t getPrivateByteSize() override { return privateByteSize; }
 
     double getWorkAmount() const override;
     void clear() override;
@@ -58,37 +59,29 @@ OIDN_NAMESPACE_BEGIN
     void run(Progress& progress) override;
 
   private:
-    // Temporary tensor allocation record
+    // Temporary tensor allocation
     struct TensorAlloc
     {
-      TensorDesc desc;   // tensor descriptor
-      size_t byteSize;   // size of the tensor in bytes
-      int firstOpID;     // index of the first operation that uses this tensor
-      int lastOpID;      // index of the last operation that uses this tensor
-      TensorAlloc* next; // tensor allocated consecutively after this one
-      TensorAlloc* prev; // tensor allocated consecutively before this one
+      TensorDesc desc; // tensor descriptor
+      int id;          // allocation ID used by the scratch planner
 
-      // Later set while/after planning allocations
-      size_t byteOffset;
-      std::shared_ptr<Tensor> tensor;
+      // Set only when planning allocations
+      Ref<Tensor> tensor;
 
-      TensorAlloc(const TensorDesc& desc, int firstOpID)
+      TensorAlloc(const TensorDesc& desc, int id)
         : desc(desc),
-          byteSize(desc.getByteSize()),
-          firstOpID(firstOpID),
-          lastOpID(firstOpID),
-          next(nullptr),
-          prev(nullptr),
-          byteOffset(0) {}
+          id(id) {}
     };
 
     void addOp(const std::shared_ptr<Op>& op, const std::vector<std::shared_ptr<Op>>& srcOps,
                bool concatSrcs = false);
 
-    TensorAlloc* addOp(const std::shared_ptr<Op>& op, const std::vector<std::shared_ptr<Op>>& srcOps,
-                       const TensorDesc& dstDesc, bool concatSrcs = false);
+    std::shared_ptr<TensorAlloc> addOp(const std::shared_ptr<Op>& op,
+                                       const std::vector<std::shared_ptr<Op>>& srcOps,
+                                       const TensorDesc& dstDesc,
+                                       bool concatSrcs = false);
 
-    void planAllocations();
+    void planAllocs();
     void cleanup();
 
     Ref<Engine> engine;
@@ -96,13 +89,13 @@ OIDN_NAMESPACE_BEGIN
     Ref<Buffer> scratch;        // scratch buffer
     size_t scratchByteSize = 0; // total size of scratch data
     size_t privateByteSize = 0; // total size of private data (e.g. constant tensors)
-    size_t tensorScratchByteOffset = 0; // offset of tensor data in the scratch buffer
     bool dirty = false;
     bool finalized = false;
 
     // Used only while building the graph
-    std::vector<std::unique_ptr<TensorAlloc>> tensorAllocs;
-    std::unordered_map<Op*, TensorAlloc*> tensorAllocsByOp;
+    ArenaPlanner tensorScratchPlanner; // tensor scratch allocation planner
+    size_t tensorScratchByteOffset = 0; // offset of tensor data in the scratch buffer
+    std::unordered_map<Op*, std::shared_ptr<TensorAlloc>> tensorAllocs;
     std::vector<std::function<void()>> lazyInits; // lazy initialization for ops
     std::shared_ptr<TensorMap> constTensors;
     bool fastMath = false;

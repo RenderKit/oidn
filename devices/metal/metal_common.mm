@@ -5,9 +5,26 @@
 #include "metal_common.h"
 #include "metal_engine.h"
 #include "metal_buffer.h"
-#include "core/scratch_buffer.h"
 
 OIDN_NAMESPACE_BEGIN
+
+  MTLResourceOptions toMTLResourceOptions(Storage storage)
+  {
+    switch (storage)
+    {
+    case Storage::Host:
+      return MTLResourceStorageModeShared | MTLResourceCPUCacheModeDefaultCache;
+
+    case Storage::Device:
+      return MTLResourceStorageModePrivate;
+
+    //case Storage::Managed:
+    //  return MTLResourceStorageModeManaged | MTLResourceCPUCacheModeDefaultCache;
+
+    default:
+      throw Exception(Error::InvalidArgument, "invalid storage mode");
+    }
+  }
 
   MPSDataType toMPSDataType(DataType dataType)
   {
@@ -39,7 +56,7 @@ OIDN_NAMESPACE_BEGIN
     }
   }
 
-  MPSGraphTensor* toMPSGraphTensor(MPSGraph* graph, const std::shared_ptr<Tensor>& t)
+  MPSGraphTensor* toMPSGraphConst(MPSGraph* graph, const Ref<Tensor>& t)
   {
     NSData* data = [NSData dataWithBytes: t->getPtr()
                                   length: t->getByteSize()];
@@ -63,7 +80,7 @@ OIDN_NAMESPACE_BEGIN
                                   name: nil];
   }
 
-  MPSGraphTensorData* newMPSGraphTensorData(const std::shared_ptr<Tensor>& tensor)
+  MPSGraphTensorData* newMPSGraphTensorData(const Ref<Tensor>& tensor)
   {
     id<MTLBuffer> buffer = getMTLBuffer(tensor->getBuffer());
     if (tensor->getByteOffset() != 0)
@@ -79,11 +96,7 @@ OIDN_NAMESPACE_BEGIN
     if (!buffer)
       return nil;
 
-    Buffer* baseBuffer = buffer.get();
-    if (ScratchBuffer* scratchBuffer = dynamic_cast<ScratchBuffer*>(baseBuffer))
-      baseBuffer = scratchBuffer->getParentBuffer();
-
-    if (MetalBuffer* metalBuffer = dynamic_cast<MetalBuffer*>(baseBuffer))
+    if (MetalBuffer* metalBuffer = dynamic_cast<MetalBuffer*>(buffer.get()))
       return metalBuffer->getMTLBuffer();
     else
       throw std::logic_error("buffer is not a Metal buffer");

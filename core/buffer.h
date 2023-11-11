@@ -5,19 +5,20 @@
 
 #include "common/common.h"
 #include "ref.h"
-#include <unordered_map>
+#include <unordered_set>
 
 OIDN_NAMESPACE_BEGIN
 
   struct TensorDesc;
   struct ImageDesc;
 
+  class Device;
+  class Engine;
+  class Heap;
+  class Arena;
   class Memory;
   class Tensor;
   class Image;
-
-  class Device;
-  class Engine;
 
   // -----------------------------------------------------------------------------------------------
   // Buffer
@@ -26,30 +27,45 @@ OIDN_NAMESPACE_BEGIN
   // Generic buffer object
   class Buffer : public RefCount
   {
+    friend class Heap;
     friend class Memory;
 
   public:
+    Buffer() = default;
+    Buffer(const Ref<Arena>& arena, size_t byteOffset);
+    ~Buffer();
+
     virtual Engine* getEngine() const = 0;
     Device* getDevice() const;
-
     virtual void* getPtr() const = 0;     // pointer in device address space
     virtual void* getHostPtr() const = 0; // pointer in host address space if available, nullptr otherwise
     virtual size_t getByteSize() const = 0;
     virtual Storage getStorage() const = 0;
+    Arena* getArena() const { return arena.get(); }
 
-    virtual void read(size_t byteOffset, size_t byteSize, void* dstHostPtr, SyncMode sync = SyncMode::Sync);
-    virtual void write(size_t byteOffset, size_t byteSize, const void* srcHostPtr, SyncMode sync = SyncMode::Sync);
+    virtual void read(size_t byteOffset, size_t byteSize, void* dstHostPtr,
+                      SyncMode sync = SyncMode::Sync);
 
-    // Reallocates the buffer with a new size discarding its current contents
-    virtual void realloc(size_t newByteSize);
+    virtual void write(size_t byteOffset, size_t byteSize, const void* srcHostPtr,
+                       SyncMode sync = SyncMode::Sync);
 
-    std::shared_ptr<Tensor> newTensor(const TensorDesc& desc, size_t byteOffset = 0);
-    std::shared_ptr<Image> newImage(const ImageDesc& desc, size_t byteOffset = 0);
+    Ref<Buffer> newBuffer(size_t byteSize, size_t byteOffset = 0);
+    Ref<Tensor> newTensor(const TensorDesc& desc, size_t byteOffset = 0);
+    Ref<Image> newImage(const ImageDesc& desc, size_t byteOffset = 0);
+
+  protected:
+    virtual void preRealloc();
+    virtual void postRealloc();
+
+    Ref<Arena> arena;      // arena where the buffer is allocated (optional)
+    size_t byteOffset = 0; // offset of the buffer in the arena
 
   private:
     // Memory objects backed by the buffer must attach themselves
-    virtual void attach(Memory* mem) {}
-    virtual void detach(Memory* mem) {}
+    void attach(Memory* mem);
+    void detach(Memory* mem);
+
+    std::unordered_set<Memory*> mems;
   };
 
   // -----------------------------------------------------------------------------------------------
@@ -59,9 +75,12 @@ OIDN_NAMESPACE_BEGIN
   // Unified shared memory (USM) based buffer object
   class USMBuffer : public Buffer
   {
+    friend class USMHeap;
+
   public:
     USMBuffer(const Ref<Engine>& engine, size_t byteSize, Storage storage);
     USMBuffer(const Ref<Engine>& engine, void* data, size_t byteSize, Storage storage = Storage::Undefined);
+    USMBuffer(const Ref<Arena>& arena, size_t byteSize, size_t byteOffset);
     ~USMBuffer();
 
     Engine* getEngine() const override { return engine.get(); }
@@ -74,10 +93,10 @@ OIDN_NAMESPACE_BEGIN
     void read(size_t byteOffset, size_t byteSize, void* dstHostPtr, SyncMode sync) override;
     void write(size_t byteOffset, size_t byteSize, const void* srcHostPtr, SyncMode sync) override;
 
-    void realloc(size_t newByteSize) override;
-
   protected:
     explicit USMBuffer(const Ref<Engine>& engine);
+
+    void postRealloc() override;
 
     char* ptr;
     size_t byteSize;
@@ -91,8 +110,10 @@ OIDN_NAMESPACE_BEGIN
   // -----------------------------------------------------------------------------------------------
 
   // Memory object optionally backed by a buffer
-  class Memory
+  class Memory : public RefCount
   {
+    friend class Buffer;
+
   public:
     Memory() : byteOffset(0) {}
 
@@ -112,16 +133,13 @@ OIDN_NAMESPACE_BEGIN
     Buffer* getBuffer() const { return buffer.get(); }
     size_t getByteOffset() const { return byteOffset; }
 
-    // If the buffer gets reallocated, this must be called to update the internal pointer
-    virtual void updatePtr() = 0;
-
   protected:
-    // Disable copying
-    Memory(const Memory&) = delete;
-    Memory& operator =(const Memory&) = delete;
+    // If the buffer gets reallocated, these must be called to free/re-init internal resources
+    virtual void preRealloc() {}
+    virtual void postRealloc() {}
 
-    Ref<Buffer> buffer; // buffer containing the data
-    size_t byteOffset;  // offset in the buffer
+    Ref<Buffer> buffer; // buffer containing the data (optional)
+    size_t byteOffset;  // offset of the data in the buffer
   };
 
 OIDN_NAMESPACE_END

@@ -10,6 +10,6 @@
 OIDN_NAMESPACE_BEGIN
 
   BNNSNDArrayDescriptor toBNNS(const TensorDesc& td);
-  BNNSNDArrayDescriptor toBNNS(const std::shared_ptr<Tensor>& t);
+  BNNSNDArrayDescriptor toBNNS(const Ref<Tensor>& t);
 
 OIDN_NAMESPACE_END

@@ -22,7 +22,7 @@ OIDN_NAMESPACE_BEGIN
 
     TensorDesc getWeight1Desc() const { return weight1Desc; }
     TensorDesc getWeight2Desc() const { return weight2Desc; }
-    void setWeight(const std::shared_ptr<Tensor>& weight1, const std::shared_ptr<Tensor>& weight2);
+    void setWeight(const Ref<Tensor>& weight1, const Ref<Tensor>& weight2);
 
     void finalize() override;
     void submit() override;

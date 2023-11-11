@@ -384,6 +384,16 @@ namespace xehpc {
     static constexpr TensorLayout weightLayout = TensorLayout::OIhw16i16o;
   #endif
 
+    void updateWeight() override
+    {
+      weight = weight->toDevice(engine);
+    }
+
+    void updateBias() override
+    {
+      bias = bias->toDevice(engine);
+    }
+
     template<PostOp kernelPostOp>
     void submitImpl()
     {
