@@ -45,12 +45,14 @@ def main():
               ('R', 'G', 'B'),
               ('Noisy Image.R', 'Noisy Image.G', 'Noisy Image.B'),
               ('Beauty.R', 'Beauty.G', 'Beauty.B'),
-              ('Combined.R', 'Combined.G', 'Combined.B')
+              ('Combined.R', 'Combined.G', 'Combined.B'),
+              ('Composite.Combined.R', 'Composite.Combined.G', 'Composite.Combined.B')
             ],
     'a' : [('A',)],
     'alb' : [
               ('albedo.R', 'albedo.G', 'albedo.B'),
               ('Denoising Albedo.R', 'Denoising Albedo.G', 'Denoising Albedo.B'),
+              ('ViewLayer.Denoising Albedo.R', 'ViewLayer.Denoising Albedo.G', 'ViewLayer.Denoising Albedo.B'),
               ('VisibleDiffuse.R', 'VisibleDiffuse.G', 'VisibleDiffuse.B'),
               ('diffuse.R', 'diffuse.G', 'diffuse.B'),
               ('DiffCol.R', 'DiffCol.G', 'DiffCol.B'),
@@ -60,11 +62,15 @@ def main():
               ('normal.X', 'normal.Y', 'normal.Z'),
               ('N.R', 'N.G', 'N.B'),
               ('Denoising Normal.X', 'Denoising Normal.Y', 'Denoising Normal.Z'),
+              ('ViewLayer.Denoising Normal.X', 'ViewLayer.Denoising Normal.Y', 'ViewLayer.Denoising Normal.Z'),
               ('Normals.R', 'Normals.G', 'Normals.B'),
               ('VisibleNormals.R', 'VisibleNormals.G', 'VisibleNormals.B'),
               ('OptixNormals.R', 'OptixNormals.G', 'OptixNormals.B'),
             ],
-    'z' : [('Denoising Depth.Z',)]
+    'z' : [
+            ('Denoising Depth.Z',),
+            ('ViewLayer.Denoising Depth.Z',)
+          ]
   }
 
   for feature, feature_channel_lists in FEATURES.items():
