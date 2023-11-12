@@ -8,54 +8,106 @@
 #include "pool.h"
 #include "upsample.h"
 #include "progress.h"
+#include "arena_planner.h"
+#include <vector>
+#include <unordered_map>
 
 OIDN_NAMESPACE_BEGIN
 
-  // Abstract graph of operations
-  class Graph
+  class Graph final
   {
   public:
-    virtual std::shared_ptr<InputProcess> addInputProcess(
-                                            const std::string& name,
-                                            const TensorDims& srcDims,
-                                            int tileAlignment,
-                                            const std::shared_ptr<TransferFunction>& transferFunc,
-                                            bool hdr,
-                                            bool snorm) = 0;
+    Graph(const Ref<Engine>& engine,
+          const std::shared_ptr<TensorMap>& constTensors,
+          bool fastMath = false);
 
-    virtual std::shared_ptr<OutputProcess> addOutputProcess(
-                                             const std::string& name,
-                                             const std::shared_ptr<Op>& srcOp,
-                                             const std::shared_ptr<TransferFunction>& transferFunc,
-                                             bool hdr,
-                                             bool snorm) = 0;
+    std::shared_ptr<InputProcess> addInputProcess(
+                                    const std::string& name,
+                                    const TensorDims& srcDims,
+                                    int tileAlignment,
+                                    const std::shared_ptr<TransferFunction>& transferFunc,
+                                    bool hdr,
+                                    bool snorm);
 
-    virtual std::shared_ptr<Op> addConv(const std::string& name,
-                                        const std::shared_ptr<Op>& srcOp,
-                                        Activation activation,
-                                        PostOp postOp = PostOp::None) = 0;
+    std::shared_ptr<OutputProcess> addOutputProcess(
+                                     const std::string& name,
+                                     const std::shared_ptr<Op>& srcOp,
+                                     const std::shared_ptr<TransferFunction>& transferFunc,
+                                     bool hdr,
+                                     bool snorm);
 
-    virtual std::shared_ptr<Op> addConcatConv(const std::string& name,
-                                              const std::shared_ptr<Op>& src1Op,
-                                              const std::shared_ptr<Op>& src2Op,
-                                              Activation activation) = 0;
+    std::shared_ptr<Op> addConv(const std::string& name,
+                                const std::shared_ptr<Op>& srcOp,
+                                Activation activation,
+                                PostOp postOp = PostOp::None);
 
-    virtual std::shared_ptr<Op> addPool(const std::string& name,
-                                        const std::shared_ptr<Op>& srcOp) = 0;
+    std::shared_ptr<Op> addConcatConv(const std::string& name,
+                                      const std::shared_ptr<Op>& src1Op,
+                                      const std::shared_ptr<Op>& src2Op,
+                                      Activation activation);
 
-    virtual std::shared_ptr<Op> addUpsample(const std::string& name,
-                                            const std::shared_ptr<Op>& srcOp) = 0;
+    std::shared_ptr<Op> addPool(const std::string& name,
+                                const std::shared_ptr<Op>& srcOp);
 
-    virtual bool isSupported() const = 0;
+    std::shared_ptr<Op> addUpsample(const std::string& name,
+                                    const std::shared_ptr<Op>& srcOp);
 
-    virtual size_t getScratchByteSize() = 0;
-    virtual void setScratch(const Ref<Buffer>& scratch) = 0;
-    virtual size_t getPrivateByteSize() = 0;
+    bool isSupported() const;
 
-    virtual double getWorkAmount() const = 0;
-    virtual void clear() = 0;
-    virtual void finalize() = 0;
-    virtual void run(Progress& progress) = 0;
+    size_t getScratchByteSize();
+    void setScratch(const Ref<Buffer>& scratch);
+    size_t getPrivateByteSize() { return privateByteSize; }
+
+    double getWorkAmount() const;
+    void clear();
+    void finalize();
+    void run(Progress& progress);
+
+  private:
+    // Disable copying
+    Graph(const Graph&) = delete;
+    Graph& operator=(const Graph&) = delete;
+
+    // Temporary tensor allocation
+    struct TensorAlloc
+    {
+      TensorDesc desc; // tensor descriptor
+      int id;          // allocation ID used by the scratch planner
+
+      // Set only when planning allocations
+      Ref<Tensor> tensor;
+
+      TensorAlloc(const TensorDesc& desc, int id)
+        : desc(desc),
+          id(id) {}
+    };
+
+    void addOp(const std::shared_ptr<Op>& op, const std::vector<std::shared_ptr<Op>>& srcOps,
+               bool concatSrcs = false);
+
+    std::shared_ptr<TensorAlloc> addOp(const std::shared_ptr<Op>& op,
+                                       const std::vector<std::shared_ptr<Op>>& srcOps,
+                                       const TensorDesc& dstDesc,
+                                       bool concatSrcs = false);
+
+    void planAllocs();
+    void cleanup();
+
+    Ref<Engine> engine;
+    std::vector<std::shared_ptr<Op>> ops;
+    Ref<Buffer> scratch;        // scratch buffer
+    size_t scratchByteSize = 0; // total size of scratch data
+    size_t privateByteSize = 0; // total size of private data (e.g. constant tensors)
+    bool dirty = false;
+    bool finalized = false;
+
+    // Used only while building the graph
+    ArenaPlanner tensorScratchPlanner; // tensor scratch allocation planner
+    size_t tensorScratchByteOffset = 0; // offset of tensor data in the scratch buffer
+    std::unordered_map<Op*, std::shared_ptr<TensorAlloc>> tensorAllocs;
+    std::vector<std::function<void()>> lazyInits; // lazy initialization for ops
+    std::shared_ptr<TensorMap> constTensors;
+    bool fastMath = false;
   };
 
 OIDN_NAMESPACE_END

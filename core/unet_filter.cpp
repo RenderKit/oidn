@@ -262,7 +262,7 @@ OIDN_NAMESPACE_BEGIN
     {
       auto engine = device->getEngine(i);
       instances.emplace_back();
-      instances.back().graph = engine->newGraph(weightsMap, fastMath);
+      instances.back().graph = std::make_shared<Graph>(engine, weightsMap, fastMath);
     }
 
     transferFunc = newTransferFunc();

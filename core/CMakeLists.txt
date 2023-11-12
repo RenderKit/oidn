@@ -34,9 +34,8 @@ set(OIDN_CORE_SOURCES
   exception.cpp
   filter.h
   filter.cpp
-  generic_graph.h
-  generic_graph.cpp
   graph.h
+  graph.cpp
   heap.h
   heap.cpp
   image_accessor.h

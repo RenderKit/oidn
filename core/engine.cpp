@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "engine.h"
-#include "generic_graph.h"
+#include "conv.h"
 
 OIDN_NAMESPACE_BEGIN
 
@@ -76,11 +76,6 @@ OIDN_NAMESPACE_BEGIN
       throw std::invalid_argument("buffer was created by a different engine");
 
     return makeRef<DeviceTensor>(buffer, desc, byteOffset);
-  }
-
-  std::shared_ptr<Graph> Engine::newGraph(const std::shared_ptr<TensorMap>& constTensors, bool fastMath)
-  {
-    return std::make_shared<GenericGraph>(this, constTensors, fastMath);
   }
 
   bool Engine::isConvSupported(PostOp postOp)

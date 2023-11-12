@@ -3,7 +3,7 @@
 
 //#define OIDN_MICROBENCH 1000 // number of microbenchmark iterations
 
-#include "generic_graph.h"
+#include "graph.h"
 #include "concat_conv_chw.h"
 #include "concat_conv_hwc.h"
 #include "tensor_reorder.h"
@@ -13,14 +13,14 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  GenericGraph::GenericGraph(const Ref<Engine>& engine,
-                             const std::shared_ptr<TensorMap>& constTensors,
-                             bool fastMath)
+  Graph::Graph(const Ref<Engine>& engine,
+               const std::shared_ptr<TensorMap>& constTensors,
+               bool fastMath)
     : engine(engine),
       constTensors(constTensors),
       fastMath(fastMath) {}
 
-  std::shared_ptr<InputProcess> GenericGraph::addInputProcess(
+  std::shared_ptr<InputProcess> Graph::addInputProcess(
                                   const std::string& name,
                                   const TensorDims& srcDims,
                                   int tileAlignment,
@@ -40,7 +40,7 @@ OIDN_NAMESPACE_BEGIN
     return op;
   }
 
-  std::shared_ptr<OutputProcess> GenericGraph::addOutputProcess(
+  std::shared_ptr<OutputProcess> Graph::addOutputProcess(
                                    const std::string& name,
                                    const std::shared_ptr<Op>& srcOp,
                                    const std::shared_ptr<TransferFunction>& transferFunc,
@@ -60,10 +60,10 @@ OIDN_NAMESPACE_BEGIN
     return op;
   }
 
-  std::shared_ptr<Op> GenericGraph::addConv(const std::string& name,
-                                            const std::shared_ptr<Op>& srcOp,
-                                            Activation activation,
-                                            PostOp postOp)
+  std::shared_ptr<Op> Graph::addConv(const std::string& name,
+                                     const std::shared_ptr<Op>& srcOp,
+                                     Activation activation,
+                                     PostOp postOp)
   {
     if (postOp != PostOp::None && !engine->isConvSupported(postOp))
     {
@@ -128,10 +128,10 @@ OIDN_NAMESPACE_BEGIN
     return conv;
   }
 
-  std::shared_ptr<Op> GenericGraph::addConcatConv(const std::string& name,
-                                                  const std::shared_ptr<Op>& src1Op,
-                                                  const std::shared_ptr<Op>& src2Op,
-                                                  Activation activation)
+  std::shared_ptr<Op> Graph::addConcatConv(const std::string& name,
+                                           const std::shared_ptr<Op>& src1Op,
+                                           const std::shared_ptr<Op>& src2Op,
+                                           Activation activation)
   {
     auto weight = (*constTensors)[name + ".weight"];
     auto bias   = (*constTensors)[name + ".bias"];
@@ -228,8 +228,8 @@ OIDN_NAMESPACE_BEGIN
     }
   }
 
-  std::shared_ptr<Op> GenericGraph::addPool(const std::string& name,
-                                            const std::shared_ptr<Op>& srcOp)
+  std::shared_ptr<Op> Graph::addPool(const std::string& name,
+                                     const std::shared_ptr<Op>& srcOp)
   {
     auto srcAlloc = tensorAllocs[srcOp.get()];
     auto op = engine->newPool({srcAlloc->desc});
@@ -245,8 +245,8 @@ OIDN_NAMESPACE_BEGIN
     return op;
   }
 
-  std::shared_ptr<Op> GenericGraph::addUpsample(const std::string& name,
-                                                const std::shared_ptr<Op>& srcOp)
+  std::shared_ptr<Op> Graph::addUpsample(const std::string& name,
+                                         const std::shared_ptr<Op>& srcOp)
   {
     auto srcAlloc = tensorAllocs[srcOp.get()];
     auto op = engine->newUpsample({srcAlloc->desc});
@@ -262,9 +262,9 @@ OIDN_NAMESPACE_BEGIN
     return op;
   }
 
-  void GenericGraph::addOp(const std::shared_ptr<Op>& op,
-                           const std::vector<std::shared_ptr<Op>>& srcOps,
-                           bool concatSrcs)
+  void Graph::addOp(const std::shared_ptr<Op>& op,
+                    const std::vector<std::shared_ptr<Op>>& srcOps,
+                    bool concatSrcs)
   {
     if (finalized)
       throw std::logic_error("graph cannot be changed after finalization");
@@ -281,11 +281,11 @@ OIDN_NAMESPACE_BEGIN
     dirty = true;
   }
 
-  std::shared_ptr<GenericGraph::TensorAlloc> GenericGraph::addOp(
-                                               const std::shared_ptr<Op>& op,
-                                               const std::vector<std::shared_ptr<Op>>& srcOps,
-                                               const TensorDesc& dstDesc,
-                                               bool concatSrcs)
+  std::shared_ptr<Graph::TensorAlloc> Graph::addOp(
+                                        const std::shared_ptr<Op>& op,
+                                        const std::vector<std::shared_ptr<Op>>& srcOps,
+                                        const TensorDesc& dstDesc,
+                                        bool concatSrcs)
   {
     const int opID = int(ops.size());
 
@@ -300,7 +300,7 @@ OIDN_NAMESPACE_BEGIN
     return dstAlloc;
   }
 
-  void GenericGraph::planAllocs()
+  void Graph::planAllocs()
   {
     tensorScratchPlanner.commit();
 
@@ -320,12 +320,12 @@ OIDN_NAMESPACE_BEGIN
     dirty = false;
   }
 
-  double GenericGraph::getWorkAmount() const
+  double Graph::getWorkAmount() const
   {
     return double(ops.size());
   }
 
-  bool GenericGraph::isSupported() const
+  bool Graph::isSupported() const
   {
     for (const auto& opTensorAllocPair : tensorAllocs)
       if (!engine->isSupported(opTensorAllocPair.second->desc))
@@ -338,28 +338,28 @@ OIDN_NAMESPACE_BEGIN
     return true;
   }
 
-  size_t GenericGraph::getScratchByteSize()
+  size_t Graph::getScratchByteSize()
   {
     if (dirty)
       planAllocs();
     return scratchByteSize;
   }
 
-  void GenericGraph::setScratch(const Ref<Buffer>& scratch)
+  void Graph::setScratch(const Ref<Buffer>& scratch)
   {
     if (scratch->getByteSize() < getScratchByteSize())
       throw std::invalid_argument("graph scratch buffer is too small");
     this->scratch = scratch;
   }
 
-  void GenericGraph::cleanup()
+  void Graph::cleanup()
   {
     lazyInits.clear();
     tensorAllocs.clear();
     tensorScratchPlanner.clear();
   }
 
-  void GenericGraph::clear()
+  void Graph::clear()
   {
     if (finalized)
       throw std::logic_error("graph cannot be cleared after finalization");
@@ -373,7 +373,7 @@ OIDN_NAMESPACE_BEGIN
     dirty = false;
   }
 
-  void GenericGraph::finalize()
+  void Graph::finalize()
   {
     if (dirty)
       planAllocs();
@@ -400,7 +400,7 @@ OIDN_NAMESPACE_BEGIN
     finalized = true;
   }
 
-  void GenericGraph::run(Progress& progress)
+  void Graph::run(Progress& progress)
   {
     if (!finalized)
       throw std::logic_error("graph not finalized");
