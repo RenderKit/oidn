@@ -94,7 +94,10 @@ OIDN_NAMESPACE_BEGIN
 
   void* MetalBuffer::getPtr() const
   {
-    return reinterpret_cast<void*>([buffer gpuAddress]);
+    if (@available(macOS 13, iOS 16, tvOS 16, *))
+      return reinterpret_cast<void*>([buffer gpuAddress]);
+    else
+      throw std::logic_error("getting the buffer pointer is not supported by the device");
   }
 
   void* MetalBuffer::getHostPtr() const

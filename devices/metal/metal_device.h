@@ -25,6 +25,7 @@ OIDN_NAMESPACE_BEGIN
 
   public:
     static std::vector<Ref<PhysicalDevice>> getPhysicalDevices();
+    static bool isSupported(id<MTLDevice> device);
 
     MetalDevice();
     MetalDevice(const Ref<MetalPhysicalDevice>& physicalDevice);

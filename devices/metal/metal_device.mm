@@ -24,11 +24,27 @@ OIDN_NAMESPACE_BEGIN
       for (int deviceID = 0; deviceID < numDevices; ++deviceID)
       {
         id<MTLDevice> device = devices[deviceID];
-        const int score = (2 << 16) - 1 - deviceID;
-        physicalDevices.push_back(makeRef<MetalPhysicalDevice>(device, score));
+        if (MetalDevice::isSupported(device))
+        {
+          const int score = (2 << 16) - 1 - deviceID;
+          physicalDevices.push_back(makeRef<MetalPhysicalDevice>(device, score));
+        }
       }
       return physicalDevices;
     }
+  }
+
+  bool MetalDevice::isSupported(id<MTLDevice> device)
+  {
+    if (@available(macOS 13, iOS 16, tvOS 16, *))
+    {
+      return [device supportsFamily: MTLGPUFamilyMetal3] &&
+             [device supportsFamily: MTLGPUFamilyApple7] && // validated only on Apple GPUs
+             device.maxThreadsPerThreadgroup.width >= 1024;
+
+    }
+    else
+      return false;
   }
 
   MetalDevice::MetalDevice()
@@ -54,6 +70,9 @@ OIDN_NAMESPACE_BEGIN
   {
     @autoreleasepool
     {
+      if (!isSupported(device))
+        throw Exception(Error::UnsupportedHardware, "unsupported Metal device");
+
       // Print device info
       if (isVerbose())
       {
