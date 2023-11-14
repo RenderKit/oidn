@@ -79,14 +79,9 @@ drivers:
 
   - Windows: [Intel® Graphics
     Driver](https://www.intel.com/content/www/us/en/download/726609/intel-arc-iris-xe-graphics-whql-windows.html)
-    31.0.101.4314 or newer for Intel® Arc™ Graphics, 11th-13th Gen
+    31.0.101.4953 or newer for Intel® Arc™ Graphics, 11th-13th Gen
     Intel® Core™ processor graphics, and related Intel Pentium® and
     Celeron® processors
-    
-    **Note:** Vulkan interop on Intel® Arc™ Graphics is broken in driver
-    versions 31.0.101.4887 and 31.0.101.4885. We strongly recommend to
-    use a different driver. As of 10/12/2023, the last known good
-    version is 31.0.101.4826.
 
   - Linux: [Intel® software for General Purpose GPU
     capabilities](https://dgpu-docs.intel.com/driver/installation.html)
