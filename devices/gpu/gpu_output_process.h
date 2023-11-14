@@ -84,12 +84,6 @@ OIDN_NAMESPACE_BEGIN
         engine(engine) {}
 
   #if defined(OIDN_COMPILE_METAL)
-    ~GPUOutputProcess()
-    {
-      if (pipeline)
-        [pipeline release];
-    }
-
     void setScratch(const Ref<Buffer>& scratch) override
     {
       this->scratch = scratch;
@@ -97,9 +91,9 @@ OIDN_NAMESPACE_BEGIN
 
     void finalize() override
     {
-      static_assert(std::is_same<SrcT, half>::value, "unsupported tensor data type");
-      static_assert(srcLayout == TensorLayout::hwc, "unsupported tensor layout");
-      pipeline = engine->newMTLComputePipelineState("outputProcess_half_hwc");
+      const std::string kernelName = "outputProcess_" + toString(DataTypeOf<SrcT>::value) +
+                                     "_" + toString(srcLayout);
+      pipeline = engine->newPipeline(kernelName);
     }
   #endif
 
@@ -116,10 +110,8 @@ OIDN_NAMESPACE_BEGIN
       kernel.snorm = snorm;
 
     #if defined(OIDN_COMPILE_METAL)
-      engine->submitKernel(WorkDim<2>(tile.H, tile.W), kernel, pipeline,
-                           {getMTLBuffer(src->getBuffer()),
-                            getMTLBuffer(dst->getBuffer()),
-                            getMTLBuffer(scratch)});
+      engine->submitKernel(WorkDim<2>(tile.H, tile.W), kernel,
+                           pipeline, {src->getBuffer(), dst->getBuffer(), scratch});
     #else
       engine->submitKernel(WorkDim<2>(tile.H, tile.W), kernel);
     #endif
@@ -129,7 +121,7 @@ OIDN_NAMESPACE_BEGIN
     Ref<EngineT> engine;
 
   #if defined(OIDN_COMPILE_METAL)
-    id<MTLComputePipelineState> pipeline = nil;
+    Ref<MetalPipeline> pipeline;
     Ref<Buffer> scratch; // may contain autoexposure result, which must be tracked for Metal
   #endif
   };

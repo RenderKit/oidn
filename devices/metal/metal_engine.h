@@ -9,7 +9,18 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  class MetalConcat;
+  struct MetalPipeline : public RefCount
+  {
+  public:
+    explicit MetalPipeline(id<MTLComputePipelineState> state) : state(state) {}
+    ~MetalPipeline() { [state release]; }
+
+    id<MTLComputePipelineState> getMTLPipelineState() const { return state; }
+    int getSubgroupSize() const { return state.threadExecutionWidth; }
+
+  private:
+    id<MTLComputePipelineState> state;
+  };
 
   class MetalEngine : public Engine
   {
@@ -21,7 +32,6 @@ OIDN_NAMESPACE_BEGIN
 
     // Metal
     id<MTLDevice> getMTLDevice() const { return device->getMTLDevice(); }
-    id<MTLComputePipelineState> newMTLComputePipelineState(const std::string& kernelName);
     id<MTLCommandBuffer> getMTLCommandBuffer();
     MPSCommandBuffer* getMPSCommandBuffer();
 
@@ -50,16 +60,19 @@ OIDN_NAMESPACE_BEGIN
     // Runs a parallel host task in the thread arena (if it exists)
     void runHostTask(std::function<void()>&& f) override;
 
+    // Creates a compute pipeline for executing a kernel with the given name
+    Ref<MetalPipeline> newPipeline(const std::string& kernelName);
+
     // Enqueues a basic kernel
     template<int N, typename Kernel>
     OIDN_INLINE void submitKernel(WorkDim<N> globalSize, const Kernel& kernel,
-                                  id<MTLComputePipelineState> pipeline,
-                                  const std::vector<id<MTLBuffer>>& buffers)
+                                  const Ref<MetalPipeline>& pipeline,
+                                  const std::vector<Ref<Buffer>>& buffers)
     {
       auto commandBuffer = getMTLCommandBuffer();
       auto computeEncoder = [commandBuffer computeCommandEncoder];
 
-      [computeEncoder setComputePipelineState: pipeline];
+      [computeEncoder setComputePipelineState: pipeline->getMTLPipelineState()];
 
       [computeEncoder setBytes: &kernel
                         length: sizeof(kernel)
@@ -69,7 +82,7 @@ OIDN_NAMESPACE_BEGIN
       {
         if (buffer)
         {
-          [computeEncoder useResource: buffer
+          [computeEncoder useResource: getMTLBuffer(buffer)
                                 usage: MTLResourceUsageRead | MTLResourceUsageWrite];
         }
       }
@@ -77,7 +90,7 @@ OIDN_NAMESPACE_BEGIN
       // Metal 3 devices support non-uniform threadgroup sizes
       // FIXME: improve threadsPerThreadgroup
       [computeEncoder dispatchThreads: MTLSize(globalSize)
-                threadsPerThreadgroup: MTLSizeMake(pipeline.threadExecutionWidth, 1, 1)];
+                threadsPerThreadgroup: MTLSizeMake(pipeline->getSubgroupSize(), 1, 1)];
 
       [computeEncoder endEncoding];
     }
@@ -85,13 +98,13 @@ OIDN_NAMESPACE_BEGIN
     // Enqueues a work-group kernel
     template<int N, typename Kernel>
     OIDN_INLINE void submitKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const Kernel& kernel,
-                                  id<MTLComputePipelineState> pipeline,
-                                  const std::vector<id<MTLBuffer>>& buffers)
+                                  const Ref<MetalPipeline>& pipeline,
+                                  const std::vector<Ref<Buffer>>& buffers)
     {
       auto commandBuffer = getMTLCommandBuffer();
       auto computeEncoder = [commandBuffer computeCommandEncoder];
 
-      [computeEncoder setComputePipelineState: pipeline];
+      [computeEncoder setComputePipelineState: pipeline->getMTLPipelineState()];
 
       [computeEncoder setBytes: &kernel
                         length: sizeof(kernel)
@@ -101,7 +114,7 @@ OIDN_NAMESPACE_BEGIN
       {
         if (buffer)
         {
-          [computeEncoder useResource: buffer
+          [computeEncoder useResource: getMTLBuffer(buffer)
                                 usage: MTLResourceUsageRead | MTLResourceUsageWrite];
         }
       }

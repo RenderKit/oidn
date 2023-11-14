@@ -180,21 +180,11 @@ OIDN_NAMESPACE_BEGIN
     }
 
   #if defined(OIDN_COMPILE_METAL)
-    ~GPUAutoexposure()
-    {
-      if (downsamplePipeline)
-        [downsamplePipeline release];
-      if (reducePipeline)
-        [reducePipeline release];
-      if (reduceFinalPipeline)
-        [reduceFinalPipeline release];
-    }
-
     void finalize() override
     {
-      downsamplePipeline = engine->newMTLComputePipelineState("autoexposureDownsample");
-      reducePipeline = engine->newMTLComputePipelineState("autoexposureReduce_" + toString(groupSize));
-      reduceFinalPipeline = engine->newMTLComputePipelineState("autoexposureReduceFinal_" + toString(groupSize));
+      downsamplePipeline = engine->newPipeline("autoexposureDownsample");
+      reducePipeline = engine->newPipeline("autoexposureReduce_" + toString(groupSize));
+      reduceFinalPipeline = engine->newPipeline("autoexposureReduceFinal_" + toString(groupSize));
     }
   #endif
 
@@ -240,15 +230,14 @@ OIDN_NAMESPACE_BEGIN
       reduceFinal.result = getDst();
 
     #if defined(OIDN_COMPILE_METAL)
-      engine->submitKernel(WorkDim<2>(numBinsH, numBinsW), WorkDim<2>(maxBinSize, maxBinSize),
-                           downsample, downsamplePipeline,
-                           {getMTLBuffer(scratch), getMTLBuffer(src->getBuffer())});
+      engine->submitKernel(WorkDim<2>(numBinsH, numBinsW), WorkDim<2>(maxBinSize, maxBinSize), downsample,
+                           downsamplePipeline, {scratch, src->getBuffer()});
 
-      engine->submitKernel(WorkDim<1>(numGroups), WorkDim<1>(groupSize), reduce, reducePipeline,
-                           {getMTLBuffer(scratch)});
+      engine->submitKernel(WorkDim<1>(numGroups), WorkDim<1>(groupSize), reduce,
+                           reducePipeline, {scratch});
 
-      engine->submitKernel(WorkDim<1>(1), WorkDim<1>(groupSize), reduceFinal, reduceFinalPipeline,
-                           {getMTLBuffer(scratch)});
+      engine->submitKernel(WorkDim<1>(1), WorkDim<1>(groupSize), reduceFinal,
+                           reduceFinalPipeline, {scratch});
     #else
       engine->submitKernel(WorkDim<2>(numBinsH, numBinsW), WorkDim<2>(maxBinSize, maxBinSize), downsample);
       engine->submitKernel(WorkDim<1>(numGroups), WorkDim<1>(groupSize), reduce);
@@ -263,9 +252,9 @@ OIDN_NAMESPACE_BEGIN
     Ref<Buffer> scratch;
 
   #if defined(OIDN_COMPILE_METAL)
-    id<MTLComputePipelineState> downsamplePipeline = nil;
-    id<MTLComputePipelineState> reducePipeline = nil;
-    id<MTLComputePipelineState> reduceFinalPipeline = nil;
+    Ref<MetalPipeline> downsamplePipeline;
+    Ref<MetalPipeline> reducePipeline;
+    Ref<MetalPipeline> reduceFinalPipeline;
   #endif
   };
 

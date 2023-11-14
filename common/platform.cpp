@@ -40,6 +40,24 @@ OIDN_NAMESPACE_BEGIN
   }
 
   // -----------------------------------------------------------------------------------------------
+  // Data type
+  // -----------------------------------------------------------------------------------------------
+
+  std::ostream& operator <<(std::ostream& sm, DataType dataType)
+  {
+    switch (dataType)
+    {
+    case DataType::Void:    sm << "v";   break;
+    case DataType::UInt8:   sm << "u8";  break;
+    case DataType::Float16: sm << "f16"; break;
+    case DataType::Float32: sm << "f32"; break;
+    default:                sm << "?";   break;
+    }
+
+    return sm;
+  }
+
+  // -----------------------------------------------------------------------------------------------
   // System information
   // -----------------------------------------------------------------------------------------------
 

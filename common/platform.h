@@ -237,6 +237,8 @@ OIDN_NAMESPACE_BEGIN
 
 #if !defined(OIDN_COMPILE_METAL_DEVICE)
 
+  std::ostream& operator <<(std::ostream& sm, DataType dataType);
+
   // -----------------------------------------------------------------------------------------------
   // Memory allocation
   // -----------------------------------------------------------------------------------------------

@@ -36,15 +36,9 @@ OIDN_NAMESPACE_BEGIN
       : engine(engine) {}
 
   #if defined(OIDN_COMPILE_METAL)
-    ~GPUImageCopy()
-    {
-      if (pipeline)
-        [pipeline release];
-    }
-
     void finalize() override
     {
-      pipeline = engine->newMTLComputePipelineState("imageCopy");
+      pipeline = engine->newPipeline("imageCopy");
     }
   #endif
 
@@ -57,8 +51,8 @@ OIDN_NAMESPACE_BEGIN
       kernel.dst = *dst;
 
     #if defined(OIDN_COMPILE_METAL)
-      engine->submitKernel(WorkDim<2>(dst->getH(), dst->getW()), kernel, pipeline,
-                           {getMTLBuffer(src->getBuffer()), getMTLBuffer(dst->getBuffer())});
+      engine->submitKernel(WorkDim<2>(dst->getH(), dst->getW()), kernel,
+                           pipeline, {src->getBuffer(), dst->getBuffer()});
     #else
       engine->submitKernel(WorkDim<2>(dst->getH(), dst->getW()), kernel);
     #endif
@@ -68,7 +62,7 @@ OIDN_NAMESPACE_BEGIN
     Ref<EngineT> engine;
 
   #if defined(OIDN_COMPILE_METAL)
-    id<MTLComputePipelineState> pipeline = nil;
+    Ref<MetalPipeline> pipeline;
   #endif
   };
 

@@ -40,22 +40,6 @@ OIDN_NAMESPACE_BEGIN
     [commandQueue release];
   }
 
-  id<MTLComputePipelineState> MetalEngine::newMTLComputePipelineState(const std::string& kernelName)
-  {
-    auto function = [library newFunctionWithName: @(kernelName.c_str())];
-    if (!function)
-      throw std::runtime_error("could not create Metal library function");
-
-    NSError* error = nullptr;
-    auto pipeline = [device->getMTLDevice() newComputePipelineStateWithFunction: function
-                                            error: &error];
-
-    if (!pipeline)
-      throw std::runtime_error("could not create Metal compute pipeline state");
-
-    return pipeline;
-  }
-
   id<MTLCommandBuffer> MetalEngine::getMTLCommandBuffer()
   {
     return getMPSCommandBuffer();
@@ -170,6 +154,22 @@ OIDN_NAMESPACE_BEGIN
     }];
 
     flush();
+  }
+
+  Ref<MetalPipeline> MetalEngine::newPipeline(const std::string& kernelName)
+  {
+    auto function = [library newFunctionWithName: @(kernelName.c_str())];
+    if (!function)
+      throw std::runtime_error("could not create Metal library function");
+
+    NSError* error = nullptr;
+    auto pipelineState = [device->getMTLDevice() newComputePipelineStateWithFunction: function
+                                                                               error: &error];
+
+    if (!pipelineState)
+      throw std::runtime_error("could not create Metal compute pipeline state");
+
+    return makeRef<MetalPipeline>(pipelineState);
   }
 
   void MetalEngine::flush()

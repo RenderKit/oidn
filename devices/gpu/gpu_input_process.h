@@ -187,12 +187,6 @@ OIDN_NAMESPACE_BEGIN
         engine(engine) {}
 
   #if defined(OIDN_COMPILE_METAL)
-    ~GPUInputProcess()
-    {
-      if (pipeline)
-        [pipeline release];
-    }
-
     void setScratch(const Ref<Buffer>& scratch) override
     {
       this->scratch = scratch;
@@ -200,9 +194,9 @@ OIDN_NAMESPACE_BEGIN
 
     void finalize() override
     {
-      static_assert(std::is_same<DstT, half>::value, "unsupported tensor data type");
-      static_assert(dstLayout == TensorLayout::hwc, "unsupported tensor layout");
-      pipeline = engine->newMTLComputePipelineState("inputProcess_half_hwc_" + toString(dstDesc.getC()));
+      const std::string kernelName = "inputProcess_" + toString(DataTypeOf<DstT>::value) +
+                                     "_" + toString(dstLayout) + "_" + toString(dst->getC());
+      pipeline = engine->newPipeline(kernelName);
     }
   #endif
 
@@ -232,7 +226,7 @@ OIDN_NAMESPACE_BEGIN
       constexpr int subgroupSize = dstPaddedC;
     #elif defined(OIDN_COMPILE_METAL)
       // We know the subgroup size only at runtime
-      const int subgroupSize = static_cast<int>(pipeline.threadExecutionWidth);
+      const int subgroupSize = static_cast<int>(pipeline->getSubgroupSize());
     #else
       // We know the subgroup size only at runtime
       const int subgroupSize = engine->getSubgroupSize();
@@ -261,11 +255,11 @@ OIDN_NAMESPACE_BEGIN
       engine->template submitKernel<subgroupSize>(numGroups, groupSize, kernel);
     #elif defined(OIDN_COMPILE_METAL)
       engine->submitKernel(numGroups, groupSize, kernel, pipeline,
-                           {color  ? getMTLBuffer(color->getBuffer())  : nil,
-                            albedo ? getMTLBuffer(albedo->getBuffer()) : nil,
-                            normal ? getMTLBuffer(normal->getBuffer()) : nil,
-                            getMTLBuffer(dst->getBuffer()),
-                            getMTLBuffer(scratch)});
+                           {color  ? color->getBuffer()  : nullptr,
+                            albedo ? albedo->getBuffer() : nullptr,
+                            normal ? normal->getBuffer() : nullptr,
+                            dst->getBuffer(),
+                            scratch});
     #else
       engine->submitKernel(numGroups, groupSize, kernel);
     #endif
@@ -274,7 +268,7 @@ OIDN_NAMESPACE_BEGIN
     Ref<EngineT> engine;
 
   #if defined(OIDN_COMPILE_METAL)
-    id<MTLComputePipelineState> pipeline = nil;
+    Ref<MetalPipeline> pipeline;
     Ref<Buffer> scratch; // may contain autoexposure result, which must be tracked for Metal
   #endif
   };

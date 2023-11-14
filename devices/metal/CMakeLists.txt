@@ -33,6 +33,7 @@ metallib_target_add_sources(OpenImageDenoise_device_metal metal_kernels
 )
 
 set_property(TARGET OpenImageDenoise_device_metal PROPERTY VERSION ${PROJECT_VERSION})
+set_property(TARGET OpenImageDenoise_device_metal PROPERTY CXX_STANDARD 17)
 
 target_compile_definitions(OpenImageDenoise_device_metal PRIVATE OIDN_COMPILE_METAL_HOST)
 
