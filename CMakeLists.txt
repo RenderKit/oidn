@@ -31,7 +31,7 @@ if(NOT APPLE)
   endif()
   option(OIDN_DEVICE_CUDA "Enable CUDA device." OFF)
   option(OIDN_DEVICE_HIP "Enable HIP device." OFF)
-else()
+elseif(OIDN_ARCH STREQUAL "ARM64")
   option(OIDN_DEVICE_METAL "Enable Metal device." ON)
 endif()
 
