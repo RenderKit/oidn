@@ -35,8 +35,8 @@ OIDN_NAMESPACE_BEGIN
     TensorDesc weight1Desc;
     TensorDesc weight2Desc;
 
-    std::shared_ptr<Conv> conv1;
-    std::shared_ptr<Conv> conv2;
+    Ref<Conv> conv1;
+    Ref<Conv> conv2;
 
     Ref<Engine> engine;
   };

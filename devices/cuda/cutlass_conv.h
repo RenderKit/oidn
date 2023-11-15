@@ -287,7 +287,7 @@ OIDN_NAMESPACE_BEGIN
 
   struct CutlassConvFactory
   {
-    std::shared_ptr<Conv> (*make)(const Ref<CUDAEngine>&, const ConvDesc&);
+    Ref<Conv> (*make)(const Ref<CUDAEngine>&, const ConvDesc&);
 
     DataType dataType;
     DataType accumType;
@@ -322,14 +322,14 @@ OIDN_NAMESPACE_BEGIN
     template<Activation activation>
     using CutlassConvType = CutlassConv<T, AccumT, SmArch, ThreadblockShape, WarpShape, numStages, activation>;
 
-    static std::shared_ptr<Conv> make(const Ref<CUDAEngine>& engine, const ConvDesc& desc)
+    static Ref<Conv> make(const Ref<CUDAEngine>& engine, const ConvDesc& desc)
     {
       switch (desc.activation)
       {
       case Activation::None:
-        return std::make_shared<CutlassConvType<Activation::None>>(engine, desc);
+        return makeRef<CutlassConvType<Activation::None>>(engine, desc);
       case Activation::ReLU:
-        return std::make_shared<CutlassConvType<Activation::ReLU>>(engine, desc);
+        return makeRef<CutlassConvType<Activation::ReLU>>(engine, desc);
       default:
         throw std::invalid_argument("unsupported convolution activation function");
       }

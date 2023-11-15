@@ -16,12 +16,12 @@ OIDN_NAMESPACE_BEGIN
     Device* getDevice() const override { return device; }
 
     // Ops
-    std::shared_ptr<Pool> newPool(const PoolDesc& desc) override;
-    std::shared_ptr<Upsample> newUpsample(const UpsampleDesc& desc) override;
-    std::shared_ptr<Autoexposure> newAutoexposure(const ImageDesc& srcDesc) override;
-    std::shared_ptr<InputProcess> newInputProcess(const InputProcessDesc& desc) override;
-    std::shared_ptr<OutputProcess> newOutputProcess(const OutputProcessDesc& desc) override;
-    std::shared_ptr<ImageCopy> newImageCopy() override;
+    Ref<Pool> newPool(const PoolDesc& desc) override;
+    Ref<Upsample> newUpsample(const UpsampleDesc& desc) override;
+    Ref<Autoexposure> newAutoexposure(const ImageDesc& srcDesc) override;
+    Ref<InputProcess> newInputProcess(const InputProcessDesc& desc) override;
+    Ref<OutputProcess> newOutputProcess(const OutputProcessDesc& desc) override;
+    Ref<ImageCopy> newImageCopy() override;
 
     // Unified shared memory (USM)
     void* usmAlloc(size_t byteSize, Storage storage) override;

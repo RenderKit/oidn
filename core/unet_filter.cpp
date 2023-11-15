@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "unet_filter.h"
-#include "autoexposure.h"
 #include "tza.h"
 
 OIDN_NAMESPACE_BEGIN
@@ -262,7 +261,7 @@ OIDN_NAMESPACE_BEGIN
     {
       auto engine = device->getEngine(i);
       instances.emplace_back();
-      instances.back().graph = std::make_shared<Graph>(engine, weightsMap, fastMath);
+      instances.back().graph = makeRef<Graph>(engine, weightsMap, fastMath);
     }
 
     transferFunc = newTransferFunc();
@@ -442,7 +441,7 @@ OIDN_NAMESPACE_BEGIN
     if (normal) inputC += 3;
 
     // Create global operations (not part of any model instance or graph)
-    std::shared_ptr<Autoexposure> autoexposure;
+    Ref<Autoexposure> autoexposure;
     if (hdr)
       autoexposure = device->getEngine()->newAutoexposure(color->getDesc());
 

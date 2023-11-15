@@ -38,9 +38,9 @@ OIDN_NAMESPACE_BEGIN
     return makeRef<DNNLTensor>(buffer, desc, byteOffset);
   }
 
-  std::shared_ptr<Conv> DNNLEngine::newConv(const ConvDesc& desc)
+  Ref<Conv> DNNLEngine::newConv(const ConvDesc& desc)
   {
-    return std::make_shared<DNNLConv>(this, desc);
+    return makeRef<DNNLConv>(this, desc);
   }
 
 OIDN_NAMESPACE_END

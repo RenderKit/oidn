@@ -6,7 +6,7 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  std::shared_ptr<Conv> newCUDAConv(const Ref<CUDAEngine>& engine, const ConvDesc& desc)
+  Ref<Conv> newCUDAConv(const Ref<CUDAEngine>& engine, const ConvDesc& desc)
   {
     // Get the list of kernels supported by the engine
     std::vector<CutlassConvFactory> kernels;

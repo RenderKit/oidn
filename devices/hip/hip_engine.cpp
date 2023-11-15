@@ -36,7 +36,7 @@ OIDN_NAMESPACE_BEGIN
     return Engine::isSupported(desc) && desc.getByteSize() <= INT32_MAX;
   }
 
-  std::shared_ptr<Conv> HIPEngine::newConv(const ConvDesc& desc)
+  Ref<Conv> HIPEngine::newConv(const ConvDesc& desc)
   {
     switch (device->arch)
     {
@@ -49,42 +49,42 @@ OIDN_NAMESPACE_BEGIN
     }
   }
 
-  std::shared_ptr<Pool> HIPEngine::newPool(const PoolDesc& desc)
+  Ref<Pool> HIPEngine::newPool(const PoolDesc& desc)
   {
-    return std::make_shared<GPUPool<HIPEngine, half, TensorLayout::hwc>>(this, desc);
+    return makeRef<GPUPool<HIPEngine, half, TensorLayout::hwc>>(this, desc);
   }
 
-  std::shared_ptr<Upsample> HIPEngine::newUpsample(const UpsampleDesc& desc)
+  Ref<Upsample> HIPEngine::newUpsample(const UpsampleDesc& desc)
   {
-    return std::make_shared<GPUUpsample<HIPEngine, half, TensorLayout::hwc>>(this, desc);
+    return makeRef<GPUUpsample<HIPEngine, half, TensorLayout::hwc>>(this, desc);
   }
 
-  std::shared_ptr<Autoexposure> HIPEngine::newAutoexposure(const ImageDesc& srcDesc)
+  Ref<Autoexposure> HIPEngine::newAutoexposure(const ImageDesc& srcDesc)
   {
-    return std::make_shared<GPUAutoexposure<HIPEngine, 1024>>(this, srcDesc);
+    return makeRef<GPUAutoexposure<HIPEngine, 1024>>(this, srcDesc);
   }
 
-  std::shared_ptr<InputProcess> HIPEngine::newInputProcess(const InputProcessDesc& desc)
+  Ref<InputProcess> HIPEngine::newInputProcess(const InputProcessDesc& desc)
   {
     switch (device->getTensorBlockC())
     {
     case 8:
-      return std::make_shared<GPUInputProcess<HIPEngine, half, TensorLayout::hwc,  8>>(this, desc);
+      return makeRef<GPUInputProcess<HIPEngine, half, TensorLayout::hwc,  8>>(this, desc);
     case 32:
-      return std::make_shared<GPUInputProcess<HIPEngine, half, TensorLayout::hwc, 32>>(this, desc);
+      return makeRef<GPUInputProcess<HIPEngine, half, TensorLayout::hwc, 32>>(this, desc);
     default:
       throw std::logic_error("unexpected tensor block channel size");
     }
   }
 
-  std::shared_ptr<OutputProcess> HIPEngine::newOutputProcess(const OutputProcessDesc& desc)
+  Ref<OutputProcess> HIPEngine::newOutputProcess(const OutputProcessDesc& desc)
   {
-    return std::make_shared<GPUOutputProcess<HIPEngine, half, TensorLayout::hwc>>(this, desc);
+    return makeRef<GPUOutputProcess<HIPEngine, half, TensorLayout::hwc>>(this, desc);
   }
 
-  std::shared_ptr<ImageCopy> HIPEngine::newImageCopy()
+  Ref<ImageCopy> HIPEngine::newImageCopy()
   {
-    return std::make_shared<GPUImageCopy<HIPEngine>>(this);
+    return makeRef<GPUImageCopy<HIPEngine>>(this);
   }
 
   void* HIPEngine::usmAlloc(size_t byteSize, Storage storage)

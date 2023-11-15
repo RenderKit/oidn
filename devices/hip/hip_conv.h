@@ -8,7 +8,7 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  std::shared_ptr<Conv> newHIPConvDL(const Ref<HIPEngine>& engine, const ConvDesc& desc);
-  std::shared_ptr<Conv> newHIPConvWMMA(const Ref<HIPEngine>& engine, const ConvDesc& desc);
+  Ref<Conv> newHIPConvDL(const Ref<HIPEngine>& engine, const ConvDesc& desc);
+  Ref<Conv> newHIPConvWMMA(const Ref<HIPEngine>& engine, const ConvDesc& desc);
 
 OIDN_NAMESPACE_END

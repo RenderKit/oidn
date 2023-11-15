@@ -8,7 +8,7 @@
 OIDN_NAMESPACE_BEGIN
 
   // Abstract operation class
-  class Op
+  class Op : public RefCount
   {
   public:
     virtual ~Op() = default;

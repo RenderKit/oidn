@@ -155,12 +155,12 @@ OIDN_NAMESPACE_BEGIN
     Ref<HIPEngine> engine;
   };
 
-  std::shared_ptr<Conv> newHIPConvDL(const Ref<HIPEngine>& engine, const ConvDesc& desc)
+  Ref<Conv> newHIPConvDL(const Ref<HIPEngine>& engine, const ConvDesc& desc)
   {
     if (desc.srcDesc.dataType == DataType::Float16 && desc.activation == Activation::None)
-      return std::make_shared<CKConvDL<half, Activation::None>>(engine, desc);
+      return makeRef<CKConvDL<half, Activation::None>>(engine, desc);
     if (desc.srcDesc.dataType == DataType::Float16 && desc.activation == Activation::ReLU)
-      return std::make_shared<CKConvDL<half, Activation::ReLU>>(engine, desc);
+      return makeRef<CKConvDL<half, Activation::ReLU>>(engine, desc);
     throw std::runtime_error("unsupported convolution");
   }
 

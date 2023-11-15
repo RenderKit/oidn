@@ -6,6 +6,7 @@
 #include "filter.h"
 #include "graph.h"
 #include "color.h"
+#include "autoexposure.h"
 #include "image_copy.h"
 
 OIDN_NAMESPACE_BEGIN
@@ -89,17 +90,17 @@ OIDN_NAMESPACE_BEGIN
     // Per-engine model instance
     struct Instance
     {
-      std::shared_ptr<Graph> graph;
-      std::shared_ptr<InputProcess> inputProcess;
-      std::shared_ptr<OutputProcess> outputProcess;
+      Ref<Graph> graph;
+      Ref<InputProcess> inputProcess;
+      Ref<OutputProcess> outputProcess;
     };
 
     // Model
     std::vector<Instance> instances;
     std::shared_ptr<TransferFunction> transferFunc;
-    std::shared_ptr<Autoexposure> autoexposure;
+    Ref<Autoexposure> autoexposure;
     // In-place tiled filtering
-    std::shared_ptr<ImageCopy> imageCopy;
+    Ref<ImageCopy> imageCopy;
     Ref<Image> outputTemp;
 
     Progress progress;

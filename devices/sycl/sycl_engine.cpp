@@ -43,7 +43,7 @@ OIDN_NAMESPACE_BEGIN
            postOp == PostOp::Upsample;
   }
 
-  std::shared_ptr<Conv> SYCLEngine::newConv(const ConvDesc& desc)
+  Ref<Conv> SYCLEngine::newConv(const ConvDesc& desc)
   {
     switch (device->getArch())
     {
@@ -60,39 +60,39 @@ OIDN_NAMESPACE_BEGIN
     }
   }
 
-  std::shared_ptr<Pool> SYCLEngine::newPool(const PoolDesc& desc)
+  Ref<Pool> SYCLEngine::newPool(const PoolDesc& desc)
   {
     throw std::logic_error("operation is not implemented");
   }
 
-  std::shared_ptr<Upsample> SYCLEngine::newUpsample(const UpsampleDesc& desc)
+  Ref<Upsample> SYCLEngine::newUpsample(const UpsampleDesc& desc)
   {
     throw std::logic_error("operation is not implemented");
   }
 
-  std::shared_ptr<Autoexposure> SYCLEngine::newAutoexposure(const ImageDesc& srcDesc)
+  Ref<Autoexposure> SYCLEngine::newAutoexposure(const ImageDesc& srcDesc)
   {
     if (maxWorkGroupSize >= 1024)
-      return std::make_shared<GPUAutoexposure<SYCLEngine, 1024>>(this, srcDesc);
+      return makeRef<GPUAutoexposure<SYCLEngine, 1024>>(this, srcDesc);
     else if (maxWorkGroupSize >= 512)
-      return std::make_shared<GPUAutoexposure<SYCLEngine, 512>>(this, srcDesc);
+      return makeRef<GPUAutoexposure<SYCLEngine, 512>>(this, srcDesc);
     else
-      return std::make_shared<GPUAutoexposure<SYCLEngine, 256>>(this, srcDesc);
+      return makeRef<GPUAutoexposure<SYCLEngine, 256>>(this, srcDesc);
   }
 
-  std::shared_ptr<InputProcess> SYCLEngine::newInputProcess(const InputProcessDesc& desc)
+  Ref<InputProcess> SYCLEngine::newInputProcess(const InputProcessDesc& desc)
   {
-    return std::make_shared<GPUInputProcess<SYCLEngine, half, TensorLayout::Chw16c, 16>>(this, desc);
+    return makeRef<GPUInputProcess<SYCLEngine, half, TensorLayout::Chw16c, 16>>(this, desc);
   }
 
-  std::shared_ptr<OutputProcess> SYCLEngine::newOutputProcess(const OutputProcessDesc& desc)
+  Ref<OutputProcess> SYCLEngine::newOutputProcess(const OutputProcessDesc& desc)
   {
-    return std::make_shared<GPUOutputProcess<SYCLEngine, half, TensorLayout::Chw16c>>(this, desc);
+    return makeRef<GPUOutputProcess<SYCLEngine, half, TensorLayout::Chw16c>>(this, desc);
   }
 
-  std::shared_ptr<ImageCopy> SYCLEngine::newImageCopy()
+  Ref<ImageCopy> SYCLEngine::newImageCopy()
   {
-    return std::make_shared<GPUImageCopy<SYCLEngine>>(this);
+    return makeRef<GPUImageCopy<SYCLEngine>>(this);
   }
 
   void* SYCLEngine::usmAlloc(size_t byteSize, Storage storage)

@@ -36,41 +36,41 @@ OIDN_NAMESPACE_BEGIN
     return Engine::isSupported(desc) && desc.getNumElements() <= INT32_MAX;
   }
 
-  std::shared_ptr<Conv> CUDAEngine::newConv(const ConvDesc& desc)
+  Ref<Conv> CUDAEngine::newConv(const ConvDesc& desc)
   {
     return newCUDAConv(this, desc);
   }
 
-  std::shared_ptr<Pool> CUDAEngine::newPool(const PoolDesc& desc)
+  Ref<Pool> CUDAEngine::newPool(const PoolDesc& desc)
   {
-    return std::make_shared<GPUPool<CUDAEngine, half, TensorLayout::hwc>>(this, desc);
+    return makeRef<GPUPool<CUDAEngine, half, TensorLayout::hwc>>(this, desc);
   }
 
-  std::shared_ptr<Upsample> CUDAEngine::newUpsample(const UpsampleDesc& desc)
+  Ref<Upsample> CUDAEngine::newUpsample(const UpsampleDesc& desc)
   {
-    return std::make_shared<GPUUpsample<CUDAEngine, half, TensorLayout::hwc>>(this, desc);
+    return makeRef<GPUUpsample<CUDAEngine, half, TensorLayout::hwc>>(this, desc);
   }
 
-  std::shared_ptr<Autoexposure> CUDAEngine::newAutoexposure(const ImageDesc& srcDesc)
+  Ref<Autoexposure> CUDAEngine::newAutoexposure(const ImageDesc& srcDesc)
   {
-    return std::make_shared<GPUAutoexposure<CUDAEngine, 1024>>(this, srcDesc);
+    return makeRef<GPUAutoexposure<CUDAEngine, 1024>>(this, srcDesc);
   }
 
-  std::shared_ptr<InputProcess> CUDAEngine::newInputProcess(const InputProcessDesc& desc)
+  Ref<InputProcess> CUDAEngine::newInputProcess(const InputProcessDesc& desc)
   {
     if (device->getTensorBlockC() != 8)
       throw std::logic_error("unexpected tensor block channel size");
-    return std::make_shared<GPUInputProcess<CUDAEngine, half, TensorLayout::hwc, 8>>(this, desc);
+    return makeRef<GPUInputProcess<CUDAEngine, half, TensorLayout::hwc, 8>>(this, desc);
   }
 
-  std::shared_ptr<OutputProcess> CUDAEngine::newOutputProcess(const OutputProcessDesc& desc)
+  Ref<OutputProcess> CUDAEngine::newOutputProcess(const OutputProcessDesc& desc)
   {
-    return std::make_shared<GPUOutputProcess<CUDAEngine, half, TensorLayout::hwc>>(this, desc);
+    return makeRef<GPUOutputProcess<CUDAEngine, half, TensorLayout::hwc>>(this, desc);
   }
 
-  std::shared_ptr<ImageCopy> CUDAEngine::newImageCopy()
+  Ref<ImageCopy> CUDAEngine::newImageCopy()
   {
-    return std::make_shared<GPUImageCopy<CUDAEngine>>(this);
+    return makeRef<GPUImageCopy<CUDAEngine>>(this);
   }
 
   void* CUDAEngine::usmAlloc(size_t byteSize, Storage storage)

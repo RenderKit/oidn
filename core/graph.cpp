@@ -20,13 +20,12 @@ OIDN_NAMESPACE_BEGIN
       constTensors(constTensors),
       fastMath(fastMath) {}
 
-  std::shared_ptr<InputProcess> Graph::addInputProcess(
-                                  const std::string& name,
-                                  const TensorDims& srcDims,
-                                  int tileAlignment,
-                                  const std::shared_ptr<TransferFunction>& transferFunc,
-                                  bool hdr,
-                                  bool snorm)
+  Ref<InputProcess> Graph::addInputProcess(const std::string& name,
+                                           const TensorDims& srcDims,
+                                           int tileAlignment,
+                                           const std::shared_ptr<TransferFunction>& transferFunc,
+                                           bool hdr,
+                                           bool snorm)
   {
     auto op = engine->newInputProcess({srcDims, tileAlignment, transferFunc, hdr, snorm});
     op->setName(name);
@@ -40,12 +39,11 @@ OIDN_NAMESPACE_BEGIN
     return op;
   }
 
-  std::shared_ptr<OutputProcess> Graph::addOutputProcess(
-                                   const std::string& name,
-                                   const std::shared_ptr<Op>& srcOp,
-                                   const std::shared_ptr<TransferFunction>& transferFunc,
-                                   bool hdr,
-                                   bool snorm)
+  Ref<OutputProcess> Graph::addOutputProcess(const std::string& name,
+                                             const Ref<Op>& srcOp,
+                                             const std::shared_ptr<TransferFunction>& transferFunc,
+                                             bool hdr,
+                                             bool snorm)
   {
     auto srcAlloc = tensorAllocs[srcOp.get()];
     auto op = engine->newOutputProcess({srcAlloc->desc, transferFunc, hdr, snorm});
@@ -60,10 +58,10 @@ OIDN_NAMESPACE_BEGIN
     return op;
   }
 
-  std::shared_ptr<Op> Graph::addConv(const std::string& name,
-                                     const std::shared_ptr<Op>& srcOp,
-                                     Activation activation,
-                                     PostOp postOp)
+  Ref<Op> Graph::addConv(const std::string& name,
+                         const Ref<Op>& srcOp,
+                         Activation activation,
+                         PostOp postOp)
   {
     if (postOp != PostOp::None && !engine->isConvSupported(postOp))
     {
@@ -128,10 +126,10 @@ OIDN_NAMESPACE_BEGIN
     return conv;
   }
 
-  std::shared_ptr<Op> Graph::addConcatConv(const std::string& name,
-                                           const std::shared_ptr<Op>& src1Op,
-                                           const std::shared_ptr<Op>& src2Op,
-                                           Activation activation)
+  Ref<Op> Graph::addConcatConv(const std::string& name,
+                               const Ref<Op>& src1Op,
+                               const Ref<Op>& src2Op,
+                               Activation activation)
   {
     auto weight = (*constTensors)[name + ".weight"];
     auto bias   = (*constTensors)[name + ".bias"];
@@ -165,7 +163,7 @@ OIDN_NAMESPACE_BEGIN
 
     if (engine->getDevice()->getTensorLayout() == TensorLayout::hwc)
     {
-      auto concatConv = std::make_shared<ConcatConvHWC>(engine, concatConvDesc);
+      auto concatConv = makeRef<ConcatConvHWC>(engine, concatConvDesc);
       concatConv->setName(name);
       auto dstAlloc = addOp(concatConv, {src1Op, src2Op}, concatConv->getDstDesc());
 
@@ -198,7 +196,7 @@ OIDN_NAMESPACE_BEGIN
     }
     else
     {
-      auto concatConv = std::make_shared<ConcatConvCHW>(engine, concatConvDesc);
+      auto concatConv = makeRef<ConcatConvCHW>(engine, concatConvDesc);
       concatConv->setName(name);
       auto dstAlloc = addOp(concatConv, {src1Op, src2Op}, concatConv->getDstDesc(), true);
 
@@ -228,8 +226,8 @@ OIDN_NAMESPACE_BEGIN
     }
   }
 
-  std::shared_ptr<Op> Graph::addPool(const std::string& name,
-                                     const std::shared_ptr<Op>& srcOp)
+  Ref<Op> Graph::addPool(const std::string& name,
+                         const Ref<Op>& srcOp)
   {
     auto srcAlloc = tensorAllocs[srcOp.get()];
     auto op = engine->newPool({srcAlloc->desc});
@@ -245,8 +243,8 @@ OIDN_NAMESPACE_BEGIN
     return op;
   }
 
-  std::shared_ptr<Op> Graph::addUpsample(const std::string& name,
-                                         const std::shared_ptr<Op>& srcOp)
+  Ref<Op> Graph::addUpsample(const std::string& name,
+                             const Ref<Op>& srcOp)
   {
     auto srcAlloc = tensorAllocs[srcOp.get()];
     auto op = engine->newUpsample({srcAlloc->desc});
@@ -262,8 +260,8 @@ OIDN_NAMESPACE_BEGIN
     return op;
   }
 
-  void Graph::addOp(const std::shared_ptr<Op>& op,
-                    const std::vector<std::shared_ptr<Op>>& srcOps,
+  void Graph::addOp(const Ref<Op>& op,
+                    const std::vector<Ref<Op>>& srcOps,
                     bool concatSrcs)
   {
     if (finalized)
@@ -282,8 +280,8 @@ OIDN_NAMESPACE_BEGIN
   }
 
   std::shared_ptr<Graph::TensorAlloc> Graph::addOp(
-                                        const std::shared_ptr<Op>& op,
-                                        const std::vector<std::shared_ptr<Op>>& srcOps,
+                                        const Ref<Op>& op,
+                                        const std::vector<Ref<Op>>& srcOps,
                                         const TensorDesc& dstDesc,
                                         bool concatSrcs)
   {

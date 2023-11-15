@@ -65,13 +65,13 @@ OIDN_NAMESPACE_BEGIN
 
     // Ops
     virtual bool isConvSupported(PostOp postOp);
-    virtual std::shared_ptr<Conv> newConv(const ConvDesc& desc) = 0;
-    virtual std::shared_ptr<Pool> newPool(const PoolDesc& desc) = 0;
-    virtual std::shared_ptr<Upsample> newUpsample(const UpsampleDesc& desc) = 0;
-    virtual std::shared_ptr<Autoexposure> newAutoexposure(const ImageDesc& srcDesc) = 0;
-    virtual std::shared_ptr<InputProcess> newInputProcess(const InputProcessDesc& desc) = 0;
-    virtual std::shared_ptr<OutputProcess> newOutputProcess(const OutputProcessDesc& desc) = 0;
-    virtual std::shared_ptr<ImageCopy> newImageCopy() = 0;
+    virtual Ref<Conv> newConv(const ConvDesc& desc) = 0;
+    virtual Ref<Pool> newPool(const PoolDesc& desc) = 0;
+    virtual Ref<Upsample> newUpsample(const UpsampleDesc& desc) = 0;
+    virtual Ref<Autoexposure> newAutoexposure(const ImageDesc& srcDesc) = 0;
+    virtual Ref<InputProcess> newInputProcess(const InputProcessDesc& desc) = 0;
+    virtual Ref<OutputProcess> newOutputProcess(const OutputProcessDesc& desc) = 0;
+    virtual Ref<ImageCopy> newImageCopy() = 0;
 
     // Unified shared memory (USM)
     virtual void* usmAlloc(size_t byteSize, Storage storage);

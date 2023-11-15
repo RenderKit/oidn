@@ -23,34 +23,34 @@ OIDN_NAMESPACE_BEGIN
       f();
   }
 
-  std::shared_ptr<Pool> CPUEngine::newPool(const PoolDesc& desc)
+  Ref<Pool> CPUEngine::newPool(const PoolDesc& desc)
   {
-    return std::make_shared<CPUPool>(this, desc);
+    return makeRef<CPUPool>(this, desc);
   }
 
-  std::shared_ptr<Upsample> CPUEngine::newUpsample(const UpsampleDesc& desc)
+  Ref<Upsample> CPUEngine::newUpsample(const UpsampleDesc& desc)
   {
-    return std::make_shared<CPUUpsample>(this, desc);
+    return makeRef<CPUUpsample>(this, desc);
   }
 
-  std::shared_ptr<Autoexposure> CPUEngine::newAutoexposure(const ImageDesc& srcDesc)
+  Ref<Autoexposure> CPUEngine::newAutoexposure(const ImageDesc& srcDesc)
   {
-    return std::make_shared<CPUAutoexposure>(this, srcDesc);
+    return makeRef<CPUAutoexposure>(this, srcDesc);
   }
 
-  std::shared_ptr<InputProcess> CPUEngine::newInputProcess(const InputProcessDesc& desc)
+  Ref<InputProcess> CPUEngine::newInputProcess(const InputProcessDesc& desc)
   {
-    return std::make_shared<CPUInputProcess>(this, desc);
+    return makeRef<CPUInputProcess>(this, desc);
   }
 
-  std::shared_ptr<OutputProcess> CPUEngine::newOutputProcess(const OutputProcessDesc& desc)
+  Ref<OutputProcess> CPUEngine::newOutputProcess(const OutputProcessDesc& desc)
   {
-    return std::make_shared<CPUOutputProcess>(this, desc);
+    return makeRef<CPUOutputProcess>(this, desc);
   }
 
-  std::shared_ptr<ImageCopy> CPUEngine::newImageCopy()
+  Ref<ImageCopy> CPUEngine::newImageCopy()
   {
-    return std::make_shared<CPUImageCopy>(this);
+    return makeRef<CPUImageCopy>(this);
   }
 
   void CPUEngine::submitHostFunc(std::function<void()>&& f)

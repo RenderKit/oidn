@@ -107,39 +107,39 @@ OIDN_NAMESPACE_BEGIN
            postOp == PostOp::Upsample;
   }
 
-  std::shared_ptr<Conv> MetalEngine::newConv(const ConvDesc& desc)
+  Ref<Conv> MetalEngine::newConv(const ConvDesc& desc)
   {
-    return std::make_shared<MetalConv>(this, desc);
+    return makeRef<MetalConv>(this, desc);
   }
 
-  std::shared_ptr<Pool> MetalEngine::newPool(const PoolDesc& desc)
+  Ref<Pool> MetalEngine::newPool(const PoolDesc& desc)
   {
     throw std::logic_error("operation is not implemented");
   }
 
-  std::shared_ptr<Upsample> MetalEngine::newUpsample(const UpsampleDesc& desc)
+  Ref<Upsample> MetalEngine::newUpsample(const UpsampleDesc& desc)
   {
     throw std::logic_error("operation is not implemented");
   }
 
-  std::shared_ptr<Autoexposure> MetalEngine::newAutoexposure(const ImageDesc& srcDesc)
+  Ref<Autoexposure> MetalEngine::newAutoexposure(const ImageDesc& srcDesc)
   {
-    return std::make_shared<GPUAutoexposure<MetalEngine, 1024>>(this, srcDesc);
+    return makeRef<GPUAutoexposure<MetalEngine, 1024>>(this, srcDesc);
   }
 
-  std::shared_ptr<InputProcess> MetalEngine::newInputProcess(const InputProcessDesc& desc)
+  Ref<InputProcess> MetalEngine::newInputProcess(const InputProcessDesc& desc)
   {
-    return std::make_shared<GPUInputProcess<MetalEngine, half, TensorLayout::hwc, 1>>(this, desc);
+    return makeRef<GPUInputProcess<MetalEngine, half, TensorLayout::hwc, 1>>(this, desc);
   }
 
-  std::shared_ptr<OutputProcess> MetalEngine::newOutputProcess(const OutputProcessDesc& desc)
+  Ref<OutputProcess> MetalEngine::newOutputProcess(const OutputProcessDesc& desc)
   {
-    return std::make_shared<GPUOutputProcess<MetalEngine, half, TensorLayout::hwc>>(this, desc);
+    return makeRef<GPUOutputProcess<MetalEngine, half, TensorLayout::hwc>>(this, desc);
   }
 
-  std::shared_ptr<ImageCopy> MetalEngine::newImageCopy()
+  Ref<ImageCopy> MetalEngine::newImageCopy()
   {
-    return std::make_shared<GPUImageCopy<MetalEngine>>(this);
+    return makeRef<GPUImageCopy<MetalEngine>>(this);
   }
 
   void MetalEngine::submitHostFunc(std::function<void()>&& f)

@@ -466,9 +466,9 @@ namespace xehpc {
     Ref<SYCLEngine> engine;
   };
 
-  std::shared_ptr<Conv> newSYCLConv(const Ref<SYCLEngine>& engine, const ConvDesc& desc)
+  Ref<Conv> newSYCLConv(const Ref<SYCLEngine>& engine, const ConvDesc& desc)
   {
-    return std::make_shared<SYCLConv<half>>(engine, desc);
+    return makeRef<SYCLConv<half>>(engine, desc);
   }
 
 } // namespace arch

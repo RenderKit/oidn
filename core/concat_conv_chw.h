@@ -28,7 +28,7 @@ OIDN_NAMESPACE_BEGIN
     void updateDst() override { conv->setDst(dst); }
 
     TensorDesc srcDesc;         // pre-concatenated source
-    std::shared_ptr<Conv> conv;
+    Ref<Conv> conv;
     Ref<Engine> engine;
   };
 

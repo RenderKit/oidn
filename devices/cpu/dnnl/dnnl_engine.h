@@ -21,7 +21,7 @@ OIDN_NAMESPACE_BEGIN
     Ref<Tensor> newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset) override;
 
     // Ops
-    std::shared_ptr<Conv> newConv(const ConvDesc& desc) override;
+    Ref<Conv> newConv(const ConvDesc& desc) override;
 
   private:
     dnnl::engine dnnlEngine;

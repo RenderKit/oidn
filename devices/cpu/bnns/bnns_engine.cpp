@@ -11,14 +11,14 @@ OIDN_NAMESPACE_BEGIN
     : CPUEngine(device)
   {}
 
-  std::shared_ptr<Conv> BNNSEngine::newConv(const ConvDesc& desc)
+  Ref<Conv> BNNSEngine::newConv(const ConvDesc& desc)
   {
-    return std::make_shared<BNNSConv>(this, desc);
+    return makeRef<BNNSConv>(this, desc);
   }
 
-  std::shared_ptr<Pool> BNNSEngine::newPool(const PoolDesc& desc)
+  Ref<Pool> BNNSEngine::newPool(const PoolDesc& desc)
   {
-    return std::make_shared<BNNSPool>(this, desc);
+    return makeRef<BNNSPool>(this, desc);
   }
 
 OIDN_NAMESPACE_END
