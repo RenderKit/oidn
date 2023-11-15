@@ -355,9 +355,12 @@ TEST_CASE("single filter", "[single_filter]")
   filter.commit();
   REQUIRE(device.getError() == Error::InvalidOperation);
 
+  // Create the input and output images
+  auto input  = makeConstImage(device, W, H, 3, DataType::Float16, 0.5f);
+  auto output = makeConstImage(device, W, H, 3, DataType::Float16, 0.f);
+
   // Set the output image
-  auto image = makeConstImage(device, W, H);
-  setFilterImage(filter, "output", image);
+  setFilterImage(filter, "output", output);
   REQUIRE(device.getError() == Error::None);
 
   // Try committing without setting all required images
@@ -370,28 +373,29 @@ TEST_CASE("single filter", "[single_filter]")
   REQUIRE(device.getError() == Error::InvalidArgument);
 
   // Try setting an image with invalid name
-  setFilterImage(filter, nullptr, image);
+  setFilterImage(filter, nullptr, input);
   REQUIRE(device.getError() == Error::InvalidArgument);
 
   // Try setting an image with invalid format
-  filter.setImage("color", image->getBuffer(), static_cast<Format>(-1), W, H);
+  filter.setImage("color", input->getBuffer(), static_cast<Format>(-1), W, H);
   REQUIRE(device.getError() == Error::InvalidArgument);
 
   // Try setting an image with buffer overflow
-  filter.setImage("color", image->getBuffer(), image->getFormat(), W+1, H);
+  filter.setImage("color", input->getBuffer(), input->getFormat(), W+1, H);
   REQUIRE(device.getError() == Error::InvalidArgument);
-  filter.setImage("color", image->getBuffer(), image->getFormat(), W, H, 1);
+  filter.setImage("color", input->getBuffer(), input->getFormat(), W, H, 1);
   REQUIRE(device.getError() == Error::InvalidArgument);
-  filter.setImage("color", image->getBuffer(), image->getFormat(), W, H, 0, 100);
+  filter.setImage("color", input->getBuffer(), input->getFormat(), W, H, 0, 100);
   REQUIRE(device.getError() == Error::InvalidArgument);
-  filter.setImage("color", image->getBuffer(), image->getFormat(), W, H, 0, 0, W*100);
+  filter.setImage("color", input->getBuffer(), input->getFormat(), W, H, 0, 0, W*100);
   REQUIRE(device.getError() == Error::InvalidArgument);
 
   // Set the input image
-  setFilterImage(filter, "color", image);
+  setFilterImage(filter, "color", input);
   REQUIRE(device.getError() == Error::None);
 
   // Commit the filter
+  filter.set("hdr", true);
   filter.commit();
   REQUIRE(device.getError() == Error::None);
 
@@ -399,6 +403,7 @@ TEST_CASE("single filter", "[single_filter]")
   {
     filter.execute();
     REQUIRE(device.getError() == Error::None);
+    REQUIRE(isBetween(output, 0.1f, 1.0f)); // output sanity check
   }
 
   SECTION("single filter: 3 frames")
@@ -407,6 +412,7 @@ TEST_CASE("single filter", "[single_filter]")
     {
       filter.execute();
       REQUIRE(device.getError() == Error::None);
+      REQUIRE(isBetween(output, 0.1f, 1.0f)); // output sanity check
     }
   }
 
@@ -424,43 +430,51 @@ void multiFilter1PerDeviceTest(DeviceRef& device, const std::vector<int>& sizes)
     FilterRef filter = device.newFilter("RT");
     REQUIRE(bool(filter));
 
-    auto image = makeConstImage(device, sizes[i], sizes[i]);
-    setFilterImage(filter, "color",  image);
-    setFilterImage(filter, "output", image);
+    auto input  = makeConstImage(device, sizes[i], sizes[i], 3, DataType::Float16, 0.5f);
+    auto output = makeConstImage(device, sizes[i], sizes[i], 3, DataType::Float16, 0.f);
+    setFilterImage(filter, "color",  input);
+    setFilterImage(filter, "output", output);
 
+    filter.set("hdr", true);
     filter.commit();
     REQUIRE(device.getError() == Error::None);
 
     filter.execute();
     REQUIRE(device.getError() == Error::None);
+    REQUIRE(isBetween(output, 0.1f, 1.0f)); // output sanity check
   }
 }
 
 void multiFilterNPerDeviceTest(DeviceRef& device, const std::vector<int>& sizes)
 {
   std::vector<FilterRef> filters;
-  std::vector<std::shared_ptr<ImageBuffer>> images;
+  std::vector<std::shared_ptr<ImageBuffer>> inputs;
+  std::vector<std::shared_ptr<ImageBuffer>> outputs;
 
   for (size_t i = 0; i < sizes.size(); ++i)
   {
     filters.push_back(device.newFilter("RT"));
     REQUIRE(bool(filters[i]));
 
-    images.push_back(makeConstImage(device, sizes[i], sizes[i]));
-    setFilterImage(filters[i], "color",  images[i]);
-    setFilterImage(filters[i], "output", images[i]);
+    inputs.push_back (makeConstImage(device, sizes[i], sizes[i], 3, DataType::Float16, 0.5f));
+    outputs.push_back(makeConstImage(device, sizes[i], sizes[i], 3, DataType::Float16, 0.f));
+    setFilterImage(filters[i], "color",  inputs[i]);
+    setFilterImage(filters[i], "output", outputs[i]);
+    filters[i].set("hdr", true);
 
     filters[i].commit();
     REQUIRE(device.getError() == Error::None);
 
     filters[i].execute();
     REQUIRE(device.getError() == Error::None);
+    REQUIRE(isBetween(outputs[i], 0.1f, 1.0f)); // output sanity check
   }
 
   for (size_t i = 0; i < filters.size(); ++i)
   {
     filters[i].execute();
     REQUIRE(device.getError() == Error::None);
+    REQUIRE(isBetween(outputs[i], 0.1f, 1.0f)); // output sanity check
   }
 }
 
@@ -511,10 +525,11 @@ TEST_CASE("multiple devices", "[multi_device]")
     filters.push_back(devices[i].newFilter("RT"));
     REQUIRE(bool(filters[i]));
 
-    images.push_back(makeConstImage(devices[i], sizes[i], sizes[i]));
+    images.push_back(makeConstImage(devices[i], sizes[i], sizes[i], 3, DataType::Float16, 0.5f));
     setFilterImage(filters[i], "color",  images[i]);
     setFilterImage(filters[i], "output", images[i]);
 
+    filters[i].set("hdr", true);
     filters[i].commit();
     REQUIRE(devices[i].getError() == Error::None);
   }
@@ -523,6 +538,7 @@ TEST_CASE("multiple devices", "[multi_device]")
   {
     filters[i].execute();
     REQUIRE(devices[i].getError() == Error::None);
+    REQUIRE(isBetween(images[i], 0.1f, 1.0f)); // output sanity check
   }
 }
 
@@ -666,6 +682,7 @@ TEST_CASE("filter update", "[filter_update]")
 
   filter.execute();
   REQUIRE(device.getError() == Error::None);
+  REQUIRE(isBetween(output, 0.1f, 1.0f)); // output sanity check
 }
 
 // -------------------------------------------------------------------------------------------------
