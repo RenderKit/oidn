@@ -11,7 +11,7 @@ OIDN_NAMESPACE_BEGIN
     : PhysicalDevice(DeviceType::Metal, score),
       device(device)
   {
-    name = [[device name] UTF8String];
+    name = device.name.UTF8String;
   }
 
   std::vector<Ref<PhysicalDevice>> MetalDevice::getPhysicalDevices()
@@ -76,10 +76,12 @@ OIDN_NAMESPACE_BEGIN
       // Print device info
       if (isVerbose())
       {
-        const std::string name = [[device name] UTF8String];
+        const std::string name = device.name.UTF8String;
 
         std::cout << "  Device    : " << name << std::endl;
         std::cout << "    Type    : Metal" << std::endl;
+        if (@available(macOS 14, iOS 17, tvOS 17, *))
+          std::cout << "    Arch    : " << device.architecture.name.UTF8String << std::endl;
       }
 
       // Set device properties
