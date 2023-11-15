@@ -20,7 +20,7 @@ OIDN_NAMESPACE_BEGIN
     {
       std::vector<Ref<PhysicalDevice>> physicalDevices;
       NSArray* devices = [MTLCopyAllDevices() autorelease];
-      const int numDevices = static_cast<int>([devices count]);
+      const int numDevices = static_cast<int>(devices.count);
       for (int deviceID = 0; deviceID < numDevices; ++deviceID)
       {
         id<MTLDevice> device = devices[deviceID];

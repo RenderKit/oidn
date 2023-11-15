@@ -48,7 +48,7 @@ OIDN_NAMESPACE_BEGIN
   MPSCommandBuffer* MetalEngine::getMPSCommandBuffer()
   {
     if (!commandBuffer)
-      commandBuffer = [MPSCommandBuffer commandBufferFromCommandQueue: commandQueue].retain;
+      commandBuffer = [[MPSCommandBuffer commandBufferFromCommandQueue: commandQueue] retain];
     return commandBuffer;
   }
 
