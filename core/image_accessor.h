@@ -15,13 +15,13 @@ OIDN_NAMESPACE_BEGIN
     DataType dataType;  // data type
     int C, H, W;        // channels (1-3), height, width
 
-    OIDN_HOST_DEVICE_INLINE size_t getByteOffset(int h, int w) const
+    oidn_host_device_inline size_t getByteOffset(int h, int w) const
     {
       return size_t(h) * hByteStride + size_t(w) * wByteStride;
     }
 
     template<typename T = float>
-    OIDN_HOST_DEVICE_INLINE vec3<T> get3(int h, int w) const
+    oidn_host_device_inline vec3<T> get3(int h, int w) const
     {
       const oidn_global void* pixelPtr = ptr + getByteOffset(h, w);
       if (dataType == DataType::Float32)
@@ -47,7 +47,7 @@ OIDN_NAMESPACE_BEGIN
     }
 
     template<typename T>
-    OIDN_HOST_DEVICE_INLINE void set3(int h, int w, vec3<T> value) const
+    oidn_host_device_inline void set3(int h, int w, vec3<T> value) const
     {
       oidn_global void* pixelPtr = ptr + getByteOffset(h, w);
       if (dataType == DataType::Float32)

@@ -65,7 +65,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Enqueues a basic kernel
     template<int N, typename Kernel>
-    OIDN_INLINE void submitKernel(WorkDim<N> globalSize, const Kernel& kernel,
+    oidn_inline void submitKernel(WorkDim<N> globalSize, const Kernel& kernel,
                                   const Ref<MetalPipeline>& pipeline,
                                   const std::vector<Ref<Buffer>>& buffers)
     {
@@ -97,7 +97,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Enqueues a work-group kernel
     template<int N, typename Kernel>
-    OIDN_INLINE void submitKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const Kernel& kernel,
+    oidn_inline void submitKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const Kernel& kernel,
                                   const Ref<MetalPipeline>& pipeline,
                                   const std::vector<Ref<Buffer>>& buffers)
     {

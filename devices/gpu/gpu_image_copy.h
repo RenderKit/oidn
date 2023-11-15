@@ -17,7 +17,7 @@ OIDN_NAMESPACE_BEGIN
     ImageAccessor src;
     ImageAccessor dst;
 
-    OIDN_DEVICE_INLINE void operator ()(const oidn_private WorkItem<2>& it) const
+    oidn_device_inline void operator ()(const oidn_private WorkItem<2>& it) const
     {
       const int h = it.getGlobalID<0>();
       const int w = it.getGlobalID<1>();

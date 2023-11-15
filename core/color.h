@@ -37,7 +37,7 @@ OIDN_NAMESPACE_BEGIN
       static constexpr oidn_constant float y0 =  0.0031308f;
       static constexpr oidn_constant float x0 =  0.04045f;
 
-      static OIDN_HOST_DEVICE_INLINE float forward(float y)
+      static oidn_host_device_inline float forward(float y)
       {
         if (y <= y0)
           return a * y;
@@ -45,7 +45,7 @@ OIDN_NAMESPACE_BEGIN
           return b * math::pow(y, c) + d;
       }
 
-      static OIDN_HOST_DEVICE_INLINE float inverse(float x)
+      static oidn_host_device_inline float inverse(float x)
       {
         if (x <= x0)
           return x / a;
@@ -68,7 +68,7 @@ OIDN_NAMESPACE_BEGIN
       static constexpr oidn_constant float x0 =  2.23151711e-03f;
       static constexpr oidn_constant float x1 =  3.70974749e-01f;
 
-      static OIDN_HOST_DEVICE_INLINE float forward(float y)
+      static oidn_host_device_inline float forward(float y)
       {
         if (y <= y0)
           return a * y;
@@ -78,7 +78,7 @@ OIDN_NAMESPACE_BEGIN
           return e * math::log(y + f) + g;
       }
 
-      static OIDN_HOST_DEVICE_INLINE float inverse(float x)
+      static oidn_host_device_inline float inverse(float x)
       {
         if (x <= x0)
           return x / a;
@@ -110,12 +110,12 @@ OIDN_NAMESPACE_BEGIN
     }
   #endif
 
-    OIDN_HOST_DEVICE_INLINE float getInputScale() const
+    oidn_host_device_inline float getInputScale() const
     {
       return inputScalePtr ? *inputScalePtr : inputScale;
     }
 
-    OIDN_HOST_DEVICE_INLINE float getOutputScale() const
+    oidn_host_device_inline float getOutputScale() const
     {
       if (inputScalePtr)
       {
@@ -125,7 +125,7 @@ OIDN_NAMESPACE_BEGIN
       return outputScale;
     }
 
-    OIDN_HOST_DEVICE_INLINE vec3f forward(vec3f y) const
+    oidn_host_device_inline vec3f forward(vec3f y) const
     {
       switch (type)
       {
@@ -146,7 +146,7 @@ OIDN_NAMESPACE_BEGIN
       }
     }
 
-    OIDN_HOST_DEVICE_INLINE vec3f inverse(vec3f x) const
+    oidn_host_device_inline vec3f inverse(vec3f x) const
     {
       switch (type)
       {
@@ -169,7 +169,7 @@ OIDN_NAMESPACE_BEGIN
   };
 
   // Computes the luminance of an RGB color
-  OIDN_HOST_DEVICE_INLINE float luminance(vec3f c)
+  oidn_host_device_inline float luminance(vec3f c)
   {
     return 0.212671f * c.x + 0.715160f * c.y + 0.072169f * c.z;
   }

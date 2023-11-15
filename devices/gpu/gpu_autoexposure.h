@@ -24,7 +24,7 @@ OIDN_NAMESPACE_BEGIN
       float sums[groupSize];
     };
 
-    OIDN_DEVICE_INLINE void operator ()(const oidn_private WorkGroupItem<2>& it, LocalPtr<Local> local) const
+    oidn_device_inline void operator ()(const oidn_private WorkGroupItem<2>& it, LocalPtr<Local> local) const
     {
       const int beginH = it.getGroupID<0>() * src.H / it.getNumGroups<0>();
       const int beginW = it.getGroupID<1>() * src.W / it.getNumGroups<1>();
@@ -79,7 +79,7 @@ OIDN_NAMESPACE_BEGIN
       int counts[groupSize];
     };
 
-    OIDN_DEVICE_INLINE void operator ()(const oidn_private WorkGroupItem<1>& it, LocalPtr<Local> local) const
+    oidn_device_inline void operator ()(const oidn_private WorkGroupItem<1>& it, LocalPtr<Local> local) const
     {
       float sum = 0;
       int count = 0;
@@ -130,7 +130,7 @@ OIDN_NAMESPACE_BEGIN
       int counts[groupSize];
     };
 
-    OIDN_DEVICE_INLINE void operator ()(const oidn_private WorkGroupItem<1>& it, LocalPtr<Local> local) const
+    oidn_device_inline void operator ()(const oidn_private WorkGroupItem<1>& it, LocalPtr<Local> local) const
     {
       const int localID = it.getLocalID();
 

@@ -50,12 +50,12 @@
 
 #if defined(_WIN32)
   // Windows
-  #define OIDN_INLINE __forceinline
-  #define OIDN_NOINLINE __declspec(noinline)
+  #define oidn_inline __forceinline
+  #define oidn_noinline __declspec(noinline)
 #else
   // Unix
-  #define OIDN_INLINE inline __attribute__((always_inline))
-  #define OIDN_NOINLINE __attribute__((noinline))
+  #define oidn_inline inline __attribute__((always_inline))
+  #define oidn_noinline __attribute__((noinline))
 #endif
 
 #ifndef UNUSED
@@ -66,19 +66,19 @@
 #endif
 
 #if defined(OIDN_COMPILE_CUDA) || defined(OIDN_COMPILE_HIP)
-  #define OIDN_DEVICE __device__
-  #define OIDN_DEVICE_INLINE __device__ OIDN_INLINE
-  #define OIDN_HOST_DEVICE __host__ __device__
-  #define OIDN_HOST_DEVICE_INLINE __host__ __device__ OIDN_INLINE
+  #define oidn_device __device__
+  #define oidn_device_inline __device__ oidn_inline
+  #define oidn_host_device __host__ __device__
+  #define oidn_host_device_inline __host__ __device__ oidn_inline
   #define oidn_constant
   #define oidn_global
   #define oidn_local
   #define oidn_private
 #else
-  #define OIDN_DEVICE
-  #define OIDN_DEVICE_INLINE OIDN_INLINE
-  #define OIDN_HOST_DEVICE
-  #define OIDN_HOST_DEVICE_INLINE OIDN_INLINE
+  #define oidn_device
+  #define oidn_device_inline oidn_inline
+  #define oidn_host_device
+  #define oidn_host_device_inline oidn_inline
   #if defined(OIDN_COMPILE_METAL_DEVICE)
     #define oidn_constant constant
     #define oidn_global device
@@ -175,20 +175,20 @@ OIDN_NAMESPACE_BEGIN
   // -----------------------------------------------------------------------------------------------
 
   template<typename T>
-  OIDN_HOST_DEVICE_INLINE constexpr T min(T a, T b) { return (b < a) ? b : a; }
+  oidn_host_device_inline constexpr T min(T a, T b) { return (b < a) ? b : a; }
 
   template<typename T>
-  OIDN_HOST_DEVICE_INLINE constexpr T max(T a, T b) { return (a < b) ? b : a; }
+  oidn_host_device_inline constexpr T max(T a, T b) { return (a < b) ? b : a; }
 
   template<typename T>
-  OIDN_HOST_DEVICE_INLINE constexpr T clamp(T x, T minVal, T maxVal)
+  oidn_host_device_inline constexpr T clamp(T x, T minVal, T maxVal)
   {
     return min(max(x, minVal), maxVal);
   }
 
   // Returns ceil(a / b) for non-negative integers
   template<typename Int, typename IntB>
-  OIDN_HOST_DEVICE_INLINE constexpr Int ceil_div(Int a, IntB b)
+  oidn_host_device_inline constexpr Int ceil_div(Int a, IntB b)
   {
     //assert(a >= 0);
     //assert(b > 0);
@@ -197,14 +197,14 @@ OIDN_NAMESPACE_BEGIN
 
   // Returns a rounded up to multiple of b
   template<typename Int, typename IntB>
-  OIDN_HOST_DEVICE_INLINE constexpr Int round_up(Int a, IntB b)
+  oidn_host_device_inline constexpr Int round_up(Int a, IntB b)
   {
     return ceil_div(a, b) * b;
   }
 
   // Returns the greatest common divisor of a and b
   template<typename Int>
-  OIDN_HOST_DEVICE_INLINE Int gcd(Int a, Int b)
+  oidn_host_device_inline Int gcd(Int a, Int b)
   {
     while (b != 0)
     {
@@ -217,7 +217,7 @@ OIDN_NAMESPACE_BEGIN
 
   // Returns the least common multiple of a and b
   template<typename Int>
-  OIDN_HOST_DEVICE_INLINE Int lcm(Int a, Int b)
+  oidn_host_device_inline Int lcm(Int a, Int b)
   {
     return (a * b) / gcd(a, b);
   }

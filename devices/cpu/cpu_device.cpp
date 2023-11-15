@@ -24,7 +24,7 @@
 OIDN_NAMESPACE_BEGIN
 
 #if defined(OIDN_ARCH_X64) && !defined(__APPLE__)
-  OIDN_INLINE void cpuid(int cpuInfo[4], int functionID)
+  oidn_inline void cpuid(int cpuInfo[4], int functionID)
   {
   #if defined(_WIN32)
     __cpuid(cpuInfo, functionID);

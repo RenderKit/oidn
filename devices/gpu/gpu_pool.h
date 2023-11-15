@@ -14,7 +14,7 @@ OIDN_NAMESPACE_BEGIN
     TensorAccessor3D<T, layout> src;
     TensorAccessor3D<T, layout> dst;
 
-    OIDN_DEVICE_INLINE void operator ()(const WorkItem<3>& it) const
+    oidn_device_inline void operator ()(const WorkItem<3>& it) const
     {
       const int c = it.getGlobalID<0>();
       const int h = it.getGlobalID<1>();
@@ -36,7 +36,7 @@ OIDN_NAMESPACE_BEGIN
     TensorAccessor3D<T, TensorLayout::hwc> src;
     TensorAccessor3D<T, TensorLayout::hwc> dst;
 
-    OIDN_DEVICE_INLINE void operator ()(const WorkItem<3>& it) const
+    oidn_device_inline void operator ()(const WorkItem<3>& it) const
     {
       const int h = it.getGlobalID<0>();
       const int w = it.getGlobalID<1>();

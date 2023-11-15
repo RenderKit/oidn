@@ -22,28 +22,28 @@ OIDN_NAMESPACE_BEGIN
                 bool forceHostCopy = false);
     ~ImageBuffer();
 
-    OIDN_INLINE int getW() const { return width; }
-    OIDN_INLINE int getH() const { return height; }
-    OIDN_INLINE int getC() const { return numChannels; }
+    oidn_inline int getW() const { return width; }
+    oidn_inline int getH() const { return height; }
+    oidn_inline int getC() const { return numChannels; }
     std::array<int, 3> getDims() const { return {width, height, numChannels}; }
 
-    OIDN_INLINE DataType getDataType() const { return dataType; }
-    OIDN_INLINE Format getFormat() const { return format; }
+    oidn_inline DataType getDataType() const { return dataType; }
+    oidn_inline Format getFormat() const { return format; }
 
-    OIDN_INLINE size_t getSize() const { return numValues; }
-    OIDN_INLINE size_t getByteSize() const { return byteSize; }
+    oidn_inline size_t getSize() const { return numValues; }
+    oidn_inline size_t getByteSize() const { return byteSize; }
 
-    OIDN_INLINE const void* getData() const { return devPtr; }
-    OIDN_INLINE void* getData() { return devPtr; }
-    OIDN_INLINE const void* getHostData() const { return hostPtr; }
-    OIDN_INLINE void* getHostData() { return hostPtr; }
+    oidn_inline const void* getData() const { return devPtr; }
+    oidn_inline void* getData() { return devPtr; }
+    oidn_inline const void* getHostData() const { return hostPtr; }
+    oidn_inline void* getHostData() { return hostPtr; }
 
     void read(size_t byteOffset, size_t byteSize, void* dstHostPtr) const;
     void write(size_t byteOffset, size_t byteSize, const void* srcHostPtr);
 
-    OIDN_INLINE const BufferRef& getBuffer() const { return buffer; }
+    oidn_inline const BufferRef& getBuffer() const { return buffer; }
 
-    OIDN_INLINE operator bool() const { return buffer; }
+    oidn_inline operator bool() const { return buffer; }
 
     // Data with device storage must be explicitly copied between host and device
     void toHost();
@@ -54,7 +54,7 @@ OIDN_NAMESPACE_BEGIN
     template<typename T = float>
     T get(size_t i) const;
 
-    OIDN_INLINE void set(size_t i, float x)
+    oidn_inline void set(size_t i, float x)
     {
       switch (dataType)
       {
@@ -69,7 +69,7 @@ OIDN_NAMESPACE_BEGIN
       }
     }
 
-    OIDN_INLINE void set(size_t i, half x)
+    oidn_inline void set(size_t i, half x)
     {
       switch (dataType)
       {
@@ -106,7 +106,7 @@ OIDN_NAMESPACE_BEGIN
   };
 
   template<>
-  OIDN_INLINE float ImageBuffer::get(size_t i) const
+  oidn_inline float ImageBuffer::get(size_t i) const
   {
     switch (dataType)
     {
@@ -121,7 +121,7 @@ OIDN_NAMESPACE_BEGIN
   }
 
   template<>
-  OIDN_INLINE half ImageBuffer::get(size_t i) const
+  oidn_inline half ImageBuffer::get(size_t i) const
   {
     switch (dataType)
     {

@@ -10,14 +10,14 @@ OIDN_NAMESPACE_BEGIN
   class RefCount
   {
   public:
-    OIDN_INLINE RefCount(size_t count = 0) noexcept : count(count) {}
+    oidn_inline RefCount(size_t count = 0) noexcept : count(count) {}
 
-    OIDN_INLINE size_t incRef() noexcept
+    oidn_inline size_t incRef() noexcept
     {
       return ++count;
     }
 
-    OIDN_INLINE size_t decRef()
+    oidn_inline size_t decRef()
     {
       const size_t newCount = decRefKeep();
       if (newCount == 0)
@@ -25,12 +25,12 @@ OIDN_NAMESPACE_BEGIN
       return newCount;
     }
 
-    OIDN_INLINE size_t decRefKeep() noexcept
+    oidn_inline size_t decRefKeep() noexcept
     {
       return --count;
     }
 
-    OIDN_INLINE void destroy()
+    oidn_inline void destroy()
     {
       delete this;
     }
@@ -53,21 +53,21 @@ OIDN_NAMESPACE_BEGIN
     using Convertible = typename std::enable_if<std::is_convertible<Y*, T*>::value>::type;
 
   public:
-    OIDN_INLINE Ref() noexcept : ptr(nullptr) {}
-    OIDN_INLINE Ref(std::nullptr_t) noexcept : ptr(nullptr) {}
-    OIDN_INLINE Ref(const Ref& other) noexcept : ptr(other.ptr) { if (ptr) ptr->incRef(); }
-    OIDN_INLINE Ref(Ref&& other) noexcept : ptr(other.ptr) { other.ptr = nullptr; }
-    OIDN_INLINE Ref(T* ptr) noexcept : ptr(ptr) { if (ptr) ptr->incRef(); }
+    oidn_inline Ref() noexcept : ptr(nullptr) {}
+    oidn_inline Ref(std::nullptr_t) noexcept : ptr(nullptr) {}
+    oidn_inline Ref(const Ref& other) noexcept : ptr(other.ptr) { if (ptr) ptr->incRef(); }
+    oidn_inline Ref(Ref&& other) noexcept : ptr(other.ptr) { other.ptr = nullptr; }
+    oidn_inline Ref(T* ptr) noexcept : ptr(ptr) { if (ptr) ptr->incRef(); }
 
     template<typename Y, typename = Convertible<Y>>
-    OIDN_INLINE Ref(const Ref<Y>& other) noexcept : ptr(other.get()) { if (ptr) ptr->incRef(); }
+    oidn_inline Ref(const Ref<Y>& other) noexcept : ptr(other.get()) { if (ptr) ptr->incRef(); }
 
     template<typename Y, typename = Convertible<Y>>
-    OIDN_INLINE explicit Ref(Y* ptr) noexcept : ptr(ptr) { if (ptr) ptr->incRef(); }
+    oidn_inline explicit Ref(Y* ptr) noexcept : ptr(ptr) { if (ptr) ptr->incRef(); }
 
-    OIDN_INLINE ~Ref() { if (ptr) ptr->decRef(); }
+    oidn_inline ~Ref() { if (ptr) ptr->decRef(); }
 
-    OIDN_INLINE Ref& operator =(const Ref& other)
+    oidn_inline Ref& operator =(const Ref& other)
     {
       if (other.ptr)
         other.ptr->incRef();
@@ -77,7 +77,7 @@ OIDN_NAMESPACE_BEGIN
       return *this;
     }
 
-    OIDN_INLINE Ref& operator =(Ref&& other)
+    oidn_inline Ref& operator =(Ref&& other)
     {
       T* otherPtr = other.ptr;
       other.ptr = nullptr;
@@ -87,7 +87,7 @@ OIDN_NAMESPACE_BEGIN
       return *this;
     }
 
-    OIDN_INLINE Ref& operator =(T* other)
+    oidn_inline Ref& operator =(T* other)
     {
       if (other)
         other->incRef();
@@ -97,7 +97,7 @@ OIDN_NAMESPACE_BEGIN
       return *this;
     }
 
-    OIDN_INLINE Ref& operator =(std::nullptr_t)
+    oidn_inline Ref& operator =(std::nullptr_t)
     {
       if (ptr)
         ptr->decRef();
@@ -105,55 +105,55 @@ OIDN_NAMESPACE_BEGIN
       return *this;
     }
 
-    OIDN_INLINE operator bool() const noexcept { return ptr != nullptr; }
+    oidn_inline operator bool() const noexcept { return ptr != nullptr; }
 
-    OIDN_INLINE T& operator  *() const noexcept { return *ptr; }
-    OIDN_INLINE T* operator ->() const noexcept { return  ptr; }
+    oidn_inline T& operator  *() const noexcept { return *ptr; }
+    oidn_inline T* operator ->() const noexcept { return  ptr; }
 
-    OIDN_INLINE T* get() const noexcept { return ptr; }
+    oidn_inline T* get() const noexcept { return ptr; }
 
-    OIDN_INLINE void reset()
+    oidn_inline void reset()
     {
       if (ptr)
         ptr->decRef();
       ptr = nullptr;
     }
 
-    OIDN_INLINE T* detach() noexcept
+    oidn_inline T* detach() noexcept
     {
       T* res = ptr;
       ptr = nullptr;
       return res;
     }
 
-    friend OIDN_INLINE bool operator < (const Ref<T>& a, const Ref<T>& b) noexcept { return a.ptr   <  b.ptr;   }
+    friend oidn_inline bool operator < (const Ref<T>& a, const Ref<T>& b) noexcept { return a.ptr   <  b.ptr;   }
 
-    friend OIDN_INLINE bool operator ==(const Ref<T>& a, std::nullptr_t)  noexcept { return a.ptr   == nullptr; }
-    friend OIDN_INLINE bool operator ==(std::nullptr_t,  const Ref<T>& b) noexcept { return nullptr == b.ptr;   }
-    friend OIDN_INLINE bool operator ==(const Ref<T>& a, const Ref<T>& b) noexcept { return a.ptr   == b.ptr;   }
+    friend oidn_inline bool operator ==(const Ref<T>& a, std::nullptr_t)  noexcept { return a.ptr   == nullptr; }
+    friend oidn_inline bool operator ==(std::nullptr_t,  const Ref<T>& b) noexcept { return nullptr == b.ptr;   }
+    friend oidn_inline bool operator ==(const Ref<T>& a, const Ref<T>& b) noexcept { return a.ptr   == b.ptr;   }
 
-    friend OIDN_INLINE bool operator !=(const Ref<T>& a, std::nullptr_t)  noexcept { return a.ptr   != nullptr; }
-    friend OIDN_INLINE bool operator !=(std::nullptr_t,  const Ref<T>& b) noexcept { return nullptr != b.ptr;   }
-    friend OIDN_INLINE bool operator !=(const Ref<T>& a, const Ref<T>& b) noexcept { return a.ptr   != b.ptr;   }
+    friend oidn_inline bool operator !=(const Ref<T>& a, std::nullptr_t)  noexcept { return a.ptr   != nullptr; }
+    friend oidn_inline bool operator !=(std::nullptr_t,  const Ref<T>& b) noexcept { return nullptr != b.ptr;   }
+    friend oidn_inline bool operator !=(const Ref<T>& a, const Ref<T>& b) noexcept { return a.ptr   != b.ptr;   }
 
   private:
     T* ptr;
   };
 
   template<typename T, typename... Args>
-  OIDN_INLINE Ref<T> makeRef(Args&&... args)
+  oidn_inline Ref<T> makeRef(Args&&... args)
   {
     return Ref<T>(new T(std::forward<Args>(args)...));
   }
 
   template<typename T, typename U>
-  OIDN_INLINE Ref<T> staticRefCast(const Ref<U>& a)
+  oidn_inline Ref<T> staticRefCast(const Ref<U>& a)
   {
     return Ref<T>(static_cast<T*>(a.get()));
   }
 
   template<typename T, typename U>
-  OIDN_INLINE Ref<T> dynamicRefCast(const Ref<U>& a)
+  oidn_inline Ref<T> dynamicRefCast(const Ref<U>& a)
   {
     return Ref<T>(dynamic_cast<T*>(a.get()));
   }

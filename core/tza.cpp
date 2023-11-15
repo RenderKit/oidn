@@ -7,7 +7,7 @@
 OIDN_NAMESPACE_BEGIN
 
   // Checks for buffer overrun
-  OIDN_INLINE void checkBounds(const char* ptr, const char* end, size_t size)
+  oidn_inline void checkBounds(const char* ptr, const char* end, size_t size)
   {
     if (end - ptr < (ptrdiff_t)size)
       throw Exception(Error::InvalidOperation, "invalid or corrupted weights blob");
@@ -15,7 +15,7 @@ OIDN_NAMESPACE_BEGIN
 
   // Reads a value from a buffer (with bounds checking) and advances the pointer
   template<typename T>
-  OIDN_INLINE T read(const char*& ptr, const char* end)
+  oidn_inline T read(const char*& ptr, const char* end)
   {
     checkBounds(ptr, end, sizeof(T));
     T value;

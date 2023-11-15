@@ -34,7 +34,7 @@ OIDN_NAMESPACE_BEGIN
     bool hdr;
     bool snorm; // signed normalized ([-1..1])
 
-    OIDN_DEVICE_INLINE vec3f getInput(int h, int w) const
+    oidn_device_inline vec3f getInput(int h, int w) const
     {
       vec3f value = input.get3(h, w);
 
@@ -56,7 +56,7 @@ OIDN_NAMESPACE_BEGIN
       return value;
     }
 
-    OIDN_DEVICE_INLINE vec3f getAlbedo(int h, int w) const
+    oidn_device_inline vec3f getAlbedo(int h, int w) const
     {
       vec3f value = albedo.get3(h, w);
 
@@ -66,7 +66,7 @@ OIDN_NAMESPACE_BEGIN
       return value;
     }
 
-    OIDN_DEVICE_INLINE vec3f getNormal(int h, int w) const
+    oidn_device_inline vec3f getNormal(int h, int w) const
     {
       vec3f value = normal.get3(h, w);
 
@@ -79,7 +79,7 @@ OIDN_NAMESPACE_BEGIN
       return value;
     }
 
-    OIDN_DEVICE_INLINE void operator ()(const oidn_private WorkGroupItem<2>& it) const
+    oidn_device_inline void operator ()(const oidn_private WorkGroupItem<2>& it) const
     {
       const int hDst = it.getGlobalID<0>();
       const int wDst = it.getGlobalID<1>();

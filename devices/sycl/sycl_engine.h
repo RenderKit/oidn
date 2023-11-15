@@ -51,7 +51,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Enqueues a basic kernel
     template<int N, typename Kernel>
-    OIDN_INLINE void submitKernel(WorkDim<N> globalSize, const Kernel& kernel)
+    oidn_inline void submitKernel(WorkDim<N> globalSize, const Kernel& kernel)
     {
       lastEvent = syclQueue.parallel_for<Kernel>(
         globalSize,
@@ -61,7 +61,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Enqueues a work-group kernel
     template<int N, typename Kernel>
-    OIDN_INLINE void submitKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const Kernel& kernel,
+    oidn_inline void submitKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const Kernel& kernel,
                                   typename std::enable_if<!HasLocal<Kernel>::value, bool>::type = true)
     {
       lastEvent = syclQueue.parallel_for<Kernel>(
@@ -72,7 +72,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Enqueues a work-group kernel using shared local memory
     template<int N, typename Kernel, typename Local = typename Kernel::Local>
-    OIDN_INLINE void submitKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const Kernel& kernel)
+    oidn_inline void submitKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const Kernel& kernel)
     {
       lastEvent = syclQueue.parallel_for<Kernel>(
         sycl::nd_range<N>(numGroups * groupSize, groupSize),
@@ -85,7 +85,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Enqueues a work-group kernel with explicit subgroup size
     template<int subgroupSize, int N, typename Kernel>
-    OIDN_INLINE void submitKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const Kernel& kernel)
+    oidn_inline void submitKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const Kernel& kernel)
     {
       lastEvent = syclQueue.parallel_for<Kernel>(
         sycl::nd_range<N>(numGroups * groupSize, groupSize),
@@ -95,7 +95,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Enqueues a basic ESIMD kernel
     template<int N, typename Kernel>
-    OIDN_INLINE void submitESIMDKernel(WorkDim<N> globalSize, const Kernel& kernel)
+    oidn_inline void submitESIMDKernel(WorkDim<N> globalSize, const Kernel& kernel)
     {
       lastEvent = syclQueue.parallel_for<Kernel>(
         globalSize,
@@ -105,7 +105,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Enqueues a work-group ESIMD kernel
     template<int N, typename Kernel>
-    OIDN_INLINE void submitESIMDKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const Kernel& kernel)
+    oidn_inline void submitESIMDKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const Kernel& kernel)
     {
       lastEvent = syclQueue.parallel_for<Kernel>(
         sycl::nd_range<N>(numGroups * groupSize, groupSize),
@@ -115,7 +115,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Enqueues a work-group ESIMD kernel with large GRF
     template<int N, typename F>
-    OIDN_INLINE void submitESIMDKernelWithLargeGRF(WorkDim<N> numGroups, WorkDim<N> groupSize, const F& f)
+    oidn_inline void submitESIMDKernelWithLargeGRF(WorkDim<N> numGroups, WorkDim<N> groupSize, const F& f)
     {
     #if __LIBSYCL_MAJOR_VERSION >= 7
       sycl::ext::oneapi::experimental::properties props{sycl::ext::intel::experimental::grf_size<256>};
@@ -145,7 +145,7 @@ OIDN_NAMESPACE_BEGIN
   private:
     void submitBarrier();
 
-    OIDN_INLINE std::vector<sycl::event> getDepEvents()
+    oidn_inline std::vector<sycl::event> getDepEvents()
     {
       if (!depEvents.empty())
         return std::move(depEvents); // override the default once

@@ -35,7 +35,7 @@ OIDN_NAMESPACE_BEGIN
       return *this;
     }
 
-    OIDN_INLINE operator bool() const
+    oidn_inline operator bool() const
     {
       return ptr != nullptr;
     }

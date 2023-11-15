@@ -40,7 +40,7 @@ OIDN_NAMESPACE_BEGIN
 
       ByteOffset() = default;
 
-      OIDN_HOST_DEVICE_INLINE uint32_t operator ()(int x) const
+      oidn_host_device_inline uint32_t operator ()(int x) const
       {
         return uint32_t(x) * xByteStride;
       }
@@ -59,13 +59,13 @@ OIDN_NAMESPACE_BEGIN
 
       ByteOffset() = default;
 
-      OIDN_HOST_DEVICE_INLINE ByteOffset(int C, int H, int W)
+      oidn_host_device_inline ByteOffset(int C, int H, int W)
       {
         hByteStride = uint32_t(W) * wByteStride;
         cByteStride = uint32_t(H) * hByteStride;
       }
 
-      OIDN_HOST_DEVICE_INLINE uint32_t operator ()(int c, int h, int w) const
+      oidn_host_device_inline uint32_t operator ()(int c, int h, int w) const
       {
         return uint32_t(c) * cByteStride +
                uint32_t(h) * hByteStride +
@@ -86,13 +86,13 @@ OIDN_NAMESPACE_BEGIN
 
       ByteOffset() = default;
 
-      OIDN_HOST_DEVICE_INLINE ByteOffset(int C, int H, int W)
+      oidn_host_device_inline ByteOffset(int C, int H, int W)
       {
         wByteStride = uint32_t(C) * cByteStride;
         hByteStride = uint32_t(W) * wByteStride;
       }
 
-      OIDN_HOST_DEVICE_INLINE uint32_t operator ()(int c, int h, int w) const
+      oidn_host_device_inline uint32_t operator ()(int c, int h, int w) const
       {
         return uint32_t(c) * cByteStride +
                uint32_t(h) * hByteStride +
@@ -113,13 +113,13 @@ OIDN_NAMESPACE_BEGIN
 
     TensorByteOffsetChwBc() = default;
 
-    OIDN_HOST_DEVICE_INLINE TensorByteOffsetChwBc(int C, int H, int W)
+    oidn_host_device_inline TensorByteOffsetChwBc(int C, int H, int W)
     {
       hByteStride = uint32_t(W) * wByteStride;
       CByteStride = uint32_t(H) * hByteStride;
     }
 
-    OIDN_HOST_DEVICE_INLINE uint32_t operator ()(int c, int h, int w) const
+    oidn_host_device_inline uint32_t operator ()(int c, int h, int w) const
     {
       return uint32_t(c/B) * CByteStride +
              uint32_t(h)   * hByteStride +
@@ -155,14 +155,14 @@ OIDN_NAMESPACE_BEGIN
 
       ByteOffset() = default;
 
-      OIDN_HOST_DEVICE_INLINE ByteOffset(int O, int I, int H, int W)
+      oidn_host_device_inline ByteOffset(int O, int I, int H, int W)
       {
         hByteStride = uint32_t(W) * wByteStride;
         iByteStride = uint32_t(H) * hByteStride;
         oByteStride = uint32_t(I) * iByteStride;
       }
 
-      OIDN_HOST_DEVICE_INLINE uint32_t operator ()(int o, int i, int h, int w) const
+      oidn_host_device_inline uint32_t operator ()(int o, int i, int h, int w) const
       {
         return uint32_t(o) * oByteStride +
                uint32_t(i) * iByteStride +
@@ -186,14 +186,14 @@ OIDN_NAMESPACE_BEGIN
 
     TensorByteOffsetOIhwBiBo() = default;
 
-    OIDN_HOST_DEVICE_INLINE TensorByteOffsetOIhwBiBo(int O, int I, int H, int W)
+    oidn_host_device_inline TensorByteOffsetOIhwBiBo(int O, int I, int H, int W)
     {
       hByteStride = uint32_t(W)     * wByteStride;
       IByteStride = uint32_t(H)     * hByteStride;
       OByteStride = uint32_t(I / B) * IByteStride;
     }
 
-    OIDN_HOST_DEVICE_INLINE uint32_t operator ()(int o, int i, int h, int w) const
+    oidn_host_device_inline uint32_t operator ()(int o, int i, int h, int w) const
     {
       return uint32_t(o / B) * OByteStride  +
              uint32_t(i / B) * IByteStride  +
@@ -237,14 +237,14 @@ OIDN_NAMESPACE_BEGIN
 
     TensorByteOffsetOIhwPoQiRoSi() = default;
 
-    OIDN_HOST_DEVICE_INLINE TensorByteOffsetOIhwPoQiRoSi(int O, int I, int H, int W)
+    oidn_host_device_inline TensorByteOffsetOIhwPoQiRoSi(int O, int I, int H, int W)
     {
       hByteStride = uint32_t(W)     * wByteStride;
       IByteStride = uint32_t(H)     * hByteStride;
       OByteStride = uint32_t(I / B) * IByteStride;
     }
 
-    OIDN_HOST_DEVICE_INLINE uint32_t operator ()(int o, int i, int h, int w) const
+    oidn_host_device_inline uint32_t operator ()(int o, int i, int h, int w) const
     {
       return uint32_t(o / B)     * OByteStride  +
              uint32_t(i / B)     * IByteStride  +
@@ -284,14 +284,14 @@ OIDN_NAMESPACE_BEGIN
 
       ByteOffset() = default;
 
-      OIDN_HOST_DEVICE_INLINE ByteOffset(int O, int I, int H, int W)
+      oidn_host_device_inline ByteOffset(int O, int I, int H, int W)
       {
         wByteStride = uint32_t(I) * iByteStride;
         hByteStride = uint32_t(W) * wByteStride;
         oByteStride = uint32_t(H) * hByteStride;
       }
 
-      OIDN_HOST_DEVICE_INLINE uint32_t operator ()(int o, int i, int h, int w) const
+      oidn_host_device_inline uint32_t operator ()(int o, int i, int h, int w) const
       {
         return uint32_t(o) * oByteStride +
                uint32_t(i) * iByteStride +
@@ -314,7 +314,7 @@ OIDN_NAMESPACE_BEGIN
   };
 
   // Returns information about the tensor layout
-  OIDN_INLINE TensorLayoutInfo getTensorLayoutInfo(TensorLayout layout)
+  oidn_inline TensorLayoutInfo getTensorLayoutInfo(TensorLayout layout)
   {
     switch (layout)
     {

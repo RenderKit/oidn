@@ -25,7 +25,7 @@ OIDN_NAMESPACE_BEGIN
     ImageDesc(Format format, size_t width, size_t height, size_t pixelByteStride = 0, size_t rowByteStride = 0);
 
     // Returns the number of channels
-    OIDN_INLINE int getC() const
+    oidn_inline int getC() const
     {
       switch (format)
       {
@@ -49,23 +49,23 @@ OIDN_NAMESPACE_BEGIN
     }
 
     // Returns the height of the image
-    OIDN_INLINE int getH() const { return int(height); }
+    oidn_inline int getH() const { return int(height); }
 
     // Returns the width of the image
-    OIDN_INLINE int getW() const { return int(width); }
+    oidn_inline int getW() const { return int(width); }
 
     // Returns the number of pixels in the image
-    OIDN_INLINE size_t getNumElements() const { return width * height; }
+    oidn_inline size_t getNumElements() const { return width * height; }
 
     // Returns the size in bytes of the image
-    OIDN_INLINE size_t getByteSize() const
+    oidn_inline size_t getByteSize() const
     {
       if (width == 0 || height == 0)
         return 0;
       return (height - 1) * hByteStride + (width - 1) * wByteStride + getFormatSize(format);
     }
 
-    OIDN_INLINE DataType getDataType() const
+    oidn_inline DataType getDataType() const
     {
       return getFormatDataType(format);
     }
@@ -82,8 +82,8 @@ OIDN_NAMESPACE_BEGIN
 
     void postRealloc() override;
 
-    OIDN_INLINE const ImageDesc& getDesc() const { return *this; }
-    OIDN_INLINE Format getFormat() const { return format; }
+    oidn_inline const ImageDesc& getDesc() const { return *this; }
+    oidn_inline Format getFormat() const { return format; }
 
     using ImageDesc::getC;
     using ImageDesc::getH;
@@ -92,8 +92,8 @@ OIDN_NAMESPACE_BEGIN
     using ImageDesc::getByteSize;
     using ImageDesc::getDataType;
 
-    OIDN_INLINE void* getPtr() const { return ptr; }
-    OIDN_INLINE operator bool() const { return ptr || buffer; }
+    oidn_inline void* getPtr() const { return ptr; }
+    oidn_inline operator bool() const { return ptr || buffer; }
 
     operator ImageAccessor()
     {

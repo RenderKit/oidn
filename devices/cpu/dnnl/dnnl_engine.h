@@ -12,8 +12,8 @@ OIDN_NAMESPACE_BEGIN
   public:
     explicit DNNLEngine(const Ref<CPUDevice>& device);
 
-    OIDN_INLINE dnnl::engine& getDNNLEngine() { return dnnlEngine; }
-    OIDN_INLINE dnnl::stream& getDNNLStream() { return dnnlStream; }
+    oidn_inline dnnl::engine& getDNNLEngine() { return dnnlEngine; }
+    oidn_inline dnnl::stream& getDNNLStream() { return dnnlStream; }
 
     void wait() override;
 

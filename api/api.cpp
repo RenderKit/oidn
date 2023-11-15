@@ -63,38 +63,38 @@ OIDN_API_NAMESPACE_BEGIN
 
   namespace
   {
-    OIDN_INLINE Context& initContext()
+    oidn_inline Context& initContext()
     {
       Context& ctx = Context::get();
       ctx.init();
       return ctx;
     }
 
-    OIDN_INLINE void checkHandle(void* handle)
+    oidn_inline void checkHandle(void* handle)
     {
       if (handle == nullptr)
         throw Exception(Error::InvalidArgument, "handle is null");
     }
 
-    OIDN_INLINE void checkString(const char* str)
+    oidn_inline void checkString(const char* str)
     {
       if (str == nullptr)
         throw Exception(Error::InvalidArgument, "string pointer is null");
     }
 
     template<typename T>
-    OIDN_INLINE Device* getDevice(T* obj)
+    oidn_inline Device* getDevice(T* obj)
     {
       return obj ? obj->getDevice() : nullptr;
     }
 
-    OIDN_INLINE Device* getDevice(std::nullptr_t)
+    oidn_inline Device* getDevice(std::nullptr_t)
     {
       return nullptr;
     }
 
     template<typename T>
-    OIDN_INLINE void retainObject(T* obj)
+    oidn_inline void retainObject(T* obj)
     {
       if (obj)
       {
@@ -109,7 +109,7 @@ OIDN_API_NAMESPACE_BEGIN
     }
 
     template<typename T>
-    OIDN_INLINE void releaseObject(T* obj)
+    oidn_inline void releaseObject(T* obj)
     {
       if (obj == nullptr || obj->decRefKeep() == 0)
       {
@@ -124,7 +124,7 @@ OIDN_API_NAMESPACE_BEGIN
     }
 
     template<>
-    OIDN_INLINE void releaseObject(Device* device)
+    oidn_inline void releaseObject(Device* device)
     {
       if (device == nullptr || device->decRefKeep() == 0)
       {

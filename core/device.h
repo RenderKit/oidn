@@ -68,8 +68,8 @@ OIDN_NAMESPACE_BEGIN
     void checkCommitted();
     void commit();
 
-    OIDN_INLINE Device* getDevice() { return this; } // used by the API implementation
-    OIDN_INLINE std::mutex& getMutex() { return mutex; }
+    oidn_inline Device* getDevice() { return this; } // used by the API implementation
+    oidn_inline std::mutex& getMutex() { return mutex; }
 
     virtual Engine* getEngine(int i = 0) const = 0;
     virtual int getNumEngines() const = 0;

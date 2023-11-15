@@ -55,76 +55,76 @@ OIDN_NAMESPACE_BEGIN
     }
 
     // Returns the number of dimensions
-    OIDN_INLINE int getRank() const { return int(dims.size()); }
+    oidn_inline int getRank() const { return int(dims.size()); }
 
     // Returns the number of elements in a 1D tensor
-    OIDN_INLINE int getX() const
+    oidn_inline int getX() const
     {
       assert(dims.size() == 1);
       return dims[0];
     }
 
-    OIDN_INLINE int getPaddedX() const
+    oidn_inline int getPaddedX() const
     {
       assert(paddedDims.size() == 1);
       return paddedDims[0];
     }
 
     // Returns the number of output channels in the tensor
-    OIDN_INLINE int getO() const
+    oidn_inline int getO() const
     {
       assert(dims.size() >= 4);
       return dims[dims.size()-4];
     }
 
-    OIDN_INLINE int getPaddedO() const
+    oidn_inline int getPaddedO() const
     {
       assert(paddedDims.size() >= 4);
       return paddedDims[paddedDims.size()-4];
     }
 
     // Returns the number of input channels in the tensor
-    OIDN_INLINE int getI() const
+    oidn_inline int getI() const
     {
       assert(dims.size() >= 3);
       return dims[dims.size()-3];
     }
 
-    OIDN_INLINE int getPaddedI() const
+    oidn_inline int getPaddedI() const
     {
       assert(paddedDims.size() >= 3);
       return paddedDims[paddedDims.size()-3];
     }
 
     // Returns the number of channels in the tensor
-    OIDN_INLINE int getC() const
+    oidn_inline int getC() const
     {
       assert(dims.size() >= 3);
       return dims[dims.size()-3];
     }
 
-    OIDN_INLINE int getPaddedC() const
+    oidn_inline int getPaddedC() const
     {
       assert(paddedDims.size() >= 3);
       return paddedDims[paddedDims.size()-3];
     }
 
     // Returns the height of the tensor
-    OIDN_INLINE int getH() const
+    oidn_inline int getH() const
     {
       assert(dims.size() >= 2);
       return dims[dims.size()-2];
     }
 
     // Returns the width of the tensor
-    OIDN_INLINE int getW() const
+    oidn_inline int getW() const
     {
       assert(dims.size() >= 2);
       return dims[dims.size()-1];
     }
 
     // Returns the number of elements in the tensor
-    OIDN_INLINE size_t getNumElements() const
+    oidn_inline size_t getNumElements() const
     {
       if (dims.empty())
         return 0;
@@ -135,7 +135,7 @@ OIDN_NAMESPACE_BEGIN
     }
 
     // Returns the size in bytes of the tensor
-    OIDN_INLINE size_t getByteSize() const
+    oidn_inline size_t getByteSize() const
     {
       if (paddedDims.empty())
         return 0;
@@ -164,10 +164,10 @@ OIDN_NAMESPACE_BEGIN
   public:
     virtual void* getPtr() const = 0;
 
-    OIDN_INLINE const TensorDesc& getDesc() const { return *this; }
-    OIDN_INLINE const TensorDims& getDims() const { return dims; }
-    OIDN_INLINE TensorLayout getLayout() const { return layout; }
-    OIDN_INLINE DataType getDataType() const { return dataType; }
+    oidn_inline const TensorDesc& getDesc() const { return *this; }
+    oidn_inline const TensorDims& getDims() const { return dims; }
+    oidn_inline TensorLayout getLayout() const { return layout; }
+    oidn_inline DataType getDataType() const { return dataType; }
 
     using TensorDesc::getRank;
     using TensorDesc::getX;

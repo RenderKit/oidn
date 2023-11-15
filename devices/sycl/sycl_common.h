@@ -34,7 +34,7 @@ OIDN_NAMESPACE_BEGIN
 #if defined(OIDN_ARCH_XEHPC) || defined(OIDN_ARCH_XEHPG)
 
   template<typename T, int N>
-  OIDN_INLINE simd<T, N> loadBlock(const T* ptr)
+  oidn_inline simd<T, N> loadBlock(const T* ptr)
   {
     using DT = typename LSCBlockTraits<T, N>::DT;
     constexpr int DN = LSCBlockTraits<T, N>::DN;
@@ -44,7 +44,7 @@ OIDN_NAMESPACE_BEGIN
   }
 
   template<typename T, int N>
-  OIDN_INLINE simd<T, N> loadBlock(const T* ptr, simd_mask<1> pred, simd<T, N> src = 0)
+  oidn_inline simd<T, N> loadBlock(const T* ptr, simd_mask<1> pred, simd<T, N> src = 0)
   {
     using DT = typename LSCBlockTraits<T, N>::DT;
     constexpr int DN = LSCBlockTraits<T, N>::DN;
@@ -55,7 +55,7 @@ OIDN_NAMESPACE_BEGIN
   }
 
   template<typename T, int N>
-  OIDN_INLINE void storeBlock(T* ptr, simd<T, N> blk, simd_mask<1> pred = 1)
+  oidn_inline void storeBlock(T* ptr, simd<T, N> blk, simd_mask<1> pred = 1)
   {
     using DT = typename LSCBlockTraits<T, N>::DT;
     constexpr int DN = LSCBlockTraits<T, N>::DN;
@@ -66,13 +66,13 @@ OIDN_NAMESPACE_BEGIN
 #else
 
   template<typename T, int N>
-  OIDN_INLINE simd<T, N> loadBlock(const T* ptr)
+  oidn_inline simd<T, N> loadBlock(const T* ptr)
   {
     return block_load<T, N>(ptr, overaligned<16>);
   }
 
   template<typename T, int N>
-  OIDN_INLINE simd<T, N> loadBlock(const T* ptr, simd_mask<1> pred, simd<T, N> src = 0)
+  oidn_inline simd<T, N> loadBlock(const T* ptr, simd_mask<1> pred, simd<T, N> src = 0)
   {
     if (pred)
       return block_load<T, N>(ptr, overaligned<16>);
@@ -81,13 +81,13 @@ OIDN_NAMESPACE_BEGIN
   }
 
   template<typename T, int N>
-  OIDN_INLINE void storeBlock(T* ptr, simd<T, N> blk)
+  oidn_inline void storeBlock(T* ptr, simd<T, N> blk)
   {
     block_store(ptr, blk);
   }
 
   template<typename T, int N>
-  OIDN_INLINE void storeBlock(T* ptr, simd<T, N> blk, simd_mask<1> pred)
+  oidn_inline void storeBlock(T* ptr, simd<T, N> blk, simd_mask<1> pred)
   {
     if (pred)
       block_store(ptr, blk);
@@ -96,7 +96,7 @@ OIDN_NAMESPACE_BEGIN
 #endif
 
   template<typename T, int N, int blockSize = maxLSCBlockByteSize / sizeof(T), int offset = 0>
-  OIDN_INLINE void loadLargeBlock(const T* ptr, simd<T, N>& dst)
+  oidn_inline void loadLargeBlock(const T* ptr, simd<T, N>& dst)
   {
     if constexpr (offset + blockSize <= N)
     {
@@ -108,7 +108,7 @@ OIDN_NAMESPACE_BEGIN
   }
 
   template<typename T, int N, int blockSize = maxLSCBlockByteSize / sizeof(T)>
-  OIDN_INLINE simd<T, N> loadLargeBlock(const T* ptr)
+  oidn_inline simd<T, N> loadLargeBlock(const T* ptr)
   {
     simd<T, N> dst;
     loadLargeBlock<T, N, blockSize>(ptr, dst);
@@ -116,7 +116,7 @@ OIDN_NAMESPACE_BEGIN
   }
 
   template<typename T, int N, int blockSize = maxLSCBlockByteSize / sizeof(T), int offset = 0>
-  OIDN_INLINE void storeLargeBlock(T* ptr, simd<T, N>& src)
+  oidn_inline void storeLargeBlock(T* ptr, simd<T, N>& src)
   {
     if constexpr (offset + blockSize <= N)
     {

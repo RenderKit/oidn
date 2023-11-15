@@ -50,7 +50,7 @@ namespace xehpc {
     TensorAccessor3D<SrcDstT, srcDstLayout> dst;
     //Activation activation;
 
-    OIDN_INLINE void operator ()(const WorkGroupItem<3>& it) const SYCL_ESIMD_FUNCTION
+    oidn_inline void operator ()(const WorkGroupItem<3>& it) const SYCL_ESIMD_FUNCTION
     {
     #if defined(OIDN_ARCH_XEHPG)
       // FP32 accumulator rows
@@ -255,7 +255,7 @@ namespace xehpc {
 
     // Loads a row from the src tensor
     template<int N>
-    OIDN_INLINE void loadRow(simd<MatmulT, N>& row, int ic, int ih, int iw) const
+    oidn_inline void loadRow(simd<MatmulT, N>& row, int ic, int ih, int iw) const
     {
       static_assert(N % blockC == 0, "non-integer width");
       constexpr int W = N / blockC;
@@ -294,7 +294,7 @@ namespace xehpc {
     // Stores a row to the dst tensor
     // Pixels can be stored in chunks of K to improve performance
     template<int K = 1, int N>
-    OIDN_INLINE void storeRow(simd<SrcDstT, N>& row, int oc, int oh, int ow) const
+    oidn_inline void storeRow(simd<SrcDstT, N>& row, int oc, int oh, int ow) const
     {
       static_assert(N % blockC == 0, "non-integer width");
       constexpr int W = N / blockC;

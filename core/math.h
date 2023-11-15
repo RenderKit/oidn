@@ -21,8 +21,8 @@ namespace math {
   using sycl::exp2;
 #elif defined(OIDN_COMPILE_CUDA_DEVICE) || defined(OIDN_COMPILE_HIP_DEVICE)
   // Use the CUDA/HIP math functions
-  template<typename T> OIDN_HOST_DEVICE_INLINE T min(T a, T b) { return ::min(a, b); }
-  template<typename T> OIDN_HOST_DEVICE_INLINE T max(T a, T b) { return ::max(a, b); }
+  template<typename T> oidn_host_device_inline T min(T a, T b) { return ::min(a, b); }
+  template<typename T> oidn_host_device_inline T max(T a, T b) { return ::max(a, b); }
   using ::isfinite;
   using ::isnan;
   using ::pow;
@@ -55,26 +55,26 @@ namespace math {
 
   // CUDA and HIP do not provide min/max overloads for half
 #if defined(OIDN_COMPILE_CUDA_DEVICE) && (__CUDA_ARCH__ >= 800)
-  OIDN_DEVICE_INLINE half min(half a, half b) { return __hmin(a, b); }
-  OIDN_DEVICE_INLINE half max(half a, half b) { return __hmax(a, b); }
+  oidn_device_inline half min(half a, half b) { return __hmin(a, b); }
+  oidn_device_inline half max(half a, half b) { return __hmax(a, b); }
 #elif (defined(OIDN_COMPILE_CUDA_DEVICE) && (__CUDA_ARCH__ >= 530)) || defined(OIDN_COMPILE_HIP_DEVICE)
-  OIDN_DEVICE_INLINE half min(half a, half b) { return (b < a) ? b : a; }
-  OIDN_DEVICE_INLINE half max(half a, half b) { return (a < b) ? b : a; }
+  oidn_device_inline half min(half a, half b) { return (b < a) ? b : a; }
+  oidn_device_inline half max(half a, half b) { return (a < b) ? b : a; }
 #endif
 
   template<typename T>
-  OIDN_HOST_DEVICE_INLINE T clamp(T x, T minVal, T maxVal)
+  oidn_host_device_inline T clamp(T x, T minVal, T maxVal)
   {
     return min(max(x, minVal), maxVal);
   }
 
-  OIDN_HOST_DEVICE_INLINE float to_float_unorm(uint32_t x)
+  oidn_host_device_inline float to_float_unorm(uint32_t x)
   {
     return float(x) * 2.3283064365386962890625e-10f; // x / 2^32
   }
 
   // Maps nan to zero
-  OIDN_HOST_DEVICE_INLINE float nan_to_zero(float x)
+  oidn_host_device_inline float nan_to_zero(float x)
   {
     return isnan(x) ? 0.f : x;
   }

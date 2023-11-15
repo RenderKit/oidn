@@ -91,7 +91,7 @@ OIDN_NAMESPACE_BEGIN
   #if defined(OIDN_COMPILE_CUDA)
     // Enqueues a basic kernel
     template<int N, typename Kernel>
-    OIDN_INLINE void submitKernel(WorkDim<N> globalSize, const Kernel& kernel)
+    oidn_inline void submitKernel(WorkDim<N> globalSize, const Kernel& kernel)
     {
       // TODO: improve group size computation
       /*
@@ -108,7 +108,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Enqueues a work-group kernel
     template<int N, typename Kernel>
-    OIDN_INLINE void submitKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const Kernel& kernel,
+    oidn_inline void submitKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const Kernel& kernel,
                                   typename std::enable_if<!HasLocal<Kernel>::value, bool>::type = true)
     {
       groupCUDAKernel<N><<<numGroups, groupSize, 0, stream>>>(kernel);
@@ -117,7 +117,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Enqueues a work-group kernel using shared local memory
     template<int N, typename Kernel, typename Local = typename Kernel::Local>
-    OIDN_INLINE void submitKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const Kernel& kernel)
+    oidn_inline void submitKernel(WorkDim<N> numGroups, WorkDim<N> groupSize, const Kernel& kernel)
     {
       groupLocalCUDAKernel<N><<<numGroups, groupSize, 0, stream>>>(kernel);
       checkError(cudaGetLastError());
