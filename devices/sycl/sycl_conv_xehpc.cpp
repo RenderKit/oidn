@@ -3,7 +3,7 @@
 
 #define OIDN_ARCH_XEHPC
 
-#include "sycl_conv_gen.h"
+#include "sycl_conv_xe.h"
 
 //#define OIDN_ARCH_XEHPC_FAST
-//#include "sycl_conv_gen.h"
+//#include "sycl_conv_xe.h"

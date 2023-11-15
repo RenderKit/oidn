@@ -77,7 +77,7 @@ endmacro()
 
 set(OIDN_SYCL_SOURCES
   sycl_common.h
-  sycl_conv_gen.h
+  sycl_conv_xe.h
   sycl_conv.h
   sycl_device_ids.h
   sycl_device.h

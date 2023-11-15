@@ -3,4 +3,4 @@
 
 #define OIDN_ARCH_XELP
 
-#include "sycl_conv_gen.h"
+#include "sycl_conv_xe.h"
