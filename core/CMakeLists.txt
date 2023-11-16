@@ -54,6 +54,7 @@ set(OIDN_CORE_SOURCES
   pool.cpp
   progress.h
   progress.cpp
+  record.h
   ref.h
   rt_filter.h
   rt_filter.cpp

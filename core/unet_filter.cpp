@@ -164,7 +164,7 @@ OIDN_NAMESPACE_BEGIN
           autoexposure->setSrc(color);
           autoexposure->submit();
           progress.update(mainEngine, 1);
-          transferFunc->setInputScale(autoexposure->getDst());
+          transferFunc->setInputScale(autoexposure->getDstPtr());
         }
         else
         {
@@ -544,7 +544,7 @@ OIDN_NAMESPACE_BEGIN
       if (instanceID == 0 && hdr)
       {
         autoexposure->setScratch(scratch);
-        autoexposure->setDst((float*)((char*)scratch->getPtr() + autoexposureDstOffset));
+        autoexposure->setDst(makeRef<Record<float>>(scratch, autoexposureDstOffset));
       }
 
       // Finalize the network

@@ -6,7 +6,7 @@
 #if !defined(OIDN_COMPILE_METAL_DEVICE)
   #include "op.h"
   #include "image.h"
-  #include "tensor.h"
+  #include "record.h"
 #endif
 
 OIDN_NAMESPACE_BEGIN
@@ -38,14 +38,13 @@ OIDN_NAMESPACE_BEGIN
       this->src = src;
     }
 
-    // The destination value is assumed to be stored in the scratch buffer!
-    void setDst(float* dst) { this->dst = dst; }
-    float* getDst() const { return dst; }
+    void setDst(const Ref<Record<float>>& dst) { this->dst = dst; }
+    float* getDstPtr() const { return dst->getPtr(); }
 
   protected:
     ImageDesc srcDesc;
     Ref<Image> src;
-    float* dst;
+    Ref<Record<float>> dst;
 
     int numBinsH;
     int numBinsW;

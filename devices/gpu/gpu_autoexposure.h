@@ -208,6 +208,8 @@ OIDN_NAMESPACE_BEGIN
         throw std::logic_error("autoexposure destination not set");
       if (!scratch)
         throw std::logic_error("autoexposure scratch not set");
+      if (dst->getBuffer() != scratch)
+        throw std::invalid_argument("autoexposure result must be stored in the scratch buffer");
 
       float* bins = (float*)scratch->getPtr();
       float* sums = (float*)((char*)bins + numBins * sizeof(float));
@@ -227,7 +229,7 @@ OIDN_NAMESPACE_BEGIN
       reduceFinal.sums   = sums;
       reduceFinal.counts = counts;
       reduceFinal.size   = numGroups;
-      reduceFinal.result = getDst();
+      reduceFinal.result = getDstPtr();
 
     #if defined(OIDN_COMPILE_METAL)
       engine->submitKernel(WorkDim<2>(numBinsH, numBinsW), WorkDim<2>(maxBinSize, maxBinSize), downsample,
