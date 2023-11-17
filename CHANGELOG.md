@@ -1,6 +1,10 @@
 Version History
 ---------------
 
+### Changes in v2.2.0:
+
+-   Added Metal device for Apple silicon GPUs (requires macOS Ventura or newer)
+
 ### Changes in v2.1.0:
 
 -   Added support for denoising 1-channel (e.g. alpha) and 2-channel images
