@@ -163,6 +163,7 @@ OIDN_NAMESPACE_BEGIN
         {
           autoexposure->setSrc(color);
           autoexposure->submit();
+          device->submitBarrier();
           progress.update(mainEngine, 1);
           transferFunc->setInputScale(autoexposure->getDstPtr());
         }
