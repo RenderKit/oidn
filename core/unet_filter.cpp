@@ -267,18 +267,18 @@ OIDN_NAMESPACE_BEGIN
 
     transferFunc = newTransferFunc();
 
-    // Divide the image into tiles until the number of tiles is a multiple of the number of engines
-    // and the memory usage gets below the specified threshold
-    const int minTileDim = 3*tileOverlap;
+    // Try to divide the image into tiles until the number of tiles is a multiple of the number of
+    // engines and the memory usage gets below the specified threshold
+    const int minTileDim = 4*tileOverlap;
     const int maxTileSize = (maxMemoryMB < 0) ? defaultMaxTileSize : INT_MAX;
     const size_t maxMemoryByteSize = (maxMemoryMB >= 0) ? size_t(maxMemoryMB)*1024*1024 : SIZE_MAX;
 
     H = output->getH();
     W = output->getW();
-    tileCountH = 1;
-    tileCountW = 1;
     tileH = round_up(H, tileAlignment);
     tileW = round_up(W, tileAlignment);
+    tileCountH = 1;
+    tileCountW = 1;
 
     while ((tileCountH * tileCountW) % device->getNumEngines() != 0 ||
            (tileH * tileW) > maxTileSize ||
@@ -286,15 +286,15 @@ OIDN_NAMESPACE_BEGIN
     {
       if (tileH > minTileDim && tileH > tileW)
       {
-        tileCountH++;
-        tileH = max(round_up(ceil_div(H - 2*tileOverlap, tileCountH), tileAlignment) + 2*tileOverlap,
-                    minTileDim);
+        tileH = clamp(round_up(ceil_div(H + 2*tileOverlap * tileCountH, tileCountH + 1), tileAlignment),
+                      minTileDim, tileH - tileAlignment);
+        tileCountH = max(ceil_div(H - 2*tileOverlap, tileH - 2*tileOverlap), 1);
       }
       else if (tileW > minTileDim)
       {
-        tileCountW++;
-        tileW = max(round_up(ceil_div(W - 2*tileOverlap, tileCountW), tileAlignment) + 2*tileOverlap,
-                    minTileDim);
+        tileW = clamp(round_up(ceil_div(W + 2*tileOverlap * tileCountW, tileCountW + 1), tileAlignment),
+                      minTileDim, tileW - tileAlignment);
+        tileCountW = max(ceil_div(W - 2*tileOverlap, tileW - 2*tileOverlap), 1);
       }
       else
       {
@@ -304,10 +304,6 @@ OIDN_NAMESPACE_BEGIN
         break;
       }
     }
-
-    // Compute the final number of tiles
-    tileCountH = (H > tileH) ? ceil_div(H - 2*tileOverlap, tileH - 2*tileOverlap) : 1;
-    tileCountW = (W > tileW) ? ceil_div(W - 2*tileOverlap, tileW - 2*tileOverlap) : 1;
 
     if (device->isVerbose(2))
     {
