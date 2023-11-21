@@ -80,6 +80,7 @@ OIDN_NAMESPACE_BEGIN
     TensorLayout getTensorLayout() const { return tensorLayout; }
     TensorLayout getWeightLayout() const { return weightLayout; }
     int getTensorBlockC() const { return tensorBlockC; }
+    int getMinTileAlignment() const { return minTileAlignment; }
 
     // Memory
     virtual Storage getPtrStorage(const void* ptr) { return Storage::Undefined; }
@@ -108,6 +109,7 @@ OIDN_NAMESPACE_BEGIN
     TensorLayout tensorLayout = TensorLayout::chw;
     TensorLayout weightLayout = TensorLayout::oihw;
     int tensorBlockC = 1;
+    int minTileAlignment = 1; // minimum spatial tile alignment in pixels
 
     bool systemMemorySupported  = false;
     bool managedMemorySupported = false;

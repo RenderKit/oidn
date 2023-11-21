@@ -7,7 +7,12 @@
 OIDN_NAMESPACE_BEGIN
 
   UNetFilter::UNetFilter(const Ref<Device>& device)
-    : Filter(device) {}
+    : Filter(device)
+  {
+    // Compute final device-dependent tile alignment and overlap
+    tileAlignment = lcm(minTileAlignment, device->getMinTileAlignment());
+    tileOverlap = round_up(receptiveField / 2, tileAlignment);
+  }
 
   void UNetFilter::setData(const std::string& name, const Data& data)
   {
@@ -189,21 +194,21 @@ OIDN_NAMESPACE_BEGIN
 
       for (int i = 0; i < tileCountH; ++i)
       {
-        const int h = i * (tileH - 2*tileOverlap); // input tile position (including overlap)
+        const int h = i * (tileH - (2*tileOverlap+tilePadH)); // input tile position (including overlaps)
         const int overlapBeginH = i > 0            ? tileOverlap : 0; // overlap on the top
-        const int overlapEndH   = i < tileCountH-1 ? tileOverlap : 0; // overlap on the bottom
-        const int tileH1 = min(H - h, tileH); // input tile size (including overlap)
+        const int overlapEndH   = i < tileCountH-1 ? tileOverlap+tilePadH : 0; // overlap on the bottom
+        const int tileH1 = min(H - h, tileH); // input tile size (including overlaps)
         const int tileH2 = tileH1 - overlapBeginH - overlapEndH; // output tile size
-        const int alignOffsetH = tileH - round_up(tileH1, tileAlignment); // align to the bottom in the tile buffer
+        const int alignOffsetH = tileH - round_up(tileH1, minTileAlignment); // align to the bottom in the tile buffer
 
         for (int j = 0; j < tileCountW; ++j)
         {
-          const int w = j * (tileW - 2*tileOverlap); // input tile position (including overlap)
+          const int w = j * (tileW - (2*tileOverlap+tilePadW)); // input tile position (including overlaps)
           const int overlapBeginW = j > 0            ? tileOverlap : 0; // overlap on the left
-          const int overlapEndW   = j < tileCountW-1 ? tileOverlap : 0; // overlap on the right
-          const int tileW1 = min(W - w, tileW); // input tile size (including overlap)
+          const int overlapEndW   = j < tileCountW-1 ? tileOverlap+tilePadW : 0; // overlap on the right
+          const int tileW1 = min(W - w, tileW); // input tile size (including overlaps)
           const int tileW2 = tileW1 - overlapBeginW - overlapEndW; // output tile size
-          const int alignOffsetW = tileW - round_up(tileW1, tileAlignment); // align to the right in the tile buffer
+          const int alignOffsetW = tileW - round_up(tileW1, minTileAlignment); // align to the right in the tile buffer
 
           auto& instance = instances[tileIndex % device->getNumEngines()];
 
@@ -267,34 +272,39 @@ OIDN_NAMESPACE_BEGIN
 
     transferFunc = newTransferFunc();
 
-    // Try to divide the image into tiles until the number of tiles is a multiple of the number of
-    // engines and the memory usage gets below the specified threshold
-    const int minTileDim = 4*tileOverlap;
-    const int maxTileSize = (maxMemoryMB < 0) ? defaultMaxTileSize : INT_MAX;
-    const size_t maxMemoryByteSize = (maxMemoryMB >= 0) ? size_t(maxMemoryMB)*1024*1024 : SIZE_MAX;
-
+    // Try to divide the image into tiles until the memory usage gets below the specified threshold
+    // and the number of tiles is a multiple of the number of engines
     H = output->getH();
     W = output->getW();
-    tileH = round_up(H, tileAlignment);
-    tileW = round_up(W, tileAlignment);
+    tileH = round_up(H, minTileAlignment); // add minimum device-independent padding
+    tileW = round_up(W, minTileAlignment);
+    tilePadH = tileH % tileAlignment; // increase the overlap on the bottom to align offsets
+    tilePadW = tileW % tileAlignment; // increase the overlap on the right to align offsets
     tileCountH = 1;
     tileCountW = 1;
+
+    const int minTileDim = max(4*tileOverlap, 768); // MPS has slightly different output using smaller tiles
+    const int minTileH = round_up(minTileDim, tileAlignment, tilePadH);
+    const int minTileW = round_up(minTileDim, tileAlignment, tilePadW);
+
+    const int maxTileSize = (maxMemoryMB < 0) ? defaultMaxTileSize : INT_MAX;
+    const size_t maxMemoryByteSize = (maxMemoryMB >= 0) ? size_t(maxMemoryMB)*1024*1024 : SIZE_MAX;
 
     while ((tileCountH * tileCountW) % device->getNumEngines() != 0 ||
            (tileH * tileW) > maxTileSize ||
            !buildModel(maxMemoryByteSize))
     {
-      if (tileH > minTileDim && tileH > tileW)
+      if (tileH > minTileH && tileH > tileW)
       {
-        tileH = clamp(round_up(ceil_div(H + 2*tileOverlap * tileCountH, tileCountH + 1), tileAlignment),
-                      minTileDim, tileH - tileAlignment);
-        tileCountH = max(ceil_div(H - 2*tileOverlap, tileH - 2*tileOverlap), 1);
+        const int newTileH = ceil_div(H + (2*tileOverlap+tilePadH) * tileCountH, tileCountH + 1);
+        tileH = clamp(round_up(newTileH, tileAlignment, tilePadH), minTileH, tileH - tileAlignment);
+        tileCountH = max(ceil_div(H - (2*tileOverlap+tilePadH), tileH - (2*tileOverlap+tilePadH)), 1);
       }
-      else if (tileW > minTileDim)
+      else if (tileW > minTileW)
       {
-        tileW = clamp(round_up(ceil_div(W + 2*tileOverlap * tileCountW, tileCountW + 1), tileAlignment),
-                      minTileDim, tileW - tileAlignment);
-        tileCountW = max(ceil_div(W - 2*tileOverlap, tileW - 2*tileOverlap), 1);
+        const int newTileW = ceil_div(W + (2*tileOverlap+tilePadW) * tileCountW, tileCountW + 1);
+        tileW = clamp(round_up(newTileW, tileAlignment, tilePadW), minTileW, tileW - tileAlignment);
+        tileCountW = max(ceil_div(W - (2*tileOverlap+tilePadW), tileW - (2*tileOverlap+tilePadW)), 1);
       }
       else
       {
@@ -453,7 +463,7 @@ OIDN_NAMESPACE_BEGIN
       auto& graph = instance.graph;
 
       // Create the model graph
-      auto inputProcess = graph->addInputProcess("input", inputDims, tileAlignment,
+      auto inputProcess = graph->addInputProcess("input", inputDims, minTileAlignment,
                                                  transferFunc, hdr, snorm);
 
       auto encConv0 = graph->addConv("enc_conv0", inputProcess, Activation::ReLU);

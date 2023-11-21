@@ -91,6 +91,8 @@ OIDN_NAMESPACE_BEGIN
       weightLayout   = TensorLayout::oihw;
       tensorBlockC   = 1;
 
+      minTileAlignment = 32; // MPS convolution seems to require this for consistent output
+
       systemMemorySupported  = false;
       managedMemorySupported = false;
 

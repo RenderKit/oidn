@@ -32,9 +32,8 @@ OIDN_NAMESPACE_BEGIN
 
     // Network constants
     // TODO: autodetect these values from the model
-    static constexpr int receptiveField  = 174; // receptive field in pixels
-    static constexpr int tileAlignment   = 16;  // required spatial alignment in pixels (padding may be necessary)
-    static constexpr int tileOverlap     = round_up(receptiveField / 2, tileAlignment); // required spatial overlap between tiles in pixels
+    static constexpr int receptiveField   = 174; // receptive field in pixels
+    static constexpr int minTileAlignment = 16;  // required spatial alignment in pixels (padding may be necessary)
     static constexpr int defaultMaxTileSize = 2160*2160; // default maximum number of pixels per tile
 
     // Images
@@ -79,13 +78,17 @@ OIDN_NAMESPACE_BEGIN
     void resetModel();
 
     // Image dimensions
-    int H = 0;            // image height
-    int W = 0;            // image width
-    int tileH = 0;        // tile height
-    int tileW = 0;        // tile width
-    int tileCountH = 1;   // number of tiles in H dimension
-    int tileCountW = 1;   // number of tiles in W dimension
-    bool inplace = false; // indicates whether input and output buffers overlap
+    int H = 0;             // image height
+    int W = 0;             // image width
+    int tileH = 0;         // tile height
+    int tileW = 0;         // tile width
+    int tilePadH = 0;      // tile padding in H dimension (may be required for alignment)
+    int tilePadW = 0;      // tile padding in W dimension (may be required for alignment)
+    int tileCountH = 1;    // number of tiles in H dimension
+    int tileCountW = 1;    // number of tiles in W dimension
+    int tileOverlap = 0;   // device-dependent spatial overlap between tiles in pixels
+    int tileAlignment = 1; // device-dependent spatial tile offset alignment in pixels
+    bool inplace = false;  // indicates whether input and output buffers overlap
 
     // Per-engine model instance
     struct Instance

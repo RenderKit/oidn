@@ -202,6 +202,16 @@ OIDN_NAMESPACE_BEGIN
     return ceil_div(a, b) * b;
   }
 
+  // Returns the smallest integer larger than or equal to a which has remainder c when divided by b
+  template<typename Int, typename IntB>
+  oidn_host_device_inline constexpr Int round_up(Int a, IntB b, IntB c)
+  {
+    //assert(a >= 0);
+    //assert(b > 0);
+    //assert(c >= 0 && c < b);
+    return (a + b - c - 1) / b * b + c;
+  }
+
   // Returns the greatest common divisor of a and b
   template<typename Int>
   oidn_host_device_inline Int gcd(Int a, Int b)
