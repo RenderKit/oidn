@@ -27,7 +27,8 @@ void printUsage()
             << "                   [--hdr color.pfm] [--ldr color.pfm] [--srgb] [--dir directional.pfm]" << std::endl
             << "                   [--alb albedo.pfm] [--nrm normal.pfm] [--clean_aux]" << std::endl
             << "                   [--is/--input_scale value]" << std::endl
-            << "                   [-o/--output output.pfm] [-r/--ref reference_output.pfm]" << std::endl
+            << "                   [-o/--output output.pfm]" << std::endl
+            << "                   [-r/--ref reference_output.pfm] [--maxerror e]" << std::endl
             << "                   [-t/--type float|half]" << std::endl
             << "                   [-q/--quality default|h|high|b|balanced]" << std::endl
             << "                   [-w/--weights weights.tza]" << std::endl
@@ -96,6 +97,7 @@ int main(int argc, char* argv[])
   int setAffinity = -1;
   int maxMemoryMB = -1;
   bool inplace = false;
+  double errorThreshold = -1;
   int verbose = -1;
 
   // Parse the arguments
@@ -196,6 +198,8 @@ int main(int argc, char* argv[])
         else
           throw std::runtime_error("invalid storage mode");
       }
+      else if (opt == "maxerror" || opt == "maxError" || opt == "max_error" || opt == "maxerr")
+        errorThreshold = args.getNextValue<double>();
       else if (opt == "v" || opt == "verbose")
         verbose = args.getNextValue<int>();
       else if (opt == "ld" || opt == "list_devices" || opt == "list-devices" || opt == "listDevices" || opt == "listdevices")
@@ -422,7 +426,8 @@ int main(int argc, char* argv[])
         // Verify the output values
         std::cout << "Verifying output" << std::endl;
 
-        const double errorThreshold = (input == normal || directional) ? 0.05 : 0.003;
+        if (errorThreshold < 0.)
+          errorThreshold = (input == normal || directional) ? 0.05 : 0.003;
         size_t numErrors;
         double avgError;
         std::tie(numErrors, avgError) = compareImage(*output, *ref, errorThreshold);

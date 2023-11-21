@@ -187,19 +187,20 @@ def test_regression(filter, feature_sets, dataset):
         for image_name in image_names:
           # Iterate over precision
           for precision in (['fp32', 'fp16'] if full_test or cfg.full else ['fp32']):
+            first_run = True
             # Iterate over in-place mode
             for inplace in ([False, True] if full_test or cfg.full else [False]):
               # Iterate over memory usage
-              for maxmem in ([None, 200] if full_test or cfg.full else [None]):
+              for maxmem in ([None, 200, 0] if full_test or cfg.full else [None]):
                 # Iterate over buffer storage
-                for storage in ([None] if inplace or maxmem else [None, 'device']):
+                for storage in ([None] if inplace or (maxmem is not None) else [None, 'device']):
                   # Run test
                   test_name = f'{filter}.{quality}.{features_str}.{image_name}.{precision}'
                   if inplace:
                     test_name += '.inplace'
                   if storage:
                     test_name += f'.{storage}'
-                  if maxmem:
+                  if maxmem is not None:
                     test_name += f'.maxmem{maxmem}'
 
                   denoise_cmd = os.path.join(bin_dir, 'oidnDenoise')
@@ -221,10 +222,16 @@ def test_regression(filter, feature_sets, dataset):
                     continue
                   print_test(test_name)
 
-                  ref_filename = os.path.join(baseline_dir, f'{image_name}.{result}.{main_feature_ext}.pfm')
-                  if not os.path.isfile(ref_filename):
-                    print('Error: baseline output image missing (run with "baseline" first)')
-                    exit(1)
+                  out_filename = 'test_out.pfm' # temporary
+                  if first_run:
+                    ref_filename = os.path.join(baseline_dir, f'{image_name}.{result}.{main_feature_ext}.pfm')
+                    if not os.path.isfile(ref_filename):
+                      print('Error: baseline output image missing (run with "baseline" first)')
+                      exit(1)
+                    denoise_cmd += f' -o "{out_filename}"'
+                  else:
+                    ref_filename = out_filename
+                    denoise_cmd += ' --maxerror 0'
                   denoise_cmd += f' --ref "{ref_filename}" -n 3 -v 2'
 
                   if set(features) & {'calb', 'cnrm'}:
@@ -239,10 +246,13 @@ def test_regression(filter, feature_sets, dataset):
                   if storage:
                     denoise_cmd += f' --buffer {storage}'
 
-                  if maxmem:
+                  if maxmem is not None:
                     denoise_cmd += f' --maxmem {maxmem}'
 
                   run_test(denoise_cmd, cfg.arch)
+                  first_run = False
+
+  os.remove(out_filename)
 
 # Main tests
 test()
