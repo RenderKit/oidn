@@ -926,9 +926,8 @@ jobs:
 
   static-analysis:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/static_analysis.yml@tgt/oidn-coverity
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/static_analysis.yml@main
     with:
-      coverity: true
       project: Open Image Denoise
       prebuild: >
         apt install -y ninja-build
