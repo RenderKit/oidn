@@ -191,7 +191,7 @@ def test_regression(filter, feature_sets, dataset):
             # Iterate over in-place mode
             for inplace in ([False, True] if full_test or cfg.full else [False]):
               # Iterate over memory usage
-              for maxmem in ([None, 200, 0] if full_test or cfg.full else [None]):
+              for maxmem in ([None, 256, 0] if full_test or cfg.full else [None]):
                 # Iterate over buffer storage
                 for storage in ([None] if inplace or (maxmem is not None) else [None, 'device']):
                   # Run test
