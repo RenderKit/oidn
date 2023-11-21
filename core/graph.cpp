@@ -22,12 +22,11 @@ OIDN_NAMESPACE_BEGIN
 
   Ref<InputProcess> Graph::addInputProcess(const std::string& name,
                                            const TensorDims& srcDims,
-                                           int tileAlignment,
                                            const std::shared_ptr<TransferFunction>& transferFunc,
                                            bool hdr,
                                            bool snorm)
   {
-    auto op = engine->newInputProcess({srcDims, tileAlignment, transferFunc, hdr, snorm});
+    auto op = engine->newInputProcess({srcDims, transferFunc, hdr, snorm});
     op->setName(name);
     auto dstAlloc = addOp(op, {}, op->getDstDesc());
 

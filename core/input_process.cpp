@@ -12,11 +12,7 @@ OIDN_NAMESPACE_BEGIN
     if (srcDims.size() != 3)
       throw std::invalid_argument("invalid input processing source shape");
 
-    TensorDims dstDims {
-      srcDims[0],
-      round_up(srcDims[1], tileAlignment), // round up H
-      round_up(srcDims[2], tileAlignment)  // round up W
-    };
+    TensorDims dstDims = srcDims;
 
     TensorDims dstPaddedDims {
       round_up(srcDims[0], engine->getDevice()->getTensorBlockC()), // round up C

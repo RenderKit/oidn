@@ -463,7 +463,7 @@ OIDN_NAMESPACE_BEGIN
       auto& graph = instance.graph;
 
       // Create the model graph
-      auto inputProcess = graph->addInputProcess("input", inputDims, minTileAlignment,
+      auto inputProcess = graph->addInputProcess("input", inputDims,
                                                  transferFunc, hdr, snorm);
 
       auto encConv0 = graph->addConv("enc_conv0", inputProcess, Activation::ReLU);

@@ -23,7 +23,6 @@ OIDN_NAMESPACE_BEGIN
 
     Ref<InputProcess> addInputProcess(const std::string& name,
                                       const TensorDims& srcDims,
-                                      int tileAlignment,
                                       const std::shared_ptr<TransferFunction>& transferFunc,
                                       bool hdr,
                                       bool snorm);
