@@ -481,7 +481,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
-      runs-on: '[ "macOS", "build", "arm" ]'
+      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
       artifact-out: build-macos-arm
       artifact-path: build install deps
       cmd: scripts/build.py install --full
@@ -491,7 +491,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
-      runs-on: '[ "macOS", "build", "arm" ]'
+      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
       artifact-out: build-macos-arm-static
       artifact-path: build install deps
       cmd: scripts/build.py install --full -D OIDN_STATIC_LIB=ON
@@ -501,7 +501,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
-      runs-on: '[ "macOS", "build", "arm" ]'
+      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
       artifact-out: build-macos-debug-arm
       artifact-path: build deps
       cmd: scripts/build.py --full --config Debug
@@ -511,7 +511,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
-      runs-on: '[ "macOS", "build", "arm" ]'
+      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
       artifact-out: build-macos-namespace-arm
       artifact-path: build install deps
       cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
@@ -521,7 +521,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
-      runs-on: '[ "macOS", "build", "arm" ]'
+      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
       artifact-out: build-macos-namespace-arm-static
       artifact-path: build install deps
       cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn -D OIDN_STATIC_LIB=ON
@@ -532,7 +532,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
-      runs-on: '[ "macOS", "build", "arm" ]'
+      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
       artifact-in: build-macos-arm
       artifact-out: test-macos-arm
       artifact-path: test.log
@@ -545,7 +545,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
-      runs-on: '[ "macOS", "build", "arm" ]'
+      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
       artifact-in: build-macos-arm-static
       artifact-out: test-macos-arm-static
       artifact-path: test.log
@@ -558,7 +558,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
-      runs-on: '[ "macOS", "build", "arm" ]'
+      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
       artifact-in: build-macos-debug-arm
       artifact-out: test-macos-debug-arm
       artifact-path: test.log
@@ -571,7 +571,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
-      runs-on: '[ "macOS", "build", "arm" ]'
+      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
       artifact-in: build-macos-namespace-arm
       artifact-out: test-macos-namespace-arm
       artifact-path: test.log
@@ -965,7 +965,7 @@ jobs:
   #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
   #   with:
   #     project: oidn
-  #     runs-on: '[ "macOS", "arm" ]'
+  #     runs-on: '[ "macOS", "arm", "vis-mac-studio-1" ]'
   #     cmd: scripts/build.py package --full
   #     artifact-out: package-macos-arm
   #     artifact-path: build/oidn-*.tar.gz
