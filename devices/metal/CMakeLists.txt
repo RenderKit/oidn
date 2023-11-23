@@ -4,6 +4,11 @@
 
 cmake_minimum_required(VERSION 3.21)
 
+if(NOT CMAKE_CXX_COMPILER_ID MATCHES "AppleClang" OR
+   CMAKE_CXX_COMPILER_VERSION VERSION_LESS 14)
+  message(FATAL_ERROR "Building with Metal support requires Xcode 14 or newer")
+endif()
+
 include(oidn_metal)
 
 set(OIDN_METAL_SOURCES
