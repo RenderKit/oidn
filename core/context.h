@@ -14,6 +14,9 @@ OIDN_NAMESPACE_BEGIN
 #if defined(OIDN_DEVICE_CPU)
   void init_device_cpu();
 #endif
+#if defined(OIDN_DEVICE_METAL)
+  void init_device_metal();
+#endif
 #endif
 
   // Global library context
@@ -79,7 +82,13 @@ OIDN_NAMESPACE_BEGIN
       #endif
       #if defined(OIDN_DEVICE_METAL)
         if (getEnvVarOrDefault("OIDN_DEVICE_METAL", 1))
+        {
+        #if defined(OIDN_STATIC_LIB)
+          init_device_metal();
+        #else
           modules.load("device_metal");
+        #endif
+        }
       #endif
 
         // Sort the physical devices by score

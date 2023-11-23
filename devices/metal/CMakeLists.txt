@@ -27,7 +27,7 @@ set(OIDN_METAL_SOURCES
   metal_module.mm
 )
 
-add_library(OpenImageDenoise_device_metal SHARED ${OIDN_METAL_SOURCES} ${OIDN_RESOURCE_FILE})
+add_library(OpenImageDenoise_device_metal ${OIDN_LIB_TYPE} ${OIDN_METAL_SOURCES} ${OIDN_RESOURCE_FILE})
 
 metallib_target_add_sources(OpenImageDenoise_device_metal metal_kernels
   metal_kernels.metal
@@ -48,5 +48,16 @@ target_link_libraries(OpenImageDenoise_device_metal PRIVATE "-framework MetalPer
 target_link_libraries(OpenImageDenoise_device_metal PRIVATE "-framework MetalPerformanceShaders")
 target_link_libraries(OpenImageDenoise_device_metal PRIVATE OpenImageDenoise_core)
 
-oidn_strip_symbols(OpenImageDenoise_device_metal)
-oidn_install_module(OpenImageDenoise_device_metal)
+if(OIDN_STATIC_LIB)
+  install(TARGETS OpenImageDenoise_device_metal
+    EXPORT
+      OpenImageDenoise_Exports
+    ARCHIVE
+      DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT devel
+  )
+
+  target_link_libraries(OpenImageDenoise PRIVATE OpenImageDenoise_device_metal)
+else()
+  oidn_strip_symbols(OpenImageDenoise_device_metal)
+  oidn_install_module(OpenImageDenoise_device_metal)
+endif()

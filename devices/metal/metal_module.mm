@@ -29,7 +29,11 @@ OIDN_NAMESPACE_BEGIN
     }
   };
 
+#if defined(OIDN_STATIC_LIB)
+  void init_device_metal()
+#else
   OIDN_DECLARE_INIT_MODULE(device_metal)
+#endif
   {
     Context::registerDeviceType<MetalDeviceFactory>(DeviceType::Metal, MetalDevice::getPhysicalDevices());
   }
