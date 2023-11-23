@@ -16,6 +16,7 @@ OIDN_NAMESPACE_BEGIN
   public:
     MetalBuffer(const Ref<MetalEngine>& engine, size_t byteSize, Storage storage);
     MetalBuffer(const Ref<Arena>& arena, size_t byteSize, size_t byteOffset);
+    MetalBuffer(const Ref<MetalEngine>& engine, id<MTLBuffer> buffer);
     ~MetalBuffer();
 
     Engine* getEngine() const override { return (Engine*)engine.get(); }

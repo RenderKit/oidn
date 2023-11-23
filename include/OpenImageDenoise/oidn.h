@@ -24,6 +24,17 @@
 typedef struct CUstream_st* cudaStream_t;
 typedef struct ihipStream_t* hipStream_t;
 
+#if defined(__OBJC__)
+  @protocol MTLCommandQueue;
+  @protocol MTLBuffer;
+
+  typedef id<MTLCommandQueue> MTLCommandQueue_id;
+  typedef id<MTLBuffer> MTLBuffer_id;
+#else
+  typedef void* MTLCommandQueue_id;
+  typedef void* MTLBuffer_id;
+#endif
+
 OIDN_API_NAMESPACE_BEGIN
 
 // -------------------------------------------------------------------------------------------------
@@ -123,6 +134,10 @@ OIDN_API OIDNDevice oidnNewCUDADevice(const int* deviceIDs, const cudaStream_t* 
 // Currently only one device ID/stream is supported.
 OIDN_API OIDNDevice oidnNewHIPDevice(const int* deviceIDs, const hipStream_t* streams,
                                      int numPairs);
+
+// Creates a device from the specified list of Metal command queues.
+// Currently only one queue is supported.
+OIDN_API OIDNDevice oidnNewMetalDevice(const MTLCommandQueue_id* commandQueues, int numQueues);
 
 // Retains the device (increments the reference count).
 OIDN_API void oidnRetainDevice(OIDNDevice device);
@@ -294,6 +309,10 @@ OIDN_API OIDNBuffer oidnNewSharedBufferFromFD(OIDNDevice device,
 OIDN_API OIDNBuffer oidnNewSharedBufferFromWin32Handle(OIDNDevice device,
                                                        OIDNExternalMemoryTypeFlag handleType,
                                                        void* handle, const void* name, size_t byteSize);
+
+// Creates a shared buffer from a Metal buffer.
+// Only buffers with shared or private storage and hazard tracking are supported.
+OIDN_API OIDNBuffer oidnNewSharedBufferFromMetal(OIDNDevice device, MTLBuffer_id buffer);
 
 // Gets the size of the buffer in bytes.
 OIDN_API size_t oidnGetBufferSize(OIDNBuffer buffer);

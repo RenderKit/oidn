@@ -52,6 +52,8 @@ OIDN_NAMESPACE_BEGIN
     virtual Ref<Buffer> newBuffer(void* ptr, size_t byteSize);
     virtual Ref<Buffer> newBuffer(const Ref<Arena>& arena, size_t byteSize, size_t byteOffset);
 
+    virtual Ref<Buffer> newNativeBuffer(void* handle);
+
     virtual Ref<Buffer> newExternalBuffer(ExternalMemoryTypeFlag fdType,
                                           int fd, size_t byteSize);
 

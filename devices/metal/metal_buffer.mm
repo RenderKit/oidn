@@ -38,6 +38,32 @@ OIDN_NAMESPACE_BEGIN
     init();
   }
 
+  MetalBuffer::MetalBuffer(const Ref<MetalEngine>& engine, id<MTLBuffer> buffer)
+  {
+    if (!buffer)
+      throw Exception(Error::InvalidArgument, "Metal buffer is null");
+    if (buffer.device != engine->getMTLDevice())
+      throw Exception(Error::InvalidArgument, "Metal buffer belongs to a different device");
+    if (buffer.hazardTrackingMode != MTLHazardTrackingModeTracked)
+      throw Exception(Error::InvalidArgument, "Metal buffers without hazard tracking are not supported");
+
+    switch (buffer.storageMode)
+    {
+    case MTLStorageModeShared:
+      this->storage = Storage::Host;
+      break;
+    case MTLStorageModePrivate:
+      this->storage = Storage::Device;
+      break;
+    default:
+      throw Exception(Error::InvalidArgument, "Metal buffer storage mode is not supported");
+    }
+
+    this->buffer   = [buffer retain];
+    this->byteSize = buffer.length;
+    this->engine   = engine;
+  }
+
   MetalBuffer::~MetalBuffer()
   {
     free();

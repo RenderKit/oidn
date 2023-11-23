@@ -40,6 +40,12 @@ OIDN_NAMESPACE_BEGIN
     return makeRef<USMBuffer>(arena, byteSize, byteOffset);
   }
 
+  Ref<Buffer> Engine::newNativeBuffer(void* handle)
+  {
+    throw Exception(Error::InvalidOperation,
+      "creating a shared buffer from a native handle is not supported by the device");
+  }
+
   Ref<Buffer> Engine::newExternalBuffer(ExternalMemoryTypeFlag fdType,
                                         int fd, size_t byteSize)
   {

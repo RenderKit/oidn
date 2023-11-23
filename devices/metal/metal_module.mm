@@ -7,7 +7,7 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  class MetalDeviceFactory : public DeviceFactory
+  class MetalDeviceFactory : public MetalDeviceFactoryBase
   {
   public:
     Ref<Device> newDevice() override
@@ -19,6 +19,13 @@ OIDN_NAMESPACE_BEGIN
     {
       assert(physicalDevice->type == DeviceType::Metal);
       return makeRef<MetalDevice>(staticRefCast<MetalPhysicalDevice>(physicalDevice));
+    }
+
+    Ref<Device> newDevice(const MTLCommandQueue_id* commandQueues, int numQueues) override
+    {
+      if (numQueues != 1)
+        throw Exception(Error::InvalidArgument, "invalid number of Metal command queues");
+      return makeRef<MetalDevice>(commandQueues[0]);
     }
   };
 

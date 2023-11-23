@@ -387,6 +387,17 @@ OIDN_API_NAMESPACE_BEGIN
     return reinterpret_cast<OIDNDevice>(device.detach());
   }
 
+  OIDN_API OIDNDevice oidnNewMetalDevice(const MTLCommandQueue_id* commandQueues, int numQueues)
+  {
+    Ref<Device> device = nullptr;
+    OIDN_TRY
+      Context& ctx = initContext();
+      auto factory = static_cast<MetalDeviceFactoryBase*>(ctx.getDeviceFactory(DeviceType::Metal));
+      device = factory->newDevice(commandQueues, numQueues);
+    OIDN_CATCH
+    return reinterpret_cast<OIDNDevice>(device.detach());
+  }
+
   OIDN_API void oidnRetainDevice(OIDNDevice hDevice)
   {
     Device* device = reinterpret_cast<Device*>(hDevice);
@@ -558,6 +569,19 @@ OIDN_API_NAMESPACE_BEGIN
         throw Exception(Error::InvalidArgument, "exactly one of the external memory handle and name must be non-null");
       Ref<Buffer> buffer = device->getEngine()->newExternalBuffer(
         static_cast<ExternalMemoryTypeFlag>(handleType), handle, name, byteSize);
+      return reinterpret_cast<OIDNBuffer>(buffer.detach());
+    OIDN_CATCH_DEVICE(device)
+    return nullptr;
+  }
+
+  OIDN_API OIDNBuffer oidnNewSharedBufferFromMetal(OIDNDevice hDevice, MTLBuffer_id mtlBuffer)
+  {
+    Device* device = reinterpret_cast<Device*>(hDevice);
+    OIDN_TRY
+      checkHandle(hDevice);
+      OIDN_LOCK_DEVICE(device);
+      device->checkCommitted();
+      Ref<Buffer> buffer = device->getEngine()->newNativeBuffer(mtlBuffer);
       return reinterpret_cast<OIDNBuffer>(buffer.detach());
     OIDN_CATCH_DEVICE(device)
     return nullptr;

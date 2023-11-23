@@ -15,10 +15,17 @@
 OIDN_NAMESPACE_BEGIN
 
   MetalEngine::MetalEngine(const Ref<MetalDevice>& device)
-    : device(device.get()),
-      commandQueue([device->getMTLDevice() newCommandQueue]),
-      commandBuffer(nullptr)
+    : device(device.get())
   {
+    if (device->userCommandQueue)
+      commandQueue = [device->userCommandQueue retain];
+    else
+    {
+      commandQueue = [device->getMTLDevice() newCommandQueue];
+      if (!commandQueue)
+        throw std::runtime_error("could not create Metal command queue");
+    }
+
     dispatch_data_t libraryData = dispatch_data_create(blobs::metal_kernels, sizeof(blobs::metal_kernels),
                                                        nil, DISPATCH_DATA_DESTRUCTOR_DEFAULT);
 
@@ -79,6 +86,11 @@ OIDN_NAMESPACE_BEGIN
   Ref<Buffer> MetalEngine::newBuffer(const Ref<Arena>& arena, size_t byteSize, size_t byteOffset)
   {
     return makeRef<MetalBuffer>(arena, byteSize, byteOffset);
+  }
+
+  Ref<Buffer> MetalEngine::newNativeBuffer(void* handle)
+  {
+    return makeRef<MetalBuffer>(this, (__bridge id<MTLBuffer>)handle);
   }
 
   Ref<Tensor> MetalEngine::newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc,

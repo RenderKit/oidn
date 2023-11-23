@@ -770,6 +770,15 @@ OIDN_NAMESPACE_BEGIN
         this->handle, static_cast<OIDNExternalMemoryTypeFlag>(handleType), handle, name, byteSize);
     }
 
+    // Creates a shared buffer from a Metal buffer.
+    // Only buffers with shared or private storage and hazard tracking are supported.
+  #if defined(__OBJC__)
+    BufferRef newBuffer(id<MTLBuffer> buffer) const
+    {
+      return oidnNewSharedBufferFromMetal(handle, buffer);
+    }
+  #endif
+
     // Creates a filter of the specified type (e.g. "RT").
     FilterRef newFilter(const char* type) const
     {
@@ -903,6 +912,19 @@ OIDN_NAMESPACE_BEGIN
     assert(deviceIDs.size() == streams.size());
     return DeviceRef(oidnNewHIPDevice(deviceIDs.data(), streams.data(),
                                       static_cast<int>(streams.size())));
+  }
+
+  // Creates a device from the specified Metal command queue.
+  inline DeviceRef newMetalDevice(MTLCommandQueue_id commandQueue)
+  {
+    return DeviceRef(oidnNewMetalDevice(&commandQueue, 1));
+  }
+
+  // Creates a device from the specified list of Metal command queues.
+  // Currently only one queue is supported.
+  inline DeviceRef newMetalDevice(const std::vector<MTLCommandQueue_id>& commandQueues)
+  {
+    return DeviceRef(oidnNewMetalDevice(commandQueues.data(), static_cast<int>(commandQueues.size())));
   }
 
   // -----------------------------------------------------------------------------------------------

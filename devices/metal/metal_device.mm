@@ -61,6 +61,15 @@ OIDN_NAMESPACE_BEGIN
     : device(physicalDevice->device)
   {}
 
+  MetalDevice::MetalDevice(id<MTLCommandQueue> commandQueue)
+  {
+    if (!commandQueue)
+      throw Exception(Error::InvalidArgument, "Metal command queue is null");
+
+    device = commandQueue.device;
+    userCommandQueue = commandQueue;
+  }
+
   MetalDevice::~MetalDevice()
   {
     [device release];

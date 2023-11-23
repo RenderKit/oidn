@@ -43,6 +43,7 @@ OIDN_NAMESPACE_BEGIN
     Ref<Buffer> newBuffer(size_t byteSize, Storage storage) override;
     Ref<Buffer> newBuffer(void* ptr, size_t byteSize) override;
     Ref<Buffer> newBuffer(const Ref<Arena>& arena, size_t byteSize, size_t byteOffset) override;
+    Ref<Buffer> newNativeBuffer(void* handle) override;
 
     // Tensor
     Ref<Tensor> newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset) override;
@@ -134,7 +135,7 @@ OIDN_NAMESPACE_BEGIN
   private:
     MetalDevice* device;
     id<MTLCommandQueue> commandQueue;
-    MPSCommandBuffer* commandBuffer;
+    MPSCommandBuffer* commandBuffer = nullptr;
     id<MTLLibrary> library;
   };
 

@@ -28,7 +28,8 @@ OIDN_NAMESPACE_BEGIN
     static bool isSupported(id<MTLDevice> device);
 
     MetalDevice();
-    MetalDevice(const Ref<MetalPhysicalDevice>& physicalDevice);
+    explicit MetalDevice(const Ref<MetalPhysicalDevice>& physicalDevice);
+    explicit MetalDevice(id<MTLCommandQueue> commandQueue);
     ~MetalDevice();
 
     DeviceType getType() const override { return DeviceType::Metal; }
@@ -54,8 +55,8 @@ OIDN_NAMESPACE_BEGIN
   private:
     Ref<MetalEngine> engine;
 
-    int deviceID = 0;
-    id<MTLDevice> device = nil;
+    id<MTLDevice> device;
+    id<MTLCommandQueue> userCommandQueue = nil; // user-provided command queue (optional)
   };
 
 OIDN_NAMESPACE_END
