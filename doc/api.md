@@ -199,7 +199,7 @@ The `oidnMapBuffer` and `oidnUnmapBuffer` functions have been removed from the
 API due to these not being supported by any of the device backends. Please use
 `oidnReadBuffer(Async)` and `oidnWriteBuffer(Async)` instead.
 
-### Interop with Compute (SYCL, CUDA, HIP) and Graphics (DX, Vulkan) APIs
+### Interop with Compute (SYCL, CUDA, HIP) and Graphics (DX, Vulkan, Metal) APIs
 
 If the application is explicitly using a particular device type which supports
 unified memory allocations, e.g. SYCL or CUDA, it may directly pass pointers
@@ -229,6 +229,8 @@ supported by an Open Image Denoise device can be queried using the
 importing external memory at all (e.g. CPUs, and on GPUs it primarily depends
 on the installed drivers), so the application should always implement a fallback
 too, which copies the data through the host if there is no other supported way.
+Metal buffers can be used directly with the `oidnNewSharedBufferFromMetal`
+function.
 
 Sharing textures is currently not supported natively but it is still possible
 avoid copying texture data by using a linear texture layout (e.g.
@@ -410,6 +412,8 @@ Name                       Description
 `OIDN_DEVICE_TYPE_CUDA`    CUDA device (requires a supported NVIDIA GPU)
 
 `OIDN_DEVICE_TYPE_HIP`     HIP device (requires a supported AMD GPU)
+
+`OIDN_DEVICE_TYPE_METAL`   Metal device (requires a supported Apple GPU)
 -------------------------- --------------------------------------------------------------------
 : Supported device types, i.e., valid constants of type `OIDNDeviceType`.
 
@@ -436,15 +440,17 @@ these properties may be supported by the intended physical device (or drivers
 might even report inconsistent identifiers), so it is recommended to select by
 more than one property, if possible.
 
-If the application requires interoperability with a particular compute API (SYCL,
-CUDA, HIP), it is recommended to use one of the following dedicated functions
-instead:
+If the application requires interoperability with a particular compute or
+graphics API (SYCL, CUDA, HIP, Metal), it is recommended to use one of the
+following dedicated functions instead:
 
     OIDNDevice oidnNewSYCLDevice(const sycl::queue* queues, int numQueues);
     OIDNDevice oidnNewCUDADevice(const int* deviceIDs, const cudaStream_t* streams,
                                  int numPairs);
-    OIDNDevice oidnNewHIPDevice (const int* deviceIDs, const hipStream_t* streams,
-                                 int numPairs);
+    OIDNDevice oidnNewHIPDevice(const int* deviceIDs, const hipStream_t* streams,
+                                int numPairs);
+    OIDNDevice oidnNewMetalDevice(const MTLCommandQueue_id* commandQueues,
+                                  int numQueues);
 
 For SYCL, it is possible to pass one or more SYCL queues which will be used by
 Open Image Denoise for all device operations. This is useful when the
@@ -461,6 +467,8 @@ default stream on the corresponding device. Open Image Denoise automatically
 sets and restores the current CUDA/HIP device on the calling thread when
 necessary, thus the current device does not have to be changed manually by the
 application.
+
+For Metal, a single command queue is supported.
 
 Once a device is created, you can call
 
@@ -637,6 +645,7 @@ Name                     Description
 `OIDN_DEVICE_SYCL`       value of 0 disables SYCL device support
 `OIDN_DEVICE_CUDA`       value of 0 disables CUDA device support
 `OIDN_DEVICE_HIP`        value of 0 disables HIP device support
+`OIDN_DEVICE_METAL`      value of 0 disables Metal device support
 `OIDN_NUM_THREADS`       overrides `numThreads` device parameter
 `OIDN_SET_AFFINITY`      overrides `setAffinity` device parameter
 `OIDN_NUM_SUBDEVICES`    overrides number of SYCL sub-devices to use (e.g. for Intel® Data Center GPU Max Series)
@@ -725,6 +734,10 @@ with all device types, applications should support at least
 `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_FD` and
 `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DMA_BUF` on Linux. All possible external memory
 types are listed in the table below.
+
+Metal buffers can be used directly using
+
+    OIDNBuffer oidnNewSharedBufferFromMetal(OIDNDevice device, MTLBuffer_id buffer);
 
 --------------------------------------------------- ----------------------------------------------------------
 Name                                                Description

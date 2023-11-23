@@ -37,7 +37,7 @@ vendors:
 
 -   Intel® 64 architecture compatible CPUs (with at least SSE4.1)
 
--   Apple Silicon CPUs
+-   Apple silicon CPUs and GPUs (M1 and newer)
 
 -   Intel Xe architecture GPUs, both dedicated and integrated, including
     Intel® Arc™ A-Series Graphics, Intel® Data Center GPU Flex Series (Xe-HPG
@@ -63,7 +63,7 @@ tensor cores on NVIDIA GPUs to achieve high denoising performance.
 System Requirements
 -------------------
 
-You need a CPU with SSE4.1 support or Apple Silicon to run Intel Open Image
+You need a CPU with SSE4.1 support or Apple silicon to run Intel Open Image
 Denoise, and you need a 64-bit Windows, Linux, or macOS operating system as well.
 
 For Intel GPU support, please also install the latest Intel graphics drivers:
@@ -104,6 +104,7 @@ For AMD GPU support, please also install the latest
 -   Linux: [Radeon Software for Linux](https://www.amd.com/en/support/linux-drivers)
     version 22.40.5 or newer
 
+For Apple GPU support, macOS Ventura or newer is required.
 
 Support and Contact
 -------------------

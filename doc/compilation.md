@@ -93,6 +93,12 @@ prerequisites are needed:
 
 -   [AMD ROCm (HIP SDK)](https://rocm.docs.amd.com) v5.5.0 or newer.
 
+#### Metal device for Apple GPUs: {-}
+
+-   [CMake](http://www.cmake.org) 3.21 or newer
+
+-   [Xcode](https://developer.apple.com/xcode/) 14 or newer
+
 Depending on your operating system, you can install some required dependencies
 (e.g., TBB) using `yum` or `apt-get` on Linux, [Homebrew](https://brew.sh) or
 [MacPorts](https://www.macports.org) on macOS, and [`vcpkg`](https://vcpkg.io)
@@ -260,6 +266,9 @@ The following list describes the options that can be configured in CMake:
   default).
 
 - `OIDN_DEVICE_HIP`: Enable HIP device support for AMD GPUs (OFF by
+  default).
+
+- `OIDN_DEVICE_METAL`: Enable Metal device support for Apple GPUs (OFF by
   default).
 
 - `OIDN_FILTER_RT`: Include the trained weights of the `RT` filter in the build
