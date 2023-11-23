@@ -49,13 +49,7 @@ target_link_libraries(OpenImageDenoise_device_metal PRIVATE "-framework MetalPer
 target_link_libraries(OpenImageDenoise_device_metal PRIVATE OpenImageDenoise_core)
 
 if(OIDN_STATIC_LIB)
-  install(TARGETS OpenImageDenoise_device_metal
-    EXPORT
-      OpenImageDenoise_Exports
-    ARCHIVE
-      DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT devel
-  )
-
+  oidn_install_static_module(OpenImageDenoise_device_metal)
   target_link_libraries(OpenImageDenoise PRIVATE OpenImageDenoise_device_metal)
 else()
   oidn_strip_symbols(OpenImageDenoise_device_metal)

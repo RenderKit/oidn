@@ -112,6 +112,15 @@ function(oidn_install_module target)
   )
 endfunction()
 
+function(oidn_install_static_module target)
+  install(TARGETS ${target}
+    EXPORT
+      OpenImageDenoise_Exports
+    ARCHIVE
+      DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT devel
+  )
+endfunction()
+
 function(oidn_install_lib_files)
   if(WIN32)
     if(CMAKE_INSTALL_BINDIR)

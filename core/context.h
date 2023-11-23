@@ -11,13 +11,15 @@
 OIDN_NAMESPACE_BEGIN
 
 #if defined(OIDN_STATIC_LIB)
-#if defined(OIDN_DEVICE_CPU)
-  void init_device_cpu();
+  OIDN_DECLARE_INIT_STATIC_MODULE(device_cpu);
+  OIDN_DECLARE_INIT_STATIC_MODULE(device_metal);
+
+  #define OIDN_INIT_STATIC_MODULE(name) init_##name()
+#else
+  #define OIDN_INIT_STATIC_MODULE(name) modules.load(#name)
 #endif
-#if defined(OIDN_DEVICE_METAL)
-  void init_device_metal();
-#endif
-#endif
+
+#define OIDN_INIT_MODULE(name) modules.load(#name)
 
   // Global library context
   class Context : public Verbose
@@ -60,35 +62,23 @@ OIDN_NAMESPACE_BEGIN
         // Load the modules
       #if defined(OIDN_DEVICE_CPU)
         if (getEnvVarOrDefault("OIDN_DEVICE_CPU", 1))
-        {
-        #if defined(OIDN_STATIC_LIB)
-          init_device_cpu();
-        #else
-          modules.load("device_cpu");
-        #endif
-        }
+          OIDN_INIT_STATIC_MODULE(device_cpu);
       #endif
       #if defined(OIDN_DEVICE_SYCL)
         if (getEnvVarOrDefault("OIDN_DEVICE_SYCL", 1))
-          modules.load("device_sycl");
+          OIDN_INIT_MODULE(device_sycl);
       #endif
       #if defined(OIDN_DEVICE_CUDA)
         if (getEnvVarOrDefault("OIDN_DEVICE_CUDA", 1))
-          modules.load("device_cuda");
+          OIDN_INIT_MODULE(device_cuda);
       #endif
       #if defined(OIDN_DEVICE_HIP)
         if (getEnvVarOrDefault("OIDN_DEVICE_HIP", 1))
-          modules.load("device_hip");
+          OIDN_INIT_MODULE(device_hip);
       #endif
       #if defined(OIDN_DEVICE_METAL)
         if (getEnvVarOrDefault("OIDN_DEVICE_METAL", 1))
-        {
-        #if defined(OIDN_STATIC_LIB)
-          init_device_metal();
-        #else
-          modules.load("device_metal");
-        #endif
-        }
+          OIDN_INIT_STATIC_MODULE(device_metal);
       #endif
 
         // Sort the physical devices by score

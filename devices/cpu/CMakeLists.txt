@@ -116,13 +116,7 @@ ispc_target_add_sources(OpenImageDenoise_device_cpu ${CPU_SOURCES_ISPC})
 target_link_libraries(OpenImageDenoise_device_cpu PRIVATE OpenImageDenoise_core ${CMAKE_THREAD_LIBS_INIT} TBB::tbb)
 
 if(OIDN_STATIC_LIB)
-  install(TARGETS OpenImageDenoise_device_cpu
-    EXPORT
-      OpenImageDenoise_Exports
-    ARCHIVE
-      DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT devel
-  )
-
+  oidn_install_static_module(OpenImageDenoise_device_cpu)
   target_link_libraries(OpenImageDenoise PRIVATE OpenImageDenoise_device_cpu)
 else()
   oidn_strip_symbols(OpenImageDenoise_device_cpu)

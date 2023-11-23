@@ -15,6 +15,12 @@
 #define OIDN_DECLARE_INIT_MODULE(name) \
   OIDN_MODULE_EXPORT void OIDN_CONCAT(OIDN_NAMESPACE_C, OIDN_CONCAT(_init_module_##name##_v, OIDN_VERSION))()
 
+#if defined(OIDN_STATIC_LIB)
+  #define OIDN_DECLARE_INIT_STATIC_MODULE(name) void init_##name()
+#else
+  #define OIDN_DECLARE_INIT_STATIC_MODULE(name) OIDN_DECLARE_INIT_MODULE(name)
+#endif
+
 OIDN_NAMESPACE_BEGIN
 
   class ModuleLoader
