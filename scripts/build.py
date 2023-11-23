@@ -163,8 +163,11 @@ if not os.path.isdir(tbb_dir):
     shutil.rmtree(tbb_src_dir)
 config_cmd += f' -D TBB_ROOT="{tbb_root}"'
 
-if cfg.full and OS != 'macos':
-  config_cmd += ' -D OIDN_DEVICE_CPU=ON -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_CUDA=ON -D OIDN_DEVICE_HIP=ON'
+if cfg.full:
+  if OS != 'macos':
+    config_cmd += ' -D OIDN_DEVICE_CPU=ON -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_CUDA=ON -D OIDN_DEVICE_HIP=ON'
+  elif ARCH == 'arm64':
+    config_cmd += ' -D OIDN_DEVICE_CPU=ON -D OIDN_DEVICE_METAL=ON'
 
 config_cmd += ' -D OIDN_WARN_AS_ERRORS=ON'
 

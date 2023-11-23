@@ -578,6 +578,58 @@ jobs:
       artifact-on-failure: true
       cmd: scripts/test.py --device cpu --log test.log
 
+  test-macos-metal:
+    needs: build-macos-arm
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
+      artifact-in: build-macos-arm
+      artifact-out: test-macos-metal
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: scripts/test.py --device metal --log test.log
+
+  test-macos-metal-static:
+    needs: build-macos-arm-static
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
+      artifact-in: build-macos-arm-static
+      artifact-out: test-macos-metal-static
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: scripts/test.py --device metal --log test.log
+
+  test-macos-debug-metal:
+    needs: build-macos-debug-arm
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
+      artifact-in: build-macos-debug-arm
+      artifact-out: test-macos-debug-metal
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: scripts/test.py --device metal --minimal --log test.log
+
+  test-macos-namespace-metal:
+    needs: build-macos-namespace-arm
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
+      artifact-in: build-macos-namespace-arm
+      artifact-out: test-macos-namespace-metal
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: scripts/test.py --device metal --log test.log
+
   build-macos:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
