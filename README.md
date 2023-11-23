@@ -1,7 +1,7 @@
 # Intel® Open Image Denoise
 
-This is release v2.1.0 of Intel Open Image Denoise. For changes and new
-features see the [changelog](CHANGELOG.md). Visit
+This is release v2.2.0-devel of Intel Open Image Denoise. For changes
+and new features see the [changelog](CHANGELOG.md). Visit
 https://www.openimagedenoise.org for more information.
 
 # Overview
@@ -45,7 +45,7 @@ different vendors:
 
   - Intel® 64 architecture compatible CPUs (with at least SSE4.1)
 
-  - Apple Silicon CPUs
+  - Apple silicon CPUs and GPUs (M1 and newer)
 
   - Intel Xe architecture GPUs, both dedicated and integrated, including
     Intel® Arc™ A-Series Graphics, Intel® Data Center GPU Flex Series
@@ -70,7 +70,7 @@ denoising performance.
 
 ## System Requirements
 
-You need a CPU with SSE4.1 support or Apple Silicon to run Intel Open
+You need a CPU with SSE4.1 support or Apple silicon to run Intel Open
 Image Denoise, and you need a 64-bit Windows, Linux, or macOS operating
 system as well.
 
@@ -111,6 +111,8 @@ drivers](https://www.amd.com/en/support):
   - Linux: [Radeon Software for
     Linux](https://www.amd.com/en/support/linux-drivers) version 22.40.5
     or newer
+
+For Apple GPU support, macOS Ventura or newer is required.
 
 ## Support and Contact
 
@@ -242,6 +244,12 @@ additional prerequisites are needed:
     Visual Studio generator is *not* supported.
 
   - [AMD ROCm (HIP SDK)](https://rocm.docs.amd.com) v5.5.0 or newer.
+
+#### Metal device for Apple GPUs:
+
+  - [CMake](http://www.cmake.org) 3.21 or newer
+
+  - [Xcode](https://developer.apple.com/xcode/) 14 or newer
 
 Depending on your operating system, you can install some required
 dependencies (e.g., TBB) using `yum` or `apt-get` on Linux,
@@ -415,6 +423,9 @@ CMake:
 
   - `OIDN_DEVICE_HIP`: Enable HIP device support for AMD GPUs (OFF by
     default).
+
+  - `OIDN_DEVICE_METAL`: Enable Metal device support for Apple GPUs (OFF
+    by default).
 
   - `OIDN_FILTER_RT`: Include the trained weights of the `RT` filter in
     the build (ON by default). Turning this OFF significantly decreases
@@ -659,7 +670,7 @@ from the API due to these not being supported by any of the device
 backends. Please use `oidnReadBuffer(Async)` and
 `oidnWriteBuffer(Async)` instead.
 
-### Interop with Compute (SYCL, CUDA, HIP) and Graphics (DX, Vulkan) APIs
+### Interop with Compute (SYCL, CUDA, HIP) and Graphics (DX, Vulkan, Metal) APIs
 
 If the application is explicitly using a particular device type which
 supports unified memory allocations, e.g. SYCL or CUDA, it may directly
@@ -692,7 +703,8 @@ an Open Image Denoise device can be queried using the
 support importing external memory at all (e.g. CPUs, and on GPUs it
 primarily depends on the installed drivers), so the application should
 always implement a fallback too, which copies the data through the host
-if there is no other supported way.
+if there is no other supported way. Metal buffers can be used directly
+with the `oidnNewSharedBufferFromMetal` function.
 
 Sharing textures is currently not supported natively but it is still
 possible avoid copying texture data by using a linear texture layout
@@ -862,6 +874,7 @@ which can be one of the following:
 | `OIDN_DEVICE_TYPE_SYCL`    | SYCL device (requires a supported Intel GPU)                         |
 | `OIDN_DEVICE_TYPE_CUDA`    | CUDA device (requires a supported NVIDIA GPU)                        |
 | `OIDN_DEVICE_TYPE_HIP`     | HIP device (requires a supported AMD GPU)                            |
+| `OIDN_DEVICE_TYPE_METAL`   | Metal device (requires a supported Apple GPU)                        |
 
 Supported device types, i.e., valid constants of type `OIDNDeviceType`.
 
@@ -893,15 +906,17 @@ all of these properties may be supported by the intended physical device
 recommended to select by more than one property, if possible.
 
 If the application requires interoperability with a particular compute
-API (SYCL, CUDA, HIP), it is recommended to use one of the following
-dedicated functions instead:
+or graphics API (SYCL, CUDA, HIP, Metal), it is recommended to use one
+of the following dedicated functions instead:
 
 ``` cpp
 OIDNDevice oidnNewSYCLDevice(const sycl::queue* queues, int numQueues);
 OIDNDevice oidnNewCUDADevice(const int* deviceIDs, const cudaStream_t* streams,
                              int numPairs);
-OIDNDevice oidnNewHIPDevice (const int* deviceIDs, const hipStream_t* streams,
-                             int numPairs);
+OIDNDevice oidnNewHIPDevice(const int* deviceIDs, const hipStream_t* streams,
+                            int numPairs);
+OIDNDevice oidnNewMetalDevice(const MTLCommandQueue_id* commandQueues,
+                              int numQueues);
 ```
 
 For SYCL, it is possible to pass one or more SYCL queues which will be
@@ -920,6 +935,8 @@ stream corresponds to the default stream on the corresponding device.
 Open Image Denoise automatically sets and restores the current CUDA/HIP
 device on the calling thread when necessary, thus the current device
 does not have to be changed manually by the application.
+
+For Metal, a single command queue is supported.
 
 Once a device is created, you can call
 
@@ -1090,6 +1107,7 @@ settings at runtime, which can be useful for debugging and development:
 | `OIDN_DEVICE_SYCL`    | value of 0 disables SYCL device support                                                                                             |
 | `OIDN_DEVICE_CUDA`    | value of 0 disables CUDA device support                                                                                             |
 | `OIDN_DEVICE_HIP`     | value of 0 disables HIP device support                                                                                              |
+| `OIDN_DEVICE_METAL`   | value of 0 disables Metal device support                                                                                            |
 | `OIDN_NUM_THREADS`    | overrides `numThreads` device parameter                                                                                             |
 | `OIDN_SET_AFFINITY`   | overrides `setAffinity` device parameter                                                                                            |
 | `OIDN_NUM_SUBDEVICES` | overrides number of SYCL sub-devices to use (e.g. for Intel® Data Center GPU Max Series)                                            |
@@ -1184,6 +1202,12 @@ and both `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_FD` and
 `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DMA_BUF` on Linux. All possible external
 memory types are listed in the table below.
 
+Metal buffers can be used directly using
+
+``` cpp
+OIDNBuffer oidnNewSharedBufferFromMetal(OIDNDevice device, MTLBuffer_id buffer);
+```
+
 | Name                                                | Description                                                                                                        |
 | :-------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------- |
 | `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_NONE`               |                                                                                                                    |
@@ -1223,11 +1247,10 @@ usually the preferred way to access the data stored in the buffer:
 void* oidnGetBufferData(OIDNBuffer buffer);
 ```
 
-However, accessing the data on the host through this pointer is possible
-only if the buffer was created with a storage mode that enables this,
-i.e., any mode *except* `OIDN_STORAGE_DEVICE`. Note that a `NULL`
-pointer may be returned if the buffer is empty or getting a pointer to
-data with device storage is not supported by the device.
+Accessing the data on the host through this pointer is possible *only*
+if the buffer was created with `OIDN_STORAGE_HOST` or
+`OIDN_STORAGE_MANAGED`. Note that a `NULL` pointer may be returned if
+the buffer is empty.
 
 In some cases better performance can be achieved by using device storage
 for buffers. Such data can be accessed on the host by copying to/from
