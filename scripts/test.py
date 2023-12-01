@@ -11,7 +11,7 @@ import argparse
 
 from common import *
 
-BASELINE_VERSION='v2.1.0'
+BASELINE_VERSION='v2.2.0'
 
 # Parse the command-line arguments
 parser = argparse.ArgumentParser(description='Runs all tests, including comparing images produced by the library with generated baseline images.')
@@ -252,7 +252,7 @@ def test_regression(filter, feature_sets, dataset):
                   run_test(denoise_cmd, cfg.arch)
                   first_run = False
 
-  os.remove(out_filename)
+      os.remove(out_filename)
 
 # Main tests
 test()
