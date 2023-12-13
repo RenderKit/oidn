@@ -1089,12 +1089,14 @@ Type        Name               Default Description
 
 `Data`      `weights`       *optional* trained model weights blob
 
-`Int`       `maxMemoryMB`           -1 if set to >= 0, an attempt will be made to limit the memory
-                                       usage below the specified amount in megabytes at the potential
-                                       cost of slower performance but actual memory usage may be higher
-                                       (the target may not be achievable or the device may not support
-                                       this feature at all); otherwise memory usage will be limited to
-                                       an unspecified device-dependent amount
+`Int`       `maxMemoryMB`           -1 if set to >= 0, a request is made to limit the memory usage
+                                       below the specified amount in megabytes at the potential cost
+                                       of slower performance, but actual memory usage may be higher
+                                       (the target may not be achievable or there may be additional
+                                       allocations beyond the control of the library); otherwise,
+                                       memory usage will be limited to an unspecified device-dependent
+                                       amount; in both cases, filters on the same device share almost
+                                       all of their allocated memory to minimize total memory usage
 
 `Int`       `tileAlignment` *constant* when manually denoising in tiles, the tile size and offsets
                                        should be multiples of this amount of pixels to avoid
@@ -1287,12 +1289,14 @@ Type        Name               Default Description
 
 `Data`      `weights`       *optional* trained model weights blob
 
-`Int`       `maxMemoryMB`           -1 if set to >= 0, an attempt will be made to limit the memory
-                                       usage below the specified amount in megabytes at the potential
-                                       cost of slower performance but actual memory usage may be higher
-                                       (the target may not be achievable or the device may not support
-                                       this feature at all); otherwise memory usage will be limited to
-                                       an unspecified device-dependent amount
+`Int`       `maxMemoryMB`           -1 if set to >= 0, a request is made to limit the memory usage
+                                       below the specified amount in megabytes at the potential cost
+                                       of slower performance, but actual memory usage may be higher
+                                       (the target may not be achievable or there may be additional
+                                       allocations beyond the control of the library); otherwise,
+                                       memory usage will be limited to an unspecified device-dependent
+                                       amount; in both cases, filters on the same device share almost
+                                       all of their allocated memory to minimize total memory usage
 
 `Int`       `tileAlignment` *constant* when manually denoising in tiles, the tile size and offsets
                                        should be multiples of this amount of pixels to avoid
