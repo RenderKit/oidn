@@ -12,6 +12,12 @@ OIDN_NAMESPACE_BEGIN
       device(device)
   {
     name = device.name.UTF8String;
+
+    // Report registry ID as LUID
+    const uint64_t registryID = device.registryID;
+    memcpy(luid.bytes, &registryID, sizeof(luid.bytes));
+    nodeMask = 1;
+    luidSupported = true;
   }
 
   std::vector<Ref<PhysicalDevice>> MetalDevice::getPhysicalDevices()
