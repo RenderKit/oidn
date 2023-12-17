@@ -111,6 +111,9 @@ OIDN_NAMESPACE_BEGIN
     // Set the current CUDA device
     if (deviceID != prevDeviceID)
       checkError(cudaSetDevice(deviceID));
+
+    // Clear the CUDA error state
+    cudaGetLastError();
   }
 
   void CUDADevice::leave()

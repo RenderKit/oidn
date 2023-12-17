@@ -129,19 +129,22 @@ OIDN_NAMESPACE_BEGIN
   {
     assert(prevDeviceID < 0);
 
-    // Save the current CUDA device
+    // Save the current HIP device
     checkError(hipGetDevice(&prevDeviceID));
 
-    // Set the current CUDA device
+    // Set the current HIP device
     if (deviceID != prevDeviceID)
       checkError(hipSetDevice(deviceID));
+
+    // Clear the HIP error state
+    hipGetLastError();
   }
 
   void HIPDevice::leave()
   {
     assert(prevDeviceID >= 0);
 
-    // Restore the previous CUDA device
+    // Restore the previous HIP device
     if (deviceID != prevDeviceID)
       checkError(hipSetDevice(prevDeviceID));
     prevDeviceID = -1;
