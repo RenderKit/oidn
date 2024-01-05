@@ -181,6 +181,13 @@ TEST_CASE("buffer creation", "[buffer]")
     BufferRef buffer = device.newBuffer(10000, static_cast<Storage>(-42));
     REQUIRE(device.getError() == Error::InvalidArgument);
   }
+
+  SECTION("device released before buffer")
+  {
+    BufferRef buffer = device.newBuffer(123456);
+    REQUIRE(device.getError() == Error::None);
+    device.release();
+  }
 }
 
 TEST_CASE("buffer read/write", "[buffer_rw]")
