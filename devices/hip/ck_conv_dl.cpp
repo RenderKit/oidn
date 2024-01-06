@@ -85,7 +85,7 @@ OIDN_NAMESPACE_BEGIN
       >;
 
   public:
-    CKConvDL(const Ref<HIPEngine>& engine, const ConvDesc& desc)
+    CKConvDL(HIPEngine* engine, const ConvDesc& desc)
       : Conv(desc),
         engine(engine)
     {
@@ -152,10 +152,10 @@ OIDN_NAMESPACE_BEGIN
     WeiElementOp weiElementOp;
     OutElementOp outElementOp;
 
-    Ref<HIPEngine> engine;
+    HIPEngine* engine;
   };
 
-  Ref<Conv> newHIPConvDL(const Ref<HIPEngine>& engine, const ConvDesc& desc)
+  Ref<Conv> newHIPConvDL(HIPEngine* engine, const ConvDesc& desc)
   {
     if (desc.srcDesc.dataType == DataType::Float16 && desc.activation == Activation::None)
       return makeRef<CKConvDL<half, Activation::None>>(engine, desc);

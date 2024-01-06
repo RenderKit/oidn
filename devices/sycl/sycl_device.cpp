@@ -281,7 +281,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Create the engines
     for (auto& syclQueue : syclQueues)
-      engines.push_back(makeRef<SYCLEngine>(this, syclQueue));
+      engines.emplace_back(new SYCLEngine(this, syclQueue));
 
     // Cleanup
     syclQueues.clear();

@@ -5,9 +5,8 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  BNNSPool::BNNSPool(const Ref<BNNSEngine>& engine, const PoolDesc& desc)
-    : Pool(desc),
-      engine(engine) {}
+  BNNSPool::BNNSPool(BNNSEngine* engine, const PoolDesc& desc)
+    : Pool(desc) {}
 
   BNNSPool::~BNNSPool()
   {

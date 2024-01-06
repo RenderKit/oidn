@@ -64,7 +64,7 @@ OIDN_NAMESPACE_BEGIN
     void initTasking();
 
   private:
-    Ref<CPUEngine> engine;
+    std::unique_ptr<CPUEngine> engine;
     CPUArch arch = CPUArch::Unknown;
 
     // Tasking

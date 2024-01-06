@@ -50,11 +50,10 @@ OIDN_NAMESPACE_BEGIN
     friend class USMBuffer;
 
   public:
-    USMHeap(const Ref<Engine>& engine, size_t byteSize, Storage storage);
+    USMHeap(Engine* engine, size_t byteSize, Storage storage);
     ~USMHeap();
 
-    Engine* getEngine() const override;
-
+    Engine* getEngine() const override { return engine; }
     size_t getByteSize() const override { return byteSize; }
     Storage getStorage() const override { return storage; }
 
@@ -64,7 +63,7 @@ OIDN_NAMESPACE_BEGIN
     char* ptr;
     size_t byteSize;
     Storage storage;
-    Ref<Engine> engine;
+    Engine* engine;
   };
 
 OIDN_NAMESPACE_END

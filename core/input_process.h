@@ -22,7 +22,7 @@ OIDN_NAMESPACE_BEGIN
   class InputProcess : public Op, protected InputProcessDesc
   {
   public:
-    InputProcess(const Ref<Engine>& engine, const InputProcessDesc& desc);
+    InputProcess(Engine* engine, const InputProcessDesc& desc);
 
     TensorDesc getDstDesc() const { return dstDesc; }
     Ref<Tensor> getDst() const { return dst; }

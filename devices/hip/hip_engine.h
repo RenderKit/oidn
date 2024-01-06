@@ -57,7 +57,7 @@ OIDN_NAMESPACE_BEGIN
   class HIPEngine final : public Engine
   {
   public:
-    HIPEngine(const Ref<HIPDevice>& device,
+    HIPEngine(HIPDevice* device,
               hipStream_t stream);
 
     Device* getDevice() const override { return device; }

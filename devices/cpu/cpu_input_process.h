@@ -11,11 +11,8 @@ OIDN_NAMESPACE_BEGIN
   class CPUInputProcess final : public InputProcess
   {
   public:
-    CPUInputProcess(const Ref<CPUEngine>& engine, const InputProcessDesc& desc);
+    CPUInputProcess(CPUEngine* engine, const InputProcessDesc& desc);
     void submit() override;
-
-  private:
-    Ref<CPUEngine> engine;
   };
 
 OIDN_NAMESPACE_END

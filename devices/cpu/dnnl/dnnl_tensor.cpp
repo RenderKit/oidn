@@ -5,7 +5,7 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  DNNLTensor::DNNLTensor(const Ref<DNNLEngine>& engine, const TensorDesc& desc, Storage storage)
+  DNNLTensor::DNNLTensor(DNNLEngine* engine, const TensorDesc& desc, Storage storage)
     : Tensor(engine->newBuffer(desc.getByteSize(), storage), desc)
   {
     mem = dnnl::memory(toDNNL(getDesc()), engine->getDNNLEngine(), buffer->getPtr());

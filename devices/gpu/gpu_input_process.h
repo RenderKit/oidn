@@ -182,7 +182,7 @@ OIDN_NAMESPACE_BEGIN
   class GPUInputProcess : public InputProcess
   {
   public:
-    GPUInputProcess(const Ref<EngineT>& engine, const InputProcessDesc& desc)
+    GPUInputProcess(EngineT* engine, const InputProcessDesc& desc)
       : InputProcess(engine, desc),
         engine(engine) {}
 
@@ -265,7 +265,7 @@ OIDN_NAMESPACE_BEGIN
     #endif
     }
 
-    Ref<EngineT> engine;
+    EngineT* engine;
 
   #if defined(OIDN_COMPILE_METAL)
     Ref<MetalPipeline> pipeline;

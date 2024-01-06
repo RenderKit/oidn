@@ -11,7 +11,7 @@ OIDN_NAMESPACE_BEGIN
   class DNNLConv final : public Conv
   {
   public:
-    DNNLConv(const Ref<DNNLEngine>& engine, const ConvDesc& desc);
+    DNNLConv(DNNLEngine* engine, const ConvDesc& desc);
 
     size_t getScratchByteSize() const override;
     void setScratch(const Ref<Buffer>& scratch) override;
@@ -25,7 +25,7 @@ OIDN_NAMESPACE_BEGIN
     void updateBias() override;
     void updateDst() override;
 
-    Ref<DNNLEngine> engine;
+    DNNLEngine* engine;
     dnnl::convolution_forward::primitive_desc primDesc;
     dnnl::convolution_forward prim;
     std::unordered_map<int, dnnl::memory> args;

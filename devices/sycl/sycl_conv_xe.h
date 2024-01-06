@@ -336,7 +336,7 @@ namespace xehpc {
   class SYCLConv : public Conv
   {
   public:
-    SYCLConv(const Ref<SYCLEngine>& engine, const ConvDesc& desc)
+    SYCLConv(SYCLEngine* engine, const ConvDesc& desc)
       : Conv(desc),
         engine(engine)
     {
@@ -463,10 +463,10 @@ namespace xehpc {
     #endif
     }
 
-    Ref<SYCLEngine> engine;
+    SYCLEngine* engine;
   };
 
-  Ref<Conv> newSYCLConv(const Ref<SYCLEngine>& engine, const ConvDesc& desc)
+  Ref<Conv> newSYCLConv(SYCLEngine* engine, const ConvDesc& desc)
   {
     return makeRef<SYCLConv<half>>(engine, desc);
   }

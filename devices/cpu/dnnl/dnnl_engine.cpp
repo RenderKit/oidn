@@ -7,7 +7,7 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  DNNLEngine::DNNLEngine(const Ref<CPUDevice>& device)
+  DNNLEngine::DNNLEngine(CPUDevice* device)
     : CPUEngine(device)
   {
     dnnl_set_verbose(clamp(device->verbose - 2, 0, 2)); // unfortunately this is not per-device but global

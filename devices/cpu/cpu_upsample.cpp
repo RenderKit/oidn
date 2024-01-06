@@ -7,9 +7,8 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  CPUUpsample::CPUUpsample(const Ref<CPUEngine>& engine, const UpsampleDesc& desc)
-    : Upsample(desc),
-      engine(engine)
+  CPUUpsample::CPUUpsample(CPUEngine* engine, const UpsampleDesc& desc)
+    : Upsample(desc)
   {
     if (srcDesc.layout != TensorLayout::chw &&
         srcDesc.layout != TensorLayout::Chw8c &&

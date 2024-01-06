@@ -31,12 +31,12 @@ OIDN_NAMESPACE_BEGIN
     friend class Memory;
 
   public:
-    Buffer() = default;
+    explicit Buffer(const Ref<Device>& device);
     Buffer(const Ref<Arena>& arena, size_t byteOffset);
     ~Buffer();
 
     virtual Engine* getEngine() const = 0;
-    Device* getDevice() const;
+    Device* getDevice() const { return device.get(); }
     virtual void* getPtr() const = 0;     // pointer in device address space
     virtual void* getHostPtr() const = 0; // pointer in host address space if available, nullptr otherwise
     virtual size_t getByteSize() const = 0;
@@ -57,6 +57,7 @@ OIDN_NAMESPACE_BEGIN
     virtual void preRealloc();
     virtual void postRealloc();
 
+    Ref<Device> device;    // device where the buffer is allocated (required to keep device alive)
     Ref<Arena> arena;      // arena where the buffer is allocated (optional)
     size_t byteOffset = 0; // offset of the buffer in the arena
 
@@ -78,12 +79,12 @@ OIDN_NAMESPACE_BEGIN
     friend class USMHeap;
 
   public:
-    USMBuffer(const Ref<Engine>& engine, size_t byteSize, Storage storage);
-    USMBuffer(const Ref<Engine>& engine, void* data, size_t byteSize, Storage storage = Storage::Undefined);
+    USMBuffer(Engine* engine, size_t byteSize, Storage storage);
+    USMBuffer(Engine* engine, void* data, size_t byteSize, Storage storage = Storage::Undefined);
     USMBuffer(const Ref<Arena>& arena, size_t byteSize, size_t byteOffset);
     ~USMBuffer();
 
-    Engine* getEngine() const override { return engine.get(); }
+    Engine* getEngine() const override { return engine; }
 
     void* getPtr() const override { return ptr; }
     void* getHostPtr() const override { return ptr; }
@@ -94,7 +95,7 @@ OIDN_NAMESPACE_BEGIN
     void write(size_t byteOffset, size_t byteSize, const void* srcHostPtr, SyncMode sync) override;
 
   protected:
-    explicit USMBuffer(const Ref<Engine>& engine);
+    explicit USMBuffer(Engine* engine);
 
     void postRealloc() override;
 
@@ -102,7 +103,7 @@ OIDN_NAMESPACE_BEGIN
     size_t byteSize;
     bool shared;
     Storage storage;
-    Ref<Engine> engine;
+    Engine* engine;
   };
 
   // -----------------------------------------------------------------------------------------------

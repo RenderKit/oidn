@@ -11,7 +11,7 @@ OIDN_NAMESPACE_BEGIN
   class BNNSConv : public Conv
   {
   public:
-    BNNSConv(const Ref<BNNSEngine>& engine, const ConvDesc& desc);
+    BNNSConv(BNNSEngine* engine, const ConvDesc& desc);
     ~BNNSConv();
 
     void finalize() override;
@@ -21,7 +21,6 @@ OIDN_NAMESPACE_BEGIN
     void updateWeight() override;
     void updateBias() override;
 
-    Ref<BNNSEngine> engine;
     BNNSFilter filter = nullptr;
   };
 

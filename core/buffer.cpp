@@ -14,8 +14,12 @@ OIDN_NAMESPACE_BEGIN
   // Buffer
   // -----------------------------------------------------------------------------------------------
 
+  Buffer::Buffer(const Ref<Device>& device)
+    : device(device) {}
+
   Buffer::Buffer(const Ref<Arena>& arena, size_t byteOffset)
-    : arena(arena),
+    : device(arena->getEngine()->getDevice()),
+      arena(arena),
       byteOffset(byteOffset)
   {
     arena->getHeap()->attach(this);
@@ -25,11 +29,6 @@ OIDN_NAMESPACE_BEGIN
   {
     if (arena)
       arena->getHeap()->detach(this);
-  }
-
-  Device* Buffer::getDevice() const
-  {
-    return getEngine()->getDevice();
   }
 
   void Buffer::read(size_t byteOffset, size_t byteSize, void* dstHostPtr, SyncMode sync)
@@ -88,16 +87,18 @@ OIDN_NAMESPACE_BEGIN
   // USMBuffer
   // -----------------------------------------------------------------------------------------------
 
-  USMBuffer::USMBuffer(const Ref<Engine>& engine)
-    : ptr(nullptr),
+  USMBuffer::USMBuffer(Engine* engine)
+    : Buffer(engine->getDevice()),
+      ptr(nullptr),
       byteSize(0),
       shared(true),
       storage(Storage::Undefined),
       engine(engine)
   {}
 
-  USMBuffer::USMBuffer(const Ref<Engine>& engine, size_t byteSize, Storage storage)
-    : ptr(nullptr),
+  USMBuffer::USMBuffer(Engine* engine, size_t byteSize, Storage storage)
+    : Buffer(engine->getDevice()),
+      ptr(nullptr),
       byteSize(byteSize),
       shared(false),
       storage(storage),
@@ -109,8 +110,9 @@ OIDN_NAMESPACE_BEGIN
     ptr = static_cast<char*>(engine->usmAlloc(byteSize, this->storage));
   }
 
-  USMBuffer::USMBuffer(const Ref<Engine>& engine, void* data, size_t byteSize, Storage storage)
-    : ptr(static_cast<char*>(data)),
+  USMBuffer::USMBuffer(Engine* engine, void* data, size_t byteSize, Storage storage)
+    : Buffer(engine->getDevice()),
+      ptr(static_cast<char*>(data)),
       byteSize(byteSize),
       shared(true),
       storage(storage),

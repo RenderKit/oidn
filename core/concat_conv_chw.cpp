@@ -6,9 +6,8 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  ConcatConvCHW::ConcatConvCHW(const Ref<Engine>& engine, const ConcatConvDesc& desc)
-    : ConcatConv(desc),
-      engine(engine)
+  ConcatConvCHW::ConcatConvCHW(Engine* engine, const ConcatConvDesc& desc)
+    : ConcatConv(desc)
   {
     if (src1Desc.layout == TensorLayout::hwc)
       throw std::invalid_argument("unsupported concat+conv source layout");

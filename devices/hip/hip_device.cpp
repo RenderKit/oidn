@@ -190,7 +190,7 @@ OIDN_NAMESPACE_BEGIN
     externalMemoryTypes = ExternalMemoryTypeFlag::OpaqueFD;
   #endif
 
-    engine = makeRef<HIPEngine>(this, stream);
+    engine.reset(new HIPEngine(this, stream));
   }
 
   Storage HIPDevice::getPtrStorage(const void* ptr)

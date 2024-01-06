@@ -6,7 +6,7 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  DNNLConv::DNNLConv(const Ref<DNNLEngine>& engine, const ConvDesc& desc)
+  DNNLConv::DNNLConv(DNNLEngine* engine, const ConvDesc& desc)
     : Conv(desc),
       engine(engine)
   {

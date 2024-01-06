@@ -7,9 +7,8 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  CPUAutoexposure::CPUAutoexposure(const Ref<CPUEngine>& engine, const ImageDesc& srcDesc)
-    : Autoexposure(srcDesc),
-      engine(engine) {}
+  CPUAutoexposure::CPUAutoexposure(CPUEngine* engine, const ImageDesc& srcDesc)
+    : Autoexposure(srcDesc) {}
 
   void CPUAutoexposure::submit()
   {

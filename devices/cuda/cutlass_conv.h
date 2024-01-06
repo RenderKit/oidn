@@ -196,7 +196,7 @@ OIDN_NAMESPACE_BEGIN
     using ImplicitGemm = cutlass::conv::device::ImplicitGemmConvolution<Conv2dFpropKernel>;
 
   public:
-    CutlassConv(const Ref<CUDAEngine>& engine, const ConvDesc& desc)
+    CutlassConv(CUDAEngine* engine, const ConvDesc& desc)
       : Conv(desc),
         engine(engine)
     {
@@ -277,7 +277,7 @@ OIDN_NAMESPACE_BEGIN
       bias = bias->toDevice(engine);
     }
 
-    Ref<CUDAEngine> engine;
+    CUDAEngine* engine;
     bool finalized = false;
     cutlass::conv::Conv2dProblemSize problemSize;
     typename ImplicitGemm::Arguments initialArguments;
@@ -287,7 +287,7 @@ OIDN_NAMESPACE_BEGIN
 
   struct CutlassConvFactory
   {
-    Ref<Conv> (*make)(const Ref<CUDAEngine>&, const ConvDesc&);
+    Ref<Conv> (*make)(CUDAEngine*, const ConvDesc&);
 
     DataType dataType;
     DataType accumType;
@@ -322,7 +322,7 @@ OIDN_NAMESPACE_BEGIN
     template<Activation activation>
     using CutlassConvType = CutlassConv<T, AccumT, SmArch, ThreadblockShape, WarpShape, numStages, activation>;
 
-    static Ref<Conv> make(const Ref<CUDAEngine>& engine, const ConvDesc& desc)
+    static Ref<Conv> make(CUDAEngine* engine, const ConvDesc& desc)
     {
       switch (desc.activation)
       {

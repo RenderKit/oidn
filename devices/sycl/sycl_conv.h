@@ -9,20 +9,20 @@
 OIDN_NAMESPACE_BEGIN
 
   namespace xelp {
-    Ref<Conv> newSYCLConv(const Ref<SYCLEngine>& engine, const ConvDesc& desc);
+    Ref<Conv> newSYCLConv(SYCLEngine* engine, const ConvDesc& desc);
   }
 
   namespace xehpg {
-    Ref<Conv> newSYCLConv(const Ref<SYCLEngine>& engine, const ConvDesc& desc);
+    Ref<Conv> newSYCLConv(SYCLEngine* engine, const ConvDesc& desc);
   }
 
 #if defined(__linux__)
   namespace xehpc {
-    Ref<Conv> newSYCLConv(const Ref<SYCLEngine>& engine, const ConvDesc& desc);
+    Ref<Conv> newSYCLConv(SYCLEngine* engine, const ConvDesc& desc);
   }
   /*
   namespace xehpc_fast {
-    Ref<Conv> newSYCLConv(const Ref<SYCLEngine>& engine, const ConvDesc& desc);
+    Ref<Conv> newSYCLConv(SYCLEngine* engine, const ConvDesc& desc);
   }
   */
 #endif

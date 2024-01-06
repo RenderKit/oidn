@@ -37,7 +37,7 @@ OIDN_NAMESPACE_BEGIN
     assert(desc.isValid());
   }
 
-  Ref<Tensor> Tensor::toDevice(const Ref<Engine>& engine, Storage storage)
+  Ref<Tensor> Tensor::toDevice(Engine* engine, Storage storage)
   {
     return this;
   }
@@ -131,7 +131,7 @@ OIDN_NAMESPACE_BEGIN
       alignedFree(ptr);
   }
 
-  Ref<Tensor> HostTensor::toDevice(const Ref<Engine>& engine, Storage storage)
+  Ref<Tensor> HostTensor::toDevice(Engine* engine, Storage storage)
   {
     const size_t byteSize = getByteSize();
     auto bufferCopy = engine->newBuffer(byteSize, storage);
@@ -143,7 +143,7 @@ OIDN_NAMESPACE_BEGIN
   // DeviceTensor
   // -----------------------------------------------------------------------------------------------
 
-  DeviceTensor::DeviceTensor(const Ref<Engine>& engine, const TensorDesc& desc, Storage storage)
+  DeviceTensor::DeviceTensor(Engine* engine, const TensorDesc& desc, Storage storage)
     : Tensor(desc)
   {
     buffer = engine->newBuffer(getByteSize(), storage);

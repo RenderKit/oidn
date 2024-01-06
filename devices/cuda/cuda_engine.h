@@ -57,7 +57,7 @@ OIDN_NAMESPACE_BEGIN
   class CUDAEngine final : public Engine
   {
   public:
-    CUDAEngine(const Ref<CUDADevice>& device,
+    CUDAEngine(CUDADevice* device,
                cudaStream_t stream);
 
     Device* getDevice() const override { return device; }

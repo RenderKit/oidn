@@ -67,7 +67,7 @@ OIDN_NAMESPACE_BEGIN
     this->ptr = static_cast<char*>(buffer->getPtr()) + byteOffset;
   }
 
-  Image::Image(const Ref<Engine>& engine, Format format, size_t width, size_t height)
+  Image::Image(Engine* engine, Format format, size_t width, size_t height)
     : Memory(engine->newBuffer(width * height * getFormatSize(format), Storage::Device)),
       ImageDesc(format, width, height)
   {

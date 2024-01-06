@@ -5,21 +5,19 @@
 #pragma once
 
 #include "core/buffer.h"
-#include "metal_common.h"
+#include "metal_engine.h"
 
 OIDN_NAMESPACE_BEGIN
-
-  class MetalEngine;
 
   class MetalBuffer : public Buffer
   {
   public:
-    MetalBuffer(const Ref<MetalEngine>& engine, size_t byteSize, Storage storage);
+    MetalBuffer(MetalEngine* engine, size_t byteSize, Storage storage);
     MetalBuffer(const Ref<Arena>& arena, size_t byteSize, size_t byteOffset);
-    MetalBuffer(const Ref<MetalEngine>& engine, id<MTLBuffer> buffer);
+    MetalBuffer(MetalEngine* engine, id<MTLBuffer> buffer);
     ~MetalBuffer();
 
-    Engine* getEngine() const override { return (Engine*)engine.get(); }
+    Engine* getEngine() const override { return engine; }
     id<MTLBuffer> getMTLBuffer() const { return buffer; }
     void* getPtr() const override;
     void* getHostPtr() const override;
@@ -40,7 +38,7 @@ OIDN_NAMESPACE_BEGIN
     id<MTLBuffer> buffer;
     size_t byteSize;
     Storage storage;
-    Ref<MetalEngine> engine;
+    MetalEngine* engine;
   };
 
 OIDN_NAMESPACE_END

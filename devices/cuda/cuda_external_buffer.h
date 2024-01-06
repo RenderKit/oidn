@@ -11,11 +11,11 @@ OIDN_NAMESPACE_BEGIN
   class CUDAExternalBuffer : public USMBuffer
   {
   public:
-    CUDAExternalBuffer(const Ref<Engine>& engine,
+    CUDAExternalBuffer(Engine* engine,
                        ExternalMemoryTypeFlag fdType,
                        int fd, size_t byteSize);
 
-    CUDAExternalBuffer(const Ref<Engine>& engine,
+    CUDAExternalBuffer(Engine* engine,
                        ExternalMemoryTypeFlag handleType,
                        void* handle, const void* name, size_t byteSize);
 

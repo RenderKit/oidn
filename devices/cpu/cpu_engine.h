@@ -11,7 +11,7 @@ OIDN_NAMESPACE_BEGIN
   class CPUEngine : public Engine
   {
   public:
-    explicit CPUEngine(const Ref<CPUDevice>& device);
+    explicit CPUEngine(CPUDevice* device);
 
     Device* getDevice() const override { return device; }
 

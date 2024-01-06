@@ -55,7 +55,7 @@ OIDN_NAMESPACE_BEGIN
     static constexpr int minSMArch = 70;
     static constexpr int maxSMArch = 99;
 
-    Ref<CUDAEngine> engine;
+    std::unique_ptr<CUDAEngine> engine;
 
     int deviceID = 0;
     int prevDeviceID = -1;

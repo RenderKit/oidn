@@ -32,7 +32,7 @@ OIDN_NAMESPACE_BEGIN
   class GPUImageCopy final : public ImageCopy
   {
   public:
-    explicit GPUImageCopy(const Ref<EngineT>& engine)
+    explicit GPUImageCopy(EngineT* engine)
       : engine(engine) {}
 
   #if defined(OIDN_COMPILE_METAL)
@@ -59,7 +59,7 @@ OIDN_NAMESPACE_BEGIN
     }
 
   private:
-    Ref<EngineT> engine;
+    EngineT* engine;
 
   #if defined(OIDN_COMPILE_METAL)
     Ref<MetalPipeline> pipeline;

@@ -11,8 +11,8 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  CPUEngine::CPUEngine(const Ref<CPUDevice>& device)
-    : device(device.get())
+  CPUEngine::CPUEngine(CPUDevice* device)
+    : device(device)
   {}
 
   void CPUEngine::runHostTask(std::function<void()>&& f)

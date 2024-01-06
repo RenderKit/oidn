@@ -53,7 +53,7 @@ OIDN_NAMESPACE_BEGIN
     void init() override;
 
   private:
-    Ref<MetalEngine> engine;
+    std::unique_ptr<MetalEngine> engine;
 
     id<MTLDevice> device;
     id<MTLCommandQueue> userCommandQueue = nil; // user-provided command queue (optional)

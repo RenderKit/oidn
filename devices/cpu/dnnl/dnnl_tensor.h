@@ -12,7 +12,7 @@ OIDN_NAMESPACE_BEGIN
   class DNNLTensor final : public Tensor
   {
   public:
-    DNNLTensor(const Ref<DNNLEngine>& engine, const TensorDesc& desc, Storage storage);
+    DNNLTensor(DNNLEngine* engine, const TensorDesc& desc, Storage storage);
     DNNLTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset);
 
     void* getPtr() const override { return mem.get_data_handle(); }

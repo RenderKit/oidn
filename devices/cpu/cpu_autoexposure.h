@@ -11,11 +11,8 @@ OIDN_NAMESPACE_BEGIN
   class CPUAutoexposure final : public Autoexposure
   {
   public:
-    CPUAutoexposure(const Ref<CPUEngine>& engine, const ImageDesc& srcDesc);
+    CPUAutoexposure(CPUEngine* engine, const ImageDesc& srcDesc);
     void submit() override;
-
-  private:
-    Ref<CPUEngine> engine;
   };
 
 OIDN_NAMESPACE_END

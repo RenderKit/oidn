@@ -9,10 +9,11 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  MetalBuffer::MetalBuffer(const Ref<MetalEngine>& engine,
+  MetalBuffer::MetalBuffer(MetalEngine* engine,
                            size_t byteSize,
                            Storage storage)
-    : buffer(nullptr),
+    : Buffer(engine->getDevice()),
+      buffer(nullptr),
       byteSize(byteSize),
       storage((storage == Storage::Undefined) ? Storage::Host : storage),
       engine(engine)
@@ -38,7 +39,8 @@ OIDN_NAMESPACE_BEGIN
     init();
   }
 
-  MetalBuffer::MetalBuffer(const Ref<MetalEngine>& engine, id<MTLBuffer> buffer)
+  MetalBuffer::MetalBuffer(MetalEngine* engine, id<MTLBuffer> buffer)
+    : Buffer(engine->getDevice())
   {
     if (!buffer)
       throw Exception(Error::InvalidArgument, "Metal buffer is null");

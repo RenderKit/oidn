@@ -5,7 +5,7 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  CUDAExternalBuffer::CUDAExternalBuffer(const Ref<Engine>& engine,
+  CUDAExternalBuffer::CUDAExternalBuffer(Engine* engine,
                                          ExternalMemoryTypeFlag fdType,
                                          int fd, size_t byteSize)
     : USMBuffer(engine)
@@ -21,7 +21,7 @@ OIDN_NAMESPACE_BEGIN
     init(handleDesc);
   }
 
-  CUDAExternalBuffer::CUDAExternalBuffer(const Ref<Engine>& engine,
+  CUDAExternalBuffer::CUDAExternalBuffer(Engine* engine,
                                          ExternalMemoryTypeFlag handleType,
                                          void* handle, const void* name, size_t byteSize)
     : USMBuffer(engine)

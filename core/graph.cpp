@@ -13,7 +13,7 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  Graph::Graph(const Ref<Engine>& engine,
+  Graph::Graph(Engine* engine,
                const std::shared_ptr<TensorMap>& constTensors,
                bool fastMath)
     : engine(engine),

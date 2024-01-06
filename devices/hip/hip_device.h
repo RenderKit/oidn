@@ -61,7 +61,7 @@ OIDN_NAMESPACE_BEGIN
   private:
     void init() override;
 
-    Ref<HIPEngine> engine;
+    std::unique_ptr<HIPEngine> engine;
 
     int deviceID = 0;
     int prevDeviceID = -1;

@@ -11,14 +11,13 @@ OIDN_NAMESPACE_BEGIN
   class BNNSPool : public Pool
   {
   public:
-    BNNSPool(const Ref<BNNSEngine>& engine, const PoolDesc& desc);
+    BNNSPool(BNNSEngine* engine, const PoolDesc& desc);
     ~BNNSPool();
 
     void finalize() override;
     void submit() override;
 
   private:
-    Ref<BNNSEngine> engine;
     BNNSFilter filter = nullptr;
   };
 

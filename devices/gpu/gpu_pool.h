@@ -55,7 +55,7 @@ OIDN_NAMESPACE_BEGIN
   class GPUPool : public Pool
   {
   public:
-    GPUPool(const Ref<EngineT>& engine,
+    GPUPool(EngineT* engine,
             const PoolDesc& desc)
       : Pool(desc),
         engine(engine) {}
@@ -76,7 +76,7 @@ OIDN_NAMESPACE_BEGIN
     }
 
   private:
-    Ref<EngineT> engine;
+    EngineT* engine;
   };
 
 OIDN_NAMESPACE_END

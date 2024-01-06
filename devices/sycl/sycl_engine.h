@@ -20,7 +20,7 @@ OIDN_NAMESPACE_BEGIN
     friend class SYCLDevice;
 
   public:
-    SYCLEngine(const Ref<SYCLDevice>& device,
+    SYCLEngine(SYCLDevice* device,
                const sycl::queue& syclQueue);
 
     Device* getDevice() const override { return device; }

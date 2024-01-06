@@ -6,7 +6,7 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  MetalConv::MetalConv(const Ref<MetalEngine>& engine, const ConvDesc& desc)
+  MetalConv::MetalConv(MetalEngine* engine, const ConvDesc& desc)
     : Conv(desc),
       engine(engine)
   {}

@@ -6,6 +6,7 @@ Version History
 -   Improved denoising quality (better fine detail reconstruction)
 -   Added support for Intel Meteor Lake GPUs
 -   Added Metal device for Apple silicon GPUs (requires macOS Ventura or newer)
+-   Fixed crash when releasing a buffer after releasing the device
 
 ### Changes in v2.1.0:
 

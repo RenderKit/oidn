@@ -8,6 +8,6 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  Ref<Conv> newCUDAConv(const Ref<CUDAEngine>& engine, const ConvDesc& desc);
+  Ref<Conv> newCUDAConv(CUDAEngine* engine, const ConvDesc& desc);
 
 OIDN_NAMESPACE_END

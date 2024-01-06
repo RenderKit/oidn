@@ -11,7 +11,7 @@ OIDN_NAMESPACE_BEGIN
   // ScratchArenaManager
   // -----------------------------------------------------------------------------------------------
 
-  ScratchArenaManager::ScratchArenaManager(const Ref<Engine>& engine)
+  ScratchArenaManager::ScratchArenaManager(Engine* engine)
     : engine(engine)
   {}
 
@@ -84,11 +84,6 @@ OIDN_NAMESPACE_BEGIN
       manager->detach(this);
     }
     catch (...) {}
-  }
-
-  Engine* ScratchArena::getEngine() const
-  {
-    return manager->engine.get();
   }
 
   Storage ScratchArena::getStorage() const

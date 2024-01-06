@@ -170,9 +170,9 @@ OIDN_NAMESPACE_BEGIN
   #endif
 
   #if defined(OIDN_DNNL)
-    engine = makeRef<DNNLEngine>(this);
+    engine.reset(new DNNLEngine(this));
   #elif defined(OIDN_BNNS)
-    engine = makeRef<BNNSEngine>(this);
+    engine.reset(new BNNSEngine(this));
   #endif
   }
 

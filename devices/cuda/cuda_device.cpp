@@ -171,7 +171,7 @@ OIDN_NAMESPACE_BEGIN
     externalMemoryTypes = ExternalMemoryTypeFlag::OpaqueFD;
 #endif
 
-    engine = makeRef<CUDAEngine>(this, stream);
+    engine.reset(new CUDAEngine(this, stream));
   }
 
   Storage CUDADevice::getPtrStorage(const void* ptr)

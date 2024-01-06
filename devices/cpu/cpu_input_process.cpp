@@ -7,9 +7,8 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  CPUInputProcess::CPUInputProcess(const Ref<CPUEngine>& engine, const InputProcessDesc& desc)
-    : InputProcess(engine, desc),
-      engine(engine) {}
+  CPUInputProcess::CPUInputProcess(CPUEngine* engine, const InputProcessDesc& desc)
+    : InputProcess(engine, desc) {}
 
   void CPUInputProcess::submit()
   {

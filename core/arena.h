@@ -43,7 +43,7 @@ OIDN_NAMESPACE_BEGIN
     friend class ScratchArena;
 
   public:
-    ScratchArenaManager(const Ref<Engine>& engine);
+    ScratchArenaManager(Engine* engine);
 
   private:
     // Allocation consisting of a heap and a set of scratch arenas sharing this heap
@@ -57,7 +57,7 @@ OIDN_NAMESPACE_BEGIN
     Heap* attach(ScratchArena* arena);
     void detach(ScratchArena* arena);
 
-    Ref<Engine> engine;
+    Engine* engine;
     std::unordered_map<std::string, Alloc> allocs;
   };
 
@@ -75,7 +75,7 @@ OIDN_NAMESPACE_BEGIN
                  const std::string& name);
     ~ScratchArena();
 
-    Engine* getEngine() const override;
+    Engine* getEngine() const override { return manager->engine; }
     Heap* getHeap() const override { return heap; }
     size_t getByteSize() const override { return byteSize; }
     Storage getStorage() const override;

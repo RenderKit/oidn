@@ -35,9 +35,10 @@ OIDN_NAMESPACE_BEGIN
   class ScratchArenaManager;
 
   // A device consists of one or more execution "engines"
-  class Engine : public RefCount
+  class Engine
   {
   public:
+    Engine() = default;
     virtual ~Engine() = default;
 
     virtual Device* getDevice() const = 0;
@@ -114,6 +115,10 @@ OIDN_NAMESPACE_BEGIN
     };
 
   private:
+    // Disable copying
+    Engine(const Engine&) = delete;
+    Engine& operator =(const Engine&) = delete;
+
     // Memory
     std::weak_ptr<ScratchArenaManager> scratchArenaManagerWp;
   };

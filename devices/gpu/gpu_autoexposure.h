@@ -171,7 +171,7 @@ OIDN_NAMESPACE_BEGIN
     static_assert(groupSize >= maxBinSize * maxBinSize, "GPUAutoexposure groupSize is too small");
 
   public:
-    GPUAutoexposure(const Ref<EngineT>& engine, const ImageDesc& srcDesc)
+    GPUAutoexposure(EngineT* engine, const ImageDesc& srcDesc)
       : Autoexposure(srcDesc),
         engine(engine)
     {
@@ -248,7 +248,7 @@ OIDN_NAMESPACE_BEGIN
     }
 
   private:
-    Ref<EngineT> engine;
+    EngineT* engine;
     int numGroups;
     size_t scratchByteSize;
     Ref<Buffer> scratch;

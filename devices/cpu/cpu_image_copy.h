@@ -11,11 +11,8 @@ OIDN_NAMESPACE_BEGIN
   class CPUImageCopy final : public ImageCopy
   {
   public:
-    explicit CPUImageCopy(const Ref<CPUEngine>& engine);
+    explicit CPUImageCopy(CPUEngine* engine);
     void submit() override;
-
-  private:
-    Ref<CPUEngine> engine;
   };
 
 OIDN_NAMESPACE_END

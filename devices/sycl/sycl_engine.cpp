@@ -11,9 +11,9 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  SYCLEngine::SYCLEngine(const Ref<SYCLDevice>& device,
+  SYCLEngine::SYCLEngine(SYCLDevice* device,
                          const sycl::queue& syclQueue)
-    : device(device.get()),
+    : device(device),
       syclQueue(syclQueue)
   {
     auto syclDevice = syclQueue.get_device();

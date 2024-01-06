@@ -87,7 +87,7 @@ OIDN_NAMESPACE_BEGIN
       >;
 
   public:
-    CKConvWMMA(const Ref<HIPEngine>& engine, const ConvDesc& desc)
+    CKConvWMMA(HIPEngine* engine, const ConvDesc& desc)
       : Conv(desc),
         engine(engine)
     {
@@ -154,10 +154,10 @@ OIDN_NAMESPACE_BEGIN
     WeiElementOp weiElementOp;
     OutElementOp outElementOp;
 
-    Ref<HIPEngine> engine;
+    HIPEngine* engine;
   };
 
-  Ref<Conv> newHIPConvWMMA(const Ref<HIPEngine>& engine, const ConvDesc& desc)
+  Ref<Conv> newHIPConvWMMA(HIPEngine* engine, const ConvDesc& desc)
   {
     if (desc.srcDesc.dataType == DataType::Float16 && desc.activation == Activation::None)
       return makeRef<CKConvWMMA<half, Activation::None>>(engine, desc);

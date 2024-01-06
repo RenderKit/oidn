@@ -79,7 +79,7 @@ OIDN_NAMESPACE_BEGIN
   class GPUOutputProcess : public OutputProcess
   {
   public:
-    GPUOutputProcess(const Ref<EngineT>& engine, const OutputProcessDesc& desc)
+    GPUOutputProcess(EngineT* engine, const OutputProcessDesc& desc)
       : OutputProcess(desc),
         engine(engine) {}
 
@@ -118,7 +118,7 @@ OIDN_NAMESPACE_BEGIN
     }
 
   private:
-    Ref<EngineT> engine;
+    EngineT* engine;
 
   #if defined(OIDN_COMPILE_METAL)
     Ref<MetalPipeline> pipeline;

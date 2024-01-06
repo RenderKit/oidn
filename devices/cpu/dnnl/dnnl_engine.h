@@ -10,7 +10,7 @@ OIDN_NAMESPACE_BEGIN
   class DNNLEngine final : public CPUEngine
   {
   public:
-    explicit DNNLEngine(const Ref<CPUDevice>& device);
+    explicit DNNLEngine(CPUDevice* device);
 
     oidn_inline dnnl::engine& getDNNLEngine() { return dnnlEngine; }
     oidn_inline dnnl::stream& getDNNLStream() { return dnnlStream; }

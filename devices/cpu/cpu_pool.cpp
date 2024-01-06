@@ -7,9 +7,8 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  CPUPool::CPUPool(const Ref<CPUEngine>& engine, const PoolDesc& desc)
-    : Pool(desc),
-      engine(engine)
+  CPUPool::CPUPool(CPUEngine* engine, const PoolDesc& desc)
+    : Pool(desc)
   {
     if (srcDesc.layout != TensorLayout::Chw8c &&
         srcDesc.layout != TensorLayout::Chw16c)

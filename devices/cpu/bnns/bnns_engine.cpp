@@ -7,7 +7,7 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  BNNSEngine::BNNSEngine(const Ref<CPUDevice>& device)
+  BNNSEngine::BNNSEngine(CPUDevice* device)
     : CPUEngine(device)
   {}
 

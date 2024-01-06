@@ -11,11 +11,11 @@ OIDN_NAMESPACE_BEGIN
   class HIPExternalBuffer : public USMBuffer
   {
   public:
-    HIPExternalBuffer(const Ref<Engine>& engine,
+    HIPExternalBuffer(Engine* engine,
                       ExternalMemoryTypeFlag fdType,
                       int fd, size_t byteSize);
 
-    HIPExternalBuffer(const Ref<Engine>& engine,
+    HIPExternalBuffer(Engine* engine,
                       ExternalMemoryTypeFlag handleType,
                       void* handle, const void* name, size_t byteSize);
 

@@ -14,7 +14,7 @@ OIDN_NAMESPACE_BEGIN
       current(0)
   {}
 
-  void Progress::start(const Ref<Engine>& engine, ProgressMonitorFunction func, void* userPtr, double total)
+  void Progress::start(Engine* engine, ProgressMonitorFunction func, void* userPtr, double total)
   {
     cancelled = false;
     enabled = func != nullptr;
@@ -36,7 +36,7 @@ OIDN_NAMESPACE_BEGIN
     checkCancelled();
   }
 
-  void Progress::update(const Ref<Engine>& engine, double done)
+  void Progress::update(Engine* engine, double done)
   {
     assert(done >= 0);
 
@@ -53,7 +53,7 @@ OIDN_NAMESPACE_BEGIN
     checkCancelled();
   }
 
-  void Progress::finish(const Ref<Engine>& engine)
+  void Progress::finish(Engine* engine)
   {
     if (!enabled)
       return;

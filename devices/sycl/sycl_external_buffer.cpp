@@ -5,7 +5,7 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  SYCLExternalBuffer::SYCLExternalBuffer(const Ref<SYCLEngine>& engine,
+  SYCLExternalBuffer::SYCLExternalBuffer(SYCLEngine* engine,
                                          ExternalMemoryTypeFlag fdType,
                                          int fd, size_t byteSize)
     : USMBuffer(engine)
@@ -24,7 +24,7 @@ OIDN_NAMESPACE_BEGIN
     init(engine, &importDesc, byteSize);
   }
 
-  SYCLExternalBuffer::SYCLExternalBuffer(const Ref<SYCLEngine>& engine,
+  SYCLExternalBuffer::SYCLExternalBuffer(SYCLEngine* engine,
                                          ExternalMemoryTypeFlag handleType,
                                          void* handle, const void* name, size_t byteSize)
     : USMBuffer(engine)
@@ -44,7 +44,7 @@ OIDN_NAMESPACE_BEGIN
     init(engine, &importDesc, byteSize);
   }
 
-  void SYCLExternalBuffer::init(const Ref<SYCLEngine>& engine, const void* importDesc, size_t byteSize)
+  void SYCLExternalBuffer::init(SYCLEngine* engine, const void* importDesc, size_t byteSize)
   {
     void* ptr = nullptr;
 

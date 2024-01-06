@@ -11,7 +11,7 @@ OIDN_NAMESPACE_BEGIN
   class MetalConv final : public Conv
   {
   public:
-    MetalConv(const Ref<MetalEngine>& engine, const ConvDesc& desc);
+    MetalConv(MetalEngine* engine, const ConvDesc& desc);
     ~MetalConv();
 
     void finalize() override;
@@ -21,7 +21,7 @@ OIDN_NAMESPACE_BEGIN
     void updateWeight() override;
     void updateBias() override;
 
-    Ref<MetalEngine> engine;
+    MetalEngine* engine;
     MPSGraph* mpsGraph = nullptr;
     MPSGraphTensor* mpsSrc = nullptr;
     MPSGraphTensor* mpsWeight = nullptr;

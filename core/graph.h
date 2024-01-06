@@ -17,7 +17,7 @@ OIDN_NAMESPACE_BEGIN
   class Graph final : public RefCount
   {
   public:
-    Graph(const Ref<Engine>& engine,
+    Graph(Engine* engine,
           const std::shared_ptr<TensorMap>& constTensors,
           bool fastMath = false);
 
@@ -86,7 +86,7 @@ OIDN_NAMESPACE_BEGIN
     void planAllocs();
     void cleanup();
 
-    Ref<Engine> engine;
+    Engine* engine;
     std::vector<Ref<Op>> ops;
     Ref<Buffer> scratch;        // scratch buffer
     size_t scratchByteSize = 0; // total size of scratch data

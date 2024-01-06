@@ -2,11 +2,10 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "metal_heap.h"
-#include "metal_engine.h"
 
 OIDN_NAMESPACE_BEGIN
 
-  MetalHeap::MetalHeap(const Ref<MetalEngine>& engine, size_t byteSize, Storage storage)
+  MetalHeap::MetalHeap(MetalEngine* engine, size_t byteSize, Storage storage)
     : heap(nullptr),
       byteSize(byteSize),
       storage((storage == Storage::Undefined) ? Storage::Device : storage),
@@ -54,11 +53,6 @@ OIDN_NAMESPACE_BEGIN
     byteSize = newByteSize;
     init();
     postRealloc();
-  }
-
-  Engine* MetalHeap::getEngine() const
-  {
-    return engine.get();
   }
 
 OIDN_NAMESPACE_END

@@ -7,8 +7,8 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  CPUImageCopy::CPUImageCopy(const Ref<CPUEngine>& engine)
-    : engine(engine) {}
+  CPUImageCopy::CPUImageCopy(CPUEngine* engine)
+  {}
 
   void CPUImageCopy::submit()
   {

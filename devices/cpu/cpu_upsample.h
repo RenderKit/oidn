@@ -11,11 +11,8 @@ OIDN_NAMESPACE_BEGIN
   class CPUUpsample final : public Upsample
   {
   public:
-    CPUUpsample(const Ref<CPUEngine>& engine, const UpsampleDesc& desc);
+    CPUUpsample(CPUEngine* engine, const UpsampleDesc& desc);
     void submit() override;
-
-  private:
-    Ref<CPUEngine> engine;
   };
 
 OIDN_NAMESPACE_END

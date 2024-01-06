@@ -68,7 +68,7 @@ OIDN_NAMESPACE_BEGIN
 
     sycl::context syclContext;
     ze_context_handle_t zeContext = nullptr; // Level Zero context
-    std::vector<Ref<SYCLEngine>> engines;
+    std::vector<std::unique_ptr<SYCLEngine>> engines;
     SYCLArch arch = SYCLArch::Unknown;
     int numSubdevices = 0; // autodetect by default
 

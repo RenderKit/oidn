@@ -6,7 +6,7 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  InputProcess::InputProcess(const Ref<Engine>& engine, const InputProcessDesc& desc)
+  InputProcess::InputProcess(Engine* engine, const InputProcessDesc& desc)
     : InputProcessDesc(desc)
   {
     if (srcDims.size() != 3)

@@ -207,7 +207,7 @@ OIDN_NAMESPACE_BEGIN
       return TensorAccessor4D<T, accessorLayout>(getPtr(), getPaddedO(), getPaddedI(), getH(), getW());
     }
 
-    virtual Ref<Tensor> toDevice(const Ref<Engine>& engine, Storage storage = Storage::Device);
+    virtual Ref<Tensor> toDevice(Engine* engine, Storage storage = Storage::Device);
 
     // Debug
   #if 0
@@ -233,7 +233,7 @@ OIDN_NAMESPACE_BEGIN
 
     void* getPtr() const override { return ptr; }
 
-    Ref<Tensor> toDevice(const Ref<Engine>& engine, Storage storage = Storage::Device) override;
+    Ref<Tensor> toDevice(Engine* engine, Storage storage = Storage::Device) override;
 
   private:
     void* ptr;   // pointer to the tensor data
@@ -243,7 +243,7 @@ OIDN_NAMESPACE_BEGIN
   class DeviceTensor final : public Tensor
   {
   public:
-    DeviceTensor(const Ref<Engine>& engine, const TensorDesc& desc, Storage storage);
+    DeviceTensor(Engine* engine, const TensorDesc& desc, Storage storage);
     DeviceTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset = 0);
 
     void* getPtr() const override { return ptr; }

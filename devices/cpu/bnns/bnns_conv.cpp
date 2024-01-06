@@ -5,9 +5,8 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  BNNSConv::BNNSConv(const Ref<BNNSEngine>& engine, const ConvDesc& desc)
-    : Conv(desc),
-      engine(engine) {}
+  BNNSConv::BNNSConv(BNNSEngine* engine, const ConvDesc& desc)
+    : Conv(desc) {}
 
   BNNSConv::~BNNSConv()
   {

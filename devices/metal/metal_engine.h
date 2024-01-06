@@ -25,7 +25,7 @@ OIDN_NAMESPACE_BEGIN
   class MetalEngine : public Engine
   {
   public:
-    explicit MetalEngine(const Ref<MetalDevice>& device);
+    explicit MetalEngine(MetalDevice* device);
     ~MetalEngine();
 
     Device* getDevice() const override { return device; }

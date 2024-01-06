@@ -78,7 +78,7 @@ OIDN_NAMESPACE_BEGIN
     Image(void* ptr, Format format, size_t width, size_t height, size_t byteOffset, size_t pixelByteStride, size_t rowByteStride);
     Image(const Ref<Buffer>& buffer, const ImageDesc& desc, size_t byteOffset);
     Image(const Ref<Buffer>& buffer, Format format, size_t width, size_t height, size_t byteOffset, size_t pixelByteStride, size_t rowByteStride);
-    Image(const Ref<Engine>& engine, Format format, size_t width, size_t height);
+    Image(Engine* engine, Format format, size_t width, size_t height);
 
     void postRealloc() override;
 

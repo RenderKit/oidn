@@ -111,7 +111,7 @@ OIDN_NAMESPACE_BEGIN
       systemMemorySupported  = false;
       managedMemorySupported = false;
 
-      engine = makeRef<MetalEngine>(this);
+      engine.reset(new MetalEngine(this));
     }
   }
 

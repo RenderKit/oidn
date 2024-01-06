@@ -4,21 +4,19 @@
 #pragma once
 
 #include "core/heap.h"
-#include "metal_common.h"
+#include "metal_engine.h"
 
 OIDN_NAMESPACE_BEGIN
-
-  class MetalEngine;
 
   class MetalHeap : public Heap
   {
     friend class MetalBuffer;
 
   public:
-    MetalHeap(const Ref<MetalEngine>& engine, size_t byteSize, Storage storage);
+    MetalHeap(MetalEngine* engine, size_t byteSize, Storage storage);
     ~MetalHeap();
 
-    Engine* getEngine() const override;
+    Engine* getEngine() const override { return engine; }
     size_t getByteSize() const override { return byteSize; }
     Storage getStorage() const override { return storage; }
 
@@ -31,7 +29,7 @@ OIDN_NAMESPACE_BEGIN
     id<MTLHeap> heap;
     size_t byteSize;
     Storage storage;
-    Ref<MetalEngine> engine;
+    MetalEngine* engine;
   };
 
 OIDN_NAMESPACE_END

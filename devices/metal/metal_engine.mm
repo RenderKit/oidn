@@ -14,8 +14,8 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  MetalEngine::MetalEngine(const Ref<MetalDevice>& device)
-    : device(device.get())
+  MetalEngine::MetalEngine(MetalDevice* device)
+    : device(device)
   {
     if (device->userCommandQueue)
       commandQueue = [device->userCommandQueue retain];

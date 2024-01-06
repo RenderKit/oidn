@@ -55,7 +55,7 @@ OIDN_NAMESPACE_BEGIN
   class GPUUpsample : public Upsample
   {
   public:
-    GPUUpsample(const Ref<EngineT>& engine,
+    GPUUpsample(EngineT* engine,
                 const UpsampleDesc& desc)
       : Upsample(desc),
         engine(engine) {}
@@ -76,7 +76,7 @@ OIDN_NAMESPACE_BEGIN
     }
 
   private:
-    Ref<EngineT> engine;
+    EngineT* engine;
   };
 
 OIDN_NAMESPACE_END

@@ -37,7 +37,7 @@ OIDN_NAMESPACE_BEGIN
   // USMHeap
   // -----------------------------------------------------------------------------------------------
 
-  USMHeap::USMHeap(const Ref<Engine>& engine, size_t byteSize, Storage storage)
+  USMHeap::USMHeap(Engine* engine, size_t byteSize, Storage storage)
     : ptr(nullptr),
       byteSize(byteSize),
       storage(storage),
@@ -56,11 +56,6 @@ OIDN_NAMESPACE_BEGIN
       engine->usmFree(ptr, storage);
     }
     catch (...) {}
-  }
-
-  Engine* USMHeap::getEngine() const
-  {
-    return engine.get();
   }
 
   void USMHeap::realloc(size_t newByteSize)

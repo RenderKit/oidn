@@ -12,7 +12,7 @@ OIDN_NAMESPACE_BEGIN
   class ConcatConvCHW final : public ConcatConv
   {
   public:
-    ConcatConvCHW(const Ref<Engine>& engine, const ConcatConvDesc& desc);
+    ConcatConvCHW(Engine* engine, const ConcatConvDesc& desc);
 
     size_t getScratchByteSize() const override { return conv->getScratchByteSize(); }
     void setScratch(const Ref<Buffer>& scratch) override { conv->setScratch(scratch); }
@@ -29,7 +29,6 @@ OIDN_NAMESPACE_BEGIN
 
     TensorDesc srcDesc;         // pre-concatenated source
     Ref<Conv> conv;
-    Ref<Engine> engine;
   };
 
 OIDN_NAMESPACE_END

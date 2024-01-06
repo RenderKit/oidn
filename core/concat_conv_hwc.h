@@ -13,7 +13,7 @@ OIDN_NAMESPACE_BEGIN
   class ConcatConvHWC final : public ConcatConv
   {
   public:
-    ConcatConvHWC(const Ref<Engine>& engine, const ConcatConvDesc& desc);
+    ConcatConvHWC(Engine* engine, const ConcatConvDesc& desc);
 
     bool isSupported() const override;
 
@@ -37,8 +37,6 @@ OIDN_NAMESPACE_BEGIN
 
     Ref<Conv> conv1;
     Ref<Conv> conv2;
-
-    Ref<Engine> engine;
   };
 
 OIDN_NAMESPACE_END
