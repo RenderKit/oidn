@@ -6,6 +6,8 @@ Version History
 -   Improved denoising quality (better fine detail reconstruction)
 -   Added support for Intel Meteor Lake GPUs
 -   Added Metal device for Apple silicon GPUs (requires macOS Ventura or newer)
+-   Switched to the CUDA driver API by default, added the `OIDN_DEVICE_CUDA_API`
+    CMake option for manually selecting between the driver and runtime APIs
 -   Fixed crash when releasing a buffer after releasing the device
 
 ### Changes in v2.1.0:

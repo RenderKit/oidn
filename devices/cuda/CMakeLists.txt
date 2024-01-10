@@ -85,7 +85,28 @@ target_include_directories(OpenImageDenoise_device_cuda
     "${OIDN_ROOT_SOURCE_DIR}/external/cutlass/include"
     "${OIDN_ROOT_SOURCE_DIR}/external/cutlass/tools/util/include"
 )
-set_target_properties(OpenImageDenoise_device_cuda PROPERTIES CUDA_ARCHITECTURES OFF)
+
+if(OIDN_DEVICE_CUDA_API STREQUAL "Driver")
+  find_package(CUDAToolkit REQUIRED)
+
+  add_library(curtn STATIC curtn.cpp)
+  target_link_libraries(curtn PRIVATE CUDA::cuda_driver)
+  target_link_libraries(OpenImageDenoise_device_cuda PRIVATE curtn)
+
+  set(OIDN_CUDA_RUNTIME_LIBRARY "None")
+elseif(OIDN_DEVICE_CUDA_API STREQUAL "RuntimeStatic")
+  set(OIDN_CUDA_RUNTIME_LIBRARY "Static")
+elseif(OIDN_DEVICE_CUDA_API STREQUAL "RuntimeShared")
+  set(OIDN_CUDA_RUNTIME_LIBRARY "Shared")
+else()
+  message(FATAL_ERROR "Invalid OIDN_DEVICE_CUDA_API value")
+endif()
+
+set_target_properties(OpenImageDenoise_device_cuda
+  PROPERTIES
+    CUDA_ARCHITECTURES OFF
+    CUDA_RUNTIME_LIBRARY ${OIDN_CUDA_RUNTIME_LIBRARY}
+)
 
 target_link_libraries(OpenImageDenoise_device_cuda PRIVATE OpenImageDenoise_core)
 oidn_strip_symbols(OpenImageDenoise_device_cuda)

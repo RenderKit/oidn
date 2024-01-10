@@ -129,7 +129,7 @@ install(
 )
 
 # Install license
-if(OIDN_DEVICE_CUDA)
+if(OIDN_DEVICE_CUDA AND OIDN_DEVICE_CUDA_API MATCHES "Runtime.*")
   install(
     FILES ${PROJECT_SOURCE_DIR}/doc/BINARY-LICENSE.txt
     RENAME LICENSE.txt

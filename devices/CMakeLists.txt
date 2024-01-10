@@ -21,6 +21,11 @@ if(OIDN_DEVICE_SYCL)
 endif()
 
 if(OIDN_DEVICE_CUDA)
+  # Options
+  set(OIDN_DEVICE_CUDA_API "Driver" CACHE STRING "CUDA API to use (Driver, RuntimeStatic, RuntimeShared).")
+  set_property(CACHE OIDN_DEVICE_CUDA_API PROPERTY STRINGS "Driver" "RuntimeStatic" "RuntimeShared")
+  mark_as_advanced(OIDN_DEVICE_CUDA_API)
+
   # We need to build this an external project because we might need to switch to clang-cl
   # CMake does not support GNU-like compilers for CUDA
   if(WIN32 AND CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND NOT MSVC)
@@ -59,6 +64,7 @@ if(OIDN_DEVICE_CUDA)
       -DOIDN_API_NAMESPACE:STRING=${OIDN_API_NAMESPACE}
       -DOIDN_WARN_AS_ERRORS:BOOL=${OIDN_WARN_AS_ERRORS}
       -DOIDN_SANITIZER:STRING=${OIDN_SANITIZER}
+      -DOIDN_DEVICE_CUDA_API:STRING=${OIDN_DEVICE_CUDA_API}
     BUILD_ALWAYS TRUE
     DEPENDS
       OpenImageDenoise_core

@@ -265,6 +265,10 @@ The following list describes the options that can be configured in CMake:
 - `OIDN_DEVICE_CUDA`: Enable CUDA device support for NVIDIA GPUs (OFF by
   default).
 
+- `OIDN_DEVICE_CUDA_API`: Use the CUDA driver API (`Driver`, default), the
+  static CUDA runtime library (`RuntimeStatic`), or the shared CUDA runtime
+  library (`RuntimeShared`).
+
 - `OIDN_DEVICE_HIP`: Enable HIP device support for AMD GPUs (OFF by
   default).
 
