@@ -16,8 +16,8 @@ OIDN_NAMESPACE_BEGIN
 
     ispc::CPUOutputProcessKernel kernel;
 
-    kernel.src = toISPC(*src);
-    kernel.dst = toISPC(*dst);
+    kernel.src = *src;
+    kernel.dst = *dst;
     kernel.tile = toISPC(tile);
     kernel.transferFunc = toISPC(*transferFunc);
     kernel.hdr = hdr;

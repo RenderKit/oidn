@@ -11,7 +11,7 @@
 
 #if defined(__x86_64__) || defined(_M_X64)
   #define OIDN_ARCH_X64
-#elif defined(__aarch64__)
+#elif defined(__aarch64__) || defined(_M_ARM64)
   #define OIDN_ARCH_ARM64
 #endif
 
@@ -93,11 +93,11 @@
 #endif
 
 // Helper string macros
-#define OIDN_TO_STRING2(a) #a
-#define OIDN_TO_STRING(a) OIDN_TO_STRING2(a)
+#define _OIDN_TO_STRING(a) #a
+#define OIDN_TO_STRING(a) _OIDN_TO_STRING(a)
 
-#define OIDN_CONCAT2(a, b) a##b
-#define OIDN_CONCAT(a, b) OIDN_CONCAT2(a, b)
+#define _OIDN_CONCAT(a, b) a##b
+#define OIDN_CONCAT(a, b) _OIDN_CONCAT(a, b)
 
 // -------------------------------------------------------------------------------------------------
 // Includes

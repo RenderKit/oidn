@@ -110,6 +110,8 @@ OIDN_NAMESPACE_BEGIN
       return acc;
     }
 
+    operator ispc::ImageAccessor();
+
     // Determines whether two images overlap in memory
     bool overlaps(const Image& other) const;
 

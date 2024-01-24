@@ -2,7 +2,7 @@
 ## SPDX-License-Identifier: Apache-2.0
 
 # ISPC versions to look for, in descending order (newest first)
-set(ISPC_VERSION_WORKING "1.21.1" "1.21.0" "1.20.0" "1.19.0" "1.18.0" "1.17.0" "1.16.1" "1.16.0" "1.15.0" "1.14.1")
+set(ISPC_VERSION_WORKING "1.22.0" "1.21.1" "1.21.0")
 list(GET ISPC_VERSION_WORKING -1 ISPC_VERSION_REQUIRED)
 list(GET ISPC_VERSION_WORKING 0 ISPC_VERSION_LATEST)
 
@@ -163,8 +163,12 @@ macro(ispc_compile)
     list(LENGTH ISPC_TARGETS NUM_TARGETS)
     if(NUM_TARGETS GREATER 1)
       foreach(target ${ISPC_TARGETS})
+        string(REPLACE "sse4.1-" "sse4-" target ${target}) # strip sse4 minor version
+        string(REPLACE "sse4.2-" "sse4-" target ${target}) # strip sse4 minor version
+        string(REPLACE "-i32x4"  "" target ${target}) # strip sse2-i32x4
         string(REPLACE "-i32x8"  "" target ${target}) # strip (sse4|avx|avx2)-i32x8
         string(REPLACE "-i32x16" "" target ${target}) # strip avx512(knl|skx)-i32x16
+        string(REPLACE "-x16"    "" target ${target}) # strip avx512spr-x16
         set(results ${results} "${outdir}/${fname}.dev_${target}${ISPC_TARGET_EXT}")
       endforeach()
     endif()

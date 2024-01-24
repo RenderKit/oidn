@@ -9,14 +9,15 @@ struct CPUPoolKernel
   uniform TensorAccessor3D dst;
 };
 
-export void CPUPoolKernel_run(uniform CPUPoolKernel* uniform self, uniform int cb, uniform int h)
+export void CPUPoolKernel_run(const uniform CPUPoolKernel* uniform self,
+                              uniform int cb, uniform int h)
 {
-  const uniform size_t H = (size_t)self->dst.H;
-  const uniform size_t W = (size_t)self->dst.W;
+  const uniform size_t H = (uniform size_t)self->dst.H;
+  const uniform size_t W = (uniform size_t)self->dst.W;
 
   const uniform size_t offset = (cb*H + h) * (W*B);
-  uniform float* const uniform dstPtr_line  = self->dst.ptr + offset;
-  uniform float* const uniform srcPtr_line0 = self->src.ptr + offset * 4;
+  uniform float* const uniform dstPtr_line  = (uniform float* uniform)self->dst.ptr + offset;
+  uniform float* const uniform srcPtr_line0 = (uniform float* uniform)self->src.ptr + offset * 4;
   uniform float* const uniform srcPtr_line1 = srcPtr_line0 + W*2*B; // next line
 
   for (uniform size_t w = 0; w < W; ++w)

@@ -18,17 +18,25 @@ endif()
 
 if(OIDN_ARCH STREQUAL "X64")
   # oneDNN
-  set(OIDN_DNNL ON)
-  include(oidn_dnnl)
+  option(OIDN_DEVICE_CPU_ONEDNN "Enable oneDNN for CPU device." ON)
+  mark_as_advanced(OIDN_DEVICE_CPU_ONEDNN)
+  if(OIDN_DEVICE_CPU_ONEDNN)
+    set(OIDN_DNNL ON)
+    include(oidn_dnnl)
+  endif()
 elseif(APPLE AND OIDN_ARCH STREQUAL "ARM64")
   # BNNS
-  set(OIDN_BNNS ON)
-  include(oidn_bnns)
+  option(OIDN_DEVICE_CPU_BNNS "Enable BNNS for CPU device." ON)
+  mark_as_advanced(OIDN_DEVICE_CPU_BNNS)
+  if(OIDN_DEVICE_CPU_BNNS)
+    set(OIDN_BNNS ON)
+    include(oidn_bnns)
+  endif()
 endif()
 
 # ISPC
 if(OIDN_ARCH STREQUAL "X64")
-  set(OIDN_ISPC_TARGET_LIST sse4-i32x8;avx2-i32x8;avx512skx-i32x16)
+  set(OIDN_ISPC_TARGET_LIST sse4.1-i32x8;avx2-i32x8;avx512skx-i32x16)
 elseif(OIDN_ARCH STREQUAL "ARM64")
   set(OIDN_ISPC_TARGET_LIST neon-i32x8)
 endif()
@@ -59,7 +67,7 @@ set(OIDN_CPU_SOURCES
   tasking.cpp
 )
 
-set(CPU_SOURCES_ISPC
+set(OIDN_CPU_SOURCES_ISPC
   cpu_autoexposure.ispc
   cpu_image_copy.ispc
   cpu_input_process.ispc
@@ -70,6 +78,8 @@ set(CPU_SOURCES_ISPC
   color.ispc
   image_accessor.isph
   math.isph
+  platform.isph
+  #platform.ispc
   tensor_accessor.isph
   tile.isph
   vec.isph
@@ -97,6 +107,17 @@ elseif(OIDN_BNNS)
     bnns/bnns_pool.h
     bnns/bnns_pool.cpp
   )
+else()
+  list(APPEND OIDN_CPU_SOURCES
+    cpu_conv.h
+    cpu_conv.cpp
+  )
+
+  list(APPEND OIDN_CPU_SOURCES_ISPC
+    cpu_conv.ispc
+    cpu_conv_compute.isph
+    cpu_conv_compute_block.isph
+  )
 endif()
 
 add_library(OpenImageDenoise_device_cpu ${OIDN_LIB_TYPE} ${OIDN_CPU_SOURCES} ${OIDN_RESOURCE_FILE})
@@ -112,7 +133,12 @@ elseif(OIDN_BNNS)
   target_link_libraries(OpenImageDenoise_device_cpu PRIVATE "-framework Accelerate")
 endif()
 
-ispc_target_add_sources(OpenImageDenoise_device_cpu ${CPU_SOURCES_ISPC})
+ispc_target_add_sources(OpenImageDenoise_device_cpu ${OIDN_CPU_SOURCES_ISPC})
+if(OIDN_ARCH STREQUAL "X64")
+  set(OIDN_ISPC_TARGET_LIST sse2-i32x4;${OIDN_ISPC_TARGET_LIST}) # required just for ISA detection
+endif()
+ispc_target_add_sources(OpenImageDenoise_device_cpu platform.ispc)
+
 target_link_libraries(OpenImageDenoise_device_cpu PRIVATE OpenImageDenoise_core ${CMAKE_THREAD_LIBS_INIT} TBB::tbb)
 
 if(OIDN_STATIC_LIB)

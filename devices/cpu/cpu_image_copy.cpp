@@ -15,8 +15,8 @@ OIDN_NAMESPACE_BEGIN
     check();
 
     ispc::CPUImageCopyKernel kernel;
-    kernel.src = toISPC(*src);
-    kernel.dst = toISPC(*dst);
+    kernel.src = *src;
+    kernel.dst = *dst;
 
     parallel_nd(dst->getH(), [&](int h)
     {

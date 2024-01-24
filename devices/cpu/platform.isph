@@ -1,0 +1,22 @@
+// Copyright 2024 Intel Corporation
+// SPDX-License-Identifier: Apache-2.0
+
+#pragma once
+
+// -------------------------------------------------------------------------------------------------
+// Macros
+// -------------------------------------------------------------------------------------------------
+
+#define _OIDN_CONCAT(a, b) a##b
+#define OIDN_CONCAT(a, b) _OIDN_CONCAT(a, b)
+
+// -------------------------------------------------------------------------------------------------
+// Types
+// -------------------------------------------------------------------------------------------------
+
+#ifndef ISPC_UINT_IS_DEFINED
+typedef unsigned int8  uint8;
+typedef unsigned int16 uint16;
+typedef unsigned int32 uint32;
+typedef unsigned int64 uint64;
+#endif

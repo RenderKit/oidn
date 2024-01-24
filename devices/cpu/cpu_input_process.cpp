@@ -17,10 +17,10 @@ OIDN_NAMESPACE_BEGIN
     ispc::CPUInputProcessKernel kernel;
     Image nullImage;
 
-    kernel.input  = toISPC(color ? *color : (albedo ? *albedo : *normal));
-    kernel.albedo = toISPC((color && albedo) ? *albedo : nullImage);
-    kernel.normal = toISPC((color && normal) ? *normal : nullImage);
-    kernel.dst    = toISPC(*dst);
+    kernel.input  = color ? *color : (albedo ? *albedo : *normal);
+    kernel.albedo = (color && albedo) ? *albedo : nullImage;
+    kernel.normal = (color && normal) ? *normal : nullImage;
+    kernel.dst    = *dst;
     kernel.tile   = toISPC(tile);
     kernel.transferFunc = toISPC(*transferFunc);
     kernel.hdr   = hdr;

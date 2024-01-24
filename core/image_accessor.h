@@ -5,6 +5,12 @@
 
 #include "vec.h"
 
+// ISPC forward declarations
+namespace ispc
+{
+  struct ImageAccessor;
+}
+
 OIDN_NAMESPACE_BEGIN
 
   struct ImageAccessor

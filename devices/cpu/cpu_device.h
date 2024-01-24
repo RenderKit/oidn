@@ -17,6 +17,7 @@ OIDN_NAMESPACE_BEGIN
   enum class CPUArch
   {
     Unknown,
+    SSE2,
     SSE41,
     AVX2,
     AVX512,

@@ -9,11 +9,11 @@ struct CPUImageCopyKernel
   uniform ImageAccessor dst;
 };
 
-export void CPUImageCopyKernel_run(uniform CPUImageCopyKernel* uniform self, uniform int h)
+export void CPUImageCopyKernel_run(const uniform CPUImageCopyKernel* uniform self, uniform int h)
 {
   foreach (w = 0 ... self->dst.W)
   {
-    vec3f value = get3f(self->src, h, w);
-    set3f(self->dst, h, w, value);
+    vec3f value = Image_get3(self->src, h, w);
+    Image_set3(self->dst, h, w, value);
   }
 }

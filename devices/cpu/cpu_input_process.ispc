@@ -26,9 +26,9 @@ struct CPUInputProcessKernel
 };
 
 // Gets an input value
-inline vec3f getInput(uniform CPUInputProcessKernel* uniform self, uniform int h, int w)
+inline vec3f getInput(const uniform CPUInputProcessKernel* uniform self, uniform int h, int w)
 {
-  vec3f value = get3f(self->input, h, w);
+  vec3f value = Image_get3(self->input, h, w);
 
   // Scale
   value = value * self->transferFunc.inputScale;
@@ -49,9 +49,9 @@ inline vec3f getInput(uniform CPUInputProcessKernel* uniform self, uniform int h
 }
 
 // Gets an albedo value
-inline vec3f getAlbedo(uniform CPUInputProcessKernel* uniform self, uniform int h, int w)
+inline vec3f getAlbedo(const uniform CPUInputProcessKernel* uniform self, uniform int h, int w)
 {
-  vec3f value = get3f(self->albedo, h, w);
+  vec3f value = Image_get3(self->albedo, h, w);
 
   // Sanitize
   value = clamp(nan_to_zero(value), 0.f, 1.f);
@@ -60,9 +60,9 @@ inline vec3f getAlbedo(uniform CPUInputProcessKernel* uniform self, uniform int 
 }
 
 // Gets a normal value
-inline vec3f getNormal(uniform CPUInputProcessKernel* uniform self, uniform int h, int w)
+inline vec3f getNormal(const uniform CPUInputProcessKernel* uniform self, uniform int h, int w)
 {
-  vec3f value = get3f(self->normal, h, w);
+  vec3f value = Image_get3(self->normal, h, w);
 
   // Sanitize
   value = clamp(nan_to_zero(value), -1.f, 1.f);
@@ -73,7 +73,8 @@ inline vec3f getNormal(uniform CPUInputProcessKernel* uniform self, uniform int 
   return value;
 }
 
-export void CPUInputProcessKernel_run(uniform CPUInputProcessKernel* uniform self, uniform int hDst)
+export void CPUInputProcessKernel_run(const uniform CPUInputProcessKernel* uniform self,
+                                      uniform int hDst)
 {
   const uniform int h = hDst - self->tile.hDstBegin;
 
@@ -85,7 +86,7 @@ export void CPUInputProcessKernel_run(uniform CPUInputProcessKernel* uniform sel
     foreach (wDst = 0 ... self->tile.wDstBegin)
     {
       for (uniform int c = 0; c < self->dst.C; ++c)
-        set1f(self->dst, c, hDst, wDst, 0);
+        Tensor_set(self->dst, c, hDst, wDst, 0);
     }
 
     // Reorder
@@ -94,30 +95,30 @@ export void CPUInputProcessKernel_run(uniform CPUInputProcessKernel* uniform sel
       const int wSrc = w + self->tile.wSrcBegin;
       const int wDst = w + self->tile.wDstBegin;
 
-      set3f(self->dst, 0, hDst, wDst, getInput(self, hSrc, wSrc));
+      Tensor_set3(self->dst, 0, hDst, wDst, getInput(self, hSrc, wSrc));
       uniform int c = 3;
 
       if (self->albedo.ptr)
       {
-        set3f(self->dst, 3, hDst, wDst, getAlbedo(self, hSrc, wSrc));
+        Tensor_set3(self->dst, 3, hDst, wDst, getAlbedo(self, hSrc, wSrc));
         c += 3;
 
         if (self->normal.ptr)
         {
-          set3f(self->dst, 6, hDst, wDst, getNormal(self, hSrc, wSrc));
+          Tensor_set3(self->dst, 6, hDst, wDst, getNormal(self, hSrc, wSrc));
           c += 3;
         }
       }
 
       for (; c < self->dst.C; ++c)
-        set1f(self->dst, c, hDst, wDst, 0);
+        Tensor_set(self->dst, c, hDst, wDst, 0);
     }
 
     // Zero pad
     foreach (wDst = self->tile.W + self->tile.wDstBegin ... self->dst.W)
     {
       for (uniform int c = 0; c < self->dst.C; ++c)
-        set1f(self->dst, c, hDst, wDst, 0);
+        Tensor_set(self->dst, c, hDst, wDst, 0);
     }
   }
   else
@@ -126,7 +127,7 @@ export void CPUInputProcessKernel_run(uniform CPUInputProcessKernel* uniform sel
     foreach (wDst = 0 ... self->dst.W)
     {
       for (uniform int c = 0; c < self->dst.C; ++c)
-        set1f(self->dst, c, hDst, wDst, 0);
+        Tensor_set(self->dst, c, hDst, wDst, 0);
     }
   }
 }

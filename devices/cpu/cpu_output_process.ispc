@@ -23,7 +23,8 @@ struct CPUOutputProcessKernel
   uniform bool snorm; // signed normalized ([-1..1])
 };
 
-export void CPUOutputProcessKernel_run(uniform CPUOutputProcessKernel* uniform self, uniform int h)
+export void CPUOutputProcessKernel_run(const uniform CPUOutputProcessKernel* uniform self,
+                                       uniform int h)
 {
   const uniform int hSrc = h + self->tile.hSrcBegin;
   const uniform int hDst = h + self->tile.hDstBegin;
@@ -34,7 +35,7 @@ export void CPUOutputProcessKernel_run(uniform CPUOutputProcessKernel* uniform s
     const int wDst = w + self->tile.wDstBegin;
 
     // Load
-    vec3f value = get3f(self->src, 0, hSrc, wSrc);
+    vec3f value = Tensor_get3(self->src, 0, hSrc, wSrc);
 
     // The CNN output may contain negative values or even NaNs, so it must be sanitized
     value = clamp(nan_to_zero(value), 0.f, pos_max);
@@ -60,6 +61,6 @@ export void CPUOutputProcessKernel_run(uniform CPUOutputProcessKernel* uniform s
     value = value * self->transferFunc.outputScale;
 
     // Store
-    set3f(self->dst, hDst, wDst, value);
+    Image_set3(self->dst, hDst, wDst, value);
   }
 }

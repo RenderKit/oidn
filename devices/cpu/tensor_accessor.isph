@@ -7,44 +7,115 @@
 
 #define B programCount // channel block size
 
+// -----------------------------------------------------------------------------------------------
+// TensorAccessor1D
+// -----------------------------------------------------------------------------------------------
+
+struct TensorAccessor1D
+{
+  uniform uint8* uniform ptr;
+  uniform int X;
+};
+
+inline uniform uint8* uniform Tensor_getPtr(const uniform TensorAccessor1D& acc, uniform int x)
+{
+  return acc.ptr + (uniform size_t)x * sizeof(uniform float);
+}
+
+// -----------------------------------------------------------------------------------------------
+// TensorAccessor3D
+// -----------------------------------------------------------------------------------------------
+
 // Tensor in ChwBc/chw layout
 struct TensorAccessor3D
 {
-  uniform float* uniform ptr;
+  uniform uint8* uniform ptr;
+  uniform size_t hByteStride;
+  uniform size_t CByteStride;
   uniform int C, H, W;
 };
 
-inline size_t getIndex(uniform TensorAccessor3D& tz, uniform int c, uniform int h, int w)
+#if !defined(OIDN_BNNS)
+inline uniform uint8* uniform Tensor_getPtr(const uniform TensorAccessor3D& acc,
+                                            uniform int c, uniform int h, uniform int w)
 {
-#if defined(OIDN_DNNL)
   // ChwBc layout (blocked)
-  return ((size_t)tz.H * (c/B) + h) * ((size_t)tz.W*B) + (size_t)w*B + (c%B);
-#else
+  const uniform size_t cByteStride = sizeof(uniform float);
+  const uniform size_t wByteStride = B * cByteStride;
+
+  uniform size_t offset = ((uniform size_t)c / B) * acc.CByteStride +
+                          (uniform size_t)h       * acc.hByteStride +
+                          (uniform size_t)w       * wByteStride +
+                          ((uniform size_t)c % B) * cByteStride;
+
+  return acc.ptr + offset;
+}
+#endif
+
+inline size_t Tensor_getIndex(const uniform TensorAccessor3D& acc, uniform int c, uniform int h, int w)
+{
+#if defined(OIDN_BNNS)
   // chw layout
-  return ((size_t)tz.H * c + h) * (size_t)tz.W + w;
+  return ((uniform size_t)acc.H * c + h) * (uniform size_t)acc.W + w;
+#else
+  // ChwBc layout (blocked)
+  return ((uniform size_t)acc.H * (c/B) + h) * ((uniform size_t)acc.W*B) + (size_t)w*B + (c%B);
 #endif
 }
 
-inline float get1f(uniform TensorAccessor3D& tz, uniform int c, uniform int h, int w)
+inline float Tensor_get(const uniform TensorAccessor3D& acc, uniform int c, uniform int h, int w)
 {
-  return tz.ptr[getIndex(tz, c, h, w)];
+  return ((uniform float* uniform)acc.ptr)[Tensor_getIndex(acc, c, h, w)];
 }
 
-inline void set1f(uniform TensorAccessor3D& tz, uniform int c, uniform int h, int w, float value)
+inline void Tensor_set(const uniform TensorAccessor3D& acc, uniform int c, uniform int h, int w,
+                       float value)
 {
-  tz.ptr[getIndex(tz, c, h, w)] = value;
+  ((uniform float* uniform)acc.ptr)[Tensor_getIndex(acc, c, h, w)] = value;
 }
 
-inline vec3f get3f(uniform TensorAccessor3D& tz, uniform int c, uniform int h, int w)
+inline vec3f Tensor_get3(const uniform TensorAccessor3D& acc, uniform int c, uniform int h, int w)
 {
-  return make_vec3f(get1f(tz, c,   h, w),
-                    get1f(tz, c+1, h, w),
-                    get1f(tz, c+2, h, w));
+  return make_vec3f(Tensor_get(acc, c,   h, w),
+                    Tensor_get(acc, c+1, h, w),
+                    Tensor_get(acc, c+2, h, w));
 }
 
-inline void set3f(uniform TensorAccessor3D& tz, uniform int c, uniform int h, int w, const vec3f& value)
+inline void Tensor_set3(const uniform TensorAccessor3D& acc, uniform int c, uniform int h, int w,
+                        const vec3f& value)
 {
-  set1f(tz, c,   h, w, value.x);
-  set1f(tz, c+1, h, w, value.y);
-  set1f(tz, c+2, h, w, value.z);
+  Tensor_set(acc, c,   h, w, value.x);
+  Tensor_set(acc, c+1, h, w, value.y);
+  Tensor_set(acc, c+2, h, w, value.z);
+}
+
+// -----------------------------------------------------------------------------------------------
+// TensorAccessor4D
+// -----------------------------------------------------------------------------------------------
+
+// Tensor in IOhwBiBo layout (blocked)
+struct TensorAccessor4D
+{
+  uniform uint8* uniform ptr;
+  uniform size_t hByteStride;
+  uniform size_t OByteStride;
+  uniform size_t IByteStride;
+  uniform int O, I, H, W;
+};
+
+inline uniform uint8* uniform Tensor_getPtr(const uniform TensorAccessor4D& acc,
+                                            uniform int o, uniform int i, uniform int h, uniform int w)
+{
+  const uniform size_t BoByteStride = sizeof(uniform float);
+  const uniform size_t BiByteStride = B * BoByteStride;
+  const uniform size_t wByteStride  = B * BiByteStride;
+
+  uniform size_t offset = ((uniform size_t)i / B) * acc.IByteStride +
+                          ((uniform size_t)o / B) * acc.OByteStride +
+                          (uniform size_t)h       * acc.hByteStride +
+                          (uniform size_t)w       * wByteStride  +
+                          ((uniform size_t)i % B) * BiByteStride +
+                          ((uniform size_t)o % B) * BoByteStride;
+
+  return acc.ptr + offset;
 }

@@ -52,6 +52,8 @@ OIDN_NAMESPACE_BEGIN
       tryReorderWeight<half, float, TensorLayout::oihw, TensorLayout::OIhw16i16o>  (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
       tryReorderWeight<half, half,  TensorLayout::oihw, TensorLayout::OIhw2o8i8o2i>(src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
       tryReorderWeight<half, half,  TensorLayout::oihw, TensorLayout::OIhw8i16o2i> (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
+      tryReorderWeight<half, float, TensorLayout::oihw, TensorLayout::IOhw8i8o>    (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
+      tryReorderWeight<half, float, TensorLayout::oihw, TensorLayout::IOhw16i16o>  (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
       tryReorderWeight<half, half,  TensorLayout::oihw, TensorLayout::ohwi>        (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
       tryReorderWeight<half, float, TensorLayout::oihw, TensorLayout::ohwi>        (src, srcBeginI, srcI, dst, dstBeginI, dstI);
 

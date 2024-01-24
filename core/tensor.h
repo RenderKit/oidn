@@ -207,6 +207,10 @@ OIDN_NAMESPACE_BEGIN
       return TensorAccessor4D<T, accessorLayout>(getPtr(), getPaddedO(), getPaddedI(), getH(), getW());
     }
 
+    operator ispc::TensorAccessor1D();
+    operator ispc::TensorAccessor3D();
+    operator ispc::TensorAccessor4D();
+
     virtual Ref<Tensor> toDevice(Engine* engine, Storage storage = Storage::Device);
 
     // Debug

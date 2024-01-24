@@ -1,0 +1,85 @@
+// Copyright 2024 Intel Corporation
+// SPDX-License-Identifier: Apache-2.0
+
+inline unmasked void CPUConvKernel_computeBlock(T, blockOCB, blockOW)(
+                       const uniform uint8* uniform srcPtr,
+                       uniform size_t srcHByteStride,
+                       const uniform uint8* uniform weightPtr,
+                       const uniform uint8* uniform biasPtr,
+                       uniform uint8* uniform dstPtr,
+                       uniform size_t dstCByteStride,
+                       uniform size_t khEnd,
+                       uniform size_t kwBegin, uniform size_t kwEnd,
+                       uniform bool relu)
+{
+  varying T accum[blockOCB][blockOW];
+
+  if (biasPtr)
+  {
+    #pragma unroll
+    for (uniform size_t bocb = 0; bocb < blockOCB; ++bocb)
+    {
+      #pragma unroll
+      for (uniform size_t bow = 0; bow < blockOW; ++bow)
+        accum[bocb][bow] = *((const varying T* uniform)biasPtr + bocb);
+    }
+  }
+  else
+  {
+    #pragma unroll
+    for (uniform size_t bocb = 0; bocb < blockOCB; ++bocb)
+    {
+      #pragma unroll
+      for (uniform size_t bow = 0; bow < blockOW; ++bow)
+        accum[bocb][bow] = *((const varying T* uniform)(dstPtr + bocb * dstCByteStride) + bow);
+    }
+  }
+
+  #pragma nounroll
+  for (uniform size_t kh = 0; kh < khEnd; ++kh)
+  {
+    #pragma nounroll
+    for (uniform size_t kw = kwBegin; kw < kwEnd; ++kw)
+    {
+      #pragma unroll
+      for (uniform size_t i = 0; i < blockC; ++i)
+      {
+        #pragma unroll
+        for (uniform size_t bocb = 0; bocb < blockOCB; ++bocb)
+        {
+          const varying T weightVec =
+            *((const varying T* uniform)weightPtr + (bocb * KW * KH + kw) * blockC + i);
+
+          #pragma unroll
+          for (uniform size_t bow = 0; bow < blockOW; ++bow)
+          {
+            const varying T srcVec = *((const uniform T* uniform)srcPtr + (bow + kw - PW) * blockC + i);
+            accum[bocb][bow] += srcVec * weightVec;
+          }
+        }
+      }
+    }
+
+    srcPtr += srcHByteStride;
+    weightPtr += KW * blockC * blockC * sizeof(uniform T);
+  }
+
+  if (relu)
+  {
+    #pragma unroll
+    for (uniform size_t bocb = 0; bocb < blockOCB; ++bocb)
+    {
+      #pragma unroll
+      for (uniform size_t bow = 0; bow < blockOW; ++bow)
+        accum[bocb][bow] = max(accum[bocb][bow], 0);
+    }
+  }
+
+  #pragma unroll
+  for (uniform size_t bocb = 0; bocb < blockOCB; ++bocb)
+  {
+    #pragma unroll
+    for (uniform size_t bow = 0; bow < blockOW; ++bow)
+      *((varying T* uniform)(dstPtr + bocb * dstCByteStride) + bow) = accum[bocb][bow];
+  }
+}

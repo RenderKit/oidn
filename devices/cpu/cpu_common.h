@@ -12,8 +12,6 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  ispc::ImageAccessor toISPC(Image& image);
-  ispc::TensorAccessor3D toISPC(Tensor& tensor);
   ispc::Tile toISPC(const Tile& tile);
   ispc::TransferFunction toISPC(const TransferFunction& tf);
 

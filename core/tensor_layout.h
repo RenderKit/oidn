@@ -20,6 +20,8 @@ OIDN_NAMESPACE_BEGIN
     OIhw16i16o,   // blocked
     OIhw2o8i8o2i, // blocked (Xe-HPG DPAS)
     OIhw8i16o2i,  // blocked (Xe-HPC DPAS)
+    IOhw8i8o,     // blocked
+    IOhw16i16o,   // blocked
 
     hwc,
     ohwi,
@@ -218,6 +220,52 @@ OIDN_NAMESPACE_BEGIN
     using ByteOffset = TensorByteOffsetOIhwBiBo<T, 16>;
   };
 
+  template<typename T, int B>
+  struct TensorByteOffsetIOhwBiBo
+  {
+    static constexpr oidn_constant int blockC = B; // block channels
+
+    static constexpr oidn_constant uint32_t BoByteStride = sizeof(T);
+    static constexpr oidn_constant uint32_t BiByteStride = B * BoByteStride;
+    static constexpr oidn_constant uint32_t wByteStride  = B * BiByteStride;
+    uint32_t hByteStride;
+    uint32_t OByteStride;
+    uint32_t IByteStride;
+
+    TensorByteOffsetIOhwBiBo() = default;
+
+    oidn_host_device_inline TensorByteOffsetIOhwBiBo(int O, int I, int H, int W)
+    {
+      hByteStride = uint32_t(W)     * wByteStride;
+      OByteStride = uint32_t(H)     * hByteStride;
+      IByteStride = uint32_t(O / B) * OByteStride;
+    }
+
+    oidn_host_device_inline uint32_t operator ()(int o, int i, int h, int w) const
+    {
+      return uint32_t(i / B) * IByteStride  +
+             uint32_t(o / B) * OByteStride  +
+             uint32_t(h)     * hByteStride  +
+             uint32_t(w)     * wByteStride  +
+             uint32_t(i % B) * BiByteStride +
+             uint32_t(o % B) * BoByteStride;
+    }
+  };
+
+  template<>
+  struct TensorLayoutTraits<TensorLayout::IOhw8i8o>
+  {
+    template<typename T>
+    using ByteOffset = TensorByteOffsetIOhwBiBo<T, 8>;
+  };
+
+  template<>
+  struct TensorLayoutTraits<TensorLayout::IOhw16i16o>
+  {
+    template<typename T>
+    using ByteOffset = TensorByteOffsetIOhwBiBo<T, 16>;
+  };
+
   template<typename T, int P, int Q, int R, int S>
   struct TensorByteOffsetOIhwPoQiRoSi
   {
@@ -330,8 +378,10 @@ OIDN_NAMESPACE_BEGIN
     case TensorLayout::oihw:
     case TensorLayout::ohwi:
       return {4, 1};
+    case TensorLayout::IOhw8i8o:
     case TensorLayout::OIhw8i8o:
       return {4, 8};
+    case TensorLayout::IOhw16i16o:
     case TensorLayout::OIhw16i16o:
     case TensorLayout::OIhw2o8i8o2i:
     case TensorLayout::OIhw8i16o2i:
@@ -354,6 +404,8 @@ OIDN_NAMESPACE_BEGIN
     case TensorLayout::OIhw16i16o:   sm << "OIhw16i16o";   break;
     case TensorLayout::OIhw2o8i8o2i: sm << "OIhw2o8i8o2i"; break;
     case TensorLayout::OIhw8i16o2i:  sm << "OIhw8i16o2i";  break;
+    case TensorLayout::IOhw8i8o:     sm << "IOhw8i8o";     break;
+    case TensorLayout::IOhw16i16o:   sm << "IOhw16i16o";   break;
     case TensorLayout::hwc:          sm << "hwc";          break;
     case TensorLayout::ohwi:         sm << "ohwi";         break;
     default:                         sm << "?";            break;

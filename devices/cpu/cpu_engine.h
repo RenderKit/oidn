@@ -14,8 +14,12 @@ OIDN_NAMESPACE_BEGIN
     explicit CPUEngine(CPUDevice* device);
 
     Device* getDevice() const override { return device; }
+    int getNumThreads() const { return device->numThreads; }
 
     // Ops
+  #if !defined(OIDN_DNNL) && !defined(OIDN_BNNS)
+    Ref<Conv> newConv(const ConvDesc& desc) override;
+  #endif
     Ref<Pool> newPool(const PoolDesc& desc) override;
     Ref<Upsample> newUpsample(const UpsampleDesc& desc) override;
     Ref<Autoexposure> newAutoexposure(const ImageDesc& srcDesc) override;

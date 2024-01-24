@@ -2,24 +2,23 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "cpu_device.h"
+#include "platform_ispc.h"
+
 #if defined(OIDN_DNNL)
   #include "dnnl/dnnl_engine.h"
 #elif defined(OIDN_BNNS)
   #include "bnns/bnns_engine.h"
+#else
+  #include "cpu_engine.h"
 #endif
 
 #if defined(OIDN_ARCH_X64)
-  #include "mkl-dnn/src/cpu/x64/xbyak/xbyak_util.h"
+  #if defined(_WIN32)
+    #include <intrin.h> // __cpuid
+  #elif !defined(__APPLE__)
+    #include <cpuid.h>
+  #endif
 #endif
-
-/*
-// Not needed thanks to xbyak_util.h
-#if defined(_WIN32)
-  #include <intrin.h> // __cpuid
-#elif !defined(__APPLE__)
-  #include <cpuid.h>
-#endif
-*/
 
 OIDN_NAMESPACE_BEGIN
 
@@ -58,7 +57,7 @@ OIDN_NAMESPACE_BEGIN
     size_t nameSize = sizeof(name)-1;
     if (sysctlbyname("machdep.cpu.brand_string", &name, &nameSize, nullptr, 0) == 0 && strlen(name) > 0)
       return name;
-  #else
+  #elif defined(OIDN_ARCH_X64)
     int regs[3][4];
     char name[sizeof(regs)+1] = {};
 
@@ -79,26 +78,14 @@ OIDN_NAMESPACE_BEGIN
 
   CPUArch CPUDevice::getArch()
   {
-  #if defined(OIDN_ARCH_X64)
-    using Xbyak::util::Cpu;
-    static Cpu cpu;
-
-    if (cpu.has(Cpu::tAVX512F)  && cpu.has(Cpu::tAVX512BW) &&
-        cpu.has(Cpu::tAVX512VL) && cpu.has(Cpu::tAVX512DQ))
-        return CPUArch::AVX512;
-
-    if (cpu.has(Cpu::tAVX2))
-      return CPUArch::AVX2;
-
-    if (cpu.has(Cpu::tSSE41))
-      return CPUArch::SSE41;
-
-    return CPUArch::Unknown;
-  #elif defined(OIDN_ARCH_ARM64)
-    return CPUArch::NEON;
-  #else
-    return CPUArch::Unknown;
-  #endif
+    switch (ispc::getCPUArch())
+    {
+    case ispc::CPUArch_SSE4:   return CPUArch::SSE41;
+    case ispc::CPUArch_AVX2:   return CPUArch::AVX2;
+    case ispc::CPUArch_AVX512: return CPUArch::AVX512;
+    case ispc::CPUArch_NEON:   return CPUArch::NEON;
+    default:                   return CPUArch::Unknown;
+    }
   }
 
   CPUDevice::CPUDevice()
@@ -127,20 +114,12 @@ OIDN_NAMESPACE_BEGIN
       std::cout << "    ISA     : ";
       switch (arch)
       {
-      case CPUArch::AVX512:
-        std::cout << "AVX512";
-        break;
-      case CPUArch::AVX2:
-        std::cout << "AVX2";
-        break;
-      case CPUArch::SSE41:
-        std::cout << "SSE4.1";
-        break;
-      case CPUArch::NEON:
-        std::cout << "NEON";
-        break;
-      default:
-        std::cout << "Unknown";
+      case CPUArch::SSE2:   std::cout << "SSE2";    break;
+      case CPUArch::SSE41:  std::cout << "SSE4.1";  break;
+      case CPUArch::AVX2:   std::cout << "AVX2";    break;
+      case CPUArch::AVX512: std::cout << "AVX512";  break;
+      case CPUArch::NEON:   std::cout << "NEON";    break;
+      default:              std::cout << "Unknown"; break;
       }
       std::cout << std::endl;
     }
@@ -163,16 +142,29 @@ OIDN_NAMESPACE_BEGIN
       weightLayout = TensorLayout::OIhw8i8o;
       tensorBlockC = 8;
     }
-  #else
+
+    engine.reset(new DNNLEngine(this));
+  #elif defined(OIDN_BNNS)
     tensorLayout = TensorLayout::chw;
     weightLayout = TensorLayout::oihw;
     tensorBlockC = 1;
-  #endif
 
-  #if defined(OIDN_DNNL)
-    engine.reset(new DNNLEngine(this));
-  #elif defined(OIDN_BNNS)
     engine.reset(new BNNSEngine(this));
+  #else
+    if (arch == CPUArch::AVX512)
+    {
+      tensorLayout = TensorLayout::Chw16c;
+      weightLayout = TensorLayout::IOhw16i16o;
+      tensorBlockC = 16;
+    }
+    else
+    {
+      tensorLayout = TensorLayout::Chw8c;
+      weightLayout = TensorLayout::IOhw8i8o;
+      tensorBlockC = 8;
+    }
+
+    engine.reset(new CPUEngine(this));
   #endif
   }
 

@@ -2,19 +2,20 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "cpu_common.h"
+#if !defined(OIDN_DNNL) && !defined(OIDN_BNNS)
+  #include "cpu_conv_ispc.h"
+#endif
 
 OIDN_NAMESPACE_BEGIN
 
-  ispc::ImageAccessor toISPC(Image& image)
+  Image::operator ispc::ImageAccessor()
   {
-    const ImageDesc& desc = image.getDesc();
-
     ispc::ImageAccessor acc;
-    acc.ptr = static_cast<uint8_t*>(image.getPtr());
-    acc.hByteStride = desc.hByteStride;
-    acc.wByteStride = desc.wByteStride;
+    acc.ptr = reinterpret_cast<uint8_t*>(ptr);
+    acc.hByteStride = hByteStride;
+    acc.wByteStride = wByteStride;
 
-    switch (desc.getDataType())
+    switch (getDataType())
     {
     case DataType::Void:
       acc.dataType = ispc::DataType_Void;
@@ -34,27 +35,71 @@ OIDN_NAMESPACE_BEGIN
       throw std::logic_error("unsupported data type");
     }
 
-    acc.C = desc.getC();
+    acc.C = getC();
     if (acc.C > 3)
       throw std::logic_error("unsupported number of channels for image accessor");
-    acc.H = desc.getH();
-    acc.W = desc.getW();
+    acc.H = getH();
+    acc.W = getW();
 
     return acc;
   }
 
-  ispc::TensorAccessor3D toISPC(Tensor& tensor)
+  Tensor::operator ispc::TensorAccessor3D()
   {
-    if (tensor.getRank() != 3 || tensor.getDataType() != DataType::Float32)
+    if (getRank() != 3 || layout == TensorLayout::hwc)
       throw std::logic_error("incompatible tensor accessor");
 
     ispc::TensorAccessor3D acc;
-    acc.ptr = static_cast<float*>(tensor.getPtr());
-    acc.C = tensor.getPaddedC();
-    acc.H = tensor.getH();
-    acc.W = tensor.getW();
+    acc.ptr = static_cast<uint8_t*>(getPtr());
+    acc.C = getPaddedC();
+    acc.H = getH();
+    acc.W = getW();
+
+    const int B = getTensorLayoutInfo(layout).blockC;
+    const size_t cByteStride = getDataTypeSize(dataType);
+    const size_t wByteStride = B * cByteStride;
+    acc.hByteStride = size_t(acc.W) * wByteStride;
+    acc.CByteStride = size_t(acc.H) * acc.hByteStride;
+
     return acc;
   }
+
+#if !defined(OIDN_DNNL) && !defined(OIDN_BNNS)
+  Tensor::operator ispc::TensorAccessor1D()
+  {
+    if (layout != TensorLayout::x)
+      throw std::logic_error("incompatible tensor accessor");
+
+    ispc::TensorAccessor1D acc;
+    acc.ptr = static_cast<uint8_t*>(getPtr());
+    acc.X = getPaddedX();
+    return acc;
+  }
+
+  Tensor::operator ispc::TensorAccessor4D()
+  {
+    if (getRank() != 4 || (layout != TensorLayout::IOhw8i8o && layout != TensorLayout::IOhw16i16o))
+      throw std::logic_error("incompatible tensor accessor");
+
+    ispc::TensorAccessor4D acc;
+    acc.ptr = static_cast<uint8_t*>(getPtr());
+
+    acc.O = getPaddedO();
+    acc.I = getPaddedI();
+    acc.H = getH();
+    acc.W = getW();
+
+    const int B = getTensorLayoutInfo(layout).blockC;
+    const size_t BoByteStride = getDataTypeSize(dataType);
+    const size_t BiByteStride = B * BoByteStride;
+    const size_t wByteStride  = B * BiByteStride;
+    acc.hByteStride = size_t(acc.W)     * wByteStride;
+    acc.OByteStride = size_t(acc.H)     * acc.hByteStride;
+    acc.IByteStride = size_t(acc.O / B) * acc.OByteStride;
+
+    return acc;
+  }
+#endif
 
   ispc::Tile toISPC(const Tile& tile)
   {

@@ -15,7 +15,7 @@ OIDN_NAMESPACE_BEGIN
       return nullptr;
 
     assert((alignment & (alignment-1)) == 0);
-  #if defined(OIDN_ARCH_X64)
+  #if defined(OIDN_ARCH_X64) || defined(_MSC_VER)
     void* ptr = _mm_malloc(size, alignment);
   #else
     void* ptr;
@@ -32,7 +32,7 @@ OIDN_NAMESPACE_BEGIN
   void alignedFree(void* ptr)
   {
     if (ptr)
-    #if defined(OIDN_ARCH_X64)
+    #if defined(OIDN_ARCH_X64) || defined(_MSC_VER)
       _mm_free(ptr);
     #else
       free(ptr);
@@ -81,7 +81,7 @@ OIDN_NAMESPACE_BEGIN
     return "Unknown";
   #endif
 
-  #if defined(__x86_64__) || defined(_M_X64) || defined(__ia64__) || defined(__aarch64__)
+  #if defined(OIDN_ARCH_X64) || defined(OIDN_ARCH_ARM64)
     name += " (64-bit)";
   #else
     name += " (32-bit)";

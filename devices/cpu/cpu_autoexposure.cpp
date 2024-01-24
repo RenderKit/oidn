@@ -18,7 +18,7 @@ OIDN_NAMESPACE_BEGIN
       throw std::logic_error("autoexposure destination not set");
 
     // Downsample the image to minimize sensitivity to noise
-    ispc::ImageAccessor srcAcc = toISPC(*src);
+    ispc::ImageAccessor srcAcc = *src;
 
     // Compute the average log luminance of the downsampled image
     using Sum = std::pair<float, int>;

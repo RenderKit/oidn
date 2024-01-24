@@ -15,7 +15,7 @@ export uniform float autoexposureDownsample(const uniform ImageAccessor& color,
   {
     foreach (w = beginW ... endW)
     {
-      vec3f c = get3f(color, h, w);
+      vec3f c = Image_get3(color, h, w);
       c = clamp(nan_to_zero(c), 0.f, pos_max); // sanitize
       L += luminance(c);
     }

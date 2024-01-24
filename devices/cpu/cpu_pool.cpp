@@ -23,8 +23,8 @@ OIDN_NAMESPACE_BEGIN
     const int blockC = getTensorLayoutInfo(dstDesc.layout).blockC;
 
     ispc::CPUPoolKernel kernel;
-    kernel.src = toISPC(*src);
-    kernel.dst = toISPC(*dst);
+    kernel.src = *src;
+    kernel.dst = *dst;
 
     parallel_nd(dst->getPaddedC() / blockC, dst->getH(), [&](int cb, int h)
     {

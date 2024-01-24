@@ -6,6 +6,14 @@
 #include "tensor_layout.h"
 #include "vec.h"
 
+// ISPC forward declarations
+namespace ispc
+{
+  struct TensorAccessor1D;
+  struct TensorAccessor3D;
+  struct TensorAccessor4D;
+};
+
 OIDN_NAMESPACE_BEGIN
 
   template<typename T>

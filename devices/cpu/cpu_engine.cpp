@@ -2,6 +2,9 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "cpu_engine.h"
+#if !defined(OIDN_DNNL) && !defined(OIDN_BNNS)
+  #include "cpu_conv.h"
+#endif
 #include "cpu_pool.h"
 #include "cpu_upsample.h"
 #include "cpu_autoexposure.h"
@@ -22,6 +25,13 @@ OIDN_NAMESPACE_BEGIN
     else
       f();
   }
+
+#if !defined(OIDN_DNNL) && !defined(OIDN_BNNS)
+  Ref<Conv> CPUEngine::newConv(const ConvDesc& desc)
+  {
+    return makeRef<CPUConv>(this, desc);
+  }
+#endif
 
   Ref<Pool> CPUEngine::newPool(const PoolDesc& desc)
   {
