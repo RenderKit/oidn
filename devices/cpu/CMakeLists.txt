@@ -18,7 +18,7 @@ endif()
 
 if(OIDN_ARCH STREQUAL "X64")
   # oneDNN
-  option(OIDN_DEVICE_CPU_ONEDNN "Enable oneDNN for CPU device." ON)
+  option(OIDN_DEVICE_CPU_ONEDNN "Enable oneDNN for CPU device." OFF)
   mark_as_advanced(OIDN_DEVICE_CPU_ONEDNN)
   if(OIDN_DEVICE_CPU_ONEDNN)
     set(OIDN_DNNL ON)

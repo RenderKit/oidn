@@ -120,6 +120,17 @@ jobs:
       artifact-out: build-rockylinux8-gcc-minimal
       artifact-path: build install deps
 
+  build-rockylinux8-gcc-onednn:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      image: oidn/rockylinux:8.8
+      dpcpp-version: intel-llvm/nightly-2023-09-22-rk
+      cmd: scripts/build.py install --compiler gcc -D OIDN_DEVICE_CPU_ONEDNN=ON
+      artifact-out: build-rockylinux8-gcc-onednn
+      artifact-path: build install deps
+
   build-rockylinux8-gta-aotjit:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
@@ -259,12 +270,12 @@ jobs:
   #       cmake ..
   #       make -j8 VERBOSE=1
 
-  build-ubuntu2004-gcc-oiio:
+  build-ubuntu2204-gcc-oiio:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
-      image: oidn-build:ubuntu20.04
+      image: oidn/ubuntu:22.04
       cmd: |
         mkdir build
         cd build
@@ -279,17 +290,17 @@ jobs:
   #     image: oidn-build:ubuntu20.04
   #     cmd: scripts/build.py --compiler gcc -D OIDN_FILTER_RT=OFF -D OIDN_FILTER_RTLIGHTMAP=OFF
 
-  build-arch-gcc-oiio:
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
-    with:
-      project: oidn
-      image: oidn-build:arch
-      cmd: |
-        mkdir build
-        cd build
-        cmake -D OIDN_APPS_OPENIMAGEIO=ON ..
-        make -j8 VERBOSE=1
+  # build-arch-gcc-oiio:
+  #   secrets: inherit
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+  #   with:
+  #     project: oidn
+  #     image: oidn-build:arch
+  #     cmd: |
+  #       mkdir build
+  #       cd build
+  #       cmake -D OIDN_APPS_OPENIMAGEIO=ON ..
+  #       make -j8 VERBOSE=1
 
   test-rockylinux8-avx2:
     needs: build-rockylinux8
@@ -417,6 +428,20 @@ jobs:
       image: oidn/rockylinux:8.8
       artifact-in: build-rockylinux8-namespace
       artifact-out: test-rockylinux8-namespace-avx2
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: scripts/test.py --device cpu --log test.log
+
+  test-rockylinux8-gcc-onednn-avx2:
+    needs: build-rockylinux8-gcc-onednn
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Linux", "avx2" ]'
+      image: oidn/rockylinux:8.8
+      artifact-in: build-rockylinux8-gcc-onednn
+      artifact-out: test-rockylinux8-gcc-onednn-avx2
       artifact-path: test.log
       artifact-on-failure: true
       cmd: scripts/test.py --device cpu --log test.log
@@ -870,6 +895,16 @@ jobs:
       artifact-path: build install
       cmd: python scripts/build.py install --compiler msvc16
 
+  build-windows-msvc16-onednn:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "build" ]'
+      artifact-out: build-windows-msvc16-onednn
+      artifact-path: build install
+      cmd: python scripts/build.py install --compiler msvc16 -D OIDN_DEVICE_CPU_ONEDNN=ON
+
   test-windows-avx2:
     needs: build-windows
     secrets: inherit
@@ -944,6 +979,19 @@ jobs:
       runs-on: '[ "Windows", "avx512", "NAS" ]'
       artifact-in: build-windows-msvc16
       artifact-out: test-windows-msvc16-avx512
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: python scripts/test.py --device cpu --minimal --log test.log
+
+  test-windows-msvc16-onednn-avx512:
+    needs: build-windows-msvc16-onednn
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "avx512", "NAS" ]'
+      artifact-in: build-windows-msvc16-onednn
+      artifact-out: test-windows-msvc16-onednn-avx512
       artifact-path: test.log
       artifact-on-failure: true
       cmd: python scripts/test.py --device cpu --minimal --log test.log
