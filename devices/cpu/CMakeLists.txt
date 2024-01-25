@@ -120,7 +120,7 @@ if(OIDN_STATIC_LIB)
     EXPORT
       OpenImageDenoise_Exports
     ARCHIVE
-      DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT devel
+      DESTINATION "${CMAKE_INSTALL_LIBDIR}/$<CONFIG>" COMPONENT devel
   )
 
   target_link_libraries(OpenImageDenoise PRIVATE OpenImageDenoise_device_cpu)
