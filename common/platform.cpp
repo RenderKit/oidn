@@ -81,10 +81,10 @@ OIDN_NAMESPACE_BEGIN
     return "Unknown";
   #endif
 
-  #if defined(OIDN_ARCH_X64) || defined(OIDN_ARCH_ARM64)
-    name += " (64-bit)";
-  #else
-    name += " (32-bit)";
+  #if defined(OIDN_ARCH_X64)
+    name += " (x86-64)";
+  #elif defined(OIDN_ARCH_ARM64)
+    name += " (ARM64)";
   #endif
 
     return name;
