@@ -37,41 +37,44 @@ vendors:
 
 -   Intel® 64 architecture compatible CPUs (with at least SSE4.1)
 
--   Apple silicon CPUs and GPUs (M1 and newer)
+-   ARM64 (AArch64) architecture CPUs (e.g. Apple silicon CPUs)
 
 -   Intel Xe architecture dedicated and integrated GPUs, including Intel® Arc™
-    Graphics, Intel® Data Center GPU Flex Series, Intel® Data Center GPU Max
-    Series, 11th-14th Gen Intel® Core™ processor graphics, and related Intel
-    Pentium® and Celeron® processors (Xe-LP, Xe-LPG, Xe-HPG, and Xe-HPC
-    microarchitectures)
+    A-Series Graphics, Intel® Data Center GPU Flex Series, Intel® Data Center
+    GPU Max Series, Intel® Iris® Xe Graphics, Intel® Core™ Ultra Processors with
+    Intel® Arc™ Graphics, 11th-14th Gen Intel® Core™ processor graphics, and
+    related Intel Pentium® and Celeron® processors (Xe-LP, Xe-LPG, Xe-HPG, and
+    Xe-HPC microarchitectures)
 
 -   NVIDIA GPUs with Volta, Turing, Ampere, Ada Lovelace, and Hopper
     architectures
 
 -   AMD GPUs with RDNA2 (Navi 21 only) and RDNA3 (Navi 3x) architectures
 
+-   Apple silicon GPUs (M1 and newer)
+
 It runs on most machines ranging from laptops to workstations and compute nodes
 in HPC systems. It is efficient enough to be suitable not only for offline
 rendering, but, depending on the hardware used, also for interactive or even
 real-time ray tracing.
 
-Intel Open Image Denoise exploits modern instruction sets like Intel SSE4, AVX2,
-and AVX-512 on CPUs, Intel® Xe Matrix Extensions (Intel® XMX) on Intel GPUs, and
-tensor cores on NVIDIA GPUs to achieve high denoising performance.
+Intel Open Image Denoise exploits modern instruction sets like SSE4, AVX2,
+AVX-512, and NEON on CPUs, Intel® Xe Matrix Extensions (Intel® XMX) on Intel
+GPUs, and tensor cores on NVIDIA GPUs to achieve high denoising performance.
 
 
 System Requirements
 -------------------
 
-You need a CPU with SSE4.1 support or Apple silicon to run Intel Open Image
-Denoise, and you need a 64-bit Windows, Linux, or macOS operating system as well.
+You need an Intel® 64 (with SSE4.1) or ARM64 architecture compatible CPU to run
+Intel Open Image Denoise, and you need a 64-bit Windows, Linux, or macOS
+operating system as well.
 
 For Intel GPU support, please also install the latest Intel graphics drivers:
 
 -   Windows:
     [Intel® Graphics Driver](https://www.intel.com/content/www/us/en/download/726609/intel-arc-iris-xe-graphics-whql-windows.html)
-    31.0.101.4953 or newer for Intel® Arc™ Graphics, 11th-13th Gen Intel® Core™
-    processor graphics, and related Intel Pentium® and Celeron® processors
+    31.0.101.4953 or newer
 
 -   Linux:
     [Intel® software for General Purpose GPU capabilities](https://dgpu-docs.intel.com/driver/installation.html)

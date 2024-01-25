@@ -4,8 +4,9 @@ Version History
 ### Changes in v2.2.0:
 
 -   Improved denoising quality (better fine detail reconstruction)
--   Added support for Intel Meteor Lake GPUs
+-   Added Intel Meteor Lake GPU support (in Intel® Core™ Ultra Processors)
 -   Added Metal device for Apple silicon GPUs (requires macOS Ventura or newer)
+-   Added ARM64 (AArch64) CPU support on Windows and Linux (in addition to macOS)
 -   Switched to the CUDA driver API by default, added the `OIDN_DEVICE_CUDA_API`
     CMake option for manually selecting between the driver and runtime APIs
 -   Fixed crash when releasing a buffer after releasing the device
