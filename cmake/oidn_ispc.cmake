@@ -3,6 +3,9 @@
 
 # ISPC versions to look for, in descending order (newest first)
 set(ISPC_VERSION_WORKING "1.22.0" "1.21.1" "1.21.0")
+if(WIN32 AND OIDN_ARCH STREQUAL "ARM64")
+  list(REMOVE_ITEM ISPC_VERSION_WORKING "1.22.0")
+endif()
 list(GET ISPC_VERSION_WORKING -1 ISPC_VERSION_REQUIRED)
 list(GET ISPC_VERSION_WORKING 0 ISPC_VERSION_LATEST)
 
@@ -59,8 +62,8 @@ if(NOT ISPC_VERSION)
   mark_as_advanced(ISPC_EXECUTABLE)
 endif()
 
-if("${ISPC_VERSION}" STREQUAL "1.11.0")
-  message(FATAL_ERROR "ISPC v1.11.0 is incompatible with Intel(R) Open Image Denoise.")
+if(WIN32 AND OIDN_ARCH STREQUAL "ARM64" AND ${ISPC_VERSION} VERSION_EQUAL "1.22.0")
+  message(FATAL_ERROR "ISPC v1.22.0 is not supported on Windows ARM64. Please use v${ISPC_VERSION_LATEST}.")
 endif()
 
 get_filename_component(ISPC_DIR ${ISPC_EXECUTABLE} PATH)
