@@ -83,10 +83,10 @@ endfunction()
 function(oidn_install_module target)
   install(TARGETS ${target}
     LIBRARY
-      DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT devel
+      DESTINATION "${CMAKE_INSTALL_LIBDIR}/$<CONFIG>" COMPONENT devel
       NAMELINK_SKIP
     RUNTIME
-      DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT lib
+      DESTINATION "${CMAKE_INSTALL_BINDIR}/$<CONFIG>" COMPONENT lib
   )
 endfunction()
 
