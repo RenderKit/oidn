@@ -8,8 +8,7 @@
 OIDN_NAMESPACE_BEGIN
 
   CPUConv::CPUConv(CPUEngine* engine, const ConvDesc& desc)
-    : Conv(desc),
-      engine(engine)
+    : Conv(desc)
   {
     if ((srcDesc.layout != TensorLayout::Chw8c &&
          srcDesc.layout != TensorLayout::Chw16c) || srcDesc.dataType != DataType::Float32)
