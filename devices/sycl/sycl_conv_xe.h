@@ -23,6 +23,11 @@ namespace xehpc {
            PostOp postOp>
   struct SYCLConvKernel
   {
+    static constexpr int KW = 3;        // kernel width
+    static constexpr int KH = 3;        // kernel height
+    static constexpr int PW = (KW-1)/2; // padding width on each side
+    static constexpr int PH = (KH-1)/2; // padding height on each side
+
     static constexpr int dpasDepth  = 8; // DPAS depth
     static constexpr int dpasRepeat = 8; // DPAS repeat count
 
@@ -41,8 +46,8 @@ namespace xehpc {
     static constexpr int blockOH = 2; // block output height
   #endif
 
-    static constexpr int blockOW = dpasRepeat;      // block output width
-    static constexpr int blockIW = blockOW + 3 - 1; // block input width
+    static constexpr int blockOW = dpasRepeat;       // block output width
+    static constexpr int blockIW = blockOW + KW - 1; // block input width
 
     TensorAccessor3D<SrcDstT, srcDstLayout> src;
     TensorAccessor4D<WeightT, weightLayout> weight;
@@ -70,8 +75,8 @@ namespace xehpc {
       // Iterate over input channel blocks
       for (int ic = 0; ic < src.C; ic += blockC)
       {
-        const int ih = oh - 1;
-        const int iw = ow - 1;
+        const int ih = oh - PH;
+        const int iw = ow - PW;
 
         // Load input rows into a ring buffer
         simd<MatmulT, blockIW * blockC> inRows[blockOH];
@@ -82,7 +87,7 @@ namespace xehpc {
 
         // Iterate over kernel height
         #pragma unroll
-        for (int kh = 0; kh < 3; ++kh)
+        for (int kh = 0; kh < KH; ++kh)
         {
           // Load next input row into ring buffer
           loadRow(inRows[(kh + blockOH - 1) % blockOH], ic, ih + (kh + blockOH - 1), iw);
@@ -92,7 +97,7 @@ namespace xehpc {
 
           // Iterate over kernel width
           #pragma unroll
-          for (int kw = 0; kw < 3; ++kw)
+          for (int kw = 0; kw < KW; ++kw)
           {
             // Load weight matrix for kernel tap
           #if defined(OIDN_ARCH_XEHPG)
@@ -342,6 +347,8 @@ namespace xehpc {
     {
       if (srcDesc.layout != srcDstLayout || srcDesc.dataType != DataTypeOf<SrcDstT>::value)
         throw std::invalid_argument("unsupported convolution source layout/data type");
+      if (weightDesc.getW() != 3 || weightDesc.getH() != 3)
+        throw std::invalid_argument("unsupported convolution kernel size");
       if (weightDesc.layout != weightLayout || weightDesc.dataType != DataTypeOf<WeightT>::value)
         throw std::invalid_argument("unsupported convolution weight layout/data type");
       if (biasDesc.layout != TensorLayout::x || biasDesc.dataType != DataTypeOf<SrcDstT>::value)
