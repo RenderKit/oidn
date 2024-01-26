@@ -12,7 +12,7 @@ import argparse
 
 from common import *
 
-ISPC_VERSION = '1.22.0'
+ISPC_VERSION = '1.21.0' if OS == 'windows' and ARCH == 'arm64' else '1.22.0'
 TBB_VERSION  = '2021.11.0'
 
 def check_symbols(filename, label, max_version):
@@ -84,9 +84,10 @@ if OS == 'windows':
       cfg.compiler = 'msvc17'
     for compiler in cfg.compiler.split('-'):
       if compiler.startswith('msvc'):
-        config_cmd += {'msvc15' : ' -G "Visual Studio 15 2017 Win64"',
-                       'msvc16' : ' -G "Visual Studio 16 2019" -A x64',
-                       'msvc17' : ' -G "Visual Studio 17 2022" -A x64'}[compiler]
+        msvc_arch = {'x86_64': 'x64', 'arm64': 'ARM64'}[ARCH]
+        config_cmd += {'msvc15' :  ' -G "Visual Studio 15 2017 Win64"',
+                       'msvc16' : f' -G "Visual Studio 16 2019" -A {msvc_arch}',
+                       'msvc17' : f' -G "Visual Studio 17 2022" -A {msvc_arch}'}[compiler]
       elif compiler.startswith('icc'):
         icc_version = {'18' : '18.0', '19' : '19.0', '20' : '19.1', '21' : '19.2'}[compiler[3:]]
         config_cmd += f' -T "Intel C++ Compiler {icc_version}"'
@@ -104,28 +105,10 @@ else:
     config_cmd += f' -D CMAKE_C_COMPILER:FILEPATH="{cc}"'
     config_cmd += f' -D CMAKE_CXX_COMPILER:FILEPATH="{cxx}"'
 
-config_cmd += f' -D CMAKE_BUILD_TYPE={cfg.config}'
-
 # Set up the dependencies
 deps_dir = os.path.join(root_dir, 'deps')
 if not os.path.isdir(deps_dir):
   os.makedirs(deps_dir)
-
-# Set up ISPC
-ispc_release = f'ispc-v{ISPC_VERSION}-'
-ispc_release += {'windows' : 'windows', 'linux' : 'linux', 'macos' : 'macOS.universal'}[OS]
-ispc_dir = os.path.join(deps_dir, ispc_release)
-if not os.path.isdir(ispc_dir):
-  # Download and extract ISPC
-  ispc_url = f'https://github.com/ispc/ispc/releases/download/v{ISPC_VERSION}/{ispc_release}'
-  ispc_url += '.zip' if OS == 'windows' else '.tar.gz'
-  ispc_filename = download_file(ispc_url, deps_dir)
-  extract_package(ispc_filename, ispc_dir)
-  os.remove(ispc_filename)
-ispc_executable = os.path.join(ispc_dir, 'bin', 'ispc')
-if OS == 'windows':
-  ispc_executable += '.exe'
-config_cmd += f' -D ISPC_EXECUTABLE="{ispc_executable}"'
 
 # Set up TBB
 tbb_release = f'oneapi-tbb-{TBB_VERSION}-'
@@ -135,7 +118,7 @@ if OS == 'macos':
   tbb_dir += f'.{ARCH}'
 tbb_root = os.path.join(tbb_dir, f'oneapi-tbb-{TBB_VERSION}')
 if not os.path.isdir(tbb_dir):
-  if OS != 'macos':
+  if OS != 'macos' and ARCH != 'arm64':
     # Download and extract TBB
     tbb_url = f'https://github.com/oneapi-src/oneTBB/releases/download/v{TBB_VERSION}/{tbb_release}'
     tbb_url += '.zip' if OS == 'windows' else '.tgz'
@@ -154,14 +137,38 @@ if not os.path.isdir(tbb_dir):
     tbb_build_dir = os.path.join(tbb_src_dir, 'build')
     os.mkdir(tbb_build_dir)
     os.chdir(tbb_build_dir)
-    tbb_config_cmd = f'cmake -L -D CMAKE_BUILD_TYPE=Release -D TBB_TEST=OFF -D CMAKE_INSTALL_PREFIX={tbb_root} ..'
-    min_macos_version = {'x86_64' : '10.11', 'arm64' : '11.0'}[ARCH]
-    tbb_config_cmd += f' -D CMAKE_OSX_DEPLOYMENT_TARGET={min_macos_version}'
+    tbb_config_cmd = config_cmd + f' -D CMAKE_BUILD_TYPE=Release -D TBB_TEST=OFF -D CMAKE_INSTALL_PREFIX={tbb_root} ..'
+    if OS == 'macos':
+      min_macos_version = {'x86_64' : '10.11', 'arm64' : '11.0'}[ARCH]
+      tbb_config_cmd += f' -D CMAKE_OSX_DEPLOYMENT_TARGET={min_macos_version}'
     run(tbb_config_cmd)
-    run('cmake --build . --target install')
+    if msbuild:
+      run('cmake --build . --config Release --target INSTALL')
+    else:
+      run('cmake --build . --target install')
     os.chdir(cfg.build_dir)
     shutil.rmtree(tbb_src_dir)
 config_cmd += f' -D TBB_ROOT="{tbb_root}"'
+
+# Set up ISPC
+ispc_release = f'ispc-v{ISPC_VERSION}-'
+ispc_release += {'windows' : 'windows', 'linux' : 'linux', 'macos' : 'macOS.universal'}[OS]
+if OS == 'linux' and ARCH == 'arm64':
+  ispc_release += '.aarch64'
+ispc_dir = os.path.join(deps_dir, ispc_release)
+if not os.path.isdir(ispc_dir):
+  # Download and extract ISPC
+  ispc_url = f'https://github.com/ispc/ispc/releases/download/v{ISPC_VERSION}/{ispc_release}'
+  ispc_url += '.zip' if OS == 'windows' else '.tar.gz'
+  ispc_filename = download_file(ispc_url, deps_dir)
+  extract_package(ispc_filename, ispc_dir)
+  os.remove(ispc_filename)
+ispc_executable = os.path.join(ispc_dir, 'bin', 'ispc')
+if OS == 'windows':
+  ispc_executable += '.exe'
+config_cmd += f' -D ISPC_EXECUTABLE="{ispc_executable}"'
+
+config_cmd += f' -D CMAKE_BUILD_TYPE={cfg.config}'
 
 if cfg.full:
   if OS != 'macos':

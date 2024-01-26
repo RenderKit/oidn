@@ -55,7 +55,12 @@ def create_package(filename, input_dir):
 
 # Detect the OS and architecture
 OS = {'Windows' : 'windows', 'Linux' : 'linux', 'Darwin' : 'macos'}[platform.system()]
-ARCH = platform.machine()
+
+ARCH = platform.machine().lower()
+if ARCH == 'amd64':
+  ARCH = 'x86_64'
+elif ARCH == 'aarch64':
+  ARCH = 'arm64'
 
 # Get the root directory
 root_dir = os.environ.get('OIDN_ROOT_DIR')
