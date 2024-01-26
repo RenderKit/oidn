@@ -87,8 +87,9 @@ if(MSVC)
     append(OIDN_C_CXX_FLAGS "-Qdiag-disable:2586")
     # disable: disabling optimization; runtime debug checks enabled
     append(OIDN_C_CXX_FLAGS_DEBUG "-Qdiag-disable:10182")
-  elseif(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_GENERATOR MATCHES "Ninja")
-    # Workaround for the following CMake bug when using clang-cl and Ninja:
+  elseif((CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM") AND
+         CMAKE_GENERATOR MATCHES "Ninja")
+    # Workaround for the following CMake bug when using clang-cl/ICX and Ninja:
     # 'ninja: error: FindFirstFileExA(Note: including file: C:/Dev/oidn/include/OpenImageDenoise):
     #  The filename, directory name, or volume label syntax is incorrect.'
     set(CMAKE_CL_SHOWINCLUDES_PREFIX "Note: including file: ")
