@@ -6,7 +6,8 @@ option(OIDN_DEVICE_SYCL_AOT "Enable AOT compilation for SYCL kernels (recommende
 if(OIDN_DEVICE_SYCL_AOT)
   option(OIDN_DEVICE_SYCL_JIT_FALLBACK "Enable JIT fallback for SYCL kernels when AOT is rejected at runtime." ON)
   mark_as_advanced(OIDN_DEVICE_SYCL_JIT_FALLBACK)
-else()
+endif()
+if (NOT OIDN_DEVICE_SYCL_AOT OR OIDN_DEVICE_SYCL_JIT_FALLBACK)
   option(OIDN_DEVICE_SYCL_JIT_CACHE "Enable JIT cache for SYCL kernels." ON)
   mark_as_advanced(OIDN_DEVICE_SYCL_JIT_CACHE)
 endif()
@@ -159,7 +160,7 @@ if(OIDN_DEVICE_SYCL_AOT)
   endif()
 endif()
 
-if(OIDN_DEVICE_SYCL_JIT_CACHE)
+if(OIDN_DEVICE_SYCL_JIT_CACHE AND (NOT OIDN_DEVICE_SYCL_AOT OR OIDN_DEVICE_SYCL_JIT_FALLBACK))
   target_compile_definitions(OpenImageDenoise_device_sycl PRIVATE OIDN_DEVICE_SYCL_JIT_CACHE)
 endif()
 
