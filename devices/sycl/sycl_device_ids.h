@@ -15,7 +15,7 @@ OIDN_NAMESPACE_BEGIN
   };
 
   // Tables of supported device architectures and PCI device IDs
-  // These *must* match the AOT targets defined in CMakeLists.txt
+  // These should match the AOT targets defined in CMakeLists.txt
   // Source: https://github.com/intel/compute-runtime
   inline const std::vector<SYCLDeviceIDTable> syclDeviceIDTables =
   {
@@ -63,6 +63,7 @@ OIDN_NAMESPACE_BEGIN
 
         // acm-g11
         0x4F87, 0x4F88, 0x5693, 0x5694, 0x5695, 0x56A5, 0x56A6, 0x56B0, 0x56B1, 0x56C1,
+        0x56BA, 0x56BB, 0x56BC, 0x56BD,
 
         // acm-g12
         0x5696, 0x5697, 0x56A3, 0x56A4, 0x56B2, 0x56B3, 0x4F85, 0x4F86,
@@ -75,7 +76,14 @@ OIDN_NAMESPACE_BEGIN
         0x0BD0,
 
         // pvc (pvc-xt)
-        0x0BD5, 0x0BD6, 0x0BD7, 0x0BD8, 0x0BD9, 0x0BDA, 0x0BDB, 0x0B69,
+        0x0BD5, 0x0BD6, 0x0BD7, 0x0BD8, 0x0BD9, 0x0BDA, 0x0BDB, 0x0B69, 0x0B6E,
+      },
+    },
+    {
+      SYCLArch::XeHPC_NoDPAS,
+      {
+        // pvc-xt-c0-vg
+        0x0BD4,
       }
     }
   };

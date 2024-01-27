@@ -198,10 +198,11 @@ OIDN_NAMESPACE_BEGIN
     int score = 0;
     switch (arch)
     {
-    case SYCLArch::XeLP:  score = 1;  break;
-    case SYCLArch::XeLPG: score = 2;  break;
-    case SYCLArch::XeHPG: score = 20; break;
-    case SYCLArch::XeHPC: score = 30; break;
+    case SYCLArch::XeLP:         score = 1;  break;
+    case SYCLArch::XeLPG:        score = 2;  break;
+    case SYCLArch::XeHPG:        score = 20; break;
+    case SYCLArch::XeHPC:        score = 30; break;
+    case SYCLArch::XeHPC_NoDPAS: score = 20; break;
     default:
       return -1;
     }
@@ -311,11 +312,12 @@ OIDN_NAMESPACE_BEGIN
         std::cout << "    Arch    : ";
         switch (arch)
         {
-        case SYCLArch::XeLP:  std::cout << "Xe-LP";  break;
-        case SYCLArch::XeLPG: std::cout << "Xe-LPG"; break;
-        case SYCLArch::XeHPG: std::cout << "Xe-HPG"; break;
-        case SYCLArch::XeHPC: std::cout << "Xe-HPC"; break;
-        default:              std::cout << "Unknown";
+        case SYCLArch::XeLP:         std::cout << "Xe-LP";   break;
+        case SYCLArch::XeLPG:        std::cout << "Xe-LPG";  break;
+        case SYCLArch::XeHPG:        std::cout << "Xe-HPG";  break;
+        case SYCLArch::XeHPC:        std::cout << "Xe-HPC";  break;
+        case SYCLArch::XeHPC_NoDPAS: std::cout << "Xe-HPC";  break;
+        default:                     std::cout << "Unknown"; break;
         }
         std::cout << std::endl;
 

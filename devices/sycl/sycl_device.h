@@ -18,6 +18,7 @@ OIDN_NAMESPACE_BEGIN
     XeLPG,
     XeHPG,
     XeHPC,
+    XeHPC_NoDPAS,
   };
 
   class SYCLPhysicalDevice : public PhysicalDevice

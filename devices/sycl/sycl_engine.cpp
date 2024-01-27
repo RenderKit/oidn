@@ -49,6 +49,7 @@ OIDN_NAMESPACE_BEGIN
     {
     case SYCLArch::XeLP:
     case SYCLArch::XeLPG:
+    case SYCLArch::XeHPC_NoDPAS:
       return xelp::newSYCLConv(this, desc);
     case SYCLArch::XeHPG:
       return xehpg::newSYCLConv(this, desc);
