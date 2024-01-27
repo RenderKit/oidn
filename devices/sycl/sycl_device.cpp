@@ -44,7 +44,10 @@ OIDN_NAMESPACE_BEGIN
     for (const auto& extension : extensions)
     {
       if (strcmp(extension.name, ZE_DEVICE_LUID_EXT_NAME) == 0)
+      {
         luidExtension = true;
+        break;
+      }
     }
   #endif
 
@@ -138,6 +141,49 @@ OIDN_NAMESPACE_BEGIN
           return table.arch;
       }
     }
+
+  #if !defined(OIDN_DEVICE_SYCL_AOT)
+    // Check whether ESIMD is supported
+    if (!syclDevice.has(sycl::aspect::ext_intel_esimd))
+      return SYCLArch::Unknown;
+
+    // Check whether the device IP version is supported
+    bool ipVersionSupported = false;
+    uint32_t numExtensions = 0;
+    std::vector<ze_driver_extension_properties_t> extensions;
+    if (zeDriverGetExtensionProperties(zeDriver, &numExtensions, extensions.data()) != ZE_RESULT_SUCCESS)
+      return SYCLArch::Unknown;
+    extensions.resize(numExtensions);
+    if (zeDriverGetExtensionProperties(zeDriver, &numExtensions, extensions.data()) != ZE_RESULT_SUCCESS)
+      return SYCLArch::Unknown;
+
+    for (const auto& extension : extensions)
+    {
+      if (strcmp(extension.name, ZE_DEVICE_IP_VERSION_EXT_NAME) == 0)
+      {
+        ipVersionSupported = true;
+        break;
+      }
+    }
+
+    if (!ipVersionSupported)
+      return SYCLArch::Unknown;
+
+    // Get the device IP version
+    ze_device_handle_t zeDevice = sycl::get_native<sycl::backend::ext_oneapi_level_zero>(syclDevice);
+    ze_device_properties_t zeDeviceProps{ZE_STRUCTURE_TYPE_DEVICE_PROPERTIES};
+    ze_device_ip_version_ext_t zeDeviceIPVersion{ZE_STRUCTURE_TYPE_DEVICE_IP_VERSION_EXT};
+    zeDeviceProps.pNext = &zeDeviceIPVersion;
+    if (zeDeviceGetProperties(zeDevice, &zeDeviceProps) != ZE_RESULT_SUCCESS)
+      return SYCLArch::Unknown;
+    const uint32_t ipVersion = zeDeviceIPVersion.ipVersion;
+
+    // Gen 12.0.0 or newer is required
+    // https://github.com/intel/compute-runtime/blob/14251c3d96e71e97e397b0c4fcb01557fca47f0e/shared/source/helpers/hw_ip_version.h
+    // https://github.com/intel/compute-runtime/blob/14251c3d96e71e97e397b0c4fcb01557fca47f0e/third_party/aot_config_headers/platforms.h
+    if (ipVersion >= 0x03000000)
+      return SYCLArch::XeLP; // always fallback to Xe-LP
+  #endif
 
     return SYCLArch::Unknown;
   }

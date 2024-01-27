@@ -44,8 +44,8 @@ if(NOT LevelZero_INCLUDE_DIR OR (WIN32 AND NOT LevelZero_LIBRARY))
 
   # Download the Level Zero SDK for Windows, which includes the headers too
   FetchContent_Declare(level-zero-sdk
-    URL https://github.com/oneapi-src/level-zero/releases/download/v1.8.8/level-zero_1.8.8_win-sdk.zip
-    URL_HASH SHA256=2dde077823e612e7ab33034faa86323fadc0147789412ad6f9f804de0fd783e8
+    URL https://github.com/oneapi-src/level-zero/releases/download/v1.9.4/level-zero_1.9.4_win-sdk.zip
+    URL_HASH SHA256=b8c13e33d51250148cad7f0d571451c4457d523cc7a98f313322457f30846fb6
   )
   FetchContent_MakeAvailable(level-zero-sdk)
 
@@ -65,7 +65,7 @@ if(NOT WIN32 AND NOT LevelZero_LIBRARY)
   # Download the Level Zero Loader source and include it in the build
   FetchContent_Declare(level-zero-loader
     GIT_REPOSITORY https://github.com/oneapi-src/level-zero.git
-    GIT_TAG        32c4431d731bc2ba7b5b88b32335063efa65e076     # v1.8.8
+    GIT_TAG        4ed13f327d3389285592edcf7598ec3cb2bc712e     # v1.9.4
   )
   FetchContent_MakeAvailable(level-zero-loader)
 
