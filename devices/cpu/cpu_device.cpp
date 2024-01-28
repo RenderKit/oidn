@@ -117,7 +117,7 @@ OIDN_NAMESPACE_BEGIN
       case CPUArch::SSE2:   std::cout << "SSE2";    break;
       case CPUArch::SSE41:  std::cout << "SSE4.1";  break;
       case CPUArch::AVX2:   std::cout << "AVX2";    break;
-      case CPUArch::AVX512: std::cout << "AVX512";  break;
+      case CPUArch::AVX512: std::cout << "AVX-512"; break;
       case CPUArch::NEON:   std::cout << "NEON";    break;
       default:              std::cout << "Unknown"; break;
       }
