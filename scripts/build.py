@@ -32,8 +32,8 @@ def check_symbols_linux(filename):
   check_symbols(filename, 'CXXABI',  (1, 3, 11))
 
 # Parse the arguments
-compilers = {'windows' : ['msvc17', 'msvc16-icc21', 'msvc16-icc20', 'msvc16-icc19', 'msvc16', 'msvc15-icc20', 'msvc15-icc19', 'msvc15-icc18', 'msvc15', 'clang'],
-             'linux'   : ['gcc', 'clang', 'icc'],
+compilers = {'windows' : ['msvc17', 'msvc16-icc21', 'msvc16', 'msvc15', 'clang', 'icx'],
+             'linux'   : ['gcc', 'clang', 'icc', 'icx'],
              'macos'   : ['clang', 'icc']}
 
 parser = argparse.ArgumentParser()
@@ -78,6 +78,12 @@ if OS == 'windows':
     config_cmd += ' -G Ninja'
     config_cmd += f' -D CMAKE_C_COMPILER:FILEPATH="{cc}"'
     config_cmd += f' -D CMAKE_CXX_COMPILER:FILEPATH="{cxx}"'
+  elif cfg.compiler == 'icx':
+    cc  = 'icx'
+    cxx = 'icx'
+    config_cmd += ' -G Ninja'
+    config_cmd += f' -D CMAKE_C_COMPILER:FILEPATH="{cc}"'
+    config_cmd += f' -D CMAKE_CXX_COMPILER:FILEPATH="{cxx}"'
   else:
     msbuild = True
     if cfg.compiler == 'default':
@@ -96,7 +102,7 @@ else:
     config_cmd += ' -G Ninja'
   if cfg.compiler != 'default':
     cc = cfg.compiler
-    cxx = {'gcc' : 'g++', 'clang' : 'clang++', 'icx' : 'icx', 'icc' : 'icpc'}[cc]
+    cxx = {'gcc' : 'g++', 'clang' : 'clang++', 'icx' : 'icpx', 'icc' : 'icpc'}[cc]
     if cfg.compiler == 'icc':
       icc_dir = os.environ.get('OIDN_ICC_DIR_' + OS.upper())
       if icc_dir:
