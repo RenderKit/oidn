@@ -93,6 +93,8 @@ prerequisites are needed:
 
 -   [AMD ROCm (HIP SDK)](https://rocm.docs.amd.com) v5.5.0 or newer.
 
+-   Perl (e.g. [Strawberry Perl](https://strawberryperl.com) on Windows)
+
 #### Metal device for Apple GPUs: {-}
 
 -   [CMake](http://www.cmake.org) 3.21 or newer
