@@ -214,6 +214,16 @@ if(MSVC)
   append(OIDN_C_CXX_FLAGS "/GS")
   # Enable control flow guard
   append(OIDN_C_CXX_FLAGS "/guard:cf")
+
+  if(WIN32)
+    if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+      append(CMAKE_EXE_LINKER_FLAGS    "/DEPENDENTLOADFLAG:0x2000")
+      append(CMAKE_SHARED_LINKER_FLAGS "/DEPENDENTLOADFLAG:0x2000")
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM")
+      append(CMAKE_EXE_LINKER_FLAGS    "/Qoption,link,/DEPENDENTLOADFLAG:0x2000")
+      append(CMAKE_SHARED_LINKER_FLAGS "/Qoption,link,/DEPENDENTLOADFLAG:0x2000")
+    endif()
+  endif()
 else()
   append(OIDN_C_CXX_FLAGS_RELEASE "-fstack-protector")
 
