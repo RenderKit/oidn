@@ -59,7 +59,7 @@ prerequisites are needed:
     -   [oneAPI DPC++ Compiler 2022-12](https://github.com/intel/llvm/releases/tag/2022-12).
         *Must* be rebuilt from source.
     -   [Intel® oneAPI DPC++/C++ Compiler](https://www.intel.com/content/www/us/en/developer/tools/oneapi/dpc-compiler.html)
-        2024.0 or newer
+        2024.1 or newer
 
 -   Intel® Graphics Offline Compiler for OpenCL™ Code (OCLOC)
     -   Windows:
