@@ -49,13 +49,17 @@ prerequisites are needed:
 
 #### SYCL device for Intel GPUs: {-}
 
--   [Intel® oneAPI DPC++/C++ Compiler](https://www.intel.com/content/www/us/en/developer/tools/oneapi/dpc-compiler.html)
-    2024.0 or newer, or the open source
-    [oneAPI DPC++ Compiler 2023-09-22](https://github.com/intel/llvm/releases/tag/nightly-2023-09-22).
-    Other SYCL compilers are *not* supported. The open source version of the
-    compiler is more up-to-date but less stable, so we *strongly* recommend to
-    use the exact version listed here, and on Linux we also recommend to
-    rebuild it from source with the `--disable-fusion` flag.
+-   oneAPI DPC++ Compiler, one of the following versions (other versions are
+    *not* supported):
+    -   [oneAPI DPC++ Compiler 2023-10-26](https://github.com/intel/llvm/releases/tag/nightly-2023-10-26).
+        This is the open source version of the compiler, which is more
+        up-to-date but less stable, so we *strongly* recommend to use this exact
+        version. On Linux we also recommend to rebuild it from source with the
+        `--disable-fusion` flag.
+    -   [oneAPI DPC++ Compiler 2022-12](https://github.com/intel/llvm/releases/tag/2022-12).
+        *Must* be rebuilt from source.
+    -   [Intel® oneAPI DPC++/C++ Compiler](https://www.intel.com/content/www/us/en/developer/tools/oneapi/dpc-compiler.html)
+        2024.0 or newer
 
 -   Intel® Graphics Offline Compiler for OpenCL™ Code (OCLOC)
     -   Windows:
@@ -67,7 +71,7 @@ prerequisites are needed:
         [Intel® oneAPI Base Toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/toolkits.html#base-kit).
 
     -   Linux: Included with [Intel® software for General Purpose GPU capabilities](https://dgpu-docs.intel.com)
-        release [20230918](https://dgpu-docs.intel.com/releases/stable_704_30_20230918.html) or newer
+        release [20231219](https://dgpu-docs.intel.com/releases/stable_775_20_20231219.html) or newer
         (install at least `intel-opencl-icd` on Ubuntu, `intel-ocloc` on RHEL or SLES).
         Also available with
         [Intel® Graphics Compute Runtime for oneAPI Level Zero and OpenCL™ Driver](https://github.com/intel/compute-runtime).
