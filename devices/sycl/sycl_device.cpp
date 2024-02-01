@@ -144,8 +144,9 @@ OIDN_NAMESPACE_BEGIN
 
   #if !defined(OIDN_DEVICE_SYCL_AOT)
     // Check whether ESIMD is supported
-    if (!syclDevice.has(sycl::aspect::ext_intel_esimd))
-      return SYCLArch::Unknown;
+    // FIXME: enable when supported by ICX
+    // if (!syclDevice.has(sycl::aspect::ext_intel_esimd))
+    //   return SYCLArch::Unknown;
 
     // Check whether the device IP version is supported
     bool ipVersionSupported = false;
