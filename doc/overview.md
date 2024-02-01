@@ -130,7 +130,7 @@ project using the following BibTeX entry:
 @misc{OpenImageDenoise,
   author = {Attila T. {\'A}fra},
   title  = {{Intel\textsuperscript{\textregistered} Open Image Denoise}},
-  year   = {2023},
+  year   = {2024},
   note   = {\url{https://www.openimagedenoise.org}}
 }
 ```
