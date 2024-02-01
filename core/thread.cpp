@@ -176,7 +176,7 @@ OIDN_NAMESPACE_BEGIN
 
   void ThreadAffinity::set(int threadIndex)
   {
-    if (threadIndex >= (int)affinities.size())
+    if (threadIndex < 0 || threadIndex >= (int)affinities.size())
       return;
 
     const pthread_t thread = pthread_self();
@@ -196,7 +196,7 @@ OIDN_NAMESPACE_BEGIN
 
   void ThreadAffinity::restore(int threadIndex)
   {
-    if (threadIndex >= (int)affinities.size())
+    if (threadIndex < 0 || threadIndex >= (int)affinities.size())
       return;
 
     const pthread_t thread = pthread_self();
