@@ -55,7 +55,7 @@ prerequisites are needed:
         This is the open source version of the compiler, which is more
         up-to-date but less stable, so we *strongly* recommend to use this exact
         version. On Linux we also recommend to rebuild it from source with the
-        `--disable-fusion` flag.
+        `--disable-fusion` flag to minimize the size of the SYCL runtime.
     -   [oneAPI DPC++ Compiler 2022-12](https://github.com/intel/llvm/releases/tag/2022-12).
         *Must* be rebuilt from source.
     -   [Intel® oneAPI DPC++/C++ Compiler](https://www.intel.com/content/www/us/en/developer/tools/oneapi/dpc-compiler.html)
@@ -163,18 +163,6 @@ Intel(R) oneAPI DPC++/C++ Compiler in your `PATH`.
     prompt, build the library using
 
         ninja
-
-
-### Entitlements on macOS
-
-macOS requires notarization of applications as a security mechanism, and
-[entitlements must be declared](https://developer.apple.com/documentation/bundleresources/entitlements)
-during the notarization process.
-Intel Open Image Denoise uses just-in-time compilation through [oneDNN](https://github.com/oneapi-src/oneDNN) and requires the following entitlements:
-
--    [`com.apple.security.cs.allow-jit`](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_cs_allow-jit)
--    [`com.apple.security.cs.allow-unsigned-executable-memory`](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_cs_allow-unsigned-executable-memory)
--    [`com.apple.security.cs.disable-executable-page-protection`](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_cs_disable-executable-page-protection)
 
 
 Compiling on Windows

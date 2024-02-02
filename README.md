@@ -1,14 +1,14 @@
 # Intel® Open Image Denoise
 
-This is release v2.2.0-devel of Intel Open Image Denoise. For changes
-and new features see the [changelog](CHANGELOG.md). Visit
+This is release v2.2.0 of Intel Open Image Denoise. For changes and new
+features see the [changelog](CHANGELOG.md). Visit
 https://www.openimagedenoise.org for more information.
 
 # Overview
 
 Intel Open Image Denoise is an open source library of high-performance,
 high-quality denoising filters for images rendered with ray tracing.
-Intel Open Image Denoise is part of the [Intel® oneAPI Rendering
+Intel Open Image Denoise is part of the [Intel® Rendering
 Toolkit](https://software.intel.com/en-us/oneapi/render-kit) and is
 released under the permissive [Apache 2.0
 license](http://www.apache.org/licenses/LICENSE-2.0).
@@ -45,43 +45,45 @@ different vendors:
 
   - Intel® 64 architecture compatible CPUs (with at least SSE4.1)
 
-  - Apple silicon CPUs and GPUs (M1 and newer)
+  - ARM64 (AArch64) architecture CPUs (e.g. Apple silicon CPUs)
 
-  - Intel Xe architecture GPUs, both dedicated and integrated, including
-    Intel® Arc™ A-Series Graphics, Intel® Data Center GPU Flex Series
-    (Xe-HPG microarchitecture), Intel® Data Center GPU Max Series
-    (Xe-HPC), 11th-13th Gen Intel® Core™ processor graphics, and related
-    Intel Pentium® and Celeron® processors (Xe-LP)
+  - Intel Xe architecture dedicated and integrated GPUs, including
+    Intel® Arc™ A-Series Graphics, Intel® Data Center GPU Flex Series,
+    Intel® Data Center GPU Max Series, Intel® Iris® Xe Graphics, Intel®
+    Core™ Ultra Processors with Intel® Arc™ Graphics, 11th-14th Gen
+    Intel® Core™ processor graphics, and related Intel Pentium® and
+    Celeron® processors (Xe-LP, Xe-LPG, Xe-HPG, and Xe-HPC
+    microarchitectures)
 
   - NVIDIA GPUs with Volta, Turing, Ampere, Ada Lovelace, and Hopper
     architectures
 
   - AMD GPUs with RDNA2 (Navi 21 only) and RDNA3 (Navi 3x) architectures
 
+  - Apple silicon GPUs (M1 and newer)
+
 It runs on most machines ranging from laptops to workstations and
 compute nodes in HPC systems. It is efficient enough to be suitable not
 only for offline rendering, but, depending on the hardware used, also
 for interactive or even real-time ray tracing.
 
-Intel Open Image Denoise exploits modern instruction sets like Intel
-SSE4, AVX2, and AVX-512 on CPUs, Intel® Xe Matrix Extensions (Intel®
+Intel Open Image Denoise exploits modern instruction sets like SSE4,
+AVX2, AVX-512, and NEON on CPUs, Intel® Xe Matrix Extensions (Intel®
 XMX) on Intel GPUs, and tensor cores on NVIDIA GPUs to achieve high
 denoising performance.
 
 ## System Requirements
 
-You need a CPU with SSE4.1 support or Apple silicon to run Intel Open
-Image Denoise, and you need a 64-bit Windows, Linux, or macOS operating
-system as well.
+You need an Intel® 64 (with SSE4.1) or ARM64 architecture compatible CPU
+to run Intel Open Image Denoise, and you need a 64-bit Windows, Linux,
+or macOS operating system as well.
 
 For Intel GPU support, please also install the latest Intel graphics
 drivers:
 
   - Windows: [Intel® Graphics
     Driver](https://www.intel.com/content/www/us/en/download/726609/intel-arc-iris-xe-graphics-whql-windows.html)
-    31.0.101.4953 or newer for Intel® Arc™ Graphics, 11th-13th Gen
-    Intel® Core™ processor graphics, and related Intel Pentium® and
-    Celeron® processors
+    31.0.101.4953 or newer
 
   - Linux: [Intel® software for General Purpose GPU
     capabilities](https://dgpu-docs.intel.com/driver/installation.html)
@@ -98,9 +100,9 @@ recommended if running on Windows.
 For NVIDIA GPU support, please also install the latest [NVIDIA graphics
 drivers](https://www.nvidia.com/en-us/geforce/drivers/):
 
-  - Windows: Version 522.06 or newer
+  - Windows: Version 452.39 or newer
 
-  - Linux: Version 520.61.05 or newer
+  - Linux: Version 450.80.02 or newer
 
 For AMD GPU support, please also install the latest [AMD graphics
 drivers](https://www.amd.com/en/support):
@@ -139,7 +141,7 @@ cite the project using the following BibTeX entry:
 @misc{OpenImageDenoise,
   author = {Attila T. {\'A}fra},
   title  = {{Intel\textsuperscript{\textregistered} Open Image Denoise}},
-  year   = {2023},
+  year   = {2024},
   note   = {\url{https://www.openimagedenoise.org}}
 }
 ```
@@ -180,13 +182,13 @@ additional prerequisites are needed:
 
 #### CPU device:
 
-  - [Intel® SPMD Program Compiler (ISPC)](http://ispc.github.io) 1.14.1
+  - [Intel® SPMD Program Compiler (ISPC)](http://ispc.github.io) 1.21.0
     or newer. Please obtain a release of ISPC from the [ISPC downloads
     page](https://ispc.github.io/downloads.html). The build system looks
     for ISPC in the `PATH` and in the directory right “next to” the
     checked-out Intel Open Image Denoise sources. For example, if Intel
     Open Image Denoise is in `~/Projects/oidn`, ISPC will also be
-    searched in `~/Projects/ispc-v1.14.1-linux`. Alternatively set the
+    searched in `~/Projects/ispc-v1.21.0-linux`. Alternatively set the
     CMake variable `ISPC_EXECUTABLE` to the location of the ISPC
     compiler.
 
@@ -195,20 +197,27 @@ additional prerequisites are needed:
 
 #### SYCL device for Intel GPUs:
 
-  - [Intel® oneAPI DPC++/C++
-    Compiler](https://www.intel.com/content/www/us/en/developer/tools/oneapi/dpc-compiler.html)
-    2024.0 or newer, or the open source [oneAPI DPC++
-    Compiler 2023-09-22](https://github.com/intel/llvm/releases/tag/nightly-2023-09-22).
-    Other SYCL compilers are *not* supported. The open source version of
-    the compiler is more up-to-date but less stable, so we *strongly*
-    recommend to use the exact version listed here, and on Linux we also
-    recommend to rebuild it from source with the `--disable-fusion`
-    flag.
+  - oneAPI DPC++ Compiler, one of the following versions (other versions
+    are *not* supported):
+    
+      - [oneAPI DPC++
+        Compiler 2023-10-26](https://github.com/intel/llvm/releases/tag/nightly-2023-10-26).
+        This is the open source version of the compiler, which is more
+        up-to-date but less stable, so we *strongly* recommend to use
+        this exact version. On Linux we also recommend to rebuild it
+        from source with the `--disable-fusion` flag to minimize the
+        size of the SYCL runtime.
+      - [oneAPI DPC++
+        Compiler 2022-12](https://github.com/intel/llvm/releases/tag/2022-12).
+        *Must* be rebuilt from source.
+      - [Intel® oneAPI DPC++/C++
+        Compiler](https://www.intel.com/content/www/us/en/developer/tools/oneapi/dpc-compiler.html)
+        2024.1 or newer
 
   - Intel® Graphics Offline Compiler for OpenCL™ Code (OCLOC)
     
       - Windows: Version
-        [31.0.101.4824](https://registrationcenter-download.intel.com/akdlm/IRC_NAS/fcd74e0e-43b3-4930-9bad-29c8b9581339/ocloc_win_101.4824.zip)
+        [31.0.101.5082](https://registrationcenter-download.intel.com/akdlm/IRC_NAS/77a13ae6-6100-4ddc-b069-0086ff44730c/ocloc_win_101.5082.zip)
         or newer as a [standalone component of Intel® oneAPI
         Toolkits](https://www.intel.com/content/www/us/en/developer/articles/tool/oneapi-standalone-components.html),
         which must be extracted and its contents added to the `PATH`.
@@ -217,7 +226,7 @@ additional prerequisites are needed:
     
       - Linux: Included with [Intel® software for General Purpose GPU
         capabilities](https://dgpu-docs.intel.com) release
-        [20230918](https://dgpu-docs.intel.com/releases/stable_704_30_20230918.html)
+        [20231219](https://dgpu-docs.intel.com/releases/stable_775_20_20231219.html)
         or newer (install at least `intel-opencl-icd` on Ubuntu,
         `intel-ocloc` on RHEL or SLES). Also available with [Intel®
         Graphics Compute Runtime for oneAPI Level Zero and OpenCL™
@@ -244,6 +253,8 @@ additional prerequisites are needed:
     Visual Studio generator is *not* supported.
 
   - [AMD ROCm (HIP SDK)](https://rocm.docs.amd.com) v5.5.0 or newer.
+
+  - Perl (e.g. [Strawberry Perl](https://strawberryperl.com) on Windows)
 
 #### Metal device for Apple GPUs:
 
@@ -308,20 +319,6 @@ Intel(R) oneAPI DPC++/C++ Compiler in your `PATH`.
     When back on the command prompt, build the library using
     
         ninja
-
-### Entitlements on macOS
-
-macOS requires notarization of applications as a security mechanism, and
-[entitlements must be
-declared](https://developer.apple.com/documentation/bundleresources/entitlements)
-during the notarization process. Intel Open Image Denoise uses
-just-in-time compilation through
-[oneDNN](https://github.com/oneapi-src/oneDNN) and requires the
-following entitlements:
-
-  - [`com.apple.security.cs.allow-jit`](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_cs_allow-jit)
-  - [`com.apple.security.cs.allow-unsigned-executable-memory`](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_cs_allow-unsigned-executable-memory)
-  - [`com.apple.security.cs.disable-executable-page-protection`](https://developer.apple.com/documentation/bundleresources/entitlements/com_apple_security_cs_disable-executable-page-protection)
 
 ## Compiling on Windows
 
@@ -420,6 +417,10 @@ CMake:
 
   - `OIDN_DEVICE_CUDA`: Enable CUDA device support for NVIDIA GPUs (OFF
     by default).
+
+  - `OIDN_DEVICE_CUDA_API`: Use the CUDA driver API (`Driver`, default),
+    the static CUDA runtime library (`RuntimeStatic`), or the shared
+    CUDA runtime library (`RuntimeShared`).
 
   - `OIDN_DEVICE_HIP`: Enable HIP device support for AMD GPUs (OFF by
     default).
@@ -1555,21 +1556,21 @@ The output image can be one of the input images (i.e. in-place denoising
 is supported). See section [Examples](#examples) for simple code
 snippets that demonstrate the usage of the filter.
 
-| Type    | Name            |    Default | Description                                                                                                                                                                                                                                                                                                                                                                                      |
-| :------ | :-------------- | ---------: | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `Image` | `color`         | *optional* | input beauty image (1–3 channels, LDR values in \[0, 1\] or HDR values in \[0, +∞), values being interpreted such that, after scaling with the `inputScale` parameter, a value of 1 corresponds to a luminance level of 100 cd/m²)                                                                                                                                                               |
-| `Image` | `albedo`        | *optional* | input auxiliary image containing the albedo per pixel (1–3 channels, values in \[0, 1\])                                                                                                                                                                                                                                                                                                         |
-| `Image` | `normal`        | *optional* | input auxiliary image containing the shading normal per pixel (1–3 channels, world-space or view-space vectors with arbitrary length, values in \[-1, 1\])                                                                                                                                                                                                                                       |
-| `Image` | `output`        | *required* | output image (1–3 channels); can be one of the input images                                                                                                                                                                                                                                                                                                                                      |
-| `Bool`  | `hdr`           |    `false` | the main input image is HDR                                                                                                                                                                                                                                                                                                                                                                      |
-| `Bool`  | `srgb`          |    `false` | the main input image is encoded with the sRGB (or 2.2 gamma) curve (LDR only) or is linear; the output will be encoded with the same curve                                                                                                                                                                                                                                                       |
-| `Float` | `inputScale`    |        NaN | scales values in the main input image before filtering, without scaling the output too, which can be used to map color or auxiliary feature values to the expected range, e.g. for mapping HDR values to physical units (which affects the quality of the output but *not* the range of the output values); if set to NaN, the scale is computed implicitly for HDR images or set to 1 otherwise |
-| `Bool`  | `cleanAux`      |    `false` | the auxiliary feature (albedo, normal) images are noise-free; recommended for highest quality but should *not* be enabled for noisy auxiliary images to avoid residual noise                                                                                                                                                                                                                     |
-| `Int`   | `quality`       |       high | image quality mode as an `OIDNQuality` value                                                                                                                                                                                                                                                                                                                                                     |
-| `Data`  | `weights`       | *optional* | trained model weights blob                                                                                                                                                                                                                                                                                                                                                                       |
-| `Int`   | `maxMemoryMB`   |        \-1 | if set to \>= 0, an attempt will be made to limit the memory usage below the specified amount in megabytes at the potential cost of slower performance but actual memory usage may be higher (the target may not be achievable or the device may not support this feature at all); otherwise memory usage will be limited to an unspecified device-dependent amount                              |
-| `Int`   | `tileAlignment` | *constant* | when manually denoising in tiles, the tile size and offsets should be multiples of this amount of pixels to avoid artifacts; when denoising HDR images `inputScale` *must* be set by the user to avoid seam artifacts                                                                                                                                                                            |
-| `Int`   | `tileOverlap`   | *constant* | when manually denoising in tiles, the tiles should overlap by this amount of pixels                                                                                                                                                                                                                                                                                                              |
+| Type    | Name            |    Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| :------ | :-------------- | ---------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Image` | `color`         | *optional* | input beauty image (1–3 channels, LDR values in \[0, 1\] or HDR values in \[0, +∞), values being interpreted such that, after scaling with the `inputScale` parameter, a value of 1 corresponds to a luminance level of 100 cd/m²)                                                                                                                                                                                                                                                                          |
+| `Image` | `albedo`        | *optional* | input auxiliary image containing the albedo per pixel (1–3 channels, values in \[0, 1\])                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `Image` | `normal`        | *optional* | input auxiliary image containing the shading normal per pixel (1–3 channels, world-space or view-space vectors with arbitrary length, values in \[-1, 1\])                                                                                                                                                                                                                                                                                                                                                  |
+| `Image` | `output`        | *required* | output image (1–3 channels); can be one of the input images                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `Bool`  | `hdr`           |    `false` | the main input image is HDR                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `Bool`  | `srgb`          |    `false` | the main input image is encoded with the sRGB (or 2.2 gamma) curve (LDR only) or is linear; the output will be encoded with the same curve                                                                                                                                                                                                                                                                                                                                                                  |
+| `Float` | `inputScale`    |        NaN | scales values in the main input image before filtering, without scaling the output too, which can be used to map color or auxiliary feature values to the expected range, e.g. for mapping HDR values to physical units (which affects the quality of the output but *not* the range of the output values); if set to NaN, the scale is computed implicitly for HDR images or set to 1 otherwise                                                                                                            |
+| `Bool`  | `cleanAux`      |    `false` | the auxiliary feature (albedo, normal) images are noise-free; recommended for highest quality but should *not* be enabled for noisy auxiliary images to avoid residual noise                                                                                                                                                                                                                                                                                                                                |
+| `Int`   | `quality`       |       high | image quality mode as an `OIDNQuality` value                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `Data`  | `weights`       | *optional* | trained model weights blob                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `Int`   | `maxMemoryMB`   |        \-1 | if set to \>= 0, a request is made to limit the memory usage below the specified amount in megabytes at the potential cost of slower performance, but actual memory usage may be higher (the target may not be achievable or there may be additional allocations beyond the control of the library); otherwise, memory usage will be limited to an unspecified device-dependent amount; in both cases, filters on the same device share almost all of their allocated memory to minimize total memory usage |
+| `Int`   | `tileAlignment` | *constant* | when manually denoising in tiles, the tile size and offsets should be multiples of this amount of pixels to avoid artifacts; when denoising HDR images `inputScale` *must* be set by the user to avoid seam artifacts                                                                                                                                                                                                                                                                                       |
+| `Int`   | `tileOverlap`   | *constant* | when manually denoising in tiles, the tiles should overlap by this amount of pixels                                                                                                                                                                                                                                                                                                                                                                                                                         |
 
 Parameters supported by the `RT` filter.
 
@@ -1744,17 +1745,17 @@ The filter can be created by passing `"RTLightmap"` to the
 `oidnNewFilter` function as the filter type. The filter supports the
 following parameters:
 
-| Type    | Name            |    Default | Description                                                                                                                                                                                                                                                                                                                                                         |
-| :------ | :-------------- | ---------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `Image` | `color`         | *required* | input beauty image (1–3 channels, HDR values in \[0, +∞), interpreted such that, after scaling with the `inputScale` parameter, a value of 1 corresponds to a luminance level of 100 cd/m²; directional values in \[-1, 1\])                                                                                                                                        |
-| `Image` | `output`        | *required* | output image (1–3 channels); can be one of the input images                                                                                                                                                                                                                                                                                                         |
-| `Bool`  | `directional`   |    `false` | whether the input contains normalized coefficients (in \[-1, 1\]) of a directional lightmap (e.g. normalized L1 or higher spherical harmonics band with the L0 band divided out); if the range of the coefficients is different from \[-1, 1\], the `inputScale` parameter can be used to adjust the range without changing the stored values                       |
-| `Float` | `inputScale`    |        NaN | scales input color values before filtering, without scaling the output too, which can be used to map color values to the expected range, e.g. for mapping HDR values to physical units (which affects the quality of the output but *not* the range of the output values); if set to NaN, the scale is computed implicitly for HDR images or set to 1 otherwise     |
-| `Int`   | `quality`       |       high | image quality mode as an `OIDNQuality` value                                                                                                                                                                                                                                                                                                                        |
-| `Data`  | `weights`       | *optional* | trained model weights blob                                                                                                                                                                                                                                                                                                                                          |
-| `Int`   | `maxMemoryMB`   |        \-1 | if set to \>= 0, an attempt will be made to limit the memory usage below the specified amount in megabytes at the potential cost of slower performance but actual memory usage may be higher (the target may not be achievable or the device may not support this feature at all); otherwise memory usage will be limited to an unspecified device-dependent amount |
-| `Int`   | `tileAlignment` | *constant* | when manually denoising in tiles, the tile size and offsets should be multiples of this amount of pixels to avoid artifacts; when denoising HDR images `inputScale` *must* be set by the user to avoid seam artifacts                                                                                                                                               |
-| `Int`   | `tileOverlap`   | *constant* | when manually denoising in tiles, the tiles should overlap by this amount of pixels                                                                                                                                                                                                                                                                                 |
+| Type    | Name            |    Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| :------ | :-------------- | ---------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Image` | `color`         | *required* | input beauty image (1–3 channels, HDR values in \[0, +∞), interpreted such that, after scaling with the `inputScale` parameter, a value of 1 corresponds to a luminance level of 100 cd/m²; directional values in \[-1, 1\])                                                                                                                                                                                                                                                                                |
+| `Image` | `output`        | *required* | output image (1–3 channels); can be one of the input images                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `Bool`  | `directional`   |    `false` | whether the input contains normalized coefficients (in \[-1, 1\]) of a directional lightmap (e.g. normalized L1 or higher spherical harmonics band with the L0 band divided out); if the range of the coefficients is different from \[-1, 1\], the `inputScale` parameter can be used to adjust the range without changing the stored values                                                                                                                                                               |
+| `Float` | `inputScale`    |        NaN | scales input color values before filtering, without scaling the output too, which can be used to map color values to the expected range, e.g. for mapping HDR values to physical units (which affects the quality of the output but *not* the range of the output values); if set to NaN, the scale is computed implicitly for HDR images or set to 1 otherwise                                                                                                                                             |
+| `Int`   | `quality`       |       high | image quality mode as an `OIDNQuality` value                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `Data`  | `weights`       | *optional* | trained model weights blob                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `Int`   | `maxMemoryMB`   |        \-1 | if set to \>= 0, a request is made to limit the memory usage below the specified amount in megabytes at the potential cost of slower performance, but actual memory usage may be higher (the target may not be achievable or there may be additional allocations beyond the control of the library); otherwise, memory usage will be limited to an unspecified device-dependent amount; in both cases, filters on the same device share almost all of their allocated memory to minimize total memory usage |
+| `Int`   | `tileAlignment` | *constant* | when manually denoising in tiles, the tile size and offsets should be multiples of this amount of pixels to avoid artifacts; when denoising HDR images `inputScale` *must* be set by the user to avoid seam artifacts                                                                                                                                                                                                                                                                                       |
+| `Int`   | `tileOverlap`   | *constant* | when manually denoising in tiles, the tiles should overlap by this amount of pixels                                                                                                                                                                                                                                                                                                                                                                                                                         |
 
 Parameters supported by the `RTLightmap` filter.
 
