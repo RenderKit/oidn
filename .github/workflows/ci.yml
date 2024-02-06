@@ -8,6 +8,138 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  package-source-tgz:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      image: oidn/rockylinux:8.8
+      cmd: scripts/build_src.py
+      artifact-out: package-source-tgz
+      artifact-path: build/oidn-*.tar.gz
+
+  package-source-zip:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "build", "cuda" ]'
+      cmd: python scripts/build_src.py
+      artifact-out: package-source-zip
+      artifact-path: build/oidn-*.zip
+
+  package-linux:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      image: oidn/rockylinux:8.8
+      dpcpp-version: intel-llvm/nightly-2023-10-26-rk
+      cmd: scripts/build.py package --full
+      artifact-out: package-linux
+      artifact-path: build/oidn-*.tar.gz
+
+  package-macos:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "macOS", "sign", "x86_64" ]'
+      cmd: scripts/build.py package --full
+      artifact-out: package-macos
+      artifact-path: build/oidn-*.tar.gz
+
+  # package-macos-arm:
+  #   secrets: inherit
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
+  #   with:
+  #     project: oidn
+  #     runs-on: '[ "macOS", "arm", "vis-mac-studio-1" ]'
+  #     cmd: scripts/build.py package --full
+  #     artifact-out: package-macos-arm
+  #     artifact-path: build/oidn-*.tar.gz
+
+  package-windows:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "build", "cuda", "hip" ]'
+      msvc-version: "2022"
+      dpcpp-version: intel-llvm/nightly-2023-10-26-rk
+      ocloc-version: 77a13ae6-6100-4ddc-b069-0086ff44730c/ocloc_win_101.5082
+      cmd: |
+        echo $env:ROCM_PATH
+        where ocloc.exe
+        where $env:CC
+        where $env:CXX
+        python scripts/build.py package --full
+      artifact-out: package-windows
+      artifact-path: build/oidn-*.zip
+
+  antivirus-scan:
+    needs:
+      - package-linux
+      - package-macos
+      - package-windows
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/antivirus_scan.yml@main
+    with:
+      project: oidn
+      artifact-in-linux: package-linux
+      artifact-in-macos: package-macos
+      artifact-in-windows: package-windows
+      path: build/oidn-*
+
+  # antivirus-scan-arm:
+  #   needs:
+  #     - package-macos-arm
+  #   secrets: inherit
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/antivirus_scan.yml@main
+  #   with:
+  #     project: oidn
+  #     artifact-in-macos: package-macos-arm
+  #     path: build/oidn-*
+
+  binary-analysis:
+    needs:
+      - package-linux
+      - package-macos
+      - package-windows
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/binary_analysis.yml@main
+    with:
+      project: oidn
+      artifact-in-linux: package-linux
+      artifact-in-macos: package-macos
+      artifact-in-windows: package-windows
+      path: build/oidn-*
+
+  # binary-analysis-arm:
+  #   needs:
+  #     - package-macos-arm
+  #   secrets: inherit
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/binary_analysis.yml@main
+  #   with:
+  #     project: oidn
+  #     artifact-in-macos: package-macos-arm
+  #     path: build/oidn-*
+
+  static-analysis:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/static_analysis.yml@main
+    with:
+      project: Open Image Denoise
+      prebuild: >
+        apt install -y ninja-build
+      build: scripts/build.py
+
+  composition-analysis:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/composition_analysis.yml@main
+    with:
+      project: oidn
+
   build-rockylinux8:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
@@ -979,7 +1111,7 @@ jobs:
         -D OIDN_DEVICE_CPU=OFF
         -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=OFF -D OIDN_DEVICE_SYCL_JIT_CACHE=OFF
         -D OIDN_INSTALL_DEPENDENCIES=ON -D OIDN_ZIP_MODE=ON
-  
+
   build-windows-cudart:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
@@ -1285,7 +1417,7 @@ jobs:
       cmd: python scripts/test.py --device sycl --log test.log
 
   test-windows-icx-dg2:
-    needs: build-windows
+    needs: build-windows-icx
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
     with:
@@ -1297,135 +1429,3 @@ jobs:
       artifact-path: test.log
       artifact-on-failure: true
       cmd: python scripts/test.py --device sycl --log test.log
-
-  static-analysis:
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/static_analysis.yml@main
-    with:
-      project: Open Image Denoise
-      prebuild: >
-        apt install -y ninja-build
-      build: scripts/build.py
-
-  composition-analysis:
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/composition_analysis.yml@main
-    with:
-      project: oidn
-
-  package-linux:
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
-    with:
-      project: oidn
-      image: oidn/rockylinux:8.8
-      dpcpp-version: intel-llvm/nightly-2023-10-26-rk
-      cmd: scripts/build.py package --full
-      artifact-out: package-linux
-      artifact-path: build/oidn-*.tar.gz
-
-  package-macos:
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
-    with:
-      project: oidn
-      runs-on: '[ "macOS", "sign", "x86_64" ]'
-      cmd: scripts/build.py package --full
-      artifact-out: package-macos
-      artifact-path: build/oidn-*.tar.gz
-
-  # package-macos-arm:
-  #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
-  #   with:
-  #     project: oidn
-  #     runs-on: '[ "macOS", "arm", "vis-mac-studio-1" ]'
-  #     cmd: scripts/build.py package --full
-  #     artifact-out: package-macos-arm
-  #     artifact-path: build/oidn-*.tar.gz
-
-  package-windows:
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
-    with:
-      project: oidn
-      runs-on: '[ "Windows", "build", "cuda", "hip" ]'
-      msvc-version: "2022"
-      dpcpp-version: intel-llvm/nightly-2023-10-26-rk
-      ocloc-version: 77a13ae6-6100-4ddc-b069-0086ff44730c/ocloc_win_101.5082
-      cmd: |
-        echo $env:ROCM_PATH
-        where ocloc.exe
-        where $env:CC
-        where $env:CXX
-        python scripts/build.py package --full
-      artifact-out: package-windows
-      artifact-path: build/oidn-*.zip
-
-  package-source-tgz:
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
-    with:
-      project: oidn
-      image: oidn/rockylinux:8.8
-      cmd: scripts/build_src.py
-      artifact-out: package-source-tgz
-      artifact-path: build/oidn-*.tar.gz
-
-  package-source-zip:
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
-    with:
-      project: oidn
-      runs-on: '[ "Windows", "build", "cuda" ]'
-      cmd: python scripts/build_src.py
-      artifact-out: package-source-zip
-      artifact-path: build/oidn-*.zip
-
-  antivirus-scan:
-    needs:
-      - package-linux
-      - package-macos
-      - package-windows
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/antivirus_scan.yml@main
-    with:
-      project: oidn
-      artifact-in-linux: package-linux
-      artifact-in-macos: package-macos
-      artifact-in-windows: package-windows
-      path: build/oidn-*
-
-  # antivirus-scan-arm:
-  #   needs:
-  #     - package-macos-arm
-  #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/antivirus_scan.yml@main
-  #   with:
-  #     project: oidn
-  #     artifact-in-macos: package-macos-arm
-  #     path: build/oidn-*
-
-  binary-analysis:
-    needs:
-      - package-linux
-      - package-macos
-      - package-windows
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/binary_analysis.yml@main
-    with:
-      project: oidn
-      artifact-in-linux: package-linux
-      artifact-in-macos: package-macos
-      artifact-in-windows: package-windows
-      path: build/oidn-*
-
-  # binary-analysis-arm:
-  #   needs:
-  #     - package-macos-arm
-  #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/binary_analysis.yml@main
-  #   with:
-  #     project: oidn
-  #     artifact-in-macos: package-macos-arm
-  #     path: build/oidn-*
