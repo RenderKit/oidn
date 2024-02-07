@@ -240,11 +240,16 @@ if cfg.target == 'package':
       check_symbols_linux(filename)
 
   # Sign the binaries
-  sign_file_env = 'SIGN_FILE_' + {'windows' : 'WINDOWS', 'linux' : 'LINUX_disabled', 'macos' : 'MAC'}[OS]
-  sign_file = os.environ.get(sign_file_env)
-  if sign_file:
+  sign_tool = None
+  if OS == 'windows':
+    sign_tool = os.environ.get('SIGN_FILE_WINDOWS')
+    sign_tool_cmd = f'{sign_tool} -q -vv'
+  elif OS == 'macos':
+    sign_tool = os.environ.get('MACOS_SIGNING_SCRIPT')
+    sign_tool_cmd = sign_tool
+  if sign_tool:
     for filename in binaries:
-      run(f'{sign_file} -q -vv {filename}')
+      run(f'{sign_tool_cmd} {filename}')
 
   # Make the binaries consistently executable
   if OS != 'windows':
@@ -252,7 +257,7 @@ if cfg.target == 'package':
       run(f'chmod +x {filename}')
 
   # Repack
-  if sign_file or OS != 'windows':
+  if sign_tool or OS != 'windows':
     os.remove(package_filename)
     create_package(package_filename, package_dir)
 
