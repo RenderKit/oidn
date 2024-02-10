@@ -13,10 +13,15 @@ OIDN_NAMESPACE_BEGIN
 
   Ref<Arena> Engine::newScratchArena(size_t byteSize, const std::string& name)
   {
-    auto scratchArenaManager = scratchArenaManagerWp.lock();
     if (!scratchArenaManager)
-      scratchArenaManagerWp = scratchArenaManager = std::make_shared<ScratchArenaManager>(this);
-    return makeRef<ScratchArena>(scratchArenaManager, byteSize, name);
+      scratchArenaManager.reset(new ScratchArenaManager(this));
+    return makeRef<ScratchArena>(scratchArenaManager.get(), byteSize, name);
+  }
+
+  void Engine::trimScratch()
+  {
+    if (scratchArenaManager)
+      scratchArenaManager->trim();
   }
 
   // Returns the actual size and required alignment of a buffer allocated from a heap/arena

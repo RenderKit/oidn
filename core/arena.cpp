@@ -15,6 +15,30 @@ OIDN_NAMESPACE_BEGIN
     : engine(engine)
   {}
 
+  void ScratchArenaManager::trim()
+  {
+    for (auto& item : allocs)
+    {
+      Alloc& alloc = item.second;
+
+      if (alloc.arenas.empty())
+      {
+        // Free the heap because no more arenas are attached
+        alloc.heap.reset();
+      }
+      else
+      {
+        // Decrease the size of the heap if possible
+        size_t newHeapByteSize = 0;
+        for (auto arena : alloc.arenas)
+          newHeapByteSize = max(newHeapByteSize, arena->byteSize);
+
+        if (newHeapByteSize < alloc.heap->getByteSize())
+          alloc.heap->realloc(newHeapByteSize);
+      }
+    }
+  }
+
   // Attaches a scratch arena and returns the heap that backs its memory
   Heap* ScratchArenaManager::attach(ScratchArena* arena)
   {
@@ -39,35 +63,15 @@ OIDN_NAMESPACE_BEGIN
   // Detaches the scratch arena
   void ScratchArenaManager::detach(ScratchArena* arena)
   {
-    Alloc& alloc = allocs[arena->name];
-
-    alloc.arenas.erase(arena);
-
-    if (alloc.arenas.empty())
-    {
-      // Free the heap because no more arenas are attached
-      allocs.erase(arena->name);
-    }
-    else
-    {
-      // Shrink the size of the heap if possible
-      if (arena->byteSize == alloc.heap->getByteSize())
-      {
-        size_t newHeapByteSize = 0;
-        for (auto otherArena : alloc.arenas)
-          newHeapByteSize = max(newHeapByteSize, otherArena->byteSize);
-
-        if (newHeapByteSize < alloc.heap->getByteSize())
-          alloc.heap->realloc(newHeapByteSize);
-      }
-    }
+    // We don't free/trim the heap yet because it's expensive. It can be done by calling trim().
+    allocs[arena->name].arenas.erase(arena);
   }
 
   // -----------------------------------------------------------------------------------------------
   // ScratchArena
   // -----------------------------------------------------------------------------------------------
 
-  ScratchArena::ScratchArena(const std::shared_ptr<ScratchArenaManager>& manager, size_t byteSize,
+  ScratchArena::ScratchArena(ScratchArenaManager* manager, size_t byteSize,
                              const std::string& name)
     : manager(manager),
       heap(nullptr),

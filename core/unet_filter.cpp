@@ -135,6 +135,11 @@ OIDN_NAMESPACE_BEGIN
       // (Re-)Initialize the filter
       device->getEngine()->runHostTask([&]() { init(); });
       device->wait();
+
+      // Clean up the device memory if the memory usage limit has been reduced
+      if (maxMemoryMB >= 0 && (maxMemoryMB < prevMaxMemoryMB || prevMaxMemoryMB < 0))
+        device->trimScratch();
+      prevMaxMemoryMB = maxMemoryMB;
     }
 
     dirty = false;

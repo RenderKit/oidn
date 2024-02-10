@@ -45,6 +45,9 @@ OIDN_NAMESPACE_BEGIN
   public:
     ScratchArenaManager(Engine* engine);
 
+    // Trim the heap(s) to the minimum size required by the attached arenas
+    void trim();
+
   private:
     // Allocation consisting of a heap and a set of scratch arenas sharing this heap
     struct Alloc
@@ -71,7 +74,7 @@ OIDN_NAMESPACE_BEGIN
     friend class ScratchArenaManager;
 
   public:
-    ScratchArena(const std::shared_ptr<ScratchArenaManager>& manager, size_t byteSize,
+    ScratchArena(ScratchArenaManager* manager, size_t byteSize,
                  const std::string& name);
     ~ScratchArena();
 
@@ -83,7 +86,7 @@ OIDN_NAMESPACE_BEGIN
     Ref<Buffer> newBuffer(size_t byteSize, size_t byteOffset) override;
 
   private:
-    std::shared_ptr<ScratchArenaManager> manager;
+    ScratchArenaManager* manager;
     Heap* heap;       // heap that backs the memory of this arena
     size_t byteSize;  // size of this arena
     std::string name;

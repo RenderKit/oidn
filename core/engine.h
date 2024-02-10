@@ -46,6 +46,7 @@ OIDN_NAMESPACE_BEGIN
     // Heap / arena
     virtual Ref<Heap> newHeap(size_t byteSize, Storage storage);
     Ref<Arena> newScratchArena(size_t byteSize, const std::string& name = "");
+    void trimScratch();
 
     // Buffer
     virtual SizeAndAlignment getBufferByteSizeAndAlignment(size_t byteSize, Storage storage);
@@ -120,7 +121,7 @@ OIDN_NAMESPACE_BEGIN
     Engine& operator =(const Engine&) = delete;
 
     // Memory
-    std::weak_ptr<ScratchArenaManager> scratchArenaManagerWp;
+    std::unique_ptr<ScratchArenaManager> scratchArenaManager;
   };
 
 OIDN_NAMESPACE_END

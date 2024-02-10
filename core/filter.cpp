@@ -5,7 +5,14 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  Filter::Filter(const Ref<Device>& device) : device(device) {}
+  Filter::Filter(const Ref<Device>& device)
+    : device(device) {}
+
+  Filter::~Filter()
+  {
+    // We trim the scratch heaps only here to make filter resolution changes more efficient
+    device->trimScratch();
+  }
 
   void Filter::setProgressMonitorFunction(ProgressMonitorFunction func, void* userPtr)
   {

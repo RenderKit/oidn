@@ -252,4 +252,10 @@ OIDN_NAMESPACE_BEGIN
     return filter;
   }
 
+  void Device::trimScratch()
+  {
+    for (int i = 0; i < getNumEngines(); ++i)
+      getEngine(i)->trimScratch();
+  }
+
 OIDN_NAMESPACE_END

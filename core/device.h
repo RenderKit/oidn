@@ -68,6 +68,8 @@ OIDN_NAMESPACE_BEGIN
     void checkCommitted();
     void commit();
 
+    Ref<Filter> newFilter(const std::string& type);
+
     oidn_inline Device* getDevice() { return this; } // used by the API implementation
     oidn_inline std::mutex& getMutex() { return mutex; }
 
@@ -84,10 +86,10 @@ OIDN_NAMESPACE_BEGIN
 
     // Memory
     virtual Storage getPtrStorage(const void* ptr) { return Storage::Undefined; }
-
     bool isSystemMemorySupported()  const { return systemMemorySupported; }
     bool isManagedMemorySupported() const { return managedMemorySupported; }
     ExternalMemoryTypeFlags getExternalMemoryTypes() const { return externalMemoryTypes; }
+    void trimScratch();
 
     // Synchronizes all engines (does not block)
     virtual void submitBarrier() {}
@@ -97,8 +99,6 @@ OIDN_NAMESPACE_BEGIN
 
     // Waits for all previously submitted commands to complete (blocks)
     virtual void wait() = 0;
-
-    Ref<Filter> newFilter(const std::string& type);
 
   protected:
     virtual void init() = 0;

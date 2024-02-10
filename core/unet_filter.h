@@ -50,7 +50,8 @@ OIDN_NAMESPACE_BEGIN
     bool directional = false;
     float inputScale = std::numeric_limits<float>::quiet_NaN();
     bool cleanAux = false;
-    int maxMemoryMB = -1; // maximum memory usage limit in MBs, disabled if < 0
+    int maxMemoryMB = -1;     // maximum memory usage limit in MBs, disabled if < 0
+    int prevMaxMemoryMB = -1; // maximum memory usage limit in MBs from the previous commit
 
     // Weights
     struct

@@ -13,6 +13,7 @@ OIDN_NAMESPACE_BEGIN
   {
   public:
     explicit Filter(const Ref<Device>& device);
+    ~Filter();
 
     Device* getDevice() const { return device.get(); }
 
