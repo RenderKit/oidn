@@ -15,9 +15,11 @@ OIDN_NAMESPACE_BEGIN
 
   Graph::Graph(Engine* engine,
                const std::shared_ptr<TensorMap>& constTensors,
+               const std::shared_ptr<TensorMap>& cachedConstTensors,
                bool fastMath)
     : engine(engine),
       constTensors(constTensors),
+      cachedConstTensors(cachedConstTensors),
       fastMath(fastMath) {}
 
   Ref<InputProcess> Graph::addInputProcess(const std::string& name,
@@ -77,8 +79,10 @@ OIDN_NAMESPACE_BEGIN
       }
     }
 
-    auto weight = (*constTensors)[name + ".weight"];
-    auto bias   = (*constTensors)[name + ".bias"];
+    const std::string weightName = name + ".weight";
+    const std::string biasName   = name + ".bias";
+    Ref<Tensor> weight = (*constTensors)[weightName];
+    Ref<Tensor> bias   = (*constTensors)[biasName];
 
     if (weight->getRank() != 4 || bias->getRank() != 1)
       throw std::invalid_argument("invalid convolution weight/bias");
@@ -111,18 +115,27 @@ OIDN_NAMESPACE_BEGIN
       conv->setSrc(srcAlloc->tensor);
       conv->setDst(dstAlloc->tensor);
 
-      // Reorder the weight tensor
-      Ref<Tensor> finalWeight = makeRef<HostTensor>(finalWeightDesc);
-      reorderWeight(*weight, *finalWeight);
-      if (device->needWeightAndBiasOnDevice())
-        finalWeight = finalWeight->toDevice(engine);
-      conv->setWeight(finalWeight);
+      Ref<Tensor> finalWeight = getCachedConstTensor(weightName, finalWeightDesc);
+      if (!finalWeight)
+      {
+        finalWeight = makeRef<HostTensor>(finalWeightDesc);
+        reorderWeight(*weight, *finalWeight);
+        if (device->needWeightAndBiasOnDevice())
+          finalWeight = finalWeight->toDevice(engine);
+        setCachedConstTensor(weightName, finalWeight);
+      }
 
-      // Reorder the bias tensor
-      Ref<Tensor> finalBias = makeRef<HostTensor>(finalBiasDesc);
-      reorderBias(*bias, *finalBias);
-      if (device->needWeightAndBiasOnDevice())
-        finalBias = finalBias->toDevice(engine);
+      Ref<Tensor> finalBias = getCachedConstTensor(biasName, finalBiasDesc);
+      if (!finalBias)
+      {
+        finalBias = makeRef<HostTensor>(finalBiasDesc);
+        reorderBias(*bias, *finalBias);
+        if (device->needWeightAndBiasOnDevice())
+          finalBias = finalBias->toDevice(engine);
+        setCachedConstTensor(biasName, finalBias);
+      }
+
+      conv->setWeight(finalWeight);
       conv->setBias(finalBias);
     });
 
@@ -135,8 +148,10 @@ OIDN_NAMESPACE_BEGIN
                                const Ref<Op>& src2Op,
                                Activation activation)
   {
-    auto weight = (*constTensors)[name + ".weight"];
-    auto bias   = (*constTensors)[name + ".bias"];
+    const std::string weightName = name + ".weight";
+    const std::string biasName   = name + ".bias";
+    Ref<Tensor> weight = (*constTensors)[weightName];
+    Ref<Tensor> bias   = (*constTensors)[biasName];
 
     if (weight->getRank() != 4 || bias->getRank() != 1)
       throw std::invalid_argument("invalid convolution weight/bias");
@@ -177,28 +192,42 @@ OIDN_NAMESPACE_BEGIN
         concatConv->setSrc(src1Alloc->tensor, src2Alloc->tensor);
         concatConv->setDst(dstAlloc->tensor);
 
-        // Reorder the weight tensor
-        Ref<Tensor> finalWeight1 = makeRef<HostTensor>(concatConv->getWeight1Desc());
-        Ref<Tensor> finalWeight2 = makeRef<HostTensor>(concatConv->getWeight2Desc());
+        const std::string weight1Name = weightName + "1";
+        const std::string weight2Name = weightName + "2";
+        Ref<Tensor> finalWeight1 = getCachedConstTensor(weight1Name, concatConv->getWeight1Desc());
+        Ref<Tensor> finalWeight2 = getCachedConstTensor(weight2Name, concatConv->getWeight2Desc());
 
-        reorderWeight(*weight, 0, src1Desc.getC(),
-                      *finalWeight1, 0, src1Desc.getPaddedC());
-        reorderWeight(*weight, src1Desc.getC(), src2Desc.getC(),
-                      *finalWeight2, 0, src2Desc.getPaddedC());
-
-        if (device->needWeightAndBiasOnDevice())
+        if (!finalWeight1 || !finalWeight2)
         {
-          finalWeight1 = finalWeight1->toDevice(engine);
-          finalWeight2 = finalWeight2->toDevice(engine);
+          finalWeight1 = makeRef<HostTensor>(concatConv->getWeight1Desc());
+          finalWeight2 = makeRef<HostTensor>(concatConv->getWeight2Desc());
+
+          reorderWeight(*weight, 0, src1Desc.getC(),
+                        *finalWeight1, 0, src1Desc.getPaddedC());
+          reorderWeight(*weight, src1Desc.getC(), src2Desc.getC(),
+                        *finalWeight2, 0, src2Desc.getPaddedC());
+
+          if (device->needWeightAndBiasOnDevice())
+          {
+            finalWeight1 = finalWeight1->toDevice(engine);
+            finalWeight2 = finalWeight2->toDevice(engine);
+          }
+
+          setCachedConstTensor(weight1Name, finalWeight1);
+          setCachedConstTensor(weight2Name, finalWeight2);
+        }
+
+        Ref<Tensor> finalBias = getCachedConstTensor(biasName, finalBiasDesc);
+        if (!finalBias)
+        {
+          finalBias = makeRef<HostTensor>(finalBiasDesc);
+          reorderBias(*bias, *finalBias);
+          if (device->needWeightAndBiasOnDevice())
+            finalBias = finalBias->toDevice(engine);
+          setCachedConstTensor(biasName, finalBias);
         }
 
         concatConv->setWeight(finalWeight1, finalWeight2);
-
-        // Reorder the bias tensor
-        Ref<Tensor> finalBias = makeRef<HostTensor>(finalBiasDesc);
-        reorderBias(*bias, *finalBias);
-        if (device->needWeightAndBiasOnDevice())
-          finalBias = finalBias->toDevice(engine);
         concatConv->setBias(finalBias);
       });
 
@@ -218,23 +247,33 @@ OIDN_NAMESPACE_BEGIN
         concatConv->setSrc(src1Alloc->tensor, src2Alloc->tensor);
         concatConv->setDst(dstAlloc->tensor);
 
-        // Reorder the weight tensor
-        Ref<Tensor> finalWeight = makeRef<HostTensor>(finalWeightDesc);
+        Ref<Tensor> finalWeight = getCachedConstTensor(weightName, finalWeightDesc);
+        if (!finalWeight)
+        {
+          finalWeight = makeRef<HostTensor>(finalWeightDesc);
 
-        reorderWeight(*weight, 0, src1Desc.getC(),
-                      *finalWeight, 0, src1Desc.getPaddedC());
-        reorderWeight(*weight, src1Desc.getC(), src2Desc.getC(),
-                      *finalWeight, src1Desc.getPaddedC(), src2Desc.getPaddedC());
+          reorderWeight(*weight, 0, src1Desc.getC(),
+                        *finalWeight, 0, src1Desc.getPaddedC());
+          reorderWeight(*weight, src1Desc.getC(), src2Desc.getC(),
+                        *finalWeight, src1Desc.getPaddedC(), src2Desc.getPaddedC());
 
-        if (device->needWeightAndBiasOnDevice())
-          finalWeight = finalWeight->toDevice(engine);
+          if (device->needWeightAndBiasOnDevice())
+            finalWeight = finalWeight->toDevice(engine);
+        
+          setCachedConstTensor(weightName, finalWeight);
+        }
+
+        Ref<Tensor> finalBias = getCachedConstTensor(biasName, finalBiasDesc);
+        if (!finalBias)
+        {
+          finalBias = makeRef<HostTensor>(finalBiasDesc);
+          reorderBias(*bias, *finalBias);
+          if (device->needWeightAndBiasOnDevice())
+            finalBias = finalBias->toDevice(engine);
+          setCachedConstTensor(biasName, finalBias);
+        }
+
         concatConv->setWeight(finalWeight);
-
-        // Reorder the bias tensor
-        Ref<Tensor> finalBias = makeRef<HostTensor>(finalBiasDesc);
-        reorderBias(*bias, *finalBias);
-        if (device->needWeightAndBiasOnDevice())
-          finalBias = finalBias->toDevice(engine);
         concatConv->setBias(finalBias);
       });
 
@@ -411,6 +450,7 @@ OIDN_NAMESPACE_BEGIN
 
     cleanup();
     constTensors.reset();
+    cachedConstTensors.reset();
 
     finalized = true;
   }
@@ -472,6 +512,24 @@ OIDN_NAMESPACE_BEGIN
   #if defined(OIDN_MICROBENCH)
     std::cerr << ",total," << totalTime * 1000 << std::endl;
   #endif
+  }
+
+  Ref<Tensor> Graph::getCachedConstTensor(const std::string& name, const TensorDesc& desc)
+  {
+    if (cachedConstTensors)
+    {
+      auto tensorIter = cachedConstTensors->find(name);
+      if (tensorIter != cachedConstTensors->end() && tensorIter->second->getDesc() == desc)
+        return tensorIter->second;
+    }
+
+    return nullptr;
+  }
+
+  void Graph::setCachedConstTensor(const std::string& name, const Ref<Tensor>& tensor)
+  {
+    if (cachedConstTensors)
+      (*cachedConstTensors)[name] = tensor;
   }
 
 OIDN_NAMESPACE_END

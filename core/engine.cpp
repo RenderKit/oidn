@@ -89,6 +89,14 @@ OIDN_NAMESPACE_BEGIN
     return makeRef<DeviceTensor>(buffer, desc, byteOffset);
   }
 
+  std::shared_ptr<TensorMap> Engine::getCachedTensors(const void* key)
+  {
+    std::shared_ptr<TensorMap>& tensorMap = cachedTensors[key];
+    if (!tensorMap)
+      tensorMap = std::make_shared<TensorMap>();
+    return tensorMap;
+  }
+
   bool Engine::isConvSupported(PostOp postOp)
   {
     return postOp == PostOp::None;

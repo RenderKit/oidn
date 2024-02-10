@@ -265,14 +265,18 @@ OIDN_NAMESPACE_BEGIN
 
     // Build the model
     Data weightsBlob = getWeights();
-    std::shared_ptr<TensorMap> weightsMap = parseTZA(weightsBlob.ptr, weightsBlob.size);
+    auto constTensors = parseTZA(weightsBlob.ptr, weightsBlob.size);
     const bool fastMath = quality == Quality::Balanced;
 
     for (int i = 0; i < device->getNumEngines(); ++i)
     {
-      auto engine = device->getEngine(i);
+      Engine* engine = device->getEngine(i);
+
+      // We can use cached weights only for built-in weights because user weights may change!
+      auto cachedConstTensors = userWeightsBlob ? nullptr : engine->getCachedTensors(weightsBlob.ptr);
+      
       instances.emplace_back();
-      instances.back().graph = makeRef<Graph>(engine, weightsMap, fastMath);
+      instances.back().graph = makeRef<Graph>(engine, constTensors, cachedConstTensors, fastMath);
     }
 
     transferFunc = newTransferFunc();

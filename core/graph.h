@@ -19,6 +19,7 @@ OIDN_NAMESPACE_BEGIN
   public:
     Graph(Engine* engine,
           const std::shared_ptr<TensorMap>& constTensors,
+          const std::shared_ptr<TensorMap>& cachedConstTensors,
           bool fastMath = false);
 
     Ref<InputProcess> addInputProcess(const std::string& name,
@@ -86,6 +87,9 @@ OIDN_NAMESPACE_BEGIN
     void planAllocs();
     void cleanup();
 
+    Ref<Tensor> getCachedConstTensor(const std::string& name, const TensorDesc& desc);
+    void setCachedConstTensor(const std::string& name, const Ref<Tensor>& tensor);
+
     Engine* engine;
     std::vector<Ref<Op>> ops;
     Ref<Buffer> scratch;        // scratch buffer
@@ -95,11 +99,12 @@ OIDN_NAMESPACE_BEGIN
     bool finalized = false;
 
     // Used only while building the graph
-    ArenaPlanner tensorScratchPlanner; // tensor scratch allocation planner
+    ArenaPlanner tensorScratchPlanner;  // tensor scratch allocation planner
     size_t tensorScratchByteOffset = 0; // offset of tensor data in the scratch buffer
     std::unordered_map<Op*, std::shared_ptr<TensorAlloc>> tensorAllocs;
-    std::vector<std::function<void()>> lazyInits; // lazy initialization for ops
-    std::shared_ptr<TensorMap> constTensors;
+    std::vector<std::function<void()>> lazyInits;  // lazy initialization for ops
+    std::shared_ptr<TensorMap> constTensors;       // original weights
+    std::shared_ptr<TensorMap> cachedConstTensors; // cached final weights shared with other graphs
     bool fastMath = false;
   };
 

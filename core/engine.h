@@ -66,6 +66,7 @@ OIDN_NAMESPACE_BEGIN
     virtual bool isSupported(const TensorDesc& desc) const;
     virtual Ref<Tensor> newTensor(const TensorDesc& desc, Storage storage = Storage::Device);
     virtual Ref<Tensor> newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset = 0);
+    std::shared_ptr<TensorMap> getCachedTensors(const void* key);
 
     // Ops
     virtual bool isConvSupported(PostOp postOp);
@@ -122,6 +123,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Memory
     std::unique_ptr<ScratchArenaManager> scratchArenaManager;
+    std::unordered_map<const void*, std::shared_ptr<TensorMap>> cachedTensors; // cached weights
   };
 
 OIDN_NAMESPACE_END
