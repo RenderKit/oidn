@@ -83,7 +83,8 @@ OIDN_NAMESPACE_BEGIN
     if (weight->getRank() != 4 || bias->getRank() != 1)
       throw std::invalid_argument("invalid convolution weight/bias");
 
-    const int blockC = engine->getDevice()->getTensorBlockC();
+    Device* device = engine->getDevice();
+    const int blockC = device->getTensorBlockC();
 
     TensorDims finalWeightDims{round_up(weight->getO(), blockC),
                                round_up(weight->getI(), blockC),
@@ -92,13 +93,13 @@ OIDN_NAMESPACE_BEGIN
 
     TensorDesc finalWeightDesc = {weight->getDims(),
                                   finalWeightDims,
-                                  engine->getDevice()->getWeightLayout(),
-                                  engine->getDevice()->getWeightDataType()};
+                                  device->getWeightLayout(),
+                                  device->getWeightDataType()};
 
     TensorDesc finalBiasDesc = {bias->getDims(),
                                 {round_up(bias->getX(), blockC)},
                                 TensorLayout::x,
-                                engine->getDevice()->getTensorDataType()};
+                                device->getTensorDataType()};
 
     auto srcAlloc = tensorAllocs[srcOp.get()];
     auto conv = engine->newConv({srcAlloc->desc, finalWeightDesc, finalBiasDesc, activation, postOp, fastMath});
@@ -111,13 +112,17 @@ OIDN_NAMESPACE_BEGIN
       conv->setDst(dstAlloc->tensor);
 
       // Reorder the weight tensor
-      auto finalWeight = makeRef<HostTensor>(finalWeightDesc);
+      Ref<Tensor> finalWeight = makeRef<HostTensor>(finalWeightDesc);
       reorderWeight(*weight, *finalWeight);
+      if (device->needWeightAndBiasOnDevice())
+        finalWeight = finalWeight->toDevice(engine);
       conv->setWeight(finalWeight);
 
       // Reorder the bias tensor
-      auto finalBias = makeRef<HostTensor>(finalBiasDesc);
+      Ref<Tensor> finalBias = makeRef<HostTensor>(finalBiasDesc);
       reorderBias(*bias, *finalBias);
+      if (device->needWeightAndBiasOnDevice())
+        finalBias = finalBias->toDevice(engine);
       conv->setBias(finalBias);
     });
 
@@ -136,7 +141,8 @@ OIDN_NAMESPACE_BEGIN
     if (weight->getRank() != 4 || bias->getRank() != 1)
       throw std::invalid_argument("invalid convolution weight/bias");
 
-    const int blockC = engine->getDevice()->getTensorBlockC();
+    Device* device = engine->getDevice();
+    const int blockC = device->getTensorBlockC();
 
     auto src1Alloc = tensorAllocs[src1Op.get()];
     auto src2Alloc = tensorAllocs[src2Op.get()];
@@ -150,17 +156,17 @@ OIDN_NAMESPACE_BEGIN
 
     TensorDesc finalWeightDesc = {weight->getDims(),
                                   finalWeightDims,
-                                  engine->getDevice()->getWeightLayout(),
-                                  engine->getDevice()->getWeightDataType()};
+                                  device->getWeightLayout(),
+                                  device->getWeightDataType()};
 
     TensorDesc finalBiasDesc = {bias->getDims(),
                                 {round_up(bias->getX(), blockC)},
                                 TensorLayout::x,
-                                engine->getDevice()->getTensorDataType()};
+                                device->getTensorDataType()};
 
     ConcatConvDesc concatConvDesc{src1Desc, src2Desc, finalWeightDesc, finalBiasDesc, activation, fastMath};
 
-    if (engine->getDevice()->getTensorLayout() == TensorLayout::hwc)
+    if (device->getTensorLayout() == TensorLayout::hwc)
     {
       auto concatConv = makeRef<ConcatConvHWC>(engine, concatConvDesc);
       concatConv->setName(name);
@@ -172,19 +178,27 @@ OIDN_NAMESPACE_BEGIN
         concatConv->setDst(dstAlloc->tensor);
 
         // Reorder the weight tensor
-        auto finalWeight1 = makeRef<HostTensor>(concatConv->getWeight1Desc());
-        auto finalWeight2 = makeRef<HostTensor>(concatConv->getWeight2Desc());
+        Ref<Tensor> finalWeight1 = makeRef<HostTensor>(concatConv->getWeight1Desc());
+        Ref<Tensor> finalWeight2 = makeRef<HostTensor>(concatConv->getWeight2Desc());
 
         reorderWeight(*weight, 0, src1Desc.getC(),
                       *finalWeight1, 0, src1Desc.getPaddedC());
         reorderWeight(*weight, src1Desc.getC(), src2Desc.getC(),
                       *finalWeight2, 0, src2Desc.getPaddedC());
 
+        if (device->needWeightAndBiasOnDevice())
+        {
+          finalWeight1 = finalWeight1->toDevice(engine);
+          finalWeight2 = finalWeight2->toDevice(engine);
+        }
+
         concatConv->setWeight(finalWeight1, finalWeight2);
 
         // Reorder the bias tensor
-        auto finalBias = makeRef<HostTensor>(finalBiasDesc);
+        Ref<Tensor> finalBias = makeRef<HostTensor>(finalBiasDesc);
         reorderBias(*bias, *finalBias);
+        if (device->needWeightAndBiasOnDevice())
+          finalBias = finalBias->toDevice(engine);
         concatConv->setBias(finalBias);
       });
 
@@ -205,18 +219,22 @@ OIDN_NAMESPACE_BEGIN
         concatConv->setDst(dstAlloc->tensor);
 
         // Reorder the weight tensor
-        auto finalWeight = makeRef<HostTensor>(finalWeightDesc);
+        Ref<Tensor> finalWeight = makeRef<HostTensor>(finalWeightDesc);
 
         reorderWeight(*weight, 0, src1Desc.getC(),
                       *finalWeight, 0, src1Desc.getPaddedC());
         reorderWeight(*weight, src1Desc.getC(), src2Desc.getC(),
                       *finalWeight, src1Desc.getPaddedC(), src2Desc.getPaddedC());
 
+        if (device->needWeightAndBiasOnDevice())
+          finalWeight = finalWeight->toDevice(engine);
         concatConv->setWeight(finalWeight);
 
         // Reorder the bias tensor
-        auto finalBias = makeRef<HostTensor>(finalBiasDesc);
+        Ref<Tensor> finalBias = makeRef<HostTensor>(finalBiasDesc);
         reorderBias(*bias, *finalBias);
+        if (device->needWeightAndBiasOnDevice())
+          finalBias = finalBias->toDevice(engine);
         concatConv->setBias(finalBias);
       });
 

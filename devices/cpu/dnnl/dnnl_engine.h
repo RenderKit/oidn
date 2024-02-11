@@ -4,6 +4,7 @@
 #pragma once
 
 #include "../cpu_engine.h"
+#include "mkl-dnn/include/dnnl.hpp"
 
 OIDN_NAMESPACE_BEGIN
 

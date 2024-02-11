@@ -113,16 +113,6 @@ OIDN_NAMESPACE_BEGIN
     }
 
   private:
-    void updateWeight() override
-    {
-      weight = weight->toDevice(engine);
-    }
-
-    void updateBias() override
-    {
-      bias = bias->toDevice(engine);
-    }
-
     auto makeArgument() const
     {
       return conv.MakeArgument(

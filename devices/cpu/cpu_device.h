@@ -4,9 +4,6 @@
 #pragma once
 
 #include "core/device.h"
-#if defined(OIDN_DNNL)
-  #include "mkl-dnn/include/dnnl.hpp"
-#endif
 #include "tasking.h"
 
 OIDN_NAMESPACE_BEGIN
@@ -52,7 +49,9 @@ OIDN_NAMESPACE_BEGIN
     }
 
     int getNumEngines() const override { return 1; }
-
+  #if !defined(OIDN_DNNL)
+    bool needWeightAndBiasOnDevice() const override { return false; } // no need to copy
+  #endif
     Storage getPtrStorage(const void* ptr) override;
 
     int getInt(const std::string& name) override;

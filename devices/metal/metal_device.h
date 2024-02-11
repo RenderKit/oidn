@@ -32,6 +32,8 @@ OIDN_NAMESPACE_BEGIN
     explicit MetalDevice(id<MTLCommandQueue> commandQueue);
     ~MetalDevice();
 
+    id<MTLDevice> getMTLDevice() const { return device; }
+
     DeviceType getType() const override { return DeviceType::Metal; }
 
     Engine* getEngine(int i) const override
@@ -41,9 +43,7 @@ OIDN_NAMESPACE_BEGIN
     }
 
     int getNumEngines() const override { return 1; }
-
-    id<MTLDevice> getMTLDevice() const { return device; }
-
+    bool needWeightAndBiasOnDevice() const override { return false; } // due to MPSGraph
     Storage getPtrStorage(const void* ptr) override;
 
     void flush() override;

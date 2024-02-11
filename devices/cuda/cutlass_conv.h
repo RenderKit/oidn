@@ -267,16 +267,6 @@ OIDN_NAMESPACE_BEGIN
     }
 
   private:
-    void updateWeight() override
-    {
-      weight = weight->toDevice(engine);
-    }
-
-    void updateBias() override
-    {
-      bias = bias->toDevice(engine);
-    }
-
     CUDAEngine* engine;
     bool finalized = false;
     cutlass::conv::Conv2dProblemSize problemSize;

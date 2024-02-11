@@ -83,6 +83,7 @@ OIDN_NAMESPACE_BEGIN
     TensorLayout getWeightLayout() const { return weightLayout; }
     int getTensorBlockC() const { return tensorBlockC; }
     int getMinTileAlignment() const { return minTileAlignment; }
+    virtual bool needWeightAndBiasOnDevice() const { return true; }
 
     // Memory
     virtual Storage getPtrStorage(const void* ptr) { return Storage::Undefined; }
