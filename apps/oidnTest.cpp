@@ -430,12 +430,17 @@ TEST_CASE("single filter", "[single_filter]")
 
 // -------------------------------------------------------------------------------------------------
 
-void multiFilter1PerDeviceTest(DeviceRef& device, const std::vector<int>& sizes)
+void multiFilter1PerDeviceTest(DeviceRef& device, const std::vector<int>& sizes, bool reuseFilter)
 {
+  FilterRef filter;
+
   for (size_t i = 0; i < sizes.size(); ++i)
   {
-    FilterRef filter = device.newFilter("RT");
-    REQUIRE(bool(filter));
+    if (i == 0 || !reuseFilter)
+    {
+      filter = device.newFilter("RT");
+      REQUIRE(bool(filter));
+    }
 
     auto input  = makeConstImage(device, sizes[i], sizes[i], 3, DataType::Float16, 0.5f);
     auto output = makeConstImage(device, sizes[i], sizes[i], 3, DataType::Float16, 0.f);
@@ -489,9 +494,14 @@ TEST_CASE("multiple filters", "[multi_filter]")
 {
   DeviceRef device = makeAndCommitDevice();
 
-  SECTION("1 filter / device: small -> large -> medium")
+  SECTION("1 filter / device: small -> large -> medium (separate filters)")
   {
-    multiFilter1PerDeviceTest(device, {257, 3001, 1024});
+    multiFilter1PerDeviceTest(device, {257, 257, 3001, 1024}, false);
+  }
+
+  SECTION("1 filter / device: small -> large -> medium (reuse filter)")
+  {
+    multiFilter1PerDeviceTest(device, {257, 257, 3001, 1024}, true);
   }
 
   SECTION("3 filters / device: small")
@@ -648,11 +658,21 @@ TEST_CASE("filter update", "[filter_update]")
     setFilterImage(filter, "color", color);
   }
 
-  SECTION("different image size")
+  SECTION("larger image size")
   {
     color  = makeConstImage(device, W*2, H*2);
     albedo = makeConstImage(device, W*2, H*2);
     output = makeConstImage(device, W*2, H*2);
+    setFilterImage(filter, "color",  color);
+    setFilterImage(filter, "albedo", albedo);
+    setFilterImage(filter, "output", output);
+  }
+
+  SECTION("smaller image size")
+  {
+    color  = makeConstImage(device, W/2, H/2);
+    albedo = makeConstImage(device, W/2, H/2);
+    output = makeConstImage(device, W/2, H/2);
     setFilterImage(filter, "color",  color);
     setFilterImage(filter, "albedo", albedo);
     setFilterImage(filter, "output", output);
