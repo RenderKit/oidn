@@ -109,7 +109,7 @@ OIDN_NAMESPACE_BEGIN
       minTileAlignment = 32; // MPS convolution seems to require this for consistent output
 
       systemMemorySupported  = false;
-      managedMemorySupported = false;
+      managedMemorySupported = false; // unsupported due to manual synchronization
 
       engine.reset(new MetalEngine(this));
     }

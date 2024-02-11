@@ -18,6 +18,10 @@ OIDN_NAMESPACE_BEGIN
       storage((storage == Storage::Undefined) ? Storage::Host : storage),
       engine(engine)
   {
+    // We disallow creating managed buffers because they would require manual synchronization
+    if (storage == Storage::Managed)
+      throw Exception(Error::InvalidArgument, "Metal managed storage mode is not supported");
+
     init();
   }
 
@@ -56,6 +60,9 @@ OIDN_NAMESPACE_BEGIN
       break;
     case MTLStorageModePrivate:
       this->storage = Storage::Device;
+      break;
+    case MTLStorageModeManaged:
+      this->storage = Storage::Managed; // we allow importing managed buffers
       break;
     default:
       throw Exception(Error::InvalidArgument, "Metal buffer storage mode is not supported");

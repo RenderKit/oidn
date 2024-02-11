@@ -735,10 +735,6 @@ with all device types, applications should support at least
 `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DMA_BUF` on Linux. All possible external memory
 types are listed in the table below.
 
-Metal buffers can be used directly using
-
-    OIDNBuffer oidnNewSharedBufferFromMetal(OIDNDevice device, MTLBuffer_id buffer);
-
 --------------------------------------------------- ----------------------------------------------------------
 Name                                                Description
 --------------------------------------------------- ----------------------------------------------------------
@@ -773,6 +769,13 @@ Name                                                Description
                                                     referring to a Direct3D 12 committed resource
 --------------------------------------------------- ----------------------------------------------------------
 : Supported external memory type flags, i.e., valid constants of type `OIDNExternalMemoryTypeFlag`.
+
+Metal buffers can be used directly with
+
+    OIDNBuffer oidnNewSharedBufferFromMetal(OIDNDevice device, MTLBuffer_id buffer);
+
+Note that if a buffer with an `MTLStorageModeManaged` storage mode is imported, it is the
+responsibility of the user to synchronize the contents of the buffer between the CPU and the GPU.
 
 Similar to device objects, buffer objects are also reference-counted and can be
 retained and released by calling the following functions:
