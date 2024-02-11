@@ -8,6 +8,7 @@ Version History
 -   Added Metal device for Apple silicon GPUs (requires macOS Ventura or newer)
 -   Added ARM64 (AArch64) CPU support on Windows and Linux (in addition to macOS)
 -   Improved CPU performance
+-   Significantly reduced overhead of committing filter changes
 -   Switched to the CUDA driver API by default, added the `OIDN_DEVICE_CUDA_API`
     CMake option for manually selecting between the driver and runtime APIs
 -   Fixed crash when releasing a buffer after releasing the device
