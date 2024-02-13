@@ -24,7 +24,7 @@ parser.add_argument('--install_dir', '-I', type=str, help='install directory')
 parser.add_argument('--data_dir', '-D', type=str, help='directory of datasets (e.g. training, validation, test)')
 parser.add_argument('--results_dir', '-R', type=str, help='directory of training results')
 parser.add_argument('--baseline_dir', '-G', type=str, help='directory of generated baseline images')
-parser.add_argument('--arch', '-a', type=str, choices=['native', 'pnr', 'hsw', 'skx'], default='native', help='CPU architectures to test (requires Intel SDE)')
+parser.add_argument('--arch', '-a', type=str, choices=['native', 'sse4'], default='native', help='CPU architectures to test (requires Intel SDE)')
 parser.add_argument('--minimal', action='store_true', help='run minimal tests')
 parser.add_argument('--full', action='store_true', help='run full tests')
 parser.add_argument('--log', '-l', type=str, default=None, help='output log file')
@@ -75,7 +75,8 @@ def print_test(name, kind='Test'):
 def run_test(cmd, arch='native'):
   # Run test through SDE if required
   if arch != 'native':
-    cmd = f'{sde} -{arch} -- ' + cmd
+    sde_arch = {'sse4' : 'pnr'}[arch]
+    cmd = f'{sde} -{sde_arch} -- ' + cmd
 
   # Write command and redirect output to log
   if cfg.log:
@@ -156,7 +157,12 @@ def test_regression(filter, feature_sets, dataset):
       run_test(convert_cmd)
 
   # Iterate over the feature sets
+  out_filename = None
+
   for features, full_test in feature_sets:
+    if cfg.minimal and (out_filename or filter != 'RT'):
+      full_test = False
+
     # Get the result name
     result = filter.lower()
     for f in features:
@@ -182,18 +188,26 @@ def test_regression(filter, feature_sets, dataset):
       image_names = [os.path.relpath(filename, baseline_dir).rsplit('.', 3)[0] for filename in input_filenames]
 
       # Iterate over quality
-      for quality in (['high', 'balanced'] if filter == 'RT' or cfg.full else ['high']):
+      for quality in (['high', 'balanced'] if (filter == 'RT' and not cfg.minimal) or cfg.full else ['high']):
         # Iterate over images
+        image_index = 0
         for image_name in image_names:
+          if cfg.minimal and image_index > 0:
+            break
+
           # Iterate over precision
           for precision in (['fp32', 'fp16'] if full_test or cfg.full else ['fp32']):
             first_run = True
+            if cfg.minimal and image_index > 0:
+              full_test = False
+
             # Iterate over in-place mode
             for inplace in ([False, True] if full_test or cfg.full else [False]):
               # Iterate over memory usage
-              for maxmem in ([None, 256, 0] if full_test or cfg.full else [None]):
+              maxmems = [None, 256] if cfg.minimal else [None, 256, 0]
+              for maxmem in (maxmems if full_test or cfg.full else [None]):
                 # Iterate over buffer storage
-                for storage in ([None] if inplace or (maxmem is not None) else [None, 'device']):
+                for storage in ([None] if inplace or (maxmem is not None) or cfg.minimal else [None, 'device']):
                   # Run test
                   test_name = f'{filter}.{quality}.{features_str}.{image_name}.{precision}'
                   if inplace:
@@ -251,42 +265,43 @@ def test_regression(filter, feature_sets, dataset):
 
                   run_test(denoise_cmd, cfg.arch)
                   first_run = False
+                  image_index += 1
 
-      os.remove(out_filename)
+      if out_filename and os.path.isfile(out_filename):
+        os.remove(out_filename)
 
 # Main tests
 test()
 
-if not cfg.minimal:
-  # Regression tests: RT
-  if not cfg.filter or 'RT' in cfg.filter:
-    test_regression(
-      'RT',
-      [
-        (['hdr', 'alb', 'nrm'],   True),
-        (['hdr', 'alb'],          False),
-        (['hdr'],                 True),
-        (['hdr', 'calb', 'cnrm'], False),
-        (['ldr', 'alb', 'nrm'],   False),
-        (['ldr', 'alb'],          False),
-        (['ldr'],                 True),
-        (['ldr', 'calb', 'cnrm'], False),
-        (['alb'],                 True),
-        (['nrm'],                 True)
-      ],
-      'rt_regress'
-    )
+# Regression tests: RT
+if not cfg.filter or 'RT' in cfg.filter:
+  test_regression(
+    'RT',
+    [
+      (['hdr', 'alb', 'nrm'],   True),
+      (['hdr', 'alb'],          False),
+      (['hdr'],                 True),
+      (['hdr', 'calb', 'cnrm'], False),
+      (['ldr', 'alb', 'nrm'],   False),
+      (['ldr', 'alb'],          False),
+      (['ldr'],                 True),
+      (['ldr', 'calb', 'cnrm'], False),
+      (['alb'],                 True),
+      (['nrm'],                 True)
+    ],
+    'rt_regress'
+  )
 
-  # Regression tests: RTLightmap
-  if not cfg.filter or 'RTLightmap' in cfg.filter:
-    test_regression(
-      'RTLightmap',
-      [
-        (['hdr'], True),
-        (['dir'], False)
-      ],
-      'rtlightmap_regress'
-    )
+# Regression tests: RTLightmap
+if not cfg.filter or 'RTLightmap' in cfg.filter:
+  test_regression(
+    'RTLightmap',
+    [
+      (['hdr'], True),
+      (['dir'], True)
+    ],
+    'rtlightmap_regress'
+  )
 
 # Done
 if cfg.command == 'run':

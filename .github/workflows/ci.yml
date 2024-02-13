@@ -54,7 +54,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
-      runs-on: '[ "macOS", "arm", "vis-mac-studio-1" ]'
+      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
       cmd: scripts/build.py package --full
       artifact-out: package-macos-arm
       artifact-path: build/oidn-*.tar.gz
@@ -219,17 +219,6 @@ jobs:
       artifact-out: build-rockylinux8-namespace-debug
       artifact-path: build install deps
 
-  # build-rockylinux8-icx:
-  #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
-  #   with:
-  #     project: oidn
-  #     image: oidn/rockylinux:8.8
-  #     dpcpp-version: intel/2024.0
-  #     cmd: scripts/build.py install --compiler icx --full
-  #     artifact-out: build-rockylinux8-icx
-  #     artifact-path: build install deps
-
   build-rockylinux8-gcc:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
@@ -330,16 +319,6 @@ jobs:
       artifact-out: build-rockylinux8-olddpcpp
       artifact-path: build install deps
 
-  build-ubuntu2204:
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
-    with:
-      project: oidn
-      image: oidn/ubuntu:22.04
-      cmd: scripts/build.py install --full
-      artifact-out: build-ubuntu2204
-      artifact-path: build install deps
-
   build-ubuntu2204-gcc:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
@@ -384,46 +363,6 @@ jobs:
       artifact-out: build-ubuntu2204-gcc-namespace-static
       artifact-path: build install deps
 
-  # build-ubuntu1804-gcc:
-  #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
-  #   with:
-  #     project: oidn
-  #     image: oidn-build:ubuntu18.04
-  #     cmd: scripts/build.py install --compiler gcc
-  #     artifact-out: build-ubuntu1804-gcc
-  #     artifact-path: build install deps
-
-  # build-ubuntu1804-gcc-debug:
-  #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
-  #   with:
-  #     project: oidn
-  #     image: oidn-build:ubuntu18.04
-  #     cmd: scripts/build.py install --compiler gcc --config Debug
-  #     artifact-out: build-ubuntu1804-gcc-debug
-  #     artifact-path: build install deps
-
-  # build-ubuntu1804-clang:
-  #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
-  #   with:
-  #     project: oidn
-  #     image: oidn-build:ubuntu18.04
-  #     cmd: scripts/build.py --compiler clang
-
-  # build-ubuntu1804-gcc-tbb2007:
-  #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
-  #   with:
-  #     project: oidn
-  #     image: oidn-build:ubuntu18.04
-  #     cmd: |
-  #       mkdir build
-  #       cd build
-  #       cmake ..
-  #       make -j8 VERBOSE=1
-
   build-ubuntu2204-gcc-oiio:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
@@ -455,6 +394,77 @@ jobs:
   #       cd build
   #       cmake -D OIDN_APPS_OPENIMAGEIO=ON ..
   #       make -j8 VERBOSE=1
+
+  build-ubuntu2204-icx:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      image: oidn/ubuntu:22.04
+      dpcpp-version: intel/2024.0
+      cmd: scripts/build.py install --compiler icx --full
+      artifact-out: build-ubuntu2204-icx
+      artifact-path: build install deps
+
+  build-ubuntu2204-arm-gcc:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/perf.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Linux", "ARM64" ]'
+      cmd: scripts/build.py install --full --compiler gcc
+      artifact-out: build-ubuntu2204-arm-gcc
+      artifact-path: build install deps
+
+  build-ubuntu2204-arm-gcc-debug:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/perf.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Linux", "ARM64" ]'
+      cmd: scripts/build.py --full --compiler gcc --config Debug
+      artifact-out: build-ubuntu2204-arm-gcc-debug
+      artifact-path: build deps
+
+  build-ubuntu2204-arm-gcc-namespace:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/perf.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Linux", "ARM64" ]'
+      cmd: >
+        scripts/build.py install --full --compiler gcc
+        -D OIDN_API_NAMESPACE=myoidn
+      artifact-out: build-ubuntu2204-arm-gcc-namespace
+      artifact-path: build install deps
+
+  build-ubuntu2204-arm-gcc-namespace-static:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/perf.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Linux", "ARM64" ]'
+      cmd: >
+        scripts/build.py install --full --compiler gcc
+        -D OIDN_API_NAMESPACE=myoidn -D OIDN_STATIC_LIB=ON
+      artifact-out: build-ubuntu2204-arm-gcc-namespace-static
+      artifact-path: build install deps
+
+  test-rockylinux8-sse4:
+    needs: build-rockylinux8
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Linux", "avx512" ]'
+      image: oidn/rockylinux:8.8
+      artifact-in: build-rockylinux8
+      artifact-out: test-rockylinux8-sse4
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: |
+        export OIDN_SDE_DIR_LINUX=$STORAGE_PATH/packages/apps/sde/lin
+        scripts/test.py --device cpu --arch sse4 --minimal --log test.log
 
   test-rockylinux8-avx2:
     needs: build-rockylinux8
@@ -497,20 +507,6 @@ jobs:
       artifact-path: test.log
       artifact-on-failure: true
       cmd: scripts/test.py --device cpu --log test.log
-
-  # test-rockylinux8-icx-avx2:
-  #   needs: build-rockylinux8-icx
-  #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
-  #   with:
-  #     project: oidn
-  #     runs-on: '[ "Linux", "avx2" ]'
-  #     image: oidn/rockylinux:8.8
-  #     artifact-in: build-rockylinux8-icx
-  #     artifact-out: test-rockylinux8-icx-avx2
-  #     artifact-path: test.log
-  #     artifact-on-failure: true
-  #     cmd: scripts/test.py --device cpu --log test.log
 
   test-rockylinux8-adl:
     needs: build-rockylinux8
@@ -633,36 +629,6 @@ jobs:
       artifact-on-failure: true
       cmd: scripts/test.py --device sycl --log test.log
 
-  # test-rockylinux8-icx-dg2:
-  #   needs: build-rockylinux8-icx
-  #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
-  #   with:
-  #     project: oidn
-  #     runs-on: '[ "Linux", "dg2" ]'
-  #     image: oidn/ubuntu:22.04
-  #     options: --device=/dev/dri
-  #     artifact-in: build-rockylinux8-icx
-  #     artifact-out: test-rockylinux8-icx-dg2
-  #     artifact-path: test.log
-  #     artifact-on-failure: true
-  #     cmd: scripts/test.py --device sycl --log test.log
-
-  # TODO: Install SDE
-  # test-rockylinux8-sse4:
-  #   needs: build-rockylinux8
-  #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
-  #   with:
-  #     project: oidn
-  #     runs-on: '[ "Linux", "build" ]'
-  #     image: oidn/rockylinux:8.8
-  #     artifact-in: build-rockylinux8
-  #     artifact-out: test-rockylinux8-sse4
-  #     artifact-path: test.log
-  #     artifact-on-failure: true
-  #     cmd: scripts/test.py --device cpu --arch pnr --log test.log
-
   test-rockylinux8-debug-avx2:
     needs: build-rockylinux8-debug
     secrets: inherit
@@ -705,60 +671,75 @@ jobs:
       artifact-on-failure: true
       cmd: scripts/test.py --device cpu --log test.log
 
-  # test-ubuntu1804-gcc-avx2:
-  #   needs: build-ubuntu1804-gcc
-  #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
-  #   with:
-  #     project: oidn
-  #     runs-on: '[ "Linux", "avx2" ]'
-  #     image: oidn-build:ubuntu18.04
-  #     artifact-in: build-ubuntu1804-gcc
-  #     cmd: scripts/test.py
+  test-ubuntu2204-icx-avx2:
+    needs: build-ubuntu2204-icx
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Linux", "avx2" ]'
+      image: oidn/ubuntu:22.04
+      dpcpp-version: intel/2024.0
+      artifact-in: build-ubuntu2204-icx
+      artifact-out: test-ubuntu2204-icx-avx2
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: scripts/test.py --device cpu --log test.log
 
-  # test-ubuntu1804-gcc-avx512:
-  #   needs: build-ubuntu1804-gcc
-  #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
-  #   with:
-  #     project: oidn
-  #     runs-on: '[ "Linux", "avx512" ]'
-  #     image: oidn-build:ubuntu18.04
-  #     artifact-in: build-ubuntu1804-gcc
-  #     cmd: scripts/test.py
+  test-ubuntu2204-icx-dg2:
+    needs: build-ubuntu2204-icx
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Linux", "dg2" ]'
+      image: oidn/ubuntu:22.04
+      dpcpp-version: intel/2024.0
+      options: --device=/dev/dri
+      artifact-in: build-ubuntu2204-icx
+      artifact-out: test-ubuntu2204-icx-dg2
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: scripts/test.py --device sycl --log test.log
 
-  # test-ubuntu1804-gcc-sse4:
-  #   needs: build-ubuntu1804-gcc
-  #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
-  #   with:
-  #     project: oidn
-  #     runs-on: '[ "Linux", "build" ]'
-  #     image: oidn-build:ubuntu18.04
-  #     artifact-in: build-ubuntu1804-gcc
-  #     cmd: scripts/test.py --arch pnr
+  test-ubuntu2204-arm-gcc:
+    needs: build-ubuntu2204-arm-gcc
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/perf.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Linux", "ARM64" ]'
+      artifact-in: build-ubuntu2204-arm-gcc
+      artifact-out: test-ubuntu2204-arm-gcc
+      artifact-path: test.log
+      #artifact-on-failure: true
+      cmd: scripts/test.py --device cpu --minimal --log test.log
 
-  # test-ubuntu1804-gcc-debug-avx2:
-  #   needs: build-ubuntu1804-gcc-debug
-  #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
-  #   with:
-  #     project: oidn
-  #     runs-on: '[ "Linux", "avx2" ]'
-  #     image: oidn-build:ubuntu18.04
-  #     artifact-in: build-ubuntu1804-gcc-debug
-  #     cmd: scripts/test.py
+  test-ubuntu2204-arm-gcc-debug:
+    needs: build-ubuntu2204-arm-gcc-debug
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/perf.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Linux", "ARM64" ]'
+      artifact-in: build-ubuntu2204-arm-gcc-debug
+      artifact-out: test-ubuntu2204-arm-gcc-debug
+      artifact-path: test.log
+      #artifact-on-failure: true
+      cmd: scripts/test.py --device cpu --minimal --log test.log
 
-  # test-ubuntu1804-gcc-debug-avx512:
-  #   needs: build-ubuntu1804-gcc-debug
-  #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
-  #   with:
-  #     project: oidn
-  #     runs-on: '[ "Linux", "avx512" ]'
-  #     image: oidn-build:ubuntu18.04
-  #     artifact-in: build-ubuntu1804-gcc-debug
-  #     cmd: scripts/test.py
+  test-ubuntu2204-arm-gcc-namespace-static:
+    needs: build-ubuntu2204-arm-gcc-namespace-static
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/perf.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Linux", "ARM64" ]'
+      artifact-in: build-ubuntu2204-arm-gcc-namespace-static
+      artifact-out: test-ubuntu2204-arm-gcc-namespace-static
+      artifact-path: test.log
+      #artifact-on-failure: true
+      cmd: scripts/test.py --device cpu --minimal --log test.log
 
   build-macos-arm:
     secrets: inherit
@@ -780,33 +761,33 @@ jobs:
       artifact-path: build install deps
       cmd: scripts/build.py install --full -D OIDN_STATIC_LIB=ON
 
-  build-macos-debug-arm:
+  build-macos-arm-debug:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
       runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
-      artifact-out: build-macos-debug-arm
+      artifact-out: build-macos-arm-debug
       artifact-path: build deps
       cmd: scripts/build.py --full --config Debug
 
-  build-macos-namespace-arm:
+  build-macos-arm-namespace:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
       runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
-      artifact-out: build-macos-namespace-arm
+      artifact-out: build-macos-arm-namespace
       artifact-path: build install deps
       cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
 
-  build-macos-namespace-arm-static:
+  build-macos-arm-namespace-static:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
       runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
-      artifact-out: build-macos-namespace-arm-static
+      artifact-out: build-macos-arm-namespace-static
       artifact-path: build install deps
       cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn -D OIDN_STATIC_LIB=ON
 
@@ -836,33 +817,33 @@ jobs:
       artifact-on-failure: true
       cmd: scripts/test.py --device cpu --log test.log
 
-  test-macos-debug-arm:
-    needs: build-macos-debug-arm
+  test-macos-arm-debug:
+    needs: build-macos-arm-debug
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
       runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
-      artifact-in: build-macos-debug-arm
-      artifact-out: test-macos-debug-arm
+      artifact-in: build-macos-arm-debug
+      artifact-out: test-macos-arm-debug
       artifact-path: test.log
       artifact-on-failure: true
       cmd: scripts/test.py --device cpu --minimal --log test.log
 
-  test-macos-namespace-arm:
-    needs: build-macos-namespace-arm
+  test-macos-arm-namespace:
+    needs: build-macos-arm-namespace
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
       runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
-      artifact-in: build-macos-namespace-arm
-      artifact-out: test-macos-namespace-arm
+      artifact-in: build-macos-arm-namespace
+      artifact-out: test-macos-arm-namespace
       artifact-path: test.log
       artifact-on-failure: true
       cmd: scripts/test.py --device cpu --log test.log
 
-  test-macos-metal:
+  test-macos-arm-metal:
     needs: build-macos-arm
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
@@ -870,12 +851,12 @@ jobs:
       project: oidn
       runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
       artifact-in: build-macos-arm
-      artifact-out: test-macos-metal
+      artifact-out: test-macos-arm-metal
       artifact-path: test.log
       artifact-on-failure: true
       cmd: scripts/test.py --device metal --log test.log
 
-  test-macos-metal-static:
+  test-macos-arm-static-metal:
     needs: build-macos-arm-static
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
@@ -883,33 +864,33 @@ jobs:
       project: oidn
       runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
       artifact-in: build-macos-arm-static
-      artifact-out: test-macos-metal-static
+      artifact-out: test-macos-arm-static-metal
       artifact-path: test.log
       artifact-on-failure: true
       cmd: scripts/test.py --device metal --log test.log
 
-  test-macos-debug-metal:
-    needs: build-macos-debug-arm
+  test-macos-arm-debug-metal:
+    needs: build-macos-arm-debug
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
       runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
-      artifact-in: build-macos-debug-arm
-      artifact-out: test-macos-debug-metal
+      artifact-in: build-macos-arm-debug
+      artifact-out: test-macos-arm-debug-metal
       artifact-path: test.log
       artifact-on-failure: true
       cmd: scripts/test.py --device metal --minimal --log test.log
 
-  test-macos-namespace-metal:
-    needs: build-macos-namespace-arm
+  test-macos-arm-namespace-metal:
+    needs: build-macos-arm-namespace
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
       runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
-      artifact-in: build-macos-namespace-arm
-      artifact-out: test-macos-namespace-metal
+      artifact-in: build-macos-arm-namespace
+      artifact-out: test-macos-arm-namespace-metal
       artifact-path: test.log
       artifact-on-failure: true
       cmd: scripts/test.py --device metal --log test.log
@@ -1159,49 +1140,82 @@ jobs:
       runs-on: '[ "Windows", "build" ]'
       cmd: python scripts/build.py install --compiler msvc15
 
-  build-windows-msvc15-static:
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
-    with:
-      project: oidn
-      runs-on: '[ "Windows", "build" ]'
-      cmd: python scripts/build.py install --compiler msvc15 -D OIDN_STATIC_LIB=ON
-
-  build-windows-msvc15-debug:
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
-    with:
-      project: oidn
-      runs-on: '[ "Windows", "build" ]'
-      cmd: python scripts/build.py --compiler msvc15 --config Debug
-
-  build-windows-msvc15-namespace:
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
-    with:
-      project: oidn
-      runs-on: '[ "Windows", "build" ]'
-      cmd: python scripts/build.py --compiler msvc15 -D OIDN_API_NAMESPACE=myoidn
-
   build-windows-msvc16:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "build" ]'
-      artifact-out: build-windows-msvc16
-      artifact-path: build install
       cmd: python scripts/build.py install --compiler msvc16
 
-  build-windows-msvc16-onednn:
+  build-windows-msvc17:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "build" ]'
-      artifact-out: build-windows-msvc16-onednn
+      artifact-out: build-windows-msvc17
       artifact-path: build install
-      cmd: python scripts/build.py install --compiler msvc16 -D OIDN_DEVICE_CPU_ONEDNN=ON
+      cmd: python scripts/build.py install --compiler msvc17
+
+  build-windows-msvc17-static:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "build" ]'
+      cmd: python scripts/build.py install --compiler msvc17 -D OIDN_STATIC_LIB=ON
+
+  build-windows-msvc17-debug:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "build" ]'
+      cmd: python scripts/build.py --compiler msvc17 --config Debug
+
+  build-windows-msvc17-namespace:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "build" ]'
+      cmd: python scripts/build.py --compiler msvc17 -D OIDN_API_NAMESPACE=myoidn
+
+  build-windows-msvc17-onednn:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "build" ]'
+      artifact-out: build-windows-msvc17-onednn
+      artifact-path: build install
+      cmd: python scripts/build.py install --compiler msvc17 -D OIDN_DEVICE_CPU_ONEDNN=ON
+
+  # build-windows-arm-msvc17:
+  #   secrets: inherit
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
+  #   with:
+  #     project: oidn
+  #     runs-on: '[ "Windows", "arm" ]'
+  #     artifact-out: build-windows-arm-msvc17
+  #     artifact-path: build install
+  #     cmd: python scripts/build.py install --compiler msvc17
+
+  test-windows-sse4:
+    needs: build-windows
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "build", "cuda" ]'
+      artifact-in: build-windows
+      artifact-out: test-windows-sse4
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: |
+        $Env:OIDN_SDE_DIR_WINDOWS="\sde"
+        python scripts/test.py --device cpu --arch sse4 --minimal --log test.log
 
   test-windows-avx2:
     needs: build-windows
@@ -1294,31 +1308,44 @@ jobs:
       artifact-on-failure: true
       cmd: python scripts/test.py --device cpu --log test.log
 
-  test-windows-msvc16-avx512:
-    needs: build-windows-msvc16
+  test-windows-msvc17-avx512:
+    needs: build-windows-msvc17
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "avx512", "NAS" ]'
-      artifact-in: build-windows-msvc16
-      artifact-out: test-windows-msvc16-avx512
+      artifact-in: build-windows-msvc17
+      artifact-out: test-windows-msvc17-avx512
       artifact-path: test.log
       artifact-on-failure: true
       cmd: python scripts/test.py --device cpu --minimal --log test.log
 
-  test-windows-msvc16-onednn-avx512:
-    needs: build-windows-msvc16-onednn
+  test-windows-msvc17-onednn-avx512:
+    needs: build-windows-msvc17-onednn
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "avx512", "NAS" ]'
-      artifact-in: build-windows-msvc16-onednn
-      artifact-out: test-windows-msvc16-onednn-avx512
+      artifact-in: build-windows-msvc17-onednn
+      artifact-out: test-windows-msvc17-onednn-avx512
       artifact-path: test.log
       artifact-on-failure: true
       cmd: python scripts/test.py --device cpu --minimal --log test.log
+
+  # test-windows-arm-msvc17:
+  #   needs: build-windows-arm-msvc17
+  #   secrets: inherit
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
+  #   with:
+  #     project: oidn
+  #     runs-on: '[ "Windows", "arm", "NAS" ]'
+  #     artifact-in: build-windows-arm-msvc17
+  #     artifact-out: test-windows-arm-msvc17
+  #     artifact-path: test.log
+  #     artifact-on-failure: true
+  #     cmd: python scripts/test.py --device cpu --minimal --log test.log
 
   test-windows-dg2:
     needs: build-windows
