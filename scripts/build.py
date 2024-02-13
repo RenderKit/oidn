@@ -177,9 +177,9 @@ config_cmd += f' -D ISPC_EXECUTABLE="{ispc_executable}"'
 config_cmd += f' -D CMAKE_BUILD_TYPE={cfg.config}'
 
 if cfg.full:
-  if OS != 'macos':
+  if OS != 'macos' and ARCH != 'arm64':
     config_cmd += ' -D OIDN_DEVICE_CPU=ON -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_CUDA=ON -D OIDN_DEVICE_HIP=ON'
-  elif ARCH == 'arm64':
+  elif OS == 'macos' and ARCH == 'arm64':
     config_cmd += ' -D OIDN_DEVICE_CPU=ON -D OIDN_DEVICE_METAL=ON'
 
 config_cmd += ' -D OIDN_WARN_AS_ERRORS=ON'
