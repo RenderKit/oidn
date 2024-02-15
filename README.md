@@ -1203,12 +1203,6 @@ and both `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_FD` and
 `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DMA_BUF` on Linux. All possible external
 memory types are listed in the table below.
 
-Metal buffers can be used directly using
-
-``` cpp
-OIDNBuffer oidnNewSharedBufferFromMetal(OIDNDevice device, MTLBuffer_id buffer);
-```
-
 | Name                                                | Description                                                                                                        |
 | :-------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------- |
 | `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_NONE`               |                                                                                                                    |
@@ -1225,6 +1219,16 @@ OIDNBuffer oidnNewSharedBufferFromMetal(OIDNDevice device, MTLBuffer_id buffer);
 
 Supported external memory type flags, i.e., valid constants of type
 `OIDNExternalMemoryTypeFlag`.
+
+Metal buffers can be imported directly with
+
+``` cpp
+OIDNBuffer oidnNewSharedBufferFromMetal(OIDNDevice device, MTLBuffer_id buffer);
+```
+
+Note that if a buffer with an `MTLStorageModeManaged` storage mode is
+imported, it is the responsibility of the user to synchronize the
+contents of the buffer between the host and the device.
 
 Similar to device objects, buffer objects are also reference-counted and
 can be retained and released by calling the following functions:

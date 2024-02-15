@@ -770,12 +770,13 @@ Name                                                Description
 --------------------------------------------------- ----------------------------------------------------------
 : Supported external memory type flags, i.e., valid constants of type `OIDNExternalMemoryTypeFlag`.
 
-Metal buffers can be used directly with
+Metal buffers can be imported directly with
 
     OIDNBuffer oidnNewSharedBufferFromMetal(OIDNDevice device, MTLBuffer_id buffer);
 
 Note that if a buffer with an `MTLStorageModeManaged` storage mode is imported, it is the
-responsibility of the user to synchronize the contents of the buffer between the CPU and the GPU.
+responsibility of the user to synchronize the contents of the buffer between the
+host and the device.
 
 Similar to device objects, buffer objects are also reference-counted and can be
 retained and released by calling the following functions:
