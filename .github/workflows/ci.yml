@@ -100,6 +100,7 @@ jobs:
       project: oidn
       artifact-in-macos: package-macos-arm
       path: build/oidn-*
+      artifact-out-name: antivirus-scan-arm
 
   binary-analysis:
     needs:
@@ -124,6 +125,7 @@ jobs:
       project: oidn
       artifact-in-macos: package-macos-arm
       path: build/oidn-*
+      artifact-out-name: binary-analysis-arm
 
   static-analysis:
     secrets: inherit
