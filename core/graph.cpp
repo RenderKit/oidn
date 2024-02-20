@@ -259,7 +259,7 @@ OIDN_NAMESPACE_BEGIN
 
           if (device->needWeightAndBiasOnDevice())
             finalWeight = finalWeight->toDevice(engine);
-        
+
           setCachedConstTensor(weightName, finalWeight);
         }
 
@@ -455,7 +455,7 @@ OIDN_NAMESPACE_BEGIN
     finalized = true;
   }
 
-  void Graph::run(Progress& progress)
+  void Graph::submit(Progress& progress)
   {
     if (!finalized)
       throw std::logic_error("graph not finalized");

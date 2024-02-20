@@ -232,7 +232,7 @@ OIDN_NAMESPACE_BEGIN
           //printf("Tile: %d %d -> %d %d\n", w+overlapBeginW, h+overlapBeginH, w+overlapBeginW+tileW2, h+overlapBeginH+tileH2);
 
           // Denoise the tile
-          instance.graph->run(progress);
+          instance.graph->submit(progress);
 
           // Next tile
           tileIndex++;
@@ -274,7 +274,7 @@ OIDN_NAMESPACE_BEGIN
 
       // We can use cached weights only for built-in weights because user weights may change!
       auto cachedConstTensors = userWeightsBlob ? nullptr : engine->getCachedTensors(weightsBlob.ptr);
-      
+
       instances.emplace_back();
       instances.back().graph = makeRef<Graph>(engine, constTensors, cachedConstTensors, fastMath);
     }

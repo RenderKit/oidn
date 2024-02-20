@@ -59,7 +59,7 @@ OIDN_NAMESPACE_BEGIN
     double getWorkAmount() const;
     void clear();
     void finalize();
-    void run(Progress& progress);
+    void submit(Progress& progress);
 
   private:
     // Temporary tensor allocation
