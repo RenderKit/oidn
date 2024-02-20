@@ -12,7 +12,7 @@ import argparse
 
 from common import *
 
-ISPC_VERSION = '1.21.0' if OS == 'windows' and ARCH == 'arm64' else '1.22.0'
+ISPC_VERSION = '1.23.0'
 TBB_VERSION  = '2021.11.0'
 
 def check_symbols(filename, label, max_version):
