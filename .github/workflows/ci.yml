@@ -23,7 +23,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "build", "cuda" ]'
+      runs-on: '[ "Windows", "cuda" ]'
       cmd: python scripts/build_src.py
       artifact-out: package-source-zip
       artifact-path: build/oidn-*.zip
@@ -64,7 +64,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "build", "cuda", "hip" ]'
+      runs-on: '[ "Windows", "cuda", "hip" ]'
       msvc-version: "2022"
       dpcpp-version: intel-llvm/nightly-2023-10-26-rk
       ocloc-version: 77a13ae6-6100-4ddc-b069-0086ff44730c/ocloc_win_101.5082
@@ -984,7 +984,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "build", "cuda", "hip" ]'
+      runs-on: '[ "Windows", "cuda", "hip" ]'
       msvc-version: "2022"
       dpcpp-version: intel-llvm/nightly-2023-10-26-rk
       ocloc-version: 77a13ae6-6100-4ddc-b069-0086ff44730c/ocloc_win_101.5082
@@ -997,7 +997,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "build", "cuda", "hip" ]'
+      runs-on: '[ "Windows", "cuda", "hip" ]'
       msvc-version: "2022"
       dpcpp-version: intel-llvm/nightly-2023-10-26-rk
       ocloc-version: 77a13ae6-6100-4ddc-b069-0086ff44730c/ocloc_win_101.5082
@@ -1011,7 +1011,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "build", "cuda", "hip" ]'
+      runs-on: '[ "Windows", "cuda", "hip" ]'
       dpcpp-version: intel-llvm/nightly-2023-10-26-rk
       ocloc-version: 77a13ae6-6100-4ddc-b069-0086ff44730c/ocloc_win_101.5082
       artifact-out: build-windows-debug
@@ -1025,7 +1025,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "build", "cuda", "hip" ]'
+      runs-on: '[ "Windows", "cuda", "hip" ]'
       dpcpp-version: intel-llvm/nightly-2023-10-26-rk
       ocloc-version: 77a13ae6-6100-4ddc-b069-0086ff44730c/ocloc_win_101.5082
       artifact-out: build-windows-namespace
@@ -1037,7 +1037,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "build", "cuda", "hip" ]'
+      runs-on: '[ "Windows", "cuda", "hip" ]'
       dpcpp-version: intel-llvm/nightly-2023-10-26-rk
       ocloc-version: 77a13ae6-6100-4ddc-b069-0086ff44730c/ocloc_win_101.5082
       artifact-out: build-windows-namespace-static
@@ -1100,7 +1100,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "build", "cuda", "hip" ]'
+      runs-on: '[ "Windows", "cuda", "hip" ]'
       msvc-version: "2022"
       dpcpp-version: intel-llvm/nightly-2023-10-26-rk
       ocloc-version: 77a13ae6-6100-4ddc-b069-0086ff44730c/ocloc_win_101.5082
@@ -1113,7 +1113,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "build", "cuda", "hip" ]'
+      runs-on: '[ "Windows", "cuda", "hip" ]'
       msvc-version: "2022"
       dpcpp-version: intel-llvm/2022-12-rk
       ocloc-version: 77a13ae6-6100-4ddc-b069-0086ff44730c/ocloc_win_101.5082
@@ -1126,7 +1126,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "build", "cuda", "hip" ]'
+      runs-on: '[ "Windows", "cuda", "hip" ]'
       msvc-version: "2022"
       dpcpp-version: oneAPI/compiler/2024.0
       ocloc-version: 77a13ae6-6100-4ddc-b069-0086ff44730c/ocloc_win_101.5082
@@ -1210,7 +1210,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "build", "cuda" ]'
+      runs-on: '[ "Windows", "cuda" ]'
       artifact-in: build-windows
       artifact-out: test-windows-sse4
       artifact-path: test.log
