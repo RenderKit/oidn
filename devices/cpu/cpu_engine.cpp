@@ -41,20 +41,22 @@ OIDN_NAMESPACE_BEGIN
     // Automatically set the thread affinities
     if (affinity)
       observer = std::make_shared<PinningObserver>(affinity, *arena);
+
+    // Start the queue processing thread
+    queueThread = std::thread([&]() { processQueue(); });
   }
 
   CPUEngine::~CPUEngine()
   {
+    {
+      std::lock_guard<std::mutex> lock(queueMutex);
+      queueShutdown = true;
+    }
+    queueCond.notify_all();
+    queueThread.join();
+
     if (observer)
       observer.reset();
-  }
-
-  void CPUEngine::runHostTask(std::function<void()>&& f)
-  {
-    if (arena)
-      arena->execute(f);
-    else
-      f();
   }
 
 #if !defined(OIDN_DNNL) && !defined(OIDN_BNNS)
@@ -94,9 +96,26 @@ OIDN_NAMESPACE_BEGIN
     return makeRef<CPUImageCopy>(this);
   }
 
+  void CPUEngine::submit(std::function<void()>&& f)
+  {
+    {
+      std::lock_guard<std::mutex> lock(queueMutex);
+      queue.push(std::move(f));
+    }
+    queueCond.notify_all();
+  }
+
   void CPUEngine::submitHostFunc(std::function<void()>&& f)
   {
-    f(); // no async execution on the CPU
+    submit(std::move(f));
+  }
+
+  void CPUEngine::wait()
+  {
+    {
+      std::unique_lock<std::mutex> lock(queueMutex);
+      queueCond.wait(lock, [&] { return queue.empty(); });
+    }
   }
 
   void* CPUEngine::usmAlloc(size_t byteSize, Storage storage)
@@ -117,12 +136,50 @@ OIDN_NAMESPACE_BEGIN
 
   void CPUEngine::usmCopy(void* dstPtr, const void* srcPtr, size_t byteSize)
   {
-    std::memcpy(dstPtr, srcPtr, byteSize);
+    submitUSMCopy(dstPtr, srcPtr, byteSize);
+    wait();
   }
 
   void CPUEngine::submitUSMCopy(void* dstPtr, const void* srcPtr, size_t byteSize)
   {
-    std::memcpy(dstPtr, srcPtr, byteSize);
+    submit([=] { std::memcpy(dstPtr, srcPtr, byteSize); });
+  }
+
+  void CPUEngine::processQueue()
+  {
+    for (; ;)
+    {
+      std::function<void()> func;
+
+      // Wait until a function is available in the queue
+      {
+        std::unique_lock<std::mutex> lock(queueMutex);
+        queueCond.wait(lock, [&] { return !queue.empty() || queueShutdown; });
+        if (queue.empty() && queueShutdown)
+          return;
+        func = std::move(queue.front());
+      }
+
+      // Execute queued functions in the arena until the queue gets empty
+      arena->execute([&]
+      {
+        for (; ;)
+        {
+          func();
+          func = nullptr;
+
+          {
+            std::lock_guard<std::mutex> lock(queueMutex);
+            queue.pop();
+            if (queue.empty())
+              break;
+            func = std::move(queue.front());
+          }
+        }
+
+        queueCond.notify_all();
+      });
+    }
   }
 
 OIDN_NAMESPACE_END

@@ -123,13 +123,13 @@ OIDN_NAMESPACE_BEGIN
       tensorBlockC = 8;
     }
 
-    engine.reset(new DNNLEngine(this));
+    engine.reset(new DNNLEngine(this, numThreads));
   #elif defined(OIDN_BNNS)
     tensorLayout = TensorLayout::chw;
     weightLayout = TensorLayout::oihw;
     tensorBlockC = 1;
 
-    engine.reset(new BNNSEngine(this));
+    engine.reset(new BNNSEngine(this, numThreads));
   #else
     if (arch == CPUArch::AVX512)
     {

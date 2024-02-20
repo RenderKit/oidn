@@ -21,6 +21,7 @@ OIDN_NAMESPACE_BEGIN
     void updateWeight() override;
     void updateBias() override;
 
+    BNNSEngine* engine;
     BNNSFilter filter = nullptr;
   };
 

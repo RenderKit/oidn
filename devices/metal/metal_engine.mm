@@ -104,14 +104,6 @@ OIDN_NAMESPACE_BEGIN
       return makeRef<DeviceTensor>(buffer, desc, byteOffset);
   }
 
-  void MetalEngine::runHostTask(std::function<void()>&& f)
-  {
-    @autoreleasepool
-    {
-      f();
-    }
-  }
-
   bool MetalEngine::isConvSupported(PostOp postOp)
   {
     return postOp == PostOp::None ||

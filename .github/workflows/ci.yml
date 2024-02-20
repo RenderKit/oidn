@@ -683,16 +683,16 @@ jobs:
       artifact-on-failure: true
       cmd: scripts/test.py --device cpu --log test.log
 
-  test-ubuntu2204-gcc-asan-avx512:
+  test-ubuntu2204-gcc-asan:
     needs: build-ubuntu2204-gcc-asan
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
-      runs-on: '[ "Linux", "avx512" ]'
+      runs-on: '[ "Linux", "gpu_nvidia" ]'
       image: oidn/ubuntu:22.04
       artifact-in: build-ubuntu2204-gcc-asan
-      artifact-out: test-ubuntu2204-gcc-asan-avx512
+      artifact-out: test-ubuntu2204-gcc-asan
       artifact-path: test.log
       artifact-on-failure: true
       cmd: |

@@ -10,7 +10,6 @@
 #include "buffer.h"
 #include "tensor.h"
 #include "image.h"
-#include <functional>
 
 OIDN_NAMESPACE_BEGIN
 
@@ -27,7 +26,7 @@ OIDN_NAMESPACE_BEGIN
   class Pool;
   class Upsample;
   class Autoexposure;
-  class TransferFunction;
+  struct TransferFunction;
   class InputProcess;
   class OutputProcess;
   class ImageCopy;
@@ -83,12 +82,6 @@ OIDN_NAMESPACE_BEGIN
     virtual void usmFree(void* ptr, Storage storage);
     virtual void usmCopy(void* dstPtr, const void* srcPtr, size_t byteSize);
     virtual void submitUSMCopy(void* dstPtr, const void* srcPtr, size_t byteSize);
-
-    // Runs a host task
-    virtual void runHostTask(std::function<void()>&& f)
-    {
-      f();
-    }
 
     // Enqueues a host function
     virtual void submitHostFunc(std::function<void()>&& f) = 0;

@@ -7,17 +7,12 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  DNNLEngine::DNNLEngine(CPUDevice* device)
-    : CPUEngine(device)
+  DNNLEngine::DNNLEngine(CPUDevice* device, int numThreads)
+    : CPUEngine(device, numThreads)
   {
     dnnl_set_verbose(clamp(device->verbose - 2, 0, 2)); // unfortunately this is not per-device but global
     dnnlEngine = dnnl::engine(dnnl::engine::kind::cpu, 0);
     dnnlStream = dnnl::stream(dnnlEngine);
-  }
-
-  void DNNLEngine::wait()
-  {
-    dnnlStream.wait();
   }
 
   Ref<Tensor> DNNLEngine::newTensor(const TensorDesc& desc, Storage storage)

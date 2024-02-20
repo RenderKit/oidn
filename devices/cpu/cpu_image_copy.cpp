@@ -8,6 +8,7 @@
 OIDN_NAMESPACE_BEGIN
 
   CPUImageCopy::CPUImageCopy(CPUEngine* engine)
+    : engine(engine)
   {}
 
   void CPUImageCopy::submit()
@@ -18,9 +19,12 @@ OIDN_NAMESPACE_BEGIN
     kernel.src = *src;
     kernel.dst = *dst;
 
-    parallel_nd(dst->getH(), [&](int h)
+    engine->submit([=]
     {
-      ispc::CPUImageCopyKernel_run(&kernel, h);
+      parallel_for(kernel.dst.H, [&](int h)
+      {
+        ispc::CPUImageCopyKernel_run(&kernel, h);
+      });
     });
   }
 

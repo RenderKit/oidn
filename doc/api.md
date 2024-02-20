@@ -279,10 +279,6 @@ With the introduction of GPU support, it is now possible to execute some
 operations asynchronously, most importantly filtering
 (`oidnExecuteFilterAsync`, `oidnExecuteSYCLFilterAsync`) and copying data
 (the already mentioned `oidnReadBufferAsync` and `oidnWriteBufferAsync`).
-Although these new asynchronous functions can be used with any device type,
-it is *not* guaranteed that these will be actually executed asynchronously.
-The most important such exceptions are CPU devices, which are still blocking
-the calling thread when these functions are called.
 
 When using any asynchronous function it is the responsibility of the
 application to handle correct synchronization using `oidnSyncDevice`.
@@ -552,11 +548,6 @@ by calling
 
     void oidnSyncDevice(OIDNDevice device);
 
-Currently the CPU device does not support asynchronous execution, and thus the
-asynchronous versions of functions will block as well. However, `oidnSyncDevice`
-should be always called to ensure correctness on GPU devices too, which do
-support asynchronous execution.
-
 Before the application exits, it should release all devices by invoking
 
     void oidnReleaseDevice(OIDNDevice device);
@@ -811,9 +802,8 @@ buffers. Such data can be accessed on the host by copying to/from host memory
                          size_t byteOffset, size_t byteSize, const void* srcHostPtr);
 
 These functions will always block until the read/write operation has been
-completed, which is often suboptimal. The following functions may execute the
-operation asynchronously if it is supported by the device (GPUs), or still block
-otherwise (CPUs):
+completed, which is often suboptimal. The following functions execute these
+operations asynchronously:
 
     void oidnReadBufferAsync(OIDNBuffer buffer,
                              size_t byteOffset, size_t byteSize, void* dstHostPtr);
@@ -992,8 +982,7 @@ which will read the input image data from the specified buffers and produce the
 denoised output image.
 
 This function will always block until the filtering operation has been completed.
-The following function may execute the operation asynchronously if it is supported
-by the device (GPUs), or block otherwise (CPUs):
+The following function executes the operation asynchronously:
 
     void oidnExecuteFilterAsync(OIDNFilter filter);
 

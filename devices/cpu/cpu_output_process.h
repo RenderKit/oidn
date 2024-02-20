@@ -13,6 +13,9 @@ OIDN_NAMESPACE_BEGIN
   public:
     CPUOutputProcess(CPUEngine* engine, const OutputProcessDesc& desc);
     void submit() override;
+
+  private:
+    CPUEngine* engine;
   };
 
 OIDN_NAMESPACE_END

@@ -7,8 +7,8 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  BNNSEngine::BNNSEngine(CPUDevice* device)
-    : CPUEngine(device)
+  BNNSEngine::BNNSEngine(CPUDevice* device, int numThreads)
+    : CPUEngine(device, numThreads)
   {}
 
   Ref<Conv> BNNSEngine::newConv(const ConvDesc& desc)

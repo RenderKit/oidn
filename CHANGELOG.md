@@ -1,6 +1,10 @@
 Version History
 ---------------
 
+### Changes in v2.3.0:
+
+-   `Async` functions are executed asynchronously on CPU devices as well
+
 ### Changes in v2.2.1:
 
 -   Fixed memory leak when releasing SYCL, CUDA and HIP device objects

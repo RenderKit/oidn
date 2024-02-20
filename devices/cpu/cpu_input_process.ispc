@@ -31,7 +31,7 @@ inline vec3f getInput(const uniform CPUInputProcessKernel* uniform self, uniform
   vec3f value = Image_get3(self->input, h, w);
 
   // Scale
-  value = value * self->transferFunc.inputScale;
+  value = value * TransferFunction_getInputScale(&self->transferFunc);
 
   // Sanitize
   value = clamp(nan_to_zero(value), self->snorm ? -1.f : 0.f, self->hdr ? pos_max : 1.f);

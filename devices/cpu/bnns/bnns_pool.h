@@ -18,6 +18,7 @@ OIDN_NAMESPACE_BEGIN
     void submit() override;
 
   private:
+    BNNSEngine* engine;
     BNNSFilter filter = nullptr;
   };
 

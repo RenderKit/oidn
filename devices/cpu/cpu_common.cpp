@@ -127,8 +127,9 @@ OIDN_NAMESPACE_BEGIN
       assert(0);
     }
 
-    res.inputScale  = tf.getInputScale();
-    res.outputScale = tf.getOutputScale();
+    res.inputScalePtr = tf.inputScalePtr;
+    res.inputScale    = tf.inputScale;
+    res.outputScale   = tf.outputScale;
 
     return res;
   }

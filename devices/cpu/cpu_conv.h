@@ -15,6 +15,7 @@ OIDN_NAMESPACE_BEGIN
     void submit() override;
 
   private:
+    CPUEngine* engine;
     int blockOCB; // block of output channel blocks
     int blockOW;  // block of output width
     int OCBB;     // number of output channel block blocks

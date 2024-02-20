@@ -6,7 +6,9 @@
 OIDN_NAMESPACE_BEGIN
 
   BNNSConv::BNNSConv(BNNSEngine* engine, const ConvDesc& desc)
-    : Conv(desc) {}
+    : Conv(desc),
+      engine(engine)
+  {}
 
   BNNSConv::~BNNSConv()
   {
@@ -63,7 +65,9 @@ OIDN_NAMESPACE_BEGIN
     if (!src || !dst)
       throw std::logic_error("convolution source/destination not set");
 
-    BNNSFilterApply(filter, src->getPtr(), dst->getPtr());
+    void* srcPtr = src->getPtr();
+    void* dstPtr = dst->getPtr();
+    engine->submit([=] { BNNSFilterApply(filter, srcPtr, dstPtr); });
   }
 
 OIDN_NAMESPACE_END

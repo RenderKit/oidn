@@ -13,6 +13,9 @@ OIDN_NAMESPACE_BEGIN
   public:
     CPUUpsample(CPUEngine* engine, const UpsampleDesc& desc);
     void submit() override;
+
+  private:
+    CPUEngine* engine;
   };
 
 OIDN_NAMESPACE_END

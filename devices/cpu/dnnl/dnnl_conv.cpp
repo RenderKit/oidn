@@ -81,7 +81,7 @@ OIDN_NAMESPACE_BEGIN
     if (!src || !dst || !weight || !bias)
       throw std::logic_error("convolution source/weight/bias/destination not set");
 
-    prim.execute(engine->getDNNLStream(), args);
+    engine->submit([=] { prim.execute(engine->getDNNLStream(), args); });
   }
 
 OIDN_NAMESPACE_END

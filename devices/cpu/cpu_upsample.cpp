@@ -8,7 +8,8 @@
 OIDN_NAMESPACE_BEGIN
 
   CPUUpsample::CPUUpsample(CPUEngine* engine, const UpsampleDesc& desc)
-    : Upsample(desc)
+    : Upsample(desc),
+      engine(engine)
   {
     if (srcDesc.layout != TensorLayout::chw &&
         srcDesc.layout != TensorLayout::Chw8c &&
@@ -29,35 +30,44 @@ OIDN_NAMESPACE_BEGIN
       kernel.src = *src;
       kernel.dst = *dst;
 
-      parallel_nd(src->getPaddedC() / blockC, src->getH(), [&](int cb, int h)
+      engine->submit([=]
       {
-        ispc::CPUUpsampleKernel_run(&kernel, cb, h);
+        parallel_for(kernel.src.C / blockC, kernel.src.H, [&](int cb, int h)
+        {
+          ispc::CPUUpsampleKernel_run(&kernel, cb, h);
+        });
       });
     }
     else
     {
+      const int C = src->getPaddedC();
       const size_t H = src->getH();
       const size_t W = src->getW();
+      const float* srcPtr = (float*)src->getPtr();
+      float* dstPtr = (float*)dst->getPtr();
 
-      parallel_nd(src->getPaddedC(), src->getH(), [&](int c, int h)
+      engine->submit([=]
       {
-        const size_t offset = (c*H + h) * W;
-        const float* srcPtr_line = (float*)src->getPtr() + offset;
-        float* dstPtr_line0 = (float*)dst->getPtr() + offset * 4;
-        float* dstPtr_line1 = dstPtr_line0 + W*2; // next line
-
-        #pragma unroll(16)
-        for (size_t w = 0; w < W; ++w)
+        parallel_for(C, H, [&](int c, size_t h)
         {
-          // Load value
-          const float value = srcPtr_line[w];
+          const size_t offset = (c*H + h) * W;
+          const float* srcPtr_line = srcPtr + offset;
+          float* dstPtr_line0 = dstPtr + offset * 4;
+          float* dstPtr_line1 = dstPtr_line0 + W*2; // next line
 
-          // Store value 2x2
-          dstPtr_line0[w*2  ] = value;
-          dstPtr_line0[w*2+1] = value;
-          dstPtr_line1[w*2  ] = value;
-          dstPtr_line1[w*2+1] = value;
-        }
+          #pragma unroll(16)
+          for (size_t w = 0; w < W; ++w)
+          {
+            // Load value
+            const float value = srcPtr_line[w];
+
+            // Store value 2x2
+            dstPtr_line0[w*2  ] = value;
+            dstPtr_line0[w*2+1] = value;
+            dstPtr_line1[w*2  ] = value;
+            dstPtr_line1[w*2+1] = value;
+          }
+        });
       });
     }
   }
