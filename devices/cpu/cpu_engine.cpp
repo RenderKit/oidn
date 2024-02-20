@@ -14,14 +14,45 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  CPUEngine::CPUEngine(CPUDevice* device)
+  CPUEngine::CPUEngine(CPUDevice* device, int numThreads)
     : device(device)
-  {}
+  {
+    // Get the thread affinities for one thread per core on non-hybrid CPUs with SMT
+  #if !(defined(__APPLE__) && defined(OIDN_ARCH_ARM64))
+    if (device->setAffinity
+      #if TBB_INTERFACE_VERSION >= 12020 // oneTBB 2021.2 or later
+        && tbb::info::core_types().size() <= 1 // non-hybrid cores
+      #endif
+       )
+    {
+      affinity = std::make_shared<ThreadAffinity>(1, device->verbose);
+      if (affinity->getNumThreads() == 0 ||                                           // detection failed
+          tbb::this_task_arena::max_concurrency() == affinity->getNumThreads() ||     // no SMT
+          (tbb::this_task_arena::max_concurrency() % affinity->getNumThreads()) != 0) // hybrid SMT
+        affinity.reset(); // disable affinitization
+    }
+  #endif
+
+    // Create the task arena
+    const int maxNumThreads = affinity ? affinity->getNumThreads() : tbb::this_task_arena::max_concurrency();
+    numThreads = (numThreads > 0) ? min(numThreads, maxNumThreads) : maxNumThreads;
+    arena = std::make_shared<tbb::task_arena>(numThreads);
+
+    // Automatically set the thread affinities
+    if (affinity)
+      observer = std::make_shared<PinningObserver>(affinity, *arena);
+  }
+
+  CPUEngine::~CPUEngine()
+  {
+    if (observer)
+      observer.reset();
+  }
 
   void CPUEngine::runHostTask(std::function<void()>&& f)
   {
-    if (device->arena)
-      device->arena->execute(f);
+    if (arena)
+      arena->execute(f);
     else
       f();
   }

@@ -10,8 +10,11 @@ OIDN_NAMESPACE_BEGIN
 
   class CPUEngine : public Engine
   {
+    friend class CPUDevice;
+
   public:
-    explicit CPUEngine(CPUDevice* device);
+    CPUEngine(CPUDevice* device, int numThreads);
+    ~CPUEngine();
 
     Device* getDevice() const override { return device; }
     int getNumThreads() const { return device->numThreads; }
@@ -43,6 +46,10 @@ OIDN_NAMESPACE_BEGIN
 
   protected:
     CPUDevice* device;
+
+    std::shared_ptr<tbb::task_arena> arena;
+    std::shared_ptr<PinningObserver> observer;
+    std::shared_ptr<ThreadAffinity> affinity;
   };
 
 OIDN_NAMESPACE_END

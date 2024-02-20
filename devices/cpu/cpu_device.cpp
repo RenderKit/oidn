@@ -100,31 +100,11 @@ OIDN_NAMESPACE_BEGIN
 
   CPUDevice::~CPUDevice()
   {
-    observer.reset();
   }
 
   void CPUDevice::init()
   {
     arch = getArch();
-
-    if (isVerbose())
-    {
-      std::cout << "  Device    : " << getName() << std::endl;
-      std::cout << "    Type    : CPU" << std::endl;
-      std::cout << "    ISA     : ";
-      switch (arch)
-      {
-      case CPUArch::SSE2:   std::cout << "SSE2";    break;
-      case CPUArch::SSE41:  std::cout << "SSE4.1";  break;
-      case CPUArch::AVX2:   std::cout << "AVX2";    break;
-      case CPUArch::AVX512: std::cout << "AVX-512"; break;
-      case CPUArch::NEON:   std::cout << "NEON";    break;
-      default:              std::cout << "Unknown"; break;
-      }
-      std::cout << std::endl;
-    }
-
-    initTasking();
 
     tensorDataType = DataType::Float32;
     weightDataType = DataType::Float32;
@@ -164,40 +144,28 @@ OIDN_NAMESPACE_BEGIN
       tensorBlockC = 8;
     }
 
-    engine.reset(new CPUEngine(this));
+    engine.reset(new CPUEngine(this, numThreads));
   #endif
-  }
 
-  void CPUDevice::initTasking()
+  numThreads = engine->arena->max_concurrency();
+
+  if (isVerbose())
   {
-    // Get the thread affinities for one thread per core on non-hybrid CPUs with SMT
-  #if !(defined(__APPLE__) && defined(OIDN_ARCH_ARM64))
-    if (setAffinity
-      #if TBB_INTERFACE_VERSION >= 12020 // oneTBB 2021.2 or later
-        && tbb::info::core_types().size() <= 1 // non-hybrid cores
-      #endif
-       )
+    std::cout << "  Device    : " << getName() << std::endl;
+    std::cout << "    Type    : CPU" << std::endl;
+    std::cout << "    ISA     : ";
+    switch (arch)
     {
-      affinity = std::make_shared<ThreadAffinity>(1, verbose);
-      if (affinity->getNumThreads() == 0 ||                                           // detection failed
-          tbb::this_task_arena::max_concurrency() == affinity->getNumThreads() ||     // no SMT
-          (tbb::this_task_arena::max_concurrency() % affinity->getNumThreads()) != 0) // hybrid SMT
-        affinity.reset(); // disable affinitization
+    case CPUArch::SSE2:   std::cout << "SSE2";    break;
+    case CPUArch::SSE41:  std::cout << "SSE4.1";  break;
+    case CPUArch::AVX2:   std::cout << "AVX2";    break;
+    case CPUArch::AVX512: std::cout << "AVX-512"; break;
+    case CPUArch::NEON:   std::cout << "NEON";    break;
+    default:              std::cout << "Unknown"; break;
     }
-  #endif
+    std::cout << std::endl;
 
-    // Create the task arena
-    const int maxNumThreads = affinity ? affinity->getNumThreads() : tbb::this_task_arena::max_concurrency();
-    numThreads = (numThreads > 0) ? min(numThreads, maxNumThreads) : maxNumThreads;
-    arena = std::make_shared<tbb::task_arena>(numThreads);
-
-    // Automatically set the thread affinities
-    if (affinity)
-      observer = std::make_shared<PinningObserver>(affinity, *arena);
-
-    if (isVerbose())
-    {
-      std::cout << "  Tasking   :";
+    std::cout << "  Tasking   :";
       std::cout << " TBB" << TBB_VERSION_MAJOR << "." << TBB_VERSION_MINOR;
     #if TBB_INTERFACE_VERSION >= 12002
       std::cout << " TBB_header_interface_" << TBB_INTERFACE_VERSION << " TBB_lib_interface_" << TBB_runtime_interface_version();
@@ -205,8 +173,8 @@ OIDN_NAMESPACE_BEGIN
       std::cout << " TBB_header_interface_" << TBB_INTERFACE_VERSION << " TBB_lib_interface_" << tbb::TBB_runtime_interface_version();
     #endif
       std::cout << std::endl;
-      std::cout << "    Threads : " << numThreads << " (" << (affinity ? "affinitized" : "non-affinitized") << ")" << std::endl;
-    }
+      std::cout << "    Threads : " << numThreads << " (" << (engine->affinity ? "affinitized" : "non-affinitized") << ")" << std::endl;
+  }
   }
 
   Storage CPUDevice::getPtrStorage(const void* ptr)
