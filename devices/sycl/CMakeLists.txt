@@ -34,6 +34,10 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     message(FATAL_ERROR "Building with SYCL support requires oneAPI DPC++ Compiler as the C/C++ compiler")
   endif()
 
+  if(MSVC)
+    message(FATAL_ERROR "clang-cl is not supported for SYCL compilation. Please use regular clang instead.")
+  endif()
+
   if(OIDN_DEVICE_SYCL_AOT)
     find_program(_OIDN_DEVICE_SYCL_OCLOC_FOUND NAMES ocloc)
     mark_as_advanced(_OIDN_DEVICE_SYCL_OCLOC_FOUND)
