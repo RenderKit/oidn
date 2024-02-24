@@ -1,6 +1,8 @@
 Version History
 ---------------
 
+### Changes in v2.2.1:
+
 -   Fixed memory leak when releasing SYCL, CUDA and HIP device objects
 -   Fixed memory leak when initializing Metal filters
 
