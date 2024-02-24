@@ -1,6 +1,8 @@
 Version History
 ---------------
 
+-   Fixed memory leak when releasing SYCL, CUDA and HIP device objects
+
 ### Changes in v2.2.0:
 
 -   Improved denoising quality (better fine detail reconstruction)

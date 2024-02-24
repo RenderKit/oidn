@@ -60,10 +60,10 @@ OIDN_NAMESPACE_BEGIN
     void realloc(size_t newByteSize) override;
 
   private:
+    Engine* engine;
     char* ptr;
     size_t byteSize;
     Storage storage;
-    Engine* engine;
   };
 
 OIDN_NAMESPACE_END

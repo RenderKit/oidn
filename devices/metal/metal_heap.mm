@@ -6,10 +6,10 @@
 OIDN_NAMESPACE_BEGIN
 
   MetalHeap::MetalHeap(MetalEngine* engine, size_t byteSize, Storage storage)
-    : heap(nullptr),
+    : engine(engine),
+      heap(nullptr),
       byteSize(byteSize),
-      storage((storage == Storage::Undefined) ? Storage::Device : storage),
-      engine(engine)
+      storage((storage == Storage::Undefined) ? Storage::Device : storage)
   {
     init();
   }

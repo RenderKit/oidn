@@ -504,7 +504,7 @@ OIDN_API_NAMESPACE_BEGIN
       checkHandle(hDevice);
       OIDN_LOCK_DEVICE(device);
       device->checkCommitted();
-      Ref<Buffer> buffer = device->getEngine()->newBuffer(byteSize, Storage::Undefined);
+      Ref<Buffer> buffer = device->newUserBuffer(byteSize, Storage::Undefined);
       return reinterpret_cast<OIDNBuffer>(buffer.detach());
     OIDN_CATCH_DEVICE(device)
     return nullptr;
@@ -517,7 +517,7 @@ OIDN_API_NAMESPACE_BEGIN
       checkHandle(hDevice);
       OIDN_LOCK_DEVICE(device);
       device->checkCommitted();
-      Ref<Buffer> buffer = device->getEngine()->newBuffer(byteSize, static_cast<Storage>(storage));
+      Ref<Buffer> buffer = device->newUserBuffer(byteSize, static_cast<Storage>(storage));
       return reinterpret_cast<OIDNBuffer>(buffer.detach());
     OIDN_CATCH_DEVICE(device)
     return nullptr;
@@ -530,7 +530,7 @@ OIDN_API_NAMESPACE_BEGIN
       checkHandle(hDevice);
       OIDN_LOCK_DEVICE(device);
       device->checkCommitted();
-      Ref<Buffer> buffer = device->getEngine()->newBuffer(devPtr, byteSize);
+      Ref<Buffer> buffer = device->newUserBuffer(devPtr, byteSize);
       return reinterpret_cast<OIDNBuffer>(buffer.detach());
     OIDN_CATCH_DEVICE(device)
     return nullptr;
@@ -547,7 +547,7 @@ OIDN_API_NAMESPACE_BEGIN
       device->checkCommitted();
       if (!(static_cast<ExternalMemoryTypeFlag>(fdType) & device->getExternalMemoryTypes()))
         throw Exception(Error::InvalidArgument, "external memory type not supported by the device");
-      Ref<Buffer> buffer = device->getEngine()->newExternalBuffer(
+      Ref<Buffer> buffer = device->newExternalUserBuffer(
         static_cast<ExternalMemoryTypeFlag>(fdType), fd, byteSize);
       return reinterpret_cast<OIDNBuffer>(buffer.detach());
     OIDN_CATCH_DEVICE(device)
@@ -567,7 +567,7 @@ OIDN_API_NAMESPACE_BEGIN
         throw Exception(Error::InvalidArgument, "external memory type not supported by the device");
       if ((!handle && !name) || (handle && name))
         throw Exception(Error::InvalidArgument, "exactly one of the external memory handle and name must be non-null");
-      Ref<Buffer> buffer = device->getEngine()->newExternalBuffer(
+      Ref<Buffer> buffer = device->newExternalUserBuffer(
         static_cast<ExternalMemoryTypeFlag>(handleType), handle, name, byteSize);
       return reinterpret_cast<OIDNBuffer>(buffer.detach());
     OIDN_CATCH_DEVICE(device)
@@ -581,7 +581,7 @@ OIDN_API_NAMESPACE_BEGIN
       checkHandle(hDevice);
       OIDN_LOCK_DEVICE(device);
       device->checkCommitted();
-      Ref<Buffer> buffer = device->getEngine()->newNativeBuffer(mtlBuffer);
+      Ref<Buffer> buffer = device->newNativeUserBuffer(mtlBuffer);
       return reinterpret_cast<OIDNBuffer>(buffer.detach());
     OIDN_CATCH_DEVICE(device)
     return nullptr;

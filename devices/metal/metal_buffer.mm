@@ -12,11 +12,10 @@ OIDN_NAMESPACE_BEGIN
   MetalBuffer::MetalBuffer(MetalEngine* engine,
                            size_t byteSize,
                            Storage storage)
-    : Buffer(engine->getDevice()),
+    : engine(engine),
       buffer(nullptr),
       byteSize(byteSize),
-      storage((storage == Storage::Undefined) ? Storage::Host : storage),
-      engine(engine)
+      storage((storage == Storage::Undefined) ? Storage::Host : storage)
   {
     // We disallow creating managed buffers because they would require manual synchronization
     if (storage == Storage::Managed)
@@ -27,10 +26,10 @@ OIDN_NAMESPACE_BEGIN
 
   MetalBuffer::MetalBuffer(const Ref<Arena>& arena, size_t byteSize, size_t byteOffset)
     : Buffer(arena, byteOffset),
+      engine(dynamic_cast<MetalEngine*>(arena->getEngine())),
       buffer(nullptr),
       byteSize(byteSize),
-      storage(arena->getHeap()->getStorage()),
-      engine(dynamic_cast<MetalEngine*>(arena->getEngine()))
+      storage(arena->getHeap()->getStorage())
   {
     if (!engine)
       throw Exception(Error::InvalidArgument, "buffer is incompatible with arena");
@@ -44,7 +43,7 @@ OIDN_NAMESPACE_BEGIN
   }
 
   MetalBuffer::MetalBuffer(MetalEngine* engine, id<MTLBuffer> buffer)
-    : Buffer(engine->getDevice())
+    : engine(engine)
   {
     if (!buffer)
       throw Exception(Error::InvalidArgument, "Metal buffer is null");
@@ -70,7 +69,6 @@ OIDN_NAMESPACE_BEGIN
 
     this->buffer   = [buffer retain];
     this->byteSize = buffer.length;
-    this->engine   = engine;
   }
 
   MetalBuffer::~MetalBuffer()

@@ -38,10 +38,10 @@ OIDN_NAMESPACE_BEGIN
   // -----------------------------------------------------------------------------------------------
 
   USMHeap::USMHeap(Engine* engine, size_t byteSize, Storage storage)
-    : ptr(nullptr),
+    : engine(engine),
+      ptr(nullptr),
       byteSize(byteSize),
-      storage(storage),
-      engine(engine)
+      storage(storage)
   {
     if (storage == Storage::Undefined)
       this->storage = Storage::Device;

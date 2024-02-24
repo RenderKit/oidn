@@ -35,10 +35,10 @@ OIDN_NAMESPACE_BEGIN
     void init();
     void free();
 
+    MetalEngine* engine;
     id<MTLBuffer> buffer;
     size_t byteSize;
     Storage storage;
-    MetalEngine* engine;
   };
 
 OIDN_NAMESPACE_END

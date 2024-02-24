@@ -235,6 +235,33 @@ OIDN_NAMESPACE_BEGIN
       throw Exception(Error::InvalidOperation, "changes to the device are not committed");
   }
 
+  Ref<Buffer> Device::newUserBuffer(size_t byteSize, Storage storage)
+  {
+    return getEngine()->newBuffer(byteSize, storage)->toUser();
+  }
+
+  Ref<Buffer> Device::newUserBuffer(void* ptr, size_t byteSize)
+  {
+    return getEngine()->newBuffer(ptr, byteSize)->toUser();
+  }
+
+  Ref<Buffer> Device::newNativeUserBuffer(void* handle)
+  {
+    return getEngine()->newNativeBuffer(handle)->toUser();
+  }
+
+  Ref<Buffer> Device::newExternalUserBuffer(ExternalMemoryTypeFlag fdType,
+                                            int fd, size_t byteSize)
+  {
+    return getEngine()->newExternalBuffer(fdType, fd, byteSize)->toUser();
+  }
+
+  Ref<Buffer> Device::newExternalUserBuffer(ExternalMemoryTypeFlag handleType,
+                                            void* handle, const void* name, size_t byteSize)
+  {
+    return getEngine()->newExternalBuffer(handleType, handle, name, byteSize)->toUser();
+  }
+
   Ref<Filter> Device::newFilter(const std::string& type)
   {
     if (isVerbose(2))

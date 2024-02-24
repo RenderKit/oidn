@@ -68,6 +68,18 @@ OIDN_NAMESPACE_BEGIN
     void checkCommitted();
     void commit();
 
+    // User-owned buffer
+    Ref<Buffer> newUserBuffer(size_t byteSize, Storage storage);
+    Ref<Buffer> newUserBuffer(void* ptr, size_t byteSize);
+    Ref<Buffer> newNativeUserBuffer(void* handle);
+
+    Ref<Buffer> newExternalUserBuffer(ExternalMemoryTypeFlag fdType,
+                                      int fd, size_t byteSize);
+
+    Ref<Buffer> newExternalUserBuffer(ExternalMemoryTypeFlag handleType,
+                                      void* handle, const void* name, size_t byteSize);
+
+    // Filter
     Ref<Filter> newFilter(const std::string& type);
 
     oidn_inline Device* getDevice() { return this; } // used by the API implementation

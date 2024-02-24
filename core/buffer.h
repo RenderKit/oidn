@@ -31,12 +31,12 @@ OIDN_NAMESPACE_BEGIN
     friend class Memory;
 
   public:
-    explicit Buffer(const Ref<Device>& device);
+    Buffer() = default;
     Buffer(const Ref<Arena>& arena, size_t byteOffset);
     ~Buffer();
 
     virtual Engine* getEngine() const = 0;
-    Device* getDevice() const { return device.get(); }
+    Device* getDevice() const;
     virtual void* getPtr() const = 0;     // pointer in device address space
     virtual void* getHostPtr() const = 0; // pointer in host address space if available, nullptr otherwise
     virtual size_t getByteSize() const = 0;
@@ -53,11 +53,16 @@ OIDN_NAMESPACE_BEGIN
     Ref<Tensor> newTensor(const TensorDesc& desc, size_t byteOffset = 0);
     Ref<Image> newImage(const ImageDesc& desc, size_t byteOffset = 0);
 
+    // Before returning a buffer to the user, it must be converted to a user buffer
+    Buffer* toUser();
+
+  private:
+    Ref<Device> userBufferDevice; // user buffers must keep a reference to the device
+
   protected:
     virtual void preRealloc();
     virtual void postRealloc();
 
-    Ref<Device> device;    // device where the buffer is allocated (required to keep device alive)
     Ref<Arena> arena;      // arena where the buffer is allocated (optional)
     size_t byteOffset = 0; // offset of the buffer in the arena
 
@@ -99,11 +104,11 @@ OIDN_NAMESPACE_BEGIN
 
     void postRealloc() override;
 
+    Engine* engine;
     char* ptr;
     size_t byteSize;
     bool shared;
     Storage storage;
-    Engine* engine;
   };
 
   // -----------------------------------------------------------------------------------------------

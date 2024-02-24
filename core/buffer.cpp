@@ -14,12 +14,8 @@ OIDN_NAMESPACE_BEGIN
   // Buffer
   // -----------------------------------------------------------------------------------------------
 
-  Buffer::Buffer(const Ref<Device>& device)
-    : device(device) {}
-
   Buffer::Buffer(const Ref<Arena>& arena, size_t byteOffset)
-    : device(arena->getEngine()->getDevice()),
-      arena(arena),
+    : arena(arena),
       byteOffset(byteOffset)
   {
     arena->getHeap()->attach(this);
@@ -29,6 +25,11 @@ OIDN_NAMESPACE_BEGIN
   {
     if (arena)
       arena->getHeap()->detach(this);
+  }
+
+  Device* Buffer::getDevice() const
+  {
+    return getEngine()->getDevice();
   }
 
   void Buffer::read(size_t byteOffset, size_t byteSize, void* dstHostPtr, SyncMode sync)
@@ -61,6 +62,13 @@ OIDN_NAMESPACE_BEGIN
     return makeRef<Image>(this, desc, byteOffset);
   }
 
+  Buffer* Buffer::toUser()
+  {
+    // User-owned buffers must hold a reference to the device to keep it alive
+    userBufferDevice = getDevice();
+    return this;
+  }
+
   void Buffer::attach(Memory* mem)
   {
     mems.insert(mem);
@@ -88,21 +96,19 @@ OIDN_NAMESPACE_BEGIN
   // -----------------------------------------------------------------------------------------------
 
   USMBuffer::USMBuffer(Engine* engine)
-    : Buffer(engine->getDevice()),
+    : engine(engine),
       ptr(nullptr),
       byteSize(0),
       shared(true),
-      storage(Storage::Undefined),
-      engine(engine)
+      storage(Storage::Undefined)
   {}
 
   USMBuffer::USMBuffer(Engine* engine, size_t byteSize, Storage storage)
-    : Buffer(engine->getDevice()),
+    : engine(engine),
       ptr(nullptr),
       byteSize(byteSize),
       shared(false),
-      storage(storage),
-      engine(engine)
+      storage(storage)
   {
     if (storage == Storage::Undefined)
       this->storage = getDevice()->isManagedMemorySupported() ? Storage::Managed : Storage::Host;
@@ -111,12 +117,11 @@ OIDN_NAMESPACE_BEGIN
   }
 
   USMBuffer::USMBuffer(Engine* engine, void* data, size_t byteSize, Storage storage)
-    : Buffer(engine->getDevice()),
+    : engine(engine),
       ptr(static_cast<char*>(data)),
       byteSize(byteSize),
       shared(true),
-      storage(storage),
-      engine(engine)
+      storage(storage)
   {
     if (ptr == nullptr)
       throw Exception(Error::InvalidArgument, "buffer pointer is null");
@@ -127,11 +132,11 @@ OIDN_NAMESPACE_BEGIN
 
   USMBuffer::USMBuffer(const Ref<Arena>& arena, size_t byteSize, size_t byteOffset)
     : Buffer(arena, byteOffset),
+      engine(arena->getHeap()->getEngine()),
       ptr(nullptr),
       byteSize(byteSize),
       shared(true),
-      storage(arena->getHeap()->getStorage()),
-      engine(arena->getHeap()->getEngine())
+      storage(arena->getHeap()->getStorage())
   {
     if (byteOffset + byteSize > arena->getByteSize())
       throw Exception(Error::InvalidArgument, "arena region is out of bounds");
