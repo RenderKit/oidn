@@ -170,7 +170,7 @@ OIDN_NAMESPACE_BEGIN
 
   Ref<MetalPipeline> MetalEngine::newPipeline(const std::string& kernelName)
   {
-    auto function = [library newFunctionWithName: @(kernelName.c_str())];
+    auto function = [[library newFunctionWithName: @(kernelName.c_str())] autorelease];
     if (!function)
       throw std::runtime_error("could not create Metal library function");
 
