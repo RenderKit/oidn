@@ -21,6 +21,13 @@ OIDN_NAMESPACE_BEGIN
     : PhysicalDevice(DeviceType::SYCL, score),
       syclDevice(syclDevice)
   {
+    // Prevent the physical device from being automatically destroyed to avoid issues at process
+    // exit. This is needed because the physical device is owned by the context which is static,
+    // thus it might get destroyed *after* the SYCL runtime has been already unloaded (the module
+    // unloading order is undefined). The resources held by the physical device will be released
+    // at process exit anyway, so this intentional leak is fine.
+    incRef();
+
     name = syclDevice.get_info<sycl::info::device::name>();
 
     if (syclDevice.get_backend() != sycl::backend::ext_oneapi_level_zero)
