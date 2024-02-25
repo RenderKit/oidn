@@ -1,0 +1,49 @@
+{
+   intel_sse2_strrchr_cond
+   Memcheck:Cond
+   fun:__intel_sse2_strrchr
+}
+
+{
+   dlopen_leak
+   Memcheck:Leak
+   match-leak-kinds: definite,possible
+   fun:malloc
+   ...
+   fun:dlopen@@GLIBC*
+}
+
+{
+   dlopen_addr
+   Memcheck:Addr8
+   fun:strncmp
+   ...
+   fun:dl_open_worker
+}
+
+{
+   cuda_leak
+   Memcheck:Leak
+   match-leak-kinds: definite,possible
+   ...
+   obj:*libcuda.so*
+   ...
+}
+
+{
+   hip_leak
+   Memcheck:Leak
+   match-leak-kinds: definite,possible
+   ...
+   obj:*libamdhip64.so*
+   ...
+}
+
+{
+   hsa_leak
+   Memcheck:Leak
+   match-leak-kinds: definite,possible
+   ...
+   obj:*libhsa-runtime64.so*
+   ...
+}

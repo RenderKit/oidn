@@ -113,6 +113,22 @@ def test():
     run_test(test_cmd, cfg.arch)
 
     if not cfg.minimal:
+      # Memcheck
+      if cfg.arch == 'native':
+        if OS == 'linux' and cfg.device in {'cuda', 'hip'}:
+          # FIXME: Valgrind is too slow on CPU and there are issues with SYCL
+          print_test('oidnTest.memcheck')
+          supp_filename = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'valgrind.supp')
+          test_cmd += ' ~[progress]' # disable progress test because it's too slow
+          test_cmd = f'valgrind --leak-check=full -s --error-exitcode=1 --suppressions={supp_filename} \
+                       --gen-suppressions=all {test_cmd}'
+          run_test(test_cmd, cfg.arch)
+        elif OS == 'macos':
+          print_test('oidnTest.memcheck')
+          test_cmd = f'leaks --atExit -- {test_cmd}'
+          run_test(test_cmd, cfg.arch)
+
+      # Benchmark
       print_test('oidnBenchmark')
       test_cmd = os.path.join(bin_dir, 'oidnBenchmark -v 1')
       if cfg.device != 'default':
