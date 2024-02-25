@@ -8,9 +8,7 @@ if(OIDN_DEVICE_SYCL_AOT)
          "Enable JIT fallback for SYCL kernels when AOT is rejected at runtime." ON)
   mark_as_advanced(OIDN_DEVICE_SYCL_JIT_FALLBACK)
 
-  # FIXME: remove in next release
-  if((CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 18) OR
-     (CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 2024.1))
+  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 18)
     option(OIDN_DEVICE_SYCL_AOT_SINGLE_BIN
           "Compile all SYCL AOT kernels into a single binary (requires DPC++ 2023-10-26 or newer)." ON)
     mark_as_advanced(OIDN_DEVICE_SYCL_AOT_SINGLE_BIN)
