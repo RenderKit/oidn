@@ -376,6 +376,16 @@ jobs:
         cd build
         cmake -D OIDN_APPS_OPENIMAGEIO=ON ..
         make -j8 VERBOSE=1
+  
+  build-ubuntu2204-gcc-asan:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      image: oidn/ubuntu:22.04
+      cmd: scripts/build.py install --compiler gcc -D OIDN_DEVICE_CUDA=ON -D OIDN_SANITIZER=Address
+      artifact-out: build-ubuntu2204-gcc-asan
+      artifact-path: build install deps
 
   # build-ubuntu2004-gcc-minimal:
   #   secrets: inherit
@@ -673,6 +683,40 @@ jobs:
       artifact-on-failure: true
       cmd: scripts/test.py --device cpu --log test.log
 
+  test-ubuntu2204-gcc-asan-avx512:
+    needs: build-ubuntu2204-gcc-asan
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Linux", "avx512" ]'
+      image: oidn/ubuntu:22.04
+      artifact-in: build-ubuntu2204-gcc-asan
+      artifact-out: test-ubuntu2204-gcc-asan-avx512
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: |
+        export TBB_ENABLE_SANITIZERS=1
+        scripts/test.py --device cpu --minimal --log test.log
+
+  test-ubuntu2204-gcc-asan-cuda:
+    needs: build-ubuntu2204-gcc-asan
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Linux", "gpu_nvidia" ]'
+      image: oidn/ubuntu:22.04
+      options: --gpus all
+      artifact-in: build-ubuntu2204-gcc-asan
+      artifact-out: test-ubuntu2204-gcc-asan-cuda
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: |
+        export TBB_ENABLE_SANITIZERS=1
+        export ASAN_OPTIONS=protect_shadow_gap=0
+        scripts/test.py --device cuda --minimal --log test.log
+
   test-ubuntu2204-icx-avx2:
     needs: build-ubuntu2204-icx
     secrets: inherit
@@ -793,6 +837,16 @@ jobs:
       artifact-path: build install deps
       cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn -D OIDN_STATIC_LIB=ON
 
+  build-macos-arm-asan:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
+      artifact-out: build-macos-arm-asan
+      artifact-path: build install deps
+      cmd: scripts/build.py install --full -D OIDN_SANITIZER=Address
+
   test-macos-arm:
     needs: build-macos-arm
     secrets: inherit
@@ -844,6 +898,21 @@ jobs:
       artifact-path: test.log
       artifact-on-failure: true
       cmd: scripts/test.py --device cpu --log test.log
+
+  test-macos-arm-asan:
+    needs: build-macos-arm-asan
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "macOS", "ARM64" ]'
+      artifact-in: build-macos-arm-asan
+      artifact-out: test-macos-arm-asan
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: |
+        export TBB_ENABLE_SANITIZERS=1
+        scripts/test.py --device cpu --minimal --log test.log
 
   test-macos-arm-metal:
     needs: build-macos-arm
@@ -897,6 +966,21 @@ jobs:
       artifact-on-failure: true
       cmd: scripts/test.py --device metal --log test.log
 
+  test-macos-arm-asan-metal:
+    needs: build-macos-arm-asan
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
+      artifact-in: build-macos-arm-asan
+      artifact-out: test-macos-arm-asan-metal
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: |
+        export TBB_ENABLE_SANITIZERS=1
+        scripts/test.py --device metal --minimal --log test.log
+
   build-macos:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
@@ -926,6 +1010,16 @@ jobs:
       artifact-out: build-macos-namespace
       artifact-path: build install deps
       cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
+
+  build-macos-asan:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "macOS", "build", "avx2", "x86_64" ]'
+      artifact-out: build-macos-asan
+      artifact-path: build install deps
+      cmd: scripts/build.py install --full -D OIDN_SANITIZER=Address
 
   test-macos-avx2:
     needs: build-macos
@@ -978,6 +1072,21 @@ jobs:
       artifact-path: test.log
       artifact-on-failure: true
       cmd: scripts/test.py --device cpu --minimal --log test.log
+
+  test-macos-asan-avx512:
+    needs: build-macos-asan
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "macOS", "avx512", "x86_64" ]'
+      artifact-in: build-macos-asan
+      artifact-out: test-macos-asan-avx512
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: |
+        export TBB_ENABLE_SANITIZERS=1
+        scripts/test.py --device cpu --minimal --log test.log
 
   build-windows:
     secrets: inherit
@@ -1194,6 +1303,16 @@ jobs:
       artifact-path: build install
       cmd: python scripts/build.py install --compiler msvc17 -D OIDN_DEVICE_CPU_ONEDNN=ON
 
+  build-windows-msvc17-asan:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "build" ]'
+      artifact-out: build-windows-msvc17
+      artifact-path: build install
+      cmd: python scripts/build.py install --compiler msvc17 -D OIDN_SANITIZER=Address
+
   # build-windows-arm-msvc17:
   #   secrets: inherit
   #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
@@ -1335,6 +1454,21 @@ jobs:
       artifact-path: test.log
       artifact-on-failure: true
       cmd: python scripts/test.py --device cpu --minimal --log test.log
+
+  test-windows-msvc17-asan-avx2:
+    needs: build-windows-msvc17-asan
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "avx2", "NAS" ]'
+      artifact-in: build-windows-msvc17-asan
+      artifact-out: test-windows-msvc17-asan-avx2
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: |
+        $Env:TBB_ENABLE_SANITIZERS=1
+        python scripts/test.py --device cpu --minimal --log test.log
 
   # test-windows-arm-msvc17:
   #   needs: build-windows-arm-msvc17

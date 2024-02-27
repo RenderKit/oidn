@@ -119,11 +119,19 @@ OIDN_NAMESPACE_BEGIN
 
   std::string getBuildName()
   {
+    std::string name;
+
   #if defined(NDEBUG)
-    return "Release";
+    name = "Release";
   #else
-    return "Debug";
+    name = "Debug";
   #endif
+
+  #if defined(OIDN_SANITIZER)
+    name += "+" OIDN_SANITIZER "Sanitizer";
+  #endif
+
+    return name;
   }
 
 OIDN_NAMESPACE_END

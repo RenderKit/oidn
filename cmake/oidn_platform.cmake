@@ -172,36 +172,42 @@ if(APPLE)
 endif()
 
 ## -------------------------------------------------------------------------------------------------
-## Clang Sanitizer
+## Sanitizer
 ## -------------------------------------------------------------------------------------------------
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set(OIDN_SANITIZER "None" CACHE STRING "Enables a Clang sanitizer.")
-  set_property(CACHE OIDN_SANITIZER PROPERTY STRINGS "None" "Address" "Memory" "MemoryWithOrigin" "Undefined")
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM" OR
+   CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+  set(OIDN_SANITIZER "None" CACHE STRING "Enables a sanitizer.")
+  set_property(CACHE OIDN_SANITIZER PROPERTY STRINGS "None" "Address" "Thread" "Memory" "Undefined")
   mark_as_advanced(OIDN_SANITIZER)
 
   if(OIDN_SANITIZER AND NOT OIDN_SANITIZER STREQUAL "None")
-    if(OIDN_SANITIZER MATCHES "Memory(WithOrigin)?")
-      append(OIDN_C_CXX_FLAGS "-fsanitize=memory")
-      if(OIDN_SANITIZER STREQUAL "MemoryWithOrigin")
-        append(OIDN_C_CXX_FLAGS "-fsanitize-memory-track-origins=2")
-        append(OIDN_C_CXX_FLAGS "-fno-omit-frame-pointer")
-      endif()
-    elseif(OIDN_SANITIZER STREQUAL "Undefined")
-      append(OIDN_C_CXX_FLAGS "-fsanitize=undefined")
-      append(OIDN_C_CXX_FLAGS "-fno-sanitize=function,vptr") # work around linking problems
-      append(OIDN_C_CXX_FLAGS "-fno-omit-frame-pointer")
-    elseif(OIDN_SANITIZER STREQUAL "Address")
-      append(OIDN_C_CXX_FLAGS "-fsanitize=address")
-    elseif(OIDN_SANITIZER STREQUAL "Thread")
-      append(OIDN_C_CXX_FLAGS "-fsanitize=thread")
-    elseif(OIDN_SANITIZER STREQUAL "Leak")
-      append(OIDN_C_CXX_FLAGS "-fsanitize=leak")
+    if(MSVC)
+      set(_fsanitize "/fsanitize")
     else()
-      message(FATAL_ERROR "Unsupported Clang sanitizer '${OIDN_SANITIZER}'")
+      set(_fsanitize "-fsanitize")
     endif()
-    message(STATUS "Using Clang ${OIDN_SANITIZER} sanitizer (experimental!)")
-    append(OIDN_C_CXX_FLAGS "-g -fno-omit-frame-pointer")
+
+    if(OIDN_SANITIZER STREQUAL "Address")
+      append(OIDN_C_CXX_FLAGS "${_fsanitize}=address")
+    elseif(OIDN_SANITIZER STREQUAL "Thread")
+      append(OIDN_C_CXX_FLAGS "${_fsanitize}=thread")
+    elseif(OIDN_SANITIZER MATCHES "Memory")
+      append(OIDN_C_CXX_FLAGS "${_fsanitize}=memory")
+    elseif(OIDN_SANITIZER STREQUAL "Undefined")
+      append(OIDN_C_CXX_FLAGS "${_fsanitize}=undefined")
+    else()
+      message(FATAL_ERROR "Unsupported ${OIDN_SANITIZER} sanitizer")
+    endif()
+
+    if(MSVC)
+      append(OIDN_C_CXX_FLAGS "/Zi")
+    else()
+      append(OIDN_C_CXX_FLAGS "-g -fno-omit-frame-pointer")
+    endif()
+    add_definitions(-DOIDN_SANITIZER="${OIDN_SANITIZER}")
+    
+    message(STATUS "Using ${OIDN_SANITIZER} sanitizer")
   endif()
 endif()
 
@@ -229,7 +235,9 @@ else()
 
   if(UNIX)
     append(OIDN_C_CXX_FLAGS "-fPIC -Wformat -Wformat-security")
-    append(OIDN_C_CXX_FLAGS_RELEASE "-D_FORTIFY_SOURCE=2")
+    if(NOT OIDN_SANITIZER OR OIDN_SANITIZER STREQUAL "None")
+      append(OIDN_C_CXX_FLAGS_RELEASE "-D_FORTIFY_SOURCE=2")
+    endif()
 
     if(APPLE)
       append(CMAKE_SHARED_LINKER_FLAGS "-Wl,-bind_at_load")
@@ -243,7 +251,7 @@ else()
 
   if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     # GCC might be very paranoid for partial structure initialization, e.g.
-    #   struct { int a, b; } s = { 0, };
+    #   struct { int a, b; } s = { 0, };F
     # However the behavior is triggered by `Wmissing-field-initializers`
     # only. To prevent warnings on users' side who use the library and turn
     # this warning on, let's use it too. Applicable for the library sources

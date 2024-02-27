@@ -164,6 +164,7 @@ TEST_CASE("buffer creation", "[buffer]")
     REQUIRE(device.getError() == Error::None);
   }
 
+#if !defined(OIDN_SANITIZER)
   SECTION("out-of-memory default buffer")
   {
     BufferRef buffer = device.newBuffer(INTPTR_MAX);
@@ -175,6 +176,7 @@ TEST_CASE("buffer creation", "[buffer]")
     BufferRef buffer = device.newBuffer(INTPTR_MAX, Storage::Device);
     REQUIRE(device.getError() == Error::OutOfMemory);
   }
+#endif
 
   SECTION("invalid buffer storage")
   {
