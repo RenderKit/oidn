@@ -1,6 +1,6 @@
 # Intel® Open Image Denoise
 
-This is release v2.2.0 of Intel Open Image Denoise. For changes and new
+This is release v2.2.1 of Intel Open Image Denoise. For changes and new
 features see the [changelog](CHANGELOG.md). Visit
 https://www.openimagedenoise.org for more information.
 
@@ -500,6 +500,7 @@ simple example code snippets.
 
 // Create an Open Image Denoise device
 OIDNDevice device = oidnNewDevice(OIDN_DEVICE_TYPE_DEFAULT); // CPU or GPU if available
+// OIDNDevice device = oidnNewDevice(OIDN_DEVICE_TYPE_CPU);
 oidnCommitDevice(device);
 
 // Create buffers for input/output images accessible by both host (CPU) and device (CPU/GPU)
@@ -547,6 +548,7 @@ oidnReleaseDevice(device);
 
 // Create an Open Image Denoise device
 oidn::DeviceRef device = oidn::newDevice(); // CPU or GPU if available
+// oidn::DeviceRef device = oidn::newDevice(oidn::DeviceType::CPU);
 device.commit();
 
 // Create buffers for input/output images accessible by both host (CPU) and device (CPU/GPU)
