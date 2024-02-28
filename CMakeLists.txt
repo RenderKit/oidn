@@ -145,7 +145,7 @@ else()
 endif()
 
 # Install generic dependencies
-if(OIDN_INSTALL_DEPENDENCIES AND CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM")
+if(OIDN_INSTALL_DEPENDENCIES AND CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
   get_filename_component(_icx_compiler_dir ${CMAKE_CXX_COMPILER} PATH)
 
   if(WIN32)

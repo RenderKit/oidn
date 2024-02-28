@@ -14,11 +14,11 @@ else()
 endif()
 
 # Check requirements for icx
-if(CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM" OR CMAKE_BASE_NAME MATCHES "icp?x")
+if(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" OR CMAKE_BASE_NAME MATCHES "icp?x")
   # Various issues with older CMake versions
   cmake_minimum_required(VERSION 3.25.2)
 
-  if(NOT CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM")
+  if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
     message(FATAL_ERROR "Intel oneAPI DPC++/C++ Compiler detection failed")
   endif()
 endif()
@@ -27,7 +27,7 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
-if(NOT CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM")
+if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
   set(CMAKE_CXX_STANDARD 11)
   set(CMAKE_CXX_STANDARD_REQUIRED ON)
 endif()
@@ -44,7 +44,7 @@ set(OIDN_CXX_FLAGS)
 add_definitions(-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS)
 
 if(MSVC)
-  if(CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM")
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
     # Default fp-model in icx and dpcpp (unlike clang) may be precise or fast=1 depending on the version
     append(OIDN_C_CXX_FLAGS "/fp:precise")
   endif()
@@ -87,7 +87,7 @@ if(MSVC)
     append(OIDN_C_CXX_FLAGS "-Qdiag-disable:2586")
     # disable: disabling optimization; runtime debug checks enabled
     append(OIDN_C_CXX_FLAGS_DEBUG "-Qdiag-disable:10182")
-  elseif((CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM") AND
+  elseif((CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM") AND
          CMAKE_GENERATOR MATCHES "Ninja")
     # Workaround for the following CMake bug when using clang-cl/ICX and Ninja:
     # 'ninja: error: FindFirstFileExA(Note: including file: C:/Dev/oidn/include/OpenImageDenoise):
@@ -95,7 +95,7 @@ if(MSVC)
     set(CMAKE_CL_SHOWINCLUDES_PREFIX "Note: including file: ")
   endif()
 elseif(UNIX OR MINGW)
-  if(CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM")
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
     # Default fp-model in icx and dpcpp (unlike clang) may be precise or fast=1 depending on the version
     append(OIDN_C_CXX_FLAGS "-ffp-model=precise -fno-reciprocal-math")
   endif()
@@ -117,7 +117,7 @@ elseif(UNIX OR MINGW)
   endif()
 endif()
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM")
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
   # Disable warning: loop not unrolled / cannot vectorize loop with #pragma omp simd
   append(OIDN_C_CXX_FLAGS "-Wno-pass-failed")
   # Disable warning: function is not needed and will not be emitted
@@ -165,7 +165,7 @@ if(APPLE)
   append(OIDN_CXX_FLAGS "-stdlib=libc++")
 
   # FIXME: force old linker to avoid corrupted binary when using ISPC with new linker in Xcode 15
-  if(CMAKE_CXX_COMPILER_ID MATCHES "AppleClang" AND
+  if(CMAKE_CXX_COMPILER_ID STREQUAL "AppleClang" AND
      CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 15)
     add_link_options("-Wl,-ld_classic")
   endif()
@@ -175,7 +175,7 @@ endif()
 ## Sanitizer
 ## -------------------------------------------------------------------------------------------------
 
-if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM" OR
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" OR
    CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   set(OIDN_SANITIZER "None" CACHE STRING "Enables a sanitizer.")
   set_property(CACHE OIDN_SANITIZER PROPERTY STRINGS "None" "Address" "Thread" "Memory" "Undefined")
@@ -192,7 +192,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "Intel
       append(OIDN_C_CXX_FLAGS "${_fsanitize}=address")
     elseif(OIDN_SANITIZER STREQUAL "Thread")
       append(OIDN_C_CXX_FLAGS "${_fsanitize}=thread")
-    elseif(OIDN_SANITIZER MATCHES "Memory")
+    elseif(OIDN_SANITIZER STREQUAL "Memory")
       append(OIDN_C_CXX_FLAGS "${_fsanitize}=memory")
     elseif(OIDN_SANITIZER STREQUAL "Undefined")
       append(OIDN_C_CXX_FLAGS "${_fsanitize}=undefined")
@@ -206,7 +206,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "Intel
       append(OIDN_C_CXX_FLAGS "-g -fno-omit-frame-pointer")
     endif()
     add_definitions(-DOIDN_SANITIZER="${OIDN_SANITIZER}")
-    
+
     message(STATUS "Using ${OIDN_SANITIZER} sanitizer")
   endif()
 endif()
@@ -225,7 +225,7 @@ if(MSVC)
     if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
       append(CMAKE_EXE_LINKER_FLAGS    "/DEPENDENTLOADFLAG:0x2000")
       append(CMAKE_SHARED_LINKER_FLAGS "/DEPENDENTLOADFLAG:0x2000")
-    elseif(CMAKE_CXX_COMPILER_ID MATCHES "IntelLLVM")
+    elseif(CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
       append(CMAKE_EXE_LINKER_FLAGS    "/Qoption,link,/DEPENDENTLOADFLAG:0x2000")
       append(CMAKE_SHARED_LINKER_FLAGS "/Qoption,link,/DEPENDENTLOADFLAG:0x2000")
     endif()
