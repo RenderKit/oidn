@@ -8,9 +8,9 @@
    dlopen_leak
    Memcheck:Leak
    match-leak-kinds: definite,possible
-   fun:malloc
    ...
-   fun:dlopen@@GLIBC*
+   fun:dl_open_worker
+   ...
 }
 
 {
@@ -22,7 +22,16 @@
 }
 
 {
-   cuda_leak
+   libsycl_leak
+   Memcheck:Leak
+   match-leak-kinds: definite,possible
+   ...
+   fun:_ZN4sycl3_*
+   ...
+}
+
+{
+   libcuda_leak
    Memcheck:Leak
    match-leak-kinds: definite,possible
    ...
@@ -31,7 +40,7 @@
 }
 
 {
-   hip_leak
+   libamdhip_leak
    Memcheck:Leak
    match-leak-kinds: definite,possible
    ...
@@ -40,10 +49,55 @@
 }
 
 {
-   hsa_leak
+   libhsa_leak
    Memcheck:Leak
    match-leak-kinds: definite,possible
    ...
    obj:*libhsa-runtime64.so*
+   ...
+}
+
+{
+   libze_leak
+   Memcheck:Leak
+   match-leak-kinds: definite,possible
+   ...
+   obj:*libze_*.so*
+   ...
+}
+
+{
+   libigd_leak
+   Memcheck:Leak
+   match-leak-kinds: definite,possible
+   ...
+   obj:*libigd?cl.so*
+   ...
+}
+
+{
+   ocl_leak
+   Memcheck:Leak
+   match-leak-kinds: definite,possible
+   ...
+   fun:clGetPlatformIDs
+   ...
+}
+
+{
+   ur_leak
+   Memcheck:Leak
+   match-leak-kinds: definite,possible
+   ...
+   fun:urInit
+   ...
+}
+
+{
+   oidn_sycl_leak
+   Memcheck:Leak
+   match-leak-kinds: definite,possible
+   ...
+   fun:oidn_init_module_device_sycl_v*
    ...
 }

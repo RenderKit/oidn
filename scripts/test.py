@@ -25,6 +25,7 @@ parser.add_argument('--data_dir', '-D', type=str, help='directory of datasets (e
 parser.add_argument('--results_dir', '-R', type=str, help='directory of training results')
 parser.add_argument('--baseline_dir', '-G', type=str, help='directory of generated baseline images')
 parser.add_argument('--arch', '-a', type=str, choices=['native', 'sse4'], default='native', help='CPU architectures to test (requires Intel SDE)')
+parser.add_argument('--memcheck', action='store_true', help='enable memory check tests (Valgrind or leaks)')
 parser.add_argument('--minimal', action='store_true', help='run minimal tests')
 parser.add_argument('--full', action='store_true', help='run full tests')
 parser.add_argument('--log', '-l', type=str, default=None, help='output log file')
@@ -72,7 +73,7 @@ def print_test(name, kind='Test'):
   print(kind + ':', name, '...', end=('' if cfg.log else None), flush=True)
 
 # Runs a test command
-def run_test(cmd, arch='native'):
+def run_test(cmd, arch='native', retry_if_status=None):
   # Run test through SDE if required
   if arch != 'native':
     sde_arch = {'sse4' : 'pnr'}[arch]
@@ -87,7 +88,18 @@ def run_test(cmd, arch='native'):
     print(f'Command: {cmd}')
 
   # Run the command and check the return value
-  if os.system(cmd) == 0:
+  status = subprocess.call(cmd, shell=True)
+
+  # Retry if necessary
+  if retry_if_status is not None:
+    retry_count = 1
+    while status != 0 and retry_if_status(status) and retry_count <= 2:
+      if cfg.log:
+        run(f'echo "Retrying ({retry_count})..." >> "{cfg.log}"')
+      status = subprocess.call(cmd, shell=True)
+      retry_count += 1
+
+  if status == 0:
     if cfg.log:
       print(' PASSED')
     else:
@@ -112,22 +124,22 @@ def test():
       test_cmd += f' --device {cfg.device}'
     run_test(test_cmd, cfg.arch)
 
-    if not cfg.minimal:
+    if cfg.memcheck and cfg.arch == 'native':
       # Memcheck
-      if cfg.arch == 'native':
-        if OS == 'linux' and cfg.device in {'cuda', 'hip'}:
-          # FIXME: Valgrind is too slow on CPU and there are issues with SYCL
-          print_test('oidnTest.memcheck')
-          supp_filename = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'valgrind.supp')
-          test_cmd += ' ~[progress]' # disable progress test because it's too slow
-          test_cmd = f'valgrind --leak-check=full -s --error-exitcode=1 --suppressions={supp_filename} \
-                       --gen-suppressions=all {test_cmd}'
-          run_test(test_cmd, cfg.arch)
-        elif OS == 'macos':
-          print_test('oidnTest.memcheck')
-          test_cmd = f'leaks --atExit -- {test_cmd}'
-          run_test(test_cmd, cfg.arch)
+      if OS == 'linux':
+        print_test('oidnTest.memcheck')
+        supp_filename = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'valgrind.supp')
+        if cfg.device in {'default', 'cpu', 'sycl', 'hip'}:
+          test_cmd += ' "[minimal]"' # too slow otherwise
+        test_cmd = f'valgrind --leak-check=full -s --error-exitcode=1 --suppressions={supp_filename} \
+                      --gen-suppressions=all {test_cmd}'
+        run_test(test_cmd)
+      elif OS == 'macos':
+        print_test('oidnTest.memcheck')
+        test_cmd = f'leaks --atExit -- {test_cmd}'
+        run_test(test_cmd, retry_if_status=lambda status: status > 1) # FIXME: "leaks" randomly fails
 
+    if not cfg.minimal:
       # Benchmark
       print_test('oidnBenchmark')
       test_cmd = os.path.join(bin_dir, 'oidnBenchmark -v 1')

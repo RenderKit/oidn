@@ -3,6 +3,7 @@
 
 import os
 import platform
+import subprocess
 import re
 import shutil
 import tarfile

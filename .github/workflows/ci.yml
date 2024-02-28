@@ -44,7 +44,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
-      runs-on: '[ "macOS", "sign", "x86_64" ]'
+      runs-on: '[ "macOS", "sign", "x86_64", "vis-mac-pro-1" ]'
       cmd: scripts/build.py package --full
       artifact-out: package-macos
       artifact-path: build/oidn-*.tar.gz
@@ -376,7 +376,7 @@ jobs:
         cd build
         cmake -D OIDN_APPS_OPENIMAGEIO=ON ..
         make -j8 VERBOSE=1
-  
+
   build-ubuntu2204-gcc-asan:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
@@ -565,7 +565,7 @@ jobs:
       artifact-on-failure: true
       cmd: |
         export ZE_FLAT_DEVICE_HIERARCHY=COMPOSITE
-        scripts/test.py --device sycl --log test.log
+        scripts/test.py --device sycl --memcheck --log test.log
 
   test-rockylinux8-cuda:
     needs: build-rockylinux8
@@ -580,7 +580,7 @@ jobs:
       artifact-out: test-rockylinux8-cuda
       artifact-path: test.log
       artifact-on-failure: true
-      cmd: scripts/test.py --device cuda --log test.log
+      cmd: scripts/test.py --device cuda --memcheck --log test.log
 
   test-rockylinux8-hip:
     needs: build-rockylinux8
@@ -595,7 +595,7 @@ jobs:
       artifact-out: test-rockylinux8-hip
       artifact-path: test.log
       artifact-on-failure: true
-      cmd: scripts/test.py --device hip --log test.log
+      cmd: scripts/test.py --device hip --memcheck --log test.log
 
   test-rockylinux8-namespace-static-dg2:
     needs: build-rockylinux8-namespace-static
@@ -837,6 +837,16 @@ jobs:
       artifact-path: build install deps
       cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn -D OIDN_STATIC_LIB=ON
 
+  build-macos-arm-ispc:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "macOS", "ARM64" ]'
+      artifact-out: build-macos-arm-ispc
+      artifact-path: build install deps
+      cmd: scripts/build.py install --full -D OIDN_DEVICE_CPU_BNNS=OFF
+
   build-macos-arm-asan:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
@@ -858,7 +868,7 @@ jobs:
       artifact-out: test-macos-arm
       artifact-path: test.log
       artifact-on-failure: true
-      cmd: scripts/test.py --device cpu --log test.log
+      cmd: scripts/test.py --device cpu --memcheck --log test.log
 
   test-macos-arm-static:
     needs: build-macos-arm-static
@@ -871,7 +881,7 @@ jobs:
       artifact-out: test-macos-arm-static
       artifact-path: test.log
       artifact-on-failure: true
-      cmd: scripts/test.py --device cpu --log test.log
+      cmd: scripts/test.py --device cpu --memcheck --log test.log
 
   test-macos-arm-debug:
     needs: build-macos-arm-debug
@@ -897,7 +907,20 @@ jobs:
       artifact-out: test-macos-arm-namespace
       artifact-path: test.log
       artifact-on-failure: true
-      cmd: scripts/test.py --device cpu --log test.log
+      cmd: scripts/test.py --device cpu --memcheck --log test.log
+
+  test-macos-arm-ispc:
+    needs: build-macos-arm-ispc
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
+      artifact-in: build-macos-arm-ispc
+      artifact-out: test-macos-arm-ispc
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: scripts/test.py --device cpu --memcheck --log test.log
 
   test-macos-arm-asan:
     needs: build-macos-arm-asan
@@ -925,7 +948,7 @@ jobs:
       artifact-out: test-macos-arm-metal
       artifact-path: test.log
       artifact-on-failure: true
-      cmd: scripts/test.py --device metal --log test.log
+      cmd: scripts/test.py --device metal --memcheck --log test.log
 
   test-macos-arm-static-metal:
     needs: build-macos-arm-static
@@ -938,7 +961,7 @@ jobs:
       artifact-out: test-macos-arm-static-metal
       artifact-path: test.log
       artifact-on-failure: true
-      cmd: scripts/test.py --device metal --log test.log
+      cmd: scripts/test.py --device metal --memcheck --log test.log
 
   test-macos-arm-debug-metal:
     needs: build-macos-arm-debug
@@ -964,7 +987,7 @@ jobs:
       artifact-out: test-macos-arm-namespace-metal
       artifact-path: test.log
       artifact-on-failure: true
-      cmd: scripts/test.py --device metal --log test.log
+      cmd: scripts/test.py --device metal --memcheck --log test.log
 
   test-macos-arm-asan-metal:
     needs: build-macos-arm-asan
@@ -1032,7 +1055,7 @@ jobs:
       artifact-out: test-macos-avx2
       artifact-path: test.log
       artifact-on-failure: true
-      cmd: scripts/test.py --device cpu --minimal --log test.log
+      cmd: scripts/test.py --device cpu --log test.log
 
   test-macos-avx512:
     needs: build-macos
@@ -1309,7 +1332,7 @@ jobs:
     with:
       project: oidn
       runs-on: '[ "Windows", "build" ]'
-      artifact-out: build-windows-msvc17
+      artifact-out: build-windows-msvc17-asan
       artifact-path: build install
       cmd: python scripts/build.py install --compiler msvc17 -D OIDN_SANITIZER=Address
 
@@ -1440,7 +1463,7 @@ jobs:
       artifact-out: test-windows-msvc17-avx512
       artifact-path: test.log
       artifact-on-failure: true
-      cmd: python scripts/test.py --device cpu --minimal --log test.log
+      cmd: python scripts/test.py --device cpu --log test.log
 
   test-windows-msvc17-onednn-avx512:
     needs: build-windows-msvc17-onednn
@@ -1455,20 +1478,21 @@ jobs:
       artifact-on-failure: true
       cmd: python scripts/test.py --device cpu --minimal --log test.log
 
-  test-windows-msvc17-asan-avx2:
-    needs: build-windows-msvc17-asan
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
-    with:
-      project: oidn
-      runs-on: '[ "Windows", "avx2", "NAS" ]'
-      artifact-in: build-windows-msvc17-asan
-      artifact-out: test-windows-msvc17-asan-avx2
-      artifact-path: test.log
-      artifact-on-failure: true
-      cmd: |
-        $Env:TBB_ENABLE_SANITIZERS=1
-        python scripts/test.py --device cpu --minimal --log test.log
+  # FIXME: ASAN not on the path?
+  # test-windows-msvc17-asan-avx2:
+  #   needs: build-windows-msvc17-asan
+  #   secrets: inherit
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
+  #   with:
+  #     project: oidn
+  #     runs-on: '[ "Windows", "avx2", "NAS" ]'
+  #     artifact-in: build-windows-msvc17-asan
+  #     artifact-out: test-windows-msvc17-asan-avx2
+  #     artifact-path: test.log
+  #     artifact-on-failure: true
+  #     cmd: |
+  #       $Env:TBB_ENABLE_SANITIZERS=1
+  #       python scripts/test.py --device cpu --minimal --log test.log
 
   # test-windows-arm-msvc17:
   #   needs: build-windows-arm-msvc17

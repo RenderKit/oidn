@@ -319,7 +319,7 @@ bool isBetween(const std::shared_ptr<ImageBuffer>& image, float a, float b)
 
 // -------------------------------------------------------------------------------------------------
 
-TEST_CASE("single filter", "[single_filter]")
+TEST_CASE("single filter", "[single_filter][minimal]")
 {
   const char* filterType = "RT";
   const int W = 257;
@@ -820,7 +820,7 @@ void sanitizationTest(DeviceRef& device, bool hdr, float value)
   REQUIRE(bool(filter));
 
   auto input  = makeConstImage(device, W, H, 3, DataType::Float32, value);
-  auto output = makeImage(device, W, H, 3, DataType::Float32);
+  auto output = makeConstImage(device, W, H, 3, DataType::Float32, -1000.f);
   setFilterImage(filter, "color",  input);
   setFilterImage(filter, "albedo", input);
   setFilterImage(filter, "normal", input);
@@ -833,10 +833,7 @@ void sanitizationTest(DeviceRef& device, bool hdr, float value)
   filter.execute();
   REQUIRE(device.getError() == Error::None);
 
-  if (hdr)
-    REQUIRE(isBetween(output, 0.f, std::numeric_limits<float>::max()));
-  else
-    REQUIRE(isBetween(output, 0.f, 1.f));
+  REQUIRE(isBetween(output, 0.f, hdr ? std::numeric_limits<float>::max() : 1.f));
 }
 
 TEST_CASE("image sanitization", "[sanitization]")
