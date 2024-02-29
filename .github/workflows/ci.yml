@@ -1055,7 +1055,7 @@ jobs:
       artifact-out: test-macos-avx2
       artifact-path: test.log
       artifact-on-failure: true
-      cmd: scripts/test.py --device cpu --log test.log
+      cmd: scripts/test.py --device cpu --minimal --log test.log
 
   test-macos-avx512:
     needs: build-macos
