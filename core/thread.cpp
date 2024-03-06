@@ -5,7 +5,10 @@
   #pragma warning (disable : 4146) // unary minus operator applied to unsigned type, result still unsigned
 #endif
 
-#if defined(__APPLE__)
+#if defined(__linux__)
+  #include <sched.h>
+  #include <unordered_set>
+#elif defined(__APPLE__)
   #include <mach/thread_act.h>
   #include <mach/mach_init.h>
 #endif
@@ -21,7 +24,7 @@ OIDN_NAMESPACE_BEGIN
   // ThreadAffinity: Windows
   // -----------------------------------------------------------------------------------------------
 
-  ThreadAffinity::ThreadAffinity(int numThreadsPerCore, int verbose)
+  ThreadAffinity::ThreadAffinity(int maxNumThreadsPerCore, int verbose)
     : Verbose(verbose)
   {
     HMODULE hLib = GetModuleHandle(TEXT("kernel32"));
@@ -68,11 +71,11 @@ OIDN_NAMESPACE_BEGIN
         if (item->Relationship == RelationProcessorCore && item->Processor.GroupCount > 0)
         {
           // Iterate over the groups
-          int numThreads = 0;
-          for (int group = 0; (group < item->Processor.GroupCount) && (numThreads < numThreadsPerCore); ++group)
+          int numThreadsPerCore = 0;
+          for (int group = 0; (group < item->Processor.GroupCount) && (numThreadsPerCore < maxNumThreadsPerCore); ++group)
           {
             GROUP_AFFINITY coreAffinity = item->Processor.GroupMask[group];
-            while ((coreAffinity.Mask != 0) && (numThreads < numThreadsPerCore))
+            while ((coreAffinity.Mask != 0) && (numThreadsPerCore < maxNumThreadsPerCore))
             {
               // Extract the next set bit/thread from the mask
               GROUP_AFFINITY threadAffinity = coreAffinity;
@@ -81,7 +84,7 @@ OIDN_NAMESPACE_BEGIN
               // Push the affinity for this thread
               affinities.push_back(threadAffinity);
               oldAffinities.push_back(threadAffinity);
-              numThreads++;
+              numThreadsPerCore++;
 
               // Remove this bit/thread from the mask
               coreAffinity.Mask ^= threadAffinity.Mask;
@@ -126,32 +129,41 @@ OIDN_NAMESPACE_BEGIN
   // ThreadAffinity: Linux
   // -----------------------------------------------------------------------------------------------
 
-  ThreadAffinity::ThreadAffinity(int numThreadsPerCore, int verbose)
+  ThreadAffinity::ThreadAffinity(int maxNumThreadsPerCore, int verbose)
     : Verbose(verbose)
   {
-    std::vector<int> threadIds;
+    // Get the process affinity mask
+    cpu_set_t processAffinity;
+    if (sched_getaffinity(0, sizeof(cpu_set_t), &processAffinity) != 0)
+    {
+      printWarning("sched_getaffinity failed");
+      return;
+    }
 
     // Parse the thread/CPU topology
+    std::vector<int> threadIDs;
+    std::unordered_set<int> visitedThreadIDs;
+
     for (int cpuID = 0; ; cpuID++)
     {
-      std::fstream fs;
-      std::string cpu = std::string("/sys/devices/system/cpu/cpu") + std::to_string(cpuID) + std::string("/topology/thread_siblings_list");
-      fs.open(cpu.c_str(), std::fstream::in);
-      if (fs.fail()) break;
+      const std::vector<int> siblingIDs = parseList(
+        "/sys/devices/system/cpu/cpu" + std::to_string(cpuID) + "/topology/thread_siblings_list");
+      if (siblingIDs.empty())
+        break;
 
-      int i;
-      int j = 0;
-      while ((j < numThreadsPerCore) && (fs >> i))
+      int numThreadsPerCore = 0;
+      for (int siblingID : siblingIDs)
       {
-        if (std::none_of(threadIds.begin(), threadIds.end(), [&](int id) { return id == i; }))
-          threadIds.push_back(i);
-
-        if (fs.peek() == ',')
-          fs.ignore();
-        j++;
+        if (visitedThreadIDs.find(siblingID) == visitedThreadIDs.end())
+        {
+          visitedThreadIDs.insert(siblingID);
+          if (numThreadsPerCore < maxNumThreadsPerCore && CPU_ISSET(siblingID, &processAffinity))
+          {
+            threadIDs.push_back(siblingID);
+            numThreadsPerCore++;
+          }
+        }
       }
-
-      fs.close();
     }
 
   #if 0
@@ -160,14 +172,14 @@ OIDN_NAMESPACE_BEGIN
   #endif
 
     // Create the affinity structures
-    affinities.resize(threadIds.size());
-    oldAffinities.resize(threadIds.size());
+    affinities.resize(threadIDs.size());
+    oldAffinities.resize(threadIDs.size());
 
-    for (size_t i = 0; i < threadIds.size(); ++i)
+    for (size_t i = 0; i < threadIDs.size(); ++i)
     {
       cpu_set_t affinity;
       CPU_ZERO(&affinity);
-      CPU_SET(threadIds[i], &affinity);
+      CPU_SET(threadIDs[i], &affinity);
 
       affinities[i] = affinity;
       oldAffinities[i] = affinity;
@@ -206,13 +218,44 @@ OIDN_NAMESPACE_BEGIN
       printWarning("pthread_setaffinity_np failed");
   }
 
+  std::vector<int> ThreadAffinity::parseList(const std::string& filename)
+  {
+    std::vector<int> list;
+    std::fstream fs(filename.c_str(), std::fstream::in);
+    if (fs.fail())
+      return list;
+
+    int id = -1;
+    while (fs >> id)
+    {
+      const int nextChar = fs.peek();
+      if (nextChar == '-')
+      {
+        fs.ignore();
+        int idEnd;
+        if (!(fs >> idEnd))
+          break;
+        for (int i = id; i <= idEnd; ++i)
+          list.push_back(i);
+      }
+      else
+      {
+        if (nextChar == ',')
+          fs.ignore();
+        list.push_back(id);
+      }
+    }
+
+    return list;
+  }
+
 #elif defined(__APPLE__)
 
   // -----------------------------------------------------------------------------------------------
   // ThreadAffinity: macOS
   // -----------------------------------------------------------------------------------------------
 
-  ThreadAffinity::ThreadAffinity(int numThreadsPerCore, int verbose)
+  ThreadAffinity::ThreadAffinity(int maxNumThreadsPerCore, int verbose)
     : Verbose(verbose)
   {
     // Query the thread/CPU topology
@@ -225,7 +268,7 @@ OIDN_NAMESPACE_BEGIN
       return;
     }
 
-    if ((numLogicalCpus % numPhysicalCpus != 0) && (numThreadsPerCore > 1))
+    if ((numLogicalCpus % numPhysicalCpus != 0) && (maxNumThreadsPerCore > 1))
       return; // hybrid, not supported
     const int maxThreadsPerCore = numLogicalCpus / numPhysicalCpus;
 
@@ -237,7 +280,7 @@ OIDN_NAMESPACE_BEGIN
       thread_affinity_policy affinity;
       affinity.affinity_tag = core;
 
-      for (int thread = 0; thread < min(numThreadsPerCore, maxThreadsPerCore); ++thread)
+      for (int thread = 0; thread < min(maxNumThreadsPerCore, maxThreadsPerCore); ++thread)
       {
         affinities.push_back(affinity);
         oldAffinities.push_back(affinity);
