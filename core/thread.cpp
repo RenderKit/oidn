@@ -28,77 +28,79 @@ OIDN_NAMESPACE_BEGIN
     : Verbose(verbose)
   {
     HMODULE hLib = GetModuleHandle(TEXT("kernel32"));
-    pGetLogicalProcessorInformationEx = (GetLogicalProcessorInformationExFunc)GetProcAddress(hLib, "GetLogicalProcessorInformationEx");
-    pSetThreadGroupAffinity = (SetThreadGroupAffinityFunc)GetProcAddress(hLib, "SetThreadGroupAffinity");
+    pGetLogicalProcessorInformationEx =
+      (GetLogicalProcessorInformationExFunc)GetProcAddress(hLib, "GetLogicalProcessorInformationEx");
+    pSetThreadGroupAffinity =
+      (SetThreadGroupAffinityFunc)GetProcAddress(hLib, "SetThreadGroupAffinity");
+    if (!pGetLogicalProcessorInformationEx || !pSetThreadGroupAffinity)
+      return;
 
-    if (pGetLogicalProcessorInformationEx && pSetThreadGroupAffinity)
+    // Get logical processor information
+    PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX buffer = nullptr;
+    DWORD bufferSize = 0;
+
+    // First call the function with an empty buffer to get the required buffer size
+    BOOL result = pGetLogicalProcessorInformationEx(RelationProcessorCore, buffer, &bufferSize);
+    if (result || GetLastError() != ERROR_INSUFFICIENT_BUFFER)
     {
-      // Get logical processor information
-      PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX buffer = nullptr;
-      DWORD bufferSize = 0;
+      printWarning("GetLogicalProcessorInformationEx failed");
+      return;
+    }
 
-      // First call the function with an empty buffer to get the required buffer size
-      BOOL result = pGetLogicalProcessorInformationEx(RelationProcessorCore, buffer, &bufferSize);
-      if (result || GetLastError() != ERROR_INSUFFICIENT_BUFFER)
-      {
-        printWarning("GetLogicalProcessorInformationEx failed");
-        return;
-      }
+    // Allocate the buffer
+    buffer = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)malloc(bufferSize);
+    if (!buffer)
+    {
+      printWarning("SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX allocation failed");
+      return;
+    }
 
-      // Allocate the buffer
-      buffer = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)malloc(bufferSize);
-      if (!buffer)
-      {
-        printWarning("SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX allocation failed");
-        return;
-      }
+    // Call again the function but now with the properly sized buffer
+    result = pGetLogicalProcessorInformationEx(RelationProcessorCore, buffer, &bufferSize);
+    if (!result)
+    {
+      printWarning("GetLogicalProcessorInformationEx failed");
+      free(buffer);
+      return;
+    }
 
-      // Call again the function but now with the properly sized buffer
-      result = pGetLogicalProcessorInformationEx(RelationProcessorCore, buffer, &bufferSize);
-      if (!result)
+    // Iterate over the logical processor information structures
+    // There should be one structure for each physical core
+    char* ptr = (char*)buffer;
+    while (ptr < (char*)buffer + bufferSize)
+    {
+      PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX item = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)ptr;
+      if (item->Relationship == RelationProcessorCore && item->Processor.GroupCount > 0)
       {
-        printWarning("GetLogicalProcessorInformationEx failed");
-        free(buffer);
-        return;
-      }
-
-      // Iterate over the logical processor information structures
-      // There should be one structure for each physical core
-      char* ptr = (char*)buffer;
-      while (ptr < (char*)buffer + bufferSize)
-      {
-        PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX item = (PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX)ptr;
-        if (item->Relationship == RelationProcessorCore && item->Processor.GroupCount > 0)
+        // Iterate over the groups
+        int numThreadsPerCore = 0;
+        for (int group = 0; group < item->Processor.GroupCount &&
+                            numThreadsPerCore < maxNumThreadsPerCore; ++group)
         {
-          // Iterate over the groups
-          int numThreadsPerCore = 0;
-          for (int group = 0; (group < item->Processor.GroupCount) && (numThreadsPerCore < maxNumThreadsPerCore); ++group)
+          GROUP_AFFINITY coreAffinity = item->Processor.GroupMask[group];
+          while (coreAffinity.Mask != 0 && numThreadsPerCore < maxNumThreadsPerCore)
           {
-            GROUP_AFFINITY coreAffinity = item->Processor.GroupMask[group];
-            while ((coreAffinity.Mask != 0) && (numThreadsPerCore < maxNumThreadsPerCore))
-            {
-              // Extract the next set bit/thread from the mask
-              GROUP_AFFINITY threadAffinity = coreAffinity;
-              threadAffinity.Mask = threadAffinity.Mask & -threadAffinity.Mask;
+            // Extract the next set bit/thread from the mask
+            GROUP_AFFINITY threadAffinity = coreAffinity;
+            threadAffinity.Mask = threadAffinity.Mask & -threadAffinity.Mask;
 
-              // Push the affinity for this thread
-              affinities.push_back(threadAffinity);
-              oldAffinities.push_back(threadAffinity);
-              numThreadsPerCore++;
+            // Push the affinity for this thread
+            affinities.push_back(threadAffinity);
+            oldAffinities.push_back(threadAffinity);
+            numThreadsPerCore++;
 
-              // Remove this bit/thread from the mask
-              coreAffinity.Mask ^= threadAffinity.Mask;
-            }
+            // Remove this bit/thread from the mask
+            coreAffinity.Mask ^= threadAffinity.Mask;
           }
         }
-
-        // Next structure
-        ptr += item->Size;
       }
 
-      // Free the buffer
-      free(buffer);
+      // Next structure
+      ptr += item->Size;
     }
+
+    // Free the buffer
+    free(buffer);
   }
 
   void ThreadAffinity::set(int threadIndex)
@@ -259,28 +261,28 @@ OIDN_NAMESPACE_BEGIN
     : Verbose(verbose)
   {
     // Query the thread/CPU topology
-    int numPhysicalCpus;
-    int numLogicalCpus;
+    int numPhysicalCPUs;
+    int numLogicalCPUs;
 
-    if (!getSysctl("hw.physicalcpu", numPhysicalCpus) || !getSysctl("hw.logicalcpu", numLogicalCpus))
+    if (!getSysctl("hw.physicalcpu", numPhysicalCPUs) || !getSysctl("hw.logicalcpu", numLogicalCPUs))
     {
       printWarning("sysctlbyname failed");
       return;
     }
 
-    if ((numLogicalCpus % numPhysicalCpus != 0) && (maxNumThreadsPerCore > 1))
+    if (numLogicalCPUs % numPhysicalCPUs != 0 && maxNumThreadsPerCore > 1)
       return; // hybrid, not supported
-    const int maxThreadsPerCore = numLogicalCpus / numPhysicalCpus;
+    const int numThreadsPerCore = min(numLogicalCPUs / numPhysicalCPUs, maxNumThreadsPerCore);
 
     // Create the affinity structures
     // macOS doesn't support binding a thread to a specific core, but we can at least group threads which
     // should be on the same core together
-    for (int core = 1; core <= numPhysicalCpus; ++core) // tags start from 1!
+    for (int core = 1; core <= numPhysicalCPUs; ++core) // tags start from 1!
     {
       thread_affinity_policy affinity;
       affinity.affinity_tag = core;
 
-      for (int thread = 0; thread < min(maxNumThreadsPerCore, maxThreadsPerCore); ++thread)
+      for (int thread = 0; thread < numThreadsPerCore; ++thread)
       {
         affinities.push_back(affinity);
         oldAffinities.push_back(affinity);
@@ -298,7 +300,9 @@ OIDN_NAMESPACE_BEGIN
     // Save the current affinity
     mach_msg_type_number_t policyCount = THREAD_AFFINITY_POLICY_COUNT;
     boolean_t getDefault = FALSE;
-    if (thread_policy_get(thread, THREAD_AFFINITY_POLICY, (thread_policy_t)&oldAffinities[threadIndex], &policyCount, &getDefault) != KERN_SUCCESS)
+    if (thread_policy_get(thread, THREAD_AFFINITY_POLICY,
+                          (thread_policy_t)&oldAffinities[threadIndex],
+                          &policyCount, &getDefault) != KERN_SUCCESS)
     {
       printWarning("thread_policy_get failed");
       oldAffinities[threadIndex] = affinities[threadIndex];
@@ -306,7 +310,9 @@ OIDN_NAMESPACE_BEGIN
     }
 
     // Set the new affinity
-    if (thread_policy_set(thread, THREAD_AFFINITY_POLICY, (thread_policy_t)&affinities[threadIndex], THREAD_AFFINITY_POLICY_COUNT) != KERN_SUCCESS)
+    if (thread_policy_set(thread, THREAD_AFFINITY_POLICY,
+                          (thread_policy_t)&affinities[threadIndex],
+                          THREAD_AFFINITY_POLICY_COUNT) != KERN_SUCCESS)
       printWarning("thread_policy_set failed");
   }
 
@@ -318,7 +324,9 @@ OIDN_NAMESPACE_BEGIN
     const auto thread = mach_thread_self();
 
     // Restore the original affinity
-    if (thread_policy_set(thread, THREAD_AFFINITY_POLICY, (thread_policy_t)&oldAffinities[threadIndex], THREAD_AFFINITY_POLICY_COUNT) != KERN_SUCCESS)
+    if (thread_policy_set(thread, THREAD_AFFINITY_POLICY,
+                          (thread_policy_t)&oldAffinities[threadIndex],
+                          THREAD_AFFINITY_POLICY_COUNT) != KERN_SUCCESS)
       printWarning("thread_policy_set failed");
   }
 
