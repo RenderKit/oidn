@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "sycl_device.h"
-#include "sycl_device_ids.h"
+#include "sycl_device_table.h"
 #include "sycl_engine.h"
 #include <iomanip>
 
@@ -122,8 +122,7 @@ OIDN_NAMESPACE_BEGIN
         syclDevice.get_info<sycl::info::device::vendor_id>() != 0x8086 || // Intel
         !syclDevice.has(sycl::aspect::usm_host_allocations) ||
         !syclDevice.has(sycl::aspect::usm_device_allocations) ||
-        !syclDevice.has(sycl::aspect::usm_shared_allocations) ||
-        !syclDevice.has(sycl::aspect::ext_intel_device_id))
+        !syclDevice.has(sycl::aspect::usm_shared_allocations))
       return SYCLArch::Unknown;
 
     // Check the Level Zero driver version
@@ -136,24 +135,6 @@ OIDN_NAMESPACE_BEGIN
 
     if (zeDriverProps.driverVersion < 0x01036237) // 1.3.25143 (Windows Driver 31.0.101.4091)
       return SYCLArch::Unknown; // older versions do not work!
-
-    // Lookup the device ID to identify the architecture
-    const unsigned int deviceID = syclDevice.get_info<sycl::ext::intel::info::device::device_id>();
-
-    for (const auto& table : syclDeviceIDTables)
-    {
-      for (int tableID : table.ids)
-      {
-        if (tableID == deviceID)
-          return table.arch;
-      }
-    }
-
-  #if !defined(OIDN_DEVICE_SYCL_AOT)
-    // Check whether ESIMD is supported
-    // FIXME: enable when supported by ICX
-    // if (!syclDevice.has(sycl::aspect::ext_intel_esimd))
-    //   return SYCLArch::Unknown;
 
     // Check whether the device IP version is supported
     bool ipVersionSupported = false;
@@ -186,9 +167,23 @@ OIDN_NAMESPACE_BEGIN
       return SYCLArch::Unknown;
     const uint32_t ipVersion = zeDeviceIPVersion.ipVersion;
 
+    // Lookup the IP version to identify the architecture
+    for (const auto& entry : syclDeviceTable)
+    {
+      for (int entryIPVersion : entry.ipVersions)
+      {
+        if (entryIPVersion == ipVersion)
+          return entry.arch;
+      }
+    }
+
+  #if !defined(OIDN_DEVICE_SYCL_AOT)
+    // Check whether ESIMD is supported
+    // FIXME: enable when supported by ICX
+    // if (!syclDevice.has(sycl::aspect::ext_intel_esimd))
+    //   return SYCLArch::Unknown;
+
     // Gen 12.0.0 or newer is required
-    // https://github.com/intel/compute-runtime/blob/14251c3d96e71e97e397b0c4fcb01557fca47f0e/shared/source/helpers/hw_ip_version.h
-    // https://github.com/intel/compute-runtime/blob/14251c3d96e71e97e397b0c4fcb01557fca47f0e/third_party/aot_config_headers/platforms.h
     if (ipVersion >= 0x03000000)
       return SYCLArch::XeLP; // always fallback to Xe-LP
   #endif
