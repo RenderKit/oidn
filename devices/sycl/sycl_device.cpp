@@ -183,8 +183,13 @@ OIDN_NAMESPACE_BEGIN
     // if (!syclDevice.has(sycl::aspect::ext_intel_esimd))
     //   return SYCLArch::Unknown;
 
+    // Get the EU SIMD width
+    if (!syclDevice.has(sycl::aspect::ext_intel_gpu_eu_simd_width))
+      return SYCLArch::Unknown;
+    const int simdWidth = syclDevice.get_info<sycl::ext::intel::info::device::gpu_eu_simd_width>();
+
     // Gen 12.0.0 or newer is required
-    if (ipVersion >= 0x03000000)
+    if (ipVersion >= 0x03000000 && (simdWidth == 8 || simdWidth == 16))
       return SYCLArch::XeLP; // always fallback to Xe-LP
   #endif
 
