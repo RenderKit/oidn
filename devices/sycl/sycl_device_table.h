@@ -37,6 +37,15 @@ OIDN_NAMESPACE_BEGIN
         0x0311c004, // mtl-p-b0
       }
     },
+    #if !defined(OIDN_DEVICE_SYCL_AOT)
+    {
+      SYCLArch::XeLPGplus,
+      {
+        0x03128000, // xe-lpgplus-a0
+        0x03128004, // xe-lpgplus-b0
+      }
+    },
+    #endif
     {
       SYCLArch::XeHPG,
       {

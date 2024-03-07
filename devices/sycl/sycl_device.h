@@ -16,6 +16,7 @@ OIDN_NAMESPACE_BEGIN
     Unknown,
     XeLP,
     XeLPG,
+    XeLPGplus,
     XeHPG,
     XeHPC,
     XeHPC_NoDPAS,

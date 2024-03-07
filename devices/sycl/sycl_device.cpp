@@ -208,6 +208,7 @@ OIDN_NAMESPACE_BEGIN
     {
     case SYCLArch::XeLP:         score = 1;  break;
     case SYCLArch::XeLPG:        score = 2;  break;
+    case SYCLArch::XeLPGplus:    score = 10; break;
     case SYCLArch::XeHPG:        score = 20; break;
     case SYCLArch::XeHPC:        score = 30; break;
     case SYCLArch::XeHPC_NoDPAS: score = 20; break;
@@ -322,6 +323,7 @@ OIDN_NAMESPACE_BEGIN
         {
         case SYCLArch::XeLP:         std::cout << "Xe-LP";   break;
         case SYCLArch::XeLPG:        std::cout << "Xe-LPG";  break;
+        case SYCLArch::XeLPGplus:    std::cout << "Xe-LPG+"; break;
         case SYCLArch::XeHPG:        std::cout << "Xe-HPG";  break;
         case SYCLArch::XeHPC:        std::cout << "Xe-HPC";  break;
         case SYCLArch::XeHPC_NoDPAS: std::cout << "Xe-HPC";  break;
@@ -351,6 +353,7 @@ OIDN_NAMESPACE_BEGIN
     switch (arch)
     {
     case SYCLArch::XeHPG:
+    case SYCLArch::XeLPGplus:
       weightDataType = DataType::Float16;
       weightLayout   = TensorLayout::OIhw2o8i8o2i;
       break;
