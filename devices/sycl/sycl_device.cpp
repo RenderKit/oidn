@@ -155,6 +155,11 @@ OIDN_NAMESPACE_BEGIN
     // if (!syclDevice.has(sycl::aspect::ext_intel_esimd))
     //   return SYCLArch::Unknown;
 
+    // Get the EU SIMD width
+    if (!syclDevice.has(sycl::aspect::ext_intel_gpu_eu_simd_width))
+      return SYCLArch::Unknown;
+    const int simdWidth = syclDevice.get_info<sycl::ext::intel::info::device::gpu_eu_simd_width>();
+
     // Check whether the device IP version is supported
     bool ipVersionSupported = false;
     uint32_t numExtensions = 0;
@@ -189,7 +194,7 @@ OIDN_NAMESPACE_BEGIN
     // Gen 12.0.0 or newer is required
     // https://github.com/intel/compute-runtime/blob/14251c3d96e71e97e397b0c4fcb01557fca47f0e/shared/source/helpers/hw_ip_version.h
     // https://github.com/intel/compute-runtime/blob/14251c3d96e71e97e397b0c4fcb01557fca47f0e/third_party/aot_config_headers/platforms.h
-    if (ipVersion >= 0x03000000)
+    if (ipVersion >= 0x03000000 && (simdWidth == 8 || simdWidth == 16))
       return SYCLArch::XeLP; // always fallback to Xe-LP
   #endif
 
