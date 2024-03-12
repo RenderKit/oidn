@@ -127,7 +127,13 @@ def test():
     if cfg.memcheck and cfg.arch == 'native':
       # Memcheck
       if OS == 'linux':
-        print_test('oidnTest.memcheck')
+        if cfg.device == 'cuda':
+          print_test('oidnTest.compute-sanitizer')
+          test_csan_cmd = f'compute-sanitizer --tool memcheck --leak-check=full \
+                            --report-api-errors=no --error-exitcode=1 {test_cmd}'
+          run_test(test_csan_cmd)
+
+        print_test('oidnTest.valgrind')
         supp_filename = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'valgrind.supp')
         if cfg.device in {'default', 'cpu', 'sycl', 'hip'}:
           test_cmd += ' "[minimal]"' # too slow otherwise
@@ -135,7 +141,7 @@ def test():
                       --gen-suppressions=all {test_cmd}'
         run_test(test_cmd)
       elif OS == 'macos':
-        print_test('oidnTest.memcheck')
+        print_test('oidnTest.leaks')
         test_cmd = f'leaks --atExit -- {test_cmd}'
         run_test(test_cmd, retry_if_status=lambda status: status > 1) # FIXME: "leaks" randomly fails
 
