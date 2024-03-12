@@ -119,7 +119,7 @@ OIDN_NAMESPACE_BEGIN
     try
     {
       enter();
-      engine.reset();
+      subdevices.clear();
       leave();
     }
     catch (...) {}
@@ -190,7 +190,7 @@ OIDN_NAMESPACE_BEGIN
     externalMemoryTypes = ExternalMemoryTypeFlag::OpaqueFD;
   #endif
 
-    engine.reset(new HIPEngine(this, stream));
+    subdevices.emplace_back(new Subdevice(std::unique_ptr<Engine>(new HIPEngine(this, stream))));
   }
 
   Storage HIPDevice::getPtrStorage(const void* ptr)
@@ -214,8 +214,8 @@ OIDN_NAMESPACE_BEGIN
 
   void HIPDevice::wait()
   {
-    if (engine)
-      engine->wait();
+    for (auto& subdevice : subdevices)
+      subdevice->getEngine()->wait();
   }
 
 OIDN_NAMESPACE_END

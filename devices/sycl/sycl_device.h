@@ -42,9 +42,6 @@ OIDN_NAMESPACE_BEGIN
     DeviceType getType() const override { return DeviceType::SYCL; }
     ze_context_handle_t getZeContext() const { return zeContext; }
 
-    Engine* getEngine(int i) const override { return (Engine*)engines[i].get(); }
-    int getNumEngines() const override { return int(engines.size()); }
-
     int getInt(const std::string& name) override;
     void setInt(const std::string& name, int value) override;
 
@@ -67,9 +64,10 @@ OIDN_NAMESPACE_BEGIN
     void preinit();
     void init() override;
 
+    SYCLEngine* getSYCLEngine(int i) const;
+
     sycl::context syclContext;
     ze_context_handle_t zeContext = nullptr; // Level Zero context
-    std::vector<std::unique_ptr<SYCLEngine>> engines;
     SYCLArch arch = SYCLArch::Unknown;
     int numSubdevices = 0; // autodetect by default
 

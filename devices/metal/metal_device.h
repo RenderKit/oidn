@@ -36,13 +36,6 @@ OIDN_NAMESPACE_BEGIN
 
     DeviceType getType() const override { return DeviceType::Metal; }
 
-    Engine* getEngine(int i) const override
-    {
-      assert(i == 0);
-      return (Engine*)engine.get();
-    }
-
-    int getNumEngines() const override { return 1; }
     bool needWeightAndBiasOnDevice() const override { return false; } // due to MPSGraph
     Storage getPtrStorage(const void* ptr) override;
 
@@ -53,8 +46,6 @@ OIDN_NAMESPACE_BEGIN
     void init() override;
 
   private:
-    std::unique_ptr<MetalEngine> engine;
-
     id<MTLDevice> device;
     id<MTLCommandQueue> userCommandQueue = nil; // user-provided command queue (optional)
   };

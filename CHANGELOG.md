@@ -1,6 +1,10 @@
 Version History
 ---------------
 
+### Changes in v2.2.2:
+
+-   Fully fixed GPU memory leak when releasing SYCL, CUDA and HIP device objects
+
 ### Changes in v2.2.1:
 
 -   Fixed memory leak when releasing SYCL, CUDA and HIP device objects

@@ -46,22 +46,12 @@ OIDN_NAMESPACE_BEGIN
 
     DeviceType getType() const override { return DeviceType::HIP; }
 
-    Engine* getEngine(int i) const override
-    {
-      assert(i == 0);
-      return (Engine*)engine.get();
-    }
-
-    int getNumEngines() const override { return 1; }
-
     Storage getPtrStorage(const void* ptr) override;
 
     void wait() override;
 
   private:
     void init() override;
-
-    std::unique_ptr<HIPEngine> engine;
 
     int deviceID = 0;
     int prevDeviceID = -1;

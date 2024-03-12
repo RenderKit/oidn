@@ -60,6 +60,8 @@ set(OIDN_CORE_SOURCES
   rt_filter.cpp
   rtlightmap_filter.h
   rtlightmap_filter.cpp
+  subdevice.h
+  subdevice.cpp
   tensor.h
   tensor.cpp
   tensor_accessor.h

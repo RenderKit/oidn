@@ -129,6 +129,8 @@ OIDN_NAMESPACE_BEGIN
     tensorDataType = DataType::Float32;
     weightDataType = DataType::Float32;
 
+    std::unique_ptr<Engine> engine;
+
   #if defined(OIDN_DNNL)
     if (arch == CPUArch::AVX512)
     {
@@ -166,6 +168,8 @@ OIDN_NAMESPACE_BEGIN
 
     engine.reset(new CPUEngine(this));
   #endif
+
+    subdevices.emplace_back(new Subdevice(std::move(engine)));
   }
 
   void CPUDevice::initTasking()
@@ -248,8 +252,8 @@ OIDN_NAMESPACE_BEGIN
 
   void CPUDevice::wait()
   {
-    if (engine)
-      engine->wait();
+    for (auto& subdevice : subdevices)
+      subdevice->getEngine()->wait();
   }
 
 OIDN_NAMESPACE_END

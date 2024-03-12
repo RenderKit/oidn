@@ -6,22 +6,16 @@
 
 OIDN_NAMESPACE_BEGIN
 
+  void Engine::setSubdevice(Subdevice* subdevice)
+  {
+    if (this->subdevice)
+      throw std::logic_error("subdevice already set");
+    this->subdevice = subdevice;
+  }
+
   Ref<Heap> Engine::newHeap(size_t byteSize, Storage storage)
   {
     return makeRef<USMHeap>(this, byteSize, storage);
-  }
-
-  Ref<Arena> Engine::newScratchArena(size_t byteSize, const std::string& name)
-  {
-    if (!scratchArenaManager)
-      scratchArenaManager.reset(new ScratchArenaManager(this));
-    return makeRef<ScratchArena>(scratchArenaManager.get(), byteSize, name);
-  }
-
-  void Engine::trimScratch()
-  {
-    if (scratchArenaManager)
-      scratchArenaManager->trim();
   }
 
   // Returns the actual size and required alignment of a buffer allocated from a heap/arena
@@ -87,14 +81,6 @@ OIDN_NAMESPACE_BEGIN
       throw std::invalid_argument("buffer was created by a different engine");
 
     return makeRef<DeviceTensor>(buffer, desc, byteOffset);
-  }
-
-  std::shared_ptr<TensorMap> Engine::getCachedTensors(const void* key)
-  {
-    std::shared_ptr<TensorMap>& tensorMap = cachedTensors[key];
-    if (!tensorMap)
-      tensorMap = std::make_shared<TensorMap>();
-    return tensorMap;
   }
 
   bool Engine::isConvSupported(PostOp postOp)

@@ -36,14 +36,6 @@ OIDN_NAMESPACE_BEGIN
 
     DeviceType getType() const override { return DeviceType::CUDA; }
 
-    Engine* getEngine(int i) const override
-    {
-      assert(i == 0);
-      return (Engine*)engine.get();
-    }
-
-    int getNumEngines() const override { return 1; }
-
     Storage getPtrStorage(const void* ptr) override;
 
     void wait() override;
@@ -54,8 +46,6 @@ OIDN_NAMESPACE_BEGIN
     // Supported compute capabilities
     static constexpr int minSMArch = 70;
     static constexpr int maxSMArch = 99;
-
-    std::unique_ptr<CUDAEngine> engine;
 
     int deviceID = 0;
     int prevDeviceID = -1;

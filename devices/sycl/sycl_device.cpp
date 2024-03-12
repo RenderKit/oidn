@@ -300,7 +300,7 @@ OIDN_NAMESPACE_BEGIN
     if (syclContext.get_platform().get_backend() == sycl::backend::ext_oneapi_level_zero)
       zeContext = sycl::get_native<sycl::backend::ext_oneapi_level_zero>(syclContext);
 
-    // Limit the number of subdevices/engines if requested
+    // Limit the number of subdevices if requested
     if (numSubdevices > 0 && numSubdevices < int(syclQueues.size()))
       syclQueues.resize(numSubdevices);
     numSubdevices = int(syclQueues.size());
@@ -335,9 +335,9 @@ OIDN_NAMESPACE_BEGIN
       std::cout << "  Backend   : " << syclContext.get_platform().get_info<sycl::info::platform::name>() << std::endl;
     }
 
-    // Create the engines
+    // Create the subdevices
     for (auto& syclQueue : syclQueues)
-      engines.emplace_back(new SYCLEngine(this, syclQueue));
+      subdevices.emplace_back(new Subdevice(std::unique_ptr<Engine>(new SYCLEngine(this, syclQueue))));
 
     // Cleanup
     syclQueues.clear();
@@ -373,6 +373,11 @@ OIDN_NAMESPACE_BEGIN
       externalMemoryTypes = ExternalMemoryTypeFlag::DMABuf;
     #endif
     }
+  }
+
+  SYCLEngine* SYCLDevice::getSYCLEngine(int i) const
+  {
+    return static_cast<SYCLEngine*>(getEngine(i));
   }
 
   int SYCLDevice::getInt(const std::string& name)
@@ -415,20 +420,23 @@ OIDN_NAMESPACE_BEGIN
 
   void SYCLDevice::submitBarrier()
   {
-    // We need a barrier only if there are at least 2 engines
-    if (engines.size() < 2)
+    // We need a barrier only if there are at least 2 subdevices
+    const int numSubdevices = getNumSubdevices();
+    if (numSubdevices < 2)
       return;
 
-    // Submit the barrier to the default engine
+    // Submit the barrier to the main engine
     // The barrier depends on the commands on all engines
-    engines[0]->depEvents = getDoneEvents();
-    engines[0]->submitBarrier();
+    SYCLEngine* mainEngine = getSYCLEngine(0);
+    mainEngine->depEvents = getDoneEvents();
+    mainEngine->submitBarrier();
 
     // The next commands on all the other engines also depend on the barrier
-    for (size_t i = 1; i < engines.size(); ++i)
+    for (int i = 1; i < numSubdevices; ++i)
     {
-      engines[i]->lastEvent.reset();
-      engines[i]->depEvents = {engines[0]->lastEvent.value()};
+      SYCLEngine* engine = getSYCLEngine(i);
+      engine->lastEvent.reset();
+      engine->depEvents = {mainEngine->lastEvent.value()};
     }
   }
 
@@ -438,14 +446,15 @@ OIDN_NAMESPACE_BEGIN
     sycl::event::wait_and_throw(getDoneEvents());
 
     // We can now discard all events
-    for (auto& engine : engines)
-      engine->lastEvent.reset();
+    for (int i = 0; i < getNumSubdevices(); ++i)
+      getSYCLEngine(i)->lastEvent.reset();
   }
 
   void SYCLDevice::setDepEvents(const std::vector<sycl::event>& events)
   {
-    for (auto& engine : engines)
+    for (int i = 0; i < getNumSubdevices(); ++i)
     {
+      SYCLEngine* engine = getSYCLEngine(i);
       engine->lastEvent.reset();
       engine->depEvents = events;
     }
@@ -464,8 +473,9 @@ OIDN_NAMESPACE_BEGIN
   std::vector<sycl::event> SYCLDevice::getDoneEvents()
   {
     std::vector<sycl::event> events;
-    for (auto& engine : engines)
+    for (int i = 0; i < getNumSubdevices(); ++i)
     {
+      SYCLEngine* engine = getSYCLEngine(i);
       if (engine->lastEvent)
         events.push_back(engine->lastEvent.value());
     }

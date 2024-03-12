@@ -42,13 +42,6 @@ OIDN_NAMESPACE_BEGIN
 
     DeviceType getType() const override { return DeviceType::CPU; }
 
-    Engine* getEngine(int i) const override
-    {
-      assert(i == 0);
-      return (Engine*)engine.get();
-    }
-
-    int getNumEngines() const override { return 1; }
   #if !defined(OIDN_DNNL)
     bool needWeightAndBiasOnDevice() const override { return false; } // no need to copy
   #endif
@@ -64,7 +57,6 @@ OIDN_NAMESPACE_BEGIN
     void initTasking();
 
   private:
-    std::unique_ptr<CPUEngine> engine;
     CPUArch arch = CPUArch::Unknown;
 
     // Tasking

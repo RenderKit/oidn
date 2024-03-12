@@ -3,6 +3,7 @@
 
 #include "cuda_device.h"
 #include "cuda_engine.h"
+#include "core/subdevice.h"
 
 OIDN_NAMESPACE_BEGIN
 
@@ -95,7 +96,7 @@ OIDN_NAMESPACE_BEGIN
     try
     {
       enter();
-      engine.reset();
+      subdevices.clear();
       leave();
     }
     catch (...) {}
@@ -171,7 +172,7 @@ OIDN_NAMESPACE_BEGIN
     externalMemoryTypes = ExternalMemoryTypeFlag::OpaqueFD;
 #endif
 
-    engine.reset(new CUDAEngine(this, stream));
+    subdevices.emplace_back(new Subdevice(std::unique_ptr<Engine>(new CUDAEngine(this, stream))));
   }
 
   Storage CUDADevice::getPtrStorage(const void* ptr)
@@ -195,8 +196,8 @@ OIDN_NAMESPACE_BEGIN
 
   void CUDADevice::wait()
   {
-    if (engine)
-      engine->wait();
+    for (auto& subdevice : subdevices)
+      subdevice->getEngine()->wait();
   }
 
 OIDN_NAMESPACE_END

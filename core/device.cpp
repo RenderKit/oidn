@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "device.h"
+#include "subdevice.h"
 #include "context.h"
 #include "rt_filter.h"
 #include "rtlightmap_filter.h"
@@ -235,6 +236,11 @@ OIDN_NAMESPACE_BEGIN
       throw Exception(Error::InvalidOperation, "changes to the device are not committed");
   }
 
+  Engine* Device::getEngine(int i) const
+  {
+    return getSubdevice(i)->getEngine();
+  }
+
   Ref<Buffer> Device::newUserBuffer(size_t byteSize, Storage storage)
   {
     return getEngine()->newBuffer(byteSize, storage)->toUser();
@@ -281,8 +287,8 @@ OIDN_NAMESPACE_BEGIN
 
   void Device::trimScratch()
   {
-    for (int i = 0; i < getNumEngines(); ++i)
-      getEngine(i)->trimScratch();
+    for (const auto& subdevice : subdevices)
+      subdevice->trimScratch();
   }
 
 OIDN_NAMESPACE_END

@@ -111,7 +111,7 @@ OIDN_NAMESPACE_BEGIN
       systemMemorySupported  = false;
       managedMemorySupported = false; // unsupported due to manual synchronization
 
-      engine.reset(new MetalEngine(this));
+      subdevices.emplace_back(new Subdevice(std::unique_ptr<Engine>(new MetalEngine(this))));
     }
   }
 
@@ -123,14 +123,14 @@ OIDN_NAMESPACE_BEGIN
 
   void MetalDevice::flush()
   {
-    if (engine)
-      engine->flush();
+    for (auto& subdevice : subdevices)
+      subdevice->getEngine()->flush();
   }
 
   void MetalDevice::wait()
   {
-    if (engine)
-      engine->wait();
+    for (auto& subdevice : subdevices)
+      subdevice->getEngine()->wait();
 
     //std::cout << "Metal device memory: " << [engine->getMTLDevice() currentAllocatedSize] << std::endl;
   }

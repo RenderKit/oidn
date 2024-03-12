@@ -4,11 +4,10 @@
 #pragma once
 
 #include "device.h"
+#include "subdevice.h"
 #include "kernel.h"
 #include "heap.h"
-#include "arena.h"
 #include "buffer.h"
-#include "tensor.h"
 #include "image.h"
 #include <functional>
 
@@ -32,9 +31,7 @@ OIDN_NAMESPACE_BEGIN
   class OutputProcess;
   class ImageCopy;
 
-  class ScratchArenaManager;
-
-  // A device consists of one or more execution "engines"
+  // Execution engine of a subdevice
   class Engine
   {
   public:
@@ -42,11 +39,11 @@ OIDN_NAMESPACE_BEGIN
     virtual ~Engine() = default;
 
     virtual Device* getDevice() const = 0;
+    Subdevice* getSubdevice() const { return subdevice; }
+    void setSubdevice(Subdevice* subdevice); // set once by Subdevice
 
-    // Heap / arena
+    // Heap
     virtual Ref<Heap> newHeap(size_t byteSize, Storage storage);
-    Ref<Arena> newScratchArena(size_t byteSize, const std::string& name = "");
-    void trimScratch();
 
     // Buffer
     virtual SizeAndAlignment getBufferByteSizeAndAlignment(size_t byteSize, Storage storage);
@@ -66,7 +63,6 @@ OIDN_NAMESPACE_BEGIN
     virtual bool isSupported(const TensorDesc& desc) const;
     virtual Ref<Tensor> newTensor(const TensorDesc& desc, Storage storage = Storage::Device);
     virtual Ref<Tensor> newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset = 0);
-    std::shared_ptr<TensorMap> getCachedTensors(const void* key);
 
     // Ops
     virtual bool isConvSupported(PostOp postOp);
@@ -121,9 +117,7 @@ OIDN_NAMESPACE_BEGIN
     Engine(const Engine&) = delete;
     Engine& operator =(const Engine&) = delete;
 
-    // Memory
-    std::unique_ptr<ScratchArenaManager> scratchArenaManager;
-    std::unordered_map<const void*, std::shared_ptr<TensorMap>> cachedTensors; // cached weights
+    Subdevice* subdevice = nullptr; // each engine belongs to a subdevice
   };
 
 OIDN_NAMESPACE_END

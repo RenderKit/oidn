@@ -13,6 +13,7 @@
 
 OIDN_NAMESPACE_BEGIN
 
+  class Subdevice;
   class Engine;
   class Buffer;
   class Filter;
@@ -82,11 +83,13 @@ OIDN_NAMESPACE_BEGIN
     // Filter
     Ref<Filter> newFilter(const std::string& type);
 
+    // Subdevices
     oidn_inline Device* getDevice() { return this; } // used by the API implementation
-    oidn_inline std::mutex& getMutex() { return mutex; }
+    Subdevice* getSubdevice(int i = 0) const { return subdevices[i].get(); }
+    int getNumSubdevices() const { return static_cast<int>(subdevices.size()); }
+    Engine* getEngine(int i = 0) const;
 
-    virtual Engine* getEngine(int i = 0) const = 0;
-    virtual int getNumEngines() const = 0;
+    oidn_inline std::mutex& getMutex() { return mutex; }
 
     // Native tensor layout
     DataType getTensorDataType() const { return tensorDataType; }
@@ -104,7 +107,7 @@ OIDN_NAMESPACE_BEGIN
     ExternalMemoryTypeFlags getExternalMemoryTypes() const { return externalMemoryTypes; }
     void trimScratch();
 
-    // Synchronizes all engines (does not block)
+    // Synchronizes all subdevices (does not block)
     virtual void submitBarrier() {}
 
     // Issues all previously submitted commands (does not block)
@@ -115,6 +118,8 @@ OIDN_NAMESPACE_BEGIN
 
   protected:
     virtual void init() = 0;
+
+    std::vector<std::unique_ptr<Subdevice>> subdevices;
 
     // Native tensor layout
     DataType tensorDataType = DataType::Float32;

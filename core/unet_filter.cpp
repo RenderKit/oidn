@@ -215,7 +215,7 @@ OIDN_NAMESPACE_BEGIN
           const int tileW2 = tileW1 - overlapBeginW - overlapEndW; // output tile size
           const int alignOffsetW = tileW - round_up(tileW1, minTileAlignment); // align to the right in the tile buffer
 
-          auto& instance = instances[tileIndex % device->getNumEngines()];
+          auto& instance = instances[tileIndex % device->getNumSubdevices()];
 
           // Set the input tile
           instance.inputProcess->setTile(
@@ -268,12 +268,13 @@ OIDN_NAMESPACE_BEGIN
     auto constTensors = parseTZA(weightsBlob.ptr, weightsBlob.size);
     const bool fastMath = quality == Quality::Balanced;
 
-    for (int i = 0; i < device->getNumEngines(); ++i)
+    for (int i = 0; i < device->getNumSubdevices(); ++i)
     {
       Engine* engine = device->getEngine(i);
 
       // We can use cached weights only for built-in weights because user weights may change!
-      auto cachedConstTensors = userWeightsBlob ? nullptr : engine->getCachedTensors(weightsBlob.ptr);
+      auto cachedConstTensors =
+        userWeightsBlob ? nullptr : engine->getSubdevice()->getCachedTensors(weightsBlob.ptr);
       
       instances.emplace_back();
       instances.back().graph = makeRef<Graph>(engine, constTensors, cachedConstTensors, fastMath);
@@ -282,7 +283,7 @@ OIDN_NAMESPACE_BEGIN
     transferFunc = newTransferFunc();
 
     // Try to divide the image into tiles until the memory usage gets below the specified threshold
-    // and the number of tiles is a multiple of the number of engines
+    // and the number of tiles is a multiple of the number of subdevices
     H = output->getH();
     W = output->getW();
     tileH = round_up(H, minTileAlignment); // add minimum device-independent padding
@@ -299,7 +300,7 @@ OIDN_NAMESPACE_BEGIN
     const int maxTileSize = (maxMemoryMB < 0) ? defaultMaxTileSize : INT_MAX;
     const size_t maxMemoryByteSize = (maxMemoryMB >= 0) ? size_t(maxMemoryMB)*1024*1024 : SIZE_MAX;
 
-    while ((tileCountH * tileCountW) % device->getNumEngines() != 0 ||
+    while ((tileCountH * tileCountW) % device->getNumSubdevices() != 0 ||
            (tileH * tileW) > maxTileSize ||
            !buildModel(maxMemoryByteSize))
     {
@@ -465,8 +466,8 @@ OIDN_NAMESPACE_BEGIN
     TensorDims inputDims{inputC, tileH, tileW};
     size_t totalMemoryByteSize = 0;
 
-    // Create model instances for each engine of the device
-    for (int instanceID = 0; instanceID < device->getNumEngines(); ++instanceID)
+    // Create model instances for each subdevice
+    for (int instanceID = 0; instanceID < device->getNumSubdevices(); ++instanceID)
     {
       auto& instance = instances[instanceID];
       auto& graph = instance.graph;
@@ -542,7 +543,7 @@ OIDN_NAMESPACE_BEGIN
       if (instanceID == 0)
       {
         totalMemoryByteSize = (scratchByteSize + graph->getPrivateByteSize()) +
-          (graphScratchByteSize + graph->getPrivateByteSize()) * (device->getNumEngines() - 1);
+          (graphScratchByteSize + graph->getPrivateByteSize()) * (device->getNumSubdevices() - 1);
 
         if (totalMemoryByteSize > maxMemoryByteSize)
         {
@@ -552,7 +553,7 @@ OIDN_NAMESPACE_BEGIN
       }
 
       // Allocate the scratch buffer
-      auto scratchArena = device->getEngine(instanceID)->newScratchArena(scratchByteSize);
+      auto scratchArena = device->getSubdevice(instanceID)->newScratchArena(scratchByteSize);
       auto scratch = scratchArena->newBuffer(scratchByteSize);
 
       // Set the scratch buffer for the graph and the global operations
