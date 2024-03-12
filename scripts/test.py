@@ -129,16 +129,14 @@ def test():
       if OS == 'linux':
         if cfg.device == 'cuda':
           print_test('oidnTest.compute-sanitizer')
-          test_csan_cmd = f'compute-sanitizer --tool memcheck --leak-check=full \
-                            --report-api-errors=no --error-exitcode=1 {test_cmd}'
+          test_csan_cmd = f'compute-sanitizer --tool memcheck --leak-check=full --report-api-errors=no --error-exitcode=1 {test_cmd}'
           run_test(test_csan_cmd)
 
         print_test('oidnTest.valgrind')
         supp_filename = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'valgrind.supp')
         if cfg.device in {'default', 'cpu', 'sycl', 'hip'}:
           test_cmd += ' "[minimal]"' # too slow otherwise
-        test_cmd = f'valgrind --leak-check=full -s --error-exitcode=1 --suppressions={supp_filename} \
-                      --gen-suppressions=all {test_cmd}'
+        test_cmd = f'valgrind --leak-check=full -s --error-exitcode=1 --suppressions={supp_filename} --gen-suppressions=all {test_cmd}'
         run_test(test_cmd)
       elif OS == 'macos':
         print_test('oidnTest.leaks')
