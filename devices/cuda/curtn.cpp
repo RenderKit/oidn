@@ -492,14 +492,21 @@ namespace curtn
       if (device == nullptr)
         return Runtime::setError(cudaErrorInvalidValue);
 
-      CUdevice deviceHandle;
-      CUresult result = cuCtxGetDevice(&deviceHandle);
+      CUcontext context;
+      CUresult result = cuCtxGetCurrent(&context);
+      if (result != CUDA_SUCCESS)
+        return Runtime::setError(result);
 
-      if (result == CUDA_SUCCESS)
+      if (context)
       {
+        CUdevice deviceHandle;
+        result = cuCtxGetDevice(&deviceHandle);
+        if (result != CUDA_SUCCESS)
+          return Runtime::setError(result);
+
         result = rt.getDeviceOrdinal(deviceHandle, *device);
       }
-      else if (result == CUDA_ERROR_INVALID_CONTEXT)
+      else
       {
         // No current context, but it will be created lazily for device 0
         *device = 0;
