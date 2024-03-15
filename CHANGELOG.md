@@ -5,7 +5,8 @@ Version History
 
 -   Fully fixed GPU memory leak when releasing SYCL, CUDA and HIP device objects
 -   Fixed CUDA context error in some cases when using the CUDA driver API
--   Fixed crash on systems with unsupported AMD Vega integrated GPUs
+-   Fixed crash on systems with an unsupported AMD Vega integrated GPU and old
+    driver
 
 ### Changes in v2.2.1:
 
