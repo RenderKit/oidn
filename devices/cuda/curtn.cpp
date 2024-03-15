@@ -219,9 +219,20 @@ namespace curtn
 
     ~Runtime()
     {
-      // We must release all primary contexts we've retained
-      for (const auto& i : contexts)
-        cuDevicePrimaryCtxRelease(i.first);
+      // Unload all modules in the primary contexts and release all primary contexts
+      // We can't clean up other contexts too because we don't know whether those are still alive
+      for (const auto& primaryContextItem : primaryContexts)
+      {
+        const CUcontext context = primaryContextItem.second;
+        if (cuCtxPushCurrent(context) == CUDA_SUCCESS)
+        {
+          for (const auto& moduleItem : contextStates[context].modules)
+            cuModuleUnload(moduleItem.second);
+          cuCtxPopCurrent(nullptr);
+        }
+
+        cuDevicePrimaryCtxRelease(primaryContextItem.first);
+      }
     }
 
     // Initializes the context for the given device (without setting it on the current thread)
@@ -237,14 +248,14 @@ namespace curtn
 
       std::lock_guard<std::mutex> lock(mutex);
 
-      auto contextIter = contexts.find(device);
-      if (contextIter == contexts.end())
+      auto contextIter = primaryContexts.find(device);
+      if (contextIter == primaryContexts.end())
       {
         result = cuDevicePrimaryCtxRetain(&context, device);
         if (result != CUDA_SUCCESS)
           return result;
 
-        contexts[device] = context;
+        primaryContexts[device] = context;
       }
       else
         context = contextIter->second;
@@ -263,15 +274,39 @@ namespace curtn
       if (result != CUDA_SUCCESS)
         return result;
 
-      if (context != nullptr)
+      if (context)
+      {
+        // If the current context is a primary context, and we're seeing it the first time, we need
+        // to retain it. Unfortunately, we can't tell whether it's a primary context so we retain
+        // the primary context for the device corresponding to the current context in either case.
+        CUdevice device;
+        result = cuCtxGetDevice(&device);
+        if (result != CUDA_SUCCESS)
+          return result;
+
+        std::lock_guard<std::mutex> lock(mutex);
+
+        if (primaryContexts.find(device) == primaryContexts.end())
+        {
+          CUcontext primaryContext;
+          result = cuDevicePrimaryCtxRetain(&primaryContext, device);
+          if (result != CUDA_SUCCESS)
+            return result;
+
+          primaryContexts[device] = primaryContext;
+        }
+
         return CUDA_SUCCESS;
+      }
+      else
+      {
+        // No current context, use device 0
+        result = initContext(0, context);
+        if (result != CUDA_SUCCESS)
+          return result;
 
-      // No current context, use device 0
-      result = initContext(0, context);
-      if (result != CUDA_SUCCESS)
-        return result;
-
-      return cuCtxSetCurrent(context);
+        return cuCtxSetCurrent(context);
+      }
     }
 
     CUresult initCurrentContext()
@@ -368,7 +403,7 @@ namespace curtn
 
     CUresult initResult = CUDA_ERROR_NOT_INITIALIZED;          // result of CUDA initialization
     std::unordered_map<CUdevice, int> deviceOrdinals;          // device ordinals by device handle
-    std::unordered_map<CUdevice, CUcontext> contexts;          // primary contexts by device handle
+    std::unordered_map<CUdevice, CUcontext> primaryContexts;   // primary contexts by device handle
     std::unordered_map<CUcontext, ContextState> contextStates; // per-context states
     std::unordered_map<const void*, FunctionDesc> funcDescs;   // function descriptors by symbol
     std::mutex mutex;
@@ -422,9 +457,9 @@ namespace curtn
     }
 
     cudaError_t CUDARTAPI __cudaPopCallConfiguration(dim3* gridDim,
-                                                    dim3* blockDim,
-                                                    size_t* sharedMem,
-                                                    cudaStream_t* stream)
+                                                     dim3* blockDim,
+                                                     size_t* sharedMem,
+                                                     cudaStream_t* stream)
     {
       if (Runtime::callConfigs.empty())
         return Runtime::setError(cudaErrorUnknown);
