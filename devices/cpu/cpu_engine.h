@@ -5,13 +5,18 @@
 
 #include "core/engine.h"
 #include "cpu_device.h"
+#include <queue>
+#include <condition_variable>
 
 OIDN_NAMESPACE_BEGIN
 
   class CPUEngine : public Engine
   {
+    friend class CPUDevice;
+
   public:
-    explicit CPUEngine(CPUDevice* device);
+    CPUEngine(CPUDevice* device, int numThreads);
+    ~CPUEngine();
 
     Device* getDevice() const override { return device; }
     int getNumThreads() const { return device->numThreads; }
@@ -33,16 +38,29 @@ OIDN_NAMESPACE_BEGIN
     void usmCopy(void* dstPtr, const void* srcPtr, size_t byteSize) override;
     void submitUSMCopy(void* dstPtr, const void* srcPtr, size_t byteSize) override;
 
-    // Runs a parallel host task in the thread arena (if it exists)
-    void runHostTask(std::function<void()>&& f) override;
+    // Enqueues a function
+    void submit(std::function<void()>&& f);
 
     // Enqueues a host function
     void submitHostFunc(std::function<void()>&& f) override;
 
-    void wait() override {}
+    void wait() override;
 
   protected:
+    void processQueue();
+
     CPUDevice* device;
+
+    // Queue for executing functions asynchronously
+    std::queue<std::function<void()>> queue;   // queue of functions to execute
+    bool queueShutdown = false;                // flag to signal the queue thread to shutdown
+    std::thread queueThread;                   // thread that processes the queue
+    std::mutex queueMutex;                     // mutex for the queue
+    std::condition_variable queueCond;         // condition variable for the queue
+
+    std::shared_ptr<tbb::task_arena> arena;    // task arena where the functions are executed
+    std::shared_ptr<PinningObserver> observer; // task scheduler observer for pinning threads
+    std::shared_ptr<ThreadAffinity> affinity;  // thread affinity manager for pinning threads
   };
 
 OIDN_NAMESPACE_END

@@ -8,7 +8,9 @@
 OIDN_NAMESPACE_BEGIN
 
   CPUInputProcess::CPUInputProcess(CPUEngine* engine, const InputProcessDesc& desc)
-    : InputProcess(engine, desc) {}
+    : InputProcess(engine, desc),
+      engine(engine)
+  {}
 
   void CPUInputProcess::submit()
   {
@@ -26,9 +28,12 @@ OIDN_NAMESPACE_BEGIN
     kernel.hdr   = hdr;
     kernel.snorm = snorm;
 
-    parallel_nd(kernel.dst.H, [&](int hDst)
+    engine->submit([=]
     {
-      ispc::CPUInputProcessKernel_run(&kernel, hDst);
+      parallel_for(kernel.dst.H, [&](int hDst)
+      {
+        ispc::CPUInputProcessKernel_run(&kernel, hDst);
+      });
     });
   }
 

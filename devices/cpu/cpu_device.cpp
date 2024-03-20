@@ -100,12 +100,59 @@ OIDN_NAMESPACE_BEGIN
 
   CPUDevice::~CPUDevice()
   {
-    observer.reset();
   }
 
   void CPUDevice::init()
   {
     arch = getArch();
+
+    tensorDataType = DataType::Float32;
+    weightDataType = DataType::Float32;
+
+    std::unique_ptr<CPUEngine> engine;
+
+  #if defined(OIDN_DNNL)
+    if (arch == CPUArch::AVX512)
+    {
+      tensorLayout = TensorLayout::Chw16c;
+      weightLayout = TensorLayout::OIhw16i16o;
+      tensorBlockC = 16;
+    }
+    else
+    {
+      tensorLayout = TensorLayout::Chw8c;
+      weightLayout = TensorLayout::OIhw8i8o;
+      tensorBlockC = 8;
+    }
+
+    engine.reset(new DNNLEngine(this, numThreads));
+  #elif defined(OIDN_BNNS)
+    tensorLayout = TensorLayout::chw;
+    weightLayout = TensorLayout::oihw;
+    tensorBlockC = 1;
+
+    engine.reset(new BNNSEngine(this, numThreads));
+  #else
+    if (arch == CPUArch::AVX512)
+    {
+      tensorLayout = TensorLayout::Chw16c;
+      weightLayout = TensorLayout::IOhw16i16o;
+      tensorBlockC = 16;
+    }
+    else
+    {
+      tensorLayout = TensorLayout::Chw8c;
+      weightLayout = TensorLayout::IOhw8i8o;
+      tensorBlockC = 8;
+    }
+
+    engine.reset(new CPUEngine(this, numThreads));
+  #endif
+
+    numThreads = engine->arena->max_concurrency();
+    setAffinity = bool(engine->affinity);
+
+    subdevices.emplace_back(new Subdevice(std::move(engine)));
 
     if (isVerbose())
     {
@@ -122,85 +169,7 @@ OIDN_NAMESPACE_BEGIN
       default:              std::cout << "Unknown"; break;
       }
       std::cout << std::endl;
-    }
 
-    initTasking();
-
-    tensorDataType = DataType::Float32;
-    weightDataType = DataType::Float32;
-
-    std::unique_ptr<Engine> engine;
-
-  #if defined(OIDN_DNNL)
-    if (arch == CPUArch::AVX512)
-    {
-      tensorLayout = TensorLayout::Chw16c;
-      weightLayout = TensorLayout::OIhw16i16o;
-      tensorBlockC = 16;
-    }
-    else
-    {
-      tensorLayout = TensorLayout::Chw8c;
-      weightLayout = TensorLayout::OIhw8i8o;
-      tensorBlockC = 8;
-    }
-
-    engine.reset(new DNNLEngine(this));
-  #elif defined(OIDN_BNNS)
-    tensorLayout = TensorLayout::chw;
-    weightLayout = TensorLayout::oihw;
-    tensorBlockC = 1;
-
-    engine.reset(new BNNSEngine(this));
-  #else
-    if (arch == CPUArch::AVX512)
-    {
-      tensorLayout = TensorLayout::Chw16c;
-      weightLayout = TensorLayout::IOhw16i16o;
-      tensorBlockC = 16;
-    }
-    else
-    {
-      tensorLayout = TensorLayout::Chw8c;
-      weightLayout = TensorLayout::IOhw8i8o;
-      tensorBlockC = 8;
-    }
-
-    engine.reset(new CPUEngine(this));
-  #endif
-
-    subdevices.emplace_back(new Subdevice(std::move(engine)));
-  }
-
-  void CPUDevice::initTasking()
-  {
-    // Get the thread affinities for one thread per core on non-hybrid CPUs with SMT
-  #if !(defined(__APPLE__) && defined(OIDN_ARCH_ARM64))
-    if (setAffinity
-      #if TBB_INTERFACE_VERSION >= 12020 // oneTBB 2021.2 or later
-        && tbb::info::core_types().size() <= 1 // non-hybrid cores
-      #endif
-       )
-    {
-      affinity = std::make_shared<ThreadAffinity>(1, verbose);
-      if (affinity->getNumThreads() == 0 ||                                           // detection failed
-          tbb::this_task_arena::max_concurrency() == affinity->getNumThreads() ||     // no SMT
-          (tbb::this_task_arena::max_concurrency() % affinity->getNumThreads()) != 0) // hybrid SMT
-        affinity.reset(); // disable affinitization
-    }
-  #endif
-
-    // Create the task arena
-    const int maxNumThreads = affinity ? affinity->getNumThreads() : tbb::this_task_arena::max_concurrency();
-    numThreads = (numThreads > 0) ? min(numThreads, maxNumThreads) : maxNumThreads;
-    arena = std::make_shared<tbb::task_arena>(numThreads);
-
-    // Automatically set the thread affinities
-    if (affinity)
-      observer = std::make_shared<PinningObserver>(affinity, *arena);
-
-    if (isVerbose())
-    {
       std::cout << "  Tasking   :";
       std::cout << " TBB" << TBB_VERSION_MAJOR << "." << TBB_VERSION_MINOR;
     #if TBB_INTERFACE_VERSION >= 12002
@@ -209,7 +178,7 @@ OIDN_NAMESPACE_BEGIN
       std::cout << " TBB_header_interface_" << TBB_INTERFACE_VERSION << " TBB_lib_interface_" << tbb::TBB_runtime_interface_version();
     #endif
       std::cout << std::endl;
-      std::cout << "    Threads : " << numThreads << " (" << (affinity ? "affinitized" : "non-affinitized") << ")" << std::endl;
+      std::cout << "    Threads : " << numThreads << " (" << (setAffinity ? "affinitized" : "non-affinitized") << ")" << std::endl;
     }
   }
 

@@ -8,7 +8,9 @@
 OIDN_NAMESPACE_BEGIN
 
   CPUOutputProcess::CPUOutputProcess(CPUEngine* engine, const OutputProcessDesc& desc)
-    : OutputProcess(desc) {}
+    : OutputProcess(desc),
+      engine(engine)
+  {}
 
   void CPUOutputProcess::submit()
   {
@@ -23,9 +25,12 @@ OIDN_NAMESPACE_BEGIN
     kernel.hdr = hdr;
     kernel.snorm = snorm;
 
-    parallel_nd(kernel.tile.H, [&](int h)
+    engine->submit([=]
     {
-      ispc::CPUOutputProcessKernel_run(&kernel, h);
+      parallel_for(kernel.tile.H, [&](int h)
+      {
+        ispc::CPUOutputProcessKernel_run(&kernel, h);
+      });
     });
   }
 

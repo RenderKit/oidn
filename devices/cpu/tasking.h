@@ -56,11 +56,11 @@ OIDN_NAMESPACE_BEGIN
   };
 
   // -----------------------------------------------------------------------------------------------
-  // parallel_nd
+  // parallel_for
   // -----------------------------------------------------------------------------------------------
 
   template<typename T0, typename F>
-  oidn_inline void parallel_nd(const T0& D0, const F& f)
+  oidn_inline void parallel_for(const T0& D0, const F& f)
   {
     tbb::parallel_for(tbb::blocked_range<T0>(0, D0), [&](const tbb::blocked_range<T0>& r)
     {
@@ -70,7 +70,7 @@ OIDN_NAMESPACE_BEGIN
   }
 
   template<typename T0, typename T1, typename F>
-  oidn_inline void parallel_nd(const T0& D0, const T1& D1, const F& f)
+  oidn_inline void parallel_for(const T0& D0, const T1& D1, const F& f)
   {
     tbb::parallel_for(tbb::blocked_range2d<T0, T1>(0, D0, 0, D1), [&](const tbb::blocked_range2d<T0, T1>& r)
     {

@@ -93,9 +93,9 @@ set(OIDN_SYCL_SOURCES_COMMON
   sycl_common.h
   sycl_conv_xe.h
   sycl_conv.h
-  sycl_device_ids.h
   sycl_device.h
   sycl_device.cpp
+  sycl_device_table.h
   sycl_engine.h
   sycl_engine.cpp
   sycl_external_buffer.h

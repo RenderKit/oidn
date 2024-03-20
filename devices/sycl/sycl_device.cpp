@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "sycl_device.h"
-#include "sycl_device_ids.h"
+#include "sycl_device_table.h"
 #include "sycl_engine.h"
 #include <iomanip>
 
@@ -122,8 +122,7 @@ OIDN_NAMESPACE_BEGIN
         syclDevice.get_info<sycl::info::device::vendor_id>() != 0x8086 || // Intel
         !syclDevice.has(sycl::aspect::usm_host_allocations) ||
         !syclDevice.has(sycl::aspect::usm_device_allocations) ||
-        !syclDevice.has(sycl::aspect::usm_shared_allocations) ||
-        !syclDevice.has(sycl::aspect::ext_intel_device_id))
+        !syclDevice.has(sycl::aspect::usm_shared_allocations))
       return SYCLArch::Unknown;
 
     // Check the Level Zero driver version
@@ -136,29 +135,6 @@ OIDN_NAMESPACE_BEGIN
 
     if (zeDriverProps.driverVersion < 0x01036237) // 1.3.25143 (Windows Driver 31.0.101.4091)
       return SYCLArch::Unknown; // older versions do not work!
-
-    // Lookup the device ID to identify the architecture
-    const unsigned int deviceID = syclDevice.get_info<sycl::ext::intel::info::device::device_id>();
-
-    for (const auto& table : syclDeviceIDTables)
-    {
-      for (int tableID : table.ids)
-      {
-        if (tableID == deviceID)
-          return table.arch;
-      }
-    }
-
-  #if !defined(OIDN_DEVICE_SYCL_AOT)
-    // Check whether ESIMD is supported
-    // FIXME: enable when supported by ICX
-    // if (!syclDevice.has(sycl::aspect::ext_intel_esimd))
-    //   return SYCLArch::Unknown;
-
-    // Get the EU SIMD width
-    if (!syclDevice.has(sycl::aspect::ext_intel_gpu_eu_simd_width))
-      return SYCLArch::Unknown;
-    const int simdWidth = syclDevice.get_info<sycl::ext::intel::info::device::gpu_eu_simd_width>();
 
     // Check whether the device IP version is supported
     bool ipVersionSupported = false;
@@ -191,9 +167,28 @@ OIDN_NAMESPACE_BEGIN
       return SYCLArch::Unknown;
     const uint32_t ipVersion = zeDeviceIPVersion.ipVersion;
 
+    // Lookup the IP version to identify the architecture
+    for (const auto& entry : syclDeviceTable)
+    {
+      for (int entryIPVersion : entry.ipVersions)
+      {
+        if (entryIPVersion == ipVersion)
+          return entry.arch;
+      }
+    }
+
+  #if !defined(OIDN_DEVICE_SYCL_AOT)
+    // Check whether ESIMD is supported
+    // FIXME: enable when supported by ICX
+    // if (!syclDevice.has(sycl::aspect::ext_intel_esimd))
+    //   return SYCLArch::Unknown;
+
+    // Get the EU SIMD width
+    if (!syclDevice.has(sycl::aspect::ext_intel_gpu_eu_simd_width))
+      return SYCLArch::Unknown;
+    const int simdWidth = syclDevice.get_info<sycl::ext::intel::info::device::gpu_eu_simd_width>();
+
     // Gen 12.0.0 or newer is required
-    // https://github.com/intel/compute-runtime/blob/14251c3d96e71e97e397b0c4fcb01557fca47f0e/shared/source/helpers/hw_ip_version.h
-    // https://github.com/intel/compute-runtime/blob/14251c3d96e71e97e397b0c4fcb01557fca47f0e/third_party/aot_config_headers/platforms.h
     if (ipVersion >= 0x03000000 && (simdWidth == 8 || simdWidth == 16))
       return SYCLArch::XeLP; // always fallback to Xe-LP
   #endif
@@ -213,6 +208,7 @@ OIDN_NAMESPACE_BEGIN
     {
     case SYCLArch::XeLP:         score = 1;  break;
     case SYCLArch::XeLPG:        score = 2;  break;
+    case SYCLArch::XeLPGplus:    score = 10; break;
     case SYCLArch::XeHPG:        score = 20; break;
     case SYCLArch::XeHPC:        score = 30; break;
     case SYCLArch::XeHPC_NoDPAS: score = 20; break;
@@ -327,6 +323,7 @@ OIDN_NAMESPACE_BEGIN
         {
         case SYCLArch::XeLP:         std::cout << "Xe-LP";   break;
         case SYCLArch::XeLPG:        std::cout << "Xe-LPG";  break;
+        case SYCLArch::XeLPGplus:    std::cout << "Xe-LPG+"; break;
         case SYCLArch::XeHPG:        std::cout << "Xe-HPG";  break;
         case SYCLArch::XeHPC:        std::cout << "Xe-HPC";  break;
         case SYCLArch::XeHPC_NoDPAS: std::cout << "Xe-HPC";  break;
@@ -356,6 +353,7 @@ OIDN_NAMESPACE_BEGIN
     switch (arch)
     {
     case SYCLArch::XeHPG:
+    case SYCLArch::XeLPGplus:
       weightDataType = DataType::Float16;
       weightLayout   = TensorLayout::OIhw2o8i8o2i;
       break;

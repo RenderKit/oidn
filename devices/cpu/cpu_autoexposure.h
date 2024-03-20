@@ -13,6 +13,9 @@ OIDN_NAMESPACE_BEGIN
   public:
     CPUAutoexposure(CPUEngine* engine, const ImageDesc& srcDesc);
     void submit() override;
+
+  private:
+    CPUEngine* engine;
   };
 
 OIDN_NAMESPACE_END

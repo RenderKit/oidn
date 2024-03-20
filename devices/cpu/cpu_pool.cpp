@@ -8,7 +8,8 @@
 OIDN_NAMESPACE_BEGIN
 
   CPUPool::CPUPool(CPUEngine* engine, const PoolDesc& desc)
-    : Pool(desc)
+    : Pool(desc),
+      engine(engine)
   {
     if (srcDesc.layout != TensorLayout::Chw8c &&
         srcDesc.layout != TensorLayout::Chw16c)
@@ -26,9 +27,12 @@ OIDN_NAMESPACE_BEGIN
     kernel.src = *src;
     kernel.dst = *dst;
 
-    parallel_nd(dst->getPaddedC() / blockC, dst->getH(), [&](int cb, int h)
+    engine->submit([=]
     {
-      ispc::CPUPoolKernel_run(&kernel, cb, h);
+      parallel_for(kernel.dst.C / blockC, kernel.dst.H, [&](int cb, int h)
+      {
+        ispc::CPUPoolKernel_run(&kernel, cb, h);
+      });
     });
   }
 

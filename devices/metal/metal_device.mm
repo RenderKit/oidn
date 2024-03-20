@@ -121,6 +121,14 @@ OIDN_NAMESPACE_BEGIN
     return Storage::Undefined;
   }
 
+  void MetalDevice::execute(std::function<void()>&& f)
+  {
+    @autoreleasepool
+    {
+      f();
+    }
+  }
+
   void MetalDevice::flush()
   {
     for (auto& subdevice : subdevices)

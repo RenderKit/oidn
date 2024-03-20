@@ -58,9 +58,6 @@ OIDN_NAMESPACE_BEGIN
     Ref<OutputProcess> newOutputProcess(const OutputProcessDesc& desc) override;
     Ref<ImageCopy> newImageCopy() override;
 
-    // Runs a parallel host task in the thread arena (if it exists)
-    void runHostTask(std::function<void()>&& f) override;
-
     // Creates a compute pipeline for executing a kernel with the given name
     Ref<MetalPipeline> newPipeline(const std::string& kernelName);
 

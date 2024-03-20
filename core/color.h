@@ -7,9 +7,8 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  class TransferFunction
+  struct TransferFunction
   {
-  public:
     enum class Type
     {
       Linear,
@@ -20,7 +19,6 @@ OIDN_NAMESPACE_BEGIN
 
     static constexpr oidn_constant float yMax = 65504.f; // maximum HDR value
 
-  private:
     Type type;
     const oidn_global float* inputScalePtr = nullptr;
     float inputScale   = 1.f;
@@ -89,7 +87,6 @@ OIDN_NAMESPACE_BEGIN
       }
     };
 
-  public:
   #if !defined(OIDN_COMPILE_METAL_DEVICE)
     explicit TransferFunction(Type type = Type::Linear);
 

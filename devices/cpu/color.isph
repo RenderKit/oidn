@@ -10,6 +10,7 @@ struct TransferFunction
   vec3f (*uniform inverse)(const uniform TransferFunction* uniform self, vec3f x);
 
   // Input and output scales (*not* applied by the forward/inverse functions!)
+  uniform const float* uniform inputScalePtr;
   uniform float inputScale;
   uniform float outputScale;
 
@@ -17,6 +18,21 @@ struct TransferFunction
   uniform float normScale;
   uniform float rcpNormScale;
 };
+
+inline uniform float TransferFunction_getInputScale(const uniform TransferFunction* uniform self)
+{
+  return self->inputScalePtr ? *self->inputScalePtr : self->inputScale;
+}
+
+inline uniform float TransferFunction_getOutputScale(const uniform TransferFunction* uniform self)
+{
+  if (self->inputScalePtr)
+  {
+    const uniform float inputScale = *self->inputScalePtr;
+    return (inputScale != 0.f) ? (1.f / inputScale) : 0.f;
+  }
+  return self->outputScale;
+}
 
 // Computes the luminance of an RGB color
 inline float luminance(vec3f c)

@@ -14,16 +14,49 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  CPUEngine::CPUEngine(CPUDevice* device)
+  CPUEngine::CPUEngine(CPUDevice* device, int numThreads)
     : device(device)
-  {}
-
-  void CPUEngine::runHostTask(std::function<void()>&& f)
   {
-    if (device->arena)
-      device->arena->execute(f);
-    else
-      f();
+    // Get the thread affinities for one thread per core on non-hybrid CPUs with SMT
+  #if !(defined(__APPLE__) && defined(OIDN_ARCH_ARM64))
+    if (device->setAffinity
+      #if TBB_INTERFACE_VERSION >= 12020 // oneTBB 2021.2 or later
+        && tbb::info::core_types().size() <= 1 // non-hybrid cores
+      #endif
+       )
+    {
+      affinity = std::make_shared<ThreadAffinity>(1, device->verbose);
+      if (affinity->getNumThreads() == 0 ||                                           // detection failed
+          tbb::this_task_arena::max_concurrency() == affinity->getNumThreads() ||     // no SMT
+          (tbb::this_task_arena::max_concurrency() % affinity->getNumThreads()) != 0) // hybrid SMT
+        affinity.reset(); // disable affinitization
+    }
+  #endif
+
+    // Create the task arena
+    const int maxNumThreads = affinity ? affinity->getNumThreads() : tbb::this_task_arena::max_concurrency();
+    numThreads = (numThreads > 0) ? min(numThreads, maxNumThreads) : maxNumThreads;
+    arena = std::make_shared<tbb::task_arena>(numThreads);
+
+    // Automatically set the thread affinities
+    if (affinity)
+      observer = std::make_shared<PinningObserver>(affinity, *arena);
+
+    // Start the queue processing thread
+    queueThread = std::thread([&]() { processQueue(); });
+  }
+
+  CPUEngine::~CPUEngine()
+  {
+    {
+      std::lock_guard<std::mutex> lock(queueMutex);
+      queueShutdown = true;
+    }
+    queueCond.notify_all();
+    queueThread.join();
+
+    if (observer)
+      observer.reset();
   }
 
 #if !defined(OIDN_DNNL) && !defined(OIDN_BNNS)
@@ -63,9 +96,26 @@ OIDN_NAMESPACE_BEGIN
     return makeRef<CPUImageCopy>(this);
   }
 
+  void CPUEngine::submit(std::function<void()>&& f)
+  {
+    {
+      std::lock_guard<std::mutex> lock(queueMutex);
+      queue.push(std::move(f));
+    }
+    queueCond.notify_all();
+  }
+
   void CPUEngine::submitHostFunc(std::function<void()>&& f)
   {
-    f(); // no async execution on the CPU
+    submit(std::move(f));
+  }
+
+  void CPUEngine::wait()
+  {
+    {
+      std::unique_lock<std::mutex> lock(queueMutex);
+      queueCond.wait(lock, [&] { return queue.empty(); });
+    }
   }
 
   void* CPUEngine::usmAlloc(size_t byteSize, Storage storage)
@@ -86,12 +136,50 @@ OIDN_NAMESPACE_BEGIN
 
   void CPUEngine::usmCopy(void* dstPtr, const void* srcPtr, size_t byteSize)
   {
-    std::memcpy(dstPtr, srcPtr, byteSize);
+    submitUSMCopy(dstPtr, srcPtr, byteSize);
+    wait();
   }
 
   void CPUEngine::submitUSMCopy(void* dstPtr, const void* srcPtr, size_t byteSize)
   {
-    std::memcpy(dstPtr, srcPtr, byteSize);
+    submit([=] { std::memcpy(dstPtr, srcPtr, byteSize); });
+  }
+
+  void CPUEngine::processQueue()
+  {
+    for (; ;)
+    {
+      std::function<void()> func;
+
+      // Wait until a function is available in the queue
+      {
+        std::unique_lock<std::mutex> lock(queueMutex);
+        queueCond.wait(lock, [&] { return !queue.empty() || queueShutdown; });
+        if (queue.empty() && queueShutdown)
+          return;
+        func = std::move(queue.front());
+      }
+
+      // Execute queued functions in the arena until the queue gets empty
+      arena->execute([&]
+      {
+        for (; ;)
+        {
+          func();
+          func = nullptr;
+
+          {
+            std::lock_guard<std::mutex> lock(queueMutex);
+            queue.pop();
+            if (queue.empty())
+              break;
+            func = std::move(queue.front());
+          }
+        }
+
+        queueCond.notify_all();
+      });
+    }
   }
 
 OIDN_NAMESPACE_END

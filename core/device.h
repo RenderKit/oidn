@@ -10,6 +10,7 @@
 #include "thread.h"
 #include "tensor_layout.h"
 #include "data.h"
+#include <functional>
 
 OIDN_NAMESPACE_BEGIN
 
@@ -106,6 +107,12 @@ OIDN_NAMESPACE_BEGIN
     bool isManagedMemorySupported() const { return managedMemorySupported; }
     ExternalMemoryTypeFlags getExternalMemoryTypes() const { return externalMemoryTypes; }
     void trimScratch();
+
+    // Executes operations on the device, releasing temporary allocations at the end
+    virtual void execute(std::function<void()>&& f)
+    {
+      f();
+    }
 
     // Synchronizes all subdevices (does not block)
     virtual void submitBarrier() {}

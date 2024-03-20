@@ -106,7 +106,7 @@ OIDN_NAMESPACE_BEGIN
   class ThreadAffinity : public Verbose
   {
   public:
-    ThreadAffinity(int numThreadsPerCore = INT_MAX, int verbose = 0);
+    ThreadAffinity(int maxNumThreadsPerCore = INT_MAX, int verbose = 0);
 
     int getNumThreads() const
     {
@@ -144,7 +144,7 @@ OIDN_NAMESPACE_BEGIN
   class ThreadAffinity : public Verbose
   {
   public:
-    ThreadAffinity(int numThreadsPerCore = INT_MAX, int verbose = 0);
+    ThreadAffinity(int maxNumThreadsPerCore = INT_MAX, int verbose = 0);
 
     int getNumThreads() const
     {
@@ -158,6 +158,9 @@ OIDN_NAMESPACE_BEGIN
     void restore(int threadIndex);
 
   private:
+    // Parses a list of numbers from a file in /sys/devices/system
+    static std::vector<int> parseList(const std::string& filename);
+
     std::vector<cpu_set_t> affinities;    // thread affinities
     std::vector<cpu_set_t> oldAffinities; // original thread affinities
   };
@@ -171,7 +174,7 @@ OIDN_NAMESPACE_BEGIN
   class ThreadAffinity : public Verbose
   {
   public:
-    ThreadAffinity(int numThreadsPerCore = INT_MAX, int verbose = 0);
+    ThreadAffinity(int maxNumThreadsPerCore = INT_MAX, int verbose = 0);
 
     int getNumThreads() const
     {

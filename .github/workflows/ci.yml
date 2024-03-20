@@ -683,22 +683,21 @@ jobs:
       artifact-on-failure: true
       cmd: scripts/test.py --device cpu --log test.log
 
-  # FIXME: randomly crashes with AddressSanitizer:DEADLYSIGNAL
-  # test-ubuntu2204-gcc-asan-avx512:
-  #   needs: build-ubuntu2204-gcc-asan
-  #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
-  #   with:
-  #     project: oidn
-  #     runs-on: '[ "Linux", "avx512" ]'
-  #     image: oidn/ubuntu:22.04
-  #     artifact-in: build-ubuntu2204-gcc-asan
-  #     artifact-out: test-ubuntu2204-gcc-asan-avx512
-  #     artifact-path: test.log
-  #     artifact-on-failure: true
-  #     cmd: |
-  #       export TBB_ENABLE_SANITIZERS=1
-  #       scripts/test.py --device cpu --minimal --log test.log
+  test-ubuntu2204-gcc-asan:
+    needs: build-ubuntu2204-gcc-asan
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Linux", "gpu_nvidia" ]'
+      image: oidn/ubuntu:22.04
+      artifact-in: build-ubuntu2204-gcc-asan
+      artifact-out: test-ubuntu2204-gcc-asan
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: |
+        export TBB_ENABLE_SANITIZERS=1
+        scripts/test.py --device cpu --minimal --log test.log
 
   test-ubuntu2204-gcc-asan-cuda:
     needs: build-ubuntu2204-gcc-asan
@@ -1056,7 +1055,7 @@ jobs:
       artifact-out: test-macos-avx2
       artifact-path: test.log
       artifact-on-failure: true
-      cmd: scripts/test.py --device cpu --log test.log
+      cmd: scripts/test.py --device cpu --minimal --log test.log
 
   test-macos-avx512:
     needs: build-macos

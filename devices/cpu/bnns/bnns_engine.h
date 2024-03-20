@@ -10,7 +10,7 @@ OIDN_NAMESPACE_BEGIN
   class BNNSEngine final : public CPUEngine
   {
   public:
-    explicit BNNSEngine(CPUDevice* device);
+    BNNSEngine(CPUDevice* device, int numThreads);
 
     // Ops
     Ref<Conv> newConv(const ConvDesc& desc) override;

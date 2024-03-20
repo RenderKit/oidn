@@ -54,15 +54,8 @@ OIDN_NAMESPACE_BEGIN
 
   protected:
     void init() override;
-    void initTasking();
-
   private:
     CPUArch arch = CPUArch::Unknown;
-
-    // Tasking
-    std::shared_ptr<tbb::task_arena> arena;
-    std::shared_ptr<PinningObserver> observer;
-    std::shared_ptr<ThreadAffinity> affinity;
 
     int numThreads = 0; // autodetect by default
     bool setAffinity = true;

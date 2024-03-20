@@ -11,12 +11,10 @@ OIDN_NAMESPACE_BEGIN
   class DNNLEngine final : public CPUEngine
   {
   public:
-    explicit DNNLEngine(CPUDevice* device);
+    DNNLEngine(CPUDevice* device, int numThreads);
 
     oidn_inline dnnl::engine& getDNNLEngine() { return dnnlEngine; }
     oidn_inline dnnl::stream& getDNNLStream() { return dnnlStream; }
-
-    void wait() override;
 
     Ref<Tensor> newTensor(const TensorDesc& desc, Storage storage) override;
     Ref<Tensor> newTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset) override;

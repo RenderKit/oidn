@@ -29,6 +29,8 @@ export void CPUOutputProcessKernel_run(const uniform CPUOutputProcessKernel* uni
   const uniform int hSrc = h + self->tile.hSrcBegin;
   const uniform int hDst = h + self->tile.hDstBegin;
 
+  const uniform float outputScale = TransferFunction_getOutputScale(&self->transferFunc);
+
   foreach (w = 0 ... self->tile.W)
   {
     const int wSrc = w + self->tile.wSrcBegin;
@@ -58,7 +60,7 @@ export void CPUOutputProcessKernel_run(const uniform CPUOutputProcessKernel* uni
       value = min(value, 1.f);
 
     // Scale
-    value = value * self->transferFunc.outputScale;
+    value = value * outputScale;
 
     // Store
     Image_set3(self->dst, hDst, wDst, value);

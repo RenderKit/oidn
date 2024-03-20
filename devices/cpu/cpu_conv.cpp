@@ -8,7 +8,8 @@
 OIDN_NAMESPACE_BEGIN
 
   CPUConv::CPUConv(CPUEngine* engine, const ConvDesc& desc)
-    : Conv(desc)
+    : Conv(desc),
+      engine(engine)
   {
     if ((srcDesc.layout != TensorLayout::Chw8c &&
          srcDesc.layout != TensorLayout::Chw16c) || srcDesc.dataType != DataType::Float32)
@@ -69,9 +70,6 @@ OIDN_NAMESPACE_BEGIN
     if (!src || !dst)
       throw std::logic_error("conving source/destination not set");
 
-    const int OH = dstDesc.getH();
-    const int OW = dstDesc.getW();
-
     ispc::CPUConvKernel kernel;
     kernel.src    = *src;
     kernel.weight = *weight;
@@ -79,20 +77,26 @@ OIDN_NAMESPACE_BEGIN
     kernel.dst    = *dst;
     kernel.relu   = activation == Activation::ReLU;
 
-    const size_t N = size_t(OCBB) * OH * OWT;
-    parallel_nd(N, [&](size_t i)
+    engine->submit([=]
     {
-      const size_t j = i / OCBB;
-      const int ocbb = int(i % OCBB);
-      const int oh   = int(j % OH);
-      const int owt  = int(j / OH);
+      const int OH = kernel.dst.H;
+      const int OW = kernel.dst.W;
+      const size_t N = size_t(OCBB) * OH * OWT;
 
-      constexpr int PW = 1; // KW = 3
-      const int owr = OWT * (blockOW - PW - 1);
-      const int owBegin = owt   > 0   ? (owt     * OW + owr) / (OWT*blockOW) * blockOW + PW : 0;
-      const int owEnd   = owt+1 < OWT ? ((owt+1) * OW + owr) / (OWT*blockOW) * blockOW + PW : OW;
+      parallel_for(N, [&](size_t i)
+      {
+        const size_t j = i / OCBB;
+        const int ocbb = int(i % OCBB);
+        const int oh   = int(j % OH);
+        const int owt  = int(j / OH);
 
-      ispc::CPUConvKernel_run(&kernel, blockOCB, ocbb * blockOCB, oh, owBegin, owEnd);
+        constexpr int PW = 1; // KW = 3
+        const int owr = OWT * (blockOW - PW - 1);
+        const int owBegin = owt   > 0   ? (owt     * OW + owr) / (OWT*blockOW) * blockOW + PW : 0;
+        const int owEnd   = owt+1 < OWT ? ((owt+1) * OW + owr) / (OWT*blockOW) * blockOW + PW : OW;
+
+        ispc::CPUConvKernel_run(&kernel, blockOCB, ocbb * blockOCB, oh, owBegin, owEnd);
+      });
     });
   }
 

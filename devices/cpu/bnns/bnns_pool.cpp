@@ -6,7 +6,9 @@
 OIDN_NAMESPACE_BEGIN
 
   BNNSPool::BNNSPool(BNNSEngine* engine, const PoolDesc& desc)
-    : Pool(desc) {}
+    : Pool(desc),
+      engine(engine)
+  {}
 
   BNNSPool::~BNNSPool()
   {
@@ -41,7 +43,9 @@ OIDN_NAMESPACE_BEGIN
     if (!src || !dst)
       throw std::logic_error("pooling source/destination not set");
 
-    BNNSFilterApply(filter, src->getPtr(), dst->getPtr());
+    void* srcPtr = src->getPtr();
+    void* dstPtr = dst->getPtr();
+    engine->submit([=] { BNNSFilterApply(filter, srcPtr, dstPtr); });
   }
 
 OIDN_NAMESPACE_END

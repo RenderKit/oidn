@@ -133,7 +133,7 @@ OIDN_NAMESPACE_BEGIN
       device->wait();
 
       // (Re-)Initialize the filter
-      device->getEngine()->runHostTask([&]() { init(); });
+      device->execute([&]() { init(); });
       device->wait();
 
       // Clean up the device memory if the memory usage limit has been reduced
@@ -156,7 +156,7 @@ OIDN_NAMESPACE_BEGIN
 
     auto mainEngine = device->getEngine();
 
-    mainEngine->runHostTask([&]()
+    device->execute([&]()
     {
       // Initialize the progress state
       double workAmount = tileCountH * tileCountW * instances[0].graph->getWorkAmount();
@@ -232,7 +232,7 @@ OIDN_NAMESPACE_BEGIN
           //printf("Tile: %d %d -> %d %d\n", w+overlapBeginW, h+overlapBeginH, w+overlapBeginW+tileW2, h+overlapBeginH+tileH2);
 
           // Denoise the tile
-          instance.graph->run(progress);
+          instance.graph->submit(progress);
 
           // Next tile
           tileIndex++;
