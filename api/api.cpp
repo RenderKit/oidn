@@ -1,10 +1,17 @@
 // Copyright 2018 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
+// Initializes and locks the global context
+// Use *only* inside OIDN_TRY/CATCH!
+#define OIDN_INIT_CONTEXT(ctx, deviceType) \
+  Context& ctx = Context::get(); \
+  std::lock_guard<std::mutex> ctxGuard(ctx.getMutex()); \
+  ctx.init(deviceType);
+
 // Locks the device that owns the specified object and saves/restores state
 // Use *only* inside OIDN_TRY/CATCH!
 #define OIDN_LOCK_DEVICE(obj) \
-  DeviceGuard guard(obj);
+  DeviceGuard deviceGuard(obj);
 
 // Try/catch for converting exceptions to errors
 #define OIDN_TRY \
@@ -63,13 +70,6 @@ OIDN_API_NAMESPACE_BEGIN
 
   namespace
   {
-    oidn_inline Context& initContext()
-    {
-      Context& ctx = Context::get();
-      ctx.init();
-      return ctx;
-    }
-
     oidn_inline void checkHandle(void* handle)
     {
       if (handle == nullptr)
@@ -144,7 +144,7 @@ OIDN_API_NAMESPACE_BEGIN
   OIDN_API int oidnGetNumPhysicalDevices()
   {
     OIDN_TRY
-      Context& ctx = initContext();
+      OIDN_INIT_CONTEXT(ctx, DeviceType::Default);
       return ctx.getNumPhysicalDevices();
     OIDN_CATCH
     return 0;
@@ -153,7 +153,7 @@ OIDN_API_NAMESPACE_BEGIN
   OIDN_API bool oidnGetPhysicalDeviceBool(int physicalDeviceID, const char* name)
   {
     OIDN_TRY
-      Context& ctx = initContext();
+      OIDN_INIT_CONTEXT(ctx, DeviceType::Default);
       checkString(name);
       return ctx.getPhysicalDevice(physicalDeviceID)->getInt(name);
     OIDN_CATCH
@@ -163,7 +163,7 @@ OIDN_API_NAMESPACE_BEGIN
   OIDN_API int oidnGetPhysicalDeviceInt(int physicalDeviceID, const char* name)
   {
     OIDN_TRY
-      Context& ctx = initContext();
+      OIDN_INIT_CONTEXT(ctx, DeviceType::Default);
       checkString(name);
       return ctx.getPhysicalDevice(physicalDeviceID)->getInt(name);
     OIDN_CATCH
@@ -173,7 +173,7 @@ OIDN_API_NAMESPACE_BEGIN
   OIDN_API const char* oidnGetPhysicalDeviceString(int physicalDeviceID, const char* name)
   {
     OIDN_TRY
-      Context& ctx = initContext();
+      OIDN_INIT_CONTEXT(ctx, DeviceType::Default);
       checkString(name);
       return ctx.getPhysicalDevice(physicalDeviceID)->getString(name);
     OIDN_CATCH
@@ -183,7 +183,7 @@ OIDN_API_NAMESPACE_BEGIN
   OIDN_API const void* oidnGetPhysicalDeviceData(int physicalDeviceID, const char* name, size_t* byteSize)
   {
     OIDN_TRY
-      Context& ctx = initContext();
+      OIDN_INIT_CONTEXT(ctx, DeviceType::Default);
       checkString(name);
       Data data = ctx.getPhysicalDevice(physicalDeviceID)->getData(name);
       if (byteSize != nullptr)
@@ -199,7 +199,7 @@ OIDN_API_NAMESPACE_BEGIN
     Ref<Device> device = nullptr;
 
     OIDN_TRY
-      Context& ctx = initContext();
+      OIDN_INIT_CONTEXT(ctx, type);
 
       if (type == DeviceType::Default)
       {
@@ -246,7 +246,7 @@ OIDN_API_NAMESPACE_BEGIN
   {
     Ref<Device> device = nullptr;
     OIDN_TRY
-      Context& ctx = initContext();
+      OIDN_INIT_CONTEXT(ctx, DeviceType::Default);
       device = ctx.newDevice(physicalDeviceID);
     OIDN_CATCH
     return reinterpret_cast<OIDNDevice>(device.detach());
@@ -257,7 +257,7 @@ OIDN_API_NAMESPACE_BEGIN
     Ref<Device> device = nullptr;
 
     OIDN_TRY
-      Context& ctx = initContext();
+      OIDN_INIT_CONTEXT(ctx, DeviceType::Default);
 
       if (uuid == nullptr)
         throw Exception(Error::InvalidArgument, "UUID pointer is null");
@@ -291,7 +291,7 @@ OIDN_API_NAMESPACE_BEGIN
     Ref<Device> device = nullptr;
 
     OIDN_TRY
-      Context& ctx = initContext();
+      OIDN_INIT_CONTEXT(ctx, DeviceType::Default);
 
       if (luid == nullptr)
         throw Exception(Error::InvalidArgument, "LUID pointer is null");
@@ -325,7 +325,7 @@ OIDN_API_NAMESPACE_BEGIN
     Ref<Device> device = nullptr;
 
     OIDN_TRY
-      Context& ctx = initContext();
+      OIDN_INIT_CONTEXT(ctx, DeviceType::Default);
 
       // Find the physical device with the specified PCI address
       const int numDevices = ctx.getNumPhysicalDevices();
@@ -358,7 +358,7 @@ OIDN_API_NAMESPACE_BEGIN
   {
     Ref<Device> device = nullptr;
     OIDN_TRY
-      Context& ctx = initContext();
+      OIDN_INIT_CONTEXT(ctx, DeviceType::SYCL);
       auto factory = static_cast<SYCLDeviceFactoryBase*>(ctx.getDeviceFactory(DeviceType::SYCL));
       device = factory->newDevice(queues, numQueues);
     OIDN_CATCH
@@ -369,7 +369,7 @@ OIDN_API_NAMESPACE_BEGIN
   {
     Ref<Device> device = nullptr;
     OIDN_TRY
-      Context& ctx = initContext();
+      OIDN_INIT_CONTEXT(ctx, DeviceType::CUDA);
       auto factory = static_cast<CUDADeviceFactoryBase*>(ctx.getDeviceFactory(DeviceType::CUDA));
       device = factory->newDevice(deviceIDs, streams, numPairs);
     OIDN_CATCH
@@ -380,7 +380,7 @@ OIDN_API_NAMESPACE_BEGIN
   {
     Ref<Device> device = nullptr;
     OIDN_TRY
-      Context& ctx = initContext();
+      OIDN_INIT_CONTEXT(ctx, DeviceType::HIP);
       auto factory = static_cast<HIPDeviceFactoryBase*>(ctx.getDeviceFactory(DeviceType::HIP));
       device = factory->newDevice(deviceIDs, streams, numPairs);
     OIDN_CATCH
@@ -391,7 +391,7 @@ OIDN_API_NAMESPACE_BEGIN
   {
     Ref<Device> device = nullptr;
     OIDN_TRY
-      Context& ctx = initContext();
+      OIDN_INIT_CONTEXT(ctx, DeviceType::Metal);
       auto factory = static_cast<MetalDeviceFactoryBase*>(ctx.getDeviceFactory(DeviceType::Metal));
       device = factory->newDevice(commandQueues, numQueues);
     OIDN_CATCH

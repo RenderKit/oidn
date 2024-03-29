@@ -6,7 +6,8 @@
 #include "module.h"
 #include "device_factory.h"
 #include <mutex>
-#include <map>
+#include <unordered_set>
+#include <unordered_map>
 
 OIDN_NAMESPACE_BEGIN
 
@@ -43,40 +44,52 @@ OIDN_NAMESPACE_BEGIN
         ctx.physicalDevices.push_back(physicalDevice);
     }
 
-    // Initializes the global context (should be called by API functions)
-    void init()
+    Context()
     {
-      std::call_once(initFlag, [this]()
+      getEnvVar("OIDN_VERBOSE", verbose);
+    }
+
+    // The context is *not* thread-safe, so a mutex is provided for synchronization
+    std::mutex& getMutex() { return mutex; }
+
+    // Initializes the context (called only by API functions)
+    // If called with a non-default device type, initializes only that device type
+    void init(DeviceType deviceType = DeviceType::Default)
+    {
+      if (fullyInited || initedDeviceTypes.find(deviceType) != initedDeviceTypes.end())
+        return;
+
+      // Initialize the device modules, if necessary
+    #if defined(OIDN_DEVICE_CPU)
+      if (initDeviceType(deviceType, DeviceType::CPU, "OIDN_DEVICE_CPU"))
+        OIDN_INIT_STATIC_MODULE(device_cpu);
+    #endif
+    #if defined(OIDN_DEVICE_SYCL)
+      if (initDeviceType(deviceType, DeviceType::SYCL, "OIDN_DEVICE_SYCL"))
+        OIDN_INIT_MODULE(device_sycl);
+    #endif
+    #if defined(OIDN_DEVICE_CUDA)
+      if (initDeviceType(deviceType, DeviceType::CUDA, "OIDN_DEVICE_CUDA"))
+        OIDN_INIT_MODULE(device_cuda);
+    #endif
+    #if defined(OIDN_DEVICE_HIP)
+      if (initDeviceType(deviceType, DeviceType::HIP, "OIDN_DEVICE_HIP"))
+        OIDN_INIT_MODULE(device_hip);
+    #endif
+    #if defined(OIDN_DEVICE_METAL)
+      if (initDeviceType(deviceType, DeviceType::Metal, "OIDN_DEVICE_METAL"))
+        OIDN_INIT_STATIC_MODULE(device_metal);
+    #endif
+
+      if (deviceType == DeviceType::Default)
       {
-        getEnvVar("OIDN_VERBOSE", verbose);
-
-        // Load the modules
-      #if defined(OIDN_DEVICE_CPU)
-        if (getEnvVarOrDefault("OIDN_DEVICE_CPU", 1))
-          OIDN_INIT_STATIC_MODULE(device_cpu);
-      #endif
-      #if defined(OIDN_DEVICE_SYCL)
-        if (getEnvVarOrDefault("OIDN_DEVICE_SYCL", 1))
-          OIDN_INIT_MODULE(device_sycl);
-      #endif
-      #if defined(OIDN_DEVICE_CUDA)
-        if (getEnvVarOrDefault("OIDN_DEVICE_CUDA", 1))
-          OIDN_INIT_MODULE(device_cuda);
-      #endif
-      #if defined(OIDN_DEVICE_HIP)
-        if (getEnvVarOrDefault("OIDN_DEVICE_HIP", 1))
-          OIDN_INIT_MODULE(device_hip);
-      #endif
-      #if defined(OIDN_DEVICE_METAL)
-        if (getEnvVarOrDefault("OIDN_DEVICE_METAL", 1))
-          OIDN_INIT_STATIC_MODULE(device_metal);
-      #endif
-
         // Sort the physical devices by score
         std::sort(physicalDevices.begin(), physicalDevices.end(),
                   [](const Ref<PhysicalDevice>& a, const Ref<PhysicalDevice>& b)
                   { return a->score > b->score; });
-      });
+
+        fullyInited = true;
+      }
     }
 
     bool isDeviceSupported(DeviceType type) const;
@@ -87,13 +100,26 @@ OIDN_NAMESPACE_BEGIN
     Ref<Device> newDevice(int physicalDeviceID);
 
   private:
-    Context() = default;
     Context(const Context&) = delete;
     Context& operator =(const Context&) = delete;
 
-    std::once_flag initFlag;
+    bool initDeviceType(DeviceType deviceType, DeviceType targetDeviceType,
+                        const std::string& envVar)
+    {
+      assert(targetDeviceType != DeviceType::Default);
+      if ((deviceType != targetDeviceType && deviceType != DeviceType::Default) ||
+          initedDeviceTypes.find(targetDeviceType) != initedDeviceTypes.end())
+        return false;
+
+      initedDeviceTypes.insert(targetDeviceType); // try to initialize only once
+      return getEnvVarOrDefault(envVar, 1);
+    }
+
+    std::mutex mutex;
+    bool fullyInited = false;
+    std::unordered_set<DeviceType> initedDeviceTypes;
     ModuleLoader modules;
-    std::map<DeviceType, std::unique_ptr<DeviceFactory>> deviceFactories;
+    std::unordered_map<DeviceType, std::unique_ptr<DeviceFactory>> deviceFactories;
     std::vector<Ref<PhysicalDevice>> physicalDevices;
   };
 

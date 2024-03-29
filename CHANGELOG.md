@@ -3,7 +3,8 @@ Version History
 
 ### Changes in v2.3.0:
 
--   `Async` functions are executed asynchronously on CPU devices as well
+-   Execute `Async` functions asynchronously on CPU devices as well
+-   Load/initialize device modules lazily (improves stability)
 
 ### Changes in v2.2.2:
 
