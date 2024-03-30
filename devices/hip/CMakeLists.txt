@@ -30,6 +30,7 @@ set(AMDGPU_TARGETS ${GPU_TARGETS} CACHE INTERNAL "")
 
 # Find HIP
 find_package(hip REQUIRED)
+find_package(HIP REQUIRED)
 
 set(OIDN_HIP_SOURCES
   ck_conv.h
@@ -66,6 +67,10 @@ if(WIN32)
   # Fix warning: __declspec attribute 'dllexport' is not supported
   target_compile_options(OpenImageDenoise_device_hip PRIVATE -Wno-ignored-attributes)
 endif()
+
+# ROCm 6 has some breaking changes in the HIP runtime API.
+# This allows us to differentiate between them.
+target_compile_definitions(OpenImageDenoise_device_hip PRIVATE HIP_VERSION_MAJOR=${HIP_VERSION_MAJOR})
 
 target_link_libraries(OpenImageDenoise_device_hip PRIVATE OpenImageDenoise_core hip::device)
 oidn_strip_symbols(OpenImageDenoise_device_hip)
