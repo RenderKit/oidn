@@ -14,6 +14,8 @@ def get_model(cfg):
   num_input_channels = len(get_model_channels(cfg.features))
   if type == 'unet':
     return UNet(num_input_channels)
+  elif type == 'unet_large':
+    return UNetLarge(num_input_channels)
   else:
     error('invalid model')
 
@@ -130,5 +132,100 @@ class UNet(nn.Module):
     x = relu(self.dec_conv1b(x))     # dec_conv1b
 
     x = self.dec_conv0(x)            # dec_conv0
+
+    return x
+
+## -----------------------------------------------------------------------------
+## U-Net model: large
+## -----------------------------------------------------------------------------
+
+class UNetLarge(nn.Module):
+  def __init__(self, in_channels=3, out_channels=3):
+    super(UNetLarge, self).__init__()
+
+    # Number of channels per layer
+    ic   = in_channels
+    ec1  = 64
+    ec2  = 96
+    ec3  = 128
+    ec4  = 192
+    ec5  = 256
+    dc4  = 192
+    dc3  = 128
+    dc2  = 96
+    dc1  = 64
+    oc   = out_channels
+
+    # Convolutions
+    self.enc_conv1a = Conv(ic,      ec1)
+    self.enc_conv1b = Conv(ec1,     ec1)
+    self.enc_conv2a = Conv(ec1,     ec2)
+    self.enc_conv2b = Conv(ec2,     ec2)
+    self.enc_conv3a = Conv(ec2,     ec3)
+    self.enc_conv3b = Conv(ec3,     ec3)
+    self.enc_conv4a = Conv(ec3,     ec4)
+    self.enc_conv4b = Conv(ec4,     ec4)
+    self.enc_conv5a = Conv(ec4,     ec5)
+    self.enc_conv5b = Conv(ec5,     ec5)
+    self.dec_conv4a = Conv(ec5+ec3, dc4)
+    self.dec_conv4b = Conv(dc4,     dc4)
+    self.dec_conv3a = Conv(dc4+ec2, dc3)
+    self.dec_conv3b = Conv(dc3,     dc3)
+    self.dec_conv2a = Conv(dc3+ec1, dc2)
+    self.dec_conv2b = Conv(dc2,     dc2)
+    self.dec_conv1a = Conv(dc2+ic,  dc1)
+    self.dec_conv1b = Conv(dc1,     dc1)
+    self.dec_conv1c = Conv(dc1,     oc)
+
+    # Images must be padded to multiples of the alignment
+    self.alignment = 16
+
+  def forward(self, input):
+    # Encoder
+    # -------------------------------------------
+
+    x = relu(self.enc_conv1a(input)) # enc_conv1a
+    x = relu(self.enc_conv1b(x))     # enc_conv1b
+    x = pool1 = pool(x)              # pool1
+
+    x = relu(self.enc_conv2a(x))     # enc_conv2a
+    x = relu(self.enc_conv2b(x))     # enc_conv2b
+    x = pool2 = pool(x)              # pool2
+
+    x = relu(self.enc_conv3a(x))     # enc_conv3a
+    x = relu(self.enc_conv3b(x))     # enc_conv3b
+    x = pool3 = pool(x)              # pool3
+
+    x = relu(self.enc_conv4a(x))     # enc_conv4a
+    x = relu(self.enc_conv4b(x))     # enc_conv4b
+    x = pool(x)                      # pool4
+
+    # Bottleneck
+    x = relu(self.enc_conv5a(x))     # enc_conv5a
+    x = relu(self.enc_conv5b(x))     # enc_conv5b
+
+    # Decoder
+    # -------------------------------------------
+
+    x = upsample(x)                  # upsample4
+    x = concat(x, pool3)             # concat4
+    x = relu(self.dec_conv4a(x))     # dec_conv4a
+    x = relu(self.dec_conv4b(x))     # dec_conv4b
+
+    x = upsample(x)                  # upsample3
+    x = concat(x, pool2)             # concat3
+    x = relu(self.dec_conv3a(x))     # dec_conv3a
+    x = relu(self.dec_conv3b(x))     # dec_conv3b
+
+    x = upsample(x)                  # upsample2
+    x = concat(x, pool1)             # concat2
+    x = relu(self.dec_conv2a(x))     # dec_conv2a
+    x = relu(self.dec_conv2b(x))     # dec_conv2b
+
+    x = upsample(x)                  # upsample1
+    x = concat(x, input)             # concat1
+    x = relu(self.dec_conv1a(x))     # dec_conv1a
+    x = relu(self.dec_conv1b(x))     # dec_conv1b
+    x = relu(self.dec_conv1c(x))     # dec_conv1c
 
     return x

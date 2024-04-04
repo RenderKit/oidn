@@ -112,7 +112,7 @@ double runBenchmark(DeviceRef& device, const Benchmark& bench)
   std::shared_ptr<ImageBuffer> input;
 
   std::shared_ptr<ImageBuffer> albedo;
-  if (bench.hasInput("alb"))
+  if (bench.hasInput("alb") || bench.hasInput("calb"))
   {
     input = albedo = newImage(device, bench.width, bench.height);
     initImage(*albedo, rng, 0.f, 1.f);
@@ -120,7 +120,7 @@ double runBenchmark(DeviceRef& device, const Benchmark& bench)
   }
 
   std::shared_ptr<ImageBuffer> normal;
-  if (bench.hasInput("nrm"))
+  if (bench.hasInput("nrm") || bench.hasInput("cnrm"))
   {
     input = normal = newImage(device, bench.width, bench.height);
     initImage(*normal, rng, -1.f, 1.f);
@@ -143,6 +143,9 @@ double runBenchmark(DeviceRef& device, const Benchmark& bench)
     filter.setImage("color", color->getBuffer(), color->getFormat(), bench.width, bench.height);
     filter.set("hdr", false);
   }
+
+  if (bench.hasInput("calb") || bench.hasInput("cnrm"))
+    filter.set("cleanAux", true);
 
   std::shared_ptr<ImageBuffer> output;
   if (inplace)
@@ -250,6 +253,7 @@ void addAllBenchmarks()
   {
     addBenchmark("RT", {"hdr", "alb", "nrm"}, size);
     addBenchmark("RT", {"ldr", "alb", "nrm"}, size);
+    addBenchmark("RT", {"hdr", "calb", "cnrm"}, size);
   }
 #endif
 

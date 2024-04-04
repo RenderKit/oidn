@@ -11,7 +11,7 @@ import argparse
 
 from common import *
 
-BASELINE_VERSION='v2.2.0'
+BASELINE_VERSION='v2.3.0'
 
 # Parse the command-line arguments
 parser = argparse.ArgumentParser(description='Runs all tests, including comparing images produced by the library with generated baseline images.')
@@ -191,22 +191,24 @@ def test_regression(filter, feature_sets, dataset):
   # Iterate over the feature sets
   out_filename = None
 
-  for features, full_test in feature_sets:
+  for features, full_test, model_qualities in feature_sets:
     if cfg.minimal and (out_filename or filter != 'RT'):
       full_test = False
 
     # Get the result name
-    result = filter.lower()
+    result_base = filter.lower()
     for f in features:
-      result += '_' + f
-    features_str = result.split('_', 1)[1]
+      result_base += '_' + f
+    features_str = result_base.split('_', 1)[1]
 
     if cfg.command == 'baseline':
       # Generate the baseline images
-      print_test(f'{filter}.{features_str}', 'Infer')
-      infer_cmd = os.path.join(root_dir, 'training', 'infer.py')
-      infer_cmd += f' -D "{cfg.data_dir}" -R "{cfg.results_dir}" -O "{cfg.baseline_dir}" -i {dataset} -r {result} -F pfm'
-      run_test(infer_cmd)
+      for quality in model_qualities:
+        print_test(f'{filter}.{quality}.{features_str}', 'Infer')
+        result = result_base + ('_hq' if quality == 'high' else '')
+        infer_cmd = os.path.join(root_dir, 'training', 'infer.py')
+        infer_cmd += f' -D "{cfg.data_dir}" -R "{cfg.results_dir}" -O "{cfg.baseline_dir}" -i {dataset} -r {result} -F pfm'
+        run_test(infer_cmd)
 
     elif cfg.command == 'run':
       main_feature = features[0]
@@ -221,6 +223,8 @@ def test_regression(filter, feature_sets, dataset):
 
       # Iterate over quality
       for quality in (['high', 'balanced'] if (filter == 'RT' and not cfg.minimal) or cfg.full else ['high']):
+        result = result_base + ('_hq' if quality == 'high' and 'high' in model_qualities else '')
+
         # Iterate over images
         image_index = 0
         for image_name in image_names:
@@ -310,16 +314,16 @@ if not cfg.filter or 'RT' in cfg.filter:
   test_regression(
     'RT',
     [
-      (['hdr', 'alb', 'nrm'],   True),
-      (['hdr', 'alb'],          False),
-      (['hdr'],                 True),
-      (['hdr', 'calb', 'cnrm'], False),
-      (['ldr', 'alb', 'nrm'],   False),
-      (['ldr', 'alb'],          False),
-      (['ldr'],                 True),
-      (['ldr', 'calb', 'cnrm'], False),
-      (['alb'],                 True),
-      (['nrm'],                 True)
+      (['hdr', 'alb', 'nrm'],   True,  ['balanced']),
+      (['hdr', 'alb'],          False, ['balanced']),
+      (['hdr'],                 True,  ['balanced']),
+      (['hdr', 'calb', 'cnrm'], True,  ['balanced', 'high']),
+      (['ldr', 'alb', 'nrm'],   False, ['balanced']),
+      (['ldr', 'alb'],          False, ['balanced']),
+      (['ldr'],                 True,  ['balanced']),
+      (['ldr', 'calb', 'cnrm'], False, ['balanced']),
+      (['alb'],                 True,  ['balanced', 'high']),
+      (['nrm'],                 True,  ['balanced', 'high'])
     ],
     'rt_regress'
   )
@@ -329,8 +333,8 @@ if not cfg.filter or 'RTLightmap' in cfg.filter:
   test_regression(
     'RTLightmap',
     [
-      (['hdr'], True),
-      (['dir'], True)
+      (['hdr'], True, ['balanced']),
+      (['dir'], True, ['balanced'])
     ],
     'rtlightmap_regress'
   )

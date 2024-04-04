@@ -67,6 +67,10 @@ def parse_args(cmd=None, description=None):
     parser.add_argument('--filter', '-f', type=str,
                         choices=['RT', 'RTLightmap'],
                         help='filter to train (determines some default arguments)')
+    parser.add_argument('--quality', '-q', type=str,
+                        choices=['high', 'balanced'],
+                        default='balanced',
+                        help='filter quality (determines some default arguments')
     parser.add_argument('--preproc_dir', '-P', type=str, default='preproc',
                         help='directory of preprocessed datasets')
     parser.add_argument('--train_data', '-t', type=str,
@@ -123,7 +127,8 @@ def parse_args(cmd=None, description=None):
                         help='number of data loader threads per device')
     parser.add_argument('--precision', '-p', type=str, choices=['fp32', 'mixed'],
                         help='training precision')
-    advanced.add_argument('--model', '-m', type=str, choices=['unet'], default='unet',
+    advanced.add_argument('--model', '-m', type=str,
+                          choices=['unet', 'unet_large'],
                           help='network model')
     advanced.add_argument('--loss', '-l', type=str,
                           choices=['l1', 'mape', 'smape', 'l2', 'ssim', 'msssim', 'l1_msssim', 'l1_grad'],
@@ -236,6 +241,10 @@ def parse_args(cmd=None, description=None):
     if cfg.result is None:
       cfg.result = WORKER_UID
 
+    # Set the model
+    if cfg.model is None:
+      cfg.model = 'unet_large' if cfg.quality == 'high' else 'unet'
+
     # Set the default MS-SSIM weights
     if cfg.msssim_weights is None:
       if cfg.filter == 'RT':
@@ -248,7 +257,7 @@ def parse_args(cmd=None, description=None):
 
     # Set the default maximum learning rate
     if cfg.max_lr is None:
-      cfg.max_lr = 3.125e-6 * cfg.batch_size
+      cfg.max_lr = (2.679e-6 if cfg.model == 'unet_large' else 3.125e-6) * cfg.batch_size
 
   # Print PyTorch version
   print('PyTorch:', torch.__version__)

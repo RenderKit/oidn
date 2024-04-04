@@ -3,6 +3,14 @@ Version History
 
 ### Changes in v2.3.0:
 
+-   Significantly improved image quality of the `RT` filter in high quality
+    mode for the following combinations of input features and parameters:
+        -  HDR color + albedo + normal + `cleanAux`
+        -  albedo
+        -  normal
+    In these cases a much more complex filter is used, which results in lower
+    performance than before (about 2x). To revert to the previous performance
+    behavior, please switch to the balanced quality mode.
 -   Execute `Async` functions asynchronously on CPU devices as well
 -   Load/initialize device modules lazily (improves stability)
 

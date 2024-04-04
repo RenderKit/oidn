@@ -8,11 +8,7 @@ OIDN_NAMESPACE_BEGIN
 
   UNetFilter::UNetFilter(const Ref<Device>& device)
     : Filter(device)
-  {
-    // Compute final device-dependent tile alignment and overlap
-    tileAlignment = lcm(minTileAlignment, device->getMinTileAlignment());
-    tileOverlap = round_up(receptiveField / 2, tileAlignment);
-  }
+  {}
 
   void UNetFilter::setData(const std::string& name, const Data& data)
   {
@@ -263,11 +259,18 @@ OIDN_NAMESPACE_BEGIN
     cleanup();
     checkParams();
 
-    // Build the model
+    // Select the model
     Data weightsBlob = getWeights();
     auto constTensors = parseTZA(weightsBlob.ptr, weightsBlob.size);
-    const bool fastMath = quality == Quality::Balanced;
+    const bool fastMath = quality != Quality::High;
+    largeModel = constTensors->find("enc_conv1b.weight") != constTensors->end();
 
+    // Compute final device-dependent tile alignment and overlap
+    const int receptiveField = largeModel ? receptiveFieldLarge : receptiveFieldNormal;
+    tileAlignment = lcm(minTileAlignment, device->getMinTileAlignment());
+    tileOverlap = round_up(receptiveField / 2, tileAlignment);
+
+    // Build the model
     for (int i = 0; i < device->getNumSubdevices(); ++i)
     {
       Engine* engine = device->getEngine(i);
@@ -275,7 +278,7 @@ OIDN_NAMESPACE_BEGIN
       // We can use cached weights only for built-in weights because user weights may change!
       auto cachedConstTensors =
         userWeightsBlob ? nullptr : engine->getSubdevice()->getCachedTensors(weightsBlob.ptr);
-      
+
       instances.emplace_back();
       instances.back().graph = makeRef<Graph>(engine, constTensors, cachedConstTensors, fastMath);
     }
@@ -394,6 +397,7 @@ OIDN_NAMESPACE_BEGIN
   Data UNetFilter::getWeights()
   {
     // Select the weights to use
+    const bool hq = quality == Quality::High;
     Data weightsBlob;
 
     if (color)
@@ -409,9 +413,16 @@ OIDN_NAMESPACE_BEGIN
       else if (albedo && normal)
       {
         if (cleanAux)
-          weightsBlob = hdr ? weightsBlobs.hdr_calb_cnrm : weightsBlobs.ldr_calb_cnrm;
+        {
+          if (hdr)
+            weightsBlob = hq ? weightsBlobs.hdr_calb_cnrm_hq : weightsBlobs.hdr_calb_cnrm;
+          else
+            weightsBlob = weightsBlobs.ldr_calb_cnrm;
+        }
         else
+        {
           weightsBlob = hdr ? weightsBlobs.hdr_alb_nrm : weightsBlobs.ldr_alb_nrm;
+        }
       }
     }
     else
@@ -421,13 +432,13 @@ OIDN_NAMESPACE_BEGIN
       {
         if (hdr)
           throw Exception(Error::InvalidOperation, "hdr mode is not supported for albedo filtering");
-        weightsBlob = weightsBlobs.alb;
+        weightsBlob = hq ? weightsBlobs.alb_hq : weightsBlobs.alb;
       }
       else if (!albedo && normal)
       {
         if (hdr || srgb)
           throw Exception(Error::InvalidOperation, "hdr and srgb modes are not supported for normal filtering");
-        weightsBlob = weightsBlobs.nrm;
+        weightsBlob = hq ? weightsBlobs.nrm_hq : weightsBlobs.nrm;
       }
       else
       {
@@ -442,6 +453,71 @@ OIDN_NAMESPACE_BEGIN
       throw Exception(Error::InvalidOperation, "unsupported combination of input features");
 
     return weightsBlob;
+  }
+
+  Ref<Op> UNetFilter::addUNet(const Ref<Graph>& graph, const Ref<Op>& inputProcess)
+  {
+    auto x = graph->addConv("enc_conv0", inputProcess, Activation::ReLU);
+
+    auto pool1 = x = graph->addConv("enc_conv1", x, Activation::ReLU, PostOp::Pool);
+
+    auto pool2 = x = graph->addConv("enc_conv2", x, Activation::ReLU, PostOp::Pool);
+
+    auto pool3 = x = graph->addConv("enc_conv3", x, Activation::ReLU, PostOp::Pool);
+
+    auto pool4 = x = graph->addConv("enc_conv4", x, Activation::ReLU, PostOp::Pool);
+
+    x = graph->addConv("enc_conv5a", pool4, Activation::ReLU);
+    x = graph->addConv("enc_conv5b", x, Activation::ReLU, PostOp::Upsample);
+
+    x = graph->addConcatConv("dec_conv4a", x, pool3, Activation::ReLU);
+    x = graph->addConv("dec_conv4b", x, Activation::ReLU, PostOp::Upsample);
+
+    x = graph->addConcatConv("dec_conv3a", x, pool2, Activation::ReLU);
+    x = graph->addConv("dec_conv3b", x, Activation::ReLU, PostOp::Upsample);
+
+    x = graph->addConcatConv("dec_conv2a", x, pool1, Activation::ReLU);
+    x = graph->addConv("dec_conv2b", x, Activation::ReLU, PostOp::Upsample);
+
+    x = graph->addConcatConv("dec_conv1a", x, inputProcess, Activation::ReLU);
+    x = graph->addConv("dec_conv1b", x, Activation::ReLU);
+
+    x = graph->addConv("dec_conv0", x, Activation::ReLU);
+
+    return x;
+  }
+
+  Ref<Op> UNetFilter::addUNetLarge(const Ref<Graph>& graph, const Ref<Op>& inputProcess)
+  {
+    auto x = graph->addConv("enc_conv1a", inputProcess, Activation::ReLU);
+    auto pool1 = x = graph->addConv("enc_conv1b", x, Activation::ReLU, PostOp::Pool);
+
+    x = graph->addConv("enc_conv2a", x, Activation::ReLU);
+    auto pool2 = x = graph->addConv("enc_conv2b", x, Activation::ReLU, PostOp::Pool);
+
+    x = graph->addConv("enc_conv3a", x, Activation::ReLU);
+    auto pool3 = x = graph->addConv("enc_conv3b", x, Activation::ReLU, PostOp::Pool);
+
+    x = graph->addConv("enc_conv4a", x, Activation::ReLU);
+    auto pool4 = x = graph->addConv("enc_conv4b", x, Activation::ReLU, PostOp::Pool);
+
+    x = graph->addConv("enc_conv5a", pool4, Activation::ReLU);
+    x = graph->addConv("enc_conv5b", x, Activation::ReLU, PostOp::Upsample);
+
+    x = graph->addConcatConv("dec_conv4a", x, pool3, Activation::ReLU);
+    x = graph->addConv("dec_conv4b", x, Activation::ReLU, PostOp::Upsample);
+
+    x = graph->addConcatConv("dec_conv3a", x, pool2, Activation::ReLU);
+    x = graph->addConv("dec_conv3b", x, Activation::ReLU, PostOp::Upsample);
+
+    x = graph->addConcatConv("dec_conv2a", x, pool1, Activation::ReLU);
+    x = graph->addConv("dec_conv2b", x, Activation::ReLU, PostOp::Upsample);
+
+    x = graph->addConcatConv("dec_conv1a", x, inputProcess, Activation::ReLU);
+    x = graph->addConv("dec_conv1b", x, Activation::ReLU);
+    x = graph->addConv("dec_conv1c", x, Activation::ReLU);
+
+    return x;
   }
 
   // Tries to build the model without exceeding the specified amount of memory
@@ -473,37 +549,9 @@ OIDN_NAMESPACE_BEGIN
       auto& graph = instance.graph;
 
       // Create the model graph
-      auto inputProcess = graph->addInputProcess("input", inputDims,
-                                                 transferFunc, hdr, snorm);
-
-      auto encConv0 = graph->addConv("enc_conv0", inputProcess, Activation::ReLU);
-
-      auto pool1 = graph->addConv("enc_conv1", encConv0, Activation::ReLU, PostOp::Pool);
-
-      auto pool2 = graph->addConv("enc_conv2", pool1, Activation::ReLU, PostOp::Pool);
-
-      auto pool3 = graph->addConv("enc_conv3", pool2, Activation::ReLU, PostOp::Pool);
-
-      auto pool4 = graph->addConv("enc_conv4", pool3, Activation::ReLU, PostOp::Pool);
-
-      auto encConv5a = graph->addConv("enc_conv5a", pool4, Activation::ReLU);
-
-      auto upsample4 = graph->addConv("enc_conv5b", encConv5a, Activation::ReLU, PostOp::Upsample);
-      auto decConv4a = graph->addConcatConv("dec_conv4a", upsample4, pool3, Activation::ReLU);
-
-      auto upsample3 = graph->addConv("dec_conv4b", decConv4a, Activation::ReLU, PostOp::Upsample);
-      auto decConv3a = graph->addConcatConv("dec_conv3a", upsample3, pool2, Activation::ReLU);
-
-      auto upsample2 = graph->addConv("dec_conv3b", decConv3a, Activation::ReLU, PostOp::Upsample);
-      auto decConv2a = graph->addConcatConv("dec_conv2a", upsample2, pool1, Activation::ReLU);
-
-      auto upsample1 = graph->addConv("dec_conv2b", decConv2a, Activation::ReLU, PostOp::Upsample);
-      auto decConv1a = graph->addConcatConv("dec_conv1a", upsample1, inputProcess, Activation::ReLU);
-      auto decConv1b = graph->addConv("dec_conv1b", decConv1a, Activation::ReLU);
-
-      auto decConv0 = graph->addConv("dec_conv0", decConv1b, Activation::ReLU);
-
-      auto outputProcess = graph->addOutputProcess("output", decConv0, transferFunc, hdr, snorm);
+      auto inputProcess = graph->addInputProcess("input", inputDims, transferFunc, hdr, snorm);
+      auto x = largeModel ? addUNetLarge(graph, inputProcess) : addUNet(graph, inputProcess);
+      auto outputProcess = graph->addOutputProcess("output", x, transferFunc, hdr, snorm);
 
       // Check whether all operations in the graph are supported
       if (!graph->isSupported())
@@ -589,7 +637,10 @@ OIDN_NAMESPACE_BEGIN
 
     // Print statistics
     if (device->isVerbose(2))
+    {
+      std::cout << "Model: " << (largeModel ? "large" : "normal") << std::endl;
       std::cout << "Memory usage: " << totalMemoryByteSize << std::endl;
+    }
 
     return true;
   }

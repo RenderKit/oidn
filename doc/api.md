@@ -1224,20 +1224,20 @@ Name                     Description
 ------------------------ ---------------------------------------------------------------------------
 : Supported image quality modes, i.e., valid constants of type `OIDNQuality`.
 
-By default filtering is performed in high quality mode, which is recommended for
+By default, filtering is performed in high quality mode, which is recommended for
 final-frame rendering. Using this setting the results have the same high quality
 regardless of what kind of device (CPU or GPU) is used. However, due to
 significant hardware architecture differences between devices, there might be
 small numerical differences between the produced outputs.
 
-The balanced quality mode is very close in image quality to the high quality
-mode except that lower numerical precision is used, if this is supported by the
-device. This may result in significantly higher performance on some devices but
-on others there might be no difference at all due to hardware specifics. This
-mode is recommended for interactive and real-time rendering.
+The balanced quality mode may provide somewhat lower image quality but higher
+performance, and is thus recommended for interactive and real-time rendering.
+Note that larger numerical differences should be expected across devices
+compared to the high quality mode.
 
-Note that in balanced quality mode a higher variation in image quality should be
-expected across devices.
+The difference in quality and performance between quality modes depends on the
+combination of input features, parameters (e.g. `cleanAux`), and the device
+architecture. In some cases the difference may be small or even none.
 
 #### Weights
 

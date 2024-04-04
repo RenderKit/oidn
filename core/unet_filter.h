@@ -32,9 +32,11 @@ OIDN_NAMESPACE_BEGIN
 
     // Network constants
     // TODO: autodetect these values from the model
-    static constexpr int receptiveField   = 174; // receptive field in pixels
-    static constexpr int minTileAlignment = 16;  // required spatial alignment in pixels (padding may be necessary)
-    static constexpr int defaultMaxTileSize = 2160*2160; // default maximum number of pixels per tile
+    static constexpr int receptiveFieldNormal = 174; // receptive field in pixels for UNet
+    static constexpr int receptiveFieldLarge  = 202; // receptive field in pixels for UNetLarge
+    static constexpr int minTileAlignment     = 16;  // required spatial alignment in pixels (padding may be necessary)
+    
+    static constexpr int defaultMaxTileSize   = 2160*2160; // default maximum number of pixels per tile
 
     // Images
     Ref<Image> color;
@@ -59,14 +61,14 @@ OIDN_NAMESPACE_BEGIN
       Data hdr;
       Data hdr_alb;
       Data hdr_alb_nrm;
-      Data hdr_calb_cnrm;
+      Data hdr_calb_cnrm, hdr_calb_cnrm_hq;
       Data ldr;
       Data ldr_alb;
       Data ldr_alb_nrm;
       Data ldr_calb_cnrm;
       Data dir;
-      Data alb;
-      Data nrm;
+      Data alb, alb_hq;
+      Data nrm, nrm_hq;
     } weightsBlobs;
     Data userWeightsBlob;
 
@@ -75,6 +77,8 @@ OIDN_NAMESPACE_BEGIN
     void cleanup();
     void checkParams();
     Data getWeights();
+    Ref<Op> addUNet(const Ref<Graph>& graph, const Ref<Op>& inputProcess);
+    Ref<Op> addUNetLarge(const Ref<Graph>& graph, const Ref<Op>& inputProcess);
     bool buildModel(size_t maxMemoryByteSize = std::numeric_limits<size_t>::max());
     void resetModel();
 
@@ -106,6 +110,7 @@ OIDN_NAMESPACE_BEGIN
     // In-place tiled filtering
     Ref<ImageCopy> imageCopy;
     Ref<Image> outputTemp;
+    bool largeModel = false; // is UNetLarge?
 
     Progress progress;
   };
