@@ -792,7 +792,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
-      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
+      runs-on: '[ "macOS", "ARM64", "build" ]'
       artifact-out: build-macos-arm
       artifact-path: build install deps
       cmd: scripts/build.py install --full
@@ -802,7 +802,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
-      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
+      runs-on: '[ "macOS", "ARM64", "build" ]'
       artifact-out: build-macos-arm-static
       artifact-path: build install deps
       cmd: scripts/build.py install --full -D OIDN_STATIC_LIB=ON
@@ -812,7 +812,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
-      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
+      runs-on: '[ "macOS", "ARM64", "build" ]'
       artifact-out: build-macos-arm-debug
       artifact-path: build deps
       cmd: scripts/build.py --full --config Debug
@@ -822,7 +822,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
-      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
+      runs-on: '[ "macOS", "ARM64", "build" ]'
       artifact-out: build-macos-arm-namespace
       artifact-path: build install deps
       cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
@@ -832,7 +832,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
-      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
+      runs-on: '[ "macOS", "ARM64", "build" ]'
       artifact-out: build-macos-arm-namespace-static
       artifact-path: build install deps
       cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn -D OIDN_STATIC_LIB=ON
@@ -842,7 +842,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
-      runs-on: '[ "macOS", "ARM64" ]'
+      runs-on: '[ "macOS", "ARM64", "build" ]'
       artifact-out: build-macos-arm-ispc
       artifact-path: build install deps
       cmd: scripts/build.py install --full -D OIDN_DEVICE_CPU_BNNS=OFF
@@ -852,7 +852,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
-      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
+      runs-on: '[ "macOS", "ARM64", "build" ]'
       artifact-out: build-macos-arm-asan
       artifact-path: build install deps
       cmd: scripts/build.py install --full -D OIDN_SANITIZER=Address
