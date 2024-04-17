@@ -7,7 +7,7 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  // Table of supported device architectures and corresponding IP versions
+  // Table of supported architectures and corresponding IP versions with revisions masked out
   // These should match the AOT targets defined in CMakeLists.txt
   // https://github.com/intel/compute-runtime/blob/14251c3d96e71e97e397b0c4fcb01557fca47f0e/shared/source/helpers/hw_ip_version.h
   // https://github.com/intel/compute-runtime/blob/master/third_party/aot_config_headers/platforms.h
@@ -16,6 +16,8 @@ OIDN_NAMESPACE_BEGIN
     SYCLArch arch;
     std::vector<uint32_t> ipVersions;
   };
+
+  constexpr uint32_t syclDeviceIPVersionMask = 0xffffffc0;
 
   inline const std::vector<SYCLDeviceTableEntry> syclDeviceTable =
   {
@@ -33,39 +35,37 @@ OIDN_NAMESPACE_BEGIN
     {
       SYCLArch::XeLPG,
       {
-        0x03118004, // mtl-m-b0
-        0x0311c004, // mtl-p-b0
+        0x03118000, // mtl-m
+        0x0311c000, // mtl-p
       }
     },
     #if !defined(OIDN_DEVICE_SYCL_AOT)
     {
       SYCLArch::XeLPGplus,
       {
-        0x03128000, // xe-lpgplus-a0
-        0x03128004, // xe-lpgplus-b0
+        0x03128000, // xe-lpgplus
       }
     },
     #endif
     {
       SYCLArch::XeHPG,
       {
-        0x030dc008, // acm-g10-c0
-        0x030e0005, // acm-g11-b1
-        0x030e4000, // acm-g12-a0
+        0x030dc000, // acm-g10
+        0x030e0000, // acm-g11
+        0x030e4000, // acm-g12
       }
     },
     {
       SYCLArch::XeHPC,
       {
-        0x030f0001, // pvc-xl-a0p (pvc-sdv)
-        0x030f0007, // pvc-xt-c0  (pvc)
+        0x030f0000, // pvc-sdv, pvc
       }
     },
     #if !defined(OIDN_DEVICE_SYCL_AOT)
     {
       SYCLArch::XeHPC_NoDPAS,
       {
-        0x030f4007, // pvc-xt-c0-vg
+        0x030f4000, // pvc-xt-c0-vg
       }
     }
     #endif

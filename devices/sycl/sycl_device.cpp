@@ -165,7 +165,7 @@ OIDN_NAMESPACE_BEGIN
     zeDeviceProps.pNext = &zeDeviceIPVersion;
     if (zeDeviceGetProperties(zeDevice, &zeDeviceProps) != ZE_RESULT_SUCCESS)
       return SYCLArch::Unknown;
-    const uint32_t ipVersion = zeDeviceIPVersion.ipVersion;
+    const uint32_t ipVersion = zeDeviceIPVersion.ipVersion & syclDeviceIPVersionMask; // remove revision
 
     // Lookup the IP version to identify the architecture
     for (const auto& entry : syclDeviceTable)
