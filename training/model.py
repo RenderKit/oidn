@@ -11,11 +11,12 @@ from util import *
 
 def get_model(cfg):
   type = cfg.model
-  num_input_channels = len(get_model_channels(cfg.features))
+  in_channels  = len(get_model_channels(cfg.features))
+  out_channels = len(get_model_channels(get_main_feature(cfg.features)))
   if type == 'unet':
-    return UNet(num_input_channels)
+    return UNet(in_channels, out_channels)
   elif type == 'unet_large':
-    return UNetLarge(num_input_channels)
+    return UNetLarge(in_channels, out_channels)
   else:
     error('invalid model')
 
@@ -48,7 +49,7 @@ def concat(a, b):
 ## -----------------------------------------------------------------------------
 
 class UNet(nn.Module):
-  def __init__(self, in_channels=3, out_channels=3):
+  def __init__(self, in_channels, out_channels):
     super(UNet, self).__init__()
 
     # Number of channels per layer
@@ -140,7 +141,7 @@ class UNet(nn.Module):
 ## -----------------------------------------------------------------------------
 
 class UNetLarge(nn.Module):
-  def __init__(self, in_channels=3, out_channels=3):
+  def __init__(self, in_channels, out_channels):
     super(UNetLarge, self).__init__()
 
     # Number of channels per layer
