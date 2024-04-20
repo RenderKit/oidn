@@ -60,7 +60,7 @@ def parse_args(cmd=None, description=None):
 
   if cmd in {'preprocess', 'train', 'find_lr'}:
     parser.add_argument('features', type=str, nargs='*',
-                        choices=['hdr', 'ldr', 'sh1', 'albedo', 'alb', 'normal', 'nrm', []],
+                        choices=['hdr', 'ldr', 'sh1', 'albedo', 'alb', 'normal', 'nrm', 'depth', 'z', []],
                         help='set of input features')
     parser.add_argument('--clean_aux', action='store_true',
                         help='train with noise-free (reference) auxiliary features')
@@ -211,7 +211,7 @@ def parse_args(cmd=None, description=None):
       warning('filter not specified, using generic default arguments')
 
     # Replace feature names with IDs
-    FEATURE_IDS = {'albedo' : 'alb', 'normal' : 'nrm'}
+    FEATURE_IDS = {'albedo' : 'alb', 'normal' : 'nrm', 'depth' : 'z'}
     cfg.features = [FEATURE_IDS.get(f, f) for f in cfg.features]
     # Remove duplicate features
     cfg.features = list(dict.fromkeys(cfg.features).keys())
@@ -223,6 +223,8 @@ def parse_args(cmd=None, description=None):
         cfg.transfer = 'log' if cfg.filter == 'RTLightmap' else 'pu'
       elif main_feature in {'ldr', 'alb'}:
         cfg.transfer = 'srgb'
+      elif main_feature == 'z':
+        cfg.transfer = 'log'
       else:
         cfg.transfer = 'linear'
 

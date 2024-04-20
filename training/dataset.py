@@ -33,6 +33,8 @@ def get_channels(features, target):
     channels += ['alb.r', 'alb.g', 'alb.b']
   if 'nrm' in features:
     channels += ['nrm.x', 'nrm.y', 'nrm.z']
+  if 'z' in features:
+    channels += ['z']
   return channels
 
 def get_dataset_channels(features):
@@ -129,6 +131,20 @@ def load_image_features(name, features):
     normal = normal * 0.5 + 0.5
 
     images.append(normal)
+
+  # Depth
+  if 'z' in features:
+    depth, num_channels['z'] = load_image(name + '.z.exr', num_channels=1)
+    depth = np.maximum(depth, 0.)
+
+    # If this is an auxiliary feature, transform to [0..1] range
+    # Otherwise, the transfer function will be applied later
+    if get_main_feature(features) != 'z':
+      depth = torch.from_numpy(depth)
+      depth = LogTransferFunction().forward(depth)
+      depth = depth.numpy()
+
+    images.append(depth)
 
   # Concatenate all feature images into one image
   return np.concatenate(images, axis=2), num_channels

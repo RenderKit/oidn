@@ -17,7 +17,7 @@ from result import *
 
 # Inference function object
 class Infer(object):
-  def __init__(self, cfg, device, result=None):
+  def __init__(self, cfg, device, result=None, is_aux=False):
     # Load the result config
     result_dir = get_result_dir(cfg, result)
     if not os.path.isdir(result_dir):
@@ -29,6 +29,7 @@ class Infer(object):
     self.aux_features = get_aux_features(self.features)
     self.all_channels = get_dataset_channels(self.features)
     self.num_main_channels = len(get_dataset_channels(self.main_feature))
+    self.is_aux = is_aux
 
     # Initialize the model
     self.model = get_model(self.result_cfg)
@@ -45,7 +46,10 @@ class Infer(object):
       self.model.float() # CPU does not support FP16, so convert it back to FP32
 
     # Initialize the transfer function
-    self.transfer = get_transfer_function(self.result_cfg)
+    if not self.is_aux or self.main_feature != 'z':
+      self.transfer = get_transfer_function(self.result_cfg)
+    else:
+      self.transfer = None # already applied to auxiliary depth
 
     # Set the model to evaluation mode
     self.model.eval()
@@ -54,7 +58,7 @@ class Infer(object):
     self.aux_infers = {}
     if self.aux_features:
       for aux_result in set(cfg.aux_results):
-        aux_infer = Infer(cfg, device, aux_result)
+        aux_infer = Infer(cfg, device, aux_result, is_aux=True)
         if (aux_infer.main_feature not in self.aux_features) or aux_infer.aux_features:
           error(f'result {aux_result} does not correspond to an auxiliary feature')
         self.aux_infers[aux_infer.main_feature] = aux_infer
@@ -63,11 +67,12 @@ class Infer(object):
   def __call__(self, input, exposure=1.):
     image = input.clone()
 
-    # Apply the transfer function
+    # Apply the transfer function to the main feature
     color = image[:, 0:self.num_main_channels, ...]
     if self.main_feature == 'hdr':
       color *= exposure
-    color = self.transfer.forward(color)
+    if self.transfer:
+      color = self.transfer.forward(color)
     image[:, 0:self.num_main_channels, ...] = color
 
     # Pad the output
@@ -100,7 +105,9 @@ class Infer(object):
     image = torch.clamp(image, min=0.)
 
     # Apply the inverse transfer function
-    image = self.transfer.inverse(image)
+    if self.transfer:
+      image = self.transfer.inverse(image)
+
     if self.main_feature == 'hdr':
       image /= exposure
     else:
