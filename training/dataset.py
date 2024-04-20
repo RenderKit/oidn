@@ -266,11 +266,15 @@ def get_preproc_data_dir(cfg, name):
       # Backward compatibility
       if not hasattr(data_cfg, 'clean_aux'):
         data_cfg.clean_aux = False
+      if not hasattr(data_cfg, 'aux_results'):
+        data_cfg.aux_results = []
 
       # Check whether the dataset matches the requirements
       if get_main_feature(data_cfg.features) == get_main_feature(cfg.features) and \
         all(f in data_cfg.features for f in cfg.features) and \
         data_cfg.clean_aux == cfg.clean_aux and \
+        (not data_cfg.aux_results if not cfg.aux_results else \
+         all(r in data_cfg.aux_results for r in cfg.aux_results)) and \
         data_cfg.transfer == cfg.transfer:
         # Select the most recent version with the minimal amount of channels stored
         num_channels = len(get_dataset_channels(data_cfg.features))
@@ -421,6 +425,9 @@ class TrainingDataset(PreprocessedDataset):
 
     # DEBUG: Save the tile
     #save_image('tile_%d.png' % index, target_image)
+    #save_image('tile_%d_col.png' % index, input_image[..., 0:3])
+    #save_image('tile_%d_alb.png' % index, input_image[..., 3:6])
+    #save_image('tile_%d_nrm.png' % index, input_image[..., 6:9])
 
     # Convert the tiles to tensors
     return image_to_tensor(input_image), image_to_tensor(target_image)

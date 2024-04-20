@@ -13,12 +13,15 @@ from util import *
 from dataset import *
 from model import *
 from color import *
+from infer import Infer
 import tza
 
 def main():
   # Parse the command line arguments
   cfg = parse_args(description='Preprocesses training and validation datasets.')
   main_feature = get_main_feature(cfg.features)
+  aux_features = get_aux_features(cfg.features)
+  all_channels = get_dataset_channels(cfg.features)
   num_main_channels = len(get_dataset_channels(main_feature))
 
   # Initialize the PyTorch device
@@ -26,6 +29,14 @@ def main():
 
   # Initialize the transfer function
   transfer = get_transfer_function(cfg)
+
+  # Initialize auxiliary feature inference
+  aux_infers = {}
+  for aux_result in set(cfg.aux_results):
+    aux_infer = Infer(cfg, device, aux_result, is_aux=True)
+    if (aux_infer.main_feature not in aux_features) or aux_infer.aux_features:
+      error(f'result {aux_result} does not correspond to an auxiliary feature')
+    aux_infers[aux_infer.main_feature] = aux_infer
 
   # Determine the input and target features
   if cfg.clean_aux:
@@ -36,8 +47,8 @@ def main():
     target_features = [main_feature]
 
   # Returns a preprocessed image (also changes the original image!)
-  def preprocess_image(image, exposure):
-    # Apply the transfer function
+  def preprocess_image(image, exposure, prefilter=False):
+    # Apply the transfer function to the main feature
     color = image[..., 0:num_main_channels]
     color = torch.from_numpy(color).to(device)
     if main_feature == 'hdr':
@@ -46,6 +57,17 @@ def main():
     color = torch.clamp(color, max=1.)
     color = color.cpu().numpy()
     image[..., 0:num_main_channels] = color
+
+    # Prefilter the auxiliary features
+    if prefilter:
+      for aux_feature, aux_infer in aux_infers.items():
+        aux_channels = get_dataset_channels(aux_feature)
+        aux_channel_indices = get_channel_indices(aux_channels, all_channels)
+        aux = image[..., aux_channel_indices]
+        aux = image_to_tensor(aux, batch=True).to(device)
+        aux = aux_infer(aux)
+        aux = tensor_to_image(aux)
+        image[..., aux_channel_indices] = aux
 
     # Convert to FP16
     return np.nan_to_num(image.astype(np.float16))
@@ -77,7 +99,7 @@ def main():
         error('the input and target images have different sizes')
 
       # Preprocess the image
-      input_image = preprocess_image(input_image, exposure)
+      input_image = preprocess_image(input_image, exposure, prefilter=True)
 
       # Save the image
       output_tza.write(input_name, input_image, 'hwc')

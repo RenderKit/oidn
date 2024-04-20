@@ -87,17 +87,19 @@ def parse_args(cmd=None, description=None):
     parser.add_argument('--data_dir', '-D', type=str, default='data',
                         help='directory of datasets (e.g. training, validation, test)')
 
-  if cmd in {'train', 'find_lr', 'infer', 'export', 'visualize'}:
+  if cmd in {'preprocess', 'train', 'find_lr', 'infer', 'export', 'visualize'}:
     parser.add_argument('--results_dir', '-R', type=str, default='results',
                         help='directory of training results')
+
+  if cmd in {'train', 'find_lr', 'infer', 'export', 'visualize'}:
     parser.add_argument('--result', '-r', type=str, required=(not cmd in {'train', 'find_lr'}),
                         help='name of the training result')
 
-  if cmd in {'infer'}:
+  if cmd in {'preprocess', 'train', 'find_lr', 'infer'}:
     parser.add_argument('--aux_results', '-a', type=str, nargs='*', default=[],
                         help='prefilter auxiliary features using the specified training results')
 
-  if cmd in {'train', 'infer', 'export'}:
+  if cmd in {'preprocess', 'train', 'infer', 'export'}:
     parser.add_argument('--num_epochs', '--epochs', '-e', type=int,
                         default=(2000 if cmd == 'train' else None),
                         help='number of training epochs')
@@ -209,6 +211,10 @@ def parse_args(cmd=None, description=None):
     # Check the filter
     if cfg.filter is None:
       warning('filter not specified, using generic default arguments')
+
+    # Check the auxiliary feature settings
+    if cfg.clean_aux and cfg.aux_results:
+      parser.error('clean_aux and aux_results cannot be used together')
 
     # Replace feature names with IDs
     FEATURE_IDS = {'albedo' : 'alb', 'normal' : 'nrm', 'depth' : 'z'}
