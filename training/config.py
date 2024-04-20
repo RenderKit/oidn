@@ -130,7 +130,7 @@ def parse_args(cmd=None, description=None):
     parser.add_argument('--precision', '-p', type=str, choices=['fp32', 'mixed'],
                         help='training precision')
     advanced.add_argument('--model', '-m', type=str,
-                          choices=['unet', 'unet_large'],
+                          choices=['unet', 'unet_large', 'unet_xl'],
                           help='network model')
     advanced.add_argument('--loss', '-l', type=str,
                           choices=['l1', 'mape', 'smape', 'l2', 'ssim', 'msssim', 'l1_msssim', 'l1_grad'],
@@ -222,9 +222,10 @@ def parse_args(cmd=None, description=None):
     # Remove duplicate features
     cfg.features = list(dict.fromkeys(cfg.features).keys())
 
+    main_feature = get_main_feature(cfg.features)
+
     # Set the default transfer function
     if cfg.transfer is None:
-      main_feature = get_main_feature(cfg.features)
       if main_feature == 'hdr':
         cfg.transfer = 'log' if cfg.filter == 'RTLightmap' else 'pu'
       elif main_feature in {'ldr', 'alb'}:
@@ -265,7 +266,7 @@ def parse_args(cmd=None, description=None):
 
     # Set the default maximum learning rate
     if cfg.max_lr is None:
-      cfg.max_lr = (2.679e-6 if cfg.model == 'unet_large' else 3.125e-6) * cfg.batch_size
+      cfg.max_lr = (2.679e-6 if cfg.model in {'unet_large', 'unet_xl'} else 3.125e-6) * cfg.batch_size
 
   # Print PyTorch version
   print('PyTorch:', torch.__version__)

@@ -17,6 +17,8 @@ def get_model(cfg):
     return UNet(in_channels, out_channels)
   elif type == 'unet_large':
     return UNetLarge(in_channels, out_channels)
+  elif type == 'unet_xl':
+    return UNetLarge(in_channels, out_channels, xl=True)
   else:
     error('invalid model')
 
@@ -141,21 +143,32 @@ class UNet(nn.Module):
 ## -----------------------------------------------------------------------------
 
 class UNetLarge(nn.Module):
-  def __init__(self, in_channels, out_channels):
+  def __init__(self, in_channels, out_channels, xl=False):
     super(UNetLarge, self).__init__()
 
     # Number of channels per layer
-    ic   = in_channels
-    ec1  = 64
-    ec2  = 96
-    ec3  = 128
-    ec4  = 192
-    ec5  = 256
-    dc4  = 192
-    dc3  = 128
-    dc2  = 96
-    dc1  = 64
-    oc   = out_channels
+    ic = in_channels
+    if xl:
+      ec1  = 96
+      ec2  = 128
+      ec3  = 192
+      ec4  = 256
+      ec5  = 384
+      dc4  = 256
+      dc3  = 192
+      dc2  = 128
+      dc1  = 96
+    else:
+      ec1  = 64
+      ec2  = 96
+      ec3  = 128
+      ec4  = 192
+      ec5  = 256
+      dc4  = 192
+      dc3  = 128
+      dc2  = 96
+      dc1  = 64
+    oc = out_channels
 
     # Convolutions
     self.enc_conv1a = Conv(ic,      ec1)
