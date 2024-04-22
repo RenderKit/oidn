@@ -339,6 +339,9 @@ TEST_CASE("single filter", "[single_filter][minimal]")
   REQUIRE(!filter);
   REQUIRE(device.getError() == Error::InvalidOperation);
 
+  // Check whether the device is supported
+  REQUIRE(device.isSupported());
+
   // Commit the device
   device.commit();
   REQUIRE(device.getError() == Error::None);

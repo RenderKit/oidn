@@ -202,6 +202,9 @@ OIDN_API void oidnSetDeviceErrorFunction(OIDNDevice device, OIDNErrorFunction fu
 // physical device query has failed).
 OIDN_API OIDNError oidnGetDeviceError(OIDNDevice device, const char** outMessage);
 
+// Returns whether the device is supported without the need to commit it first.
+OIDN_API bool oidnIsDeviceSupported(OIDNDevice device);
+
 // Commits all previous changes to the device.
 // Must be called before first using the device (e.g. creating filters).
 OIDN_API void oidnCommitDevice(OIDNDevice device);

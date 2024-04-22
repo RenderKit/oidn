@@ -13,6 +13,8 @@ Version History
     behavior, please switch to the balanced quality mode.
 -   Execute `Async` functions asynchronously on CPU devices as well
 -   Load/initialize device modules lazily (improves stability)
+-   Added the `oidnIsDeviceSupported` API function for checking whether the
+    device is supported without the need to commit it first
 
 ### Changes in v2.2.2:
 

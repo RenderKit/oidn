@@ -35,6 +35,7 @@ OIDN_NAMESPACE_BEGIN
     id<MTLDevice> getMTLDevice() const { return device; }
 
     DeviceType getType() const override { return DeviceType::Metal; }
+    bool isSupported() const override;
 
     bool needWeightAndBiasOnDevice() const override { return false; } // due to MPSGraph
     Storage getPtrStorage(const void* ptr) override;

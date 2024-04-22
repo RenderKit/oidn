@@ -724,6 +724,12 @@ OIDN_NAMESPACE_BEGIN
       return static_cast<Error>(oidnGetDeviceError(handle, &outMessage));
     }
 
+    // Returns whether the device is supported without the need to commit it first.
+    bool isSupported()
+    {
+      return oidnIsDeviceSupported(handle);
+    }
+
     // Commits all previous changes to the device.
     // Must be called before first using the device (e.g. creating filters).
     void commit()

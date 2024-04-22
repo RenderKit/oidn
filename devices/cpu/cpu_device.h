@@ -38,9 +38,9 @@ OIDN_NAMESPACE_BEGIN
     static CPUArch getArch();
 
     CPUDevice();
-    ~CPUDevice();
 
     DeviceType getType() const override { return DeviceType::CPU; }
+    bool isSupported() const override;
 
   #if !defined(OIDN_DNNL)
     bool needWeightAndBiasOnDevice() const override { return false; } // no need to copy
@@ -54,6 +54,7 @@ OIDN_NAMESPACE_BEGIN
 
   protected:
     void init() override;
+
   private:
     CPUArch arch = CPUArch::Unknown;
 

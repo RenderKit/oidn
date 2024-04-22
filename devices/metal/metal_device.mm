@@ -81,6 +81,11 @@ OIDN_NAMESPACE_BEGIN
     [device release];
   }
 
+  bool MetalDevice::isSupported() const
+  {
+    return isSupported(device);
+  }
+
   void MetalDevice::init()
   {
     @autoreleasepool

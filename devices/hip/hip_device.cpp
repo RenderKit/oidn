@@ -150,6 +150,14 @@ OIDN_NAMESPACE_BEGIN
     prevDeviceID = -1;
   }
 
+  bool HIPDevice::isSupported() const
+  {
+    hipDeviceProp_t prop{};
+    if (hipGetDeviceProperties(&prop, deviceID) != hipSuccess)
+      return false;
+    return getArch(prop) != HIPArch::Unknown;
+  }
+
   void HIPDevice::init()
   {
     hipDeviceProp_t prop{};

@@ -45,6 +45,7 @@ OIDN_NAMESPACE_BEGIN
     void leave() override;
 
     DeviceType getType() const override { return DeviceType::HIP; }
+    bool isSupported() const override;
 
     Storage getPtrStorage(const void* ptr) override;
 

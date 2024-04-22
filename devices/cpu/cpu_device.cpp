@@ -98,8 +98,9 @@ OIDN_NAMESPACE_BEGIN
     getEnvVar("OIDN_SET_AFFINITY", setAffinity);
   }
 
-  CPUDevice::~CPUDevice()
+  bool CPUDevice::isSupported() const
   {
+    return getArch() != CPUArch::Unknown;
   }
 
   void CPUDevice::init()

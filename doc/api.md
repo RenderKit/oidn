@@ -275,10 +275,9 @@ methods, or at least assume that identification might fail.
 
 ### Asynchronous Execution
 
-With the introduction of GPU support, it is now possible to execute some
-operations asynchronously, most importantly filtering
-(`oidnExecuteFilterAsync`, `oidnExecuteSYCLFilterAsync`) and copying data
-(the already mentioned `oidnReadBufferAsync` and `oidnWriteBufferAsync`).
+It is now possible to execute some operations asynchronously, most importantly
+filtering (`oidnExecuteFilterAsync`, `oidnExecuteSYCLFilterAsync`) and copying
+data (the already mentioned `oidnReadBufferAsync` and `oidnWriteBufferAsync`).
 
 When using any asynchronous function it is the responsibility of the
 application to handle correct synchronization using `oidnSyncDevice`.
@@ -539,6 +538,13 @@ Once parameters are set on the created device, the device must be committed with
 
 This device can then be used to construct further objects, such as buffers and
 filters. Note that a device can be committed only once during its lifetime.
+
+If the goal is not to set up a device object for actual use yet but only to
+check whether the device with the current parameters is supported, the following
+function could be called instead, which does not require committing the device
+first (which could be potentially more expensive):
+
+    bool oidnIsDeviceSupported(OIDNDevice device);
 
 Some functions may execute asynchronously with respect to the host. The names of
 these functions are suffixed with `Async`. Asynchronous operations are executed

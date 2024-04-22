@@ -239,6 +239,39 @@ OIDN_NAMESPACE_BEGIN
     getEnvVar("OIDN_NUM_SUBDEVICES", numSubdevices);
   }
 
+  bool SYCLDevice::isSupported() const
+  {
+    if (syclQueues.empty())
+    {
+      try
+      {
+        sycl::device syclDevice = physicalDevice ? physicalDevice->syclDevice : sycl::device{SYCLDeviceSelector()};
+        return getArch(syclDevice) != SYCLArch::Unknown;
+      }
+      catch (const sycl::exception& e)
+      {
+        return false;
+      }
+    }
+    else
+    {
+      SYCLArch firstArch = SYCLArch::Unknown;
+      for (size_t i = 0; i < syclQueues.size(); ++i)
+      {
+        const SYCLArch curArch = getArch(syclQueues[i].get_device());
+        if (curArch == SYCLArch::Unknown)
+          return false;
+
+        if (i == 0)
+          firstArch = curArch;
+        else if (syclQueues[i].get_context() != syclQueues[0].get_context() || curArch != firstArch)
+          return false;
+      }
+
+      return true;
+    }
+  }
+
   void SYCLDevice::init()
   {
     if (syclQueues.empty())

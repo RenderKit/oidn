@@ -476,6 +476,17 @@ OIDN_API_NAMESPACE_BEGIN
     return OIDN_ERROR_UNKNOWN;
   }
 
+  OIDN_API bool oidnIsDeviceSupported(OIDNDevice hDevice)
+  {
+    Device* device = reinterpret_cast<Device*>(hDevice);
+    OIDN_TRY
+      checkHandle(hDevice);
+      OIDN_LOCK_DEVICE(device);
+      return device->isCommitted() || device->isSupported();
+    OIDN_CATCH_DEVICE(device)
+    return false;
+  }
+
   OIDN_API void oidnCommitDevice(OIDNDevice hDevice)
   {
     Device* device = reinterpret_cast<Device*>(hDevice);

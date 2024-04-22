@@ -64,11 +64,7 @@ OIDN_NAMESPACE_BEGIN
       if (cudaGetDeviceProperties(&prop, deviceID) != cudaSuccess)
         continue;
 
-      int smArch = prop.major * 10 + prop.minor;
-      bool isSupported = smArch >= minSMArch && smArch <= maxSMArch &&
-                         prop.unifiedAddressing;
-
-      if (isSupported)
+      if (isSupported(prop))
       {
         int score = (19 << 16) - 1 - deviceID;
         devices.push_back(makeRef<CUDAPhysicalDevice>(deviceID, prop, score));
@@ -76,6 +72,13 @@ OIDN_NAMESPACE_BEGIN
     }
 
     return devices;
+  }
+
+  bool CUDADevice::isSupported(const cudaDeviceProp& prop)
+  {
+    const int smArch = prop.major * 10 + prop.minor;
+    return smArch >= minSMArch && smArch <= maxSMArch &&
+           prop.unifiedAddressing;
   }
 
   CUDADevice::CUDADevice(int deviceID, cudaStream_t stream)
@@ -125,6 +128,14 @@ OIDN_NAMESPACE_BEGIN
     if (deviceID != prevDeviceID)
       checkError(cudaSetDevice(prevDeviceID));
     prevDeviceID = -1;
+  }
+
+  bool CUDADevice::isSupported() const
+  {
+    cudaDeviceProp prop{};
+    if (cudaGetDeviceProperties(&prop, deviceID) != cudaSuccess)
+      return false;
+    return isSupported(prop);
   }
 
   void CUDADevice::init()

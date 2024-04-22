@@ -66,6 +66,8 @@ OIDN_NAMESPACE_BEGIN
     virtual int getInt(const std::string& name);
     virtual void setInt(const std::string& name, int value);
 
+    virtual bool isSupported() const = 0;
+
     bool isCommitted() const { return committed; }
     void checkCommitted();
     void commit();
