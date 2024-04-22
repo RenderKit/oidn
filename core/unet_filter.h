@@ -32,7 +32,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Network constants
     // TODO: autodetect these values from the model
-    static constexpr int receptiveFieldNormal = 174; // receptive field in pixels for UNet
+    static constexpr int receptiveFieldBase   = 174; // receptive field in pixels for UNet
     static constexpr int receptiveFieldLarge  = 202; // receptive field in pixels for UNetLarge
     static constexpr int minTileAlignment     = 16;  // required spatial alignment in pixels (padding may be necessary)
     
@@ -61,14 +61,14 @@ OIDN_NAMESPACE_BEGIN
       Data hdr;
       Data hdr_alb;
       Data hdr_alb_nrm;
-      Data hdr_calb_cnrm, hdr_calb_cnrm_hq;
+      Data hdr_calb_cnrm, hdr_calb_cnrm_large;
       Data ldr;
       Data ldr_alb;
       Data ldr_alb_nrm;
       Data ldr_calb_cnrm;
       Data dir;
-      Data alb, alb_hq;
-      Data nrm, nrm_hq;
+      Data alb, alb_large;
+      Data nrm, nrm_large;
     } weightsBlobs;
     Data userWeightsBlob;
 

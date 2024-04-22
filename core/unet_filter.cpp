@@ -266,7 +266,7 @@ OIDN_NAMESPACE_BEGIN
     largeModel = constTensors->find("enc_conv1b.weight") != constTensors->end();
 
     // Compute final device-dependent tile alignment and overlap
-    const int receptiveField = largeModel ? receptiveFieldLarge : receptiveFieldNormal;
+    const int receptiveField = largeModel ? receptiveFieldLarge : receptiveFieldBase;
     tileAlignment = lcm(minTileAlignment, device->getMinTileAlignment());
     tileOverlap = round_up(receptiveField / 2, tileAlignment);
 
@@ -415,7 +415,7 @@ OIDN_NAMESPACE_BEGIN
         if (cleanAux)
         {
           if (hdr)
-            weightsBlob = hq ? weightsBlobs.hdr_calb_cnrm_hq : weightsBlobs.hdr_calb_cnrm;
+            weightsBlob = hq ? weightsBlobs.hdr_calb_cnrm_large : weightsBlobs.hdr_calb_cnrm;
           else
             weightsBlob = weightsBlobs.ldr_calb_cnrm;
         }
@@ -432,13 +432,13 @@ OIDN_NAMESPACE_BEGIN
       {
         if (hdr)
           throw Exception(Error::InvalidOperation, "hdr mode is not supported for albedo filtering");
-        weightsBlob = hq ? weightsBlobs.alb_hq : weightsBlobs.alb;
+        weightsBlob = hq ? weightsBlobs.alb_large : weightsBlobs.alb;
       }
       else if (!albedo && normal)
       {
         if (hdr || srgb)
           throw Exception(Error::InvalidOperation, "hdr and srgb modes are not supported for normal filtering");
-        weightsBlob = hq ? weightsBlobs.nrm_hq : weightsBlobs.nrm;
+        weightsBlob = hq ? weightsBlobs.nrm_large : weightsBlobs.nrm;
       }
       else
       {
@@ -638,7 +638,7 @@ OIDN_NAMESPACE_BEGIN
     // Print statistics
     if (device->isVerbose(2))
     {
-      std::cout << "Model: " << (largeModel ? "large" : "normal") << std::endl;
+      std::cout << "Model: " << (largeModel ? "large" : "base") << std::endl;
       std::cout << "Memory usage: " << totalMemoryByteSize << std::endl;
     }
 

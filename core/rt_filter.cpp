@@ -9,15 +9,15 @@
   #include "weights/rt_hdr_alb.h"
   #include "weights/rt_hdr_alb_nrm.h"
   #include "weights/rt_hdr_calb_cnrm.h"
-  #include "weights/rt_hdr_calb_cnrm_hq.h"
+  #include "weights/rt_hdr_calb_cnrm_large.h"
   #include "weights/rt_ldr.h"
   #include "weights/rt_ldr_alb.h"
   #include "weights/rt_ldr_alb_nrm.h"
   #include "weights/rt_ldr_calb_cnrm.h"
   #include "weights/rt_alb.h"
-  #include "weights/rt_alb_hq.h"
+  #include "weights/rt_alb_large.h"
   #include "weights/rt_nrm.h"
-  #include "weights/rt_nrm_hq.h"
+  #include "weights/rt_nrm_large.h"
 #endif
 
 OIDN_NAMESPACE_BEGIN
@@ -26,19 +26,19 @@ OIDN_NAMESPACE_BEGIN
     : UNetFilter(device)
   {
   #if defined(OIDN_FILTER_RT)
-    weightsBlobs.hdr              = blobs::weights::rt_hdr;
-    weightsBlobs.hdr_alb          = blobs::weights::rt_hdr_alb;
-    weightsBlobs.hdr_alb_nrm      = blobs::weights::rt_hdr_alb_nrm;
-    weightsBlobs.hdr_calb_cnrm    = blobs::weights::rt_hdr_calb_cnrm;
-    weightsBlobs.hdr_calb_cnrm_hq = blobs::weights::rt_hdr_calb_cnrm_hq;
-    weightsBlobs.ldr              = blobs::weights::rt_ldr;
-    weightsBlobs.ldr_alb          = blobs::weights::rt_ldr_alb;
-    weightsBlobs.ldr_alb_nrm      = blobs::weights::rt_ldr_alb_nrm;
-    weightsBlobs.ldr_calb_cnrm    = blobs::weights::rt_ldr_calb_cnrm;
-    weightsBlobs.alb              = blobs::weights::rt_alb;
-    weightsBlobs.alb_hq           = blobs::weights::rt_alb_hq;
-    weightsBlobs.nrm              = blobs::weights::rt_nrm;
-    weightsBlobs.nrm_hq           = blobs::weights::rt_nrm_hq;
+    weightsBlobs.hdr                 = blobs::weights::rt_hdr;
+    weightsBlobs.hdr_alb             = blobs::weights::rt_hdr_alb;
+    weightsBlobs.hdr_alb_nrm         = blobs::weights::rt_hdr_alb_nrm;
+    weightsBlobs.hdr_calb_cnrm       = blobs::weights::rt_hdr_calb_cnrm;
+    weightsBlobs.hdr_calb_cnrm_large = blobs::weights::rt_hdr_calb_cnrm_large;
+    weightsBlobs.ldr                 = blobs::weights::rt_ldr;
+    weightsBlobs.ldr_alb             = blobs::weights::rt_ldr_alb;
+    weightsBlobs.ldr_alb_nrm         = blobs::weights::rt_ldr_alb_nrm;
+    weightsBlobs.ldr_calb_cnrm       = blobs::weights::rt_ldr_calb_cnrm;
+    weightsBlobs.alb                 = blobs::weights::rt_alb;
+    weightsBlobs.alb_large           = blobs::weights::rt_alb_large;
+    weightsBlobs.nrm                 = blobs::weights::rt_nrm;
+    weightsBlobs.nrm_large           = blobs::weights::rt_nrm_large;
   #endif
   }
 

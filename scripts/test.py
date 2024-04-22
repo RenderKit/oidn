@@ -191,7 +191,7 @@ def test_regression(filter, feature_sets, dataset):
   # Iterate over the feature sets
   out_filename = None
 
-  for features, full_test, model_qualities in feature_sets:
+  for features, full_test, model_sizes in feature_sets:
     if cfg.minimal and (out_filename or filter != 'RT'):
       full_test = False
 
@@ -203,9 +203,9 @@ def test_regression(filter, feature_sets, dataset):
 
     if cfg.command == 'baseline':
       # Generate the baseline images
-      for quality in model_qualities:
-        print_test(f'{filter}.{quality}.{features_str}', 'Infer')
-        result = result_base + ('_hq' if quality == 'high' else '')
+      for model_size in model_sizes:
+        print_test(f'{filter}.{model_size}.{features_str}', 'Infer')
+        result = result_base + ('_' + model_size if model_size != 'base' else '')
         infer_cmd = os.path.join(root_dir, 'training', 'infer.py')
         infer_cmd += f' -D "{cfg.data_dir}" -R "{cfg.results_dir}" -O "{cfg.baseline_dir}" -i {dataset} -r {result} -F pfm'
         run_test(infer_cmd)
@@ -223,7 +223,7 @@ def test_regression(filter, feature_sets, dataset):
 
       # Iterate over quality
       for quality in (['high', 'balanced'] if (filter == 'RT' and not cfg.minimal) or cfg.full else ['high']):
-        result = result_base + ('_hq' if quality == 'high' and 'high' in model_qualities else '')
+        result = result_base + ('_large' if quality == 'high' and 'large' in model_sizes else '')
 
         # Iterate over images
         image_index = 0
@@ -314,16 +314,16 @@ if not cfg.filter or 'RT' in cfg.filter:
   test_regression(
     'RT',
     [
-      (['hdr', 'alb', 'nrm'],   True,  ['balanced']),
-      (['hdr', 'alb'],          False, ['balanced']),
-      (['hdr'],                 True,  ['balanced']),
-      (['hdr', 'calb', 'cnrm'], True,  ['balanced', 'high']),
-      (['ldr', 'alb', 'nrm'],   False, ['balanced']),
-      (['ldr', 'alb'],          False, ['balanced']),
-      (['ldr'],                 True,  ['balanced']),
-      (['ldr', 'calb', 'cnrm'], False, ['balanced']),
-      (['alb'],                 True,  ['balanced', 'high']),
-      (['nrm'],                 True,  ['balanced', 'high'])
+      (['hdr', 'alb', 'nrm'],   True,  ['base']),
+      (['hdr', 'alb'],          False, ['base']),
+      (['hdr'],                 True,  ['base']),
+      (['hdr', 'calb', 'cnrm'], True,  ['base', 'large']),
+      (['ldr', 'alb', 'nrm'],   False, ['base']),
+      (['ldr', 'alb'],          False, ['base']),
+      (['ldr'],                 True,  ['base']),
+      (['ldr', 'calb', 'cnrm'], False, ['base']),
+      (['alb'],                 True,  ['base', 'large']),
+      (['nrm'],                 True,  ['base', 'large'])
     ],
     'rt_regress'
   )
@@ -333,8 +333,8 @@ if not cfg.filter or 'RTLightmap' in cfg.filter:
   test_regression(
     'RTLightmap',
     [
-      (['hdr'], True, ['balanced']),
-      (['dir'], True, ['balanced'])
+      (['hdr'], True, ['base']),
+      (['dir'], True, ['base'])
     ],
     'rtlightmap_regress'
   )
