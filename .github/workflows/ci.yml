@@ -863,7 +863,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
-      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
+      runs-on: '[ "macOS", "ARM64" ]'
       artifact-in: build-macos-arm
       artifact-out: test-macos-arm
       artifact-path: test.log
@@ -876,7 +876,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
-      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
+      runs-on: '[ "macOS", "ARM64" ]'
       artifact-in: build-macos-arm-static
       artifact-out: test-macos-arm-static
       artifact-path: test.log
@@ -889,7 +889,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
-      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
+      runs-on: '[ "macOS", "ARM64" ]'
       artifact-in: build-macos-arm-debug
       artifact-out: test-macos-arm-debug
       artifact-path: test.log
@@ -902,7 +902,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
-      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
+      runs-on: '[ "macOS", "ARM64" ]'
       artifact-in: build-macos-arm-namespace
       artifact-out: test-macos-arm-namespace
       artifact-path: test.log
@@ -915,7 +915,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
-      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
+      runs-on: '[ "macOS", "ARM64" ]'
       artifact-in: build-macos-arm-ispc
       artifact-out: test-macos-arm-ispc
       artifact-path: test.log
@@ -928,7 +928,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
-      runs-on: '[ "macOS", "ARM64" ]'
+      runs-on: '[ "macOS", "ARM64", "build" ]' # match the build job due to ASAN
       artifact-in: build-macos-arm-asan
       artifact-out: test-macos-arm-asan
       artifact-path: test.log
@@ -943,7 +943,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
-      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
+      runs-on: '[ "macOS", "ARM64" ]'
       artifact-in: build-macos-arm
       artifact-out: test-macos-arm-metal
       artifact-path: test.log
@@ -956,7 +956,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
-      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
+      runs-on: '[ "macOS", "ARM64" ]'
       artifact-in: build-macos-arm-static
       artifact-out: test-macos-arm-static-metal
       artifact-path: test.log
@@ -969,7 +969,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
-      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
+      runs-on: '[ "macOS", "ARM64" ]'
       artifact-in: build-macos-arm-debug
       artifact-out: test-macos-arm-debug-metal
       artifact-path: test.log
@@ -982,7 +982,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
-      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
+      runs-on: '[ "macOS", "ARM64" ]'
       artifact-in: build-macos-arm-namespace
       artifact-out: test-macos-arm-namespace-metal
       artifact-path: test.log
@@ -995,7 +995,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
-      runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
+      runs-on: '[ "macOS", "ARM64", "build" ]' # match the build job due to ASAN
       artifact-in: build-macos-arm-asan
       artifact-out: test-macos-arm-asan-metal
       artifact-path: test.log
@@ -1102,7 +1102,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
     with:
       project: oidn
-      runs-on: '[ "macOS", "avx512", "x86_64" ]'
+      runs-on: '[ "macOS", "avx512", "x86_64", "build" ]' # match the build job due to ASAN
       artifact-in: build-macos-asan
       artifact-out: test-macos-asan-avx512
       artifact-path: test.log
