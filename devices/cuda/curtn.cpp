@@ -1,9 +1,8 @@
-// CURTN: a nano implementation of the CUDA Runtime API
+// CURTN: a nano implementation of the CUDA Runtime API on top of the Driver API
 // Copyright 2023 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#include <cuda.h>
-#include <cuda_runtime.h>
+#include "curtn.h"
 #include <fatbinary_section.h>
 #include <memory>
 #include <cstring>
@@ -160,12 +159,6 @@ namespace curtn
       return runtime;
     }
 
-    // Initializes the runtime, calling cuInit the first time
-    static CUresult init()
-    {
-      return get().initResult;
-    }
-
     // Converts a CUresult to a cudaError_t
     static cudaError_t toError(CUresult result)
     {
@@ -201,170 +194,68 @@ namespace curtn
       desc->callback(stream, error, desc->userData);
     }
 
-    Runtime()
+    // Releases all runtime resources associated with the current context
+    CUresult cleanupContext()
     {
-      // Initialize CUDA
-      initResult = cuInit(0);
-      if (initResult != CUDA_SUCCESS)
-        return;
-
-      // Check the major driver version
-      int version = 0;
-      if (cuDriverGetVersion(&version) != CUDA_SUCCESS || version < (CUDA_VERSION / 1000 * 1000))
-      {
-        initResult = CUDA_ERROR_NOT_INITIALIZED;
-        return;
-      }
-    }
-
-    ~Runtime()
-    {
-      // Unload all modules in the primary contexts and release all primary contexts
-      // We can't clean up other contexts too because we don't know whether those are still alive
-      for (const auto& primaryContextItem : primaryContexts)
-      {
-        const CUcontext context = primaryContextItem.second;
-        if (cuCtxPushCurrent(context) == CUDA_SUCCESS)
-        {
-          for (const auto& moduleItem : contextStates[context].modules)
-            cuModuleUnload(moduleItem.second);
-          cuCtxPopCurrent(nullptr);
-        }
-
-        cuDevicePrimaryCtxRelease(primaryContextItem.first);
-      }
-    }
-
-    // Initializes the context for the given device (without setting it on the current thread)
-    CUresult initContext(int deviceOrdinal, CUcontext& context)
-    {
-      if (initResult != CUDA_SUCCESS)
-        return initResult;
-
-      CUdevice device;
-      CUresult result = cuDeviceGet(&device, deviceOrdinal);
-      if (result != CUDA_SUCCESS)
-        return result;
-
-      std::lock_guard<std::mutex> lock(mutex);
-
-      auto contextIter = primaryContexts.find(device);
-      if (contextIter == primaryContexts.end())
-      {
-        result = cuDevicePrimaryCtxRetain(&context, device);
-        if (result != CUDA_SUCCESS)
-          return result;
-
-        primaryContexts[device] = context;
-      }
-      else
-        context = contextIter->second;
-
-      return CUDA_SUCCESS;
-    }
-
-    // Initializes and sets the context on the current thread
-    CUresult initCurrentContext(CUcontext& context)
-    {
-      if (initResult != CUDA_SUCCESS)
-        return initResult;
-
-      // Check whether we already have a context on this thread
+      // Get the current context state
+      CUcontext context;
       CUresult result = cuCtxGetCurrent(&context);
       if (result != CUDA_SUCCESS)
         return result;
 
-      if (context)
-      {
-        // If the current context is a primary context, and we're seeing it the first time, we need
-        // to retain it. Unfortunately, we can't tell whether it's a primary context so we retain
-        // the primary context for the device corresponding to the current context in either case.
-        CUdevice device;
-        result = cuCtxGetDevice(&device);
-        if (result != CUDA_SUCCESS)
-          return result;
+    #if CUDA_VERSION >= 12000
+      unsigned long long contextID;
+      result = cuCtxGetId(context, &contextID);
+      if (result != CUDA_SUCCESS)
+        return result;
 
-        std::lock_guard<std::mutex> lock(mutex);
-
-        if (primaryContexts.find(device) == primaryContexts.end())
-        {
-          CUcontext primaryContext;
-          result = cuDevicePrimaryCtxRetain(&primaryContext, device);
-          if (result != CUDA_SUCCESS)
-            return result;
-
-          primaryContexts[device] = primaryContext;
-        }
-
-        return CUDA_SUCCESS;
-      }
-      else
-      {
-        // No current context, use device 0
-        result = initContext(0, context);
-        if (result != CUDA_SUCCESS)
-          return result;
-
-        return cuCtxSetCurrent(context);
-      }
-    }
-
-    CUresult initCurrentContext()
-    {
-      CUcontext context;
-      return initCurrentContext(context);
-    }
-
-    // Returns the device ordinal for the given handle
-    CUresult getDeviceOrdinal(CUdevice device, int& deviceOrdinal)
-    {
       std::lock_guard<std::mutex> lock(mutex);
+      ContextState& cs = contextStates[contextID];
+    #else
+      std::lock_guard<std::mutex> lock(mutex);
+      ContextState& cs = contextStates[context];
+    #endif
 
-      auto deviceIter = deviceOrdinals.find(device);
-      if (deviceIter == deviceOrdinals.end())
+      // Unload all modules from the context
+      for (const auto& moduleItem : cs.modules)
       {
-        int deviceCount;
-        CUresult result = cuDeviceGetCount(&deviceCount);
-        if (result != CUDA_SUCCESS)
-          return result;
-
-        int found = -1;
-        for (int i = 0; i < deviceCount; ++i)
-        {
-          CUdevice curDevice;
-          result = cuDeviceGet(&curDevice, i);
-          if (result != CUDA_SUCCESS)
-            return result;
-
-          deviceOrdinals[curDevice] = i;
-          if (curDevice == device)
-            found = i;
-        }
-
-        if (found >= 0)
-          deviceOrdinal = found;
-        else
-          return CUDA_ERROR_INVALID_DEVICE;
+        const CUresult unloadResult = cuModuleUnload(moduleItem.second);
+        if (result == CUDA_SUCCESS)
+          result = unloadResult;
       }
-      else
-        deviceOrdinal = deviceIter->second;
 
-      return CUDA_SUCCESS;
+      // Delete the context state
+    #if CUDA_VERSION >= 12000
+      contextStates.erase(contextID);
+    #else
+      contextStates.erase(context);
+    #endif
+      return result;
     }
 
     // Returns the function handle for the given symbol
     CUresult getFunction(const void* funcSymbol, CUfunction& func)
     {
-      // Initialize and get the current context
+      // Get the current context state
       CUcontext context;
-      CUresult result = initCurrentContext(context);
+      CUresult result = cuCtxGetCurrent(&context);
       if (result != CUDA_SUCCESS)
         return result;
 
-      // Look up the function handle in the context state
+    #if CUDA_VERSION >= 12000
+      unsigned long long contextID;
+      result = cuCtxGetId(context, &contextID);
+      if (result != CUDA_SUCCESS)
+        return result;
+
+      std::lock_guard<std::mutex> lock(mutex);
+      ContextState& cs = contextStates[contextID];
+    #else
       std::lock_guard<std::mutex> lock(mutex);
       ContextState& cs = contextStates[context];
+    #endif
 
+      // Look up the function handle in the context state
       auto funcIter = cs.funcs.find(funcSymbol);
       if (funcIter == cs.funcs.end())
       {
@@ -401,16 +292,40 @@ namespace curtn
     static thread_local std::vector<CallConfig> callConfigs;
     static thread_local cudaError_t lastError;
 
-    CUresult initResult = CUDA_ERROR_NOT_INITIALIZED;          // result of CUDA initialization
-    std::unordered_map<CUdevice, int> deviceOrdinals;          // device ordinals by device handle
-    std::unordered_map<CUdevice, CUcontext> primaryContexts;   // primary contexts by device handle
-    std::unordered_map<CUcontext, ContextState> contextStates; // per-context states
-    std::unordered_map<const void*, FunctionDesc> funcDescs;   // function descriptors by symbol
+  #if CUDA_VERSION >= 12000
+    std::unordered_map<unsigned long long, ContextState> contextStates; // context states by ID
+  #else
+    std::unordered_map<CUcontext, ContextState> contextStates; // context states by handle
+  #endif
+    std::unordered_map<const void*, FunctionDesc> funcDescs; // function descriptors by symbol
     std::mutex mutex;
   };
 
   thread_local std::vector<CallConfig> Runtime::callConfigs;
   thread_local cudaError_t Runtime::lastError = cudaSuccess;
+
+  cudaError_t init()
+  {
+    // Initialize the CUDA Driver API
+    CUresult result = cuInit(0);
+    if (result != CUDA_SUCCESS)
+      return Runtime::setError(result);
+
+    // Check the major driver version
+    int version = 0;
+    result = cuDriverGetVersion(&version);
+    if (result != CUDA_SUCCESS)
+      return Runtime::setError(result);
+    if (version < (CUDA_VERSION / 1000 * 1000))
+      return Runtime::setError(cudaErrorInsufficientDriver);
+
+    return cudaSuccess;
+  }
+
+  cudaError_t cleanupContext()
+  {
+    return Runtime::setError(Runtime::get().cleanupContext());
+  }
 
   extern "C"
   {
@@ -485,8 +400,6 @@ namespace curtn
     {
       static const char* unrecognizedStr = "unrecognized error code";
 
-      Runtime::init(); // ignore failure, let's try to get some useful error string anyway
-
       // Convert cudaError_t to CUresult if there is an equivalent
       CUresult result;
 
@@ -510,66 +423,14 @@ namespace curtn
 
     cudaError_t CUDARTAPI cudaGetDeviceCount(int* count)
     {
-      CUresult result = Runtime::init();
-      if (result != CUDA_SUCCESS)
-        return Runtime::setError(result);
-
-      result = cuDeviceGetCount(count);
-      return Runtime::setError(result);
-    }
-
-    cudaError_t CUDARTAPI cudaGetDevice(int* device)
-    {
-      Runtime& rt = Runtime::get();
-      if (rt.initResult != CUDA_SUCCESS)
-        return Runtime::setError(rt.initResult);
-
-      if (device == nullptr)
-        return Runtime::setError(cudaErrorInvalidValue);
-
-      CUcontext context;
-      CUresult result = cuCtxGetCurrent(&context);
-      if (result != CUDA_SUCCESS)
-        return Runtime::setError(result);
-
-      if (context)
-      {
-        CUdevice deviceHandle;
-        result = cuCtxGetDevice(&deviceHandle);
-        if (result != CUDA_SUCCESS)
-          return Runtime::setError(result);
-
-        result = rt.getDeviceOrdinal(deviceHandle, *device);
-      }
-      else
-      {
-        // No current context, but it will be created lazily for device 0
-        *device = 0;
-        result = CUDA_SUCCESS;
-      }
-
-      return Runtime::setError(result);
-    }
-
-    cudaError_t CUDARTAPI cudaSetDevice(int device)
-    {
-      CUcontext context;
-      CUresult result = Runtime::get().initContext(device, context);
-      if (result != CUDA_SUCCESS)
-        return Runtime::setError(result);
-
-      result = cuCtxSetCurrent(context);
+      CUresult result = cuDeviceGetCount(count);
       return Runtime::setError(result);
     }
 
     cudaError_t CUDARTAPI cudaGetDeviceProperties(cudaDeviceProp* prop, int device)
     {
-      CUresult result = Runtime::init();
-      if (result != CUDA_SUCCESS)
-        return Runtime::setError(result);
-
       CUdevice deviceHandle;
-      result = cuDeviceGet(&deviceHandle, device);
+      CUresult result = cuDeviceGet(&deviceHandle, device);
       if (result != CUDA_SUCCESS)
         return Runtime::setError(result);
 
@@ -746,30 +607,21 @@ namespace curtn
                                                 void* userData,
                                                 unsigned int flags)
     {
-      CUresult result = Runtime::get().initCurrentContext();
-      if (result != CUDA_SUCCESS)
-        return Runtime::setError(result);
-
       StreamCallbackDesc* desc = new StreamCallbackDesc{callback, userData};
-      result = cuStreamAddCallback(stream, Runtime::streamCallback, desc, 0);
+      CUresult result = cuStreamAddCallback(stream, Runtime::streamCallback, desc, 0);
       return Runtime::setError(result);
     }
 
     cudaError_t CUDARTAPI cudaStreamSynchronize(cudaStream_t stream)
     {
-      CUresult result = Runtime::get().initCurrentContext();
-      if (result != CUDA_SUCCESS)
-        return Runtime::setError(result);
-
-      result = cuStreamSynchronize(stream);
+      CUresult result = cuStreamSynchronize(stream);
       return Runtime::setError(result);
     }
 
     cudaError_t CUDARTAPI cudaFuncSetAttribute(const void* func, cudaFuncAttribute attr, int value)
     {
-      Runtime& rt = Runtime::get();
       CUfunction funcHandle;
-      CUresult result = rt.getFunction(func, funcHandle);
+      CUresult result = Runtime::get().getFunction(func, funcHandle);
       if (result != CUDA_SUCCESS)
         return Runtime::setError(result);
 
@@ -809,9 +661,8 @@ namespace curtn
                                           size_t sharedMem,
                                           cudaStream_t stream)
     {
-      Runtime& rt = Runtime::get();
       CUfunction funcHandle;
-      CUresult result = rt.getFunction(func, funcHandle);
+      CUresult result = Runtime::get().getFunction(func, funcHandle);
       if (result != CUDA_SUCCESS)
         return Runtime::setError(result);
 
@@ -828,10 +679,6 @@ namespace curtn
 
     cudaError_t CUDARTAPI cudaMallocManaged(void** devPtr, size_t size, unsigned int flags)
     {
-      CUresult result = Runtime::get().initCurrentContext();
-      if (result != CUDA_SUCCESS)
-        return Runtime::setError(result);
-
       unsigned int cuFlags = 0;
       if (flags & cudaMemAttachGlobal)
         cuFlags |= CU_MEM_ATTACH_GLOBAL;
@@ -840,55 +687,37 @@ namespace curtn
       if (flags & cudaMemAttachSingle)
         cuFlags |= CU_MEM_ATTACH_SINGLE;
 
-      result = cuMemAllocManaged((CUdeviceptr*)devPtr, size, cuFlags);
+      CUresult result = cuMemAllocManaged((CUdeviceptr*)devPtr, size, cuFlags);
       return Runtime::setError(result);
     }
 
     cudaError_t CUDARTAPI cudaMalloc(void** devPtr, size_t size)
     {
-      CUresult result = Runtime::get().initCurrentContext();
-      if (result != CUDA_SUCCESS)
-        return Runtime::setError(result);
-
-      result = cuMemAlloc((CUdeviceptr*)devPtr, size);
+      CUresult result = cuMemAlloc((CUdeviceptr*)devPtr, size);
       return Runtime::setError(result);
     }
 
     cudaError_t CUDARTAPI cudaMallocHost(void** ptr, size_t size)
     {
-      CUresult result = Runtime::get().initCurrentContext();
-      if (result != CUDA_SUCCESS)
-        return Runtime::setError(result);
-
-      result = cuMemAllocHost(ptr, size);
+      CUresult result = cuMemAllocHost(ptr, size);
       return Runtime::setError(result);
     }
 
     cudaError_t CUDARTAPI cudaFree(void* devPtr)
     {
-      CUresult result = Runtime::get().initCurrentContext();
-      if (result != CUDA_SUCCESS)
-        return Runtime::setError(result);
-
-      result = cuMemFree((CUdeviceptr)devPtr);
+      CUresult result = cuMemFree((CUdeviceptr)devPtr);
       return Runtime::setError(result);
     }
 
     cudaError_t CUDARTAPI cudaFreeHost(void* ptr)
     {
-      CUresult result = Runtime::get().initCurrentContext();
-      if (result != CUDA_SUCCESS)
-        return Runtime::setError(result);
-
-      result = cuMemFreeHost(ptr);
+      CUresult result = cuMemFreeHost(ptr);
       return Runtime::setError(result);
     }
 
     cudaError_t CUDARTAPI cudaMemcpy(void* dst, const void* src, size_t count, cudaMemcpyKind kind)
     {
-      CUresult result = Runtime::get().initCurrentContext();
-      if (result != CUDA_SUCCESS)
-        return Runtime::setError(result);
+      CUresult result;
 
       switch (kind)
       {
@@ -918,9 +747,7 @@ namespace curtn
     cudaError_t CUDARTAPI cudaMemcpyAsync(void* dst, const void* src, size_t count, cudaMemcpyKind kind,
                                           cudaStream_t stream)
     {
-      CUresult result = Runtime::get().initCurrentContext();
-      if (result != CUDA_SUCCESS)
-        return Runtime::setError(result);
+      CUresult result;
 
       switch (kind)
       {
@@ -949,20 +776,12 @@ namespace curtn
 
     cudaError_t CUDARTAPI cudaMemsetAsync(void* devPtr, int value, size_t count, cudaStream_t stream)
     {
-      CUresult result = Runtime::get().initCurrentContext();
-      if (result != CUDA_SUCCESS)
-        return Runtime::setError(result);
-
-      result = cuMemsetD8Async((CUdeviceptr)devPtr, (unsigned char)value, count, stream);
+      CUresult result = cuMemsetD8Async((CUdeviceptr)devPtr, (unsigned char)value, count, stream);
       return Runtime::setError(result);
     }
 
     cudaError_t CUDARTAPI cudaPointerGetAttributes(cudaPointerAttributes* attributes, const void* ptr)
     {
-      CUresult result = Runtime::get().initCurrentContext();
-      if (result != CUDA_SUCCESS)
-        return Runtime::setError(result);
-
       CUmemorytype type;
       unsigned int isManaged;
 
@@ -978,7 +797,7 @@ namespace curtn
                                   &attributes->devicePointer,
                                   &attributes->hostPointer};
 
-      result = cuPointerGetAttributes(5, cuAttributes, cuAttributeValues, (CUdeviceptr)ptr);
+      CUresult result = cuPointerGetAttributes(5, cuAttributes, cuAttributeValues, (CUdeviceptr)ptr);
       if (result != CUDA_SUCCESS)
         return Runtime::setError(result);
 
@@ -1008,10 +827,6 @@ namespace curtn
     cudaError_t CUDARTAPI cudaImportExternalMemory(cudaExternalMemory_t* extMem_out,
                                                   const cudaExternalMemoryHandleDesc* memHandleDesc)
     {
-      CUresult result = Runtime::get().initCurrentContext();
-      if (result != CUDA_SUCCESS)
-        return Runtime::setError(result);
-
       CUDA_EXTERNAL_MEMORY_HANDLE_DESC cuMemHandleDesc{};
 
       switch (memHandleDesc->type)
@@ -1064,34 +879,29 @@ namespace curtn
       if (memHandleDesc->flags & cudaExternalMemoryDedicated)
         cuMemHandleDesc.flags |= CUDA_EXTERNAL_MEMORY_DEDICATED;
 
-      result = cuImportExternalMemory((CUexternalMemory*)extMem_out, &cuMemHandleDesc);
+      CUresult result = cuImportExternalMemory((CUexternalMemory*)extMem_out, &cuMemHandleDesc);
       return Runtime::setError(result);
     }
 
-    cudaError_t CUDARTAPI cudaExternalMemoryGetMappedBuffer(void** devPtr,
-                                                            cudaExternalMemory_t extMem,
-                                                            const cudaExternalMemoryBufferDesc* bufferDesc)
+    cudaError_t CUDARTAPI cudaExternalMemoryGetMappedBuffer(
+                            void** devPtr,
+                            cudaExternalMemory_t extMem,
+                            const cudaExternalMemoryBufferDesc* bufferDesc)
     {
-      CUresult result = Runtime::get().initCurrentContext();
-      if (result != CUDA_SUCCESS)
-        return Runtime::setError(result);
-
       CUDA_EXTERNAL_MEMORY_BUFFER_DESC cuBufferDesc{};
       cuBufferDesc.offset = bufferDesc->offset;
       cuBufferDesc.size   = bufferDesc->size;
       cuBufferDesc.flags  = 0;
 
-      result = cuExternalMemoryGetMappedBuffer((CUdeviceptr*)devPtr, (CUexternalMemory)extMem, &cuBufferDesc);
+      CUresult result = cuExternalMemoryGetMappedBuffer((CUdeviceptr*)devPtr,
+                                                        (CUexternalMemory)extMem,
+                                                        &cuBufferDesc);
       return Runtime::setError(result);
     }
 
     cudaError_t CUDARTAPI cudaDestroyExternalMemory(cudaExternalMemory_t extMem)
     {
-      CUresult result = Runtime::get().initCurrentContext();
-      if (result != CUDA_SUCCESS)
-        return Runtime::setError(result);
-
-      result = cuDestroyExternalMemory((CUexternalMemory)extMem);
+      CUresult result = cuDestroyExternalMemory((CUexternalMemory)extMem);
       return Runtime::setError(result);
     }
   } // extern "C"

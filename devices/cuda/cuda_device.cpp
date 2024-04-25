@@ -7,6 +7,30 @@
 
 OIDN_NAMESPACE_BEGIN
 
+#if defined(OIDN_DEVICE_CUDA_API_DRIVER)
+  void checkError(CUresult result)
+  {
+    if (result == CUDA_SUCCESS)
+      return;
+
+    const char* str = "";
+    if (cuGetErrorString(result, &str) != CUDA_SUCCESS)
+      str = "unknown CUDA error";
+
+    switch (result)
+    {
+    case CUDA_ERROR_OUT_OF_MEMORY:
+      throw Exception(Error::OutOfMemory, str);
+    case CUDA_ERROR_NO_DEVICE:
+    case CUDA_ERROR_INVALID_DEVICE:
+    case CUDA_ERROR_NOT_SUPPORTED:
+      throw Exception(Error::UnsupportedHardware, str);
+    default:
+      throw Exception(Error::Unknown, str);
+    }
+  }
+#endif
+
   void checkError(cudaError_t error)
   {
     if (error == cudaSuccess)
@@ -86,7 +110,7 @@ OIDN_NAMESPACE_BEGIN
       stream(stream)
   {
     if (deviceID < 0)
-      checkError(cudaGetDevice(&this->deviceID));
+      this->deviceID = 0;
   }
 
   CUDADevice::CUDADevice(const Ref<CUDAPhysicalDevice>& physicalDevice)
@@ -100,6 +124,16 @@ OIDN_NAMESPACE_BEGIN
     {
       enter();
       subdevices.clear();
+
+    #if defined(OIDN_DEVICE_CUDA_API_DRIVER)
+      if (context)
+      {
+        // Release the CUDA context
+        curtn::cleanupContext();
+        cuDevicePrimaryCtxRelease(deviceHandle);
+      }
+    #endif
+
       leave();
     }
     catch (...) {}
@@ -107,14 +141,17 @@ OIDN_NAMESPACE_BEGIN
 
   void CUDADevice::enter()
   {
+  #if defined(OIDN_DEVICE_CUDA_API_DRIVER)
+    // Save the current CUDA context and switch to ours
+    if (context)
+      checkError(cuCtxPushCurrent(context));
+  #else
+    // Save the current CUDA device and switch to ours
     assert(prevDeviceID < 0);
-
-    // Save the current CUDA device
     checkError(cudaGetDevice(&prevDeviceID));
-
-    // Set the current CUDA device
     if (deviceID != prevDeviceID)
       checkError(cudaSetDevice(deviceID));
+  #endif
 
     // Clear the CUDA error state
     cudaGetLastError();
@@ -122,12 +159,17 @@ OIDN_NAMESPACE_BEGIN
 
   void CUDADevice::leave()
   {
-    assert(prevDeviceID >= 0);
-
+  #if defined(OIDN_DEVICE_CUDA_API_DRIVER)
+    // Restore the previous CUDA context
+    if (context)
+      checkError(cuCtxPopCurrent(nullptr));
+  #else
     // Restore the previous CUDA device
+    assert(prevDeviceID >= 0);
     if (deviceID != prevDeviceID)
       checkError(cudaSetDevice(prevDeviceID));
     prevDeviceID = -1;
+  #endif
   }
 
   bool CUDADevice::isSupported() const
@@ -160,6 +202,13 @@ OIDN_NAMESPACE_BEGIN
       std::cout << "    Arch    : SM " << prop.major << "." << prop.minor << std::endl;
       std::cout << "    SMs     : " << prop.multiProcessorCount << std::endl;
     }
+
+  #if defined(OIDN_DEVICE_CUDA_API_DRIVER)
+    // Initialize the CUDA context and make it current
+    checkError(cuDeviceGet(&deviceHandle, deviceID));
+    checkError(cuDevicePrimaryCtxRetain(&context, deviceHandle));
+    checkError(cuCtxPushCurrent(context)); // between enter/leave, context will be popped in leave()
+  #endif
 
     // Set device properties
     tensorDataType = DataType::Float16;

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ComputeSanitizerOutput>
+  <record>
+    <kind>Api</kind>
+    <what>
+      <error>CUDA_ERROR_OUT_OF_MEMORY</error>
+      <result>2</result>
+    </what>
+  </record>
+</ComputeSanitizerOutput>

@@ -124,6 +124,45 @@ TEST_CASE("physical device", "[physical_device]")
 
 // -------------------------------------------------------------------------------------------------
 
+TEST_CASE("device creation", "[device]")
+{
+  DeviceRef device = makeDevice();
+
+  SECTION("do nothing")
+  {
+  }
+
+  SECTION("get error")
+  {
+    REQUIRE(device.getError() == Error::None);
+  }
+
+  SECTION("is supported")
+  {
+    const bool supported = device.isSupported();
+    REQUIRE(device.getError() == Error::None);
+    REQUIRE(supported);
+  }
+
+  SECTION("commit")
+  {
+    device.commit();
+    REQUIRE(device.getError() == Error::None);
+  }
+
+  SECTION("is supported, commit")
+  {
+    const bool supported = device.isSupported();
+    REQUIRE(device.getError() == Error::None);
+    REQUIRE(supported);
+
+    device.commit();
+    REQUIRE(device.getError() == Error::None);
+  }
+}
+
+// -------------------------------------------------------------------------------------------------
+
 TEST_CASE("buffer creation", "[buffer]")
 {
   DeviceRef device = makeAndCommitDevice();

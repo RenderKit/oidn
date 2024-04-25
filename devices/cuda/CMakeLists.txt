@@ -90,7 +90,9 @@ if(OIDN_DEVICE_CUDA_API STREQUAL "Driver")
   find_package(CUDAToolkit REQUIRED)
 
   add_library(curtn STATIC curtn.cpp)
-  target_link_libraries(curtn PRIVATE CUDA::cuda_driver)
+  target_link_libraries(curtn PUBLIC CUDA::cuda_driver)
+
+  target_compile_definitions(OpenImageDenoise_device_cuda PRIVATE OIDN_DEVICE_CUDA_API_DRIVER)
   target_link_libraries(OpenImageDenoise_device_cuda PRIVATE curtn)
 
   set(OIDN_CUDA_RUNTIME_LIBRARY "None")

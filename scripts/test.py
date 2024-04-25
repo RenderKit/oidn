@@ -129,7 +129,8 @@ def test():
       if OS == 'linux':
         if cfg.device == 'cuda':
           print_test('oidnTest.compute-sanitizer')
-          test_csan_cmd = f'compute-sanitizer --tool memcheck --leak-check=full --report-api-errors=no --error-exitcode=1 {test_cmd}'
+          supp_filename = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'csan.supp.xml')
+          test_csan_cmd = f'compute-sanitizer --tool memcheck --leak-check=full --error-exitcode=1 --suppressions={supp_filename} {test_cmd}'
           run_test(test_csan_cmd)
 
         print_test('oidnTest.valgrind')

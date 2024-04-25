@@ -35,6 +35,11 @@ OIDN_NAMESPACE_BEGIN
 
   OIDN_DECLARE_INIT_MODULE(device_cuda)
   {
+  #if defined(OIDN_DEVICE_CUDA_API_DRIVER)
+    if (curtn::init() != cudaSuccess)
+      return;
+  #endif
+
     Context::registerDeviceType<CUDADeviceFactory>(DeviceType::CUDA, CUDADevice::getPhysicalDevices());
   }
 

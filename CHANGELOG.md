@@ -15,6 +15,8 @@ Version History
 -   Load/initialize device modules lazily (improves stability)
 -   Added the `oidnIsDeviceSupported` API function for checking whether the
     device is supported without the need to commit it first
+-   Release the CUDA primary context when destroying the device object if using
+    the CUDA driver API
 
 ### Changes in v2.2.2:
 

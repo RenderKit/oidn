@@ -4,6 +4,9 @@
 #pragma once
 
 #include "core/device.h"
+#if defined(OIDN_DEVICE_CUDA_API_DRIVER)
+  #include "curtn.h"
+#endif
 #include <cuda_runtime.h>
 
 OIDN_NAMESPACE_BEGIN
@@ -50,7 +53,12 @@ OIDN_NAMESPACE_BEGIN
     static constexpr int maxSMArch = 99;
 
     int deviceID = 0;
+  #if defined(OIDN_DEVICE_CUDA_API_DRIVER)
+    CUdevice deviceHandle = -1;
+    CUcontext context = nullptr;
+  #else
     int prevDeviceID = -1;
+  #endif
     cudaStream_t stream = nullptr;
 
     int maxWorkGroupSize = 0;
