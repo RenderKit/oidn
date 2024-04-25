@@ -15,6 +15,8 @@ def get_model(cfg):
   out_channels = len(get_model_channels(get_main_feature(cfg.features)))
   if type == 'unet':
     return UNet(in_channels, out_channels)
+  elif type == 'unet_small':
+    return UNet(in_channels, out_channels, small=True)
   elif type == 'unet_large':
     return UNetLarge(in_channels, out_channels)
   elif type == 'unet_xl':
@@ -51,22 +53,36 @@ def concat(a, b):
 ## -----------------------------------------------------------------------------
 
 class UNet(nn.Module):
-  def __init__(self, in_channels, out_channels):
+  def __init__(self, in_channels, out_channels, small=False):
     super(UNet, self).__init__()
 
     # Number of channels per layer
-    ic   = in_channels
-    ec1  = 32
-    ec2  = 48
-    ec3  = 64
-    ec4  = 80
-    ec5  = 96
-    dc4  = 112
-    dc3  = 96
-    dc2  = 64
-    dc1a = 64
-    dc1b = 32
-    oc   = out_channels
+    ic = in_channels
+    if small:
+      ec1  = 32
+      ec2  = 32
+      ec3  = 32
+      ec4  = 32
+      ec5  = 32
+      dc4  = 64
+      dc3  = 64
+      dc2a = 64
+      dc2b = 32
+      dc1a = 32
+      dc1b = 32
+    else:
+      ec1  = 32
+      ec2  = 48
+      ec3  = 64
+      ec4  = 80
+      ec5  = 96
+      dc4  = 112
+      dc3  = 96
+      dc2a = 64
+      dc2b = 64
+      dc1a = 64
+      dc1b = 32
+    oc = out_channels
 
     # Convolutions
     self.enc_conv0  = Conv(ic,      ec1)
@@ -80,9 +96,9 @@ class UNet(nn.Module):
     self.dec_conv4b = Conv(dc4,     dc4)
     self.dec_conv3a = Conv(dc4+ec2, dc3)
     self.dec_conv3b = Conv(dc3,     dc3)
-    self.dec_conv2a = Conv(dc3+ec1, dc2)
-    self.dec_conv2b = Conv(dc2,     dc2)
-    self.dec_conv1a = Conv(dc2+ic,  dc1a)
+    self.dec_conv2a = Conv(dc3+ec1, dc2a)
+    self.dec_conv2b = Conv(dc2a,    dc2b)
+    self.dec_conv1a = Conv(dc2b+ic, dc1a)
     self.dec_conv1b = Conv(dc1a,    dc1b)
     self.dec_conv0  = Conv(dc1b,    oc)
 

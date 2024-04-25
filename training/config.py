@@ -68,7 +68,7 @@ def parse_args(cmd=None, description=None):
                         choices=['RT', 'RTLightmap'],
                         help='filter to train (determines some default arguments)')
     parser.add_argument('--quality', '-q', type=str,
-                        choices=['high', 'balanced'],
+                        choices=['balanced', 'high', 'fast'],
                         default='balanced',
                         help='filter quality (determines some default arguments')
     parser.add_argument('--preproc_dir', '-P', type=str, default='preproc',
@@ -130,7 +130,7 @@ def parse_args(cmd=None, description=None):
     parser.add_argument('--precision', '-p', type=str, choices=['fp32', 'mixed'],
                         help='training precision')
     advanced.add_argument('--model', '-m', type=str,
-                          choices=['unet', 'unet_large', 'unet_xl'],
+                          choices=['unet', 'unet_small', 'unet_large', 'unet_xl'],
                           help='network model')
     advanced.add_argument('--loss', '-l', type=str,
                           choices=['l1', 'mape', 'smape', 'l2', 'ssim', 'msssim', 'l1_msssim', 'l1_grad'],
@@ -252,7 +252,7 @@ def parse_args(cmd=None, description=None):
 
     # Set the model
     if cfg.model is None:
-      cfg.model = 'unet_large' if cfg.quality == 'high' else 'unet'
+      cfg.model = {'balanced' : 'unet', 'high' : 'unet_large', 'fast' : 'unet_small'}[cfg.quality]
 
     # Set the default MS-SSIM weights
     if cfg.msssim_weights is None:
