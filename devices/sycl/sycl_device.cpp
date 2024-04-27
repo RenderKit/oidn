@@ -8,15 +8,6 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  class SYCLDeviceSelector
-  {
-  public:
-    int operator()(const sycl::device& syclDevice) const
-    {
-      return SYCLDevice::getScore(syclDevice);
-    }
-  };
-
   SYCLPhysicalDevice::SYCLPhysicalDevice(const sycl::device& syclDevice, int score)
     : PhysicalDevice(DeviceType::SYCL, score),
       syclDevice(syclDevice)
@@ -241,11 +232,11 @@ OIDN_NAMESPACE_BEGIN
 
   bool SYCLDevice::isSupported() const
   {
-    if (syclQueues.empty())
+    if (syclQueues.empty() && physicalDevice)
     {
       try
       {
-        sycl::device syclDevice = physicalDevice ? physicalDevice->syclDevice : sycl::device{SYCLDeviceSelector()};
+        sycl::device syclDevice = physicalDevice->syclDevice;
         return getArch(syclDevice) != SYCLArch::Unknown;
       }
       catch (const sycl::exception& e)
@@ -253,7 +244,7 @@ OIDN_NAMESPACE_BEGIN
         return false;
       }
     }
-    else
+    else if (!syclQueues.empty())
     {
       SYCLArch firstArch = SYCLArch::Unknown;
       for (size_t i = 0; i < syclQueues.size(); ++i)
@@ -270,16 +261,18 @@ OIDN_NAMESPACE_BEGIN
 
       return true;
     }
+    else
+      return false;
   }
 
   void SYCLDevice::init()
   {
-    if (syclQueues.empty())
+    if (syclQueues.empty() && physicalDevice)
     {
       // Create SYCL queues(s)
       try
       {
-        sycl::device syclDevice = physicalDevice ? physicalDevice->syclDevice : sycl::device{SYCLDeviceSelector()};
+        sycl::device syclDevice = physicalDevice->syclDevice;
         arch = getArch(syclDevice);
 
         // Try to split the device into sub-devices per NUMA domain (tile)
@@ -308,7 +301,7 @@ OIDN_NAMESPACE_BEGIN
           throw;
       }
     }
-    else
+    else if (!syclQueues.empty())
     {
       // Check the specified SYCL queues
       for (size_t i = 0; i < syclQueues.size(); ++i)
@@ -328,6 +321,8 @@ OIDN_NAMESPACE_BEGIN
         }
       }
     }
+    else
+      throw Exception(Error::InvalidArgument, "no SYCL queues specified");
 
     // Get the SYCL / Level Zero context
     syclContext = syclQueues[0].get_context();

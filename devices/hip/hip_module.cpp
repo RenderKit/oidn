@@ -9,11 +9,6 @@ OIDN_NAMESPACE_BEGIN
   class HIPDeviceFactory : public HIPDeviceFactoryBase
   {
   public:
-    Ref<Device> newDevice() override
-    {
-      return makeRef<HIPDevice>();
-    }
-
     Ref<Device> newDevice(const int* deviceIDs, const hipStream_t* streams, int numPairs) override
     {
       if (numPairs != 1)

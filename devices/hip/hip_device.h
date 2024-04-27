@@ -37,7 +37,7 @@ OIDN_NAMESPACE_BEGIN
     static std::string getArchName(const hipDeviceProp_t& prop);
     static HIPArch getArch(const hipDeviceProp_t& prop);
 
-    HIPDevice(int deviceID = -1, hipStream_t stream = nullptr);
+    HIPDevice(int deviceID, hipStream_t stream);
     explicit HIPDevice(const Ref<HIPPhysicalDevice>& physicalDevice);
     ~HIPDevice();
 

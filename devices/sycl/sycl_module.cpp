@@ -9,16 +9,11 @@ OIDN_NAMESPACE_BEGIN
   class SYCLDeviceFactory : public SYCLDeviceFactoryBase
   {
   public:
-    Ref<Device> newDevice() override
-    {
-      return makeRef<SYCLDevice>();
-    }
-
     Ref<Device> newDevice(const sycl::queue* queues, int numQueues) override
     {
-      if (numQueues < 0)
+      if (numQueues < 1)
         throw Exception(Error::InvalidArgument, "invalid number of SYCL queues");
-      if (queues == nullptr && numQueues > 0)
+      if (queues == nullptr)
         throw Exception(Error::InvalidArgument, "array of SYCL queues is null");
 
       return makeRef<SYCLDevice>(std::vector<sycl::queue>{queues, queues + numQueues});

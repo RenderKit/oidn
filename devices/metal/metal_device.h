@@ -27,7 +27,6 @@ OIDN_NAMESPACE_BEGIN
     static std::vector<Ref<PhysicalDevice>> getPhysicalDevices();
     static bool isSupported(id<MTLDevice> device);
 
-    MetalDevice();
     explicit MetalDevice(const Ref<MetalPhysicalDevice>& physicalDevice);
     explicit MetalDevice(id<MTLCommandQueue> commandQueue);
     ~MetalDevice();

@@ -37,7 +37,7 @@ OIDN_NAMESPACE_BEGIN
     static SYCLArch getArch(const sycl::device& syclDevice);
     static int getScore(const sycl::device& syclDevice);
 
-    SYCLDevice(const std::vector<sycl::queue>& syclQueues = {});
+    SYCLDevice(const std::vector<sycl::queue>& syclQueues);
     explicit SYCLDevice(const Ref<SYCLPhysicalDevice>& physicalDevice);
 
     DeviceType getType() const override { return DeviceType::SYCL; }

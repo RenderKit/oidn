@@ -53,16 +53,6 @@ OIDN_NAMESPACE_BEGIN
       return false;
   }
 
-  MetalDevice::MetalDevice()
-  {
-    @autoreleasepool
-    {
-      device = MTLCreateSystemDefaultDevice();
-      if (!device)
-        throw Exception(Error::UnsupportedHardware, "could not create default Metal device");
-    }
-  }
-
   MetalDevice::MetalDevice(const Ref<MetalPhysicalDevice>& physicalDevice)
     : device(physicalDevice->device)
   {}

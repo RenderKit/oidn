@@ -11,7 +11,6 @@ OIDN_NAMESPACE_BEGIN
   class DeviceFactory : public RefCount
   {
   public:
-    virtual Ref<Device> newDevice() = 0;
     virtual Ref<Device> newDevice(const Ref<PhysicalDevice>& physicalDevice) = 0;
   };
 

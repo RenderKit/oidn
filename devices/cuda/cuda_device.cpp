@@ -109,7 +109,7 @@ OIDN_NAMESPACE_BEGIN
     : deviceID(deviceID),
       stream(stream)
   {
-    if (deviceID < 0)
+    if (deviceID < 0) // deprecated behavior
       this->deviceID = 0;
   }
 

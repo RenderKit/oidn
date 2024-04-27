@@ -9,11 +9,6 @@ OIDN_NAMESPACE_BEGIN
   class CPUDeviceFactory : public DeviceFactory
   {
   public:
-    Ref<Device> newDevice() override
-    {
-      return makeRef<CPUDevice>();
-    }
-
     Ref<Device> newDevice(const Ref<PhysicalDevice>& physicalDevice) override
     {
       assert(physicalDevice->type == DeviceType::CPU);

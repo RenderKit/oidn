@@ -226,7 +226,7 @@ OIDN_API_NAMESPACE_BEGIN
             catch (...) {}
 
             if (ctx.isDeviceSupported(type))
-              device = ctx.getDeviceFactory(type)->newDevice();
+              device = ctx.newDevice(type);
           }
         }
 
@@ -235,7 +235,7 @@ OIDN_API_NAMESPACE_BEGIN
       }
       else
       {
-        device = ctx.getDeviceFactory(type)->newDevice();
+        device = ctx.newDevice(type);
       }
     OIDN_CATCH
 

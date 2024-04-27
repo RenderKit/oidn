@@ -458,12 +458,11 @@ consists of multiple sub-devices (e.g. Intel® Data Center GPU Max Series having
 multiple Xe-Stacks/tiles). The only supported SYCL backend is oneAPI Level Zero.
 
 For CUDA and HIP, pairs of CUDA/HIP device IDs and corresponding streams can be
-specified but the current implementation supports only one pair. Negative device
-IDs correspond to the default device, and a `NULL` stream corresponds to the
-default stream on the corresponding device. Open Image Denoise automatically
-sets and restores the current CUDA/HIP device/context on the calling thread when
-necessary, thus the current device does not have to be changed manually by the
-application.
+specified but the current implementation supports only one pair. A `NULL` stream
+corresponds to the default stream on the corresponding device. Open Image Denoise
+automatically sets and restores the current CUDA/HIP device/context on the
+calling thread when necessary, thus the current device does not have to be
+changed manually by the application.
 
 For Metal, a single command queue is supported.
 

@@ -38,4 +38,19 @@ OIDN_NAMESPACE_BEGIN
     return getDeviceFactory(type)->newDevice(physicalDevice);
   }
 
+  Ref<Device> Context::newDevice(DeviceType type)
+  {
+    if (type == DeviceType::Default)
+      return newDevice(0);
+
+    // Find the first physical device of the specified type
+    for (const auto& physicalDevice : physicalDevices)
+    {
+      if (physicalDevice->type == type)
+        return getDeviceFactory(type)->newDevice(physicalDevice);
+    }
+
+    throw Exception(Error::UnsupportedHardware, "unsupported device type: " + toString(type));
+  }
+
 OIDN_NAMESPACE_END

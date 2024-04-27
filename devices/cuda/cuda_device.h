@@ -31,7 +31,7 @@ OIDN_NAMESPACE_BEGIN
     static std::vector<Ref<PhysicalDevice>> getPhysicalDevices();
     static bool isSupported(const cudaDeviceProp& prop);
 
-    CUDADevice(int deviceID = -1, cudaStream_t stream = nullptr);
+    CUDADevice(int deviceID, cudaStream_t stream);
     explicit CUDADevice(const Ref<CUDAPhysicalDevice>& physicalDevice);
     ~CUDADevice();
 

@@ -9,11 +9,6 @@ OIDN_NAMESPACE_BEGIN
   class CUDADeviceFactory : public CUDADeviceFactoryBase
   {
   public:
-    Ref<Device> newDevice() override
-    {
-      return makeRef<CUDADevice>();
-    }
-
     Ref<Device> newDevice(const int* deviceIDs, const cudaStream_t* streams, int numPairs) override
     {
       if (numPairs != 1)

@@ -17,6 +17,9 @@ Version History
     device is supported without the need to commit it first
 -   Release the CUDA primary context when destroying the device object if using
     the CUDA driver API
+-   Fixed device creation error with `oidnNewDevice` when the default device of
+    the specified type (e.g. CUDA) is not supported but there are other
+    supported non-default devices of that type in the system
 
 ### Changes in v2.2.2:
 

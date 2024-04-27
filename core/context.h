@@ -42,6 +42,11 @@ OIDN_NAMESPACE_BEGIN
       // Add the detected physical devices to the context
       for (const auto& physicalDevice : physicalDevices)
         ctx.physicalDevices.push_back(physicalDevice);
+
+      // Sort all physical devices detected so far by score
+      std::sort(ctx.physicalDevices.begin(), ctx.physicalDevices.end(),
+                [](const Ref<PhysicalDevice>& a, const Ref<PhysicalDevice>& b)
+                { return a->score > b->score; });
     }
 
     Context()
@@ -82,14 +87,7 @@ OIDN_NAMESPACE_BEGIN
     #endif
 
       if (deviceType == DeviceType::Default)
-      {
-        // Sort the physical devices by score
-        std::sort(physicalDevices.begin(), physicalDevices.end(),
-                  [](const Ref<PhysicalDevice>& a, const Ref<PhysicalDevice>& b)
-                  { return a->score > b->score; });
-
         fullyInited = true;
-      }
     }
 
     bool isDeviceSupported(DeviceType type) const;
@@ -98,6 +96,7 @@ OIDN_NAMESPACE_BEGIN
     const Ref<PhysicalDevice>& getPhysicalDevice(int id) const;
 
     Ref<Device> newDevice(int physicalDeviceID);
+    Ref<Device> newDevice(DeviceType type);
 
   private:
     Context(const Context&) = delete;
