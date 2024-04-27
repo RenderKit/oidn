@@ -16,7 +16,7 @@ OIDN_NAMESPACE_BEGIN
     Ref<Conv> newSYCLConv(SYCLEngine* engine, const ConvDesc& desc);
   }
 
-#if defined(__linux__)
+#if defined(__linux__) || !defined(OIDN_DEVICE_SYCL_AOT)
   namespace xehpc {
     Ref<Conv> newSYCLConv(SYCLEngine* engine, const ConvDesc& desc);
   }

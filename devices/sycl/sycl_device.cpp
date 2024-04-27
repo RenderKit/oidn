@@ -203,6 +203,8 @@ OIDN_NAMESPACE_BEGIN
     case SYCLArch::XeHPG:        score = 20; break;
     case SYCLArch::XeHPC:        score = 30; break;
     case SYCLArch::XeHPC_NoDPAS: score = 20; break;
+    case SYCLArch::Xe2LPG:       score = 11; break;
+    case SYCLArch::Xe2HPG:       score = 21; break;
     default:
       return -1;
     }
@@ -355,6 +357,8 @@ OIDN_NAMESPACE_BEGIN
         case SYCLArch::XeHPG:        std::cout << "Xe-HPG";  break;
         case SYCLArch::XeHPC:        std::cout << "Xe-HPC";  break;
         case SYCLArch::XeHPC_NoDPAS: std::cout << "Xe-HPC";  break;
+        case SYCLArch::Xe2LPG:       std::cout << "Xe2-LPG"; break;
+        case SYCLArch::Xe2HPG:       std::cout << "Xe2-HPG"; break;
         default:                     std::cout << "Unknown"; break;
         }
         std::cout << std::endl;
@@ -380,13 +384,15 @@ OIDN_NAMESPACE_BEGIN
 
     switch (arch)
     {
-    case SYCLArch::XeHPG:
     case SYCLArch::XeLPGplus:
+    case SYCLArch::XeHPG:
       weightDataType = DataType::Float16;
       weightLayout   = TensorLayout::OIhw2o8i8o2i;
       break;
 
     case SYCLArch::XeHPC:
+    case SYCLArch::Xe2LPG:
+    case SYCLArch::Xe2HPG:
       weightDataType = DataType::Float16;
       weightLayout   = TensorLayout::OIhw8i16o2i;
       break;

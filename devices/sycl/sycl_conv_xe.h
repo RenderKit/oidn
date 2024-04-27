@@ -421,7 +421,7 @@ namespace xehpc {
 
       // Compute the final work-group size
     #if defined(OIDN_ARCH_XEHPC)
-      const int maxGroupSize = 32;
+      const int maxGroupSize = (engine->getArch() == SYCLArch::XeHPC) ? 32 : 8;
     #else
       const int maxGroupSize = 16;
     #endif

@@ -140,6 +140,7 @@ OIDN_NAMESPACE_BEGIN
 
     void wait() override;
 
+    SYCLArch getArch() const { return device->getArch(); }
     int getMaxWorkGroupSize() const override { return maxWorkGroupSize; }
 
   private:

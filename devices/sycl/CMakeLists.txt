@@ -107,7 +107,7 @@ set(OIDN_SYCL_SOURCES_ARCH
   sycl_conv_xehpg.cpp
   sycl_conv_xelp.cpp
 )
-if(UNIX)
+if(UNIX OR NOT OIDN_DEVICE_SYCL_AOT)
   list(APPEND OIDN_SYCL_SOURCES_ARCH
     sycl_conv_xehpc.cpp
   )

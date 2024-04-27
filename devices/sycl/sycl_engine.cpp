@@ -54,8 +54,10 @@ OIDN_NAMESPACE_BEGIN
     case SYCLArch::XeLPGplus:
     case SYCLArch::XeHPG:
       return xehpg::newSYCLConv(this, desc);
-  #if defined(__linux__)
+  #if defined(__linux__) || !defined(OIDN_DEVICE_SYCL_AOT)
     case SYCLArch::XeHPC:
+    case SYCLArch::Xe2LPG:
+    case SYCLArch::Xe2HPG:
       return xehpc::newSYCLConv(this, desc);
   #endif
     default:

@@ -43,7 +43,7 @@ OIDN_NAMESPACE_BEGIN
     {
       SYCLArch::XeLPGplus,
       {
-        0x03128000, // xe-lpgplus
+        0x03128000, // arl-h
       }
     },
     #endif
@@ -55,19 +55,35 @@ OIDN_NAMESPACE_BEGIN
         0x030e4000, // acm-g12
       }
     },
+    #if defined(__linux__)
     {
       SYCLArch::XeHPC,
       {
         0x030f0000, // pvc-sdv, pvc
       }
     },
-    #if !defined(OIDN_DEVICE_SYCL_AOT)
+    #endif
+    #if defined(__linux__) && !defined(OIDN_DEVICE_SYCL_AOT)
     {
       SYCLArch::XeHPC_NoDPAS,
       {
         0x030f4000, // pvc-xt-c0-vg
       }
-    }
+    },
+    #endif
+    #if !defined(OIDN_DEVICE_SYCL_AOT)
+    {
+      SYCLArch::Xe2LPG,
+      {
+        0x05010000, // lnl-m
+      }
+    },
+    {
+      SYCLArch::Xe2HPG,
+      {
+        0x05004000, // bmg-g21
+      }
+    },
     #endif
   };
 
