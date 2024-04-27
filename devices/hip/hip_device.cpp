@@ -207,7 +207,11 @@ OIDN_NAMESPACE_BEGIN
     if (hipPointerGetAttributes(&attrib, ptr) != hipSuccess)
       return Storage::Undefined;
 
+  #if HIP_VERSION_MAJOR >= 6
+    switch (attrib.type)
+  #else
     switch (attrib.memoryType)
+  #endif
     {
     case hipMemoryTypeHost:
       return Storage::Host;

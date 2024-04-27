@@ -20,6 +20,7 @@ Version History
 -   Fixed device creation error with `oidnNewDevice` when the default device of
     the specified type (e.g. CUDA) is not supported but there are other
     supported non-default devices of that type in the system
+-   Added support for building with ROCm 6.x
 
 ### Changes in v2.2.2:
 
