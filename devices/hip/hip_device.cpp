@@ -127,14 +127,13 @@ OIDN_NAMESPACE_BEGIN
 
   void HIPDevice::enter()
   {
-    assert(prevDeviceID < 0);
-
-    // Save the current HIP device
-    checkError(hipGetDevice(&prevDeviceID));
-
-    // Set the current HIP device
-    if (deviceID != prevDeviceID)
-      checkError(hipSetDevice(deviceID));
+    // Save the current HIP device and switch to ours
+    if (prevDeviceID >= 0)
+    {
+      checkError(hipGetDevice(&prevDeviceID));
+      if (deviceID != prevDeviceID)
+        checkError(hipSetDevice(deviceID));
+    }
 
     // Clear the HIP error state
     hipGetLastError();
@@ -142,12 +141,9 @@ OIDN_NAMESPACE_BEGIN
 
   void HIPDevice::leave()
   {
-    assert(prevDeviceID >= 0);
-
     // Restore the previous HIP device
-    if (deviceID != prevDeviceID)
+    if (prevDeviceID >= 0 && deviceID != prevDeviceID)
       checkError(hipSetDevice(prevDeviceID));
-    prevDeviceID = -1;
   }
 
   bool HIPDevice::isSupported() const
@@ -166,6 +162,10 @@ OIDN_NAMESPACE_BEGIN
     maxWorkGroupSize = prop.maxThreadsPerBlock;
     subgroupSize = prop.warpSize;
 
+    if (arch == HIPArch::Unknown)
+      throw Exception(Error::UnsupportedHardware, "unsupported HIP device architecture");
+
+    // Print device info
     if (isVerbose())
     {
       std::cout << "  Device    : " << getName(prop) << std::endl;
@@ -174,9 +174,12 @@ OIDN_NAMESPACE_BEGIN
       std::cout << "    CUs     : " << prop.multiProcessorCount << std::endl;
     }
 
-    if (arch == HIPArch::Unknown)
-      throw Exception(Error::UnsupportedHardware, "unsupported HIP device architecture");
+    // Save the current HIP device and switch to ours
+    checkError(hipGetDevice(&prevDeviceID));
+    if (deviceID != prevDeviceID)
+      checkError(hipSetDevice(deviceID));
 
+    // Set device properties
     tensorDataType = DataType::Float16;
     weightDataType = DataType::Float16;
     tensorLayout   = TensorLayout::hwc;

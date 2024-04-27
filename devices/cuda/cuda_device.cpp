@@ -147,10 +147,12 @@ OIDN_NAMESPACE_BEGIN
       checkError(cuCtxPushCurrent(context));
   #else
     // Save the current CUDA device and switch to ours
-    assert(prevDeviceID < 0);
-    checkError(cudaGetDevice(&prevDeviceID));
-    if (deviceID != prevDeviceID)
-      checkError(cudaSetDevice(deviceID));
+    if (prevDeviceID >= 0)
+    {
+      checkError(cudaGetDevice(&prevDeviceID));
+      if (deviceID != prevDeviceID)
+        checkError(cudaSetDevice(deviceID));
+    }
   #endif
 
     // Clear the CUDA error state
@@ -165,10 +167,8 @@ OIDN_NAMESPACE_BEGIN
       checkError(cuCtxPopCurrent(nullptr));
   #else
     // Restore the previous CUDA device
-    assert(prevDeviceID >= 0);
-    if (deviceID != prevDeviceID)
+    if (prevDeviceID >= 0 && deviceID != prevDeviceID)
       checkError(cudaSetDevice(prevDeviceID));
-    prevDeviceID = -1;
   #endif
   }
 
@@ -208,6 +208,11 @@ OIDN_NAMESPACE_BEGIN
     checkError(cuDeviceGet(&deviceHandle, deviceID));
     checkError(cuDevicePrimaryCtxRetain(&context, deviceHandle));
     checkError(cuCtxPushCurrent(context)); // between enter/leave, context will be popped in leave()
+  #else
+    // Save the current CUDA device and switch to ours
+    checkError(cudaGetDevice(&prevDeviceID));
+    if (deviceID != prevDeviceID)
+      checkError(cudaSetDevice(deviceID));
   #endif
 
     // Set device properties
