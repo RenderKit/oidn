@@ -3,14 +3,19 @@ Version History
 
 ### Changes in v2.3.0:
 
--   Significantly improved image quality of the `RT` filter in high quality
+-   Significantly improved image quality of the `RT` filter in *high* quality
     mode for the following combinations of input features and parameters:
         -  HDR color + albedo + normal + `cleanAux`
         -  albedo
         -  normal
     In these cases a much more complex filter is used, which results in lower
     performance than before (about 2x). To revert to the previous performance
-    behavior, please switch to the balanced quality mode.
+    behavior, please switch to the *balanced* quality mode.
+-   Added *fast* quality mode for even higher performance (about 1.5-2x)
+    interactive/real-time previews at the cost of somewhat lower image quality.
+    Currently this is implemented for the `RT` filter except auxiliary feature
+    denoising (albedo, normal). In other cases denoising implicitly falls back
+    to *balanced* mode.
 -   Execute `Async` functions asynchronously on CPU devices as well
 -   Load/initialize device modules lazily (improves stability)
 -   Added the `oidnIsDeviceSupported` API function for checking whether the
@@ -103,8 +108,8 @@ Version History
     for querying memory allocations supported by the device
 -   Added `externalMemoryTypes` device parameter for querying the supported
     external memory handle types
--   Added `quality` filter parameter for setting the filtering quality mode (high
-    or balanced quality)
+-   Added `quality` filter parameter for setting the filtering quality mode (*high*
+    or *balanced* quality)
 -   Minor API changes with backward compatibility:
     -   Added `oidn(Get|Set)(Device|Filter)(Bool|Int|Float)` functions and
         deprecated `oidn(Get|Set)(Device|Filter)(1b|1i|1f)` functions

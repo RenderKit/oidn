@@ -89,6 +89,7 @@ OIDN_NAMESPACE_BEGIN
     case Quality::Default:  sm << "default";  break;
     case Quality::High:     sm << "high";     break;
     case Quality::Balanced: sm << "balanced"; break;
+    case Quality::Fast:     sm << "fast";     break;
     default:
       throw std::invalid_argument("invalid quality mode");
     }

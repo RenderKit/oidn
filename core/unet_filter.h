@@ -35,7 +35,7 @@ OIDN_NAMESPACE_BEGIN
     static constexpr int receptiveFieldBase   = 174; // receptive field in pixels for UNet
     static constexpr int receptiveFieldLarge  = 202; // receptive field in pixels for UNetLarge
     static constexpr int minTileAlignment     = 16;  // required spatial alignment in pixels (padding may be necessary)
-    
+
     static constexpr int defaultMaxTileSize   = 2160*2160; // default maximum number of pixels per tile
 
     // Images
@@ -55,21 +55,33 @@ OIDN_NAMESPACE_BEGIN
     int maxMemoryMB = -1;     // maximum memory usage limit in MBs, disabled if < 0
     int prevMaxMemoryMB = -1; // maximum memory usage limit in MBs from the previous commit
 
-    // Weights
+    struct Model
+    {
+      // Weights blobs
+      Data base;
+      Data small;
+      Data large;
+
+      Model() = default;
+
+      Model(const Data& base, const Data& small = nullptr, const Data& large = nullptr)
+        : base(base), small(small), large(large) {}
+    };
+
     struct
     {
-      Data hdr;
-      Data hdr_alb;
-      Data hdr_alb_nrm;
-      Data hdr_calb_cnrm, hdr_calb_cnrm_large;
-      Data ldr;
-      Data ldr_alb;
-      Data ldr_alb_nrm;
-      Data ldr_calb_cnrm;
-      Data dir;
-      Data alb, alb_large;
-      Data nrm, nrm_large;
-    } weightsBlobs;
+      Model hdr;
+      Model hdr_alb;
+      Model hdr_alb_nrm;
+      Model hdr_calb_cnrm;
+      Model ldr;
+      Model ldr_alb;
+      Model ldr_alb_nrm;
+      Model ldr_calb_cnrm;
+      Model dir;
+      Model alb;
+      Model nrm;
+    } models; // built-in weights blobs
     Data userWeightsBlob;
 
   private:

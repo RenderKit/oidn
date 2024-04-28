@@ -36,7 +36,7 @@ void printUsage()
             << "                     [-r/--run regex] [-n times_to_run]" << std::endl
             << "                     [-s/--size width height]" << std::endl
             << "                     [-t/--type float|half]" << std::endl
-            << "                     [-q/--quality default|h|high|b|balanced]" << std::endl
+            << "                     [-q/--quality default|h|high|b|balanced|f|fast]" << std::endl
             << "                     [--threads n] [--affinity 0|1] [--maxmem MB] [--inplace]" << std::endl
             << "                     [--buffer host(copy)|device(copy)|managed(copy)]" << std::endl
             << "                     [-v/--verbose 0-3]" << std::endl
@@ -254,6 +254,7 @@ void addAllBenchmarks()
     addBenchmark("RT", {"hdr", "alb", "nrm"}, size);
     addBenchmark("RT", {"ldr", "alb", "nrm"}, size);
     addBenchmark("RT", {"hdr", "calb", "cnrm"}, size);
+    addBenchmark("RT", {"ldr", "calb", "cnrm"}, size);
   }
 #endif
 
@@ -326,6 +327,8 @@ int main(int argc, char* argv[])
           quality = Quality::High;
         else if (val == "b" || val == "balanced")
           quality = Quality::Balanced;
+        else if (val == "f" || val == "fast")
+          quality = Quality::Fast;
         else
           throw std::runtime_error("invalid filter quality mode");
       }

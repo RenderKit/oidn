@@ -223,8 +223,11 @@ def test_regression(filter, feature_sets, dataset):
       image_names = [os.path.relpath(filename, baseline_dir).rsplit('.', 3)[0] for filename in input_filenames]
 
       # Iterate over quality
-      for quality in (['high', 'balanced'] if (filter == 'RT' and not cfg.minimal) or cfg.full else ['high']):
-        result = result_base + ('_large' if quality == 'high' and 'large' in model_sizes else '')
+      for quality in (['high', 'balanced', 'fast'] if (filter == 'RT' and not cfg.minimal) or cfg.full else ['high']):
+        model_size = {'high' : 'large', 'balanced' : 'base', 'fast' : 'small'}[quality]
+        result = result_base
+        if model_size != 'base' and model_size in model_sizes:
+          result += '_' + model_size
 
         # Iterate over images
         image_index = 0
@@ -315,14 +318,14 @@ if not cfg.filter or 'RT' in cfg.filter:
   test_regression(
     'RT',
     [
-      (['hdr', 'alb', 'nrm'],   True,  ['base']),
-      (['hdr', 'alb'],          False, ['base']),
-      (['hdr'],                 True,  ['base']),
-      (['hdr', 'calb', 'cnrm'], True,  ['base', 'large']),
-      (['ldr', 'alb', 'nrm'],   False, ['base']),
-      (['ldr', 'alb'],          False, ['base']),
-      (['ldr'],                 True,  ['base']),
-      (['ldr', 'calb', 'cnrm'], False, ['base']),
+      (['hdr', 'alb', 'nrm'],   True,  ['base', 'small']),
+      (['hdr', 'alb'],          False, ['base', 'small']),
+      (['hdr'],                 True,  ['base', 'small']),
+      (['hdr', 'calb', 'cnrm'], True,  ['base', 'small', 'large']),
+      (['ldr', 'alb', 'nrm'],   False, ['base', 'small']),
+      (['ldr', 'alb'],          False, ['base', 'small']),
+      (['ldr'],                 True,  ['base', 'small']),
+      (['ldr', 'calb', 'cnrm'], False, ['base', 'small']),
       (['alb'],                 True,  ['base', 'large']),
       (['nrm'],                 True,  ['base', 'large'])
     ],

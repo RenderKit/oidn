@@ -14,6 +14,7 @@ OIDN_NAMESPACE_BEGIN
     size_t size;
 
     Data() : ptr(nullptr), size(0) {}
+    Data(std::nullptr_t) : ptr(nullptr), size(0) {}
 
     template<typename T>
     Data(T* ptr, size_t size)

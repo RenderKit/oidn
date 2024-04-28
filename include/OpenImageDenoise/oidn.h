@@ -358,7 +358,7 @@ typedef enum
 {
   OIDN_QUALITY_DEFAULT  = 0, // default quality
 
-//OIDN_QUALITY_FAST     = 4
+  OIDN_QUALITY_FAST     = 4, // high performance (for interactive/real-time preview rendering)
   OIDN_QUALITY_BALANCED = 5, // balanced quality/performance (for interactive/real-time rendering)
   OIDN_QUALITY_HIGH     = 6, // high quality (for final-frame rendering)
 } OIDNQuality;

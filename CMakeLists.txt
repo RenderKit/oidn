@@ -57,14 +57,22 @@ if(OIDN_FILTER_RT)
     weights/rt_alb.tza
     weights/rt_alb_large.tza
     weights/rt_hdr.tza
+    weights/rt_hdr_small.tza
     weights/rt_hdr_alb.tza
+    weights/rt_hdr_alb_small.tza
     weights/rt_hdr_alb_nrm.tza
+    weights/rt_hdr_alb_nrm_small.tza
     weights/rt_hdr_calb_cnrm.tza
+    weights/rt_hdr_calb_cnrm_small.tza
     weights/rt_hdr_calb_cnrm_large.tza
     weights/rt_ldr.tza
+    weights/rt_ldr_small.tza
     weights/rt_ldr_alb.tza
+    weights/rt_ldr_alb_small.tza
     weights/rt_ldr_alb_nrm.tza
+    weights/rt_ldr_alb_nrm_small.tza
     weights/rt_ldr_calb_cnrm.tza
+    weights/rt_ldr_calb_cnrm_small.tza
     weights/rt_nrm.tza
     weights/rt_nrm_large.tza
   )

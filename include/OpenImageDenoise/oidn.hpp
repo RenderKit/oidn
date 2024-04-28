@@ -323,6 +323,7 @@ OIDN_NAMESPACE_BEGIN
   {
     Default  = OIDN_QUALITY_DEFAULT,  // default quality
 
+    Fast     = OIDN_QUALITY_FAST,     // high performance (for interactive/real-time preview rendering)
     Balanced = OIDN_QUALITY_BALANCED, // balanced quality/performance (for interactive/real-time rendering)
     High     = OIDN_QUALITY_HIGH,     // high quality (for final-frame rendering)
   };

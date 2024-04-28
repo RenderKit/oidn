@@ -16,8 +16,8 @@ OIDN_NAMESPACE_BEGIN
     hdr = true;
 
   #if defined(OIDN_FILTER_RTLIGHTMAP)
-    weightsBlobs.hdr = blobs::weights::rtlightmap_hdr;
-    weightsBlobs.dir = blobs::weights::rtlightmap_dir;
+    models.hdr = {blobs::weights::rtlightmap_hdr};
+    models.dir = {blobs::weights::rtlightmap_dir};
   #endif
   }
 

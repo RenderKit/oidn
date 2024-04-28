@@ -30,7 +30,7 @@ void printUsage()
             << "                   [-o/--output output.pfm]" << std::endl
             << "                   [-r/--ref reference_output.pfm] [--maxerror e]" << std::endl
             << "                   [-t/--type float|half]" << std::endl
-            << "                   [-q/--quality default|h|high|b|balanced]" << std::endl
+            << "                   [-q/--quality default|h|high|b|balanced|f|fast]" << std::endl
             << "                   [-w/--weights weights.tza]" << std::endl
             << "                   [--threads n] [--affinity 0|1] [--maxmem MB] [--inplace]" << std::endl
             << "                   [--buffer host|device|managed]" << std::endl
@@ -171,6 +171,8 @@ int main(int argc, char* argv[])
           quality = Quality::High;
         else if (val == "b" || val == "balanced")
           quality = Quality::Balanced;
+        else if (val == "f" || val == "fast")
+          quality = Quality::Fast;
         else
           throw std::runtime_error("invalid filter quality mode");
       }

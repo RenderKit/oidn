@@ -47,7 +47,8 @@ OIDN_NAMESPACE_BEGIN
       Quality qualityValue = static_cast<Quality>(value);
       if (qualityValue == Quality::Default)
         qualityValue = defaultQuality;
-      else if (qualityValue != Quality::High && qualityValue != Quality::Balanced)
+      else if (qualityValue != Quality::High && qualityValue != Quality::Balanced &&
+               qualityValue != Quality::Fast)
         throw Exception(Error::InvalidArgument, "unknown filter quality mode");
       setParam(quality, qualityValue);
     }
@@ -396,33 +397,25 @@ OIDN_NAMESPACE_BEGIN
 
   Data UNetFilter::getWeights()
   {
-    // Select the weights to use
-    const bool hq = quality == Quality::High;
-    Data weightsBlob;
+    // Select the model to use
+    Model* model = nullptr;
 
     if (color)
     {
       if (!albedo && !normal)
       {
-        weightsBlob = directional ? weightsBlobs.dir : (hdr ? weightsBlobs.hdr : weightsBlobs.ldr);
+        model = directional ? &models.dir : (hdr ? &models.hdr : &models.ldr);
       }
       else if (albedo && !normal)
       {
-        weightsBlob = hdr ? weightsBlobs.hdr_alb : weightsBlobs.ldr_alb;
+        model = hdr ? &models.hdr_alb : &models.ldr_alb;
       }
       else if (albedo && normal)
       {
         if (cleanAux)
-        {
-          if (hdr)
-            weightsBlob = hq ? weightsBlobs.hdr_calb_cnrm_large : weightsBlobs.hdr_calb_cnrm;
-          else
-            weightsBlob = weightsBlobs.ldr_calb_cnrm;
-        }
+          model = hdr ? &models.hdr_calb_cnrm : &models.ldr_calb_cnrm;
         else
-        {
-          weightsBlob = hdr ? weightsBlobs.hdr_alb_nrm : weightsBlobs.ldr_alb_nrm;
-        }
+          model = hdr ? &models.hdr_alb_nrm : &models.ldr_alb_nrm;
       }
     }
     else
@@ -432,13 +425,13 @@ OIDN_NAMESPACE_BEGIN
       {
         if (hdr)
           throw Exception(Error::InvalidOperation, "hdr mode is not supported for albedo filtering");
-        weightsBlob = hq ? weightsBlobs.alb_large : weightsBlobs.alb;
+        model = &models.alb;
       }
       else if (!albedo && normal)
       {
         if (hdr || srgb)
           throw Exception(Error::InvalidOperation, "hdr and srgb modes are not supported for normal filtering");
-        weightsBlob = hq ? weightsBlobs.nrm_large : weightsBlobs.nrm;
+        model = &models.nrm;
       }
       else
       {
@@ -446,8 +439,29 @@ OIDN_NAMESPACE_BEGIN
       }
     }
 
+    // Select the weights to use
+    Data weightsBlob = nullptr;
+
     if (userWeightsBlob)
+    {
       weightsBlob = userWeightsBlob;
+    }
+    else
+    {
+      switch (quality)
+      {
+      case Quality::Default:
+      case Quality::High:
+        weightsBlob = model->large ? model->large : model->base;
+        break;
+      case Quality::Balanced:
+        weightsBlob = model->base;
+        break;
+      case Quality::Fast:
+        weightsBlob = model->small ? model->small : model->base;
+        break;
+      }
+    }
 
     if (!weightsBlob)
       throw Exception(Error::InvalidOperation, "unsupported combination of input features");
@@ -637,10 +651,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Print statistics
     if (device->isVerbose(2))
-    {
-      std::cout << "Model: " << (largeModel ? "large" : "base") << std::endl;
       std::cout << "Memory usage: " << totalMemoryByteSize << std::endl;
-    }
 
     return true;
   }

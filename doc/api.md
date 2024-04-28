@@ -288,10 +288,11 @@ Open Image Denoise still delivers the same high image quality on all device
 types as before, including on GPUs. But often filtering performance is more
 important than having the highest possible image quality, so it is now possible
 to switch between multiple filter quality modes. Filters have a new
-parameter called `quality`, which defaults to the existing high image quality
-(`OIDN_QUALITY_HIGH`) but a balanced quality mode (`OIDN_QUALITY_BALANCED`)
-has been added as well for even higher performance. We recommend using balanced
-quality for interactive and real-time use cases.
+parameter called `quality`, which defaults to the existing *high* image quality
+(`OIDN_QUALITY_HIGH`) but *balanced* (`OIDN_QUALITY_BALANCED`) and *fast*
+(`OIDN_QUALITY_FAST`) quality modes have been added as well for even higher
+performance. We recommend using *balanced* or *fast* quality for interactive and
+real-time use cases.
 
 ### Small API Changes
 
@@ -1224,21 +1225,24 @@ supported quality modes are listed in the following table.
 Name                     Description
 ------------------------ ---------------------------------------------------------------------------
 `OIDN_QUALITY_DEFAULT`   default quality
+`OIDN_QUALITY_FAST`      high performance (for interactive/real-time preview rendering)
 `OIDN_QUALITY_BALANCED`  balanced quality/performance (for interactive/real-time rendering)
 `OIDN_QUALITY_HIGH`      high quality (for final-frame rendering); *default*
 ------------------------ ---------------------------------------------------------------------------
 : Supported image quality modes, i.e., valid constants of type `OIDNQuality`.
 
-By default, filtering is performed in high quality mode, which is recommended for
-final-frame rendering. Using this setting the results have the same high quality
-regardless of what kind of device (CPU or GPU) is used. However, due to
+By default, filtering is performed in *high* quality mode, which is recommended
+for final-frame rendering. Using this setting the results have the same high
+quality regardless of what kind of device (CPU or GPU) is used. However, due to
 significant hardware architecture differences between devices, there might be
 small numerical differences between the produced outputs.
 
-The balanced quality mode may provide somewhat lower image quality but higher
+The *balanced* quality mode may provide somewhat lower image quality but higher
 performance, and is thus recommended for interactive and real-time rendering.
-Note that larger numerical differences should be expected across devices
-compared to the high quality mode.
+For even higher performance, the *fast* quality mode can be used but at the cost
+of noticeably lower image quality, making it suitable for fast previews. Note
+that in the *balanced* and *fast* quality modes larger numerical differences
+should be expected across devices compared to the *high* quality mode.
 
 The difference in quality and performance between quality modes depends on the
 combination of input features, parameters (e.g. `cleanAux`), and the device
