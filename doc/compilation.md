@@ -290,5 +290,5 @@ The following list describes the options that can be configured in CMake:
 
 - `ROCM_PATH`: The path to the ROCm installation (autodetected by default).
 
-- `OPENIMAGEIO_ROOT`: The path to the OpenImageIO installation (autodetected by
+- `OpenImageIO_ROOT`: The path to the OpenImageIO installation (autodetected by
   default).
