@@ -567,7 +567,7 @@ jobs:
         export ZE_FLAT_DEVICE_HIERARCHY=COMPOSITE
         scripts/test.py --device sycl --memcheck --log test.log
 
-  test-rockylinux8-cuda:
+  test-rockylinux8-cuda11:
     needs: build-rockylinux8
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
@@ -575,6 +575,21 @@ jobs:
       project: oidn
       runs-on: '[ "Linux", "gpu_nvidia" ]'
       image: oidn/rockylinux:8.8
+      options: --gpus all
+      artifact-in: build-rockylinux8
+      artifact-out: test-rockylinux8-cuda11
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: scripts/test.py --device cuda --log test.log # TODO: add --memcheck after upgrading to CUDA 12+
+
+  test-rockylinux8-cuda:
+    needs: build-rockylinux8
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Linux", "gpu_nvidia" ]'
+      image: oidn/ubuntu:22.04
       options: --gpus all
       artifact-in: build-rockylinux8
       artifact-out: test-rockylinux8-cuda
