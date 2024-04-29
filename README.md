@@ -1,7 +1,7 @@
 # Intel® Open Image Denoise
 
-This is release v2.2.2 of Intel Open Image Denoise. For changes and new
-features see the [changelog](CHANGELOG.md). Visit
+This is release v2.3.0-beta of Intel Open Image Denoise. For changes and
+new features see the [changelog](CHANGELOG.md). Visit
 https://www.openimagedenoise.org for more information.
 
 # Overview
@@ -453,7 +453,7 @@ CMake:
   - `ROCM_PATH`: The path to the ROCm installation (autodetected by
     default).
 
-  - `OPENIMAGEIO_ROOT`: The path to the OpenImageIO installation
+  - `OpenImageIO_ROOT`: The path to the OpenImageIO installation
     (autodetected by default).
 
 # Documentation
@@ -751,15 +751,10 @@ identification might fail.
 
 ### Asynchronous Execution
 
-With the introduction of GPU support, it is now possible to execute some
-operations asynchronously, most importantly filtering
-(`oidnExecuteFilterAsync`, `oidnExecuteSYCLFilterAsync`) and copying
-data (the already mentioned `oidnReadBufferAsync` and
-`oidnWriteBufferAsync`). Although these new asynchronous functions can
-be used with any device type, it is *not* guaranteed that these will be
-actually executed asynchronously. The most important such exceptions are
-CPU devices, which are still blocking the calling thread when these
-functions are called.
+It is now possible to execute some operations asynchronously, most
+importantly filtering (`oidnExecuteFilterAsync`,
+`oidnExecuteSYCLFilterAsync`) and copying data (the already mentioned
+`oidnReadBufferAsync` and `oidnWriteBufferAsync`).
 
 When using any asynchronous function it is the responsibility of the
 application to handle correct synchronization using `oidnSyncDevice`.
@@ -771,10 +766,10 @@ device types as before, including on GPUs. But often filtering
 performance is more important than having the highest possible image
 quality, so it is now possible to switch between multiple filter quality
 modes. Filters have a new parameter called `quality`, which defaults to
-the existing high image quality (`OIDN_QUALITY_HIGH`) but a balanced
-quality mode (`OIDN_QUALITY_BALANCED`) has been added as well for even
-higher performance. We recommend using balanced quality for interactive
-and real-time use cases.
+the existing *high* image quality (`OIDN_QUALITY_HIGH`) but *balanced*
+(`OIDN_QUALITY_BALANCED`) and *fast* (`OIDN_QUALITY_FAST`) quality modes
+have been added as well for even higher performance. We recommend using
+*balanced* or *fast* quality for interactive and real-time use cases.
 
 ### Small API Changes
 
@@ -933,11 +928,10 @@ supported SYCL backend is oneAPI Level Zero.
 
 For CUDA and HIP, pairs of CUDA/HIP device IDs and corresponding streams
 can be specified but the current implementation supports only one pair.
-Negative device IDs correspond to the default device, and a `NULL`
-stream corresponds to the default stream on the corresponding device.
-Open Image Denoise automatically sets and restores the current CUDA/HIP
-device on the calling thread when necessary, thus the current device
-does not have to be changed manually by the application.
+A `NULL` stream corresponds to the default stream on the corresponding
+device. Open Image Denoise automatically sets and restores the current
+CUDA/HIP device/context on the calling thread when necessary, thus the
+current device does not have to be changed manually by the application.
 
 For Metal, a single command queue is supported.
 
@@ -998,6 +992,15 @@ This device can then be used to construct further objects, such as
 buffers and filters. Note that a device can be committed only once
 during its lifetime.
 
+If the goal is not to set up a device object for actual use yet but only
+to check whether the device with the current parameters is supported,
+the following function could be called instead, which does not require
+committing the device first (which could be potentially more expensive):
+
+``` cpp
+bool oidnIsDeviceSupported(OIDNDevice device);
+```
+
 Some functions may execute asynchronously with respect to the host. The
 names of these functions are suffixed with `Async`. Asynchronous
 operations are executed *in order* on the device but may not block on
@@ -1007,11 +1010,6 @@ operations to complete, which can be done by calling
 ``` cpp
 void oidnSyncDevice(OIDNDevice device);
 ```
-
-Currently the CPU device does not support asynchronous execution, and
-thus the asynchronous versions of functions will block as well. However,
-`oidnSyncDevice` should be always called to ensure correctness on GPU
-devices too, which do support asynchronous execution.
 
 Before the application exits, it should release all devices by invoking
 
@@ -1273,9 +1271,8 @@ void oidnWriteBuffer(OIDNBuffer buffer,
 ```
 
 These functions will always block until the read/write operation has
-been completed, which is often suboptimal. The following functions may
-execute the operation asynchronously if it is supported by the device
-(GPUs), or still block otherwise (CPUs):
+been completed, which is often suboptimal. The following functions
+execute these operations asynchronously:
 
 ``` cpp
 void oidnReadBufferAsync(OIDNBuffer buffer,
@@ -1485,9 +1482,7 @@ which will read the input image data from the specified buffers and
 produce the denoised output image.
 
 This function will always block until the filtering operation has been
-completed. The following function may execute the operation
-asynchronously if it is supported by the device (GPUs), or block
-otherwise (CPUs):
+completed. The following function executes the operation asynchronously:
 
 ``` cpp
 void oidnExecuteFilterAsync(OIDNFilter filter);
@@ -1710,28 +1705,33 @@ table.
 | Name                    | Description                                                        |
 | :---------------------- | :----------------------------------------------------------------- |
 | `OIDN_QUALITY_DEFAULT`  | default quality                                                    |
+| `OIDN_QUALITY_FAST`     | high performance (for interactive/real-time preview rendering)     |
 | `OIDN_QUALITY_BALANCED` | balanced quality/performance (for interactive/real-time rendering) |
 | `OIDN_QUALITY_HIGH`     | high quality (for final-frame rendering); *default*                |
 
 Supported image quality modes, i.e., valid constants of type
 `OIDNQuality`.
 
-By default filtering is performed in high quality mode, which is
+By default, filtering is performed in *high* quality mode, which is
 recommended for final-frame rendering. Using this setting the results
 have the same high quality regardless of what kind of device (CPU or
 GPU) is used. However, due to significant hardware architecture
 differences between devices, there might be small numerical differences
 between the produced outputs.
 
-The balanced quality mode is very close in image quality to the high
-quality mode except that lower numerical precision is used, if this is
-supported by the device. This may result in significantly higher
-performance on some devices but on others there might be no difference
-at all due to hardware specifics. This mode is recommended for
-interactive and real-time rendering.
+The *balanced* quality mode may provide somewhat lower image quality but
+higher performance and lower default memory usage, and is thus
+recommended for interactive and real-time rendering. For even higher
+performance and lower memory usage, a *fast* quality mode is also
+available but has noticeably lower image quality, making it suitable
+mainly for fast previews. Note that in the *balanced* and *fast* quality
+modes larger numerical differences should be expected across devices
+compared to the *high* quality mode.
 
-Note that in balanced quality mode a higher variation in image quality
-should be expected across devices.
+The difference in quality and performance between quality modes depends
+on the combination of input features, parameters (e.g. `cleanAux`), and
+the device architecture. In some cases the difference may be small or
+even none.
 
 #### Weights
 
