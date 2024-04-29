@@ -297,7 +297,7 @@ OIDN_NAMESPACE_BEGIN
     tileCountH = 1;
     tileCountW = 1;
 
-    const int minTileDim = max(4*tileOverlap, 768); // MPS has slightly different output using smaller tiles
+    const int minTileDim = max(4*tileOverlap, 1024); // MPS has slightly different output using smaller tiles
     const int minTileH = round_up(minTileDim, tileAlignment, tilePadH);
     const int minTileW = round_up(minTileDim, tileAlignment, tilePadW);
 
