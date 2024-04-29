@@ -285,7 +285,10 @@ def test_regression(filter, feature_sets, dataset):
                     denoise_cmd += f' -o "{out_filename}"'
                   else:
                     ref_filename = out_filename
-                    denoise_cmd += ' --maxerror 0'
+                    if cfg.device in {'default', 'metal'}:
+                      denoise_cmd += ' --maxerror 1e-4' # MPS is not bit-exact in some cases
+                    else:
+                      denoise_cmd += ' --maxerror 0'
                   denoise_cmd += f' --ref "{ref_filename}" -n 3 -v 2'
 
                   if set(features) & {'calb', 'cnrm'}:
