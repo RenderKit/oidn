@@ -4,7 +4,8 @@ Version History
 ### Changes in v2.3.0:
 
 -   Significantly improved image quality of the `RT` filter in *high* quality
-    mode for the following combinations of input features and parameters:
+    mode for HDR denoising with prefiltering, i.e., the following combinations
+    of input features and parameters:
         -  HDR color + albedo + normal + `cleanAux`
         -  albedo
         -  normal
@@ -12,10 +13,10 @@ Version History
     performance than before (about 2x). To revert to the previous performance
     behavior, please switch to the *balanced* quality mode.
 -   Added *fast* quality mode for even higher performance (about 1.5-2x)
-    interactive/real-time previews at the cost of somewhat lower image quality.
-    Currently this is implemented for the `RT` filter except auxiliary feature
-    denoising (albedo, normal). In other cases denoising implicitly falls back
-    to *balanced* mode.
+    interactive/real-time previews and lower default memory usage at the cost of
+    somewhat lower image quality. Currently this is implemented for the `RT`
+    filter except prefiltering (albedo, normal). In other cases denoising
+    implicitly falls back to *balanced* mode.
 -   Execute `Async` functions asynchronously on CPU devices as well
 -   Load/initialize device modules lazily (improves stability)
 -   Added the `oidnIsDeviceSupported` API function for checking whether the

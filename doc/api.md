@@ -1238,11 +1238,12 @@ significant hardware architecture differences between devices, there might be
 small numerical differences between the produced outputs.
 
 The *balanced* quality mode may provide somewhat lower image quality but higher
-performance, and is thus recommended for interactive and real-time rendering.
-For even higher performance, the *fast* quality mode can be used but at the cost
-of noticeably lower image quality, making it suitable for fast previews. Note
-that in the *balanced* and *fast* quality modes larger numerical differences
-should be expected across devices compared to the *high* quality mode.
+performance and lower default memory usage, and is thus recommended for
+interactive and real-time rendering. For even higher performance and lower
+memory usage, a *fast* quality mode is also available but has noticeably lower
+image quality, making it suitable mainly for fast previews. Note that in the
+*balanced* and *fast* quality modes larger numerical differences should be
+expected across devices compared to the *high* quality mode.
 
 The difference in quality and performance between quality modes depends on the
 combination of input features, parameters (e.g. `cleanAux`), and the device
