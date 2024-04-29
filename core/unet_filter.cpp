@@ -446,7 +446,7 @@ OIDN_NAMESPACE_BEGIN
     {
       weightsBlob = userWeightsBlob;
     }
-    else
+    else if (model)
     {
       switch (quality)
       {
