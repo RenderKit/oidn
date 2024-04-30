@@ -105,6 +105,14 @@ OIDN_NAMESPACE_BEGIN
            prop.unifiedAddressing;
   }
 
+  bool CUDADevice::isSupported(int deviceID)
+  {
+    cudaDeviceProp prop{};
+    if (cudaGetDeviceProperties(&prop, deviceID) != cudaSuccess)
+      return false;
+    return isSupported(prop);
+  }
+
   CUDADevice::CUDADevice(int deviceID, cudaStream_t stream)
     : deviceID(deviceID),
       stream(stream)
@@ -167,14 +175,6 @@ OIDN_NAMESPACE_BEGIN
     if (prevDeviceID >= 0 && deviceID != prevDeviceID)
       checkError(cudaSetDevice(prevDeviceID));
   #endif
-  }
-
-  bool CUDADevice::isSupported() const
-  {
-    cudaDeviceProp prop{};
-    if (cudaGetDeviceProperties(&prop, deviceID) != cudaSuccess)
-      return false;
-    return isSupported(prop);
   }
 
   void CUDADevice::init()

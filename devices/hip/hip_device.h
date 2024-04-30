@@ -36,6 +36,7 @@ OIDN_NAMESPACE_BEGIN
     static std::string getName(const hipDeviceProp_t& prop);
     static std::string getArchName(const hipDeviceProp_t& prop);
     static HIPArch getArch(const hipDeviceProp_t& prop);
+    static bool isSupported(int deviceID);
 
     HIPDevice(int deviceID, hipStream_t stream);
     explicit HIPDevice(const Ref<HIPPhysicalDevice>& physicalDevice);
@@ -45,7 +46,6 @@ OIDN_NAMESPACE_BEGIN
     void leave() override;
 
     DeviceType getType() const override { return DeviceType::HIP; }
-    bool isSupported() const override;
 
     Storage getPtrStorage(const void* ptr) override;
 

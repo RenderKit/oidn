@@ -137,25 +137,8 @@ TEST_CASE("device creation", "[device]")
     REQUIRE(device.getError() == Error::None);
   }
 
-  SECTION("is supported")
-  {
-    const bool supported = device.isSupported();
-    REQUIRE(device.getError() == Error::None);
-    REQUIRE(supported);
-  }
-
   SECTION("commit")
   {
-    device.commit();
-    REQUIRE(device.getError() == Error::None);
-  }
-
-  SECTION("is supported, commit")
-  {
-    const bool supported = device.isSupported();
-    REQUIRE(device.getError() == Error::None);
-    REQUIRE(supported);
-
     device.commit();
     REQUIRE(device.getError() == Error::None);
   }
@@ -377,9 +360,6 @@ TEST_CASE("single filter", "[single_filter][minimal]")
   FilterRef filter = device.newFilter(filterType);
   REQUIRE(!filter);
   REQUIRE(device.getError() == Error::InvalidOperation);
-
-  // Check whether the device is supported
-  REQUIRE(device.isSupported());
 
   // Commit the device
   device.commit();

@@ -9,6 +9,11 @@ OIDN_NAMESPACE_BEGIN
   class CUDADeviceFactory : public CUDADeviceFactoryBase
   {
   public:
+    bool isDeviceSupported(int deviceID) override
+    {
+      return CUDADevice::isSupported(deviceID);
+    }
+
     Ref<Device> newDevice(const int* deviceIDs, const cudaStream_t* streams, int numPairs) override
     {
       if (numPairs != 1)

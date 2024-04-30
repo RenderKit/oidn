@@ -36,6 +36,7 @@ OIDN_NAMESPACE_BEGIN
   {
   public:
     static std::vector<Ref<PhysicalDevice>> getPhysicalDevices();
+    static bool isSupported(const sycl::device& syclDevice);
     static SYCLArch getArch(const sycl::device& syclDevice);
     static int getScore(const sycl::device& syclDevice);
 
@@ -43,7 +44,6 @@ OIDN_NAMESPACE_BEGIN
     explicit SYCLDevice(const Ref<SYCLPhysicalDevice>& physicalDevice);
 
     DeviceType getType() const override { return DeviceType::SYCL; }
-    bool isSupported() const override;
     ze_context_handle_t getZeContext() const { return zeContext; }
 
     int getInt(const std::string& name) override;

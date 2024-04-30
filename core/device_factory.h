@@ -18,6 +18,8 @@ OIDN_NAMESPACE_BEGIN
   {
   public:
     using DeviceFactory::newDevice;
+
+    virtual bool isDeviceSupported(const sycl::device* device) = 0;
     virtual Ref<Device> newDevice(const sycl::queue* queues, int numQueues) = 0;
   };
 
@@ -25,6 +27,8 @@ OIDN_NAMESPACE_BEGIN
   {
   public:
     using DeviceFactory::newDevice;
+
+    virtual bool isDeviceSupported(int deviceID) = 0;
     virtual Ref<Device> newDevice(const int* deviceIDs, const cudaStream_t* streams, int numPairs) = 0;
   };
 
@@ -32,6 +36,8 @@ OIDN_NAMESPACE_BEGIN
   {
   public:
     using DeviceFactory::newDevice;
+
+    virtual bool isDeviceSupported(int deviceID) = 0;
     virtual Ref<Device> newDevice(const int* deviceIDs, const hipStream_t* streams, int numPairs) = 0;
   };
 
@@ -39,6 +45,8 @@ OIDN_NAMESPACE_BEGIN
   {
   public:
     using DeviceFactory::newDevice;
+
+    virtual bool isDeviceSupported(MTLDevice_id device) = 0;
     virtual Ref<Device> newDevice(const MTLCommandQueue_id* commandQueues, int numQueues) = 0;
   };
 

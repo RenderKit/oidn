@@ -30,6 +30,7 @@ OIDN_NAMESPACE_BEGIN
   public:
     static std::vector<Ref<PhysicalDevice>> getPhysicalDevices();
     static bool isSupported(const cudaDeviceProp& prop);
+    static bool isSupported(int deviceID);
 
     CUDADevice(int deviceID, cudaStream_t stream);
     explicit CUDADevice(const Ref<CUDAPhysicalDevice>& physicalDevice);
@@ -39,7 +40,6 @@ OIDN_NAMESPACE_BEGIN
     void leave() override;
 
     DeviceType getType() const override { return DeviceType::CUDA; }
-    bool isSupported() const override;
 
     Storage getPtrStorage(const void* ptr) override;
 

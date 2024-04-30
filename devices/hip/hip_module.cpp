@@ -9,6 +9,11 @@ OIDN_NAMESPACE_BEGIN
   class HIPDeviceFactory : public HIPDeviceFactoryBase
   {
   public:
+    bool isDeviceSupported(int deviceID) override
+    {
+      return HIPDevice::isSupported(deviceID);
+    }
+
     Ref<Device> newDevice(const int* deviceIDs, const hipStream_t* streams, int numPairs) override
     {
       if (numPairs != 1)

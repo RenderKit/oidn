@@ -15,6 +15,7 @@
   #else
     namespace sycl
     {
+      class device;
       class queue;
       class event;
     }
@@ -25,12 +26,15 @@ typedef struct CUstream_st* cudaStream_t;
 typedef struct ihipStream_t* hipStream_t;
 
 #if defined(__OBJC__)
+  @protocol MTLDevice;
   @protocol MTLCommandQueue;
   @protocol MTLBuffer;
 
+  typedef id<MTLDevice> MTLDevice_id;
   typedef id<MTLCommandQueue> MTLCommandQueue_id;
   typedef id<MTLBuffer> MTLBuffer_id;
 #else
+  typedef void* MTLDevice_id;
   typedef void* MTLCommandQueue_id;
   typedef void* MTLBuffer_id;
 #endif
@@ -99,6 +103,23 @@ typedef void (*OIDNErrorFunction)(void* userPtr, OIDNError code, const char* mes
 
 // Device handle
 typedef struct OIDNDeviceImpl* OIDNDevice;
+
+// Returns whether the CPU device is supported.
+OIDN_API bool oidnIsCPUDeviceSupported();
+
+#if defined(__cplusplus)
+// Returns whether the specified SYCL device is supported.
+OIDN_API bool oidnIsSYCLDeviceSupported(const sycl::device* device);
+#endif
+
+// Returns whether the specified CUDA device is supported.
+OIDN_API bool oidnIsCUDADeviceSupported(int deviceID);
+
+// Returns whether the specified HIP device is supported.
+OIDN_API bool oidnIsHIPDeviceSupported(int deviceID);
+
+// Returns whether the specified Metal device is supported.
+OIDN_API bool oidnIsMetalDeviceSupported(MTLDevice_id device);
 
 // Creates a device of the specified type.
 OIDN_API OIDNDevice oidnNewDevice(OIDNDeviceType type);
@@ -199,9 +220,6 @@ OIDN_API void oidnSetDeviceErrorFunction(OIDNDevice device, OIDNErrorFunction fu
 // a NULL device as well to check for per-thread global errors (e.g. why a device creation or
 // physical device query has failed).
 OIDN_API OIDNError oidnGetDeviceError(OIDNDevice device, const char** outMessage);
-
-// Returns whether the device is supported without the need to commit it first.
-OIDN_API bool oidnIsDeviceSupported(OIDNDevice device);
 
 // Commits all previous changes to the device.
 // Must be called before first using the device (e.g. creating filters).

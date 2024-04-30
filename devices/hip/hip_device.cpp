@@ -101,6 +101,14 @@ OIDN_NAMESPACE_BEGIN
       return HIPArch::Unknown;
   }
 
+  bool HIPDevice::isSupported(int deviceID)
+  {
+    hipDeviceProp_t prop{};
+    if (hipGetDeviceProperties(&prop, deviceID) != hipSuccess)
+      return false;
+    return getArch(prop) != HIPArch::Unknown;
+  }
+
   HIPDevice::HIPDevice(int deviceID, hipStream_t stream)
     : deviceID(deviceID),
       stream(stream)
@@ -141,14 +149,6 @@ OIDN_NAMESPACE_BEGIN
     // Restore the previous HIP device
     if (prevDeviceID >= 0 && deviceID != prevDeviceID)
       checkError(hipSetDevice(prevDeviceID));
-  }
-
-  bool HIPDevice::isSupported() const
-  {
-    hipDeviceProp_t prop{};
-    if (hipGetDeviceProperties(&prop, deviceID) != hipSuccess)
-      return false;
-    return getArch(prop) != HIPArch::Unknown;
   }
 
   void HIPDevice::init()

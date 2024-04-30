@@ -193,6 +193,63 @@ OIDN_API_NAMESPACE_BEGIN
     return nullptr;
   }
 
+  OIDN_API bool oidnIsCPUDeviceSupported()
+  {
+    OIDN_TRY
+      OIDN_INIT_CONTEXT(ctx, DeviceType::CPU);
+      return ctx.isDeviceSupported(DeviceType::CPU);
+    OIDN_CATCH
+    return false;
+  }
+
+  OIDN_API bool oidnIsSYCLDeviceSupported(const sycl::device* device)
+  {
+    OIDN_TRY
+      OIDN_INIT_CONTEXT(ctx, DeviceType::SYCL);
+      if (!ctx.isDeviceSupported(DeviceType::SYCL))
+        return false;
+      auto factory = static_cast<SYCLDeviceFactoryBase*>(ctx.getDeviceFactory(DeviceType::SYCL));
+      return factory->isDeviceSupported(device);
+    OIDN_CATCH
+    return false;
+  }
+
+  OIDN_API bool oidnIsCUDADeviceSupported(int deviceID)
+  {
+    OIDN_TRY
+      OIDN_INIT_CONTEXT(ctx, DeviceType::CUDA);
+      if (!ctx.isDeviceSupported(DeviceType::CUDA))
+        return false;
+      auto factory = static_cast<CUDADeviceFactoryBase*>(ctx.getDeviceFactory(DeviceType::CUDA));
+      return factory->isDeviceSupported(deviceID);
+    OIDN_CATCH
+    return false;
+  }
+
+  OIDN_API bool oidnIsHIPDeviceSupported(int deviceID)
+  {
+    OIDN_TRY
+      OIDN_INIT_CONTEXT(ctx, DeviceType::HIP);
+      if (!ctx.isDeviceSupported(DeviceType::HIP))
+        return false;
+      auto factory = static_cast<HIPDeviceFactoryBase*>(ctx.getDeviceFactory(DeviceType::HIP));
+      return factory->isDeviceSupported(deviceID);
+    OIDN_CATCH
+    return false;
+  }
+
+  OIDN_API bool oidnIsMetalDeviceSupported(MTLDevice_id device)
+  {
+    OIDN_TRY
+      OIDN_INIT_CONTEXT(ctx, DeviceType::Metal);
+      if (!ctx.isDeviceSupported(DeviceType::Metal))
+        return false;
+      auto factory = static_cast<MetalDeviceFactoryBase*>(ctx.getDeviceFactory(DeviceType::Metal));
+      return factory->isDeviceSupported(device);
+    OIDN_CATCH
+    return false;
+  }
+
   OIDN_API OIDNDevice oidnNewDevice(OIDNDeviceType inType)
   {
     DeviceType type = static_cast<DeviceType>(inType);
@@ -474,17 +531,6 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_CATCH_DEVICE(device)
     if (outMessage) *outMessage = "";
     return OIDN_ERROR_UNKNOWN;
-  }
-
-  OIDN_API bool oidnIsDeviceSupported(OIDNDevice hDevice)
-  {
-    Device* device = reinterpret_cast<Device*>(hDevice);
-    OIDN_TRY
-      checkHandle(hDevice);
-      OIDN_LOCK_DEVICE(device);
-      return device->isCommitted() || device->isSupported();
-    OIDN_CATCH_DEVICE(device)
-    return false;
   }
 
   OIDN_API void oidnCommitDevice(OIDNDevice hDevice)

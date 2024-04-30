@@ -40,7 +40,6 @@ OIDN_NAMESPACE_BEGIN
     CPUDevice();
 
     DeviceType getType() const override { return DeviceType::CPU; }
-    bool isSupported() const override;
 
   #if !defined(OIDN_DNNL)
     bool needWeightAndBiasOnDevice() const override { return false; } // no need to copy

@@ -725,12 +725,6 @@ OIDN_NAMESPACE_BEGIN
       return static_cast<Error>(oidnGetDeviceError(handle, &outMessage));
     }
 
-    // Returns whether the device is supported without the need to commit it first.
-    bool isSupported()
-    {
-      return oidnIsDeviceSupported(handle);
-    }
-
     // Commits all previous changes to the device.
     // Must be called before first using the device (e.g. creating filters).
     void commit()
@@ -837,6 +831,36 @@ OIDN_NAMESPACE_BEGIN
   inline Error getError(const char*& outMessage)
   {
     return static_cast<Error>(oidnGetDeviceError(nullptr, &outMessage));
+  }
+
+  // Returns whether the CPU device is supported.
+  inline bool isCPUDeviceSupported()
+  {
+    return oidnIsCPUDeviceSupported();
+  }
+
+  // Returns whether the specified SYCL device is supported.
+  inline bool isSYCLDeviceSupported(const sycl::device& device)
+  {
+    return oidnIsSYCLDeviceSupported(&device);
+  }
+
+  // Returns whether the specified CUDA device is supported.
+  inline bool isCUDADeviceSupported(int deviceID)
+  {
+    return oidnIsCUDADeviceSupported(deviceID);
+  }
+
+  // Returns whether the specified HIP device is supported.
+  inline bool isHIPDeviceSupported(int deviceID)
+  {
+    return oidnIsHIPDeviceSupported(deviceID);
+  }
+
+  // Returns whether the specified Metal device is supported.
+  inline bool isMetalDeviceSupported(MTLDevice_id device)
+  {
+    return oidnIsMetalDeviceSupported(device);
   }
 
   // Creates a device of the specified type.

@@ -105,6 +105,11 @@ OIDN_NAMESPACE_BEGIN
     return devices;
   }
 
+  bool SYCLDevice::isSupported(const sycl::device& syclDevice)
+  {
+    return getArch(syclDevice) != SYCLArch::Unknown;
+  }
+
   SYCLArch SYCLDevice::getArch(const sycl::device& syclDevice)
   {
     // Check whether the device supports the required features
@@ -230,41 +235,6 @@ OIDN_NAMESPACE_BEGIN
 
     // Get default values from environment variables
     getEnvVar("OIDN_NUM_SUBDEVICES", numSubdevices);
-  }
-
-  bool SYCLDevice::isSupported() const
-  {
-    if (syclQueues.empty() && physicalDevice)
-    {
-      try
-      {
-        sycl::device syclDevice = physicalDevice->syclDevice;
-        return getArch(syclDevice) != SYCLArch::Unknown;
-      }
-      catch (const sycl::exception& e)
-      {
-        return false;
-      }
-    }
-    else if (!syclQueues.empty())
-    {
-      SYCLArch firstArch = SYCLArch::Unknown;
-      for (size_t i = 0; i < syclQueues.size(); ++i)
-      {
-        const SYCLArch curArch = getArch(syclQueues[i].get_device());
-        if (curArch == SYCLArch::Unknown)
-          return false;
-
-        if (i == 0)
-          firstArch = curArch;
-        else if (syclQueues[i].get_context() != syclQueues[0].get_context() || curArch != firstArch)
-          return false;
-      }
-
-      return true;
-    }
-    else
-      return false;
   }
 
   void SYCLDevice::init()

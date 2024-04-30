@@ -383,6 +383,14 @@ Type        Name                   Description
 ----------- ---------------------  -----------------------------------------------------------------
 : Constant parameters supported by physical devices.
 
+It is also possible to directly query whether a physical device of a particular
+type is supported, without iterating over all supported physical devices:
+
+    bool oidnIsCPUDeviceSupported();
+    bool oidnIsSYCLDeviceSupported(const sycl::device* device);
+    bool oidnIsCUDADeviceSupported(int deviceID);
+    bool oidnIsHIPDeviceSupported(int deviceID);
+    bool oidnIsMetalDeviceSupported(MTLDevice_id device);
 
 Devices
 -------
@@ -538,13 +546,6 @@ Once parameters are set on the created device, the device must be committed with
 
 This device can then be used to construct further objects, such as buffers and
 filters. Note that a device can be committed only once during its lifetime.
-
-If the goal is not to set up a device object for actual use yet but only to
-check whether the device with the current parameters is supported, the following
-function could be called instead, which does not require committing the device
-first (which could be potentially more expensive):
-
-    bool oidnIsDeviceSupported(OIDNDevice device);
 
 Some functions may execute asynchronously with respect to the host. The names of
 these functions are suffixed with `Async`. Asynchronous operations are executed

@@ -9,6 +9,13 @@ OIDN_NAMESPACE_BEGIN
   class SYCLDeviceFactory : public SYCLDeviceFactoryBase
   {
   public:
+    bool isDeviceSupported(const sycl::device* device) override
+    {
+      if (device == nullptr)
+        throw Exception(Error::InvalidArgument, "SYCL device is null");
+      return SYCLDevice::isSupported(*device);
+    }
+
     Ref<Device> newDevice(const sycl::queue* queues, int numQueues) override
     {
       if (numQueues < 1)

@@ -42,6 +42,9 @@ OIDN_NAMESPACE_BEGIN
 
   bool MetalDevice::isSupported(id<MTLDevice> device)
   {
+    if (!device)
+      throw Exception(Error::InvalidArgument, "Metal device is null");
+
     if (@available(macOS 13, iOS 16, tvOS 16, *))
     {
       return [device supportsFamily: MTLGPUFamilyMetal3] &&
@@ -69,11 +72,6 @@ OIDN_NAMESPACE_BEGIN
   MetalDevice::~MetalDevice()
   {
     [device release];
-  }
-
-  bool MetalDevice::isSupported() const
-  {
-    return isSupported(device);
   }
 
   void MetalDevice::init()

@@ -10,6 +10,11 @@ OIDN_NAMESPACE_BEGIN
   class MetalDeviceFactory : public MetalDeviceFactoryBase
   {
   public:
+    bool isDeviceSupported(MTLDevice_id device) override
+    {
+      return MetalDevice::isSupported(device);
+    }
+
     Ref<Device> newDevice(const Ref<PhysicalDevice>& physicalDevice) override
     {
       assert(physicalDevice->type == DeviceType::Metal);

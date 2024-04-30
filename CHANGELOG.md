@@ -19,8 +19,10 @@ Version History
     implicitly falls back to *balanced* mode.
 -   Execute `Async` functions asynchronously on CPU devices as well
 -   Load/initialize device modules lazily (improves stability)
--   Added the `oidnIsDeviceSupported` API function for checking whether the
-    device is supported without the need to commit it first
+-   Added `oidnIsCPUDeviceSupported`, `oidnIsSYCLDeviceSupported`,
+    `oidnIsCUDADeviceSupported`, `oidnIsHIPDeviceSupported`,
+    and `oidnIsMetalDeviceSupported` API functions for checking whether a
+    physical device of a particular type is supported
 -   Release the CUDA primary context when destroying the device object if using
     the CUDA driver API
 -   Fixed device creation error with `oidnNewDevice` when the default device of
