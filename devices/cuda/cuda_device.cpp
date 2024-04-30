@@ -108,10 +108,7 @@ OIDN_NAMESPACE_BEGIN
   CUDADevice::CUDADevice(int deviceID, cudaStream_t stream)
     : deviceID(deviceID),
       stream(stream)
-  {
-    if (deviceID < 0) // deprecated behavior
-      this->deviceID = 0;
-  }
+  {}
 
   CUDADevice::CUDADevice(const Ref<CUDAPhysicalDevice>& physicalDevice)
     : deviceID(physicalDevice->deviceID)

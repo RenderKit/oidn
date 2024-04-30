@@ -27,6 +27,9 @@ Version History
     the specified type (e.g. CUDA) is not supported but there are other
     supported non-default devices of that type in the system
 -   Added support for building with ROCm 6.x
+-   `oidnNewCUDADevice` and `oidnNewHIPDevice` no longer accept negative device
+    IDs. If the goal is to use the current device, its actual ID needs to be
+    passed.
 
 ### Changes in v2.2.2:
 

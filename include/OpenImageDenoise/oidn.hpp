@@ -885,16 +885,15 @@ OIDN_NAMESPACE_BEGIN
   }
 #endif
 
-  // Creates a device from the specified CUDA device ID (negative value maps to the current device)
-  // and stream.
+  // Creates a device from the specified CUDA device ID and stream (null stream corresponds to the
+  // default stream).
   inline DeviceRef newCUDADevice(int deviceID, cudaStream_t stream)
   {
     return DeviceRef(oidnNewCUDADevice(&deviceID, &stream, 1));
   }
 
-  // Creates a device from the specified pairs of CUDA device IDs (negative ID corresponds to the
-  // current device) and streams (null stream corresponds to the default stream).
-  // Currently only one device ID/stream is supported.
+  // Creates a device from the specified pairs of CUDA device IDs and streams (null stream
+  // corresponds to the default stream). Currently only one device ID/stream is supported.
   inline DeviceRef newCUDADevice(const std::vector<int>& deviceIDs,
                                  const std::vector<cudaStream_t>& streams)
   {
@@ -903,16 +902,15 @@ OIDN_NAMESPACE_BEGIN
                                        static_cast<int>(streams.size())));
   }
 
-  // Creates a device from the specified HIP device ID (negative ID corresponds to the current
-  // device) and stream (null stream corresponds to the default stream).
+  // Creates a device from the specified HIP device ID and stream (null stream corresponds to the
+  // default stream).
   inline DeviceRef newHIPDevice(int deviceID, hipStream_t stream)
   {
     return DeviceRef(oidnNewHIPDevice(&deviceID, &stream, 1));
   }
 
-  // Creates a device from the specified pairs of HIP device IDs (negative ID corresponds to the
-  // current device) and streams (null stream corresponds to the default stream).
-  // Currently only one device ID/stream is supported.
+  // Creates a device from the specified pairs of HIP device IDs and streams (null stream
+  // corresponds to the default stream). Currently only one device ID/stream is supported.
   inline DeviceRef newHIPDevice(const std::vector<int>& deviceIDs,
                                 const std::vector<hipStream_t>& streams)
   {

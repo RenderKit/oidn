@@ -123,15 +123,13 @@ OIDN_API OIDNDevice oidnNewDeviceByPCIAddress(int pciDomain, int pciBus, int pci
 OIDN_API OIDNDevice oidnNewSYCLDevice(const sycl::queue* queues, int numQueues);
 #endif
 
-// Creates a device from the specified pairs of CUDA device IDs (negative ID corresponds to the
-// current device) and streams (null stream corresponds to the default stream).
-// Currently only one device ID/stream is supported.
+// Creates a device from the specified pairs of CUDA device IDs and streams (null stream
+// corresponds to the default stream). Currently only one device ID/stream is supported.
 OIDN_API OIDNDevice oidnNewCUDADevice(const int* deviceIDs, const cudaStream_t* streams,
                                       int numPairs);
 
-// Creates a device from the specified pairs of HIP device IDs (negative ID corresponds to the
-// current device) and streams (null stream corresponds to the default stream).
-// Currently only one device ID/stream is supported.
+// Creates a device from the specified pairs of HIP device IDs and streams (null stream
+// corresponds to the default stream). Currently only one device ID/stream is supported.
 OIDN_API OIDNDevice oidnNewHIPDevice(const int* deviceIDs, const hipStream_t* streams,
                                      int numPairs);
 

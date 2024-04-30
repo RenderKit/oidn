@@ -104,10 +104,7 @@ OIDN_NAMESPACE_BEGIN
   HIPDevice::HIPDevice(int deviceID, hipStream_t stream)
     : deviceID(deviceID),
       stream(stream)
-  {
-    if (deviceID < 0) // deprecated behavior
-      this->deviceID = 0;
-  }
+  {}
 
   HIPDevice::HIPDevice(const Ref<HIPPhysicalDevice>& physicalDevice)
     : deviceID(physicalDevice->deviceID)
