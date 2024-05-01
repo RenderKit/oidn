@@ -519,7 +519,7 @@ OIDN_NAMESPACE_BEGIN
       oidnExecuteFilterAsync(handle);
     }
 
-  #if defined(SYCL_LANGUAGE_VERSION)
+  #if defined(OIDN_SYCL_HPP)
     // Executes the filter of a SYCL device using the specified dependent events asynchronously, and
     // optionally returns an event for completion.
     sycl::event executeAsync(const std::vector<sycl::event>& depEvents)
@@ -840,10 +840,12 @@ OIDN_NAMESPACE_BEGIN
   }
 
   // Returns whether the specified SYCL device is supported.
+#if defined(OIDN_SYCL_HPP)
   inline bool isSYCLDeviceSupported(const sycl::device& device)
   {
     return oidnIsSYCLDeviceSupported(&device);
   }
+#endif
 
   // Returns whether the specified CUDA device is supported.
   inline bool isCUDADeviceSupported(int deviceID)
@@ -893,7 +895,7 @@ OIDN_NAMESPACE_BEGIN
     return DeviceRef(oidnNewDeviceByPCIAddress(pciDomain, pciBus, pciDevice, pciFunction));
   }
 
-#if defined(SYCL_LANGUAGE_VERSION)
+#if defined(OIDN_SYCL_HPP)
   // Creates a device from the specified SYCL queue.
   inline DeviceRef newSYCLDevice(const sycl::queue& queue)
   {

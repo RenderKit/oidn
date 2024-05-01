@@ -11,7 +11,10 @@
 
 #if defined(__cplusplus)
   #if defined(SYCL_LANGUAGE_VERSION)
-    #include <CL/sycl.hpp>
+    #include <sycl/sycl.hpp>
+    #define OIDN_SYCL_HPP
+  #elif defined(SYCL_FEATURE_SET_FULL) || defined(SYCL_FEATURE_SET_REDUCED)
+    #define OIDN_SYCL_HPP // not using a SYCL compiler but SYCL headers are included
   #else
     namespace sycl
     {
