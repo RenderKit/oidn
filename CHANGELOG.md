@@ -6,17 +6,17 @@ Version History
 -   Significantly improved image quality of the `RT` filter in *high* quality
     mode for HDR denoising with prefiltering, i.e., the following combinations
     of input features and parameters:
-        -  HDR color + albedo + normal + `cleanAux`
-        -  albedo
-        -  normal
+        -   HDR color + albedo + normal + `cleanAux`
+        -   albedo
+        -   normal
     In these cases a much more complex filter is used, which results in lower
     performance than before (about 2x). To revert to the previous performance
     behavior, please switch to the *balanced* quality mode.
--   Added *fast* quality mode for even higher performance (about 1.5-2x)
-    interactive/real-time previews and lower default memory usage at the cost of
-    somewhat lower image quality. Currently this is implemented for the `RT`
-    filter except prefiltering (albedo, normal). In other cases denoising
-    implicitly falls back to *balanced* mode.
+-   Added *fast* quality mode (`OIDN_QUALITY_FAST`) for even higher performance
+    (about 1.5-2x) interactive/real-time previews and lower default memory usage
+    at the cost of somewhat lower image quality. Currently this is implemented
+    for the `RT` filter except prefiltering (albedo, normal). In other cases
+    denoising implicitly falls back to *balanced* mode.
 -   Execute `Async` functions asynchronously on CPU devices as well
 -   Load/initialize device modules lazily (improves stability)
 -   Added `oidnIsCPUDeviceSupported`, `oidnIsSYCLDeviceSupported`,
@@ -32,6 +32,7 @@ Version History
 -   `oidnNewCUDADevice` and `oidnNewHIPDevice` no longer accept negative device
     IDs. If the goal is to use the current device, its actual ID needs to be
     passed.
+-   Upgraded to oneTBB 2021.12.0 in the official binaries
 
 ### Changes in v2.2.2:
 
