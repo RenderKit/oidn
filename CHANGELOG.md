@@ -35,6 +35,13 @@ Version History
 -   Upgraded to oneTBB 2021.12.0 in the official binaries
 -   Training:
     -   Improved training performance, especially for MPS devices on macOS
+    -   Added `--quality` option (`high`, `balanced`, `fast`) for selecting the
+        size of the model to train, changed the default from `balanced` to `high`
+    -   Added new models to the `--model` option (`unet_small`, `unet_large`,
+        `unet_xl`)
+    -   Added support for training with prefiltered auxiliary features by
+        passing `--aux_results` to `preprocess.py` and `train.py`
+    -   Added experimental support for depth (`z`)
 
 ### Changes in v2.2.2:
 

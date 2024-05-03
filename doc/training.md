@@ -153,9 +153,16 @@ multiple models with different combinations of the preprocessed features.
 
 By default, all input features are assumed to be noisy, including the auxiliary
 features (e.g. albedo, normal), each having versions at different samples per
-pixel. However, it is also possible to train with noise-free auxiliary features,
+pixel. It is also possible to train with noise-free auxiliary features,
 in which case the reference auxiliary features are used instead of the various
-noisy ones (`--clean_aux` option).
+noisy ones (`--clean_aux` option). This improves quality significantly if the
+auxiliary features used for inference will be either originally noise-free or
+prefiltered with separately trained auxiliary feature denoising models. If
+inference will be done only with prefiltered features, even higher quality can
+be achieved by training with prefiltered features instead of the reference
+onces. This can be achieved by first training the auxiliary feature models and
+then specifying the list of these results when preprocessing the dataset for
+the main feature (`--aux_results` or `-a` option).
 
 Preprocessing also depends on the filter that will be trained (e.g. determines
 which HDR/LDR transfer function has to be used), which should be also specified
@@ -189,7 +196,14 @@ to support for a particular filter, one or more models have to be trained.
 After preprocessing the datasets, it is possible to start training a model using
 the `train.py` script. Similar to the preprocessing script, the input features
 must be specified (could be a subset of the preprocessed features), and the
-dataset names, directory paths, and the filter can be also passed.
+dataset names, directory paths, and the filter can be also passed. If the
+`--clean_aux` or `--aux_results` options were specified for preprocessing, these
+must be passed identically to the training script as well.
+
+Open Image Denoise uses models of different sizes for different quality modes
+(high, balanced, fast). Specifying the quality mode (`--quality` or `-q`
+option) will cause the model to be implicitly selected, or the model
+can be specified explicitly as well (`--model` or `-m` option).
 
 The tool will produce a training *result*, the name of which can be either
 specified (`--result` or `-r` option) or automatically generated (by default).
@@ -256,8 +270,7 @@ Example usage:
 
 The inference tool supports prefiltering of auxiliary features as well, which
 can be performed by specifying the list of training results for each feature to
-prefilter (`--aux_results` or `-a` option). This is primarily useful for
-evaluating the quality of models trained with clean auxiliary features.
+prefilter (`--aux_results` or `-a` option).
 
 Exporting Results (export.py)
 -----------------------------
