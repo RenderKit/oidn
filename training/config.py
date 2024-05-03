@@ -68,8 +68,8 @@ def parse_args(cmd=None, description=None):
                         choices=['RT', 'RTLightmap'],
                         help='filter to train (determines some default arguments)')
     parser.add_argument('--quality', '-q', type=str,
-                        choices=['balanced', 'high', 'fast'],
-                        default='balanced',
+                        choices=['high', 'balanced', 'fast'],
+                        default='high',
                         help='filter quality (determines some default arguments')
     parser.add_argument('--preproc_dir', '-P', type=str, default='preproc',
                         help='directory of preprocessed datasets')
