@@ -33,6 +33,8 @@ Version History
     IDs. If the goal is to use the current device, its actual ID needs to be
     passed.
 -   Upgraded to oneTBB 2021.12.0 in the official binaries
+-   Training:
+    -   Improved training performance, especially for MPS devices on macOS
 
 ### Changes in v2.2.2:
 
