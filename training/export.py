@@ -52,8 +52,7 @@ def export_weights(cfg):
 
   with tza.Writer(output_filename) as output_file:
     for name, value in model_state.items():
-      # Export in FP16 if the model was trained with mixed precision
-      tensor = value.half() if result_cfg.precision == "mixed" else value
+      tensor = value.half()
       tensor = tensor.cpu().numpy()
       print(name, tensor.shape)
 
