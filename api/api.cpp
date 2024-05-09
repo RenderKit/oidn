@@ -145,8 +145,10 @@ OIDN_API_NAMESPACE_BEGIN
   {
     OIDN_TRY
       Context& ctx = initContext();
+      //printf("created context");
       return ctx.getNumPhysicalDevices();
     OIDN_CATCH
+    //printf("could not create context");
     return 0;
   }
 
@@ -203,6 +205,7 @@ OIDN_API_NAMESPACE_BEGIN
 
       if (type == DeviceType::Default)
       {
+          //printf("looking for supported default devices");
         const int numDevices = ctx.getNumPhysicalDevices();
         if (numDevices == 0)
           throw Exception(Error::UnsupportedHardware, "no supported devices found");

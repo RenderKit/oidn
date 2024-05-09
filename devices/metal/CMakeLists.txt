@@ -34,7 +34,7 @@ metallib_target_add_sources(OpenImageDenoise_device_metal metal_kernels
   INCLUDE_DIRECTORIES
     ${PROJECT_SOURCE_DIR}
   COMPILE_OPTIONS
-    -std=metal3.0 -fno-fast-math -mmacosx-version-min=13.0
+    -std=metal3.0 -fno-fast-math -mios-version-min=13.0
 )
 
 set_property(TARGET OpenImageDenoise_device_metal PROPERTY VERSION ${PROJECT_VERSION})

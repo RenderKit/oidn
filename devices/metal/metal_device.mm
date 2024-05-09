@@ -25,15 +25,22 @@ OIDN_NAMESPACE_BEGIN
     @autoreleasepool
     {
       std::vector<Ref<PhysicalDevice>> physicalDevices;
-      NSArray* devices = [MTLCopyAllDevices() autorelease];
+      //NSArray* devices = [MTLCopyAllDevices() autorelease];
+      id<MTLDevice> defaultDevice = MTLCreateSystemDefaultDevice();
+      
+      NSArray* devices = @[defaultDevice];
       const int numDevices = static_cast<int>(devices.count);
+      printf("Number of physical devices found: %d\n", numDevices);
+        
       for (int deviceID = 0; deviceID < numDevices; ++deviceID)
       {
         id<MTLDevice> device = devices[deviceID];
+          //printf("evaluating a device");
         if (MetalDevice::isSupported(device))
         {
           const int score = (2 << 16) - 1 - deviceID;
           physicalDevices.push_back(makeRef<MetalPhysicalDevice>(device, score));
+          //printf("found a supported device");
         }
       }
       return physicalDevices;
@@ -45,7 +52,7 @@ OIDN_NAMESPACE_BEGIN
     if (@available(macOS 13, iOS 16, tvOS 16, *))
     {
       return [device supportsFamily: MTLGPUFamilyMetal3] &&
-             [device supportsFamily: MTLGPUFamilyApple7] && // validated only on Apple GPUs
+             [device supportsFamily: MTLGPUFamilyApple6] && // validated only on Apple GPUs - changed this to support A13
              device.maxThreadsPerThreadgroup.width >= 1024;
 
     }

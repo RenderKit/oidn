@@ -16,8 +16,8 @@ OIDN_NAMESPACE_BEGIN
       return MTLResourceStorageModeShared | MTLResourceCPUCacheModeDefaultCache;
     case Storage::Device:
       return MTLResourceStorageModePrivate;
-    case Storage::Managed:
-      return MTLResourceStorageModeManaged | MTLResourceCPUCacheModeDefaultCache;
+    //case Storage::Managed:
+      //return MTLResourceStorageModeManaged | MTLResourceCPUCacheModeDefaultCache;
     default:
       throw Exception(Error::InvalidArgument, "invalid storage mode");
     }

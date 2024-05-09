@@ -32,7 +32,7 @@ function(metallib_target_add_sources target metallib)
 
     add_custom_command(
       OUTPUT ${air_file}
-      COMMAND xcrun -sdk macosx metal
+      COMMAND xcrun -sdk iphoneos metal
                 -c ${src_file}
                 ${include_dirs}
                 ${compile_defs}
@@ -53,7 +53,7 @@ function(metallib_target_add_sources target metallib)
 
   add_custom_command(
     OUTPUT ${metallib_file}
-    COMMAND xcrun -sdk macosx metallib ${air_files} -o ${metallib_file}
+    COMMAND xcrun -sdk iphoneos metallib ${air_files} -o ${metallib_file}
     DEPENDS ${air_files}
     COMMENT "Linking Metal library ${metallib_file_rel}"
   )
