@@ -35,12 +35,12 @@ OIDN_NAMESPACE_BEGIN
       for (int deviceID = 0; deviceID < numDevices; ++deviceID)
       {
         id<MTLDevice> device = devices[deviceID];
-          //printf("evaluating a device");
+          //printf("evaluating a device \n");
         if (MetalDevice::isSupported(device))
         {
           const int score = (2 << 16) - 1 - deviceID;
           physicalDevices.push_back(makeRef<MetalPhysicalDevice>(device, score));
-          //printf("found a supported device");
+          //printf("found a supported device \n");
         }
       }
       return physicalDevices;
