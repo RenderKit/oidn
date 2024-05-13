@@ -3,8 +3,6 @@
 
 cmake_minimum_required(VERSION 3.15)
 
-#set(CMAKE_OSX_SYSROOT "/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk" CACHE PATH "OSX sysroot")
-
 # Get the library version
 include(cmake/oidn_version.cmake)
 
