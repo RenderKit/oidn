@@ -2,7 +2,7 @@
 ## SPDX-License-Identifier: Apache-2.0
 
 if(NOT IOS)
-  set(SDK_VERSION_COMMAND  xcrun -sdk  iphoneos --show-sdk-version)
+  set(SDK_VERSION_COMMAND  xcrun -sdk  macosx --show-sdk-version)
   set(SDK_TARGET 14.0)
 else()
   set(SDK_VERSION_COMMAND  xcrun -sdk  iphoneos --show-sdk-version)

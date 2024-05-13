@@ -172,3 +172,7 @@ endif()
 if(OIDN_DEVICE_METAL)
   add_subdirectory(metal)
 endif()
+
+if(OIDN_METAL_IOS)
+  
+endif()

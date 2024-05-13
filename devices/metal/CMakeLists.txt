@@ -29,13 +29,24 @@ set(OIDN_METAL_SOURCES
 
 add_library(OpenImageDenoise_device_metal ${OIDN_LIB_TYPE} ${OIDN_METAL_SOURCES} ${OIDN_RESOURCE_FILE})
 
-metallib_target_add_sources(OpenImageDenoise_device_metal metal_kernels
-  metal_kernels.metal
-  INCLUDE_DIRECTORIES
-    ${PROJECT_SOURCE_DIR}
-  COMPILE_OPTIONS
-    -std=metal3.0 -fno-fast-math -mios-version-min=13.0
-)
+if (OIDN_METAL_IOS)
+    metallib_target_add_sources(OpenImageDenoise_device_metal metal_kernels
+      metal_kernels.metal
+      INCLUDE_DIRECTORIES
+        ${PROJECT_SOURCE_DIR}
+      COMPILE_OPTIONS
+        -std=metal3.0 -fno-fast-math -mios-version-min=13.0
+    )
+else()
+    metallib_target_add_sources(OpenImageDenoise_device_metal metal_kernels
+      metal_kernels.metal
+      INCLUDE_DIRECTORIES
+        ${PROJECT_SOURCE_DIR}
+      COMPILE_OPTIONS
+        -std=metal3.0 -fno-fast-math -mmacosx-version-min=13.0
+    )
+
+endif()
 
 set_property(TARGET OpenImageDenoise_device_metal PROPERTY VERSION ${PROJECT_VERSION})
 set_property(TARGET OpenImageDenoise_device_metal PROPERTY CXX_STANDARD 17)

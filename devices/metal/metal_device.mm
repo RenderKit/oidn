@@ -25,10 +25,14 @@ OIDN_NAMESPACE_BEGIN
     @autoreleasepool
     {
       std::vector<Ref<PhysicalDevice>> physicalDevices;
-      //NSArray* devices = [MTLCopyAllDevices() autorelease];
-      id<MTLDevice> defaultDevice = MTLCreateSystemDefaultDevice();
+      NSArray* devices;
+#ifdef MULTIPLE_DEVICES_UNSUPPORTED
+          id<MTLDevice> defaultDevice = MTLCreateSystemDefaultDevice();
+          devices = @[defaultDevice];
+#else
+          devices = [MTLCopyAllDevices() autorelease];
+#endif
       
-      NSArray* devices = @[defaultDevice];
       const int numDevices = static_cast<int>(devices.count);
       printf("Number of physical devices found: %d\n", numDevices);
         

@@ -17,6 +17,13 @@ function(metallib_target_add_sources target metallib)
   foreach(def ${METAL_COMPILE_DEFINITIONS})
     list(APPEND compile_defs "-D${def}")
   endforeach()
+  
+  # Select the appropriate SDK based on OIDN_METAL_IOS
+    if(OIDN_METAL_IOS)
+        set(sdk "iphoneos")
+    else()
+        set(sdk "macosx")
+    endif()
 
   # Compile each Metal shader to an AIR (Apple Intermediate Representation) file
   set(air_files "")
@@ -32,7 +39,7 @@ function(metallib_target_add_sources target metallib)
 
     add_custom_command(
       OUTPUT ${air_file}
-      COMMAND xcrun -sdk iphoneos metal
+      COMMAND xcrun -sdk ${sdk} metal
                 -c ${src_file}
                 ${include_dirs}
                 ${compile_defs}
@@ -53,7 +60,7 @@ function(metallib_target_add_sources target metallib)
 
   add_custom_command(
     OUTPUT ${metallib_file}
-    COMMAND xcrun -sdk iphoneos metallib ${air_files} -o ${metallib_file}
+    COMMAND xcrun -sdk ${sdk} metallib ${air_files} -o ${metallib_file}
     DEPENDS ${air_files}
     COMMENT "Linking Metal library ${metallib_file_rel}"
   )

@@ -153,10 +153,17 @@ if((UNIX OR MINGW) AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
   append(CMAKE_SHARED_LINKER_FLAGS "-diag-disable:10237")
 endif()
 
+
+#check add a check for the OSX_ARCHITECTURES
 if(APPLE)
   # Make sure code runs on older macOS versions
   if(OIDN_ARCH STREQUAL "ARM64")
-    set(CMAKE_OSX_DEPLOYMENT_TARGET 11.0)
+  #ensure MPS Graph support on ios
+    if(OIDN_METAL_IOS) 
+      set(CMAKE_OSX_DEPLOYMENT_TARGET 14.0)
+    else()
+      set(CMAKE_OSX_DEPLOYMENT_TARGET 11.0)
+    endif()
   else()
     set(CMAKE_OSX_DEPLOYMENT_TARGET 10.11)
   endif()

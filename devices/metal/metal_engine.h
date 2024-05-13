@@ -6,6 +6,12 @@
 
 #include "core/engine.h"
 #include "metal_device.h"
+#include "TargetConditionals.h"
+
+#if TARGET_OS_IOS
+#define MANAGED_BUFFERS_UNSUPPORTED
+#define MULTIPLE_DEVICES_UNSUPPORTED
+#endif
 
 OIDN_NAMESPACE_BEGIN
 
