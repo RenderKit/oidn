@@ -34,17 +34,14 @@ OIDN_NAMESPACE_BEGIN
 #endif
       
       const int numDevices = static_cast<int>(devices.count);
-      printf("Number of physical devices found: %d\n", numDevices);
         
       for (int deviceID = 0; deviceID < numDevices; ++deviceID)
       {
         id<MTLDevice> device = devices[deviceID];
-          //printf("evaluating a device \n");
         if (MetalDevice::isSupported(device))
         {
           const int score = (2 << 16) - 1 - deviceID;
           physicalDevices.push_back(makeRef<MetalPhysicalDevice>(device, score));
-          //printf("found a supported device \n");
         }
       }
       return physicalDevices;

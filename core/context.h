@@ -73,7 +73,6 @@ OIDN_NAMESPACE_BEGIN
       #endif
       #if defined(OIDN_METAL_IOS)
         getEnvVarOrDefault("OIDN_METAL_IOS", 1);
-          // OIDN_INIT_STATIC_MODULE(device_metal);
       #endif
 
         // Sort the physical devices by score
