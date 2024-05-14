@@ -2,20 +2,20 @@
 ## SPDX-License-Identifier: Apache-2.0
 
 # Options
-option(OIDN_DEVICE_SYCL_AOT "Enable AOT compilation for SYCL kernels (recommended)." ON)
+if((CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 18) OR
+   (CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 2024.2))
+   option(OIDN_DEVICE_SYCL_AOT "Enable AOT compilation for SYCL kernels (recommended)." ON)
+elseif(OIDN_DEVICE_SYCL_AOT)
+  message(FATAL_ERROR "AOT compilation for SYCL kernels requires a newer DPC++ compiler")
+endif()
+
 if(OIDN_DEVICE_SYCL_AOT)
   option(OIDN_DEVICE_SYCL_JIT_FALLBACK
-         "Enable JIT fallback for SYCL kernels when AOT is rejected at runtime." ON)
+         "Enable JIT fallback for SYCL kernels (recommended)." ON)
   mark_as_advanced(OIDN_DEVICE_SYCL_JIT_FALLBACK)
-
-  if(CMAKE_CXX_COMPILER_ID MATCHES "Clang" AND CMAKE_CXX_COMPILER_VERSION VERSION_GREATER_EQUAL 18)
-    option(OIDN_DEVICE_SYCL_AOT_SINGLE_BIN
-          "Compile all SYCL AOT kernels into a single binary (requires DPC++ 2023-10-26 or newer)." ON)
-    mark_as_advanced(OIDN_DEVICE_SYCL_AOT_SINGLE_BIN)
-  endif()
 endif()
 if(NOT OIDN_DEVICE_SYCL_AOT OR OIDN_DEVICE_SYCL_JIT_FALLBACK)
-  option(OIDN_DEVICE_SYCL_JIT_CACHE "Enable JIT cache for SYCL kernels." ON)
+  option(OIDN_DEVICE_SYCL_JIT_CACHE "Enable JIT cache for SYCL kernels (recommended)." ON)
   mark_as_advanced(OIDN_DEVICE_SYCL_JIT_CACHE)
 endif()
 
@@ -58,13 +58,8 @@ endif()
 find_package(LevelZero REQUIRED)
 
 if(OIDN_DEVICE_SYCL_AOT)
-  if(OIDN_DEVICE_SYCL_AOT_SINGLE_BIN)
-    set(OIDN_SYCL_COMPILE_FLAGS -fsycl -fsycl-targets=spir64_gen -fno-sycl-rdc)
-    set(OIDN_SYCL_LINK_FLAGS -fsycl -Wno-sycl-target) # FIXME: remove -Wno-sycl-target
-  else()
-    set(OIDN_SYCL_COMPILE_FLAGS -fsycl -fsycl-targets=spir64_gen)
-    set(OIDN_SYCL_LINK_FLAGS ${OIDN_SYCL_COMPILE_FLAGS})
-  endif()
+  set(OIDN_SYCL_COMPILE_FLAGS -fsycl -fsycl-targets=spir64_gen -fno-sycl-rdc)
+  set(OIDN_SYCL_LINK_FLAGS -fsycl -Wno-sycl-target) # FIXME: remove -Wno-sycl-target
 else()
   set(OIDN_SYCL_COMPILE_FLAGS -fsycl -fsycl-device-code-split=per_kernel)
   set(OIDN_SYCL_LINK_FLAGS ${OIDN_SYCL_COMPILE_FLAGS})
@@ -113,18 +108,11 @@ if(UNIX OR NOT OIDN_DEVICE_SYCL_AOT)
   )
 endif()
 
-if(NOT OIDN_DEVICE_SYCL_AOT OR OIDN_DEVICE_SYCL_AOT_SINGLE_BIN)
-  oidn_add_sycl_library(OpenImageDenoise_device_sycl
-    ${OIDN_SYCL_SOURCES_COMMON}
-    ${OIDN_SYCL_SOURCES_ARCH}
-    ${OIDN_GPU_SOURCES}
-  )
-else()
-  oidn_add_sycl_library(OpenImageDenoise_device_sycl
-    ${OIDN_SYCL_SOURCES_COMMON}
-    ${OIDN_GPU_SOURCES}
-  )
-endif()
+oidn_add_sycl_library(OpenImageDenoise_device_sycl
+  ${OIDN_SYCL_SOURCES_COMMON}
+  ${OIDN_SYCL_SOURCES_ARCH}
+  ${OIDN_GPU_SOURCES}
+)
 
 if(OIDN_DEVICE_SYCL_AOT)
   target_compile_definitions(OpenImageDenoise_device_sycl PRIVATE OIDN_DEVICE_SYCL_AOT)
@@ -137,60 +125,22 @@ if(OIDN_DEVICE_SYCL_AOT)
     set(OIDN_SYCL_AOT_TARGETS ${OIDN_SYCL_AOT_TARGETS},${OIDN_SYCL_AOT_TARGETS_XEHPC})
   endif()
 
-  if(OIDN_DEVICE_SYCL_AOT_SINGLE_BIN)
-    macro(oidn_set_sycl_aot_options sources options)
-      set(_final_options ${options})
-      set(_final_options "${_final_options} --format zebin")
-      if(NOT OIDN_DEVICE_SYCL_JIT_FALLBACK)
-        set(_final_options "${_final_options} -exclude_ir") # do not include SPIR-V
-      endif()
-      set_source_files_properties(${sources}
-        PROPERTIES COMPILE_FLAGS "-Xsycl-target-backend=spir64_gen \"${_final_options}\"")
-    endmacro()
-
-    oidn_set_sycl_aot_options("${OIDN_SYCL_SOURCES_COMMON}" "-device ${OIDN_SYCL_AOT_TARGETS}")
-    oidn_set_sycl_aot_options(sycl_conv_xelp.cpp "-device ${OIDN_SYCL_AOT_TARGETS_XELP}")
-    oidn_set_sycl_aot_options(sycl_conv_xehpg.cpp
-      "-device ${OIDN_SYCL_AOT_TARGETS_XEHPG} -options '-doubleGRF'")
-    if(UNIX)
-      oidn_set_sycl_aot_options(sycl_conv_xehpc.cpp "-device ${OIDN_SYCL_AOT_TARGETS_XEHPC}")
+  macro(oidn_set_sycl_aot_options sources options)
+    set(_final_options ${options})
+    set(_final_options "${_final_options} --format zebin")
+    if(NOT OIDN_DEVICE_SYCL_JIT_FALLBACK)
+      set(_final_options "${_final_options} -exclude_ir") # do not include SPIR-V
     endif()
-  else()
-    macro(oidn_add_sycl_arch_library target)
-      oidn_add_sycl_library(${target} ${ARGN})
-      target_include_directories(${target} PRIVATE ${LevelZero_INCLUDE_DIRS})
-      oidn_export_all_symbols(${target})
-    endmacro()
+    set_source_files_properties(${sources}
+      PROPERTIES COMPILE_FLAGS "-Xsycl-target-backend=spir64_gen \"${_final_options}\"")
+  endmacro()
 
-    macro(oidn_set_sycl_aot_options target options)
-      set(_final_options ${options})
-      set(_final_options "${_final_options} --format zebin")
-      if(NOT OIDN_DEVICE_SYCL_JIT_FALLBACK)
-        set(_final_options "${_final_options} -exclude_ir") # do not include SPIR-V
-      endif()
-      target_link_options(${target} PRIVATE -Xsycl-target-backend=spir64_gen "${_final_options}")
-    endmacro()
-
-    # Common
-    oidn_set_sycl_aot_options(OpenImageDenoise_device_sycl "-device ${OIDN_SYCL_AOT_TARGETS}")
-
-    # Xe-LP
-    oidn_add_sycl_arch_library(OpenImageDenoise_device_sycl_xelp sycl_conv_xelp.cpp)
-    oidn_set_sycl_aot_options(OpenImageDenoise_device_sycl_xelp "-device ${OIDN_SYCL_AOT_TARGETS_XELP}")
-    target_link_libraries(OpenImageDenoise_device_sycl PRIVATE OpenImageDenoise_device_sycl_xelp)
-
-    # Xe-HPG
-    oidn_add_sycl_arch_library(OpenImageDenoise_device_sycl_xehpg sycl_conv_xehpg.cpp)
-    oidn_set_sycl_aot_options(OpenImageDenoise_device_sycl_xehpg
-      "-device ${OIDN_SYCL_AOT_TARGETS_XEHPG} -options '-doubleGRF'")
-    target_link_libraries(OpenImageDenoise_device_sycl PRIVATE OpenImageDenoise_device_sycl_xehpg)
-
-    if(UNIX)
-      # Xe-HPC
-      oidn_add_sycl_arch_library(OpenImageDenoise_device_sycl_xehpc sycl_conv_xehpc.cpp)
-      oidn_set_sycl_aot_options(OpenImageDenoise_device_sycl_xehpc "-device ${OIDN_SYCL_AOT_TARGETS_XEHPC}")
-      target_link_libraries(OpenImageDenoise_device_sycl PRIVATE OpenImageDenoise_device_sycl_xehpc)
-    endif()
+  oidn_set_sycl_aot_options("${OIDN_SYCL_SOURCES_COMMON}" "-device ${OIDN_SYCL_AOT_TARGETS}")
+  oidn_set_sycl_aot_options(sycl_conv_xelp.cpp "-device ${OIDN_SYCL_AOT_TARGETS_XELP}")
+  oidn_set_sycl_aot_options(sycl_conv_xehpg.cpp
+    "-device ${OIDN_SYCL_AOT_TARGETS_XEHPG} -options '-doubleGRF'")
+  if(UNIX)
+    oidn_set_sycl_aot_options(sycl_conv_xehpc.cpp "-device ${OIDN_SYCL_AOT_TARGETS_XEHPC}")
   endif()
 endif()
 
