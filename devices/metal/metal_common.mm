@@ -16,7 +16,7 @@ OIDN_NAMESPACE_BEGIN
       return MTLResourceStorageModeShared | MTLResourceCPUCacheModeDefaultCache;
     case Storage::Device:
       return MTLResourceStorageModePrivate;
-#ifndef MANAGED_BUFFERS_UNSUPPORTED
+#if !TARGET_OS_IOS
     case Storage::Managed:
       return MTLResourceStorageModeManaged | MTLResourceCPUCacheModeDefaultCache;
 #endif

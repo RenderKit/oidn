@@ -6,8 +6,6 @@ cmake_minimum_required(VERSION 3.15)
 # Get the library version
 include(cmake/oidn_version.cmake)
 
-# Load the dynamically generated sysroot configuration
-include(sysroot_config.cmake)
 
 # Main project
 project(OpenImageDenoise
@@ -36,7 +34,6 @@ if(NOT APPLE)
   option(OIDN_DEVICE_HIP "Enable HIP device." OFF)
 elseif(OIDN_ARCH STREQUAL "ARM64")
   option(OIDN_DEVICE_METAL "Enable Metal device." OFF)
-  option(OIDN_METAL_IOS "Enable iOS Metal device." OFF)
 endif()
 
 # Filters

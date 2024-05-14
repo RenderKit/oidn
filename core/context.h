@@ -71,9 +71,6 @@ OIDN_NAMESPACE_BEGIN
         if (getEnvVarOrDefault("OIDN_DEVICE_METAL", 1))
           OIDN_INIT_STATIC_MODULE(device_metal);
       #endif
-      #if defined(OIDN_METAL_IOS)
-        getEnvVarOrDefault("OIDN_METAL_IOS", 1);
-      #endif
 
         // Sort the physical devices by score
         std::sort(physicalDevices.begin(), physicalDevices.end(),

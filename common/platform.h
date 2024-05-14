@@ -116,6 +116,7 @@
     #include <Windows.h>
   #elif defined(__APPLE__)
     #include <sys/sysctl.h>
+    #include <TargetConditionals.h>
   #endif
 
   #if defined(OIDN_ARCH_X64)

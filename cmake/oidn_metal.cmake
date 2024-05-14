@@ -3,6 +3,7 @@
 
 # Builds a Metal library from the given Metal shader sources and
 # adds C++ sources generated from the Metal library blob to the specified target
+
 function(metallib_target_add_sources target metallib)
 	set(options INCLUDE_DIRECTORIES COMPILE_DEFINITIONS COMPILE_OPTIONS)
   cmake_parse_arguments(PARSE_ARGV 2 METAL "" "" "${options}")
@@ -17,17 +18,13 @@ function(metallib_target_add_sources target metallib)
   foreach(def ${METAL_COMPILE_DEFINITIONS})
     list(APPEND compile_defs "-D${def}")
   endforeach()
-  
-  # Select the appropriate SDK based on OIDN_METAL_IOS
-    if(OIDN_METAL_IOS)
-        set(sdk "iphoneos")
-    else()
-        set(sdk "macosx")
-    endif()
 
   # Compile each Metal shader to an AIR (Apple Intermediate Representation) file
   set(air_files "")
-
+  
+  message("CMAKE_SYSTEM_NAME: ${CMAKE_SYSTEM_NAME}")
+  message("CMAKE_IOS_FLAG: ${IOS}")
+  
   foreach(src ${METAL_UNPARSED_ARGUMENTS})
     get_filename_component(src_file ${src} ABSOLUTE)
     get_filename_component(src_name ${src} NAME_WE)

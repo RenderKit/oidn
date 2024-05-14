@@ -29,24 +29,21 @@ set(OIDN_METAL_SOURCES
 
 add_library(OpenImageDenoise_device_metal ${OIDN_LIB_TYPE} ${OIDN_METAL_SOURCES} ${OIDN_RESOURCE_FILE})
 
-if (OIDN_METAL_IOS)
-    metallib_target_add_sources(OpenImageDenoise_device_metal metal_kernels
-      metal_kernels.metal
-      INCLUDE_DIRECTORIES
-        ${PROJECT_SOURCE_DIR}
-      COMPILE_OPTIONS
-        -std=metal3.0 -fno-fast-math -mios-version-min=13.0
-    )
+if (${CMAKE_SYSTEM_NAME} MATCHES "iOS")
+    set(MIN_OS_VERSION 16.0)
+    set(PLATFORM_OPTION "-mios-version-min")
 else()
-    metallib_target_add_sources(OpenImageDenoise_device_metal metal_kernels
-      metal_kernels.metal
-      INCLUDE_DIRECTORIES
-        ${PROJECT_SOURCE_DIR}
-      COMPILE_OPTIONS
-        -std=metal3.0 -fno-fast-math -mmacosx-version-min=13.0
-    )
-
+    set(MIN_OS_VERSION 13.0)
+    set(PLATFORM_OPTION "-mmacosx-version-min")
 endif()
+
+metallib_target_add_sources(OpenImageDenoise_device_metal metal_kernels
+  metal_kernels.metal
+  INCLUDE_DIRECTORIES
+    ${PROJECT_SOURCE_DIR}
+  COMPILE_OPTIONS
+    -std=metal3.0 -fno-fast-math ${PLATFORM_OPTION}=${MIN_OS_VERSION}
+)
 
 set_property(TARGET OpenImageDenoise_device_metal PROPERTY VERSION ${PROJECT_VERSION})
 set_property(TARGET OpenImageDenoise_device_metal PROPERTY CXX_STANDARD 17)

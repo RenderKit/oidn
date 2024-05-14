@@ -3,10 +3,10 @@
 
 if(NOT IOS)
   set(SDK_VERSION_COMMAND  xcrun -sdk  macosx --show-sdk-version)
-  set(SDK_TARGET 14.0)
+  set(SDK_TARGET 11.0)
 else()
   set(SDK_VERSION_COMMAND  xcrun -sdk  iphoneos --show-sdk-version)
-  set(SDK_TARGET 14.0)
+  set(SDK_TARGET 16.0)
 endif()
 
 execute_process(COMMAND  ${SDK_VERSION_COMMAND}

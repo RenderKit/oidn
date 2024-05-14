@@ -60,7 +60,7 @@ OIDN_NAMESPACE_BEGIN
     case MTLStorageModePrivate:
       this->storage = Storage::Device;
       break;
-#ifndef MANAGED_BUFFERS_UNSUPPORTED
+#if !TARGET_OS_IOS
     case MTLStorageModeManaged:
       this->storage = Storage::Managed; // we allow importing managed buffers
       break;

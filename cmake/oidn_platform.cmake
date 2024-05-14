@@ -153,14 +153,26 @@ if((UNIX OR MINGW) AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
   append(CMAKE_SHARED_LINKER_FLAGS "-diag-disable:10237")
 endif()
 
+if(CMAKE_OSX_SYSROOT MATCHES ".*iPhoneOS.*")
+  set(CMAKE_SYSTEM_NAME "iOS")  # Set flags for iOS/iPadOS deployment target
+  set(sdk "iphoneos")
+elseif(CMAKE_OSX_SYSROOT MATCHES ".*MacOSX.*")
+  set(sdk "macosx")  # Set flags for macOS deployment target
+elseif(CMAKE_OSX_SYSROOT MATCHES ".*xrOS.*")
+    set(CMAKE_SYSTEM_NAME "visionOS")  # Set flags for visionOS deployment target (sdk support not integrated yet)
+else()
+  message("Unknown SDK detected: ${CMAKE_OSX_SYSROOT}")
+endif()
 
 #check add a check for the OSX_ARCHITECTURES
 if(APPLE)
   # Make sure code runs on older macOS versions
   if(OIDN_ARCH STREQUAL "ARM64")
+  
+  
   #ensure MPS Graph support on ios
     if(OIDN_METAL_IOS) 
-      set(CMAKE_OSX_DEPLOYMENT_TARGET 14.0)
+      set(CMAKE_OSX_DEPLOYMENT_TARGET 16.0)
     else()
       set(CMAKE_OSX_DEPLOYMENT_TARGET 11.0)
     endif()

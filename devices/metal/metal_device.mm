@@ -26,7 +26,7 @@ OIDN_NAMESPACE_BEGIN
     {
       std::vector<Ref<PhysicalDevice>> physicalDevices;
       NSArray* devices;
-#ifdef MULTIPLE_DEVICES_UNSUPPORTED
+#if TARGET_OS_IOS
           id<MTLDevice> defaultDevice = MTLCreateSystemDefaultDevice();
           devices = @[defaultDevice];
 #else
