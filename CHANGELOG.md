@@ -17,6 +17,7 @@ Version History
     at the cost of somewhat lower image quality. Currently this is implemented
     for the `RT` filter except prefiltering (albedo, normal). In other cases
     denoising implicitly falls back to *balanced* mode.
+-   Added Intel Arrow Lake, Lunar Lake, and Battlemage GPU support
 -   Execute `Async` functions asynchronously on CPU devices as well
 -   Load/initialize device modules lazily (improves stability)
 -   Added `oidnIsCPUDeviceSupported`, `oidnIsSYCLDeviceSupported`,
