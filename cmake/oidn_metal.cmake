@@ -22,9 +22,6 @@ function(metallib_target_add_sources target metallib)
   # Compile each Metal shader to an AIR (Apple Intermediate Representation) file
   set(air_files "")
   
-  message("CMAKE_SYSTEM_NAME: ${CMAKE_SYSTEM_NAME}")
-  message("CMAKE_IOS_FLAG: ${IOS}")
-  
   foreach(src ${METAL_UNPARSED_ARGUMENTS})
     get_filename_component(src_file ${src} ABSOLUTE)
     get_filename_component(src_name ${src} NAME_WE)

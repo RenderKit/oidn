@@ -156,7 +156,9 @@ endif()
 if(CMAKE_OSX_SYSROOT MATCHES ".*iPhoneOS.*")
   set(CMAKE_SYSTEM_NAME "iOS")  # Set flags for iOS/iPadOS deployment target
   set(sdk "iphoneos")
+  set(CMAKE_OSX_DEPLOYMENT_TARGET 16.0)
 elseif(CMAKE_OSX_SYSROOT MATCHES ".*MacOSX.*")
+  set(CMAKE_OSX_DEPLOYMENT_TARGET 11.0)
   set(sdk "macosx")  # Set flags for macOS deployment target
 elseif(CMAKE_OSX_SYSROOT MATCHES ".*xrOS.*")
     set(CMAKE_SYSTEM_NAME "visionOS")  # Set flags for visionOS deployment target (sdk support not integrated yet)
@@ -167,16 +169,7 @@ endif()
 #check add a check for the OSX_ARCHITECTURES
 if(APPLE)
   # Make sure code runs on older macOS versions
-  if(OIDN_ARCH STREQUAL "ARM64")
-  
-  
-  #ensure MPS Graph support on ios
-    if(OIDN_METAL_IOS) 
-      set(CMAKE_OSX_DEPLOYMENT_TARGET 16.0)
-    else()
-      set(CMAKE_OSX_DEPLOYMENT_TARGET 11.0)
-    endif()
-  else()
+  if(NOT OIDN_ARCH STREQUAL "ARM64")
     set(CMAKE_OSX_DEPLOYMENT_TARGET 10.11)
   endif()
 
