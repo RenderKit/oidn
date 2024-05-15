@@ -275,7 +275,7 @@ jobs:
       cmd: >
         scripts/build.py install --install_dir oidn-gta-aotjit-lin --compiler clang
         -D OIDN_DEVICE_CPU=OFF
-        -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=ON -D
+        -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=ON
         -D OIDN_INSTALL_DEPENDENCIES=ON -D OIDN_ZIP_MODE=ON
       artifact-out: build-rockylinux8-gta-aotjit
       artifact-path: oidn-gta-aotjit-lin
