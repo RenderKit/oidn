@@ -149,7 +149,7 @@ OIDN_NAMESPACE_BEGIN
 
     @autoreleasepool
     {
-      const MTLResourceOptions options = MTLResourceStorageModeShared | MTLResourceOptionCPUCacheModeDefault;
+      const MTLResourceOptions options = MTLResourceStorageModeShared | MTLResourceCPUCacheModeDefaultCache;
       id<MTLBuffer> tempBuffer = [engine->getMTLDevice() newBufferWithLength: byteSize
                                                                      options: options];
       if (!tempBuffer)
@@ -187,7 +187,7 @@ OIDN_NAMESPACE_BEGIN
 
     @autoreleasepool
     {
-      const MTLResourceOptions options = MTLResourceStorageModeShared | MTLResourceOptionCPUCacheModeDefault;
+      const MTLResourceOptions options = MTLResourceStorageModeShared | MTLResourceCPUCacheModeDefaultCache;
       id<MTLBuffer> tempBuffer = [engine->getMTLDevice() newBufferWithBytes: srcHostPtr
                                                                      length: byteSize
                                                                     options: options];
