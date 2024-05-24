@@ -6,6 +6,7 @@
 #include "core/engine.h"
 #include "cpu_device.h"
 #include <queue>
+#include <thread>
 #include <condition_variable>
 
 OIDN_NAMESPACE_BEGIN
