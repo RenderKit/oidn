@@ -1572,6 +1572,32 @@ jobs:
       artifact-on-failure: true
       cmd: python scripts/test.py --device sycl --log test.log
 
+  test-windows-namespace-static-cuda:
+    needs: build-windows-namespace-static
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "gpu_nvidia" ]'
+      artifact-in: build-windows-namespace-static
+      artifact-out: test-windows-namespace-static-cuda
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: python scripts/test.py --device cuda --log test.log
+
+  test-windows-namespace-static-hip:
+    needs: build-windows-namespace-static
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "gpu_amd" ]'
+      artifact-in: build-windows-namespace-static
+      artifact-out: test-windows-namespace-static-hip
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: python scripts/test.py --device hip --log test.log
+
   test-windows-olddpcpp-dg2:
     needs: build-windows-olddpcpp
     secrets: inherit
