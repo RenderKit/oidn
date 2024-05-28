@@ -103,7 +103,7 @@ prerequisites are needed:
 
 -   [CMake](http://www.cmake.org) 3.21 or newer
 
--   [Xcode](https://developer.apple.com/xcode/) 14 or newer
+-   [Xcode](https://developer.apple.com/xcode/) 15.0 or newer
 
 Depending on your operating system, you can install some required dependencies
 (e.g., TBB) using `yum` or `apt-get` on Linux, [Homebrew](https://brew.sh) or

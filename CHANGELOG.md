@@ -31,6 +31,7 @@ Version History
 -   Fixed device creation error with `oidnNewDevice` when the default device of
     the specified type (e.g. CUDA) is not supported but there are other
     supported non-default devices of that type in the system
+-   Fixed CMake error when building with Metal support using non-Apple Clang
 -   Added support for building with ROCm 6.x
 -   `oidnNewCUDADevice` and `oidnNewHIPDevice` no longer accept negative device
     IDs. If the goal is to use the current device, its actual ID needs to be

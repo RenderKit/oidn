@@ -1,6 +1,22 @@
 ## Copyright 2023 Intel Corporation
 ## SPDX-License-Identifier: Apache-2.0
 
+if(NOT IOS)
+  set(SDK_VERSION_COMMAND xcrun -sdk macosx --show-sdk-version)
+  set(SDK_TARGET 14.0)
+else()
+  set(SDK_VERSION_COMMAND xcrun -sdk iphoneos --show-sdk-version)
+  set(SDK_TARGET 17.0)
+endif()
+
+execute_process(COMMAND ${SDK_VERSION_COMMAND}
+                OUTPUT_VARIABLE SDK_VERSION
+                OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+if(SDK_VERSION VERSION_LESS SDK_TARGET)
+  message(FATAL_ERROR "Building with Metal support requires Apple SDK version ${SDK_TARGET} or newer")
+endif()
+
 # Builds a Metal library from the given Metal shader sources and
 # adds C++ sources generated from the Metal library blob to the specified target
 function(metallib_target_add_sources target metallib)
