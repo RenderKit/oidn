@@ -88,6 +88,7 @@ endif()
 oidn_generate_cpp_from_blob(OIDN_WEIGHTS_SOURCES "${OIDN_NAMESPACE}::blobs::weights" ${OIDN_WEIGHTS})
 if(OIDN_WEIGHTS_SOURCES)
   add_library(OpenImageDenoise_weights OBJECT ${OIDN_WEIGHTS_SOURCES})
+  set_target_properties(OpenImageDenoise_weights PROPERTIES OUTPUT_NAME ${OIDN_LIBRARY_NAME}_weights)
   install(TARGETS OpenImageDenoise_weights EXPORT OpenImageDenoise_Exports)
 endif()
 

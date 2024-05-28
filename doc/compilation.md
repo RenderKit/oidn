@@ -241,10 +241,12 @@ The following list describes the options that can be configured in CMake:
   is enabled) or a hybrid static/shared (if GPU support is enabled as well)
   library.
 
-- `OIDN_API_NAMESPACE`: Specifies a namespace to put all Intel Open Image
-  Denoise API symbols inside. This is also added as an outer namespace for the
-  C++ wrapper API. By default no namespace is used and plain C symbols are
-  exported.
+- `OIDN_LIBRARY_NAME`: Specifies the base name of the Open Image Denoise
+  library files (`OpenImageDenoise` by default).
+
+- `OIDN_API_NAMESPACE`: Specifies a namespace to put all Open Image Denoise API
+  symbols inside. This is also added as an outer namespace for the C++ wrapper
+  API. By default no namespace is used and plain C symbols are exported.
 
 - `OIDN_DEVICE_CPU`: Enable CPU device support (ON by default).
 

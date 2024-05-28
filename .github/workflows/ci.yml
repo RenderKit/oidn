@@ -194,7 +194,7 @@ jobs:
       project: oidn
       image: oidn/rockylinux:8.8
       dpcpp-version: intel-llvm/nightly-2023-10-26-rk
-      cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
+      cmd: scripts/build.py install --full -D OIDN_LIBRARY_NAME=OIDN -D OIDN_API_NAMESPACE=myoidn
       artifact-out: build-rockylinux8-namespace
       artifact-path: build install deps
 
@@ -205,7 +205,7 @@ jobs:
       project: oidn
       image: oidn/rockylinux:8.8
       dpcpp-version: intel-llvm/nightly-2023-10-26-rk
-      cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn -D OIDN_STATIC_LIB=ON
+      cmd: scripts/build.py install --full -D OIDN_LIBRARY_NAME=OIDN -D OIDN_API_NAMESPACE=myoidn -D OIDN_STATIC_LIB=ON
       artifact-out: build-rockylinux8-namespace-static
       artifact-path: build install deps
 
@@ -217,7 +217,7 @@ jobs:
       project: oidn
       image: oidn/rockylinux:8.8
       dpcpp-version: intel-llvm/nightly-2023-10-26-rk
-      cmd: scripts/build.py install --compiler clang --config Debug -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=OFF -D OIDN_DEVICE_CUDA=ON -D OIDN_API_NAMESPACE=myoidn
+      cmd: scripts/build.py install --compiler clang --config Debug -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=OFF -D OIDN_DEVICE_CUDA=ON -D OIDN_LIBRARY_NAME=OIDN -D OIDN_API_NAMESPACE=myoidn
       artifact-out: build-rockylinux8-namespace-debug
       artifact-path: build install deps
 
@@ -334,7 +334,7 @@ jobs:
       image: oidn/ubuntu:22.04
       cmd: >
         scripts/build.py install --compiler gcc -D OIDN_DEVICE_CUDA=ON -D OIDN_DEVICE_HIP=ON
-        -D OIDN_API_NAMESPACE=myoidn
+        -D OIDN_LIBRARY_NAME=OIDN -D OIDN_API_NAMESPACE=myoidn
       artifact-out: build-ubuntu2204-gcc-namespace
       artifact-path: build install deps
 
@@ -346,7 +346,7 @@ jobs:
       image: oidn/ubuntu:22.04
       cmd: >
         scripts/build.py install --compiler gcc -D OIDN_DEVICE_CUDA=ON -D OIDN_DEVICE_HIP=ON
-        -D OIDN_API_NAMESPACE=myoidn -D OIDN_STATIC_LIB=ON
+        -D OIDN_LIBRARY_NAME=OIDN -D OIDN_API_NAMESPACE=myoidn -D OIDN_STATIC_LIB=ON
       artifact-out: build-ubuntu2204-gcc-namespace-static
       artifact-path: build install deps
 
@@ -431,7 +431,7 @@ jobs:
       runs-on: '[ "Linux", "ARM64" ]'
       cmd: >
         scripts/build.py install --full --compiler gcc
-        -D OIDN_API_NAMESPACE=myoidn
+        -D OIDN_LIBRARY_NAME=OIDN -D OIDN_API_NAMESPACE=myoidn
       artifact-out: build-ubuntu2204-arm-gcc-namespace
       artifact-path: build install deps
 
@@ -443,7 +443,7 @@ jobs:
       runs-on: '[ "Linux", "ARM64" ]'
       cmd: >
         scripts/build.py install --full --compiler gcc
-        -D OIDN_API_NAMESPACE=myoidn -D OIDN_STATIC_LIB=ON
+        -D OIDN_LIBRARY_NAME=OIDN -D OIDN_API_NAMESPACE=myoidn -D OIDN_STATIC_LIB=ON
       artifact-out: build-ubuntu2204-arm-gcc-namespace-static
       artifact-path: build install deps
 
@@ -825,7 +825,7 @@ jobs:
       runs-on: '[ "macOS", "ARM64", "build" ]'
       artifact-out: build-macos-arm-namespace
       artifact-path: build install deps
-      cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
+      cmd: scripts/build.py install --full -D OIDN_LIBRARY_NAME=OIDN -D OIDN_LIBRARY_NAME=OIDN -D OIDN_API_NAMESPACE=myoidn
 
   build-macos-arm-namespace-static:
     secrets: inherit
@@ -835,7 +835,7 @@ jobs:
       runs-on: '[ "macOS", "ARM64", "build" ]'
       artifact-out: build-macos-arm-namespace-static
       artifact-path: build install deps
-      cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn -D OIDN_STATIC_LIB=ON
+      cmd: scripts/build.py install --full -D OIDN_LIBRARY_NAME=OIDN -D OIDN_API_NAMESPACE=myoidn -D OIDN_STATIC_LIB=ON
 
   build-macos-arm-ispc:
     secrets: inherit
@@ -1032,7 +1032,7 @@ jobs:
       runs-on: '[ "macOS", "build", "avx2", "x86_64" ]'
       artifact-out: build-macos-namespace
       artifact-path: build install deps
-      cmd: scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
+      cmd: scripts/build.py install --full -D OIDN_LIBRARY_NAME=OIDN -D OIDN_API_NAMESPACE=myoidn
 
   build-macos-asan:
     secrets: inherit
@@ -1162,7 +1162,7 @@ jobs:
       ocloc-version: 77a13ae6-6100-4ddc-b069-0086ff44730c/ocloc_win_101.5082
       artifact-out: build-windows-namespace
       artifact-path: build install
-      cmd: python scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn
+      cmd: python scripts/build.py install --full -D OIDN_LIBRARY_NAME=OIDN -D OIDN_API_NAMESPACE=myoidn
 
   build-windows-namespace-static:
     secrets: inherit
@@ -1174,7 +1174,7 @@ jobs:
       ocloc-version: 77a13ae6-6100-4ddc-b069-0086ff44730c/ocloc_win_101.5082
       artifact-out: build-windows-namespace-static
       artifact-path: build install
-      cmd: python scripts/build.py install --full -D OIDN_API_NAMESPACE=myoidn -D OIDN_STATIC_LIB=ON
+      cmd: python scripts/build.py install --full -D OIDN_LIBRARY_NAME=OIDN -D OIDN_API_NAMESPACE=myoidn -D OIDN_STATIC_LIB=ON
 
   build-windows-gta-aotjit:
     secrets: inherit
@@ -1297,7 +1297,7 @@ jobs:
     with:
       project: oidn
       runs-on: '[ "Windows", "build" ]'
-      cmd: python scripts/build.py --compiler msvc17 -D OIDN_API_NAMESPACE=myoidn
+      cmd: python scripts/build.py --compiler msvc17 -D OIDN_LIBRARY_NAME=OIDN -D OIDN_API_NAMESPACE=myoidn
 
   build-windows-msvc17-onednn:
     secrets: inherit

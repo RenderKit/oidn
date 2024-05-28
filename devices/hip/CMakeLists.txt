@@ -46,8 +46,12 @@ set(OIDN_HIP_SOURCES
 )
 
 add_library(OpenImageDenoise_device_hip SHARED ${OIDN_HIP_SOURCES} ${OIDN_GPU_SOURCES} ${OIDN_RESOURCE_FILE})
-set_property(TARGET OpenImageDenoise_device_hip PROPERTY VERSION ${PROJECT_VERSION})
-set_property(TARGET OpenImageDenoise_device_hip PROPERTY CXX_STANDARD 17)
+
+set_target_properties(OpenImageDenoise_device_hip PROPERTIES
+  OUTPUT_NAME ${OIDN_LIBRARY_NAME}_device_hip
+  VERSION ${PROJECT_VERSION}
+  CXX_STANDARD 17
+)
 
 target_include_directories(OpenImageDenoise_device_hip
   PRIVATE

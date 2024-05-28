@@ -121,7 +121,11 @@ else()
 endif()
 
 add_library(OpenImageDenoise_device_cpu ${OIDN_LIB_TYPE} ${OIDN_CPU_SOURCES} ${OIDN_RESOURCE_FILE})
-set_property(TARGET OpenImageDenoise_device_cpu PROPERTY VERSION ${PROJECT_VERSION})
+
+set_target_properties(OpenImageDenoise_device_cpu PROPERTIES
+  OUTPUT_NAME ${OIDN_LIBRARY_NAME}_device_cpu
+  VERSION ${PROJECT_VERSION}
+)
 
 if(OIDN_DNNL)
   target_compile_definitions(OpenImageDenoise_device_cpu PRIVATE OIDN_DNNL)

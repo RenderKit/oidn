@@ -26,6 +26,8 @@ Version History
     physical device of a particular type is supported
 -   Release the CUDA primary context when destroying the device object if using
     the CUDA driver API
+-   Added `OIDN_LIBRARY_NAME` CMake option for setting the base name of the Open
+    Image Denoise library files
 -   Fixed device creation error with `oidnNewDevice` when the default device of
     the specified type (e.g. CUDA) is not supported but there are other
     supported non-default devices of that type in the system

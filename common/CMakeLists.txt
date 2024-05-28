@@ -32,6 +32,8 @@ add_library(OpenImageDenoise_common OBJECT
   timer.h
 )
 
+set_target_properties(OpenImageDenoise_common PROPERTIES OUTPUT_NAME ${OIDN_LIBRARY_NAME}_common)
+
 target_include_directories(OpenImageDenoise_common
   PUBLIC
     $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>

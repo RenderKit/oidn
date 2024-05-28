@@ -77,7 +77,11 @@ set_source_files_properties(
 )
 
 add_library(OpenImageDenoise_device_cuda SHARED ${OIDN_CUDA_SOURCES} ${OIDN_GPU_SOURCES} ${OIDN_RESOURCE_FILE})
-set_property(TARGET OpenImageDenoise_device_cuda PROPERTY VERSION ${PROJECT_VERSION})
+
+set_target_properties(OpenImageDenoise_device_cuda PROPERTIES
+  OUTPUT_NAME ${OIDN_LIBRARY_NAME}_device_cuda
+  VERSION ${PROJECT_VERSION}
+)
 
 target_include_directories(OpenImageDenoise_device_cuda
   PRIVATE

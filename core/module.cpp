@@ -29,7 +29,7 @@ OIDN_NAMESPACE_BEGIN
       return true; // module already loaded
 
     // Get the path of the module to load
-    std::string filename = "OpenImageDenoise_" + name;
+    std::string filename = OIDN_LIBRARY_NAME "_" + name;
   #if defined(_WIN32)
     filename += ".dll";
   #else

@@ -19,7 +19,7 @@ if(NOT OIDN_API_NAMESPACE)
 endif()
 
 add_library(OpenImageDenoise_utils STATIC ${OIDN_UTILS_SOURCES})
-
+set_target_properties(OpenImageDenoise_utils PROPERTIES OUTPUT_NAME ${OIDN_LIBRARY_NAME}_utils)
 target_link_libraries(OpenImageDenoise_utils PUBLIC OpenImageDenoise_common OpenImageDenoise)
 
 # OpenImageIO

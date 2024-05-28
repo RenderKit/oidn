@@ -37,8 +37,11 @@ metallib_target_add_sources(OpenImageDenoise_device_metal metal_kernels
     -std=metal3.0 -fno-fast-math -mmacosx-version-min=13.0
 )
 
-set_property(TARGET OpenImageDenoise_device_metal PROPERTY VERSION ${PROJECT_VERSION})
-set_property(TARGET OpenImageDenoise_device_metal PROPERTY CXX_STANDARD 17)
+set_target_properties(OpenImageDenoise_device_metal PROPERTIES
+  OUTPUT_NAME ${OIDN_LIBRARY_NAME}_device_metal
+  VERSION ${PROJECT_VERSION}
+  CXX_STANDARD 17
+)
 
 target_compile_definitions(OpenImageDenoise_device_metal PRIVATE OIDN_COMPILE_METAL_HOST)
 

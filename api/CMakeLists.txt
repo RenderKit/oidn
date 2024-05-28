@@ -6,8 +6,12 @@ set(API_SOURCES
 )
 
 add_library(OpenImageDenoise ${OIDN_LIB_TYPE} ${API_SOURCES} ${OIDN_RESOURCE_FILE})
-set_property(TARGET OpenImageDenoise PROPERTY VERSION ${PROJECT_VERSION})
-set_property(TARGET OpenImageDenoise PROPERTY SOVERSION ${PROJECT_VERSION_MAJOR})
+
+set_target_properties(OpenImageDenoise PROPERTIES
+  OUTPUT_NAME ${OIDN_LIBRARY_NAME}
+  VERSION ${PROJECT_VERSION}
+  SOVERSION ${PROJECT_VERSION_MAJOR}
+)
 
 target_include_directories(OpenImageDenoise
   PUBLIC

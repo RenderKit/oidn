@@ -39,6 +39,9 @@ else()
   set(OIDN_LIB_TYPE SHARED)
 endif()
 
+# Library name
+set(OIDN_LIBRARY_NAME "OpenImageDenoise" CACHE STRING "Base name of the Open Image Denoise library files.")
+
 # API namespace
 set(OIDN_API_NAMESPACE "" CACHE STRING "C++ namespace to put API symbols into.")
 if(OIDN_API_NAMESPACE)

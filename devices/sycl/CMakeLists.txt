@@ -67,16 +67,6 @@ if(WIN32)
   list(APPEND OIDN_SYCL_COMPILE_FLAGS -Wno-ignored-attributes)
 endif()
 
-macro(oidn_add_sycl_library target)
-  add_library(${target} SHARED ${ARGN} ${OIDN_RESOURCE_FILE})
-  set_property(TARGET ${target} PROPERTY VERSION ${PROJECT_VERSION})
-  set_property(TARGET ${target} PROPERTY CXX_STANDARD 17)
-  target_compile_options(${target} PRIVATE ${OIDN_SYCL_COMPILE_FLAGS})
-  target_link_options(${target} PRIVATE ${OIDN_SYCL_LINK_FLAGS})
-  target_link_libraries(${target} PRIVATE OpenImageDenoise_core)
-  oidn_install_module(${target})
-endmacro()
-
 set(OIDN_SYCL_SOURCES_COMMON
   sycl_common.h
   sycl_conv_xe.h
@@ -97,11 +87,23 @@ set(OIDN_SYCL_SOURCES_ARCH
   sycl_conv_xelp.cpp
 )
 
-oidn_add_sycl_library(OpenImageDenoise_device_sycl
+add_library(OpenImageDenoise_device_sycl SHARED
   ${OIDN_SYCL_SOURCES_COMMON}
   ${OIDN_SYCL_SOURCES_ARCH}
   ${OIDN_GPU_SOURCES}
+  ${OIDN_RESOURCE_FILE}
 )
+
+set_target_properties(OpenImageDenoise_device_sycl PROPERTIES
+  OUTPUT_NAME ${OIDN_LIBRARY_NAME}_device_sycl
+  VERSION ${PROJECT_VERSION}
+  CXX_STANDARD 17
+)
+
+target_compile_options(OpenImageDenoise_device_sycl PRIVATE ${OIDN_SYCL_COMPILE_FLAGS})
+target_link_options(OpenImageDenoise_device_sycl PRIVATE ${OIDN_SYCL_LINK_FLAGS})
+target_link_libraries(OpenImageDenoise_device_sycl PRIVATE OpenImageDenoise_core)
+oidn_install_module(OpenImageDenoise_device_sycl)
 
 if(OIDN_DEVICE_SYCL_AOT)
   target_compile_definitions(OpenImageDenoise_device_sycl PRIVATE OIDN_DEVICE_SYCL_AOT)
