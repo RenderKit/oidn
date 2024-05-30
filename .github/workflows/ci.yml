@@ -362,14 +362,14 @@ jobs:
         cmake -D OIDN_APPS_OPENIMAGEIO=ON ..
         make -j8 VERBOSE=1
 
-  build-ubuntu2204-gcc-asan:
+  build-ubuntu2204-clang-asan:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
       image: oidn/ubuntu:22.04
-      cmd: scripts/build.py install --compiler gcc -D OIDN_DEVICE_CUDA=ON -D OIDN_SANITIZER=Address
-      artifact-out: build-ubuntu2204-gcc-asan
+      cmd: scripts/build.py install --compiler clang -D OIDN_DEVICE_CUDA=ON -D OIDN_SANITIZER=Address
+      artifact-out: build-ubuntu2204-clang-asan
       artifact-path: build install deps
 
   # build-ubuntu2004-gcc-minimal:
@@ -683,24 +683,24 @@ jobs:
       artifact-on-failure: true
       cmd: scripts/test.py --device cpu --log test.log
 
-  test-ubuntu2204-gcc-asan:
-    needs: build-ubuntu2204-gcc-asan
+  test-ubuntu2204-clang-asan:
+    needs: build-ubuntu2204-clang-asan
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "gpu_nvidia" ]'
       image: oidn/ubuntu:22.04
-      artifact-in: build-ubuntu2204-gcc-asan
-      artifact-out: test-ubuntu2204-gcc-asan
+      artifact-in: build-ubuntu2204-clang-asan
+      artifact-out: test-ubuntu2204-clang-asan
       artifact-path: test.log
       artifact-on-failure: true
       cmd: |
         export TBB_ENABLE_SANITIZERS=1
         scripts/test.py --device cpu --minimal --log test.log
 
-  test-ubuntu2204-gcc-asan-cuda:
-    needs: build-ubuntu2204-gcc-asan
+  test-ubuntu2204-clang-asan-cuda:
+    needs: build-ubuntu2204-clang-asan
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
@@ -708,8 +708,8 @@ jobs:
       runs-on: '[ "Linux", "gpu_nvidia" ]'
       image: oidn/ubuntu:22.04
       options: --gpus all
-      artifact-in: build-ubuntu2204-gcc-asan
-      artifact-out: test-ubuntu2204-gcc-asan-cuda
+      artifact-in: build-ubuntu2204-clang-asan
+      artifact-out: test-ubuntu2204-clang-asan-cuda
       artifact-path: test.log
       artifact-on-failure: true
       cmd: |
