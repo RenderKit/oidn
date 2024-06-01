@@ -551,7 +551,32 @@ TEST_CASE("multiple filters", "[multi_filter]")
 
 // -------------------------------------------------------------------------------------------------
 
-TEST_CASE("multiple devices", "[multi_device]")
+TEST_CASE("single device", "[single_device][minimal]")
+{
+  const std::vector<int> sizes = {111, 256, 80};
+
+  for (size_t i = 0; i < sizes.size(); ++i)
+  {
+    DeviceRef device = makeAndCommitDevice();
+
+    FilterRef filter = device.newFilter("RT");
+    REQUIRE(bool(filter));
+
+    auto image = makeConstImage(device, sizes[i], sizes[i], 3, DataType::Float16, 0.5f);
+    setFilterImage(filter, "color",  image);
+    setFilterImage(filter, "output", image);
+
+    filter.set("hdr", true);
+    filter.commit();
+    REQUIRE(device.getError() == Error::None);
+
+    filter.execute();
+    REQUIRE(device.getError() == Error::None);
+    REQUIRE(isBetween(image, 0.1f, 1.0f)); // output sanity check
+  }
+}
+
+TEST_CASE("multiple devices", "[multi_device][minimal]")
 {
   const std::vector<int> sizes = {111, 256, 80};
 
@@ -575,11 +600,28 @@ TEST_CASE("multiple devices", "[multi_device]")
     REQUIRE(devices[i].getError() == Error::None);
   }
 
-  for (size_t i = 0; i < devices.size(); ++i)
+  SECTION("lazy release")
   {
-    filters[i].execute();
-    REQUIRE(devices[i].getError() == Error::None);
-    REQUIRE(isBetween(images[i], 0.1f, 1.0f)); // output sanity check
+    for (size_t i = 0; i < devices.size(); ++i)
+    {
+      filters[i].execute();
+      REQUIRE(devices[i].getError() == Error::None);
+      REQUIRE(isBetween(images[i], 0.1f, 1.0f)); // output sanity check
+    }
+  }
+
+  SECTION("eager release")
+  {
+    for (size_t i = 0; i < devices.size(); ++i)
+    {
+      filters[i].execute();
+      REQUIRE(devices[i].getError() == Error::None);
+      REQUIRE(isBetween(images[i], 0.1f, 1.0f)); // output sanity check
+
+      images[i].reset();
+      filters[i].release();
+      devices[i].release();
+    }
   }
 }
 
