@@ -147,6 +147,7 @@ namespace curtn
   {
     std::unordered_map<void**, CUmodule> modules;      // module handles by fatCubinHandle
     std::unordered_map<const void*, CUfunction> funcs; // function handles by symbol
+    uint64_t refCount = 0;                             // reference count
   };
 
   // Global runtime state
@@ -194,6 +195,33 @@ namespace curtn
       desc->callback(stream, error, desc->userData);
     }
 
+    // Prepares the current context for runtime API usage
+    CUresult initContext()
+    {
+      // Get the current context state
+      CUcontext context;
+      CUresult result = cuCtxGetCurrent(&context);
+      if (result != CUDA_SUCCESS)
+        return result;
+
+    #if CUDA_VERSION >= 12000
+      unsigned long long contextID;
+      result = cuCtxGetId(context, &contextID);
+      if (result != CUDA_SUCCESS)
+        return result;
+
+      std::lock_guard<std::mutex> lock(mutex);
+      ContextState& cs = contextStates[contextID];
+    #else
+      std::lock_guard<std::mutex> lock(mutex);
+      ContextState& cs = contextStates[context];
+    #endif
+
+      // Increment the reference count
+      ++cs.refCount;
+      return CUDA_SUCCESS;
+    }
+
     // Releases all runtime resources associated with the current context
     CUresult cleanupContext()
     {
@@ -215,6 +243,10 @@ namespace curtn
       std::lock_guard<std::mutex> lock(mutex);
       ContextState& cs = contextStates[context];
     #endif
+
+      // Decrement the reference count
+      if (--cs.refCount > 0)
+        return CUDA_SUCCESS; // context is still in use
 
       // Unload all modules from the context
       for (const auto& moduleItem : cs.modules)
@@ -320,6 +352,11 @@ namespace curtn
       return Runtime::setError(cudaErrorInsufficientDriver);
 
     return cudaSuccess;
+  }
+
+  cudaError_t initContext()
+  {
+    return Runtime::setError(Runtime::get().initContext());
   }
 
   cudaError_t cleanupContext()

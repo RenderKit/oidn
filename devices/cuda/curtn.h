@@ -11,6 +11,6 @@ namespace curtn
   cudaError_t init();
 
   // Unlike CUDA Runtime, CURTN requires explicit initialization and cleanup of the current context
-  // Before releasing/destroying the context using the Driver API, this *must* be called
+  cudaError_t initContext();
   cudaError_t cleanupContext();
 }

@@ -205,6 +205,7 @@ OIDN_NAMESPACE_BEGIN
     checkError(cuDeviceGet(&deviceHandle, deviceID));
     checkError(cuDevicePrimaryCtxRetain(&context, deviceHandle));
     checkError(cuCtxPushCurrent(context)); // between enter/leave, context will be popped in leave()
+    checkError(curtn::initContext());
   #else
     // Save the current CUDA device and switch to ours
     checkError(cudaGetDevice(&prevDeviceID));
