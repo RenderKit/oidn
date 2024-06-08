@@ -43,7 +43,7 @@ Before you can run the training toolkit you need the following prerequisites:
 
 -   Python 3.7 or later
 
--   [PyTorch](https://pytorch.org/) 1.8 or later
+-   [PyTorch](https://pytorch.org/) 2.3 or later
 
 -   [NumPy](https://numpy.org/) 1.19 or later
 

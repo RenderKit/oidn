@@ -38,7 +38,8 @@ Version History
     passed.
 -   Upgraded to oneTBB 2021.12.0 in the official binaries
 -   Training:
-    -   Improved training performance, especially for MPS devices on macOS
+    -   Improved training performance on CUDA and MPS devices, added `--compile`
+        option
     -   Added `--quality` option (`high`, `balanced`, `fast`) for selecting the
         size of the model to train, changed the default from `balanced` to `high`
     -   Added new models to the `--model` option (`unet_small`, `unet_large`,

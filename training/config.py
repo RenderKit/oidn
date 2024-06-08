@@ -115,6 +115,9 @@ def parse_args(cmd=None, description=None):
                         help='maximum learning rate')
     parser.add_argument('--lr_warmup', '--learning_rate_warmup', type=float, default=0.15,
                         help='the percentage of the cycle spent increasing the learning rate (warm-up)')
+    parser.add_argument('--compile', type=str,
+                        choices=['disable', 'default', 'reduce-overhead', 'max-autotune'],
+                        help='improve performance with JIT compilation')
 
   if cmd in {'find_lr'}:
     parser.add_argument('--lr', '--learning_rate', type=float, default=1e-8,
@@ -267,6 +270,12 @@ def parse_args(cmd=None, description=None):
     # Set the default maximum learning rate
     if cfg.max_lr is None:
       cfg.max_lr = (2.679e-6 if cfg.model in {'unet_large', 'unet_xl'} else 3.125e-6) * cfg.batch_size
+
+    # Set the compile mode
+    if cfg.compile is None and cfg.device == 'cuda':
+      cfg.compile = 'default' if cfg.valid_data else 'reduce-overhead' # https://github.com/pytorch/pytorch/issues/128218
+    elif cfg.compile == 'disable':
+      cfg.compile = None
 
   # Print PyTorch version
   print('PyTorch:', torch.__version__)

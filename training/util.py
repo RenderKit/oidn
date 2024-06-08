@@ -153,13 +153,6 @@ def init_device(cfg, id=0):
   print(f'Device {id:2}:', device_name)
   return device
 
-# Remove wrappers like DataParallel from a module
-def unwrap_module(module):
-  if isinstance(module, nn.DataParallel) or isinstance(module, nn.parallel.DistributedDataParallel):
-    return module.module
-  else:
-    return module
-
 # Generates a random float in [0, 1)
 def rand():
   return torch.rand(1).item()

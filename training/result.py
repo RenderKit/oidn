@@ -48,7 +48,7 @@ def save_checkpoint(result_dir, epoch, step, model, optimizer):
   torch.save({
                'epoch': epoch,
                'step': step,
-               'model_state': unwrap_module(model).state_dict(),
+               'model_state': model.state_dict(),
                'optimizer_state': optimizer.state_dict(),
              }, checkpoint_filename)
 
@@ -70,7 +70,7 @@ def load_checkpoint(result_dir, device, epoch=None, model=None, optimizer=None):
   if checkpoint['epoch'] != epoch:
     error('checkpoint epoch mismatch')
   if model:
-    unwrap_module(model).load_state_dict(checkpoint['model_state'])
+    model.load_state_dict(checkpoint['model_state'])
   if optimizer:
     optimizer.load_state_dict(checkpoint['optimizer_state'])
 

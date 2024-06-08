@@ -44,14 +44,18 @@ def main_worker(rank, cfg):
   device = init_device(cfg, id=device_id)
 
   # Initialize the model
-  model = get_model(cfg)
+  model = orig_model = get_model(cfg)
   model.to(device)
+  if cfg.compile:
+    model = torch.compile(model, mode=cfg.compile)
   if distributed:
     model = nn.parallel.DistributedDataParallel(model, device_ids=[device_id])
 
   # Initialize the loss function
   loss_fn = get_loss_function(cfg)
   loss_fn.to(device)
+  if cfg.compile:
+    loss_fn = torch.compile(loss_fn, mode=cfg.compile)
 
   # Initialize the optimizer
   optimizer = optim.Adam(model.parameters(), lr=1)
@@ -76,7 +80,7 @@ def main_worker(rank, cfg):
 
     # Restore the latest checkpoint
     last_epoch = get_latest_checkpoint_epoch(result_dir)
-    checkpoint = load_checkpoint(result_dir, device, last_epoch, model, optimizer)
+    checkpoint = load_checkpoint(result_dir, device, last_epoch, orig_model, optimizer)
     step = checkpoint['step']
   else:
     if rank == 0:
@@ -175,6 +179,9 @@ def main_worker(rank, cfg):
       train_sampler.set_epoch(epoch)
 
     for i, batch in enumerate(train_loader, 0):
+      if cfg.device == 'cuda' and cfg.compile in {'reduce-overhead', 'max-autotune'}:
+        torch.compiler.cudagraph_mark_step_begin()
+
       # Get the batch
       input, target = batch
       input  = input.to(device,  non_blocking=True)
@@ -240,6 +247,9 @@ def main_worker(rank, cfg):
       # Iterate over the batches
       with torch.no_grad():
         for _, batch in enumerate(valid_loader, 0):
+          if cfg.device == 'cuda' and cfg.compile in {'reduce-overhead', 'max-autotune'}:
+            torch.compiler.cudagraph_mark_step_begin()
+
           # Get the batch
           input, target = batch
           input  = input.to(device,  non_blocking=True)
@@ -275,7 +285,7 @@ def main_worker(rank, cfg):
 
     if (rank == 0) and ((cfg.num_save_epochs > 0 and epoch % cfg.num_save_epochs == 0) or epoch == cfg.num_epochs):
       # Save a checkpoint
-      save_checkpoint(result_dir, epoch, step, model, optimizer)
+      save_checkpoint(result_dir, epoch, step, orig_model, optimizer)
 
   # Print final stats
   if rank == 0:
