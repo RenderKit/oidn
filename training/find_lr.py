@@ -39,8 +39,8 @@ def main_worker(rank, cfg):
     model = nn.parallel.DistributedDataParallel(model, device_ids=[device_id])
 
   # Initialize the loss function
-  criterion = get_loss_function(cfg)
-  criterion.to(device)
+  loss_fn = get_loss_function(cfg)
+  loss_fn.to(device)
 
   # Initialize the optimizer
   optimizer = optim.Adam(model.parameters(), lr=cfg.lr)
@@ -91,7 +91,7 @@ def main_worker(rank, cfg):
 
     # Run a training step
     optimizer.zero_grad()
-    loss = criterion(model(input), target)
+    loss = loss_fn(model(input), target)
     loss.backward()
 
     # Get the loss

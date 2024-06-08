@@ -50,8 +50,8 @@ def main_worker(rank, cfg):
     model = nn.parallel.DistributedDataParallel(model, device_ids=[device_id])
 
   # Initialize the loss function
-  criterion = get_loss_function(cfg)
-  criterion.to(device)
+  loss_fn = get_loss_function(cfg)
+  loss_fn.to(device)
 
   # Initialize the optimizer
   optimizer = optim.Adam(model.parameters(), lr=1)
@@ -124,6 +124,8 @@ def main_worker(rank, cfg):
       print('Validation images:', valid_data.num_images)
     valid_loader, valid_sampler = get_data_loader(rank, cfg, valid_data, shuffle=False)
     valid_steps_per_epoch = len(valid_loader)
+  else:
+    valid_steps_per_epoch = 0
 
   # Initialize the learning rate scheduler
   lr_scheduler = optim.lr_scheduler.OneCycleLR(
@@ -185,8 +187,7 @@ def main_worker(rank, cfg):
       optimizer.zero_grad()
 
       with amp.autocast(enabled=amp_enabled):
-        output = model(input)
-        loss = criterion(output, target)
+        loss = loss_fn(model(input), target)
 
       if amp_enabled:
         scaler.scale(loss).backward()
@@ -198,7 +199,7 @@ def main_worker(rank, cfg):
 
       # Next step
       step += 1
-      train_loss += loss
+      train_loss += loss.detach()
       if rank == 0:
         progress.next()
 
@@ -220,13 +221,13 @@ def main_worker(rank, cfg):
     if rank == 0:
       duration = time.time() - start_time
       total_duration = time.time() - total_start_time
-      images_per_sec = len(train_data) / duration
+      images_per_sec = train_steps_per_epoch * cfg.batch_size / duration
       eta = ((cfg.num_epochs - epoch) * total_duration / (epoch + 1 - start_epoch))
       progress.finish('loss=%.6f, lr=%.6f (%.1f images/s, %s, eta %s)'
                       % (train_loss, lr, images_per_sec, format_time(duration), format_time(eta, precision=2)))
 
     if ((cfg.num_valid_epochs > 0 and epoch % cfg.num_valid_epochs == 0) or epoch == cfg.num_epochs) \
-      and len(valid_data) > 0:
+      and valid_steps_per_epoch > 0:
       # Validation
       if rank == 0:
         start_time = time.time()
@@ -241,14 +242,18 @@ def main_worker(rank, cfg):
         for _, batch in enumerate(valid_loader, 0):
           # Get the batch
           input, target = batch
-          input  = input.to(device,  non_blocking=True).float()
-          target = target.to(device, non_blocking=True).float()
+          input  = input.to(device,  non_blocking=True)
+          target = target.to(device, non_blocking=True)
+          if not amp_enabled:
+            input  = input.float()
+            target = target.float()
 
           # Run a validation step
-          loss = criterion(model(input), target)
+          with amp.autocast(enabled=amp_enabled):
+            loss = loss_fn(model(input), target)
 
           # Next step
-          valid_loss += loss
+          valid_loss += loss.detach()
           if rank == 0:
             progress.next()
 
@@ -264,7 +269,7 @@ def main_worker(rank, cfg):
       # Print stats
       if rank == 0:
         duration = time.time() - start_time
-        images_per_sec = len(valid_data) / duration
+        images_per_sec = valid_steps_per_epoch * cfg.batch_size / duration
         progress.finish('valid_loss=%.6f (%.1f images/s, %.1fs)'
                         % (valid_loss, images_per_sec, duration))
 

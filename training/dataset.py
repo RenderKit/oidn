@@ -242,7 +242,8 @@ def get_data_loader(rank, cfg, dataset, shuffle=False):
                       shuffle=(shuffle if sampler is None else False),
                       num_workers=cfg.num_loaders,
                       persistent_workers=True,
-                      pin_memory=(cfg.device != 'cpu'))
+                      pin_memory=(cfg.device != 'cpu'),
+                      drop_last=True)
 
   return loader, sampler
 
