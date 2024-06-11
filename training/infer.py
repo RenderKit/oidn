@@ -157,7 +157,7 @@ def main():
       else:
         save_image(filename_prefix + format, image_srgb, num_channels=num_channels[feature_ext])
 
-  with torch.no_grad():
+  with torch.inference_mode():
     for group, input_names, target_name in image_sample_groups:
       # Create the output directory if it does not exist
       output_group_dir = os.path.join(output_dir, os.path.dirname(group))

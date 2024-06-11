@@ -139,7 +139,7 @@ def main():
     save_config(output_dir, cfg)
 
   # Preprocess all datasets
-  with torch.no_grad():
+  with torch.inference_mode():
     for dataset in [cfg.train_data, cfg.valid_data]:
       if dataset:
         preprocess_dataset(dataset)

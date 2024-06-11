@@ -244,7 +244,7 @@ def main_worker(rank, cfg):
       valid_loss = 0.
 
       # Iterate over the batches
-      with torch.no_grad():
+      with torch.inference_mode():
         for _, batch in enumerate(valid_loader, 0):
           if cfg.device == 'cuda' and cfg.compile in {'reduce-overhead', 'max-autotune'}:
             torch.compiler.cudagraph_mark_step_begin()
