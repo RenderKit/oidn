@@ -25,8 +25,13 @@ OIDN_NAMESPACE_BEGIN
     @autoreleasepool
     {
       std::vector<Ref<PhysicalDevice>> physicalDevices;
+    #if TARGET_OS_OSX || TARGET_OS_MACCATALYST
       NSArray* devices = [MTLCopyAllDevices() autorelease];
+    #else
+      NSArray* devices = @[MTLCreateSystemDefaultDevice()];
+    #endif
       const int numDevices = static_cast<int>(devices.count);
+
       for (int deviceID = 0; deviceID < numDevices; ++deviceID)
       {
         id<MTLDevice> device = devices[deviceID];
@@ -36,6 +41,7 @@ OIDN_NAMESPACE_BEGIN
           physicalDevices.push_back(makeRef<MetalPhysicalDevice>(device, score));
         }
       }
+
       return physicalDevices;
     }
   }
@@ -48,7 +54,7 @@ OIDN_NAMESPACE_BEGIN
     if (@available(macOS 13, iOS 16, tvOS 16, *))
     {
       return [device supportsFamily: MTLGPUFamilyMetal3] &&
-             [device supportsFamily: MTLGPUFamilyApple7] && // validated only on Apple GPUs
+             [device supportsFamily: MTLGPUFamilyApple6] && // validated only on Apple GPUs
              device.maxThreadsPerThreadgroup.width >= 1024;
 
     }

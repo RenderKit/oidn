@@ -7,7 +7,7 @@ include(CheckCXXCompilerFlag)
 if(NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
   message(FATAL_ERROR "Intel(R) Open Image Denoise supports 64-bit platforms only")
 endif()
-if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm64|aarch64|ARM64")
+if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "arm64|aarch64|ARM64" OR IOS)
   set(OIDN_ARCH "ARM64")
 else()
   set(OIDN_ARCH "X64")
@@ -154,12 +154,23 @@ if((UNIX OR MINGW) AND CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
 endif()
 
 if(APPLE)
-  # Make sure code runs on older macOS versions
-  if(OIDN_ARCH STREQUAL "ARM64")
-    set(CMAKE_OSX_DEPLOYMENT_TARGET 11.0)
+  # Make sure code runs on older macOS/iOS versions
+  if(NOT IOS)
+    set(OIDN_APPLE_SDK "macosx")
+    if(OIDN_ARCH STREQUAL "ARM64")
+      set(CMAKE_OSX_DEPLOYMENT_TARGET 11.0)
+    else()
+      set(CMAKE_OSX_DEPLOYMENT_TARGET 10.11)
+    endif()
   else()
-    set(CMAKE_OSX_DEPLOYMENT_TARGET 10.11)
+    set(OIDN_APPLE_SDK "iphoneos")
+    set(CMAKE_OSX_DEPLOYMENT_TARGET 14.0)
   endif()
+
+  # Get the SDK version
+  execute_process(COMMAND xcrun --sdk ${OIDN_APPLE_SDK} --show-sdk-version
+                  OUTPUT_VARIABLE OIDN_APPLE_SDK_VERSION
+                  OUTPUT_STRIP_TRAILING_WHITESPACE)
 
   # Link against libc++ which supports C++11 features
   append(OIDN_CXX_FLAGS "-stdlib=libc++")
@@ -240,8 +251,10 @@ else()
     endif()
 
     if(APPLE)
-      append(CMAKE_SHARED_LINKER_FLAGS "-Wl,-bind_at_load")
-      append(CMAKE_EXE_LINKER_FLAGS "-Wl,-bind_at_load")
+      if(NOT IOS)
+        append(CMAKE_SHARED_LINKER_FLAGS "-Wl,-bind_at_load")
+        append(CMAKE_EXE_LINKER_FLAGS "-Wl,-bind_at_load")
+      endif()
     elseif(NOT OIDN_SANITIZER OR OIDN_SANITIZER STREQUAL "None")
       append(CMAKE_EXE_LINKER_FLAGS "-pie")
       append(CMAKE_SHARED_LINKER_FLAGS "-Wl,-z,noexecstack -Wl,-z,relro -Wl,-z,now")

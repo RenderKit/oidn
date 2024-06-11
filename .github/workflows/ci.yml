@@ -857,6 +857,16 @@ jobs:
       artifact-path: build install deps
       cmd: scripts/build.py install --full -D OIDN_SANITIZER=Address
 
+  build-ios-arm:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "macOS", "ARM64", "build" ]'
+      artifact-out: build-ios-arm
+      artifact-path: build install deps
+      cmd: scripts/build.py install -D OIDN_DEVICE_CPU=OFF -D OIDN_DEVICE_METAL=ON -D CMAKE_SYSTEM_NAME=iOS
+
   test-macos-arm:
     needs: build-macos-arm
     secrets: inherit

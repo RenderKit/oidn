@@ -2,20 +2,13 @@
 ## SPDX-License-Identifier: Apache-2.0
 
 if(NOT IOS)
-  set(SDK_VERSION_COMMAND xcrun -sdk macosx --show-sdk-version)
-  set(SDK_TARGET 11.0)
+  set(OIDN_APPLE_SDK_VERSION_MIN 11.0)
+  set(OIDN_APPLE_SDK_VERSION_MAX 11.0)
 else()
-  set(SDK_VERSION_COMMAND xcrun -sdk iphoneos --show-sdk-version)
-  set(SDK_TARGET 14.0)
+  set(OIDN_APPLE_SDK_VERSION_MIN 14.0)
+  set(OIDN_APPLE_SDK_VERSION_MAX 14.0)
 endif()
 
-execute_process(COMMAND ${SDK_VERSION_COMMAND}
-                OUTPUT_VARIABLE SDK_VERSION
-                OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-if(SDK_VERSION VERSION_LESS SDK_TARGET)
-  message(FATAL_ERROR "Building with BNNS support requires Apple SDK version ${SDK_TARGET} or newer")
-endif()
-if(CMAKE_OSX_DEPLOYMENT_TARGET VERSION_LESS SDK_TARGET)
-  set(CMAKE_OSX_DEPLOYMENT_TARGET ${SDK_TARGET})
+if(OIDN_APPLE_SDK_VERSION VERSION_LESS OIDN_APPLE_SDK_VERSION_MAX)
+  message(FATAL_ERROR "Building with BNNS support requires Apple SDK version ${OIDN_APPLE_SDK_VERSION_MAX} or newer")
 endif()

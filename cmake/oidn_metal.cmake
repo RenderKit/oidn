@@ -2,19 +2,15 @@
 ## SPDX-License-Identifier: Apache-2.0
 
 if(NOT IOS)
-  set(SDK_VERSION_COMMAND xcrun -sdk macosx --show-sdk-version)
-  set(SDK_TARGET 14.0)
+  set(OIDN_APPLE_SDK_VERSION_MIN 13.0)
+  set(OIDN_APPLE_SDK_VERSION_MAX 14.0)
 else()
-  set(SDK_VERSION_COMMAND xcrun -sdk iphoneos --show-sdk-version)
-  set(SDK_TARGET 17.0)
+  set(OIDN_APPLE_SDK_VERSION_MIN 16.0)
+  set(OIDN_APPLE_SDK_VERSION_MAX 17.0)
 endif()
 
-execute_process(COMMAND ${SDK_VERSION_COMMAND}
-                OUTPUT_VARIABLE SDK_VERSION
-                OUTPUT_STRIP_TRAILING_WHITESPACE)
-
-if(SDK_VERSION VERSION_LESS SDK_TARGET)
-  message(FATAL_ERROR "Building with Metal support requires Apple SDK version ${SDK_TARGET} or newer")
+if(OIDN_APPLE_SDK_VERSION VERSION_LESS OIDN_APPLE_SDK_VERSION_MAX)
+  message(FATAL_ERROR "Building with Metal support requires Apple SDK version ${OIDN_APPLE_SDK_VERSION_MAX} or newer")
 endif()
 
 # Builds a Metal library from the given Metal shader sources and
@@ -48,7 +44,7 @@ function(metallib_target_add_sources target metallib)
 
     add_custom_command(
       OUTPUT ${air_file}
-      COMMAND xcrun -sdk macosx metal
+      COMMAND xcrun --sdk ${OIDN_APPLE_SDK} metal
                 -c ${src_file}
                 ${include_dirs}
                 ${compile_defs}
@@ -69,7 +65,7 @@ function(metallib_target_add_sources target metallib)
 
   add_custom_command(
     OUTPUT ${metallib_file}
-    COMMAND xcrun -sdk macosx metallib ${air_files} -o ${metallib_file}
+    COMMAND xcrun --sdk ${OIDN_APPLE_SDK} metallib ${air_files} -o ${metallib_file}
     DEPENDS ${air_files}
     COMMENT "Linking Metal library ${metallib_file_rel}"
   )

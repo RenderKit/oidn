@@ -60,9 +60,11 @@ OIDN_NAMESPACE_BEGIN
     case MTLStorageModePrivate:
       this->storage = Storage::Device;
       break;
+  #if TARGET_OS_OSX || TARGET_OS_MACCATALYST
     case MTLStorageModeManaged:
       this->storage = Storage::Managed; // we allow importing managed buffers
       break;
+  #endif
     default:
       throw Exception(Error::InvalidArgument, "Metal buffer storage mode is not supported");
     }
@@ -147,7 +149,7 @@ OIDN_NAMESPACE_BEGIN
 
     @autoreleasepool
     {
-      const MTLResourceOptions options = MTLResourceStorageModeShared | MTLResourceOptionCPUCacheModeDefault;
+      const MTLResourceOptions options = MTLResourceStorageModeShared | MTLResourceCPUCacheModeDefaultCache;
       id<MTLBuffer> tempBuffer = [engine->getMTLDevice() newBufferWithLength: byteSize
                                                                      options: options];
       if (!tempBuffer)
@@ -185,7 +187,7 @@ OIDN_NAMESPACE_BEGIN
 
     @autoreleasepool
     {
-      const MTLResourceOptions options = MTLResourceStorageModeShared | MTLResourceOptionCPUCacheModeDefault;
+      const MTLResourceOptions options = MTLResourceStorageModeShared | MTLResourceCPUCacheModeDefaultCache;
       id<MTLBuffer> tempBuffer = [engine->getMTLDevice() newBufferWithBytes: srcHostPtr
                                                                      length: byteSize
                                                                     options: options];
