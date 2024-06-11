@@ -12,7 +12,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-import torch.cuda.amp as amp
 import torch.distributed as dist
 from torch.utils.tensorboard import SummaryWriter
 
@@ -150,7 +149,7 @@ def main_worker(rank, cfg):
 
   if amp_enabled:
     # Initialize the gradient scaler
-    scaler = amp.GradScaler()
+    scaler = torch.amp.GradScaler()
 
   # Initialize the summary writer
   log_dir = get_result_log_dir(result_dir)
@@ -193,7 +192,7 @@ def main_worker(rank, cfg):
       # Run a training step
       optimizer.zero_grad()
 
-      with amp.autocast(enabled=amp_enabled):
+      with torch.autocast('cuda', enabled=amp_enabled):
         loss = loss_fn(model(input), target)
 
       if amp_enabled:
@@ -259,7 +258,7 @@ def main_worker(rank, cfg):
             target = target.float()
 
           # Run a validation step
-          with amp.autocast(enabled=amp_enabled):
+          with torch.autocast('cuda', enabled=amp_enabled):
             loss = loss_fn(model(input), target)
 
           # Next step
