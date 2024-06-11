@@ -49,7 +49,7 @@ Before you can run the training toolkit you need the following prerequisites:
 
 -   [OpenImageIO](http://openimageio.org/) 2.1 or later
 
--   [TensorBoard](https://www.tensorflow.org/tensorboard) 2.4 or later (*optional*)
+-   [TensorBoard](https://www.tensorflow.org/tensorboard) 2.4 or later
 
 Devices
 -------
