@@ -16,14 +16,13 @@ include(${OIDN_ROOT_SOURCE_DIR}/cmake/oidn_version.cmake)
 # Project
 project(OpenImageDenoise_device_cuda
   VERSION ${OIDN_VERSION}
-  LANGUAGES CXX CUDA
+  LANGUAGES CXX
 )
 
-# Check the CUDA compiler
-set(OIDN_CUDA_MIN_VERSION 11.8)
-if(${CMAKE_CUDA_COMPILER_VERSION} VERSION_LESS ${OIDN_CUDA_MIN_VERSION})
-  message(FATAL_ERROR "Building with CUDA support requires NVIDIA CUDA Toolkit ${OIDN_CUDA_MIN_VERSION} or newer")
-endif()
+# CUDA
+find_package(CUDAToolkit 11.8 REQUIRED)
+set(CMAKE_CUDA_COMPILER ${CUDAToolkit_NVCC_EXECUTABLE})
+enable_language(CUDA)
 
 # Set the CMake module path
 list(APPEND CMAKE_MODULE_PATH ${OIDN_ROOT_SOURCE_DIR}/cmake)
@@ -91,8 +90,6 @@ target_include_directories(OpenImageDenoise_device_cuda
 )
 
 if(OIDN_DEVICE_CUDA_API STREQUAL "Driver")
-  find_package(CUDAToolkit REQUIRED)
-
   add_library(curtn STATIC curtn.cpp)
   target_link_libraries(curtn PUBLIC CUDA::cuda_driver)
 
