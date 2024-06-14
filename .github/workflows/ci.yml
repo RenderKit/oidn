@@ -295,7 +295,7 @@ jobs:
       artifact-out: build-rockylinux8-gta-jit
       artifact-path: oidn-gta-jit-lin
 
-  build-rockylinux8-olddpcpp:
+  build-rockylinux8-oldsyclos:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
@@ -303,7 +303,18 @@ jobs:
       image: oidn/rockylinux:8.8
       dpcpp-version: intel-llvm/2022-12-rk
       cmd: scripts/build.py install --full -D OIDN_DEVICE_SYCL_AOT=OFF
-      artifact-out: build-rockylinux8-olddpcpp
+      artifact-out: build-rockylinux8-oldsyclos
+      artifact-path: build install deps
+
+  build-rockylinux8-syclos:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      image: oidn/rockylinux:8.8
+      dpcpp-version: intel-llvm/sycl-rel_5_2_0-rk
+      cmd: scripts/build.py install --full -D OIDN_DEVICE_SYCL_AOT=OFF
+      artifact-out: build-rockylinux8-syclos
       artifact-path: build install deps
 
   build-ubuntu2204-gcc:
@@ -612,22 +623,22 @@ jobs:
       artifact-on-failure: true
       cmd: scripts/test.py --device sycl --log test.log
 
-  test-rockylinux8-olddpcpp-avx2:
-    needs: build-rockylinux8-olddpcpp
+  test-rockylinux8-oldsyclos-avx2:
+    needs: build-rockylinux8-oldsyclos
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "avx2" ]'
       image: oidn/ubuntu:22.04
-      artifact-in: build-rockylinux8-olddpcpp
-      artifact-out: test-rockylinux8-olddpcpp-avx2
+      artifact-in: build-rockylinux8-oldsyclos
+      artifact-out: test-rockylinux8-oldsyclos-avx2
       artifact-path: test.log
       artifact-on-failure: true
       cmd: scripts/test.py --device cpu --log test.log
 
-  test-rockylinux8-olddpcpp-dg2:
-    needs: build-rockylinux8-olddpcpp
+  test-rockylinux8-oldsyclos-dg2:
+    needs: build-rockylinux8-oldsyclos
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
     with:
@@ -635,8 +646,37 @@ jobs:
       runs-on: '[ "Linux", "dg2" ]'
       image: oidn/ubuntu:22.04
       options: --device=/dev/dri
-      artifact-in: build-rockylinux8-olddpcpp
-      artifact-out: test-rockylinux8-olddpcpp-dg2
+      artifact-in: build-rockylinux8-oldsyclos
+      artifact-out: test-rockylinux8-oldsyclos-dg2
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: scripts/test.py --device sycl --log test.log
+
+  test-rockylinux8-syclos-avx2:
+    needs: build-rockylinux8-syclos
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Linux", "avx2" ]'
+      image: oidn/ubuntu:22.04
+      artifact-in: build-rockylinux8-syclos
+      artifact-out: test-rockylinux8-syclos-avx2
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: scripts/test.py --device cpu --log test.log
+
+  test-rockylinux8-syclos-dg2:
+    needs: build-rockylinux8-syclos
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Linux", "dg2" ]'
+      image: oidn/ubuntu:22.04
+      options: --device=/dev/dri
+      artifact-in: build-rockylinux8-syclos
+      artifact-out: test-rockylinux8-syclos-dg2
       artifact-path: test.log
       artifact-on-failure: true
       cmd: scripts/test.py --device sycl --log test.log
@@ -1233,16 +1273,16 @@ jobs:
       artifact-path: build install
       cmd: python scripts/build.py install --full -D OIDN_DEVICE_CUDA_API=RuntimeStatic
 
-  build-windows-olddpcpp:
+  build-windows-syclos:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "cuda", "hip" ]'
       msvc-version: "2022"
-      dpcpp-version: intel-llvm/2022-12-rk
+      dpcpp-version: intel-llvm/sycl-rel_5_2_0-rk
       ocloc-version: 77a13ae6-6100-4ddc-b069-0086ff44730c/ocloc_win_101.5082
-      artifact-out: build-windows-olddpcpp
+      artifact-out: build-windows-syclos
       artifact-path: build install
       cmd: python scripts/build.py install --full -D OIDN_DEVICE_SYCL_AOT=OFF
 
@@ -1419,15 +1459,15 @@ jobs:
       artifact-on-failure: true
       cmd: python scripts/test.py --device cpu --log test.log
 
-  test-windows-olddpcpp-avx2:
-    needs: build-windows-olddpcpp
+  test-windows-syclos-avx2:
+    needs: build-windows-syclos
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "avx2", "NAS" ]'
-      artifact-in: build-windows-olddpcpp
-      artifact-out: test-windows-olddpcpp-avx2
+      artifact-in: build-windows-syclos
+      artifact-out: test-windows-syclos-avx2
       artifact-path: test.log
       artifact-on-failure: true
       cmd: python scripts/test.py --device cpu --log test.log
@@ -1608,16 +1648,16 @@ jobs:
       artifact-on-failure: true
       cmd: python scripts/test.py --device hip --log test.log
 
-  test-windows-olddpcpp-dg2:
-    needs: build-windows-olddpcpp
+  test-windows-syclos-dg2:
+    needs: build-windows-syclos
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "dg2", "NAS" ]'
       env-from-files: ./.github/workflows/gfx-windows-public.env
-      artifact-in: build-windows-olddpcpp
-      artifact-out: test-windows-olddpcpp-dg2
+      artifact-in: build-windows-syclos
+      artifact-out: test-windows-syclos-dg2
       artifact-path: test.log
       artifact-on-failure: true
       cmd: python scripts/test.py --device sycl --log test.log
