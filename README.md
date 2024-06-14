@@ -1,7 +1,7 @@
 # Intel® Open Image Denoise
 
-This is release v2.3.0-beta of Intel Open Image Denoise. For changes and
-new features see the [changelog](CHANGELOG.md). Visit
+This is release v2.3.0 of Intel Open Image Denoise. For changes and new
+features see the [changelog](CHANGELOG.md). Visit
 https://www.openimagedenoise.org for more information.
 
 # Overview
@@ -47,13 +47,13 @@ different vendors:
 
   - ARM64 (AArch64) architecture CPUs (e.g. Apple silicon CPUs)
 
-  - Intel Xe architecture dedicated and integrated GPUs, including
-    Intel® Arc™ A-Series Graphics, Intel® Data Center GPU Flex Series,
-    Intel® Data Center GPU Max Series, Intel® Iris® Xe Graphics, Intel®
-    Core™ Ultra Processors with Intel® Arc™ Graphics, 11th-14th Gen
-    Intel® Core™ processor graphics, and related Intel Pentium® and
-    Celeron® processors (Xe-LP, Xe-LPG, Xe-HPG, and Xe-HPC
-    microarchitectures)
+  - Intel Xe and Xe2 architecture dedicated and integrated GPUs,
+    including Intel® Arc™ A-Series Graphics, Intel® Data Center GPU Flex
+    Series, Intel® Data Center GPU Max Series, Intel® Iris® Xe Graphics,
+    Intel® Core™ Ultra Processors with Intel® Arc™ Graphics, 11th-14th
+    Gen Intel® Core™ processor graphics, and related Intel Pentium® and
+    Celeron® processors (Xe-LP, Xe-LPG, Xe-LPG+, Xe-HPG, Xe-HPC,
+    Xe2-LPG, and Xe2-HPG microarchitectures)
 
   - NVIDIA GPUs with Volta, Turing, Ampere, Ada Lovelace, and Hopper
     architectures
@@ -260,7 +260,7 @@ additional prerequisites are needed:
 
   - [CMake](http://www.cmake.org) 3.21 or newer
 
-  - [Xcode](https://developer.apple.com/xcode/) 14 or newer
+  - [Xcode](https://developer.apple.com/xcode/) 15.0 or newer
 
 Depending on your operating system, you can install some required
 dependencies (e.g., TBB) using `yum` or `apt-get` on Linux,
@@ -399,10 +399,13 @@ CMake:
     support is enabled) or a hybrid static/shared (if GPU support is
     enabled as well) library.
 
-  - `OIDN_API_NAMESPACE`: Specifies a namespace to put all Intel Open
-    Image Denoise API symbols inside. This is also added as an outer
-    namespace for the C++ wrapper API. By default no namespace is used
-    and plain C symbols are exported.
+  - `OIDN_LIBRARY_NAME`: Specifies the base name of the Open Image
+    Denoise library files (`OpenImageDenoise` by default).
+
+  - `OIDN_API_NAMESPACE`: Specifies a namespace to put all Open Image
+    Denoise API symbols inside. This is also added as an outer namespace
+    for the C++ wrapper API. By default no namespace is used and plain C
+    symbols are exported.
 
   - `OIDN_DEVICE_CPU`: Enable CPU device support (ON by default).
 
@@ -1845,14 +1848,13 @@ prerequisites:
 
   - Python 3.7 or later
 
-  - [PyTorch](https://pytorch.org/) 1.8 or later
+  - [PyTorch](https://pytorch.org/) 2.3 or later
 
   - [NumPy](https://numpy.org/) 1.19 or later
 
   - [OpenImageIO](http://openimageio.org/) 2.1 or later
 
   - [TensorBoard](https://www.tensorflow.org/tensorboard) 2.4 or later
-    (*optional*)
 
 ## Devices
 
@@ -1956,10 +1958,17 @@ of the preprocessed features.
 
 By default, all input features are assumed to be noisy, including the
 auxiliary features (e.g. albedo, normal), each having versions at
-different samples per pixel. However, it is also possible to train with
+different samples per pixel. It is also possible to train with
 noise-free auxiliary features, in which case the reference auxiliary
 features are used instead of the various noisy ones (`--clean_aux`
-option).
+option). This improves quality significantly if the auxiliary features
+used for inference will be either originally noise-free or prefiltered
+with separately trained auxiliary feature denoising models. If inference
+will be done only with prefiltered features, even higher quality can be
+achieved by training with prefiltered features instead of the reference
+onces. This can be achieved by first training the auxiliary feature
+models and then specifying the list of these results when preprocessing
+the dataset for the main feature (`--aux_results` or `-a` option).
 
 Preprocessing also depends on the filter that will be trained
 (e.g. determines which HDR/LDR transfer function has to be used), which
@@ -1996,7 +2005,14 @@ After preprocessing the datasets, it is possible to start training a
 model using the `train.py` script. Similar to the preprocessing script,
 the input features must be specified (could be a subset of the
 preprocessed features), and the dataset names, directory paths, and the
-filter can be also passed.
+filter can be also passed. If the `--clean_aux` or `--aux_results`
+options were specified for preprocessing, these must be passed
+identically to the training script as well.
+
+Open Image Denoise uses models of different sizes for different quality
+modes (high, balanced, fast). Specifying the quality mode (`--quality`
+or `-q` option) will cause the model to be implicitly selected, or the
+model can be specified explicitly as well (`--model` or `-m` option).
 
 The tool will produce a training *result*, the name of which can be
 either specified (`--result` or `-r` option) or automatically generated
@@ -2066,9 +2082,7 @@ Example usage:
 
 The inference tool supports prefiltering of auxiliary features as well,
 which can be performed by specifying the list of training results for
-each feature to prefilter (`--aux_results` or `-a` option). This is
-primarily useful for evaluating the quality of models trained with clean
-auxiliary features.
+each feature to prefilter (`--aux_results` or `-a` option).
 
 ## Exporting Results (export.py)
 
