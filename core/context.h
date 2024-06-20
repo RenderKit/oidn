@@ -6,8 +6,8 @@
 #include "module.h"
 #include "device_factory.h"
 #include <mutex>
-#include <unordered_set>
-#include <unordered_map>
+#include <set>
+#include <map>
 
 OIDN_NAMESPACE_BEGIN
 
@@ -116,9 +116,9 @@ OIDN_NAMESPACE_BEGIN
 
     std::mutex mutex;
     bool fullyInited = false;
-    std::unordered_set<DeviceType> initedDeviceTypes;
+    std::set<DeviceType> initedDeviceTypes;
     ModuleLoader modules;
-    std::unordered_map<DeviceType, std::unique_ptr<DeviceFactory>> deviceFactories;
+    std::map<DeviceType, std::unique_ptr<DeviceFactory>> deviceFactories;
     std::vector<Ref<PhysicalDevice>> physicalDevices;
   };
 
