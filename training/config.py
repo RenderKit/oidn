@@ -165,7 +165,7 @@ def parse_args(cmd=None, description=None):
 
   if cmd in {'export'}:
     parser.add_argument('target', type=str, nargs='?',
-                        choices=['weights', 'package'], default='weights',
+                        choices=['weights', 'package', 'onnx', 'onnx_noparams'], default='weights',
                         help='what to export')
     parser.add_argument('--output', '-o', type=str,
                         help='output file')
