@@ -1,0 +1,140 @@
+## Copyright 2024 Intel Corporation
+## SPDX-License-Identifier: Apache-2.0
+
+name: Linux
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions: read-all
+
+jobs:
+  build-cpu-rocky-8:
+    runs-on: ubuntu-latest
+    container:
+      image: rockylinux:8
+
+    steps:
+    - name: Install packages
+      run: |
+        echo "Installing build dependencies..."
+        dnf update -y
+        dnf group install "Development Tools" -y
+        dnf install -y git-lfs cmake wget tbb-devel
+
+        mkdir /tmp/deps
+        cd /tmp/deps
+
+        wget https://github.com/ispc/ispc/releases/download/v1.24.0/ispc-v1.24.0-linux.tar.gz
+        tar -xvf ispc-v1.24.0-linux.tar.gz
+        echo "PATH=$PATH:`pwd`/ispc-v1.24.0-linux/bin" >> $GITHUB_ENV
+
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        submodules: true
+        lfs: true
+
+    - name: Build
+      run: |
+        mkdir build
+        cd build
+        cmake -D CMAKE_INSTALL_PREFIX=`pwd`/install -D OIDN_INSTALL_DEPENDENCIES=ON -D OIDN_ZIP_MODE=ON ..
+        make -j$(nproc) install
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-cpu-rocky-8
+        path: build/install
+
+
+  test-cpu-rocky-8:
+    needs: build-cpu-rocky-8
+    runs-on: ubuntu-latest
+    container:
+      image: rockylinux:8
+
+    steps:
+    - name: Download Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: build-cpu-rocky-8
+
+    - name: Test
+      run: |
+        # Adding execution bit to binaries is needed since upload/download GHA is using zip compression
+        # and it can't preserve files permissions - https://github.com/actions/upload-artifact/issues/38
+        chmod +x ./bin/*
+
+        ./bin/oidnTest
+        ./bin/oidnBenchmark -v 1
+
+
+  build-cpu-ubuntu-2204:
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:22.04
+
+    steps:
+    - name: Install packages
+      run: |
+        echo "Installing build dependencies..."
+        apt update
+        apt upgrade -y
+        apt install build-essential cmake git-lfs wget python3 libtbb2-dev -y
+
+        mkdir /tmp/deps
+        cd /tmp/deps
+
+        wget https://github.com/ispc/ispc/releases/download/v1.24.0/ispc-v1.24.0-linux.tar.gz
+        tar -xvf ispc-v1.24.0-linux.tar.gz
+        echo "PATH=$PATH:`pwd`/ispc-v1.24.0-linux/bin" >> $GITHUB_ENV
+
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        submodules: true
+        lfs: true
+
+    - name: Build
+      run: |
+        mkdir build
+        cd build
+        cmake -D CMAKE_INSTALL_PREFIX=`pwd`/install -D OIDN_INSTALL_DEPENDENCIES=ON -D OIDN_ZIP_MODE=ON ..
+        make -j`nproc` install
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: build-cpu-ubuntu-2204
+        path: build/install
+
+
+  test-cpu-ubuntu-2204:
+    needs: build-cpu-ubuntu-2204
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:22.04
+
+    steps:
+    - name: Download Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: build-cpu-ubuntu-2204
+
+    - name: Test
+      run: |
+        # Adding execution bit to binaries is needed since upload/download GHA is using zip compression
+        # and it can't preserve files permissions - https://github.com/actions/upload-artifact/issues/38
+        chmod +x ./bin/*
+
+        ./bin/oidnTest
+        ./bin/oidnBenchmark -v 1
+
