@@ -1,4 +1,4 @@
-# Intel® Open Image Denoise
+# Intel® Open Image Denoiser
 
 This is release v2.3.0 of Intel Open Image Denoise. For changes and new
 features see the [changelog](CHANGELOG.md). Visit
