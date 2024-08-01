@@ -273,7 +273,7 @@ def parse_args(cmd=None, description=None):
 
     # Set the compile mode
     if cfg.compile is None and cfg.device == 'cuda':
-      cfg.compile = 'default' if cfg.valid_data else 'reduce-overhead' # https://github.com/pytorch/pytorch/issues/128218
+      cfg.compile = 'reduce-overhead'
     elif cfg.compile == 'disable':
       cfg.compile = None
 

@@ -65,7 +65,7 @@ def load_checkpoint(result_dir, device, epoch=None, model=None, optimizer=None):
   if not os.path.isfile(checkpoint_filename):
     error('checkpoint does not exist')
 
-  checkpoint = torch.load(checkpoint_filename, map_location=device)
+  checkpoint = torch.load(checkpoint_filename, map_location=device, weights_only=True)
 
   if checkpoint['epoch'] != epoch:
     error('checkpoint epoch mismatch')
