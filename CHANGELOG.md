@@ -12,6 +12,8 @@ Version History
         -   Fixed not calling the callback anymore after requesting cancellation,
             while the operation is still being executed
 -   Added support for creating shared buffers on Metal devices
+-   Enabled accessing system allocated memory for CUDA devices which support this
+    feature (see `systemMemorySupported` device parameter)
 
 ### Changes in v2.3.0:
 

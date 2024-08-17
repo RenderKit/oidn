@@ -220,6 +220,7 @@ OIDN_NAMESPACE_BEGIN
     weightLayout   = TensorLayout::ohwi;
     tensorBlockC   = 8; // required by Tensor Core operations
 
+    systemMemorySupported  = prop.pageableMemoryAccess;
     managedMemorySupported = prop.managedMemory;
 
 #if defined(_WIN32)
@@ -253,7 +254,7 @@ OIDN_NAMESPACE_BEGIN
     case cudaMemoryTypeManaged:
       return Storage::Managed;
     default:
-      return Storage::Undefined;
+      return systemMemorySupported ? Storage::Managed : Storage::Undefined;
     }
   }
 

@@ -173,9 +173,9 @@ much as possible:
 
 -   Data should be copied to/from buffers only if the data in system memory
     indeed cannot be accessed by the device. This can be determined by simply
-    querying the `systemMemorySupported` device parameter. If system memory is
-    accessible by the device, no buffers are necessary and filter image
-    parameters can be set with `oidnSetSharedFilterImage`.
+    querying the `systemMemorySupported` device parameter. If system allocated
+    memory is accessible by the device, no buffers are necessary and filter
+    image parameters can be set with `oidnSetSharedFilterImage`.
 
 -   If the image data cannot be accessed by the device, buffers must be created
     and the data must be copied to/from these buffers. These buffers should be
