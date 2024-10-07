@@ -181,6 +181,7 @@ To build support for different types of CPUs and GPUs, the following
 additional prerequisites are needed:
 
 #### CPU device:
+  - To Compile for CPU both of the following mentioned are required.
 
   - [Intel® SPMD Program Compiler (ISPC)](http://ispc.github.io) 1.21.0
     or newer. Please obtain a release of ISPC from the [ISPC downloads
@@ -371,6 +372,20 @@ because not all devices can be built using the Visual Studio generator
     
     If you are building with SYCL support, you must set the DPC++
     compiler (`clang`/`clang++` or `icx`) as the C/C++ compiler here.
+
+      
+      Compiler arguments will be provided in msvc-style or clang-style format
+      For msvc-style:
+    
+        cmake -G "Ninja" -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icx ..
+        
+      For clang-style:
+      
+        cmake -G "Ninja" -DCMAKE_C_COMPILER=icx-cc -DCMAKE_CXX_COMPILER=icpx ..
+        
+    If any error encountered associated with compiler flag style, please refer to [getting started with DPC++ windows](https://www.intel.com/content/www/us/en/docs/dpcpp-cpp-compiler/get-started-guide/2024-1/get-started-on-windows.html).
+    Note that the compiler variables cannot be changed after the first
+    `cmake` or `cmake-gui` run.
     Note that the compiler variables cannot be changed after the first
     `cmake` or `cmake-gui` run.
 
