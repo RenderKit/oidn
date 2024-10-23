@@ -36,7 +36,7 @@ OIDN_NAMESPACE_BEGIN
       throw std::runtime_error("BNNSFilterCreateLayerPooling failed");
   }
 
-  void BNNSPool::submit()
+  void BNNSPool::submitKernels(const Ref<CancellationToken>& ct)
   {
     if (!filter)
       throw std::logic_error("pooling not finalized");
@@ -45,7 +45,7 @@ OIDN_NAMESPACE_BEGIN
 
     void* srcPtr = src->getPtr();
     void* dstPtr = dst->getPtr();
-    engine->submit([=] { BNNSFilterApply(filter, srcPtr, dstPtr); });
+    engine->submitFunc([=] { BNNSFilterApply(filter, srcPtr, dstPtr); }, ct);
   }
 
 OIDN_NAMESPACE_END

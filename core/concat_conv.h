@@ -18,7 +18,7 @@ OIDN_NAMESPACE_BEGIN
     bool fastMath; // prefer performance over accuracy
   };
 
-  class ConcatConv : public Op, protected ConcatConvDesc
+  class ConcatConv : public BaseOp, protected ConcatConvDesc
   {
   public:
     ConcatConv(const ConcatConvDesc& desc);

@@ -219,12 +219,14 @@ OIDN_NAMESPACE_BEGIN
       };
     }
 
+    Engine* getEngine() const override { return engine; }
+
     bool isSupported() const override
     {
       return gemm.can_implement(initialArguments) == cutlass::Status::kSuccess;
     }
 
-    size_t getScratchByteSize() const override
+    size_t getScratchByteSize() override
     {
       return gemm.get_workspace_size(initialArguments);
     }
@@ -244,7 +246,7 @@ OIDN_NAMESPACE_BEGIN
       finalized = true;
     }
 
-    void submit() override
+    void submitKernels(const Ref<CancellationToken>& ct) override
     {
       if (!finalized)
         throw std::logic_error("convolution not finalized");

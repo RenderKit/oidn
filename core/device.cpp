@@ -3,6 +3,7 @@
 
 #include "device.h"
 #include "subdevice.h"
+#include "engine.h"
 #include "context.h"
 #include "rt_filter.h"
 #include "rtlightmap_filter.h"
@@ -159,6 +160,17 @@ OIDN_NAMESPACE_BEGIN
     }
   }
 
+  void Device::setAsyncError(Error code, const std::string& message)
+  {
+    // Update the stored async error only if the previous error was thrown
+    std::lock_guard<std::mutex> lock(asyncErrorMutex);
+    if (asyncError.code == Error::None)
+    {
+      asyncError.code = code;
+      asyncError.message = message;
+    }
+  }
+
   void Device::setErrorFunction(ErrorFunction func, void* userPtr)
   {
     errorFunc = func;
@@ -289,6 +301,21 @@ OIDN_NAMESPACE_BEGIN
   {
     for (const auto& subdevice : subdevices)
       subdevice->trimScratch();
+  }
+
+  void Device::waitAndThrow()
+  {
+    wait();
+
+    // If an asynchronous error was stored, throw it now
+    std::lock_guard<std::mutex> asyncErrorLock(asyncErrorMutex);
+    if (asyncError.code != Error::None)
+    {
+      const Error code = asyncError.code;
+      const std::string message = std::move(asyncError.message);
+      asyncError = {}; // clear the error
+      throw Exception(code, message);
+    }
   }
 
 OIDN_NAMESPACE_END

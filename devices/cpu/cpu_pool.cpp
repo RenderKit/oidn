@@ -16,7 +16,7 @@ OIDN_NAMESPACE_BEGIN
       throw std::invalid_argument("unsupported pooling source layout");
   }
 
-  void CPUPool::submit()
+  void CPUPool::submitKernels(const Ref<CancellationToken>& ct)
   {
     if (!src || !dst)
       throw std::logic_error("pooling source/destination not set");
@@ -27,13 +27,13 @@ OIDN_NAMESPACE_BEGIN
     kernel.src = *src;
     kernel.dst = *dst;
 
-    engine->submit([=]
+    engine->submitFunc([=]
     {
       parallel_for(kernel.dst.C / blockC, kernel.dst.H, [&](int cb, int h)
       {
         ispc::CPUPoolKernel_run(&kernel, cb, h);
       });
-    });
+    }, ct);
   }
 
 OIDN_NAMESPACE_END

@@ -17,7 +17,7 @@ OIDN_NAMESPACE_BEGIN
       throw std::invalid_argument("unsupported upsampling source layout");
   }
 
-  void CPUUpsample::submit()
+  void CPUUpsample::submitKernels(const Ref<CancellationToken>& ct)
   {
     if (!src || !dst)
       throw std::logic_error("upsampling source/destination not set");
@@ -30,13 +30,13 @@ OIDN_NAMESPACE_BEGIN
       kernel.src = *src;
       kernel.dst = *dst;
 
-      engine->submit([=]
+      engine->submitFunc([=]
       {
         parallel_for(kernel.src.C / blockC, kernel.src.H, [&](int cb, int h)
         {
           ispc::CPUUpsampleKernel_run(&kernel, cb, h);
         });
-      });
+      }, ct);
     }
     else
     {
@@ -46,7 +46,7 @@ OIDN_NAMESPACE_BEGIN
       const float* srcPtr = (float*)src->getPtr();
       float* dstPtr = (float*)dst->getPtr();
 
-      engine->submit([=]
+      engine->submitFunc([=]
       {
         parallel_for(C, H, [&](int c, size_t h)
         {
@@ -68,7 +68,7 @@ OIDN_NAMESPACE_BEGIN
             dstPtr_line1[w*2+1] = value;
           }
         });
-      });
+      }, ct);
     }
   }
 OIDN_NAMESPACE_END

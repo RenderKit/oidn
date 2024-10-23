@@ -3,6 +3,7 @@
 
 #pragma once
 
+#include "engine.h"
 #include "buffer.h"
 
 OIDN_NAMESPACE_BEGIN
@@ -13,21 +14,23 @@ OIDN_NAMESPACE_BEGIN
   public:
     virtual ~Op() = default;
 
-    // Support must be checked before getting the scratch size or running
+    virtual Engine* getEngine() const = 0;
+
+    // Support must be checked before getting the scratch size or submission
     virtual bool isSupported() const { return true; }
 
     // Scratch memory
-    virtual size_t getScratchByteSize() const { return 0; }
+    virtual size_t getScratchByteSize() { return 0; }
     virtual void setScratch(const Ref<Buffer>& scratch) {}
 
-    // Finalization is required before running
+    // Finalization is required before submission
     virtual void finalize() {}
 
-    // Runs the operation which may be asynchronous
-    virtual void submit()
-    {
-      throw std::logic_error("operation is not implemented");
-    }
+    // Enqueues the operation to the engine, optionally updating the progress as well
+    virtual void submit(const Ref<Progress>& progress = nullptr) = 0;
+
+    // Returns the estimated amount of work for progress monitoring
+    virtual size_t getWorkAmount() const { return 1; }
 
     // Name for debugging purposes
     std::string getName() const { return name; }
@@ -35,6 +38,16 @@ OIDN_NAMESPACE_BEGIN
 
   private:
     std::string name;
+  };
+
+  // Base class for most operations (except compound operations, e.g. Graph)
+  class BaseOp : public Op
+  {
+  public:
+    void submit(const Ref<Progress>& progress) final;
+
+    // Enqueues the kernel(s) of the operation to the engine, which may be cancelled if supported
+    virtual void submitKernels(const Ref<CancellationToken>& ct = nullptr) = 0;
   };
 
 OIDN_NAMESPACE_END

@@ -3,42 +3,46 @@
 
 #pragma once
 
-#include "engine.h"
+#include "common/common.h"
+#include "ref.h"
+#include <mutex>
 
 OIDN_NAMESPACE_BEGIN
 
-  // Asynchronous progress monitoring
-  class Progress
+  class Engine;
+
+  // Cancellation request state for asynchronous operations
+  class CancellationToken : public RefCount
   {
   public:
-    Progress();
+    CancellationToken() : cancelled(false) {}
 
-    // Starts progress monitoring using the specified callback function
-    void start(Engine* engine, ProgressMonitorFunction func, void* userPtr, double total = 1);
+    bool isCancelled() const { return cancelled; }
+    void cancel() { cancelled = true; }
 
-    // Advances the progress with the specified amount and calls the progress monitor function
-    void update(Engine* engine, double done);
+  protected:
+    std::atomic<bool> cancelled;
+  };
 
-    // Finishes monitoring, setting the progress to the total value
-    void finish(Engine* engine);
+  // Progress monitoring for asynchronous operations
+  class Progress : public CancellationToken
+  {
+  public:
+    Progress(ProgressMonitorFunction func, void* userPtr, size_t total);
+
+    // Enqueues a progress update, advancing the progress with the specified amount, and calling
+    // the progress monitor function
+    static void submitUpdate(Engine* engine, const Ref<Progress>& progress, size_t delta = 0);
 
   private:
-    // Calls the progress monitor function
-    void call();
-
-    // Checks whether cancellation has been requested
-    void checkCancelled();
-
-    bool enabled; // is progress monitoring currently enabled?
-    std::atomic<bool> cancelled; // has cancellation been requested by the callback?
-
-    // Asynchronous progress state
     ProgressMonitorFunction func;
     void* userPtr;
-    double total;   // maximum progress value
-    double current; // current progress value
+    size_t total;     // maximum progress value
+    size_t current;   // current progress value
+    bool started;     // whether any progress updates have been submitted yet
+    std::mutex mutex;
 
-    std::mutex mutex; // for thread safety
+    void update(size_t delta);
   };
 
 OIDN_NAMESPACE_END

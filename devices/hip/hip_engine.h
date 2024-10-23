@@ -120,7 +120,7 @@ OIDN_NAMESPACE_BEGIN
   #endif
 
     // Enqueues a host function
-    void submitHostFunc(std::function<void()>&& kernel) override;
+    void submitHostFunc(std::function<void()>&& kernel, const Ref<CancellationToken>& ct) override;
 
     void wait() override;
 

@@ -34,7 +34,7 @@ OIDN_NAMESPACE_BEGIN
   };
 
   // Convolution
-  class Conv : public Op, protected ConvDesc
+  class Conv : public BaseOp, protected ConvDesc
   {
   public:
     Conv(const ConvDesc& desc);

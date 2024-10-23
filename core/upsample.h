@@ -14,7 +14,7 @@ OIDN_NAMESPACE_BEGIN
   };
 
   // 2x2 nearest-neighbor upsampling
-  class Upsample : public Op, protected UpsampleDesc
+  class Upsample : public BaseOp, protected UpsampleDesc
   {
   public:
     Upsample(const UpsampleDesc& desc);

@@ -35,6 +35,8 @@ OIDN_NAMESPACE_BEGIN
     explicit GPUImageCopy(EngineT* engine)
       : engine(engine) {}
 
+    Engine* getEngine() const override { return engine; }
+
   #if defined(OIDN_COMPILE_METAL)
     void finalize() override
     {
@@ -42,7 +44,7 @@ OIDN_NAMESPACE_BEGIN
     }
   #endif
 
-    void submit() override
+    void submitKernels(const Ref<CancellationToken>& ct) override
     {
       check();
 

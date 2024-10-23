@@ -8,7 +8,7 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  class ImageCopy : public Op
+  class ImageCopy : public BaseOp
   {
   public:
     void setSrc(const Ref<Image>& src) { this->src = src; }

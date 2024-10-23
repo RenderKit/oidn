@@ -1,6 +1,12 @@
 Version History
 ---------------
 
+-   Fixed issues with cancellation through progress monitor callbacks:
+        -   Fixed cancellation requests almost never being fulfilled on CPU
+            devices since `v2.3.0`
+        -   Fixed not calling the callback anymore after requesting cancellation,
+            while the operation is still being executed
+
 ### Changes in v2.3.0:
 
 -   Significantly improved image quality of the `RT` filter in *high* quality

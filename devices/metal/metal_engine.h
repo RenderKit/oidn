@@ -124,7 +124,7 @@ OIDN_NAMESPACE_BEGIN
     }
 
     // Enqueues a host function
-    void submitHostFunc(std::function<void()>&& f) override;
+    void submitHostFunc(std::function<void()>&& f, const Ref<CancellationToken>& ct) override;
 
     void flush() override;
     void wait() override;

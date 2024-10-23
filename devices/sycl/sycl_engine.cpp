@@ -154,7 +154,7 @@ OIDN_NAMESPACE_BEGIN
     lastEvent = syclQueue.memcpy(dstPtr, srcPtr, byteSize, getDepEvents());
   }
 
-  void SYCLEngine::submitHostFunc(std::function<void()>&& f)
+  void SYCLEngine::submitHostFunc(std::function<void()>&& f, const Ref<CancellationToken>& ct)
   {
     lastEvent = syclQueue.submit([&](sycl::handler& cgh) {
       cgh.depends_on(getDepEvents()),

@@ -12,7 +12,9 @@ OIDN_NAMESPACE_BEGIN
   {
   public:
     CPUPool(CPUEngine* engine, const PoolDesc& desc);
-    void submit() override;
+
+    Engine* getEngine() const override { return engine; }
+    void submitKernels(const Ref<CancellationToken>& ct) override;
 
   private:
     CPUEngine* engine;

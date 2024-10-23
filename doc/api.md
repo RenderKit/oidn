@@ -555,6 +555,11 @@ by calling
 
     void oidnSyncDevice(OIDNDevice device);
 
+If any errors have occurred during asynchronous operations (e.g., cancellation
+through a progress monitor callback), those will be reported only when
+synchronization is triggered explicitly with `oidnSyncDevice` or implicitly
+with some other API call (e.g., `oidnExecuteFilter`, `oidnCommitFilter`).
+
 Before the application exits, it should release all devices by invoking
 
     void oidnReleaseDevice(OIDNDevice device);
@@ -964,12 +969,12 @@ progress of the operation (`n` argument). When returning `true` from the
 callback function, Open Image Denoise will continue the filter operation
 normally. When returning `false`, the library will attempt to cancel the filter
 operation as soon as possible, and if that is fulfilled, it will raise an
-`OIDN_ERROR_CANCELLED` error.
+`OIDN_ERROR_CANCELLED` error. Note that cancellation is not guaranteed.
 
-Please note that using a progress monitor callback function introduces some
-overhead, which may be significant on GPU devices, hurting performance.
-Therefore we recommend progress monitoring only for offline denoising, when
-denoising an image is expected to take several seconds.
+Using a progress monitor callback function introduces some overhead, which may
+be significant on GPU devices, hurting performance. Therefore we strongly
+recommend progress monitoring only for offline denoising, when denoising an
+image is expected to take several seconds.
 
 After setting all necessary parameters for the filter, the changes must be
 committed by calling

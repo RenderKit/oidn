@@ -14,8 +14,9 @@ OIDN_NAMESPACE_BEGIN
     BNNSPool(BNNSEngine* engine, const PoolDesc& desc);
     ~BNNSPool();
 
+    Engine* getEngine() const override { return engine; }
     void finalize() override;
-    void submit() override;
+    void submitKernels(const Ref<CancellationToken>& ct) override;
 
   private:
     BNNSEngine* engine;

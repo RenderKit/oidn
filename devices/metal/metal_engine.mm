@@ -146,7 +146,7 @@ OIDN_NAMESPACE_BEGIN
     return makeRef<GPUImageCopy<MetalEngine>>(this);
   }
 
-  void MetalEngine::submitHostFunc(std::function<void()>&& f)
+  void MetalEngine::submitHostFunc(std::function<void()>&& f, const Ref<CancellationToken>& ct)
   {
     auto fPtr = new std::function<void()>(std::move(f));
 

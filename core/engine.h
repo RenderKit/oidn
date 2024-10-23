@@ -9,6 +9,7 @@
 #include "heap.h"
 #include "buffer.h"
 #include "image.h"
+#include "progress.h"
 
 OIDN_NAMESPACE_BEGIN
 
@@ -80,7 +81,8 @@ OIDN_NAMESPACE_BEGIN
     virtual void submitUSMCopy(void* dstPtr, const void* srcPtr, size_t byteSize);
 
     // Enqueues a host function
-    virtual void submitHostFunc(std::function<void()>&& f) = 0;
+    virtual void submitHostFunc(std::function<void()>&& f,
+                                const Ref<CancellationToken>& ct = nullptr) = 0;
 
     // Issues all previously submitted commands (does not block)
     virtual void flush() {}

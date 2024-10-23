@@ -54,6 +54,8 @@ OIDN_NAMESPACE_BEGIN
 
     static void setError(Device* device, Error code, const std::string& message);
     static Error getError(Device* device, const char** outMessage);
+
+    void setAsyncError(Error code, const std::string& message);
     void setErrorFunction(ErrorFunction func, void* userPtr);
 
     // Some devices (e.g. CUDA, HIP) need to change some per-thread state, which must be later restored
@@ -123,6 +125,10 @@ OIDN_NAMESPACE_BEGIN
     // Waits for all previously submitted commands to complete (blocks)
     virtual void wait() = 0;
 
+    // Waits for all previously submitted commands to complete, and throws the first asynchronous
+    // error that occured since the previous invocation of this function (blocks)
+    void waitAndThrow();
+
   protected:
     virtual void init() = 0;
 
@@ -156,7 +162,11 @@ OIDN_NAMESPACE_BEGIN
     };
 
     static thread_local ErrorState globalError;
+
     ThreadLocal<ErrorState> error;
+    ErrorState asyncError;
+    std::mutex asyncErrorMutex;
+
     ErrorFunction errorFunc = nullptr;
     void* errorUserPtr = nullptr;
   };

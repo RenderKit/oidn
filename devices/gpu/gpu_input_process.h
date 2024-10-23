@@ -186,6 +186,8 @@ OIDN_NAMESPACE_BEGIN
       : InputProcess(engine, desc),
         engine(engine) {}
 
+    Engine* getEngine() const override { return engine; }
+
   #if defined(OIDN_COMPILE_METAL)
     void setScratch(const Ref<Buffer>& scratch) override
     {
@@ -200,7 +202,7 @@ OIDN_NAMESPACE_BEGIN
     }
   #endif
 
-    void submit() override
+    void submitKernels(const Ref<CancellationToken>& ct) override
     {
       check();
 

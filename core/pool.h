@@ -15,7 +15,7 @@ OIDN_NAMESPACE_BEGIN
   };
 
   // 2x2 max pooling
-  class Pool : public Op, protected PoolDesc
+  class Pool : public BaseOp, protected PoolDesc
   {
   public:
     Pool(const PoolDesc& desc);

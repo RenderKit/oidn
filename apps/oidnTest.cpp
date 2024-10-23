@@ -941,22 +941,10 @@ bool progressCallback(void* userPtr, double n)
   return n < progress->nMax; // cancel if reached nMax
 }
 
-void progressTest(DeviceRef& device, double nMax = 1000)
+void progressTest(DeviceRef& device, FilterRef& filter, double nMax = 1000)
 {
-  const int W = 1283;
-  const int H = 727;
-
-  FilterRef filter = device.newFilter("RT");
-  REQUIRE(bool(filter));
-
-  auto image = makeConstImage(device, W, H);
-  setFilterImage(filter, "color",  image);
-  setFilterImage(filter, "output", image); // in-place
-
   Progress progress(nMax);
   filter.setProgressMonitorFunction(progressCallback, &progress);
-
-  filter.set("maxMemoryMB", 0); // make sure there will be multiple tiles
 
   filter.commit();
   REQUIRE(device.getError() == Error::None);
@@ -968,8 +956,7 @@ void progressTest(DeviceRef& device, double nMax = 1000)
     // Execution should be cancelled but it's not guaranteed
     Error error = device.getError();
     REQUIRE((error == Error::None || error == Error::Cancelled));
-    // Check whether the callback has not been called after requesting cancellation
-    REQUIRE(progress.n >= nMax);
+    REQUIRE((progress.n >= nMax && progress.n <= 1));
   }
   else
   {
@@ -981,26 +968,50 @@ void progressTest(DeviceRef& device, double nMax = 1000)
 
 TEST_CASE("progress monitor", "[progress]")
 {
+  const int W = 1283;
+  const int H = 727;
+
   DeviceRef device = makeAndCommitDevice();
 
-  SECTION("progress monitor: complete")
+  FilterRef filter = device.newFilter("RT");
+  REQUIRE(bool(filter));
+
+  auto image = makeConstImage(device, W, H);
+  setFilterImage(filter, "color",  image);
+  setFilterImage(filter, "output", image); // in-place
+
+  filter.set("maxMemoryMB", 0); // make sure there will be multiple tiles
+
+  SECTION("progress monitor: finish")
   {
-    progressTest(device);
+    progressTest(device, filter);
   }
 
   SECTION("progress monitor: cancel at the middle")
   {
-    progressTest(device, 0.5);
+    progressTest(device, filter, 0.5);
   }
 
   SECTION("progress monitor: cancel at the beginning")
   {
-    progressTest(device, 0);
+    progressTest(device, filter, 0);
   }
 
   SECTION("progress monitor: cancel at the end")
   {
-    progressTest(device, 1);
+    progressTest(device, filter, 1);
+  }
+
+  SECTION("progress monitor: cancel around the middle, finish")
+  {
+    progressTest(device, filter, 0.4);
+    progressTest(device, filter);
+  }
+
+  SECTION("progress monitor: finish, cancel around the middle")
+  {
+    progressTest(device, filter);
+    progressTest(device, filter, 0.6);
   }
 }
 

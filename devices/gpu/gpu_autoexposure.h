@@ -179,6 +179,8 @@ OIDN_NAMESPACE_BEGIN
       scratchByteSize = numBins * sizeof(float) + numGroups * (sizeof(float) + sizeof(int));
     }
 
+    Engine* getEngine() const override { return engine; }
+
   #if defined(OIDN_COMPILE_METAL)
     void finalize() override
     {
@@ -188,7 +190,7 @@ OIDN_NAMESPACE_BEGIN
     }
   #endif
 
-    size_t getScratchByteSize() const override
+    size_t getScratchByteSize() override
     {
       return scratchByteSize;
     }
@@ -200,7 +202,7 @@ OIDN_NAMESPACE_BEGIN
       this->scratch = scratch;
     }
 
-    void submit() override
+    void submitKernels(const Ref<CancellationToken>& ct) override
     {
       if (!src)
         throw std::logic_error("autoexposure source not set");

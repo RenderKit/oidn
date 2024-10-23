@@ -123,8 +123,6 @@ OIDN_NAMESPACE_BEGIN
     Ref<ImageCopy> imageCopy;
     Ref<Image> outputTemp;
     bool largeModel = false; // is UNetLarge?
-
-    Progress progress;
   };
 
 OIDN_NAMESPACE_END

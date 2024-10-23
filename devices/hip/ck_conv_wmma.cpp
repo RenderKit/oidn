@@ -99,12 +99,14 @@ OIDN_NAMESPACE_BEGIN
         throw std::invalid_argument("unexpected convolution activation function");
     }
 
+    Engine* getEngine() const override { return engine; }
+
     bool isSupported() const override
     {
       return conv.IsSupportedArgument(makeArgument());
     }
 
-    void submit() override
+    void submitKernels(const Ref<CancellationToken>& ct) override
     {
       if (!src || !weight || !bias || !dst)
         throw std::logic_error("convolution argument not set");

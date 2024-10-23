@@ -93,7 +93,7 @@ OIDN_NAMESPACE_BEGIN
       throw std::invalid_argument("unsupported convolution postop");
   }
 
-  void MetalConv::submit()
+  void MetalConv::submitKernels(const Ref<CancellationToken>& ct)
   {
     MPSCommandBuffer* commandBuffer = engine->getMPSCommandBuffer();
 

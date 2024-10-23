@@ -38,7 +38,7 @@ OIDN_NAMESPACE_BEGIN
       attr);
   }
 
-  size_t DNNLConv::getScratchByteSize() const
+  size_t DNNLConv::getScratchByteSize()
   {
     return primDesc.scratchpad_desc().get_size();
   }
@@ -74,14 +74,14 @@ OIDN_NAMESPACE_BEGIN
     prim = dnnl::convolution_forward(primDesc);
   }
 
-  void DNNLConv::submit()
+  void DNNLConv::submitKernels(const Ref<CancellationToken>& ct)
   {
     if (!prim)
       throw std::logic_error("convolution not finalized");
     if (!src || !dst || !weight || !bias)
       throw std::logic_error("convolution source/weight/bias/destination not set");
 
-    engine->submit([=] { prim.execute(engine->getDNNLStream(), args); });
+    engine->submitFunc([=] { prim.execute(engine->getDNNLStream(), args); }, ct);
   }
 
 OIDN_NAMESPACE_END

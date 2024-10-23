@@ -2,93 +2,39 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "progress.h"
+#include "engine.h"
 
 OIDN_NAMESPACE_BEGIN
 
-  Progress::Progress()
-    : enabled(false),
-      cancelled(false),
-      func(nullptr),
-      userPtr(nullptr),
-      total(0),
-      current(0)
-  {}
-
-  void Progress::start(Engine* engine, ProgressMonitorFunction func, void* userPtr, double total)
-  {
-    cancelled = false;
-    enabled = func != nullptr;
-    if (!enabled)
-      return;
-
-    engine->submitHostFunc([=]()
-    {
-      std::lock_guard<std::mutex> lock(mutex);
-
-      this->func = func;
-      this->userPtr = userPtr;
-      this->total = total;
-      this->current = 0;
-
-      call();
-    });
-
-    checkCancelled();
-  }
-
-  void Progress::update(Engine* engine, double done)
-  {
-    assert(done >= 0);
-
-    if (!enabled)
-      return;
-
-    engine->submitHostFunc([=]()
-    {
-      std::lock_guard<std::mutex> lock(mutex);
-      current = std::min(current + done, total);
-      call();
-    });
-
-    checkCancelled();
-  }
-
-  void Progress::finish(Engine* engine)
-  {
-    if (!enabled)
-      return;
-
-    engine->submitHostFunc([=]()
-    {
-      std::lock_guard<std::mutex> lock(mutex);
-
-      // Make sure total progress is reported at the end
-      if (current < total)
-      {
-        current = total;
-        call();
-      }
-
-      func = nullptr; // do not call the function anymore
-    });
-  }
-
-  void Progress::call()
+  Progress::Progress(ProgressMonitorFunction func, void* userPtr, size_t total)
+    : func(func),
+      userPtr(userPtr),
+      total(total),
+      current(0),
+      started(false)
   {
     if (!func)
-      return;
-
-    if (!func(userPtr, current / total))
-    {
-      cancelled = true;
-      func = nullptr; // do not call the function anymore, more updates could be already queued
-    }
+      throw std::invalid_argument("progress monitor function is null");
   }
 
-  void Progress::checkCancelled()
+  void Progress::update(size_t delta)
   {
-    if (cancelled)
+    std::lock_guard<std::mutex> lock(mutex);
+    current = std::min(current + delta, total);
+    if (!func(userPtr, double(current) / double(total)))
+      cancel();
+  }
+
+  void Progress::submitUpdate(Engine* engine, const Ref<Progress>& progress, size_t delta)
+  {
+    if (progress->isCancelled())
       throw Exception(Error::Cancelled, "execution was cancelled");
+
+    if (!progress->started || delta != 0) // always submit the first update
+    {
+      engine->submitHostFunc([progress, delta]() { progress->update(delta); }, progress);
+      progress->started = true;
+    }
   }
 
 OIDN_NAMESPACE_END

@@ -20,7 +20,7 @@ OIDN_NAMESPACE_BEGIN
 
 #if !defined(OIDN_COMPILE_METAL_DEVICE)
 
-  class Autoexposure : public Op, public AutoexposureParams
+  class Autoexposure : public BaseOp, public AutoexposureParams
   {
   public:
     explicit Autoexposure(const ImageDesc& srcDesc)

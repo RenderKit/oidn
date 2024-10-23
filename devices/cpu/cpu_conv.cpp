@@ -65,7 +65,7 @@ OIDN_NAMESPACE_BEGIN
     }
   }
 
-  void CPUConv::submit()
+  void CPUConv::submitKernels(const Ref<CancellationToken>& ct)
   {
     if (!src || !dst)
       throw std::logic_error("conving source/destination not set");
@@ -77,7 +77,7 @@ OIDN_NAMESPACE_BEGIN
     kernel.dst    = *dst;
     kernel.relu   = activation == Activation::ReLU;
 
-    engine->submit([=]
+    engine->submitFunc([=]
     {
       const int OH = kernel.dst.H;
       const int OW = kernel.dst.W;
@@ -97,7 +97,7 @@ OIDN_NAMESPACE_BEGIN
 
         ispc::CPUConvKernel_run(&kernel, blockOCB, ocbb * blockOCB, oh, owBegin, owEnd);
       });
-    });
+    }, ct);
   }
 
 OIDN_NAMESPACE_END

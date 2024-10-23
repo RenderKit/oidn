@@ -60,7 +60,9 @@ OIDN_NAMESPACE_BEGIN
       : Pool(desc),
         engine(engine) {}
 
-    void submit() override
+    Engine* getEngine() const override { return engine; }
+
+    void submitKernels(const Ref<CancellationToken>& ct) override
     {
       if (!src || !dst)
         throw std::logic_error("pooling source/destination not set");

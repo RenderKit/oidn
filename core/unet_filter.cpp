@@ -127,11 +127,11 @@ OIDN_NAMESPACE_BEGIN
     if (dirtyParam)
     {
       // Make sure that all asynchronous operations have completed
-      device->wait();
+      device->waitAndThrow();
 
       // (Re-)Initialize the filter
       device->execute([&]() { init(); });
-      device->wait();
+      device->waitAndThrow();
 
       // Clean up the device memory if the memory usage limit has been reduced
       if (maxMemoryMB >= 0 && (maxMemoryMB < prevMaxMemoryMB || prevMaxMemoryMB < 0))
@@ -151,17 +151,23 @@ OIDN_NAMESPACE_BEGIN
     if (H <= 0 || W <= 0)
       return;
 
-    auto mainEngine = device->getEngine();
-
     device->execute([&]()
     {
       // Initialize the progress state
-      double workAmount = tileCountH * tileCountW * instances[0].graph->getWorkAmount();
-      if (hdr && math::isnan(inputScale))
-        workAmount += 1;
-      if (outputTemp)
-        workAmount += 1;
-      progress.start(mainEngine, progressFunc, progressUserPtr, workAmount);
+      Ref<Progress> progress;
+      if (progressFunc)
+      {
+        size_t workAmount = 0;
+        for (int i = 0; i < device->getNumSubdevices(); ++i)
+          workAmount += instances[i].graph->getWorkAmount();
+        workAmount *= (tileCountH * tileCountW) / device->getNumSubdevices();
+        if (hdr && math::isnan(inputScale))
+          workAmount += autoexposure->getWorkAmount();
+        if (outputTemp)
+          workAmount += imageCopy->getWorkAmount();
+
+        progress = makeRef<Progress>(progressFunc, progressUserPtr, workAmount);
+      }
 
       // Set the input scale
       if (math::isnan(inputScale))
@@ -169,9 +175,8 @@ OIDN_NAMESPACE_BEGIN
         if (hdr)
         {
           autoexposure->setSrc(color);
-          autoexposure->submit();
+          autoexposure->submit(progress);
           device->submitBarrier();
-          progress.update(mainEngine, 1);
           transferFunc->setInputScale(autoexposure->getDstPtr());
         }
         else
@@ -242,15 +247,12 @@ OIDN_NAMESPACE_BEGIN
       if (outputTemp)
       {
         imageCopy->setDst(output);
-        imageCopy->submit();
+        imageCopy->submit(progress);
       }
-
-      // Finished
-      progress.finish(mainEngine);
     });
 
     if (sync == SyncMode::Sync)
-      device->wait();
+      device->waitAndThrow();
     else
       device->flush();
   }

@@ -550,7 +550,7 @@ OIDN_API_NAMESPACE_BEGIN
       checkHandle(hDevice);
       OIDN_LOCK_DEVICE(device);
       device->checkCommitted();
-      device->wait();
+      device->waitAndThrow();
     OIDN_CATCH_DEVICE(device)
   }
 

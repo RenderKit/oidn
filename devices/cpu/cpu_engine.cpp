@@ -96,18 +96,18 @@ OIDN_NAMESPACE_BEGIN
     return makeRef<CPUImageCopy>(this);
   }
 
-  void CPUEngine::submit(std::function<void()>&& f)
+  void CPUEngine::submitFunc(std::function<void()>&& f, const Ref<CancellationToken>& ct)
   {
     {
       std::lock_guard<std::mutex> lock(queueMutex);
-      queue.push(std::move(f));
+      queue.push({std::move(f), ct});
     }
     queueCond.notify_all();
   }
 
-  void CPUEngine::submitHostFunc(std::function<void()>&& f)
+  void CPUEngine::submitHostFunc(std::function<void()>&& f, const Ref<CancellationToken>& ct)
   {
-    submit(std::move(f));
+    submitFunc(std::move(f), ct);
   }
 
   void CPUEngine::wait()
@@ -142,38 +142,42 @@ OIDN_NAMESPACE_BEGIN
 
   void CPUEngine::submitUSMCopy(void* dstPtr, const void* srcPtr, size_t byteSize)
   {
-    submit([=] { std::memcpy(dstPtr, srcPtr, byteSize); });
+    submitFunc([=] { std::memcpy(dstPtr, srcPtr, byteSize); });
   }
 
   void CPUEngine::processQueue()
   {
     for (; ;)
     {
-      std::function<void()> func;
+      Task task;
 
-      // Wait until a function is available in the queue
+      // Wait until a task is available in the queue
       {
         std::unique_lock<std::mutex> lock(queueMutex);
         queueCond.wait(lock, [&] { return !queue.empty() || queueShutdown; });
         if (queue.empty() && queueShutdown)
           return;
-        func = std::move(queue.front());
+        task = std::move(queue.front());
       }
 
-      // Execute queued functions in the arena until the queue gets empty
+      // Execute queued tasks in the arena until the queue gets empty
       arena->execute([&]
       {
         for (; ;)
         {
-          func();
-          func = nullptr;
+          if (task.ct && task.ct->isCancelled())
+            device->setAsyncError(Error::Cancelled, "execution was cancelled");
+          else
+            task.func();
+
+          task = {};
 
           {
             std::lock_guard<std::mutex> lock(queueMutex);
             queue.pop();
             if (queue.empty())
               break;
-            func = std::move(queue.front());
+            task = std::move(queue.front());
           }
         }
 

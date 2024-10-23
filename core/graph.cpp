@@ -332,6 +332,7 @@ OIDN_NAMESPACE_BEGIN
     tensorScratchPlanner.addDepAllocs(opID, srcAllocIDs, concatSrcs);
 
     ops.push_back(op);
+    workAmount += op->getWorkAmount();
     dirty = true;
   }
 
@@ -372,11 +373,6 @@ OIDN_NAMESPACE_BEGIN
     scratchByteSize = opScratchByteSize + tensorScratchByteSize;
 
     dirty = false;
-  }
-
-  double Graph::getWorkAmount() const
-  {
-    return double(ops.size());
   }
 
   bool Graph::isSupported() const
@@ -423,6 +419,7 @@ OIDN_NAMESPACE_BEGIN
     scratch.reset();
     scratchByteSize = 0;
     privateByteSize = 0;
+    workAmount = 0;
     tensorScratchByteOffset = 0;
     dirty = false;
   }
@@ -455,7 +452,7 @@ OIDN_NAMESPACE_BEGIN
     finalized = true;
   }
 
-  void Graph::submit(Progress& progress)
+  void Graph::submit(const Ref<Progress>& progress)
   {
     if (!finalized)
       throw std::logic_error("graph not finalized");
@@ -468,14 +465,14 @@ OIDN_NAMESPACE_BEGIN
 
     for (size_t i = 0; i < ops.size(); ++i)
     {
-      ops[i]->submit();
+      ops[i]->submit(progress);
 
     #if defined(OIDN_MICROBENCH)
       engine->wait();
       const int numRuns = OIDN_MICROBENCH;
       Timer timer;
       for (int j = 0; j < numRuns; ++j)
-        ops[i]->submit();
+        ops[i]->submit(progress);
       engine->wait();
       const double time = timer.query() / numRuns;
       std::cerr << i << "," << ops[i]->getName() << "," << time * 1000 << std::endl;
@@ -505,8 +502,6 @@ OIDN_NAMESPACE_BEGIN
         dst->dump(toString(i) + "_" + ops[i]->getName() + "_");
       }
     #endif
-
-      progress.update(engine, 1);
     }
 
   #if defined(OIDN_MICROBENCH)

@@ -144,7 +144,7 @@ OIDN_NAMESPACE_BEGIN
     }
   }
 
-  void HIPEngine::submitHostFunc(std::function<void()>&& f)
+  void HIPEngine::submitHostFunc(std::function<void()>&& f, const Ref<CancellationToken>& ct)
   {
     auto fPtr = new std::function<void()>(std::move(f));
     checkError(hipStreamAddCallback(stream, hostFuncCallback, fPtr, 0));

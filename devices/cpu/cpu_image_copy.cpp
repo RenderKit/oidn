@@ -11,7 +11,7 @@ OIDN_NAMESPACE_BEGIN
     : engine(engine)
   {}
 
-  void CPUImageCopy::submit()
+  void CPUImageCopy::submitKernels(const Ref<CancellationToken>& ct)
   {
     check();
 
@@ -19,13 +19,13 @@ OIDN_NAMESPACE_BEGIN
     kernel.src = *src;
     kernel.dst = *dst;
 
-    engine->submit([=]
+    engine->submitFunc([=]
     {
       parallel_for(kernel.dst.H, [&](int h)
       {
         ispc::CPUImageCopyKernel_run(&kernel, h);
       });
-    });
+    }, ct);
   }
 
 OIDN_NAMESPACE_END

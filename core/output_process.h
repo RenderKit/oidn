@@ -19,7 +19,7 @@ OIDN_NAMESPACE_BEGIN
     bool snorm;
   };
 
-  class OutputProcess : public Op, protected OutputProcessDesc
+  class OutputProcess : public BaseOp, protected OutputProcessDesc
   {
   public:
     OutputProcess(const OutputProcessDesc& desc);

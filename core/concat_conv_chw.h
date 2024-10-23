@@ -14,13 +14,15 @@ OIDN_NAMESPACE_BEGIN
   public:
     ConcatConvCHW(Engine* engine, const ConcatConvDesc& desc);
 
-    size_t getScratchByteSize() const override { return conv->getScratchByteSize(); }
+    Engine* getEngine() const override { return conv->getEngine(); }
+
+    size_t getScratchByteSize() override { return conv->getScratchByteSize(); }
     void setScratch(const Ref<Buffer>& scratch) override { conv->setScratch(scratch); }
 
     void setWeight(const Ref<Tensor>& weight) { conv->setWeight(weight); }
 
     void finalize() override { conv->finalize(); }
-    void submit() override { conv->submit(); }
+    void submitKernels(const Ref<CancellationToken>& ct) override { conv->submitKernels(ct); }
 
   private:
     void updateSrc() override;

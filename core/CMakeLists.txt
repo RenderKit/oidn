@@ -48,6 +48,7 @@ set(OIDN_CORE_SOURCES
   module.h
   module.cpp
   op.h
+  op.cpp
   output_process.h
   output_process.cpp
   pool.h

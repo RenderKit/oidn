@@ -19,7 +19,7 @@ OIDN_NAMESPACE_BEGIN
     bool snorm;
   };
 
-  class InputProcess : public Op, protected InputProcessDesc
+  class InputProcess : public BaseOp, protected InputProcessDesc
   {
   public:
     InputProcess(Engine* engine, const InputProcessDesc& desc);

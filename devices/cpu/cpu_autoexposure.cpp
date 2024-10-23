@@ -12,18 +12,18 @@ OIDN_NAMESPACE_BEGIN
       engine(engine)
   {}
 
-  void CPUAutoexposure::submit()
+  void CPUAutoexposure::submitKernels(const Ref<CancellationToken>& ct)
   {
     if (!src)
       throw std::logic_error("autoexposure source not set");
     if (!dst)
       throw std::logic_error("autoexposure destination not set");
-  
+
     // Downsample the image to minimize sensitivity to noise
     ispc::ImageAccessor srcAcc = *src;
     float* dstPtr = getDstPtr();
 
-    engine->submit([=]()
+    engine->submitFunc([=]()
     {
       // Compute the average log luminance of the downsampled image
       using Sum = std::pair<float, int>;
@@ -62,7 +62,7 @@ OIDN_NAMESPACE_BEGIN
         );
 
       *dstPtr = (sum.second > 0) ? (key / math::exp2(sum.first / float(sum.second))) : 1.f;
-    });
+    }, ct);
   }
 
 OIDN_NAMESPACE_END

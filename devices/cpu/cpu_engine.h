@@ -40,20 +40,26 @@ OIDN_NAMESPACE_BEGIN
     void submitUSMCopy(void* dstPtr, const void* srcPtr, size_t byteSize) override;
 
     // Enqueues a function
-    void submit(std::function<void()>&& f);
+    void submitFunc(std::function<void()>&& f, const Ref<CancellationToken>& ct = nullptr);
 
     // Enqueues a host function
-    void submitHostFunc(std::function<void()>&& f) override;
+    void submitHostFunc(std::function<void()>&& f, const Ref<CancellationToken>& ct) override;
 
     void wait() override;
 
   protected:
+    struct Task
+    {
+      std::function<void()> func;
+      Ref<CancellationToken> ct;
+    };
+
     void processQueue();
 
     CPUDevice* device;
 
     // Queue for executing functions asynchronously
-    std::queue<std::function<void()>> queue;   // queue of functions to execute
+    std::queue<Task> queue;                    // queue of tasks to execute
     bool queueShutdown = false;                // flag to signal the queue thread to shutdown
     std::thread queueThread;                   // thread that processes the queue
     std::mutex queueMutex;                     // mutex for the queue

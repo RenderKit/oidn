@@ -14,8 +14,9 @@ OIDN_NAMESPACE_BEGIN
     BNNSConv(BNNSEngine* engine, const ConvDesc& desc);
     ~BNNSConv();
 
+    Engine* getEngine() const override { return engine; }
     void finalize() override;
-    void submit() override;
+    void submitKernels(const Ref<CancellationToken>& ct) override;
 
   private:
     void updateWeight() override;

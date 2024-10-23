@@ -15,9 +15,10 @@ OIDN_NAMESPACE_BEGIN
   public:
     ConcatConvHWC(Engine* engine, const ConcatConvDesc& desc);
 
+    Engine* getEngine() const override { return conv1->getEngine(); }
     bool isSupported() const override;
 
-    size_t getScratchByteSize() const override;
+    size_t getScratchByteSize() override;
     void setScratch(const Ref<Buffer>& scratch) override;
 
     TensorDesc getWeight1Desc() const { return weight1Desc; }
@@ -25,7 +26,7 @@ OIDN_NAMESPACE_BEGIN
     void setWeight(const Ref<Tensor>& weight1, const Ref<Tensor>& weight2);
 
     void finalize() override;
-    void submit() override;
+    void submitKernels(const Ref<CancellationToken>& ct) override;
 
   private:
     void updateSrc() override;

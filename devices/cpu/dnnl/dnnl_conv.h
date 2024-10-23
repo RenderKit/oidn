@@ -13,11 +13,13 @@ OIDN_NAMESPACE_BEGIN
   public:
     DNNLConv(DNNLEngine* engine, const ConvDesc& desc);
 
-    size_t getScratchByteSize() const override;
+    Engine* getEngine() const override { return engine; }
+
+    size_t getScratchByteSize() override;
     void setScratch(const Ref<Buffer>& scratch) override;
 
     void finalize() override;
-    void submit() override;
+    void submitKernels(const Ref<CancellationToken>& ct) override;
 
   private:
     void updateSrc() override;

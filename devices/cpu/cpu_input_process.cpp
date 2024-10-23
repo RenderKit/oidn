@@ -12,7 +12,7 @@ OIDN_NAMESPACE_BEGIN
       engine(engine)
   {}
 
-  void CPUInputProcess::submit()
+  void CPUInputProcess::submitKernels(const Ref<CancellationToken>& ct)
   {
     check();
 
@@ -28,13 +28,13 @@ OIDN_NAMESPACE_BEGIN
     kernel.hdr   = hdr;
     kernel.snorm = snorm;
 
-    engine->submit([=]
+    engine->submitFunc([=]
     {
       parallel_for(kernel.dst.H, [&](int hDst)
       {
         ispc::CPUInputProcessKernel_run(&kernel, hDst);
       });
-    });
+    }, ct);
   }
 
 OIDN_NAMESPACE_END

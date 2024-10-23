@@ -358,7 +358,9 @@ namespace xehpc {
         throw std::invalid_argument("unsupported convolution activation");
     }
 
-    void submit() override
+    Engine* getEngine() const override { return engine; }
+
+    void submitKernels(const Ref<CancellationToken>& ct) override
     {
       if (!src || !weight || !bias || !dst)
         throw std::logic_error("convolution argument not set");

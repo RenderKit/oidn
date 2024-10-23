@@ -14,13 +14,15 @@
 
 OIDN_NAMESPACE_BEGIN
 
-  class Graph final : public RefCount
+  class Graph final : public Op
   {
   public:
     Graph(Engine* engine,
           const std::shared_ptr<TensorMap>& constTensors,
           const std::shared_ptr<TensorMap>& cachedConstTensors,
           bool fastMath = false);
+
+    Engine* getEngine() const override { return engine; }
 
     Ref<InputProcess> addInputProcess(const std::string& name,
                                       const TensorDims& srcDims,
@@ -50,16 +52,16 @@ OIDN_NAMESPACE_BEGIN
     Ref<Op> addUpsample(const std::string& name,
                         const Ref<Op>& srcOp);
 
-    bool isSupported() const;
+    bool isSupported() const override;
 
-    size_t getScratchByteSize();
-    void setScratch(const Ref<Buffer>& scratch);
+    size_t getScratchByteSize() override;
+    void setScratch(const Ref<Buffer>& scratch) override;
     size_t getPrivateByteSize() { return privateByteSize; }
 
-    double getWorkAmount() const;
+    size_t getWorkAmount() const override { return workAmount; }
     void clear();
-    void finalize();
-    void submit(Progress& progress);
+    void finalize() override;
+    void submit(const Ref<Progress>& progress) override;
 
   private:
     // Temporary tensor allocation
@@ -95,6 +97,7 @@ OIDN_NAMESPACE_BEGIN
     Ref<Buffer> scratch;        // scratch buffer
     size_t scratchByteSize = 0; // total size of scratch data
     size_t privateByteSize = 0; // total size of private data (e.g. constant tensors)
+    size_t workAmount = 0;      // total estimated amount of work for progress monitoring
     bool dirty = false;
     bool finalized = false;
 

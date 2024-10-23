@@ -36,7 +36,7 @@ OIDN_NAMESPACE_BEGIN
     return conv1->isSupported() && conv2->isSupported();
   }
 
-  size_t ConcatConvHWC::getScratchByteSize() const
+  size_t ConcatConvHWC::getScratchByteSize()
   {
     return max(conv1->getScratchByteSize(), conv2->getScratchByteSize());
   }
@@ -73,10 +73,10 @@ OIDN_NAMESPACE_BEGIN
     conv2->finalize();
   }
 
-  void ConcatConvHWC::submit()
+  void ConcatConvHWC::submitKernels(const Ref<CancellationToken>& ct)
   {
-    conv1->submit();
-    conv2->submit();
+    conv1->submitKernels(ct);
+    conv2->submitKernels(ct);
   }
 
 OIDN_NAMESPACE_END

@@ -130,7 +130,7 @@ OIDN_NAMESPACE_BEGIN
     }
   }
 
-  void CUDAEngine::submitHostFunc(std::function<void()>&& f)
+  void CUDAEngine::submitHostFunc(std::function<void()>&& f, const Ref<CancellationToken>& ct)
   {
     auto fPtr = new std::function<void()>(std::move(f));
     checkError(cudaStreamAddCallback(stream, hostFuncCallback, fPtr, 0));
