@@ -1,6 +1,8 @@
 Version History
 ---------------
 
+### Changes in v2.3.1:
+
 -   Fixed issues with cancellation through progress monitor callbacks:
         -   Fixed cancellation requests almost never being fulfilled on CPU
             devices since `v2.3.0`
