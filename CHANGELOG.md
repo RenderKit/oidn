@@ -14,6 +14,7 @@ Version History
 -   Added support for creating shared buffers on Metal devices
 -   Enabled accessing system allocated memory for CUDA devices which support this
     feature (see `systemMemorySupported` device parameter)
+-   Added LUID support for HIP devices
 
 ### Changes in v2.3.0:
 

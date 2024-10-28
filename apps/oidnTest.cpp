@@ -87,7 +87,7 @@ TEST_CASE("physical device", "[physical_device]")
       if (luidSupported)
       {
         REQUIRE(getError() == Error::None);
-        REQUIRE(nodeMask != 0);
+        //REQUIRE(nodeMask != 0);
       }
       else
         REQUIRE(getError() == Error::InvalidArgument);

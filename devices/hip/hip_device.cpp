@@ -38,13 +38,17 @@ OIDN_NAMESPACE_BEGIN
       uuidSupported = true;
     }
 
+  #if defined(_WIN32) && HIP_VERSION_MAJOR >= 6
+    memcpy(luid.bytes, prop.luid, sizeof(luid.bytes));
+    nodeMask = prop.luidDeviceNodeMask;
+    luidSupported = true;
+  #endif
+
     pciDomain   = prop.pciDomainID;
     pciBus      = prop.pciBusID;
     pciDevice   = prop.pciDeviceID;
     pciFunction = 0; // implicit
     pciAddressSupported = true;
-
-    // FIXME: HIP does not seem to support querying the LUID
   }
 
   std::vector<Ref<PhysicalDevice>> HIPDevice::getPhysicalDevices()
