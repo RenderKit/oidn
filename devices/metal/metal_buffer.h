@@ -23,6 +23,7 @@ OIDN_NAMESPACE_BEGIN
     void* getPtr() const override;
     void* getHostPtr() const override;
     size_t getByteSize() const override { return byteSize; }
+    bool isShared() const override { return shared; }
     Storage getStorage() const override { return storage; }
 
     void read(size_t byteOffset, size_t byteSize, void* dstHostPtr, SyncMode sync = SyncMode::Sync) override;
@@ -39,6 +40,7 @@ OIDN_NAMESPACE_BEGIN
     MetalEngine* engine;
     id<MTLBuffer> buffer;
     size_t byteSize;
+    bool shared;
     Storage storage;
   };
 

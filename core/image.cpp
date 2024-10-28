@@ -85,11 +85,16 @@ OIDN_NAMESPACE_BEGIN
     if (!*this || !other)
       return false;
 
-    // If the images are backed by different buffers, they cannot overlap
+    // If any of the images are not backed by non-shared buffers, we cannot determine whether they
+    // overlap due to potential virtual address aliasing, so we conservatively assume they do
+    if (!buffer || buffer->isShared() || !other.buffer || other.buffer->isShared())
+      return true;
+
+    // If the images are backed by different non-shared buffers, they cannot overlap
     if (buffer != other.buffer)
       return false;
 
-    // Check whether the pointer intervals overlap
+    // Check whether the memory ranges inside the same buffer overlap
     const char* begin1 = ptr;
     const char* end1   = ptr + getByteSize();
     const char* begin2 = other.ptr;

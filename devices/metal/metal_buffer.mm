@@ -15,6 +15,7 @@ OIDN_NAMESPACE_BEGIN
     : engine(engine),
       buffer(nullptr),
       byteSize(byteSize),
+      shared(false),
       storage((storage == Storage::Undefined) ? Storage::Host : storage)
   {
     // We disallow creating managed buffers because they would require manual synchronization
@@ -29,6 +30,7 @@ OIDN_NAMESPACE_BEGIN
       engine(dynamic_cast<MetalEngine*>(arena->getEngine())),
       buffer(nullptr),
       byteSize(byteSize),
+      shared(true),
       storage(arena->getHeap()->getStorage())
   {
     if (!engine)
@@ -46,6 +48,7 @@ OIDN_NAMESPACE_BEGIN
     : engine(engine),
       buffer(nullptr),
       byteSize(byteSize),
+      shared(true),
       storage(Storage::Host)
   {
     if (data == nullptr)
@@ -93,6 +96,7 @@ OIDN_NAMESPACE_BEGIN
 
     this->buffer   = [buffer retain];
     this->byteSize = buffer.length;
+    this->shared   = true;
   }
 
   MetalBuffer::~MetalBuffer()

@@ -346,6 +346,17 @@ std::shared_ptr<ImageBuffer> makeConstImage(DeviceRef& device, int W, int H, int
   return image;
 }
 
+std::shared_ptr<ImageBuffer> makeRandomImage(DeviceRef& device, int W, int H, int C = 3,
+                                             DataType dataType = DataType::Float32,
+                                             float minValue = 0.f, float maxValue = 1.f)
+{
+  Random rng;
+  auto image = std::make_shared<ImageBuffer>(device, W, H, C, dataType);
+  for (size_t i = 0; i < image->getSize(); ++i)
+    image->set(i, minValue + rng.getFloat() * (maxValue - minValue));
+  return image;
+}
+
 bool isBetween(const std::shared_ptr<ImageBuffer>& image, float a, float b)
 {
   for (size_t i = 0; i < image->getSize(); ++i)
@@ -699,6 +710,67 @@ TEST_CASE("shared image", "[shared_image]")
     {
       REQUIRE(device.getError() == Error::InvalidArgument);
     }
+  }
+}
+
+// -------------------------------------------------------------------------------------------------
+
+TEST_CASE("inplace filter", "[inplace_filter]")
+{
+  const int W = 1920;
+  const int H = 1080;
+
+  DeviceRef device = makeAndCommitDevice();
+
+  FilterRef filter = device.newFilter("RT");
+  REQUIRE(bool(filter));
+
+  auto refColor  = makeRandomImage(device, W, H);
+  auto refOutput = makeImage(device, W, H);
+
+  setFilterImage(filter, "color",  refColor);
+  setFilterImage(filter, "output", refOutput);
+
+  filter.set("hdr", true);
+  filter.set("maxMemoryMB", 0); // make sure there will be multiple tiles
+
+  filter.commit();
+  REQUIRE(device.getError() == Error::None);
+
+  filter.execute();
+  REQUIRE(device.getError() == Error::None);
+
+  SECTION("same buffer")
+  {
+    auto color = refColor->clone();
+    setFilterImage(filter, "color", color);
+    setFilterImage(filter, "output", color);
+
+    filter.commit();
+    REQUIRE(device.getError() == Error::None);
+
+    filter.execute();
+    REQUIRE(device.getError() == Error::None);
+
+    REQUIRE(compareImage(*color, *refOutput));
+  }
+
+  SECTION("aliased shared buffers")
+  {
+    auto color = refColor->clone();
+    BufferRef colorBuffer  = color->getBuffer();
+    BufferRef outputBuffer = device.newBuffer(colorBuffer.getData(), colorBuffer.getSize());
+
+    filter.setImage("color",  colorBuffer,  color->getFormat(), W, H);
+    filter.setImage("output", outputBuffer, color->getFormat(), W, H);
+
+    filter.commit();
+    REQUIRE(device.getError() == Error::None);
+
+    filter.execute();
+    REQUIRE(device.getError() == Error::None);
+
+    REQUIRE(compareImage(*color, *refOutput));
   }
 }
 

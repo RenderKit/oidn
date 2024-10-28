@@ -81,6 +81,22 @@ OIDN_NAMESPACE_BEGIN
     return result;
   }
 
+  bool compareImage(const ImageBuffer& image, const ImageBuffer& ref)
+  {
+    assert(ref.getDims() == image.getDims());
+
+    for (size_t i = 0; i < image.getSize(); ++i)
+    {
+      const double actual = image.get(i);
+      const double expect = ref.get(i);
+
+      if (actual != expect)
+        return false;
+    }
+
+    return true;
+  }
+
   std::tuple<size_t, double> compareImage(const ImageBuffer& image,
                                           const ImageBuffer& ref,
                                           double errorThreshold)

@@ -40,6 +40,7 @@ OIDN_NAMESPACE_BEGIN
     virtual void* getPtr() const = 0;     // pointer in device address space
     virtual void* getHostPtr() const = 0; // pointer in host address space if available, nullptr otherwise
     virtual size_t getByteSize() const = 0;
+    virtual bool isShared() const = 0;
     virtual Storage getStorage() const = 0;
     Arena* getArena() const { return arena.get(); }
 
@@ -94,6 +95,7 @@ OIDN_NAMESPACE_BEGIN
     void* getPtr() const override { return ptr; }
     void* getHostPtr() const override { return ptr; }
     size_t getByteSize() const override { return byteSize; }
+    bool isShared() const override { return shared; }
     Storage getStorage() const override { return storage; }
 
     void read(size_t byteOffset, size_t byteSize, void* dstHostPtr, SyncMode sync) override;
