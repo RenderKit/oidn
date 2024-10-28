@@ -174,6 +174,15 @@ TEST_CASE("buffer creation", "[buffer]")
     }
   }
 
+  SECTION("shared buffer")
+  {
+    BufferRef buffer = device.newBuffer(1234567);
+    REQUIRE(device.getError() == Error::None);
+
+    BufferRef sharedBuffer = device.newBuffer(buffer.getData(), buffer.getSize());
+    REQUIRE(device.getError() == Error::None);
+  }
+
   SECTION("zero-sized default buffer")
   {
     BufferRef buffer = device.newBuffer(0);
@@ -183,6 +192,15 @@ TEST_CASE("buffer creation", "[buffer]")
   SECTION("zero-sized device buffer")
   {
     BufferRef buffer = device.newBuffer(0, Storage::Device);
+    REQUIRE(device.getError() == Error::None);
+  }
+
+  SECTION("zero-sized shared buffer")
+  {
+    BufferRef buffer = device.newBuffer(1234567);
+    REQUIRE(device.getError() == Error::None);
+
+    BufferRef sharedBuffer = device.newBuffer(buffer.getData(), 0);
     REQUIRE(device.getError() == Error::None);
   }
 

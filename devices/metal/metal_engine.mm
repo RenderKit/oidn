@@ -80,7 +80,7 @@ OIDN_NAMESPACE_BEGIN
 
   Ref<Buffer> MetalEngine::newBuffer(void* ptr, size_t byteSize)
   {
-    throw Exception(Error::InvalidOperation, "creating shared buffers is not supported by the device");
+    return makeRef<MetalBuffer>(this, ptr, byteSize);
   }
 
   Ref<Buffer> MetalEngine::newBuffer(const Ref<Arena>& arena, size_t byteSize, size_t byteOffset)

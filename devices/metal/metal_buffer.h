@@ -14,6 +14,7 @@ OIDN_NAMESPACE_BEGIN
   public:
     MetalBuffer(MetalEngine* engine, size_t byteSize, Storage storage);
     MetalBuffer(const Ref<Arena>& arena, size_t byteSize, size_t byteOffset);
+    MetalBuffer(MetalEngine* engine, void* data, size_t byteSize);
     MetalBuffer(MetalEngine* engine, id<MTLBuffer> buffer);
     ~MetalBuffer();
 

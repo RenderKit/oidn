@@ -42,6 +42,28 @@ OIDN_NAMESPACE_BEGIN
     init();
   }
 
+  MetalBuffer::MetalBuffer(MetalEngine* engine, void* data, size_t byteSize)
+    : engine(engine),
+      buffer(nullptr),
+      byteSize(byteSize),
+      storage(Storage::Host)
+  {
+    if (data == nullptr)
+      throw Exception(Error::InvalidArgument, "buffer pointer is null");
+    if (byteSize == 0)
+      return; // zero-sized Metal buffers cannot be created but we support them
+
+    id<MTLDevice> device = engine->getMTLDevice();
+
+    buffer = [device newBufferWithBytesNoCopy: data
+                                       length: byteSize
+                                      options: toMTLResourceOptions(storage)
+                                  deallocator: nil];
+
+    if (!buffer)
+      throw Exception(Error::OutOfMemory, "failed to create buffer");
+  }
+
   MetalBuffer::MetalBuffer(MetalEngine* engine, id<MTLBuffer> buffer)
     : engine(engine)
   {
@@ -81,7 +103,7 @@ OIDN_NAMESPACE_BEGIN
   void MetalBuffer::init()
   {
     if (byteSize == 0)
-      return;
+      return; // zero-sized Metal buffers cannot be created but we support them
 
     id<MTLDevice> device = engine->getMTLDevice();
 
@@ -130,14 +152,14 @@ OIDN_NAMESPACE_BEGIN
   void* MetalBuffer::getPtr() const
   {
     if (@available(macOS 13, iOS 16, tvOS 16, *))
-      return reinterpret_cast<void*>([buffer gpuAddress]);
+      return reinterpret_cast<void*>([buffer gpuAddress]); // returns nullptr if buffer is nil
     else
       throw std::logic_error("getting the buffer pointer is not supported by the device");
   }
 
   void* MetalBuffer::getHostPtr() const
   {
-    return storage != Storage::Device ? [buffer contents] : nullptr;
+    return storage != Storage::Device ? [buffer contents] : nullptr; // returns nullptr if buffer is nil
   }
 
   void MetalBuffer::read(size_t byteOffset, size_t byteSize, void* dstHostPtr, SyncMode sync)
