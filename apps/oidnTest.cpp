@@ -83,12 +83,9 @@ TEST_CASE("physical device", "[physical_device]")
       else
         REQUIRE(getError() == Error::InvalidArgument);
 
-      const uint32_t nodeMask = physicalDevice.get<uint32_t>("nodeMask");
+      physicalDevice.get<uint32_t>("nodeMask");
       if (luidSupported)
-      {
         REQUIRE(getError() == Error::None);
-        //REQUIRE(nodeMask != 0);
-      }
       else
         REQUIRE(getError() == Error::InvalidArgument);
 
