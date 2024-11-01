@@ -25,7 +25,7 @@ jobs:
 
   package-source-zip:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "cuda" ]'
@@ -66,7 +66,7 @@ jobs:
 
   package-windows:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "cuda", "hip" ]'
@@ -1168,7 +1168,7 @@ jobs:
 
   build-windows:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "cuda", "hip" ]'
@@ -1181,7 +1181,7 @@ jobs:
 
   build-windows-static:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "cuda", "hip" ]'
@@ -1195,7 +1195,7 @@ jobs:
   # FIXME: enable AOT and HIP
   build-windows-debug:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "cuda", "hip" ]'
@@ -1209,7 +1209,7 @@ jobs:
 
   build-windows-namespace:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "cuda", "hip" ]'
@@ -1221,7 +1221,7 @@ jobs:
 
   build-windows-namespace-static:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "cuda", "hip" ]'
@@ -1233,7 +1233,7 @@ jobs:
 
   build-windows-gta-aotjit:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "build" ]'
@@ -1250,7 +1250,7 @@ jobs:
 
   build-windows-gta-jit:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "build" ]'
@@ -1267,7 +1267,7 @@ jobs:
 
   build-windows-cudart:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "cuda", "hip" ]'
@@ -1280,7 +1280,7 @@ jobs:
 
   build-windows-syclos:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "cuda", "hip" ]'
@@ -1293,7 +1293,7 @@ jobs:
 
   build-windows-icx:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "cuda", "hip" ]'
@@ -1548,7 +1548,7 @@ jobs:
   test-windows-dg2:
     needs: build-windows
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "dg2", "NAS" ]'
@@ -1562,7 +1562,7 @@ jobs:
   test-windows-adl:
     needs: build-windows
     secrets: inherit
-    #uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    #uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
@@ -1577,7 +1577,7 @@ jobs:
   test-windows-cuda:
     needs: build-windows
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "gpu_nvidia" ]'
@@ -1590,7 +1590,7 @@ jobs:
   test-windows-cudart:
     needs: build-windows-cudart
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "gpu_nvidia" ]'
@@ -1603,7 +1603,7 @@ jobs:
   test-windows-hip:
     needs: build-windows
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "gpu_amd" ]'
@@ -1616,7 +1616,7 @@ jobs:
   test-windows-namespace-static-dg2:
     needs: build-windows-namespace-static
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "dg2", "NAS" ]'
@@ -1630,7 +1630,7 @@ jobs:
   test-windows-namespace-static-cuda:
     needs: build-windows-namespace-static
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "gpu_nvidia" ]'
@@ -1643,7 +1643,7 @@ jobs:
   test-windows-namespace-static-hip:
     needs: build-windows-namespace-static
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "gpu_amd" ]'
@@ -1656,7 +1656,7 @@ jobs:
   test-windows-syclos-dg2:
     needs: build-windows-syclos
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "dg2", "NAS" ]'
@@ -1670,7 +1670,7 @@ jobs:
   test-windows-icx-dg2:
     needs: build-windows-icx
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "dg2", "NAS" ]'
