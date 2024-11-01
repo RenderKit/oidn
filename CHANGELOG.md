@@ -14,7 +14,8 @@ Version History
 -   Added support for creating shared buffers on Metal devices
 -   Enabled accessing system allocated memory for CUDA devices which support this
     feature (see `systemMemorySupported` device parameter)
--   Added LUID support for HIP devices
+-   Added LUID support for HIP devices. Importing DX12 and Vulkan buffers is
+    now functional when using recent AMD GPU drivers on Windows
 
 ### Changes in v2.3.0:
 

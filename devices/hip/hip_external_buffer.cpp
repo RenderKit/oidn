@@ -83,7 +83,9 @@ OIDN_NAMESPACE_BEGIN
 
   HIPExternalBuffer::~HIPExternalBuffer()
   {
-    //hipFree(ptr); // FIXME: disabled due to a bug in HIP (https://github.com/ROCm-Developer-Tools/hip-tests/blob/develop/catch/unit/vulkan_interop/hipExternalMemoryGetMappedBuffer.cc#L65)
+  #if HIP_VERSION_MAJOR >= 6
+    hipFree(ptr);
+  #endif
     hipDestroyExternalMemory(extMem);
   }
 

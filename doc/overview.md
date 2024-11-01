@@ -97,10 +97,10 @@ For NVIDIA GPU support, please also install the latest
 For AMD GPU support, please also install the latest
 [AMD graphics drivers](https://www.amd.com/en/support):
 
--   Windows: AMD Software: Adrenalin Edition 23.4.3 Driver Version 22.40.51.05 or newer
+-   Windows: AMD Software: Adrenalin Edition 24.10.1 or newer
 
 -   Linux: [Radeon Software for Linux](https://www.amd.com/en/support/linux-drivers)
-    version 22.40.5 or newer
+    version 24.20.3 or newer
 
 For Apple GPU support, macOS Ventura or newer is required.
 

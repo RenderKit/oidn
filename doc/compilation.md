@@ -95,7 +95,7 @@ prerequisites are needed:
 -   [Ninja](https://ninja-build.org) or Make as the CMake generator. The Visual
     Studio generator is *not* supported.
 
--   [AMD ROCm (HIP SDK)](https://rocm.docs.amd.com) v5.5.0 or newer.
+-   [AMD ROCm (HIP SDK)](https://rocm.docs.amd.com) v6.1.2 or newer.
 
 -   Perl (e.g. [Strawberry Perl](https://strawberryperl.com) on Windows)
 
