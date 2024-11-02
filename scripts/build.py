@@ -9,6 +9,7 @@ import os
 from glob import glob
 import shutil
 import argparse
+import multiprocessing
 
 from common import *
 
@@ -32,9 +33,9 @@ def check_symbols_linux(filename):
   check_symbols(filename, 'CXXABI',  (1, 3, 11))
 
 # Parse the arguments
-compilers = {'windows' : ['msvc17', 'msvc16-icc21', 'msvc16', 'msvc15', 'clang', 'icx'],
-             'linux'   : ['gcc', 'clang', 'icc', 'icx'],
-             'macos'   : ['clang', 'icc']}
+compilers = {'windows' : ['msvc17', 'msvc16', 'msvc15', 'clang', 'icx'],
+             'linux'   : ['gcc', 'clang', 'icx'],
+             'macos'   : ['clang']}
 
 parser = argparse.ArgumentParser()
 parser.usage = '\rIntel(R) Open Image Denoise - Build\n' + parser.format_usage()
@@ -71,43 +72,22 @@ os.chdir(cfg.build_dir)
 msbuild = False
 config_cmd = 'cmake -L'
 
-if OS == 'windows':
-  if cfg.compiler == 'clang':
-    cc  = 'clang'
-    cxx = 'clang++'
-    config_cmd += ' -G Ninja'
-    config_cmd += f' -D CMAKE_C_COMPILER:FILEPATH="{cc}"'
-    config_cmd += f' -D CMAKE_CXX_COMPILER:FILEPATH="{cxx}"'
-  elif cfg.compiler == 'icx':
-    cc  = 'icx'
-    cxx = 'icx'
-    config_cmd += ' -G Ninja'
-    config_cmd += f' -D CMAKE_C_COMPILER:FILEPATH="{cc}"'
-    config_cmd += f' -D CMAKE_CXX_COMPILER:FILEPATH="{cxx}"'
-  else:
-    msbuild = True
-    if cfg.compiler == 'default':
-      cfg.compiler = 'msvc17'
-    for compiler in cfg.compiler.split('-'):
-      if compiler.startswith('msvc'):
-        msvc_arch = {'x86_64': 'x64', 'arm64': 'ARM64'}[ARCH]
-        config_cmd += {'msvc15' :  ' -G "Visual Studio 15 2017 Win64"',
-                       'msvc16' : f' -G "Visual Studio 16 2019" -A {msvc_arch}',
-                       'msvc17' : f' -G "Visual Studio 17 2022" -A {msvc_arch}'}[compiler]
-      elif compiler.startswith('icc'):
-        icc_version = {'18' : '18.0', '19' : '19.0', '20' : '19.1', '21' : '19.2'}[compiler[3:]]
-        config_cmd += f' -T "Intel C++ Compiler {icc_version}"'
+if re.match('msvc[0-9]+', cfg.compiler):
+  msbuild = True
+  msvc_arch = {'x86_64': 'x64', 'arm64': 'ARM64'}[ARCH]
+  config_cmd += {'msvc15' :  ' -G "Visual Studio 15 2017 Win64"',
+                 'msvc16' : f' -G "Visual Studio 16 2019" -A {msvc_arch}',
+                 'msvc17' : f' -G "Visual Studio 17 2022" -A {msvc_arch}'}[cfg.compiler]
 else:
-  if OS == 'linux':
+  msbuild = False
+  if OS != 'macos':
     config_cmd += ' -G Ninja'
   if cfg.compiler != 'default':
     cc = cfg.compiler
-    cxx = {'gcc' : 'g++', 'clang' : 'clang++', 'icx' : 'icpx', 'icc' : 'icpc'}[cc]
-    if cfg.compiler == 'icc':
-      icc_dir = os.environ.get('OIDN_ICC_DIR_' + OS.upper())
-      if icc_dir:
-        cc  = os.path.join(icc_dir, cc)
-        cxx = os.path.join(icc_dir, cxx)
+    if OS == 'windows':
+      cxx = {'clang' : 'clang++', 'icx' : 'icx'}[cc]
+    else:
+      cxx = {'gcc' : 'g++', 'clang' : 'clang++', 'icx' : 'icpx'}[cc]
     config_cmd += f' -D CMAKE_C_COMPILER:FILEPATH="{cc}"'
     config_cmd += f' -D CMAKE_CXX_COMPILER:FILEPATH="{cxx}"'
 
@@ -210,7 +190,8 @@ if msbuild:
 else:
   build_cmd += f' --target {cfg.target}'
   if OS == 'macos':
-    build_cmd += ' -- VERBOSE=1' # Make
+    cpu_count = multiprocessing.cpu_count()
+    build_cmd += f' -- -j {cpu_count} VERBOSE=1' # Make
   else:
     build_cmd += ' -- -v' # Ninja
 
