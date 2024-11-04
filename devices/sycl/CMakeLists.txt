@@ -108,13 +108,16 @@ oidn_install_module(OpenImageDenoise_device_sycl)
 if(OIDN_DEVICE_SYCL_AOT)
   target_compile_definitions(OpenImageDenoise_device_sycl PRIVATE OIDN_DEVICE_SYCL_AOT)
 
-  set(OIDN_SYCL_AOT_TARGETS_XELP tgllp,rkl,adl-s,adl-p,adl-n,dg1,mtl-m,mtl-p)
-  set(OIDN_SYCL_AOT_TARGETS_XEHPG acm-g10,acm-g11,acm-g12)
-  set(OIDN_SYCL_AOT_TARGETS ${OIDN_SYCL_AOT_TARGETS_XELP},${OIDN_SYCL_AOT_TARGETS_XEHPG})
+  set(OIDN_SYCL_AOT_TARGETS_XELP tgllp,rkl,adl-s,adl-p,adl-n,dg1,mtl-u,mtl-h)
+  set(OIDN_SYCL_AOT_TARGETS_XEHPG acm-g10,acm-g11,acm-g12,arl-h)
+  set(OIDN_SYCL_AOT_TARGETS_XEHPC lnl-m)
   if(UNIX)
-    set(OIDN_SYCL_AOT_TARGETS_XEHPC pvc-sdv,pvc)
-    set(OIDN_SYCL_AOT_TARGETS ${OIDN_SYCL_AOT_TARGETS},${OIDN_SYCL_AOT_TARGETS_XEHPC})
+    set(OIDN_SYCL_AOT_TARGETS_XELP ${OIDN_SYCL_AOT_TARGETS_XELP},pvc-vg)
+    set(OIDN_SYCL_AOT_TARGETS_XEHPC ${OIDN_SYCL_AOT_TARGETS_XEHPC},pvc-sdv,pvc)
   endif()
+  set(OIDN_SYCL_AOT_TARGETS
+    ${OIDN_SYCL_AOT_TARGETS_XELP},${OIDN_SYCL_AOT_TARGETS_XEHPG},${OIDN_SYCL_AOT_TARGETS_XEHPC}
+  )
 
   macro(oidn_set_sycl_aot_options sources options)
     set(_final_options ${options})
@@ -128,9 +131,7 @@ if(OIDN_DEVICE_SYCL_AOT)
   oidn_set_sycl_aot_options(sycl_conv_xelp.cpp "-device ${OIDN_SYCL_AOT_TARGETS_XELP}")
   oidn_set_sycl_aot_options(sycl_conv_xehpg.cpp
     "-device ${OIDN_SYCL_AOT_TARGETS_XEHPG} -options '-doubleGRF'")
-  if(OIDN_SYCL_AOT_TARGETS_XEHPC)
-    oidn_set_sycl_aot_options(sycl_conv_xehpc.cpp "-device ${OIDN_SYCL_AOT_TARGETS_XEHPC}")
-  endif()
+  oidn_set_sycl_aot_options(sycl_conv_xehpc.cpp "-device ${OIDN_SYCL_AOT_TARGETS_XEHPC}")
 endif()
 
 if(OIDN_DEVICE_SYCL_JIT_CACHE)

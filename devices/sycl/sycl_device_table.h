@@ -35,8 +35,8 @@ OIDN_NAMESPACE_BEGIN
     {
       SYCLArch::XeLPG,
       {
-        0x03118000, // mtl-m
-        0x0311c000, // mtl-p
+        0x03118000, // mtl-u
+        0x0311c000, // mtl-h
       }
     },
     {
@@ -63,7 +63,7 @@ OIDN_NAMESPACE_BEGIN
     {
       SYCLArch::XeHPC_NoDPAS,
       {
-        0x030f4000, // pvc-xt-c0-vg
+        0x030f4000, // pvc-vg
       }
     },
     #endif

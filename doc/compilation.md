@@ -63,7 +63,7 @@ prerequisites are needed:
 
 -   Intel® Graphics Offline Compiler for OpenCL™ Code (OCLOC)
     -   Windows:
-        Version [31.0.101.5082](https://registrationcenter-download.intel.com/akdlm/IRC_NAS/77a13ae6-6100-4ddc-b069-0086ff44730c/ocloc_win_101.5082.zip)
+        Version [2025.0.0 / 32.0.101.6129](https://registrationcenter-download.intel.com/akdlm/IRC_NAS/7000f8d2-dda8-4dd6-8b63-3917e4476fa5/intel-ocloc-2025.0.0.257_offline.exe)
         or newer as a
         [standalone component of Intel® oneAPI Toolkits](https://www.intel.com/content/www/us/en/developer/articles/tool/oneapi-standalone-components.html),
         which must be extracted and its contents added to the `PATH`.
@@ -71,7 +71,7 @@ prerequisites are needed:
         [Intel® oneAPI Base Toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/toolkits.html#base-kit).
 
     -   Linux: Included with [Intel® software for General Purpose GPU capabilities](https://dgpu-docs.intel.com)
-        release [20231219](https://dgpu-docs.intel.com/releases/stable_775_20_20231219.html) or newer
+        release [2441.19](https://dgpu-docs.intel.com/releases/rolling-release-notes.html#release-2024-10-31) or newer
         (install at least `intel-opencl-icd` on Ubuntu, `intel-ocloc` on RHEL or SLES).
         Also available with
         [Intel® Graphics Compute Runtime for oneAPI Level Zero and OpenCL™ Driver](https://github.com/intel/compute-runtime).
