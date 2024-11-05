@@ -1561,12 +1561,11 @@ jobs:
   test-windows-adl:
     needs: build-windows
     secrets: inherit
-    #uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
       runs-on: '[ "Windows", "igpu", "adl" ]'
-      #env-from-files: ./.github/workflows/gfx-windows-public.env
+      env-from-files: ./.github/workflows/gfx-windows-public.env
       artifact-in: build-windows
       artifact-out: test-windows-adl
       artifact-path: test.log
