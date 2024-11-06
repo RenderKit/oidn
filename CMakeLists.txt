@@ -162,15 +162,14 @@ if(OIDN_INSTALL_DEPENDENCIES AND CMAKE_CXX_COMPILER_ID STREQUAL "IntelLLVM")
 
   if(WIN32)
     file(GLOB _icx_deps LIST_DIRECTORIES FALSE
-      "${_icx_compiler_dir}/../redist/intel64_win/compiler/libmmd.dll"
-      "${_icx_compiler_dir}/../redist/intel64_win/compiler/svml_dispmd.dll"
+      "${_icx_compiler_dir}/../bin/libmmd.dll"
     )
   else()
     file(GLOB _icx_deps LIST_DIRECTORIES FALSE
-      "${_icx_compiler_dir}/../compiler/lib/intel64_lin/libsvml.so"
-      "${_icx_compiler_dir}/../compiler/lib/intel64_lin/libirng.so"
-      "${_icx_compiler_dir}/../compiler/lib/intel64_lin/libimf.so"
-      "${_icx_compiler_dir}/../compiler/lib/intel64_lin/libintlc.so.?"
+      "${_icx_compiler_dir}/../lib/libsvml.so"
+      "${_icx_compiler_dir}/../lib/libirng.so"
+      "${_icx_compiler_dir}/../lib/libimf.so"
+      "${_icx_compiler_dir}/../lib/libintlc.so.?"
     )
   endif()
 

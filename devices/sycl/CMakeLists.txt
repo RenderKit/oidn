@@ -149,18 +149,34 @@ if(OIDN_INSTALL_DEPENDENCIES)
   get_filename_component(_dpcpp_compiler_dir ${CMAKE_CXX_COMPILER} PATH)
 
   if(WIN32)
-    file(GLOB _sycl_deps LIST_DIRECTORIES FALSE
-      "${_dpcpp_compiler_dir}/../bin/sycl?.dll"
-      "${_dpcpp_compiler_dir}/../bin/pi_level_zero.dll"
-      "${_dpcpp_compiler_dir}/../bin/pi_win_proxy_loader.dll"
-      "${_dpcpp_compiler_dir}/../bin/win_proxy_loader.dll"    # deprecated
-      "${_dpcpp_compiler_dir}/../bin/libmmd.dll"              # ICX only
-    )
+    if(EXISTS "${_dpcpp_compiler_dir}/../bin/pi_level_zero.dll")
+      file(GLOB _sycl_deps LIST_DIRECTORIES FALSE
+        "${_dpcpp_compiler_dir}/../bin/sycl?.dll"
+        "${_dpcpp_compiler_dir}/../bin/pi_level_zero.dll"
+        "${_dpcpp_compiler_dir}/../bin/pi_win_proxy_loader.dll"
+        "${_dpcpp_compiler_dir}/../bin/win_proxy_loader.dll"    # deprecated
+      )
+    else()
+      file(GLOB _sycl_deps LIST_DIRECTORIES FALSE
+        "${_dpcpp_compiler_dir}/../bin/sycl?.dll"
+        "${_dpcpp_compiler_dir}/../bin/ur_loader.dll"
+        "${_dpcpp_compiler_dir}/../bin/ur_adapter_level_zero.dll"
+        "${_dpcpp_compiler_dir}/../bin/ur_win_proxy_loader.dll"
+      )
+    endif()
   else()
-    file(GLOB _sycl_deps LIST_DIRECTORIES FALSE
-      "${_dpcpp_compiler_dir}/../lib/libsycl.so.?"
-      "${_dpcpp_compiler_dir}/../lib/libpi_level_zero.so"
-    )
+    if(EXISTS "${_dpcpp_compiler_dir}/../lib/libpi_level_zero.so")
+      file(GLOB _sycl_deps LIST_DIRECTORIES FALSE
+        "${_dpcpp_compiler_dir}/../lib/libsycl.so.?"
+        "${_dpcpp_compiler_dir}/../lib/libpi_level_zero.so"
+      )
+    else()
+      file(GLOB _sycl_deps LIST_DIRECTORIES FALSE
+        "${_dpcpp_compiler_dir}/../lib/libsycl.so.?"
+        "${_dpcpp_compiler_dir}/../lib/libur_loader.so"
+        "${_dpcpp_compiler_dir}/../lib/libur_adapter_level_zero.so"
+      )
+    endif()
   endif()
 
   oidn_install_lib_files(${_sycl_deps})
