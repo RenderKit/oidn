@@ -7,10 +7,10 @@ Version History
     images where the input and output are stored in different shared buffer
     objects (created with `oidnNewSharedBuffer*`) that overlap in memory
 -   Fixed issues with cancellation through progress monitor callbacks:
-        -   Fixed cancellation requests almost never being fulfilled on CPU
-            devices since `v2.3.0`
-        -   Fixed not calling the callback anymore after requesting cancellation,
-            while the operation is still being executed
+    -   Fixed cancellation requests not being fulfilled on CPU devices since
+        `v2.3.0`
+    -   Fixed not calling the callback anymore after requesting cancellation,
+        while the operation is still being executed
 -   Added support for creating shared buffers on Metal devices
 -   Enabled accessing system allocated memory for CUDA devices which support this
     feature (see `systemMemorySupported` device parameter)

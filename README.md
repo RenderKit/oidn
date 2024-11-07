@@ -1,6 +1,6 @@
 # Intel® Open Image Denoise
 
-This is release v2.3.0 of Intel Open Image Denoise. For changes and new
+This is release v2.3.1 of Intel Open Image Denoise. For changes and new
 features see the [changelog](CHANGELOG.md). Visit
 https://www.openimagedenoise.org for more information.
 
@@ -107,11 +107,10 @@ drivers](https://www.nvidia.com/en-us/geforce/drivers/):
 For AMD GPU support, please also install the latest [AMD graphics
 drivers](https://www.amd.com/en/support):
 
-  - Windows: AMD Software: Adrenalin Edition 23.4.3 Driver Version
-    22.40.51.05 or newer
+  - Windows: AMD Software: Adrenalin Edition 24.10.1 or newer
 
   - Linux: [Radeon Software for
-    Linux](https://www.amd.com/en/support/linux-drivers) version 22.40.5
+    Linux](https://www.amd.com/en/support/linux-drivers) version 24.20.3
     or newer
 
 For Apple GPU support, macOS Ventura or newer is required.
@@ -216,8 +215,8 @@ additional prerequisites are needed:
 
   - Intel® Graphics Offline Compiler for OpenCL™ Code (OCLOC)
     
-      - Windows: Version
-        [31.0.101.5082](https://registrationcenter-download.intel.com/akdlm/IRC_NAS/77a13ae6-6100-4ddc-b069-0086ff44730c/ocloc_win_101.5082.zip)
+      - Windows: Version [2025.0.0
+        / 32.0.101.6129](https://registrationcenter-download.intel.com/akdlm/IRC_NAS/7000f8d2-dda8-4dd6-8b63-3917e4476fa5/intel-ocloc-2025.0.0.257_offline.exe)
         or newer as a [standalone component of Intel® oneAPI
         Toolkits](https://www.intel.com/content/www/us/en/developer/articles/tool/oneapi-standalone-components.html),
         which must be extracted and its contents added to the `PATH`.
@@ -226,7 +225,7 @@ additional prerequisites are needed:
     
       - Linux: Included with [Intel® software for General Purpose GPU
         capabilities](https://dgpu-docs.intel.com) release
-        [20231219](https://dgpu-docs.intel.com/releases/stable_775_20_20231219.html)
+        [2441.19](https://dgpu-docs.intel.com/releases/rolling-release-notes.html#release-2024-10-31)
         or newer (install at least `intel-opencl-icd` on Ubuntu,
         `intel-ocloc` on RHEL or SLES). Also available with [Intel®
         Graphics Compute Runtime for oneAPI Level Zero and OpenCL™
@@ -252,7 +251,7 @@ additional prerequisites are needed:
   - [Ninja](https://ninja-build.org) or Make as the CMake generator. The
     Visual Studio generator is *not* supported.
 
-  - [AMD ROCm (HIP SDK)](https://rocm.docs.amd.com) v5.5.0 or newer.
+  - [AMD ROCm (HIP SDK)](https://rocm.docs.amd.com) v6.1.2 or newer.
 
   - Perl (e.g. [Strawberry Perl](https://strawberryperl.com) on Windows)
 
@@ -646,8 +645,8 @@ overhead of copying as much as possible:
   - Data should be copied to/from buffers only if the data in system
     memory indeed cannot be accessed by the device. This can be
     determined by simply querying the `systemMemorySupported` device
-    parameter. If system memory is accessible by the device, no buffers
-    are necessary and filter image parameters can be set with
+    parameter. If system allocated memory is accessible by the device,
+    no buffers are necessary and filter image parameters can be set with
     `oidnSetSharedFilterImage`.
 
   - If the image data cannot be accessed by the device, buffers must be
@@ -1016,6 +1015,12 @@ operations to complete, which can be done by calling
 ``` cpp
 void oidnSyncDevice(OIDNDevice device);
 ```
+
+If any errors have occurred during asynchronous operations (e.g.,
+cancellation through a progress monitor callback), those will be
+reported only when synchronization is triggered explicitly with
+`oidnSyncDevice` or implicitly with some other API call (e.g.,
+`oidnExecuteFilter`, `oidnCommitFilter`).
 
 Before the application exits, it should release all devices by invoking
 
@@ -1458,12 +1463,12 @@ argument). When returning `true` from the callback function, Open Image
 Denoise will continue the filter operation normally. When returning
 `false`, the library will attempt to cancel the filter operation as soon
 as possible, and if that is fulfilled, it will raise an
-`OIDN_ERROR_CANCELLED` error.
+`OIDN_ERROR_CANCELLED` error. Note that cancellation is not guaranteed.
 
-Please note that using a progress monitor callback function introduces
-some overhead, which may be significant on GPU devices, hurting
-performance. Therefore we recommend progress monitoring only for offline
-denoising, when denoising an image is expected to take several seconds.
+Using a progress monitor callback function introduces some overhead,
+which may be significant on GPU devices, hurting performance. Therefore
+we strongly recommend progress monitoring only for offline denoising,
+when denoising an image is expected to take several seconds.
 
 After setting all necessary parameters for the filter, the changes must
 be committed by calling
@@ -1848,7 +1853,7 @@ prerequisites:
 
   - Python 3.7 or later
 
-  - [PyTorch](https://pytorch.org/) 2.3 or later
+  - [PyTorch](https://pytorch.org/) 2.4 or later
 
   - [NumPy](https://numpy.org/) 1.19 or later
 
