@@ -110,11 +110,9 @@ OIDN_NAMESPACE_BEGIN
     ExternalMemoryTypeFlags getExternalMemoryTypes() const { return externalMemoryTypes; }
     void trimScratch();
 
-    // Executes operations on the device, releasing temporary allocations at the end
-    virtual void execute(std::function<void()>&& f)
-    {
-      f();
-    }
+    // Executes operations on the device, making sure to wait/flush and release temporary
+    // allocations (e.g. from ObjC) at the end, even if an exception is thrown
+    virtual void execute(std::function<void()>&& f, SyncMode sync = SyncMode::Blocking);
 
     // Synchronizes all subdevices (does not block)
     virtual void submitBarrier() {}

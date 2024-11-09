@@ -131,7 +131,6 @@ OIDN_NAMESPACE_BEGIN
 
       // (Re-)Initialize the filter
       device->execute([&]() { init(); });
-      device->waitAndThrow();
 
       // Clean up the device memory if the memory usage limit has been reduced
       if (maxMemoryMB >= 0 && (maxMemoryMB < prevMaxMemoryMB || prevMaxMemoryMB < 0))
@@ -249,9 +248,7 @@ OIDN_NAMESPACE_BEGIN
         imageCopy->setDst(output);
         imageCopy->submit(progress);
       }
-    });
-
-    device->syncAndThrow(sync);
+    }, sync);
   }
 
   void UNetFilter::init()

@@ -120,11 +120,11 @@ OIDN_NAMESPACE_BEGIN
     return Storage::Undefined;
   }
 
-  void MetalDevice::execute(std::function<void()>&& f)
+  void MetalDevice::execute(std::function<void()>&& f, SyncMode sync)
   {
     @autoreleasepool
     {
-      f();
+      Device::execute(std::move(f), sync);
     }
   }
 

@@ -37,7 +37,7 @@ OIDN_NAMESPACE_BEGIN
     bool needWeightAndBiasOnDevice() const override { return false; } // due to MPSGraph
     Storage getPtrStorage(const void* ptr) override;
 
-    void execute(std::function<void()>&& f) override;
+    void execute(std::function<void()>&& f, SyncMode sync) override;
     void flush() override;
     void wait() override;
 

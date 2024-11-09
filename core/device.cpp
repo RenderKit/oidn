@@ -303,6 +303,22 @@ OIDN_NAMESPACE_BEGIN
       subdevice->trimScratch();
   }
 
+  void Device::execute(std::function<void()>&& f, SyncMode sync)
+  {
+    try
+    {
+      f();
+    }
+    catch (...)
+    {
+      // Make sure to synchronize even if an exception has been thrown
+      syncAndThrow(sync);
+      throw;
+    }
+
+    syncAndThrow(sync);
+  }
+
   void Device::waitAndThrow()
   {
     wait();
