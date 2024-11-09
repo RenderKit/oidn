@@ -45,10 +45,10 @@ OIDN_NAMESPACE_BEGIN
     Arena* getArena() const { return arena.get(); }
 
     virtual void read(size_t byteOffset, size_t byteSize, void* dstHostPtr,
-                      SyncMode sync = SyncMode::Sync);
+                      SyncMode sync = SyncMode::Blocking);
 
     virtual void write(size_t byteOffset, size_t byteSize, const void* srcHostPtr,
-                       SyncMode sync = SyncMode::Sync);
+                       SyncMode sync = SyncMode::Blocking);
 
     Ref<Buffer> newBuffer(size_t byteSize, size_t byteOffset = 0);
     Ref<Tensor> newTensor(const TensorDesc& desc, size_t byteOffset = 0);

@@ -90,6 +90,15 @@ OIDN_NAMESPACE_BEGIN
     // Waits for all previously submitted commands to complete (blocks)
     virtual void wait() = 0;
 
+    // Calls wait() or flush() depending on the sync mode
+    void sync(SyncMode syncMode)
+    {
+      if (syncMode == SyncMode::Blocking)
+        wait();
+      else
+        flush();
+    }
+
     virtual int getMaxWorkGroupSize() const;
     virtual int getSubgroupSize() const;
 

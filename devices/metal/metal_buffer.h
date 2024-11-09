@@ -26,8 +26,11 @@ OIDN_NAMESPACE_BEGIN
     bool isShared() const override { return shared; }
     Storage getStorage() const override { return storage; }
 
-    void read(size_t byteOffset, size_t byteSize, void* dstHostPtr, SyncMode sync = SyncMode::Sync) override;
-    void write(size_t byteOffset, size_t byteSize, const void* srcHostPtr, SyncMode sync = SyncMode::Sync) override;
+    void read(size_t byteOffset, size_t byteSize, void* dstHostPtr,
+              SyncMode sync = SyncMode::Blocking) override;
+
+    void write(size_t byteOffset, size_t byteSize, const void* srcHostPtr,
+               SyncMode sync = SyncMode::Blocking) override;
 
   protected:
     void preRealloc() override;

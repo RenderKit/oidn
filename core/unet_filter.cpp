@@ -251,10 +251,7 @@ OIDN_NAMESPACE_BEGIN
       }
     });
 
-    if (sync == SyncMode::Sync)
-      device->waitAndThrow();
-    else
-      device->flush();
+    device->syncAndThrow(sync);
   }
 
   void UNetFilter::init()

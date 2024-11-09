@@ -178,7 +178,7 @@ OIDN_NAMESPACE_BEGIN
     if (dstHostPtr == nullptr && byteSize > 0)
       throw Exception(Error::InvalidArgument, "destination host pointer is null");
 
-    if (sync == SyncMode::Sync)
+    if (sync == SyncMode::Blocking)
       engine->usmCopy(dstHostPtr, ptr + byteOffset, byteSize);
     else
       engine->submitUSMCopy(dstHostPtr, ptr + byteOffset, byteSize);
@@ -191,7 +191,7 @@ OIDN_NAMESPACE_BEGIN
     if (srcHostPtr == nullptr && byteSize > 0)
       throw Exception(Error::InvalidArgument, "source host pointer is null");
 
-    if (sync == SyncMode::Sync)
+    if (sync == SyncMode::Blocking)
       engine->usmCopy(ptr + byteOffset, srcHostPtr, byteSize);
     else
       engine->submitUSMCopy(ptr + byteOffset, srcHostPtr, byteSize);

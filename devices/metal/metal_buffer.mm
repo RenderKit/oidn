@@ -197,10 +197,7 @@ OIDN_NAMESPACE_BEGIN
         [tempBuffer release];
       }];
 
-      if (sync == SyncMode::Sync)
-        engine->wait();
-      else
-        engine->flush();
+      engine->sync(sync);
     }
   }
 
@@ -232,10 +229,7 @@ OIDN_NAMESPACE_BEGIN
 
       [tempBuffer release];
 
-      if (sync == SyncMode::Sync)
-        engine->wait();
-      else
-        engine->flush();
+      engine->sync(sync);
     }
   }
 

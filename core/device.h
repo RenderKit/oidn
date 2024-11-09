@@ -129,6 +129,15 @@ OIDN_NAMESPACE_BEGIN
     // error that occured since the previous invocation of this function (blocks)
     void waitAndThrow();
 
+    // Calls waitAndThrow() or flush() depending on the sync mode
+    void syncAndThrow(SyncMode sync)
+    {
+      if (sync == SyncMode::Blocking)
+        waitAndThrow();
+      else
+        flush();
+    }
+
   protected:
     virtual void init() = 0;
 
