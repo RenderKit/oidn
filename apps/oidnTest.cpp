@@ -1036,21 +1036,26 @@ struct Progress
 {
   double n;    // current progress
   double nMax; // when to cancel execution
+  std::atomic<bool> running; // should the callback be called?
 
-  Progress(double nMax) : n(0), nMax(nMax) {}
+  Progress(double nMax)
+    : n(0),
+      nMax(nMax),
+      running(false) {}
 };
 
 // Progress monitor callback function
 bool progressCallback(void* userPtr, double n)
 {
   Progress* progress = (Progress*)userPtr;
+  REQUIRE(progress->running); // callback should be called only while running
   REQUIRE((std::isfinite(n) && n >= 0 && n <= 1)); // n must be between 0 and 1
   REQUIRE(n >= progress->n); // n must not decrease
   progress->n = n;
   return n < progress->nMax; // cancel if reached nMax
 }
 
-void progressTest(DeviceRef& device, FilterRef& filter, double nMax = 1000)
+double progressTest(DeviceRef& device, FilterRef& filter, double nMax = 1000)
 {
   Progress progress(nMax);
   filter.setProgressMonitorFunction(progressCallback, &progress);
@@ -1058,7 +1063,11 @@ void progressTest(DeviceRef& device, FilterRef& filter, double nMax = 1000)
   filter.commit();
   REQUIRE(device.getError() == Error::None);
 
+  Timer timer;
+  progress.running = true;
   filter.execute();
+  progress.running = false;
+  const double time = timer.query();
 
   if (nMax <= 1)
   {
@@ -1073,6 +1082,8 @@ void progressTest(DeviceRef& device, FilterRef& filter, double nMax = 1000)
     REQUIRE(device.getError() == Error::None);
     REQUIRE(progress.n == 1); // progress must be 100% at the end
   }
+
+  return time;
 }
 
 TEST_CASE("progress monitor", "[progress]")
@@ -1081,6 +1092,8 @@ TEST_CASE("progress monitor", "[progress]")
   const int H = 727;
 
   DeviceRef device = makeAndCommitDevice();
+  const bool isCPU = device.get<DeviceType>("type") == DeviceType::CPU;
+  REQUIRE(device.getError() == Error::None);
 
   FilterRef filter = device.newFilter("RT");
   REQUIRE(bool(filter));
@@ -1090,6 +1103,19 @@ TEST_CASE("progress monitor", "[progress]")
   setFilterImage(filter, "output", image); // in-place
 
   filter.set("maxMemoryMB", 0); // make sure there will be multiple tiles
+
+  filter.commit();
+  REQUIRE(device.getError() == Error::None);
+
+  // Dry run without progress monitor
+  filter.execute();
+  REQUIRE(device.getError() == Error::None);
+
+  // Measure filter time without progress monitor
+  Timer timer;
+  filter.execute();
+  const double refTime = timer.query();
+  REQUIRE(device.getError() == Error::None);
 
   SECTION("progress monitor: finish")
   {
@@ -1101,9 +1127,16 @@ TEST_CASE("progress monitor", "[progress]")
     progressTest(device, filter, 0.5);
   }
 
+  SECTION("progress monitor: cancel early")
+  {
+    const double time = progressTest(device, filter, 0.1);
+    REQUIRE((!isCPU || time < refTime / 2.)); // CPU should be able to cancel quickly
+  }
+
   SECTION("progress monitor: cancel at the beginning")
   {
-    progressTest(device, filter, 0);
+    const double time = progressTest(device, filter, 0);
+    REQUIRE((!isCPU || time < refTime / 2.)); // CPU should be able to cancel quickly
   }
 
   SECTION("progress monitor: cancel at the end")
