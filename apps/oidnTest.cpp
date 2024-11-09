@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "common/common.h"
+#include "common/timer.h"
 #include "utils/image_buffer.h"
 #include "utils/random.h"
 #include <cassert>
@@ -869,6 +870,7 @@ TEST_CASE("filter update", "[filter_update]")
 
 TEST_CASE("async filter", "[async_filter]")
 {
+  // Use a small image (one tile) to avoid potential blocking when filtering asynchronously on GPUs
   const int W = 799;
   const int H = 601;
 
@@ -888,9 +890,27 @@ TEST_CASE("async filter", "[async_filter]")
   filter.commit();
   REQUIRE(device.getError() == Error::None);
 
+  // Blocking filter dry run
+  filter.execute();
+  REQUIRE(device.getError() == Error::None);
+
+  // Measure blocking filter time
+  Timer timer;
+  filter.execute();
+  const double blockingTime = timer.query();
+  REQUIRE(device.getError() == Error::None);
+
+  // Measure async filter time
+  timer.reset();
+  filter.executeAsync();
+  const double asyncTime = timer.query();
+  REQUIRE(device.getError() == Error::None);
+  REQUIRE(asyncTime < blockingTime / 2.); // async shouldn't block for long
+
   for (int i = 0; i < 3; ++i)
     filter.executeAsync();
 
+  // Change filter parameters without manually syncing first
   setFilterImage(filter, "albedo", albedo);
   filter.set("hdr", false);
 
@@ -904,6 +924,8 @@ TEST_CASE("async filter", "[async_filter]")
   REQUIRE(device.getError() == Error::None);
 
   filter.executeAsync();
+
+  // Release filter without manually syncing first
   filter.release();
 
   REQUIRE(device.getError() == Error::None);
