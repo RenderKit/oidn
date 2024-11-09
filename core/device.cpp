@@ -334,4 +334,12 @@ OIDN_NAMESPACE_BEGIN
     }
   }
 
+  void Device::syncAndThrow(SyncMode sync)
+  {
+    if (sync == SyncMode::Blocking)
+      waitAndThrow();
+    else
+      flush();
+  }
+
 OIDN_NAMESPACE_END

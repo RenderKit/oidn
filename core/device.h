@@ -128,13 +128,7 @@ OIDN_NAMESPACE_BEGIN
     void waitAndThrow();
 
     // Calls waitAndThrow() or flush() depending on the sync mode
-    void syncAndThrow(SyncMode sync)
-    {
-      if (sync == SyncMode::Blocking)
-        waitAndThrow();
-      else
-        flush();
-    }
+    void syncAndThrow(SyncMode sync);
 
   protected:
     virtual void init() = 0;
