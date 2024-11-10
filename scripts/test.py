@@ -135,8 +135,7 @@ def test():
 
         print_test('oidnTest.valgrind')
         supp_filename = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'valgrind.supp')
-        if cfg.device in {'default', 'cpu', 'sycl', 'hip'}:
-          test_cmd += ' "[minimal]"' # too slow otherwise
+        test_cmd += ' "[minimal]"' # too slow otherwise
         test_cmd = f'valgrind --leak-check=full -s --error-exitcode=1 --suppressions={supp_filename} --gen-suppressions=all {test_cmd}'
         run_test(test_cmd)
       elif OS == 'macos':

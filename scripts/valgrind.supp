@@ -49,6 +49,23 @@
 }
 
 {
+   libamd_comgr_cond
+   Memcheck:Cond
+   ...
+   obj:*libamd_comgr.so*
+   ...
+}
+
+{
+   libamd_comgr_param
+   Memcheck:Param
+   write(buf)
+   ...
+   obj:*libamd_comgr.so*
+   ...
+}
+
+{
    libhsa_leak
    Memcheck:Leak
    match-leak-kinds: definite,possible
