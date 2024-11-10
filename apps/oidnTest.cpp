@@ -890,25 +890,26 @@ TEST_CASE("async filter", "[async_filter]")
   filter.commit();
   REQUIRE(device.getError() == Error::None);
 
-  // Blocking filter dry run
-  filter.execute();
-  REQUIRE(device.getError() == Error::None);
-
   // Measure blocking filter time
-  Timer timer;
-  filter.execute();
-  const double blockingTime = timer.query();
-  REQUIRE(device.getError() == Error::None);
+  double blockingTime = std::numeric_limits<double>::infinity();
+  for (int i = 0; i < 4; ++i)
+  {
+    Timer timer;
+    filter.execute();
+    blockingTime = min(blockingTime, timer.query());
+    REQUIRE(device.getError() == Error::None);
+  }
 
   // Measure async filter time
-  timer.reset();
-  filter.executeAsync();
-  const double asyncTime = timer.query();
-  REQUIRE(device.getError() == Error::None);
-  REQUIRE(asyncTime < blockingTime / 2.); // async shouldn't block for long
-
+  double asyncTime = std::numeric_limits<double>::infinity();
   for (int i = 0; i < 3; ++i)
+  {
+    Timer timer;
     filter.executeAsync();
+    asyncTime = min(asyncTime, timer.query());
+    REQUIRE(device.getError() == Error::None);
+  }
+  REQUIRE(asyncTime < blockingTime / 2.); // async shouldn't block for long
 
   // Change filter parameters without manually syncing first
   setFilterImage(filter, "albedo", albedo);
@@ -1107,15 +1108,15 @@ TEST_CASE("progress monitor", "[progress]")
   filter.commit();
   REQUIRE(device.getError() == Error::None);
 
-  // Dry run without progress monitor
-  filter.execute();
-  REQUIRE(device.getError() == Error::None);
-
   // Measure filter time without progress monitor
-  Timer timer;
-  filter.execute();
-  const double refTime = timer.query();
-  REQUIRE(device.getError() == Error::None);
+  double refTime = std::numeric_limits<double>::infinity();
+  for (int i = 0; i < 4; ++i)
+  {
+    Timer timer;
+    filter.execute();
+    refTime = min(refTime, timer.query());
+    REQUIRE(device.getError() == Error::None);
+  }
 
   SECTION("progress monitor: finish")
   {
@@ -1129,13 +1130,17 @@ TEST_CASE("progress monitor", "[progress]")
 
   SECTION("progress monitor: cancel early")
   {
-    const double time = progressTest(device, filter, 0.1);
+    double time = std::numeric_limits<double>::infinity();
+    for (int i = 0; i < 3; ++i)
+      time = min(time, progressTest(device, filter, 0.1));
     REQUIRE((!isCPU || time < refTime / 2.)); // CPU should be able to cancel quickly
   }
 
   SECTION("progress monitor: cancel at the beginning")
   {
-    const double time = progressTest(device, filter, 0);
+    double time = std::numeric_limits<double>::infinity();
+    for (int i = 0; i < 3; ++i)
+      time = min(time, progressTest(device, filter, 0));
     REQUIRE((!isCPU || time < refTime / 2.)); // CPU should be able to cancel quickly
   }
 
