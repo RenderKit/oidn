@@ -64,7 +64,7 @@ OIDN_NAMESPACE_BEGIN
                                   deallocator: nil];
 
     if (!buffer)
-      throw Exception(Error::OutOfMemory, "failed to create buffer");
+      throw Exception(Error::InvalidArgument, "failed to create buffer");
   }
 
   MetalBuffer::MetalBuffer(MetalEngine* engine, id<MTLBuffer> buffer)

@@ -146,17 +146,18 @@ TEST_CASE("device creation", "[device]")
 
 TEST_CASE("buffer creation", "[buffer]")
 {
+  const size_t bufferSize = 1024*768*3*4; // Metal requires shared buffer size to be multiple of 16K
   DeviceRef device = makeAndCommitDevice();
 
   SECTION("default buffer")
   {
-    BufferRef buffer = device.newBuffer(1234567);
+    BufferRef buffer = device.newBuffer(bufferSize);
     REQUIRE(device.getError() == Error::None);
   }
 
   SECTION("device buffer")
   {
-    BufferRef buffer = device.newBuffer(1234567, Storage::Device);
+    BufferRef buffer = device.newBuffer(bufferSize, Storage::Device);
     REQUIRE(device.getError() == Error::None);
   }
 
@@ -167,14 +168,14 @@ TEST_CASE("buffer creation", "[buffer]")
 
     if (managedMemorySupported)
     {
-      BufferRef buffer = device.newBuffer(1234567, Storage::Managed);
+      BufferRef buffer = device.newBuffer(bufferSize, Storage::Managed);
       REQUIRE(device.getError() == Error::None);
     }
   }
 
   SECTION("shared buffer")
   {
-    BufferRef buffer = device.newBuffer(1234567);
+    BufferRef buffer = device.newBuffer(bufferSize);
     REQUIRE(device.getError() == Error::None);
 
     BufferRef sharedBuffer = device.newBuffer(buffer.getData(), buffer.getSize());
@@ -195,7 +196,7 @@ TEST_CASE("buffer creation", "[buffer]")
 
   SECTION("zero-sized shared buffer")
   {
-    BufferRef buffer = device.newBuffer(1234567);
+    BufferRef buffer = device.newBuffer(bufferSize);
     REQUIRE(device.getError() == Error::None);
 
     BufferRef sharedBuffer = device.newBuffer(buffer.getData(), 0);
@@ -218,13 +219,13 @@ TEST_CASE("buffer creation", "[buffer]")
 
   SECTION("invalid buffer storage")
   {
-    BufferRef buffer = device.newBuffer(10000, static_cast<Storage>(-42));
+    BufferRef buffer = device.newBuffer(bufferSize, static_cast<Storage>(-42));
     REQUIRE(device.getError() == Error::InvalidArgument);
   }
 
   SECTION("device released before buffer")
   {
-    BufferRef buffer = device.newBuffer(123456);
+    BufferRef buffer = device.newBuffer(bufferSize);
     REQUIRE(device.getError() == Error::None);
     device.release();
   }
@@ -715,6 +716,7 @@ TEST_CASE("shared image", "[shared_image]")
 
 TEST_CASE("inplace filter", "[inplace_filter]")
 {
+  // Metal requires shared buffer size to be multiple of 16K
   const int W = 1920;
   const int H = 1080;
 

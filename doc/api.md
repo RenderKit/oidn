@@ -714,8 +714,9 @@ its size in bytes. At buffer construction time no buffer data is allocated, but
 the buffer data provided by the user is used. The buffer data must remain valid
 for as long as the buffer may be used, and the user is responsible to free the
 buffer data when no longer required. The user must also ensure that the memory is
-accessible by the device by using allocation functions supported by the device
-(e.g. `sycl::malloc_device`, `cudaMalloc`, `hipMalloc`).
+accessible to the device by using a supported allocation function (e.g.
+`sycl::malloc_device`, `cudaMalloc`, `hipMalloc`) and alignment (e.g. Metal
+requires the allocation to be page-aligned).
 
 Buffers can be also imported from graphics APIs as external memory, to avoid
 expensive copying of data through host memory. Different types of external
