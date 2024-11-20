@@ -1199,6 +1199,7 @@ jobs:
     with:
       project: oidn
       runs-on: '[ "Windows", "cuda", "hip" ]'
+      msvc-version: "2022"
       dpcpp-version: intel-llvm/nightly-2023-10-26-rk
       ocloc-version: oneAPI/ocloc/2025.0
       artifact-out: build-windows-debug
@@ -1213,6 +1214,7 @@ jobs:
     with:
       project: oidn
       runs-on: '[ "Windows", "cuda", "hip" ]'
+      msvc-version: "2022"
       dpcpp-version: intel-llvm/nightly-2023-10-26-rk
       ocloc-version: oneAPI/ocloc/2025.0
       artifact-out: build-windows-namespace
@@ -1225,6 +1227,7 @@ jobs:
     with:
       project: oidn
       runs-on: '[ "Windows", "cuda", "hip" ]'
+      msvc-version: "2022"
       dpcpp-version: intel-llvm/nightly-2023-10-26-rk
       ocloc-version: oneAPI/ocloc/2025.0
       artifact-out: build-windows-namespace-static
