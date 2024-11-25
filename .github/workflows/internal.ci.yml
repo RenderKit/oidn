@@ -1304,7 +1304,7 @@ jobs:
       dpcpp-version: oneAPI/compiler/2025.0
       artifact-out: build-windows-icx
       artifact-path: build install
-      cmd: python scripts/build.py install --compiler icx --full -D OIDN_DEVICE_SYCL_AOT=OFF # FIXME: enable AOT
+      cmd: python scripts/build.py install --compiler icx --full
 
   build-windows-msvc15:
     secrets: inherit
