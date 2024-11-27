@@ -110,7 +110,9 @@ def run_test(cmd, arch='native', retry_if_status=None):
     else:
       print('FAILED\n')
     if cfg.log:
-      print(f'Error: test failed, see "{cfg.log}" for details')
+      print(f'Error: test failed, see "{cfg.log}" for details:')
+      with open(cfg.log, 'r') as f:
+        print(f.read())
     else:
       print('Error: test failed')
     exit(1)
