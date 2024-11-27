@@ -1302,6 +1302,7 @@ jobs:
       runs-on: '[ "Windows", "cuda", "hip" ]'
       msvc-version: "2022"
       dpcpp-version: oneAPI/compiler/2025.0
+      ocloc-version: oneAPI/ocloc/2025.0
       artifact-out: build-windows-icx
       artifact-path: build install
       cmd: python scripts/build.py install --compiler icx --full
