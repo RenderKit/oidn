@@ -736,7 +736,7 @@ handle type which is supported by both the Open Image Denoise device
 (see `externalMemoryTypes` device parameter) and the graphics API. Note that
 different GPU vendors may support different handle types. To ensure compatibility
 with all device types, applications should support at least
-`OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_FD` on Windows and both
+`OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32` on Windows and both
 `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_FD` and
 `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DMA_BUF` on Linux. All possible external memory
 types are listed in the table below.
