@@ -1,6 +1,8 @@
 Version History
 ---------------
 
+-   Added Intel Panther Lake GPU support
+
 ### Changes in v2.3.1:
 
 -   Fixed corrupted output when in-place denoising high-resolution (> 1080p)

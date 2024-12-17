@@ -79,6 +79,13 @@ OIDN_NAMESPACE_BEGIN
         0x05004000, // bmg-g21
       }
     },
+    {
+      SYCLArch::Xe3LPG,
+      {
+        0x07800000, // ptl-h
+        0x07804000, // ptl-u
+      }
+    },
   };
 
 OIDN_NAMESPACE_END
