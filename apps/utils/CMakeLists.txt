@@ -26,9 +26,12 @@ target_link_libraries(OpenImageDenoise_utils PUBLIC OpenImageDenoise_common Open
 option(OIDN_APPS_OPENIMAGEIO "Enable OpenImageIO support in example and test apps." OFF)
 if(OIDN_APPS_OPENIMAGEIO)
   find_package(OpenImageIO REQUIRED)
-  if(OPENIMAGEIO_VERSION VERSION_GREATER_EQUAL "2.3")
+  if(OPENIMAGEIO_VERSION VERSION_GREATER_EQUAL "3")
+    # OpenImageIO 3.x requires C++17
+    set_target_properties(OpenImageDenoise_utils PROPERTIES CXX_STANDARD 17)
+  elseif(OPENIMAGEIO_VERSION VERSION_GREATER_EQUAL "2.3")
     # OpenImageIO 2.3+ requires C++14
-    set_property(TARGET OpenImageDenoise_utils PROPERTY CXX_STANDARD 14)
+    set_target_properties(OpenImageDenoise_utils PROPERTIES CXX_STANDARD 14)
   endif()
   target_compile_definitions(OpenImageDenoise_utils PRIVATE OIDN_USE_OPENIMAGEIO)
   target_link_libraries(OpenImageDenoise_utils PRIVATE OpenImageIO::OpenImageIO)
