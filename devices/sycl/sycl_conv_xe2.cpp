@@ -1,6 +1,6 @@
-// Copyright 2022 Intel Corporation
+// Copyright 2025 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
-#define OIDN_ARCH_XEHPC
+#define OIDN_ARCH_XE2
 
 #include "sycl_conv_xe.h"

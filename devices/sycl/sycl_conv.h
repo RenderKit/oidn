@@ -16,13 +16,14 @@ OIDN_NAMESPACE_BEGIN
     Ref<Conv> newSYCLConv(SYCLEngine* engine, const ConvDesc& desc);
   }
 
+#if defined(__linux__)
   namespace xehpc {
     Ref<Conv> newSYCLConv(SYCLEngine* engine, const ConvDesc& desc);
   }
-  /*
-  namespace xehpc_fast {
+#endif
+
+  namespace xe2 {
     Ref<Conv> newSYCLConv(SYCLEngine* engine, const ConvDesc& desc);
   }
-  */
 
 OIDN_NAMESPACE_END

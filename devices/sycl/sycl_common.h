@@ -10,7 +10,7 @@ OIDN_NAMESPACE_BEGIN
   using namespace esimd;
   using namespace esimdx;
 
-#if defined(OIDN_ARCH_XEHPC)
+#if defined(OIDN_ARCH_XEHPC) || defined(OIDN_ARCH_XE2)
   constexpr int maxLSCBlockByteSize = 512;
 #elif defined(OIDN_ARCH_XEHPG)
   constexpr int maxLSCBlockByteSize = 256;
@@ -31,7 +31,7 @@ OIDN_NAMESPACE_BEGIN
     static_assert(byteSize % sizeof(DT) == 0, "unsupported block size");
   };
 
-#if defined(OIDN_ARCH_XEHPC) || defined(OIDN_ARCH_XEHPG)
+#if defined(OIDN_ARCH_XEHPG) || defined(OIDN_ARCH_XEHPC) || defined(OIDN_ARCH_XE2)
 
   template<typename T, int N>
   oidn_inline simd<T, N> loadBlock(const T* ptr)

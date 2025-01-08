@@ -13,10 +13,10 @@ OIDN_NAMESPACE_BEGIN
 namespace xelp {
 #elif defined(OIDN_ARCH_XEHPG)
 namespace xehpg {
-#elif defined(OIDN_ARCH_XEHPC_FAST)
-namespace xehpc_fast {
 #elif defined(OIDN_ARCH_XEHPC)
 namespace xehpc {
+#elif defined(OIDN_ARCH_XE2)
+namespace xe2 {
 #endif
 
   template<typename SrcDstT, typename WeightT, TensorLayout srcDstLayout, TensorLayout weightLayout,
@@ -41,6 +41,9 @@ namespace xehpc {
   #elif defined(OIDN_ARCH_XEHPC)
     using MatmulT = SrcDstT;
     static constexpr int blockOH = 4; // block output height
+  #elif defined(OIDN_ARCH_XE2)
+    using MatmulT = SrcDstT;
+    static constexpr int blockOH = 6; // block output height
   #else
     using MatmulT = float; // no DPAS -> use FP32 FMAs
     static constexpr int blockOH = 2; // block output height
@@ -60,9 +63,6 @@ namespace xehpc {
     #if defined(OIDN_ARCH_XEHPG)
       // FP32 accumulator rows
       simd<float, blockOW * blockAC> accumRows[blockOH][numBlockAC] = {}; // = 0
-    #elif defined(OIDN_ARCH_XEHPC_FAST)
-      // Output rows
-      simd<SrcDstT, blockOW * blockC> outRows[blockOH] = {}; // = 0
     #else
       // FP32 accumulator rows
       simd<float, blockOW * blockC> accumRows[blockOH] = {}; // = 0
@@ -127,16 +127,7 @@ namespace xehpc {
                   inRows[(kh + boh) % blockOH].template select<blockOW * blockC, 1>(kw * blockC).read());
               }
             }
-          #elif defined(OIDN_ARCH_XEHPC_FAST)
-            #pragma unroll
-            for (int boh = 0; boh < blockOH; ++boh)
-            {
-              outRows[boh] = xmx::dpas<dpasDepth, dpasRepeat, SrcDstT>(
-                outRows[boh],
-                weightMat,
-                inRows[(kh + boh) % blockOH].template select<blockOW * blockC, 1>(kw * blockC).read());
-            }
-          #elif defined(OIDN_ARCH_XEHPC)
+          #elif defined(OIDN_ARCH_XEHPC) || defined(OIDN_ARCH_XE2)
             #pragma unroll
             for (int boh = 0; boh < blockOH; ++boh)
             {
@@ -178,7 +169,7 @@ namespace xehpc {
         for (int i = 0; i < numBlockAC; ++i)
           outRowView.template select<blockOW, 1, blockAC, 1>(0, i * blockAC) = accumRows[boh][i];
       }
-    #elif !defined(OIDN_ARCH_XEHPC_FAST)
+    #else
       // Down-convert accumulator rows to output rows
       simd<SrcDstT, blockOW * blockC> outRows[blockOH];
 
@@ -385,7 +376,7 @@ namespace xehpc {
   #if defined(OIDN_ARCH_XEHPG)
     using WeightT = SrcDstT;
     static constexpr TensorLayout weightLayout = TensorLayout::OIhw2o8i8o2i;
-  #elif defined(OIDN_ARCH_XEHPC)
+  #elif defined(OIDN_ARCH_XEHPC) || defined(OIDN_ARCH_XE2)
     using WeightT = SrcDstT;
     static constexpr TensorLayout weightLayout = TensorLayout::OIhw8i16o2i;
   #else
@@ -422,7 +413,7 @@ namespace xehpc {
     #endif
 
       // Compute the final work-group size
-    #if defined(OIDN_ARCH_XEHPC)
+    #if defined(OIDN_ARCH_XEHPC) || defined(OIDN_ARCH_XE2)
       const int maxGroupSize = (engine->getArch() == SYCLArch::XeHPC) ? 32 : 8;
     #else
       const int maxGroupSize = 16;
