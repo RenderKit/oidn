@@ -1,6 +1,8 @@
 Version History
 ---------------
 
+### Changes in v2.3.2:
+
 -   Added Intel Panther Lake GPU support
 -   Fixed compile error when building with OpenImageIO 3.x
 
