@@ -1,6 +1,6 @@
 # Intel® Open Image Denoise
 
-This is release v2.3.1 of Intel Open Image Denoise. For changes and new
+This is release v2.3.2 of Intel Open Image Denoise. For changes and new
 features see the [changelog](CHANGELOG.md). Visit
 https://www.openimagedenoise.org for more information.
 
@@ -100,9 +100,9 @@ recommended if running on Windows.
 For NVIDIA GPU support, please also install the latest [NVIDIA graphics
 drivers](https://www.nvidia.com/en-us/geforce/drivers/):
 
-  - Windows: Version 452.39 or newer
+  - Windows: Version 527.41 or newer
 
-  - Linux: Version 450.80.02 or newer
+  - Linux: Version 525.60.13 or newer
 
 For AMD GPU support, please also install the latest [AMD graphics
 drivers](https://www.amd.com/en/support):
@@ -140,7 +140,7 @@ cite the project using the following BibTeX entry:
 @misc{OpenImageDenoise,
   author = {Attila T. {\'A}fra},
   title  = {{Intel\textsuperscript{\textregistered} Open Image Denoise}},
-  year   = {2024},
+  year   = {2025},
   note   = {\url{https://www.openimagedenoise.org}}
 }
 ```
@@ -1210,8 +1210,8 @@ find a handle type which is supported by both the Open Image Denoise
 device (see `externalMemoryTypes` device parameter) and the graphics
 API. Note that different GPU vendors may support different handle types.
 To ensure compatibility with all device types, applications should
-support at least `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_FD` on Windows
-and both `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_FD` and
+support at least `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32` on
+Windows and both `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_FD` and
 `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DMA_BUF` on Linux. All possible external
 memory types are listed in the table below.
 
