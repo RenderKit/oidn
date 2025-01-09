@@ -90,9 +90,9 @@ Windows.
 For NVIDIA GPU support, please also install the latest
 [NVIDIA graphics drivers](https://www.nvidia.com/en-us/geforce/drivers/):
 
--   Windows: Version 452.39 or newer
+-   Windows: Version 527.41 or newer
 
--   Linux: Version 450.80.02 or newer
+-   Linux: Version 525.60.13 or newer
 
 For AMD GPU support, please also install the latest
 [AMD graphics drivers](https://www.amd.com/en/support):
