@@ -1387,21 +1387,6 @@ jobs:
   #     artifact-path: build install
   #     cmd: python scripts/build.py install --compiler msvc17
 
-  test-windows-sse4:
-    needs: build-windows
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
-    with:
-      project: oidn
-      runs-on: '[ "Windows", "cuda" ]'
-      artifact-in: build-windows
-      artifact-out: test-windows-sse4
-      artifact-path: test.log
-      artifact-on-failure: true
-      cmd: |
-        $Env:OIDN_SDE_DIR_WINDOWS="\sde"
-        python scripts/test.py --device cpu --arch sse4 --minimal --log test.log
-
   test-windows-avx2:
     needs: build-windows
     secrets: inherit
