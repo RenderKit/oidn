@@ -116,7 +116,7 @@ if(OIDN_DEVICE_SYCL_AOT)
 
   set(OIDN_SYCL_AOT_TARGETS_XELP tgllp,rkl,adl-s,adl-p,adl-n,dg1,mtl-u,mtl-h)
   set(OIDN_SYCL_AOT_TARGETS_XEHPG acm-g10,acm-g11,acm-g12,arl-h)
-  set(OIDN_SYCL_AOT_TARGETS_XE2 lnl-m)
+  set(OIDN_SYCL_AOT_TARGETS_XE2 lnl-m,bmg-g21-a0)
   if(UNIX)
     set(OIDN_SYCL_AOT_TARGETS_XELP ${OIDN_SYCL_AOT_TARGETS_XELP},pvc-vg)
     set(OIDN_SYCL_AOT_TARGETS_XEHPC pvc-sdv,pvc)
