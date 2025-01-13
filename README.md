@@ -47,13 +47,14 @@ different vendors:
 
   - ARM64 (AArch64) architecture CPUs (e.g. Apple silicon CPUs)
 
-  - Intel Xe and Xe2 architecture dedicated and integrated GPUs,
-    including Intel® Arc™ A-Series Graphics, Intel® Data Center GPU Flex
-    Series, Intel® Data Center GPU Max Series, Intel® Iris® Xe Graphics,
-    Intel® Core™ Ultra Processors with Intel® Arc™ Graphics, 11th-14th
-    Gen Intel® Core™ processor graphics, and related Intel Pentium® and
-    Celeron® processors (Xe-LP, Xe-LPG, Xe-LPG+, Xe-HPG, Xe-HPC,
-    Xe2-LPG, and Xe2-HPG microarchitectures)
+  - Intel Xe, Xe2, and Xe3 architecture dedicated and integrated GPUs,
+    including Intel® Arc™ B-Series Graphics, Intel® Arc™ A-Series
+    Graphics, Intel® Arc™ Pro Series Graphics, Intel® Data Center GPU
+    Flex Series, Intel® Data Center GPU Max Series, Intel® Iris® Xe
+    Graphics, Intel® Core™ Ultra Processors with Intel® Arc™ Graphics,
+    11th-14th Gen Intel® Core™ processor graphics, and related Intel
+    Pentium® and Celeron® processors (Xe-LP, Xe-LPG, Xe-LPG+, Xe-HPG,
+    Xe-HPC, Xe2-LPG, Xe2-HPG, and Xe3-LPG microarchitectures)
 
   - NVIDIA GPUs with Volta, Turing, Ampere, Ada Lovelace, and Hopper
     architectures
