@@ -551,6 +551,21 @@ jobs:
       artifact-on-failure: true
       cmd: scripts/test.py --device sycl --log test.log
 
+  test-rockylinux8-bmg:
+    needs: build-rockylinux8
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Linux", "bmg" ]'
+      image: oidn/ubuntu:22.04
+      options: --device=/dev/dri
+      artifact-in: build-rockylinux8
+      artifact-out: test-rockylinux8-bmg
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: scripts/test.py --device sycl --log test.log
+
   test-rockylinux8-pvc:
     needs: build-rockylinux8
     secrets: inherit
@@ -1533,6 +1548,20 @@ jobs:
   #     artifact-on-failure: true
   #     cmd: python scripts/test.py --device cpu --minimal --log test.log
 
+  test-windows-adl:
+    needs: build-windows
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "igpu", "adl" ]'
+      env-from-files: ./.github/workflows/gfx-windows-public.env
+      artifact-in: build-windows
+      artifact-out: test-windows-adl
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: python scripts/test.py --device sycl --log test.log
+
   test-windows-dg2:
     needs: build-windows
     secrets: inherit
@@ -1547,16 +1576,16 @@ jobs:
       artifact-on-failure: true
       cmd: python scripts/test.py --device sycl --log test.log
 
-  test-windows-adl:
+  test-windows-bmg:
     needs: build-windows
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "igpu", "adl" ]'
-      env-from-files: ./.github/workflows/gfx-windows-public.env
+      runs-on: '[ "Windows", "bmg", "NAS" ]'
+      env-from-files: ./.github/workflows/gfx-windows-public-bmg.env
       artifact-in: build-windows
-      artifact-out: test-windows-adl
+      artifact-out: test-windows-bmg
       artifact-path: test.log
       artifact-on-failure: true
       cmd: python scripts/test.py --device sycl --log test.log
