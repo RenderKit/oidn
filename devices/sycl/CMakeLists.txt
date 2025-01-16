@@ -188,6 +188,7 @@ if(OIDN_INSTALL_DEPENDENCIES)
         "${_dpcpp_compiler_dir}/../lib/libsycl.so.?"
         "${_dpcpp_compiler_dir}/../lib/libur_loader.so"
         "${_dpcpp_compiler_dir}/../lib/libur_adapter_level_zero.so"
+        "${_dpcpp_compiler_dir}/../lib/libumf.so"
       )
     endif()
   endif()
