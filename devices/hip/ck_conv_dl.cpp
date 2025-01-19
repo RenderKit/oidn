@@ -3,7 +3,7 @@
 
 #include "hip_conv.h"
 #include "ck_conv.h"
-#include "ck/tensor_operation/gpu/device/device_grouped_conv_fwd_dl_multiple_d_nhwc_kyxc_nhwk.hpp"
+#include "ck/tensor_operation/gpu/device/impl/device_grouped_conv_fwd_dl_multiple_d_nhwc_kyxc_nhwk.hpp"
 
 OIDN_NAMESPACE_BEGIN
 

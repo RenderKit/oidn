@@ -53,6 +53,11 @@ set_target_properties(OpenImageDenoise_device_hip PROPERTIES
   CXX_STANDARD 17
 )
 
+configure_file(
+  "${OIDN_ROOT_SOURCE_DIR}/external/composable_kernel/include/ck/config.h.in"
+  "${OIDN_ROOT_SOURCE_DIR}/external/composable_kernel/include/ck/config.h"
+)
+
 target_include_directories(OpenImageDenoise_device_hip
   PRIVATE
     "${OIDN_ROOT_SOURCE_DIR}/external/composable_kernel/include"

@@ -48,41 +48,42 @@ OIDN_NAMESPACE_BEGIN
         OutLayout,               // ELayout
         InDataType,              // ADataType
         WeiDataType,             // BDataType
-        ck::Tuple<BiasDataType>, // DsDataType
-        OutDataType,             // EDataType
         AccDataType,             // AccDataType
         CShuffleDataType,        // CShuffleDataType
+        ck::Tuple<BiasDataType>, // DsDataType
+        OutDataType,             // EDataType
         InElementOp,             // AElementwiseOperation
         WeiElementOp,            // BElementwiseOperation
         OutElementOp,            // CDEElementwiseOperation
         ConvSpec,                // ConvForwardSpecialization
         GemmSpec,                // GemmSpecialization
-        256,                     // BlockSize
-        128,                     // MPerBlock
-        64,                      // NPerBlock
-        4,                       // K0PerBlock
+        1,                       // PrefetchStage
+        64,                      // BlockSize
+        64,                      // MPerBlock
+        32,                      // NPerBlock
+        32,                      // KPerBlock
         8,                       // K1
         16,                      // MPerWMMA
         16,                      // NPerWMMA
-        4,                       // MRepeat
-        1,                       // NRepeat
-        S<4, 64, 1>,             // ABlockTransferThreadClusterLengths_AK0_M_AK1
+        2,                       // MRepeat
+        2,                       // NRepeat
+        S<4, 16, 1>,             // ABlockTransferThreadClusterLengths_AK0_M_AK1
         S<1, 0, 2>,              // ABlockTransferThreadClusterArrangeOrder
         S<1, 0, 2>,              // ABlockTransferSrcAccessOrder
         2,                       // ABlockTransferSrcVectorDim
         8,                       // ABlockTransferSrcScalarPerVector
-        8,                       // ABlockTransferDstScalarPerVector_AK1
-        true,                    // ABlockLdsExtraM
-        S<4, 64, 1>,             // BBlockTransferThreadClusterLengths_BK0_N_BK1
+        8,                       // ABlockTransferDstScalarPerVector_K1
+        1,                       // ABlockLdsExtraM
+        S<4, 16, 1>,             // BBlockTransferThreadClusterLengths_BK0_N_K1
         S<1, 0, 2>,              // BBlockTransferThreadClusterArrangeOrder
         S<1, 0, 2>,              // BBlockTransferSrcAccessOrder
         2,                       // BBlockTransferSrcVectorDim
         8,                       // BBlockTransferSrcScalarPerVector
-        8,                       // BBlockTransferDstScalarPerVector_BK1
-        true,                    // BBlockLdsExtraN
-        1,                       // CShuffleMRepeatPerShuffle
-        1,                       // CShuffleNRepeatPerShuffle
-        S<1, 32, 1, 8>,          // CDEShuffleBlockTransferClusterLengths_MBlock_MPerBlock_NBlock_NPerBlock
+        8,                       // BBlockTransferDstScalarPerVector_K1
+        1,                       // BBlockLdsExtraN
+        1,                       // CShuffleMXdlPerWavePerShuffle
+        1,                       // CShuffleNXdlPerWavePerShuffle
+        S<1, 32, 1, 2>,          // CDEShuffleBlockTransferClusterLengths_MBlock_MWaveMPerXdl_NBlock_NWaveNPerXdl
         8                        // CDEShuffleBlockTransferScalarPerVector_NPerBlock
       >;
 
