@@ -259,7 +259,7 @@ function(rk_tbb_find_root)
         list(APPEND TBB_HINTS "/opt/homebrew")
       endif()
       set(TBB_PATHS
-          "${PROJECT_SOURCE_DIR}/tbb"
+          "${PROJECT_SOURCE_DIR}/../tbb"
           "/opt/intel/oneapi/tbb/latest"
           "/opt/intel/tbb"
           "/opt/intel/compilers_and_libraries/tbb"
