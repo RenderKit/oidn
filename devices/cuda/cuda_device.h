@@ -48,10 +48,6 @@ OIDN_NAMESPACE_BEGIN
   private:
     void init() override;
 
-    // Supported compute capabilities
-    static constexpr int minSMArch = 70;
-    static constexpr int maxSMArch = 99;
-
     int deviceID = 0;
   #if defined(OIDN_DEVICE_CUDA_API_DRIVER)
     CUdevice deviceHandle = -1;

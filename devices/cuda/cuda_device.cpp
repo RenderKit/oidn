@@ -101,7 +101,7 @@ OIDN_NAMESPACE_BEGIN
   bool CUDADevice::isSupported(const cudaDeviceProp& prop)
   {
     const int smArch = prop.major * 10 + prop.minor;
-    return smArch >= minSMArch && smArch <= maxSMArch &&
+    return ((smArch >= 70 && smArch <= 109) || (smArch >= 120 && smArch <= 129)) &&
            prop.unifiedAddressing;
   }
 
@@ -186,10 +186,8 @@ OIDN_NAMESPACE_BEGIN
     smArch = prop.major * 10 + prop.minor;
 
     // Check required hardware features
-    if (smArch < minSMArch || smArch > maxSMArch)
-      throw Exception(Error::UnsupportedHardware, "device has unsupported compute capability");
-    if (!prop.unifiedAddressing)
-      throw Exception(Error::UnsupportedHardware, "device does not support unified addressing");
+    if (!isSupported(prop))
+      throw Exception(Error::UnsupportedHardware, "unsupported CUDA device");
 
     // Print device info
     if (isVerbose())

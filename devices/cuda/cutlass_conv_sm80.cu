@@ -5,7 +5,7 @@
 
 OIDN_NAMESPACE_BEGIN
 
-// Ampere (SM 8.0), Ada Lovelace (SM 8.9), Hopper (SM 9.0)
+// Ampere (SM 8.0), Ada Lovelace (SM 8.9), Hopper (SM 9.0), Blackwell (SM 10.0, 12.0)
 template<>
 std::vector<CutlassConvFactory> getCutlassConvInstances<80>()
 {

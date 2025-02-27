@@ -1,6 +1,10 @@
 Version History
 ---------------
 
+### Changes in v2.3.3:
+
+-   Added NVIDIA Blackwell GPU support
+
 ### Changes in v2.3.2:
 
 -   Improved performance for Intel Lunar Lake and Battlemage GPUs

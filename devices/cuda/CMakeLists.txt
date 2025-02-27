@@ -20,7 +20,7 @@ project(OpenImageDenoise_device_cuda
 )
 
 # CUDA
-find_package(CUDAToolkit 11.8 REQUIRED)
+find_package(CUDAToolkit 12.8 REQUIRED)
 set(CMAKE_CUDA_COMPILER ${CUDAToolkit_NVCC_EXECUTABLE})
 enable_language(CUDA)
 
@@ -47,32 +47,39 @@ set(OIDN_CUDA_SOURCES
 )
 
 # We do not generate PTX to avoid excessive JIT compile times
-set(OIDN_NVCC_SM70_FLAGS "-gencode arch=compute_70,code=sm_70")
-set(OIDN_NVCC_SM75_FLAGS "-gencode arch=compute_75,code=sm_75")
-set(OIDN_NVCC_SM80_FLAGS "-gencode arch=compute_80,code=sm_80")
-set(OIDN_NVCC_SM90_FLAGS "-gencode arch=compute_90,code=sm_90")
+function(oidn_set_cuda_sm_flags output_var)
+  set(${output_var} "")
+  foreach(version IN LISTS ARGN)
+    list(APPEND flags "-gencode arch=compute_${version},code=sm_${version}")
+  endforeach()
+  string(JOIN " " ${output_var} ${flags})
+  set(${output_var} "${${output_var}}" PARENT_SCOPE)
+endfunction()
 
+oidn_set_cuda_sm_flags(OIDN_CUDA_SM_FLAGS 70 75 80 90 100 120)
 set_source_files_properties(
   cuda_conv.cu
   cuda_device.cu
   cuda_engine.cu
-  PROPERTIES COMPILE_FLAGS
-    "${OIDN_NVCC_SM70_FLAGS} ${OIDN_NVCC_SM75_FLAGS} ${OIDN_NVCC_SM80_FLAGS} ${OIDN_NVCC_SM90_FLAGS}"
+  PROPERTIES COMPILE_FLAGS ${OIDN_CUDA_SM_FLAGS}
 )
 
+oidn_set_cuda_sm_flags(OIDN_CUDA_SM70_FLAGS 70)
 set_source_files_properties(
   cutlass_conv_sm70.cu
-  PROPERTIES COMPILE_FLAGS ${OIDN_NVCC_SM70_FLAGS}
+  PROPERTIES COMPILE_FLAGS ${OIDN_CUDA_SM70_FLAGS}
 )
 
+oidn_set_cuda_sm_flags(OIDN_CUDA_SM75_FLAGS 75)
 set_source_files_properties(
   cutlass_conv_sm75.cu
-  PROPERTIES COMPILE_FLAGS ${OIDN_NVCC_SM75_FLAGS}
+  PROPERTIES COMPILE_FLAGS ${OIDN_CUDA_SM75_FLAGS}
 )
 
+oidn_set_cuda_sm_flags(OIDN_CUDA_SM80_FLAGS 80 90 100 120)
 set_source_files_properties(
   cutlass_conv_sm80.cu
-  PROPERTIES COMPILE_FLAGS "${OIDN_NVCC_SM80_FLAGS} ${OIDN_NVCC_SM90_FLAGS}"
+  PROPERTIES COMPILE_FLAGS ${OIDN_CUDA_SM80_FLAGS}
 )
 
 add_library(OpenImageDenoise_device_cuda SHARED ${OIDN_CUDA_SOURCES} ${OIDN_GPU_SOURCES} ${OIDN_RESOURCE_FILE})
@@ -110,6 +117,13 @@ set_target_properties(OpenImageDenoise_device_cuda PROPERTIES
   CUDA_ARCHITECTURES OFF
   CUDA_RUNTIME_LIBRARY ${OIDN_CUDA_RUNTIME_LIBRARY}
 )
+
+# Fix warning: support for offline compilation for architectures prior to SM75 will be removed
+# in a future release
+target_compile_options(OpenImageDenoise_device_cuda PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Wno-deprecated-gpu-targets>)
+# Fix warning: calling a constexpr __host__ function from a __host__ __device__ function is
+# not allowed (CUTLASS)
+target_compile_options(OpenImageDenoise_device_cuda PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>)
 
 target_link_libraries(OpenImageDenoise_device_cuda PRIVATE OpenImageDenoise_core)
 oidn_strip_symbols(OpenImageDenoise_device_cuda)

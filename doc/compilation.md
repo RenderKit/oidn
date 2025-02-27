@@ -86,7 +86,7 @@ prerequisites are needed:
 
 -   [CMake](http://www.cmake.org) 3.18 or newer
 
--   [NVIDIA CUDA Toolkit](https://developer.nvidia.com/cuda-toolkit) 11.8 or newer
+-   [NVIDIA CUDA Toolkit](https://developer.nvidia.com/cuda-toolkit) 12.8 or newer
 
 #### HIP device for AMD GPUs: {-}
 

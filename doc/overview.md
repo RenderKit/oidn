@@ -51,8 +51,8 @@ vendors:
     (Xe-LP, Xe-LPG, Xe-LPG+, Xe-HPG, Xe-HPC, Xe2-LPG, Xe2-HPG, and Xe3-LPG
     microarchitectures)
 
--   NVIDIA GPUs with Volta, Turing, Ampere, Ada Lovelace, and Hopper
-    architectures
+-   NVIDIA GPUs with Volta, Turing, Ampere, Ada Lovelace, Hopper, and
+    Blackwell architectures
 
 -   AMD GPUs with RDNA2 (Navi 21 only) and RDNA3 (Navi 3x) architectures
 
