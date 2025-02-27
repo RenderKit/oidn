@@ -80,6 +80,7 @@ add_library(OpenImageDenoise_device_cuda SHARED ${OIDN_CUDA_SOURCES} ${OIDN_GPU_
 set_target_properties(OpenImageDenoise_device_cuda PROPERTIES
   OUTPUT_NAME ${OIDN_LIBRARY_NAME}_device_cuda
   VERSION ${PROJECT_VERSION}
+  CXX_STANDARD 17
 )
 
 target_include_directories(OpenImageDenoise_device_cuda
@@ -105,10 +106,9 @@ else()
   message(FATAL_ERROR "Invalid OIDN_DEVICE_CUDA_API value")
 endif()
 
-set_target_properties(OpenImageDenoise_device_cuda
-  PROPERTIES
-    CUDA_ARCHITECTURES OFF
-    CUDA_RUNTIME_LIBRARY ${OIDN_CUDA_RUNTIME_LIBRARY}
+set_target_properties(OpenImageDenoise_device_cuda PROPERTIES
+  CUDA_ARCHITECTURES OFF
+  CUDA_RUNTIME_LIBRARY ${OIDN_CUDA_RUNTIME_LIBRARY}
 )
 
 target_link_libraries(OpenImageDenoise_device_cuda PRIVATE OpenImageDenoise_core)

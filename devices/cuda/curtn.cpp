@@ -399,6 +399,18 @@ namespace curtn
       Runtime::get().funcDescs[hostFun] = {fatCubinHandle, deviceName};
     }
 
+    void CUDARTAPI __cudaRegisterVar(void** fatCubinHandle,
+                                     char* hostVar,
+                                     char* deviceAddress,
+                                     const char *deviceName,
+                                     int ext,
+                                     size_t size,
+                                     int constant,
+                                     int global)
+    {
+      // TODO: implement
+    }
+
     unsigned int CUDARTAPI __cudaPushCallConfiguration(dim3 gridDim,
                                                        dim3 blockDim,
                                                        size_t sharedMem,
