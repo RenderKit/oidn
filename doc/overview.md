@@ -54,7 +54,8 @@ vendors:
 -   NVIDIA GPUs with Volta, Turing, Ampere, Ada Lovelace, Hopper, and
     Blackwell architectures
 
--   AMD GPUs with RDNA2 (Navi 21 only) and RDNA3 (Navi 3x) architectures
+-   AMD GPUs with RDNA2 (Navi 21 only), RDNA3 (Navi 3x), and RDNA4 (Navi 4x)
+    architectures
 
 -   Apple silicon GPUs (M1 and newer)
 
@@ -102,10 +103,10 @@ For NVIDIA GPU support, please also install the latest
 For AMD GPU support, please also install the latest
 [AMD graphics drivers](https://www.amd.com/en/support):
 
--   Windows: AMD Software: Adrenalin Edition 24.10.1 or newer
+-   Windows: AMD Software: Adrenalin Edition 25.3.1 or newer
 
 -   Linux: [Radeon Software for Linux](https://www.amd.com/en/support/linux-drivers)
-    version 24.20.3 or newer
+    version 24.30.4 or newer
 
 For Apple GPU support, macOS Ventura or newer is required.
 

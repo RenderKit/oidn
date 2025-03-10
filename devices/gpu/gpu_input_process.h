@@ -117,7 +117,7 @@ OIDN_NAMESPACE_BEGIN
         }
       }
 
-    #if defined(OIDN_COMPILE_SYCL) || defined(OIDN_COMPILE_CUDA) || defined(__gfx1030__)
+    #if defined(OIDN_COMPILE_SYCL) || defined(OIDN_COMPILE_CUDA) || defined(OIDN_COMPILE_HIP)
       // Transpose the values in the subgroup into coalesced blocks and store them to memory (fast)
       // All work-items in the subgroup are assumed to be in the same row
       const int subgroupLocalID = it.getSubgroupLocalID();
