@@ -67,6 +67,8 @@ jobs:
         name: build-cpu-rocky-8
 
     - name: Test
+      # Adding execution bit to binaries is needed since upload/download GHA is using zip compression
+      # and it can't preserve files permissions - https://github.com/actions/upload-artifact/issues/38
       run: |
         chmod +x ./bin/*
         ./bin/oidnTest
@@ -124,6 +126,8 @@ jobs:
         name: build-cpu-ubuntu-2204
 
     - name: Test
+      # Adding execution bit to binaries is needed since upload/download GHA is using zip compression
+      # and it can't preserve files permissions - https://github.com/actions/upload-artifact/issues/38
       run: |
         chmod +x ./bin/*
         ./bin/oidnTest
@@ -145,9 +149,9 @@ jobs:
         mkdir /tmp/deps
         cd /tmp/deps
 
-        wget https://github.com/ispc/ispc/releases/download/v1.24.0/ispc-v1.24.0-linux.tar.gz
-        tar -xvf ispc-v1.24.0-linux.tar.gz
-        echo "PATH=$PATH:`pwd`/ispc-v1.24.0-linux/bin" >> $GITHUB_ENV
+        wget https://github.com/ispc/ispc/releases/download/v1.24.0/ispc-v1.24.0-linux.aarch64.tar.gz
+        tar -xvf ispc-v1.24.0-linux.aarch64.tar.gz
+        echo "PATH=$PATH:`pwd`/ispc-v1.24.0-linux.aarch64/bin" >> $GITHUB_ENV
 
     - name: Checkout Repository
       uses: actions/checkout@v4
@@ -184,9 +188,9 @@ jobs:
         mkdir /tmp/deps
         cd /tmp/deps
 
-        wget https://github.com/ispc/ispc/releases/download/v1.24.0/ispc-v1.24.0-linux.tar.gz
-        tar -xvf ispc-v1.24.0-linux.tar.gz
-        echo "PATH=$PATH:`pwd`/ispc-v1.24.0-linux/bin" >> $GITHUB_ENV
+        wget https://github.com/ispc/ispc/releases/download/v1.24.0/ispc-v1.24.0-linux.aarch64.tar.gz
+        tar -xvf ispc-v1.24.0-linux.aarch64.tar.gz
+        echo "PATH=$PATH:`pwd`/ispc-v1.24.0-linux.aarch64/bin" >> $GITHUB_ENV
 
     - name: Checkout Repository
       uses: actions/checkout@v4
