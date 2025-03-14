@@ -171,7 +171,27 @@ jobs:
       with:
         name: build-cpu-rocky-8-arm
         path: build/install
+  
+  test-cpu-rocky-8-arm:
+    needs: build-cpu-rocky-8-arm
+    runs-on: ubuntu-24.04-arm
+    container:
+      image: arm64v8/rockylinux:8
 
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-cpu-rocky-8-arm
+
+      - name: Test
+        # Adding execution bit to binaries is needed since upload/download GHA is using zip compression
+        # and it can't preserve files permissions - https://github.com/actions/upload-artifact/issues/38
+        run: |
+          chmod +x ./bin/*
+          ./bin/oidnTest
+          ./bin/oidnBenchmark -v 1
+          
   build-cpu-ubuntu-2204-arm:
     runs-on: ubuntu-24.04-arm
     container:
@@ -210,3 +230,24 @@ jobs:
       with:
         name: build-cpu-ubuntu-2204-arm
         path: build/install
+        
+  test-cpu-ubuntu-2204-arm:
+    needs: build-cpu-ubuntu-2204-arm
+    runs-on: ubuntu-24.04-arm
+    container:
+      image: arm64v8/ubuntu:22.04
+
+    steps:
+      - name: Download Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: build-cpu-ubuntu-2204-arm
+
+      - name: Test
+        # Adding execution bit to binaries is needed since upload/download GHA is using zip compression
+        # and it can't preserve files permissions - https://github.com/actions/upload-artifact/issues/38
+        run: |
+          chmod +x ./bin/*
+          ./bin/oidnTest
+          ./bin/oidnBenchmark -v 1
+          
