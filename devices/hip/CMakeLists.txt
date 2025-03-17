@@ -36,6 +36,7 @@ set(OIDN_HIP_SOURCES
   ck_conv_dl.cpp
   ck_conv_wmma.cpp
   hip_conv.h
+  hip_conv.cpp
   hip_device.h
   hip_device.cpp
   hip_engine.h

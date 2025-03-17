@@ -21,6 +21,9 @@ OIDN_NAMESPACE_BEGIN
   template<>
   struct CKDataType<half> { using Type = ck::half_t; };
 
+  template<ck::index_t... Is>
+  using S = ck::Sequence<Is...>;
+
   inline std::array<ck::index_t, 5> getCKTensorLengths(const TensorDesc& td)
   {
     switch (td.layout)
@@ -51,5 +54,18 @@ OIDN_NAMESPACE_BEGIN
       throw std::invalid_argument("unsupported tensor layout");
     }
   }
+
+  struct CKConvFactory
+  {
+    Ref<Conv> (*make)(HIPEngine*, const ConvDesc&);
+
+    DataType dataType;
+    DataType accumType;
+    Activation activation;
+    int blockM, blockN, blockK; // threadblock size
+  };
+
+  template<HIPArch arch>
+  std::vector<CKConvFactory> getCKConvInstances(DataType dataType, Activation activation);
 
 OIDN_NAMESPACE_END

@@ -124,6 +124,7 @@ OIDN_NAMESPACE_BEGIN
 
     void wait() override;
 
+    HIPArch getArch() const { return device->arch; }
     int getMaxWorkGroupSize() const override { return device->maxWorkGroupSize; }
     int getSubgroupSize() const override { return device->subgroupSize; }
 

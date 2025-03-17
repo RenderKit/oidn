@@ -38,15 +38,7 @@ OIDN_NAMESPACE_BEGIN
 
   Ref<Conv> HIPEngine::newConv(const ConvDesc& desc)
   {
-    switch (device->arch)
-    {
-    case HIPArch::DL:
-      return newHIPConvDL(this, desc);
-    case HIPArch::WMMA:
-      return newHIPConvWMMA(this, desc);
-    default:
-      throw std::logic_error("unsupported HIP device architecture");
-    }
+    return newHIPConv(this, desc);
   }
 
   Ref<Pool> HIPEngine::newPool(const PoolDesc& desc)
