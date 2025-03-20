@@ -412,7 +412,16 @@ int main(int argc, char* argv[])
         std::cout << ", hash=" << std::hex << std::setfill('0') << std::setw(8) << hash << std::dec << std::endl;
 
         if (run > 0 && hash != prevHash)
+        {
+          // Save debug images
+          std::cout << "Saving debug images" << std::endl;
+          saveImage("denoise_in.pfm",  *input,  srgb);
+          saveImage("denoise_out.pfm", *output, srgb);
+          if (ref)
+            saveImage("denoise_ref.pfm", *ref,  srgb);
+
           throw std::runtime_error("output hash mismatch (non-deterministic output)");
+        }
         prevHash = hash;
       }
       else

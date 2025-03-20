@@ -482,22 +482,38 @@ OIDN_NAMESPACE_BEGIN
     #if 0
       // Dump
       engine->wait();
+
       Ref<Tensor> dst;
 
-      if (auto conv = std::dynamic_pointer_cast<Conv>(ops[i]))
+      if (auto inputProcess = dynamicRefCast<InputProcess>(ops[i]))
+        dst = inputProcess->getDst();
+      else if (auto conv = dynamicRefCast<Conv>(ops[i]))
         dst = conv->getDst();
-      else if (auto conv = std::dynamic_pointer_cast<ConcatConv>(ops[i]))
+      else if (auto conv = dynamicRefCast<ConcatConv>(ops[i]))
         dst = conv->getDst();
-      else if (auto pool = std::dynamic_pointer_cast<Pool>(ops[i]))
+      else if (auto pool = dynamicRefCast<Pool>(ops[i]))
         dst = pool->getDst();
-      else if (auto upsample = std::dynamic_pointer_cast<Upsample>(ops[i]))
+      else if (auto upsample = dynamicRefCast<Upsample>(ops[i]))
         dst = upsample->getDst();
 
       if (dst)
       {
+        const uint32_t refHash = dst->getHash();
+
         std::cout << std::setfill('0') << std::setw(2) << i << ": "
-                  << std::hex << std::setfill('0') << std::setw(8) << dst->getHash() << std::dec
+                  << std::hex << std::setfill('0') << std::setw(8) << refHash << std::dec
                   << " " << ops[i]->getName() << std::endl;
+
+        /*
+        for (int j = 0; j < 100; ++j)
+        {
+          ops[i]->submit();
+          engine->wait();
+          const uint32_t hash = dst->getHash();
+          if (hash != refHash)
+            throw std::runtime_error("output hash mismatch (non-deterministic output)");
+        }
+        */
 
         dst->dump(toString(i) + "_" + ops[i]->getName() + "_");
       }

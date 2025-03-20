@@ -45,10 +45,21 @@ OIDN_NAMESPACE_BEGIN
 #if 0
   uint32_t Tensor::getHash() const
   {
-    if (buffer && buffer->getStorage() == Storage::Device)
-      throw std::runtime_error("tensor hash not implemented for device storage");
+    std::vector<uint8_t> hostBytes;
+    const uint8_t* bytes;
 
-    const uint8_t* bytes = static_cast<const uint8_t*>(getData());
+    if (buffer && buffer->getStorage() == Storage::Device)
+    {
+      // Copy the tensor to the host
+      hostBytes.resize(getByteSize());
+      getBuffer()->getEngine()->usmCopy(hostBytes.data(), getPtr(), getByteSize());
+      bytes = hostBytes.data();
+    }
+    else
+    {
+      bytes = static_cast<const uint8_t*>(getPtr());
+    }
+
     const size_t numBytes = getByteSize();
     uint32_t hash = 0x811c9dc5;
     for (size_t i = 0; i < numBytes; ++i)
