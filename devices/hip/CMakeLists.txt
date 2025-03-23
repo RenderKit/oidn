@@ -65,6 +65,14 @@ target_include_directories(OpenImageDenoise_device_hip
     "${OIDN_ROOT_SOURCE_DIR}/external/composable_kernel/library/include"
 )
 
+target_compile_definitions(OpenImageDenoise_device_hip PRIVATE
+  CK_ENABLE_INT8
+  CK_ENABLE_FP16
+  DL_KERNELS
+  CK_USE_WMMA
+  CK_USE_OCP_FP8
+)
+
 set_source_files_properties(
   ck_conv_wmma.cpp
   PROPERTIES COMPILE_FLAGS "-mcumode -mno-wavefrontsize64" # Navi3x optimizations
