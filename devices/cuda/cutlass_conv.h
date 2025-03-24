@@ -150,11 +150,11 @@ OIDN_NAMESPACE_BEGIN
   template<
     typename T,
     typename AccumT,
+    Activation builtinActivation,
     typename SmArch,
     typename ThreadblockShape,
     typename WarpShape,
-    int numStages,
-    Activation builtinActivation>
+    int numStages>
   class CutlassConv final : public Conv
   {
   private:
@@ -299,7 +299,8 @@ OIDN_NAMESPACE_BEGIN
   public:
     static CutlassConvFactory get()
     {
-      return {
+      return
+      {
         make,
         DataTypeOf<T>::value,
         DataTypeOf<AccumT>::value,
@@ -312,16 +313,14 @@ OIDN_NAMESPACE_BEGIN
 
   private:
     template<Activation activation>
-    using CutlassConvType = CutlassConv<T, AccumT, SmArch, ThreadblockShape, WarpShape, numStages, activation>;
+    using CutlassConvType = CutlassConv<T, AccumT, activation, SmArch, ThreadblockShape, WarpShape, numStages>;
 
     static Ref<Conv> make(CUDAEngine* engine, const ConvDesc& desc)
     {
       switch (desc.activation)
       {
-      case Activation::None:
-        return makeRef<CutlassConvType<Activation::None>>(engine, desc);
-      case Activation::ReLU:
-        return makeRef<CutlassConvType<Activation::ReLU>>(engine, desc);
+      case Activation::None: return makeRef<CutlassConvType<Activation::None>>(engine, desc);
+      case Activation::ReLU: return makeRef<CutlassConvType<Activation::ReLU>>(engine, desc);
       default:
         throw std::invalid_argument("unsupported convolution activation function");
       }

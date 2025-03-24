@@ -12,7 +12,8 @@ std::vector<CutlassConvFactory> getCutlassConvInstances<70>()
   using namespace cutlass::arch;
   using cutlass::gemm::GemmShape;
 
-  return {
+  return
+  {
     CutlassConvInstance<half, float, Sm70, GemmShape<256, 32, 32>, GemmShape<64, 32, 32>, 2>::get(),
     CutlassConvInstance<half, float, Sm70, GemmShape<256, 64, 32>, GemmShape<64, 64, 32>, 2>::get(),
 
