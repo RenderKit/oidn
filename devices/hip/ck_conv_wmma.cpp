@@ -195,36 +195,27 @@ OIDN_NAMESPACE_BEGIN
   };
 
   template<Activation activation>
-  std::vector<CKConvFactory> getCKConvWMMAInstances(DataType dataType)
+  std::vector<CKConvFactory> getCKConvWMMAInstances()
   {
-    switch (dataType)
+    return
     {
-    case DataType::Float16:
-      return
-      {
-        // ################################| Prefetch| Block|  MPer|  NPer|  KPer| K1|  MPer| NPer| MRepeat| NRepeat|  ABlockTransfer| ABlockTransfer| ABlockTransfer| ABlockTransfer| ABlockTransfer| ABlockTransfer| ABlockLds|  BBlockTransfer| BBlockTransfer| BBlockTransfer| BlockTransfer| BBlockTransfer| BBlockTransfer| BBlockLds|    CShuffle|    CShuffle| CBlockTransferClusterLengths|  CBlockTransfer|
-        // ################################|    Stage|  Size| Block| Block| Block|   |  WMMA| WMMA|        |        |   ThreadCluster|  ThreadCluster| SrcAccessOrder|   SrcVectorDim|      SrcScalar|      DstScalar| AddExtraM|   ThreadCluster|  ThreadCluster| SrcAccessOrder|  SrcVectorDim|      SrcScalar|      DstScalar| AddExtraN| MXdlPerWave| NXdlPerWave|         _MBlock_MWaveMPerXdl| ScalarPerVector|
-        // ################################|         |      |      |      |      |   |      |     |        |        | Lengths_K0_M_K1|   ArrangeOrder|               |               |      PerVector|   PerVector_K1|          | Lengths_K0_N_K1|   ArrangeOrder|               |              |      PerVector|   PerVector_K1|          |  PerShuffle|  PerShuffle|         _NBlock_NWaveNPerXdl|   _NWaveNPerXdl|
-        // ################################|         |      |      |      |      |   |      |     |        |        |                |               |               |               |               |               |          |                |               |               |              |               |               |          |            |            |                             |                |
-        CKConvWMMA<half, float, activation,         1,   128,   256,    32,    32,  8,    16,   16,       8,       1,     S<4, 32, 1>,     S<1, 0, 2>,     S<1, 0, 2>,              2,              8,              8,         1,     S<4, 32, 1>,     S<1, 0, 2>,     S<1, 0, 2>,             2,              8,              8,         1,           1,           1,               S<1, 32, 1, 4>,               8>::getFactory(),
-        CKConvWMMA<half, float, activation,         1,   128,   128,    64,    32,  8,    16,   16,       4,       2,     S<4, 32, 1>,     S<1, 0, 2>,     S<1, 0, 2>,              2,              8,              8,         1,     S<4, 32, 1>,     S<1, 0, 2>,     S<1, 0, 2>,             2,              8,              8,         1,           1,           1,               S<1, 32, 1, 4>,               8>::getFactory(),
-      };
-    default:
-      throw std::invalid_argument("unsupported convolution data type");
-    }
+      // ###############################| Prefetch| Block|  MPer|  NPer|  KPer| K1|  MPer| NPer| MRepeat| NRepeat|  ABlockTransfer| ABlockTransfer| ABlockTransfer| ABlockTransfer| ABlockTransfer| ABlockTransfer| ABlockLds|  BBlockTransfer| BBlockTransfer| BBlockTransfer| BlockTransfer| BBlockTransfer| BBlockTransfer| BBlockLds|    CShuffle|    CShuffle| CBlockTransferClusterLengths|  CBlockTransfer|
+      // ###############################|    Stage|  Size| Block| Block| Block|   |  WMMA| WMMA|        |        |   ThreadCluster|  ThreadCluster| SrcAccessOrder|   SrcVectorDim|      SrcScalar|      DstScalar| AddExtraM|   ThreadCluster|  ThreadCluster| SrcAccessOrder|  SrcVectorDim|      SrcScalar|      DstScalar| AddExtraN| MXdlPerWave| NXdlPerWave|         _MBlock_MWaveMPerXdl| ScalarPerVector|
+      // ###############################|         |      |      |      |      |   |      |     |        |        | Lengths_K0_M_K1|   ArrangeOrder|               |               |      PerVector|   PerVector_K1|          | Lengths_K0_N_K1|   ArrangeOrder|               |              |      PerVector|   PerVector_K1|          |  PerShuffle|  PerShuffle|         _NBlock_NWaveNPerXdl|   _NWaveNPerXdl|
+      // ###############################|         |      |      |      |      |   |      |     |        |        |                |               |               |               |               |               |          |                |               |               |              |               |               |          |            |            |                             |                |
+      CKConvWMMA<half, float, activation,        1,   128,   256,    32,    32,  8,    16,   16,       8,       1,     S<4, 32, 1>,     S<1, 0, 2>,     S<1, 0, 2>,              2,              8,              8,         1,     S<4, 32, 1>,     S<1, 0, 2>,     S<1, 0, 2>,             2,              8,              8,         1,           1,           1,               S<1, 32, 1, 4>,               8>::getFactory(),
+      CKConvWMMA<half, float, activation,        1,   128,   128,    64,    32,  8,    16,   16,       4,       2,     S<4, 32, 1>,     S<1, 0, 2>,     S<1, 0, 2>,              2,              8,              8,         1,     S<4, 32, 1>,     S<1, 0, 2>,     S<1, 0, 2>,             2,              8,              8,         1,           1,           1,               S<1, 32, 1, 4>,               8>::getFactory(),
+    };
   }
 
   template<>
-  std::vector<CKConvFactory> getCKConvInstances<HIPArch::WMMA>(DataType dataType, Activation activation)
+  std::vector<CKConvFactory> getCKConvInstances<HIPArch::WMMA>(Activation activation)
   {
     switch (activation)
     {
-    case Activation::None:
-      return getCKConvWMMAInstances<Activation::None>(dataType);
-    case Activation::ReLU:
-      return getCKConvWMMAInstances<Activation::ReLU>(dataType);
-    default:
-      throw std::invalid_argument("unsupported convolution activation function");
+    case Activation::None: return getCKConvWMMAInstances<Activation::None>();
+    case Activation::ReLU: return getCKConvWMMAInstances<Activation::ReLU>();
+    default:               return {};
     }
   }
 

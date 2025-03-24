@@ -13,10 +13,10 @@ OIDN_NAMESPACE_BEGIN
     switch (engine->getArch())
     {
     case HIPArch::DL:
-      kernels = getCKConvInstances<HIPArch::DL>(desc.srcDesc.dataType, desc.activation);
+      kernels = getCKConvInstances<HIPArch::DL>(desc.activation);
       break;
     case HIPArch::WMMA:
-      kernels = getCKConvInstances<HIPArch::WMMA>(desc.srcDesc.dataType, desc.activation);
+      kernels = getCKConvInstances<HIPArch::WMMA>(desc.activation);
       break;
     default:
       throw std::runtime_error("unsupported architecture");

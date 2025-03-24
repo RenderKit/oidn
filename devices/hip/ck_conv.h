@@ -66,6 +66,6 @@ OIDN_NAMESPACE_BEGIN
   };
 
   template<HIPArch arch>
-  std::vector<CKConvFactory> getCKConvInstances(DataType dataType, Activation activation);
+  std::vector<CKConvFactory> getCKConvInstances(Activation activation);
 
 OIDN_NAMESPACE_END
