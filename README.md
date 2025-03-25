@@ -450,6 +450,8 @@ CMake:
   - `OIDN_INSTALL_DEPENDENCIES`: Enable installing the dependencies
     (e.g. TBB, SYCL runtime) as well.
 
+  - `OIDN_DEPENDENTLOADFLAG`: Value for DEPENDENTLOADFLAG linker flag on Windows. For more information, see [SECURITY.md](SECURITY.md#security-considerations)
+
   - `TBB_ROOT`: The path to the TBB installation (autodetected by
     default).
 
