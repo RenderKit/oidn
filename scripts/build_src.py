@@ -19,7 +19,7 @@ version = re.findall('v[0-9a-z.-]+', version_text)[0][1:]
 print('Copying the source code')
 src_name = f'oidn-{version}'
 src_dir = os.path.join(root_dir, src_name)
-shutil.copytree(root_dir, src_dir, ignore=shutil.ignore_patterns('.git', '__pycache__'))
+shutil.copytree(root_dir, src_dir, ignore=shutil.ignore_patterns('.git', '.gitmodules', '__pycache__'))
 
 # Create the package
 build_dir = os.path.join(root_dir, 'build')
