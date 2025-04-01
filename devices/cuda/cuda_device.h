@@ -50,7 +50,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Supported compute capabilities
     static constexpr int minSMArch = 70;
-    static constexpr int maxSMArch = 99;
+    static constexpr int maxSMArch = 129;
 
     int deviceID = 0;
   #if defined(OIDN_DEVICE_CUDA_API_DRIVER)
