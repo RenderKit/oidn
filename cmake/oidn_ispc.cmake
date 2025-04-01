@@ -2,7 +2,7 @@
 ## SPDX-License-Identifier: Apache-2.0
 
 # ISPC versions to look for, in descending order (newest first)
-set(ISPC_VERSION_WORKING "1.25.3" "1.25.2" "1.24.0" "1.23.0" "1.22.0" "1.21.1" "1.21.0")
+set(ISPC_VERSION_WORKING "1.26.0" "1.25.3" "1.25.2" "1.24.0" "1.23.0" "1.22.0" "1.21.1" "1.21.0")
 if(WIN32 AND OIDN_ARCH STREQUAL "ARM64")
   list(REMOVE_ITEM ISPC_VERSION_WORKING "1.22.0")
 endif()
