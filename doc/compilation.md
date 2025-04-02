@@ -241,6 +241,9 @@ The following list describes the options that can be configured in CMake:
 - `OIDN_LIBRARY_NAME`: Specifies the base name of the Open Image Denoise
   library files (`OpenImageDenoise` by default).
 
+- `OIDN_LIBRARY_VERSIONED`: Enable versioning of the Open Image Denoise library
+  files, where available (ON by default).
+
 - `OIDN_API_NAMESPACE`: Specifies a namespace to put all Open Image Denoise API
   symbols inside. This is also added as an outer namespace for the C++ wrapper
   API. By default no namespace is used and plain C symbols are exported.

@@ -92,10 +92,13 @@ add_library(OpenImageDenoise_core ${OIDN_CORE_LIB_TYPE} ${OIDN_CORE_SOURCES} ${O
 
 set_target_properties(OpenImageDenoise_core PROPERTIES
   OUTPUT_NAME ${OIDN_LIBRARY_NAME}_core
-  VERSION ${PROJECT_VERSION}
 )
-
 target_compile_definitions(OpenImageDenoise_core PRIVATE OIDN_LIBRARY_NAME="${OIDN_LIBRARY_NAME}")
+
+if(OIDN_LIBRARY_VERSIONED)
+  set_target_properties(OpenImageDenoise_core PROPERTIES VERSION ${PROJECT_VERSION})
+  target_compile_definitions(OpenImageDenoise_core PRIVATE OIDN_LIBRARY_VERSIONED)
+endif()
 
 target_link_libraries(OpenImageDenoise_core
   PUBLIC

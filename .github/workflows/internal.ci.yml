@@ -203,6 +203,17 @@ jobs:
       artifact-out: build-rockylinux8-namespace
       artifact-path: build install deps
 
+  build-rockylinux8-namespace-nover:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      image: oidn/rockylinux:8.8
+      dpcpp-version: intel-llvm/v6.0.1-rk
+      cmd: scripts/build.py install --full -D OIDN_LIBRARY_NAME=OIDN -D OIDN_API_NAMESPACE=myoidn -D OIDN_LIBRARY_VERSIONED=OFF
+      artifact-out: build-rockylinux8-namespace-nover
+      artifact-path: build install deps
+
   build-rockylinux8-namespace-static:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
@@ -507,6 +518,20 @@ jobs:
       artifact-on-failure: true
       cmd: scripts/test.py --device cpu --log test.log
 
+  test-rockylinux8-namespace-nover-avx512:
+    needs: build-rockylinux8-namespace-nover
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Linux", "avx512" ]'
+      image: oidn/rockylinux:8.8
+      artifact-in: build-rockylinux8-namespace-nover
+      artifact-out: test-rockylinux8-namespace-nover-avx512
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: scripts/test.py --device cpu --log test.log
+
   test-rockylinux8-static-avx512:
     needs: build-rockylinux8-static
     secrets: inherit
@@ -609,6 +634,21 @@ jobs:
       options: --gpus all
       artifact-in: build-rockylinux8
       artifact-out: test-rockylinux8-cuda
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: scripts/test.py --device cuda --memcheck --log test.log
+
+  test-rockylinux8-namespace-nover-cuda:
+    needs: build-rockylinux8-namespace-nover
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Linux", "gpu_nvidia" ]'
+      image: oidn/ubuntu:22.04
+      options: --gpus all
+      artifact-in: build-rockylinux8-namespace-nover
+      artifact-out: test-rockylinux8-namespace-nover-cuda
       artifact-path: test.log
       artifact-on-failure: true
       cmd: scripts/test.py --device cuda --memcheck --log test.log
@@ -887,6 +927,16 @@ jobs:
       artifact-path: build install deps
       cmd: scripts/build.py install --full -D OIDN_LIBRARY_NAME=OIDN -D OIDN_LIBRARY_NAME=OIDN -D OIDN_API_NAMESPACE=myoidn
 
+  build-macos-arm-namespace-nover:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "macOS", "ARM64", "build" ]'
+      artifact-out: build-macos-arm-namespace-nover
+      artifact-path: build install deps
+      cmd: scripts/build.py install --full -D OIDN_LIBRARY_NAME=OIDN -D OIDN_LIBRARY_NAME=OIDN -D OIDN_API_NAMESPACE=myoidn -D OIDN_LIBRARY_VERSIONED=OFF
+
   build-macos-arm-namespace-static:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
@@ -975,6 +1025,19 @@ jobs:
       runs-on: '[ "macOS", "ARM64" ]'
       artifact-in: build-macos-arm-namespace
       artifact-out: test-macos-arm-namespace
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: scripts/test.py --device cpu --memcheck --log test.log
+
+  test-macos-arm-namespace-nover:
+    needs: build-macos-arm-namespace-nover
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/macos.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "macOS", "ARM64" ]'
+      artifact-in: build-macos-arm-namespace-nover
+      artifact-out: test-macos-arm-namespace-nover
       artifact-path: test.log
       artifact-on-failure: true
       cmd: scripts/test.py --device cpu --memcheck --log test.log
@@ -1236,6 +1299,19 @@ jobs:
       artifact-path: build install
       cmd: python scripts/build.py install --full -D OIDN_LIBRARY_NAME=OIDN -D OIDN_API_NAMESPACE=myoidn
 
+  build-windows-namespace-nover:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "cuda", "hip" ]'
+      msvc-version: "2022"
+      dpcpp-version: intel-llvm/v6.0.1-rk
+      ocloc-version: oneAPI/ocloc/2025.0
+      artifact-out: build-windows-namespace-nover
+      artifact-path: build install
+      cmd: python scripts/build.py install --full -D OIDN_LIBRARY_NAME=OIDN -D OIDN_API_NAMESPACE=myoidn -D OIDN_LIBRARY_VERSIONED=OFF
+
   build-windows-namespace-static:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
@@ -1424,6 +1500,19 @@ jobs:
       runs-on: '[ "Windows", "avx512", "NAS" ]'
       artifact-in: build-windows
       artifact-out: test-windows-avx512
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: python scripts/test.py --device cpu --log test.log
+
+  test-windows-namespace-nover-avx512:
+    needs: build-windows-namespace-nover
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "avx512", "NAS" ]'
+      artifact-in: build-windows-namespace-nover
+      artifact-out: test-windows-namespace-nover-avx512
       artifact-path: test.log
       artifact-on-failure: true
       cmd: python scripts/test.py --device cpu --log test.log

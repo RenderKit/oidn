@@ -9,9 +9,13 @@ add_library(OpenImageDenoise ${OIDN_LIB_TYPE} ${API_SOURCES} ${OIDN_RESOURCE_FIL
 
 set_target_properties(OpenImageDenoise PROPERTIES
   OUTPUT_NAME ${OIDN_LIBRARY_NAME}
-  VERSION ${PROJECT_VERSION}
-  SOVERSION ${PROJECT_VERSION_MAJOR}
 )
+if(OIDN_LIBRARY_VERSIONED)
+  set_target_properties(OpenImageDenoise PROPERTIES
+    VERSION ${PROJECT_VERSION}
+    SOVERSION ${PROJECT_VERSION_MAJOR}
+  )
+endif()
 
 target_include_directories(OpenImageDenoise
   PUBLIC

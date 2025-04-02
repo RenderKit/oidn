@@ -33,9 +33,11 @@ OIDN_NAMESPACE_BEGIN
   #if defined(_WIN32)
     filename += ".dll";
   #else
-    const std::string versionStr = "." + toString(OIDN_VERSION_MAJOR) +
-                                   "." + toString(OIDN_VERSION_MINOR) +
-                                   "." + toString(OIDN_VERSION_PATCH);
+    #if defined(OIDN_LIBRARY_VERSIONED)
+    const std::string versionStr = "." OIDN_VERSION_STRING;
+    #else
+    const std::string versionStr = "";
+    #endif
   #if defined(__APPLE__)
     filename = "lib" + filename + versionStr + ".dylib";
   #else

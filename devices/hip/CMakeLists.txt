@@ -50,9 +50,11 @@ add_library(OpenImageDenoise_device_hip SHARED ${OIDN_HIP_SOURCES} ${OIDN_GPU_SO
 
 set_target_properties(OpenImageDenoise_device_hip PROPERTIES
   OUTPUT_NAME ${OIDN_LIBRARY_NAME}_device_hip
-  VERSION ${PROJECT_VERSION}
   CXX_STANDARD 17
 )
+if(OIDN_LIBRARY_VERSIONED)
+  set_target_properties(OpenImageDenoise_device_hip PROPERTIES VERSION ${PROJECT_VERSION})
+endif()
 
 configure_file(
   "${OIDN_ROOT_SOURCE_DIR}/external/composable_kernel/include/ck/config.h.in"

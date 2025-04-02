@@ -16,11 +16,11 @@ include(oidn_macros)
 
 # Configuration types
 set(CONFIGURATION_TYPES "Debug;Release;RelWithDebInfo")
-if(win32)
+if(WIN32)
   if(NOT OIDN_DEFAULT_CMAKE_CONFIGURATION_TYPES_SET)
     set(CMAKE_CONFIGURATION_TYPES "${CONFIGURATION_TYPES}"
         CACHE STRING "List of generated configurations." FORCE)
-    set(OOIDN_DEFAULT_CMAKE_CONFIGURATION_TYPES_SET ON
+    set(OIDN_DEFAULT_CMAKE_CONFIGURATION_TYPES_SET ON
         CACHE INTERNAL "Default CMake configuration types set.")
   endif()
 else()
@@ -41,6 +41,8 @@ endif()
 
 # Library name
 set(OIDN_LIBRARY_NAME "OpenImageDenoise" CACHE STRING "Base name of the Open Image Denoise library files.")
+option(OIDN_LIBRARY_VERSIONED "Build versioned Open Image Denoise library files." ON)
+mark_as_advanced(OIDN_LIBRARY_VERSIONED)
 
 # API namespace
 set(OIDN_API_NAMESPACE "" CACHE STRING "C++ namespace to put API symbols into.")

@@ -6,7 +6,10 @@ Version History
 -   Added NVIDIA Blackwell GPU support
 -   Added AMD RDNA4 GPU support
 -   Improved performance for AMD RDNA3 GPUs
--   Added `OIDN_DEPENDENTLOAD` CMake option
+-   Added `OIDN_DEPENDENTLOADFLAG` CMake option for setting the
+    `DEPENDENTLOADFLAG` linker flag on Windows
+-   Added `OIDN_LIBRARY_VERSIONED` CMake option for toggling versioning in the
+    Open Image Denoise library files
 -   Known issue: performance regression for AMD RDNA2 GPUs
 
 ### Changes in v2.3.2:

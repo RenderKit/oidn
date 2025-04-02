@@ -102,9 +102,11 @@ add_library(OpenImageDenoise_device_sycl SHARED
 
 set_target_properties(OpenImageDenoise_device_sycl PROPERTIES
   OUTPUT_NAME ${OIDN_LIBRARY_NAME}_device_sycl
-  VERSION ${PROJECT_VERSION}
   CXX_STANDARD 17
 )
+if(OIDN_LIBRARY_VERSIONED)
+  set_target_properties(OpenImageDenoise_device_sycl PROPERTIES VERSION ${PROJECT_VERSION})
+endif()
 
 target_compile_options(OpenImageDenoise_device_sycl PRIVATE ${OIDN_SYCL_COMPILE_FLAGS})
 target_link_options(OpenImageDenoise_device_sycl PRIVATE ${OIDN_SYCL_LINK_FLAGS})
