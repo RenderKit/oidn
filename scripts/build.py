@@ -13,7 +13,7 @@ import multiprocessing
 
 from common import *
 
-ISPC_VERSION = '1.24.0'
+ISPC_VERSION = '1.26.0'
 TBB_VERSION  = '2021.12.0'
 
 def check_symbols(filename, label, max_version):
