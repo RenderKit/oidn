@@ -96,7 +96,7 @@ Windows.
 For NVIDIA GPU support, please also install the latest
 [NVIDIA graphics drivers](https://www.nvidia.com/en-us/geforce/drivers/):
 
--   Windows: Version 527.41 or newer
+-   Windows: Version 528.33 or newer
 
 -   Linux: Version 525.60.13 or newer
 
