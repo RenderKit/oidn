@@ -77,6 +77,7 @@ OIDN_NAMESPACE_BEGIN
       SYCLArch::Xe2HPG,
       {
         0x05004000, // bmg-g21
+        0x05008000,
       }
     },
     {
