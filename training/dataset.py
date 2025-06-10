@@ -222,8 +222,8 @@ def transform_feature(image, input_feature, output_feature, exposure=1.):
     if input_feature in {'hdr', 'ldr', 'alb'}:
       image = srgb_forward(image)
     elif input_feature in {'nrm', 'sh1'}:
-      # Transform [-1, 1] -> [0, 1]
-      image = image * 0.5 + 0.5
+      # Transform [-1, 1] -> [0, 1], increase contrast
+      image = srgb_forward(torch.pow(image * 0.5 + 0.5, 6.0))
   return image
 
 # Returns a data loader and its sampler for the specified dataset
