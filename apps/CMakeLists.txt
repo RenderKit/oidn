@@ -12,3 +12,14 @@ endmacro()
 oidn_add_app(oidnDenoise oidnDenoise.cpp)
 oidn_add_app(oidnBenchmark oidnBenchmark.cpp)
 oidn_add_app(oidnTest oidnTest.cpp "${PROJECT_SOURCE_DIR}/external/catch.hpp")
+
+
+
+if(OIDN_INTEROP_TEST)
+  find_package(Vulkan REQUIRED)
+  find_package(OpenImageIO REQUIRED)
+
+  add_executable(oidnInteropTest oidnInteropTest.cpp ${OIDN_RESOURCE_FILE})
+  set_property(TARGET oidnInteropTest PROPERTY CXX_STANDARD 17)
+  target_link_libraries(oidnInteropTest PRIVATE Vulkan::Vulkan OpenImageIO::OpenImageIO OpenImageDenoise_common OpenImageDenoise_utils OpenImageDenoise)
+endif()
