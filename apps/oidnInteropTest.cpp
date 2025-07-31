@@ -57,14 +57,10 @@ int main(int argc, char* argv[]) {
         return 0;
     }
 
-    auto path_json = parse("--json", args);
-    auto no_extension = path_json.substr(0, path_json.find_last_of("."));
-    auto no_seqnum = no_extension.substr(0, no_extension.find_last_of("."));
-    auto seqnum = no_extension.substr(no_extension.find_last_of(".") + 1);
-
-    auto path_color = no_seqnum + ".hdr." + seqnum + ".exr";
-    auto path_albedo = no_seqnum + ".alb1." + seqnum + ".exr";
-    auto path_normal = no_seqnum + ".nrm1." + seqnum + ".exr";
+    auto path_in = parse("--in", args);
+    auto path_color = path_in + ".hdr.exr";
+    auto path_albedo = path_in + ".alb1.exr";
+    auto path_normal = path_in + ".nrm1.exr";
 
     auto path_out = parse_opt("--out", args, "./out.exr");
     auto scale = std::stof(parse_opt("--scale", args, "2.0f"));
@@ -149,10 +145,6 @@ int main(int argc, char* argv[]) {
     filter.execute();
 
     test.save_exr(out, "./out.exr");
-
-    test.save_exr(color, "./col.exr");
-    test.save_exr(albedo, "./alb.exr");
-    test.save_exr(normal, "./nor.exr");
 
     return 0;
 }
