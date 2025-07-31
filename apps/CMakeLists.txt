@@ -16,10 +16,34 @@ oidn_add_app(oidnTest oidnTest.cpp "${PROJECT_SOURCE_DIR}/external/catch.hpp")
 
 
 if(OIDN_INTEROP_TEST)
-  find_package(Vulkan REQUIRED)
   find_package(OpenImageIO REQUIRED)
+  
+  if(WIN32)
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDLL")
+    add_executable(oidnInteropTest oidnInteropTest.cpp ${OIDN_RESOURCE_FILE})
+    set_property(TARGET oidnInteropTest PROPERTY CXX_STANDARD 17)
+    target_link_libraries(oidnInteropTest PRIVATE
+      OpenImageIO::OpenImageIO
+      OpenImageDenoise_common
+      #OpenImageDenoise_utils
+      OpenImageDenoise
+      d3d12
+      dxgi
+      dxguid
+    )
+  else()
+    find_package(Vulkan REQUIRED)
+    add_executable(oidnInteropTest oidnInteropTest.cpp ${OIDN_RESOURCE_FILE})
+    set_property(TARGET oidnInteropTest PROPERTY CXX_STANDARD 17)
+    target_link_libraries(oidnInteropTest PRIVATE 
+      Vulkan::Vulkan 
+      OpenImageIO::OpenImageIO 
+      OpenImageDenoise_common 
+      OpenImageDenoise_utils 
+      OpenImageDenoise
+    )
+  endif()
 
-  add_executable(oidnInteropTest oidnInteropTest.cpp ${OIDN_RESOURCE_FILE})
-  set_property(TARGET oidnInteropTest PROPERTY CXX_STANDARD 17)
-  target_link_libraries(oidnInteropTest PRIVATE Vulkan::Vulkan OpenImageIO::OpenImageIO OpenImageDenoise_common OpenImageDenoise_utils OpenImageDenoise)
+
+
 endif()
