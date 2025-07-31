@@ -779,17 +779,17 @@ private:
 
 
 
-class InteropTestDX {
+class InteropTestVk {
 public:
-    InteropTestDX():instance(), device(instance), command_pool(device) {
+    InteropTestVk():instance(), device(instance), command_pool(device) {
     }
 
-    ~InteropTestDX() = default;
+    ~InteropTestVk() = default;
 
-    InteropTestDX(const InteropTestDX&) = delete;
-    InteropTestDX& operator=(const InteropTestDX&) = delete;
-    InteropTestDX(InteropTestDX&&) = default;
-    InteropTestDX& operator=(InteropTestDX&&) = default;
+    InteropTestVk(const InteropTestVk&) = delete;
+    InteropTestVk& operator=(const InteropTestVk&) = delete;
+    InteropTestVk(InteropTestVk&&) = delete;
+    InteropTestVk& operator=(InteropTestVk&&) = delete;
 
 
 
@@ -807,7 +807,7 @@ public:
         std::memcpy(uuid.bytes, id_properties.deviceUUID, sizeof(uuid.bytes));
 
         // Initialize the denoiser device
-        oidn::DeviceRef oidn_device = oidn::newDevice(uuid);
+        oidn_device = oidn::newDevice(uuid);
         if (oidn_device.getError() != oidn::Error::None) {
             throw std::runtime_error("Failed to create OIDN device.");
             exit(1);
@@ -839,6 +839,7 @@ public:
     Instance instance;
     Device device;
     CommandPool command_pool;
+    oidn::DeviceRef oidn_device;
 };
 
 
@@ -854,198 +855,198 @@ public:
 
 
 
-void oidnErrorCallback(void* userPtr, oidn::Error error, const char* message)
-{
-  throw std::runtime_error(message);
-}
-
-std::string usage() {
-    return
-        "Usage:\n"
-        "   vkdlss - run nvidia dlss on exr inputs\n"
-        "\n"
-        "SYNOPSIS\n"
-        "   vkdlss --json <path> [OPTION]\n"
-        "\n"
-        "OPTIONS\n"
-        "   --preset <name>  - preset name, accepts values in [Default, A - O], defalut = Default, refer to DLSS Programming Guide section 3.12 for description and dependencies\n"
-        "   --quality <name> - performance quality level, accepts values in [perf, balanced, quality, ultra], defalut = ultra\n"
-        "   --scale <float>  - scaling factor, accepts values in [1.0, 2.0], for quality ultra accepts value in [1.0, 3.0]\n"
-        "   --out <ext>      - extension of the out files, i.e. <path>.out.<n>.exr, default = out\n"
-        "   --help           - print this help\n"
-        "   --verbose        - vebose console output\n"
-        ;
-}
-
-bool has_param(const std::string& pname, std::vector<std::string>& args) {
-    auto p = std::find(args.begin(), args.end(), pname);
-    return p != args.end() && (p+1) != args.end();
-}
-
-std::string parse(const std::string& pname, std::vector<std::string>& args) {
-    auto p = std::find(args.begin(), args.end(), pname);
-    if (p == args.end()) {
-        throw std::runtime_error("could not parse parameter: " + pname + "\n" + usage());
-    }
-
-    ++p;
-    if (p == args.end()) {
-        throw std::runtime_error("could not parse parameter: " + pname + "\n" + usage());
-    }
-
-    return *p;
-}
-
-std::string parse_opt(const std::string& pname, std::vector<std::string>& args, std::string def = "") {
-    return has_param(pname, args)? parse(pname, args) : def;
-}
-
-
-int main(int argc, char* argv[]) {
-    std::vector<std::string> args(argv + 1, argv + argc);
-
-    auto path_json = parse("--json", args);
-    auto no_extension = path_json.substr(0, path_json.find_last_of("."));
-    auto no_seqnum = no_extension.substr(0, no_extension.find_last_of("."));
-    auto seqnum = no_extension.substr(no_extension.find_last_of(".") + 1);
-
-    auto path_color = no_seqnum + ".hdr." + seqnum + ".exr";
-    auto path_albedo = no_seqnum + ".alb1." + seqnum + ".exr";
-    auto path_normal = no_seqnum + ".nrm1." + seqnum + ".exr";
-
-    auto path_out = parse_opt("--out", args, "./out.exr");
-    auto scale = std::stof(parse_opt("--scale", args, "2.0f"));
-
-
-    std::cout << "oidn interop test" << std::endl;
-    std::cout << "    color:  " << path_color << std::endl;
-    std::cout << "    albedo: " << path_albedo << std::endl;
-    std::cout << "    normal: " << path_normal << std::endl;
-    std::cout << "    output: " << path_out << std::endl;
-    std::cout << "    scale:  " << scale << std::endl;
-
-    Instance instance;
-    Device device(instance);
-    CommandPool command_pool(device);
-
-
-    // Query the UUID of the Vulkan physical device
-    VkPhysicalDeviceIDProperties id_properties{};
-    id_properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES;
-
-    VkPhysicalDeviceProperties2 properties{};
-    properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
-    properties.pNext = &id_properties;
-    vkGetPhysicalDeviceProperties2(device.get_pdevice(), &properties);
-
-    oidn::UUID uuid;
-    std::memcpy(uuid.bytes, id_properties.deviceUUID, sizeof(uuid.bytes));
-
-    // Initialize the denoiser device
-    oidn::DeviceRef oidn_device = oidn::newDevice(uuid);
-    if (oidn_device.getError() != oidn::Error::None) {
-        throw std::runtime_error("Failed to create OIDN device.");
-        exit(1);
-    }
-    oidn_device.commit();
-    if (oidn_device.getError() != oidn::Error::None)
-        throw std::runtime_error("Failed to commit OIDN device.");
-
-    oidn::DeviceType deviceType = oidn_device.get<oidn::DeviceType>("type");
-    const int versionMajor = oidn_device.get<int>("versionMajor");
-    const int versionMinor = oidn_device.get<int>("versionMinor");
-    const int versionPatch = oidn_device.get<int>("versionPatch");
-
-    std::cout << std::setw(15) << std::left << "OIDN Device: ";
-    switch (deviceType)
-    {
-    case oidn::DeviceType::Default: std::cout << std::setw(30) << std::left << "default"; break;
-    case oidn::DeviceType::CPU:     std::cout << std::setw(30) << std::left << "CPU";     break;
-    case oidn::DeviceType::SYCL:    std::cout << std::setw(30) << std::left << "SYCL";    break;
-    case oidn::DeviceType::CUDA:    std::cout << std::setw(30) << std::left << "CUDA";    break;
-    case oidn::DeviceType::HIP:     std::cout << std::setw(30) << std::left << "HIP";     break;
-    case oidn::DeviceType::Metal:   std::cout << std::setw(30) << std::left << "Metal";   break;
-    default:
-      throw std::invalid_argument("invalid device type");
-    }
-
-    std::cout << "Version: " << versionMajor << "." << versionMinor << "." << versionPatch << std::endl;
-
-    ImageBuffer color = ImageBuffer::load_exr(path_color, device, oidn_device, command_pool);
-    ImageBuffer albedo = ImageBuffer::load_exr(path_albedo, device, oidn_device, command_pool);
-    ImageBuffer normal = ImageBuffer::load_exr(path_normal, device, oidn_device, command_pool);
-
-    uint32_t render_width, render_height, target_width, target_height;
-    {
-        render_width = color.get_width();
-        render_height = color.get_height();
-        target_width = render_width * scale;
-        target_height = render_height * scale;
-
-        std::cout << render_height << " x " << render_width << " -> "
-                  << target_height << " x " << target_width << std::endl;
-    }
-
-    ImageBuffer out = ImageBuffer(device, oidn_device, target_width, target_height, oidn::Format::Half3);
-
-    // Initialize the denoising filter
-    std::cout << "Initializing filter" << std::endl;
-    oidn::FilterRef filter = oidn_device.newFilter("RT");
-
-
-    std::cout << "color in: ";
-    std::cout << "    ext mem     " << color.get_buffer().get_ext_mem_type().value() << std::endl;
-    std::cout << "    mem handle  " << color.get_buffer().get_ext_mem_handle() << std::endl;
-    std::cout << "    size        " << color.get_buffer().get_size() << std::endl;
-    std::cout << "    width       " << color.get_width() << std::endl;
-    std::cout << "    height      " << color.get_height() << std::endl;
-    //std::cout << "format      " << color.get_format() << std::endl;
-
-    std::cout << "out: ";
-    std::cout << "    ext mem     " << out.get_buffer().get_ext_mem_type().value() << std::endl;
-    std::cout << "    mem handle  " << out.get_buffer().get_ext_mem_handle() << std::endl;
-    std::cout << "    size        " << out.get_buffer().get_size() << std::endl;
-    std::cout << "    width       " << out.get_width() << std::endl;
-    std::cout << "    height      " << out.get_height() << std::endl;
-
-    auto oidn_color = oidn_device.newBuffer(color.get_buffer().get_ext_mem_type()->oidn,
-                                            color.get_buffer().get_ext_mem_handle(),
-                                            color.get_buffer().get_size());
-
-    auto oidn_albedo = oidn_device.newBuffer(albedo.get_buffer().get_ext_mem_type()->oidn,
-                                             albedo.get_buffer().get_ext_mem_handle(),
-                                             albedo.get_buffer().get_size());
-
-    auto oidn_normal = oidn_device.newBuffer(normal.get_buffer().get_ext_mem_type()->oidn,
-                                             normal.get_buffer().get_ext_mem_handle(),
-                                             normal.get_buffer().get_size());
-
-    auto oidn_out = oidn_device.newBuffer(out.get_buffer().get_ext_mem_type()->oidn,
-                                          out.get_buffer().get_ext_mem_handle(),
-                                          out.get_buffer().get_size());
-
-    filter.setImage("color", oidn_color, color.get_format(), color.get_width(), color.get_height());
-    filter.setImage("albedo", oidn_albedo, albedo.get_format(), albedo.get_width(), albedo.get_height());
-    filter.setImage("normal", oidn_normal, normal.get_format(), normal.get_width(), normal.get_height());
-
-    filter.setImage("output", oidn_out, out.get_format(), out.get_width(), out.get_height());
-
-    filter.set("hdr", true);
-    filter.set("inputScale", scale);
-    filter.set("quality", oidn::Quality::Default);
-
-    //const bool showProgress = verbose <= 1;
-    //if (showProgress)
-    //{
-    //  filter.setProgressMonitorFunction(progressCallback);
-    //  signal(SIGINT, signalHandler);
-    //}
-
-    filter.commit();
-
-    filter.execute();
-
-    out.save_exr("./out.exr", device, command_pool);
-
-    return 0;
-}
+//void oidnErrorCallback(void* userPtr, oidn::Error error, const char* message)
+//{
+//  throw std::runtime_error(message);
+//}
+//
+//std::string usage() {
+//    return
+//        "Usage:\n"
+//        "   vkdlss - run nvidia dlss on exr inputs\n"
+//        "\n"
+//        "SYNOPSIS\n"
+//        "   vkdlss --json <path> [OPTION]\n"
+//        "\n"
+//        "OPTIONS\n"
+//        "   --preset <name>  - preset name, accepts values in [Default, A - O], defalut = Default, refer to DLSS Programming Guide section 3.12 for description and dependencies\n"
+//        "   --quality <name> - performance quality level, accepts values in [perf, balanced, quality, ultra], defalut = ultra\n"
+//        "   --scale <float>  - scaling factor, accepts values in [1.0, 2.0], for quality ultra accepts value in [1.0, 3.0]\n"
+//        "   --out <ext>      - extension of the out files, i.e. <path>.out.<n>.exr, default = out\n"
+//        "   --help           - print this help\n"
+//        "   --verbose        - vebose console output\n"
+//        ;
+//}
+//
+//bool has_param(const std::string& pname, std::vector<std::string>& args) {
+//    auto p = std::find(args.begin(), args.end(), pname);
+//    return p != args.end() && (p+1) != args.end();
+//}
+//
+//std::string parse(const std::string& pname, std::vector<std::string>& args) {
+//    auto p = std::find(args.begin(), args.end(), pname);
+//    if (p == args.end()) {
+//        throw std::runtime_error("could not parse parameter: " + pname + "\n" + usage());
+//    }
+//
+//    ++p;
+//    if (p == args.end()) {
+//        throw std::runtime_error("could not parse parameter: " + pname + "\n" + usage());
+//    }
+//
+//    return *p;
+//}
+//
+//std::string parse_opt(const std::string& pname, std::vector<std::string>& args, std::string def = "") {
+//    return has_param(pname, args)? parse(pname, args) : def;
+//}
+//
+//
+//int main(int argc, char* argv[]) {
+//    std::vector<std::string> args(argv + 1, argv + argc);
+//
+//    auto path_json = parse("--json", args);
+//    auto no_extension = path_json.substr(0, path_json.find_last_of("."));
+//    auto no_seqnum = no_extension.substr(0, no_extension.find_last_of("."));
+//    auto seqnum = no_extension.substr(no_extension.find_last_of(".") + 1);
+//
+//    auto path_color = no_seqnum + ".hdr." + seqnum + ".exr";
+//    auto path_albedo = no_seqnum + ".alb1." + seqnum + ".exr";
+//    auto path_normal = no_seqnum + ".nrm1." + seqnum + ".exr";
+//
+//    auto path_out = parse_opt("--out", args, "./out.exr");
+//    auto scale = std::stof(parse_opt("--scale", args, "2.0f"));
+//
+//
+//    std::cout << "oidn interop test" << std::endl;
+//    std::cout << "    color:  " << path_color << std::endl;
+//    std::cout << "    albedo: " << path_albedo << std::endl;
+//    std::cout << "    normal: " << path_normal << std::endl;
+//    std::cout << "    output: " << path_out << std::endl;
+//    std::cout << "    scale:  " << scale << std::endl;
+//
+//    Instance instance;
+//    Device device(instance);
+//    CommandPool command_pool(device);
+//
+//
+//    // Query the UUID of the Vulkan physical device
+//    VkPhysicalDeviceIDProperties id_properties{};
+//    id_properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ID_PROPERTIES;
+//
+//    VkPhysicalDeviceProperties2 properties{};
+//    properties.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+//    properties.pNext = &id_properties;
+//    vkGetPhysicalDeviceProperties2(device.get_pdevice(), &properties);
+//
+//    oidn::UUID uuid;
+//    std::memcpy(uuid.bytes, id_properties.deviceUUID, sizeof(uuid.bytes));
+//
+//    // Initialize the denoiser device
+//    oidn::DeviceRef oidn_device = oidn::newDevice(uuid);
+//    if (oidn_device.getError() != oidn::Error::None) {
+//        throw std::runtime_error("Failed to create OIDN device.");
+//        exit(1);
+//    }
+//    oidn_device.commit();
+//    if (oidn_device.getError() != oidn::Error::None)
+//        throw std::runtime_error("Failed to commit OIDN device.");
+//
+//    oidn::DeviceType deviceType = oidn_device.get<oidn::DeviceType>("type");
+//    const int versionMajor = oidn_device.get<int>("versionMajor");
+//    const int versionMinor = oidn_device.get<int>("versionMinor");
+//    const int versionPatch = oidn_device.get<int>("versionPatch");
+//
+//    std::cout << std::setw(15) << std::left << "OIDN Device: ";
+//    switch (deviceType)
+//    {
+//    case oidn::DeviceType::Default: std::cout << std::setw(30) << std::left << "default"; break;
+//    case oidn::DeviceType::CPU:     std::cout << std::setw(30) << std::left << "CPU";     break;
+//    case oidn::DeviceType::SYCL:    std::cout << std::setw(30) << std::left << "SYCL";    break;
+//    case oidn::DeviceType::CUDA:    std::cout << std::setw(30) << std::left << "CUDA";    break;
+//    case oidn::DeviceType::HIP:     std::cout << std::setw(30) << std::left << "HIP";     break;
+//    case oidn::DeviceType::Metal:   std::cout << std::setw(30) << std::left << "Metal";   break;
+//    default:
+//      throw std::invalid_argument("invalid device type");
+//    }
+//
+//    std::cout << "Version: " << versionMajor << "." << versionMinor << "." << versionPatch << std::endl;
+//
+//    ImageBuffer color = ImageBuffer::load_exr(path_color, device, oidn_device, command_pool);
+//    ImageBuffer albedo = ImageBuffer::load_exr(path_albedo, device, oidn_device, command_pool);
+//    ImageBuffer normal = ImageBuffer::load_exr(path_normal, device, oidn_device, command_pool);
+//
+//    uint32_t render_width, render_height, target_width, target_height;
+//    {
+//        render_width = color.get_width();
+//        render_height = color.get_height();
+//        target_width = render_width * scale;
+//        target_height = render_height * scale;
+//
+//        std::cout << render_height << " x " << render_width << " -> "
+//                  << target_height << " x " << target_width << std::endl;
+//    }
+//
+//    ImageBuffer out = ImageBuffer(device, oidn_device, target_width, target_height, oidn::Format::Half3);
+//
+//    // Initialize the denoising filter
+//    std::cout << "Initializing filter" << std::endl;
+//    oidn::FilterRef filter = oidn_device.newFilter("RT");
+//
+//
+//    std::cout << "color in: ";
+//    std::cout << "    ext mem     " << color.get_buffer().get_ext_mem_type().value() << std::endl;
+//    std::cout << "    mem handle  " << color.get_buffer().get_ext_mem_handle() << std::endl;
+//    std::cout << "    size        " << color.get_buffer().get_size() << std::endl;
+//    std::cout << "    width       " << color.get_width() << std::endl;
+//    std::cout << "    height      " << color.get_height() << std::endl;
+//    //std::cout << "format      " << color.get_format() << std::endl;
+//
+//    std::cout << "out: ";
+//    std::cout << "    ext mem     " << out.get_buffer().get_ext_mem_type().value() << std::endl;
+//    std::cout << "    mem handle  " << out.get_buffer().get_ext_mem_handle() << std::endl;
+//    std::cout << "    size        " << out.get_buffer().get_size() << std::endl;
+//    std::cout << "    width       " << out.get_width() << std::endl;
+//    std::cout << "    height      " << out.get_height() << std::endl;
+//
+//    auto oidn_color = oidn_device.newBuffer(color.get_buffer().get_ext_mem_type()->oidn,
+//                                            color.get_buffer().get_ext_mem_handle(),
+//                                            color.get_buffer().get_size());
+//
+//    auto oidn_albedo = oidn_device.newBuffer(albedo.get_buffer().get_ext_mem_type()->oidn,
+//                                             albedo.get_buffer().get_ext_mem_handle(),
+//                                             albedo.get_buffer().get_size());
+//
+//    auto oidn_normal = oidn_device.newBuffer(normal.get_buffer().get_ext_mem_type()->oidn,
+//                                             normal.get_buffer().get_ext_mem_handle(),
+//                                             normal.get_buffer().get_size());
+//
+//    auto oidn_out = oidn_device.newBuffer(out.get_buffer().get_ext_mem_type()->oidn,
+//                                          out.get_buffer().get_ext_mem_handle(),
+//                                          out.get_buffer().get_size());
+//
+//    filter.setImage("color", oidn_color, color.get_format(), color.get_width(), color.get_height());
+//    filter.setImage("albedo", oidn_albedo, albedo.get_format(), albedo.get_width(), albedo.get_height());
+//    filter.setImage("normal", oidn_normal, normal.get_format(), normal.get_width(), normal.get_height());
+//
+//    filter.setImage("output", oidn_out, out.get_format(), out.get_width(), out.get_height());
+//
+//    filter.set("hdr", true);
+//    filter.set("inputScale", scale);
+//    filter.set("quality", oidn::Quality::Default);
+//
+//    //const bool showProgress = verbose <= 1;
+//    //if (showProgress)
+//    //{
+//    //  filter.setProgressMonitorFunction(progressCallback);
+//    //  signal(SIGINT, signalHandler);
+//    //}
+//
+//    filter.commit();
+//
+//    filter.execute();
+//
+//    out.save_exr("./out.exr", device, command_pool);
+//
+//    return 0;
+//}

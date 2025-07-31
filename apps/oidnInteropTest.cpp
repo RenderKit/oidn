@@ -80,7 +80,7 @@ int main(int argc, char* argv[]) {
 #ifdef _WIN32
     InteropTestDX test;
 #else
-    InteropTestVK test;
+    InteropTestVk test;
 #endif
 
     std::cout << "Setting up OIDN device" << std::endl;
