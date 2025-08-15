@@ -1,6 +1,8 @@
 Version History
 ---------------
 
+-   Added AMD RDNA 3.5 GPU support, extended RDNA 2 support
+
 ### Changes in v2.3.3:
 
 -   Added NVIDIA Blackwell GPU support

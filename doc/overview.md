@@ -54,8 +54,7 @@ vendors:
 -   NVIDIA GPUs with Volta, Turing, Ampere, Ada Lovelace, Hopper, and
     Blackwell architectures
 
--   AMD GPUs with RDNA2 (Navi 21 only), RDNA3 (Navi 3x), and RDNA4 (Navi 4x)
-    architectures
+-   AMD GPUs with RDNA 2, RDNA 3, RDNA 3.5, and RDNA 4 architectures
 
 -   Apple silicon GPUs (M1 and newer)
 

@@ -96,10 +96,11 @@ OIDN_NAMESPACE_BEGIN
   HIPArch HIPDevice::getArch(const hipDeviceProp_t& prop)
   {
     const std::string name = getArchName(prop);
-
-    if (name == "gfx1030")
+    if (name == "gfx1030" || name == "gfx1031" || name == "gfx1032" || name == "gfx1034" ||
+        name == "gfx1035" || name == "gfx1036")
       return HIPArch::DL;
-    if (name == "gfx1100" || name == "gfx1101" || name == "gfx1102" ||
+    if (name == "gfx1100" || name == "gfx1101" || name == "gfx1102" || name == "gfx1103" ||
+        name == "gfx1150" || name == "gfx1151" || /*name == "gfx1152" ||*/ // FIXME: enable for HIP 6.3+
         name == "gfx1200" || name == "gfx1201")
       return HIPArch::WMMA;
     else
