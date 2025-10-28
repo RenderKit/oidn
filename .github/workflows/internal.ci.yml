@@ -19,7 +19,7 @@ jobs:
     with:
       project: oidn
       runs-on: '[ "macOS", "ARM64", "build" ]'
-      cmd: wget https://github.com/RenderKit/oidn/releases/download/v2.3.3/oidn-2.3.3.arm64.macos.tar.gz
+      cmd: curl https://github.com/RenderKit/oidn/releases/download/v2.3.3/oidn-2.3.3.arm64.macos.tar.gz
       notarize-package: ./oidn-2.3.3.arm64.macos.tar.gz
       artifact-out: notarize-macos-arm
       artifact-path: ./oidn-2.3.3.arm64.macos.tar.gz
