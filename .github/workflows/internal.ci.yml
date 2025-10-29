@@ -22,7 +22,8 @@ jobs:
       cmd: |
         curl -L -o oidn-2.3.3.arm64.macos.tar.gz https://github.com/RenderKit/oidn/releases/download/v2.3.3/oidn-2.3.3.arm64.macos.tar.gz
         tar xzf oidn-2.3.3.arm64.macos.tar.gz
-        zip -r oidn-2.3.3.arm64.macos.zip oidn-2.3.3.arm64.macos/
+      sign-path: oidn-2.3.3.arm64.macos
+      package-cmd: zip -r oidn-2.3.3.arm64.macos.zip oidn-2.3.3.arm64.macos/
       notarize-package: ./oidn-2.3.3.arm64.macos.zip
       artifact-out: notarize-macos-arm
       artifact-path: ./oidn-2.3.3.arm64.macos.zip
