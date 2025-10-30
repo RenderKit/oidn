@@ -15,7 +15,7 @@ permissions: read-all
 jobs:
   package-source-tgz:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       image: oidn/rockylinux:8.8
@@ -35,7 +35,7 @@ jobs:
 
   package-linux:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       image: oidn/rockylinux:8.8
@@ -149,7 +149,7 @@ jobs:
 
   build-rockylinux8:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       image: oidn/rockylinux:8.8
@@ -161,7 +161,7 @@ jobs:
   # FIXME: enable AOT and HIP
   build-rockylinux8-debug:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       image: oidn/rockylinux:8.8
@@ -172,7 +172,7 @@ jobs:
 
   build-rockylinux8-jit:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       image: oidn/rockylinux:8.8
@@ -183,7 +183,7 @@ jobs:
 
   build-rockylinux8-static:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       image: oidn/rockylinux:8.8
@@ -194,7 +194,7 @@ jobs:
 
   build-rockylinux8-namespace:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       image: oidn/rockylinux:8.8
@@ -205,7 +205,7 @@ jobs:
 
   build-rockylinux8-namespace-nover:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       image: oidn/rockylinux:8.8
@@ -216,7 +216,7 @@ jobs:
 
   build-rockylinux8-namespace-static:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       image: oidn/rockylinux:8.8
@@ -228,7 +228,7 @@ jobs:
   # FIXME: enable AOT and HIP
   build-rockylinux8-namespace-debug:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       image: oidn/rockylinux:8.8
@@ -239,7 +239,7 @@ jobs:
 
   build-rockylinux8-gcc:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       image: oidn/rockylinux:8.8
@@ -250,7 +250,7 @@ jobs:
 
   build-rockylinux8-gcc-debug:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       image: oidn/rockylinux:8.8
@@ -261,7 +261,7 @@ jobs:
 
   build-rockylinux8-gcc-minimal:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       image: oidn/rockylinux:8.8
@@ -272,7 +272,7 @@ jobs:
 
   build-rockylinux8-gcc-onednn:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       image: oidn/rockylinux:8.8
@@ -283,7 +283,7 @@ jobs:
 
   build-rockylinux8-gta-aotjit:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       image: oidn/rockylinux:8.8
@@ -298,7 +298,7 @@ jobs:
 
   build-rockylinux8-gta-jit:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       image: oidn/rockylinux:8.8
@@ -313,7 +313,7 @@ jobs:
 
   build-rockylinux8-oldsyclos:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       image: oidn/rockylinux:8.8
@@ -324,7 +324,7 @@ jobs:
 
   build-rockylinux8-syclos:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       image: oidn/rockylinux:8.8
@@ -335,7 +335,7 @@ jobs:
 
   build-ubuntu2204-gcc:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       image: oidn/ubuntu:22.04
@@ -345,7 +345,7 @@ jobs:
 
   build-ubuntu2204-gcc-debug:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       image: oidn/ubuntu:22.04
@@ -355,7 +355,7 @@ jobs:
 
   build-ubuntu2204-gcc-namespace:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       image: oidn/ubuntu:22.04
@@ -367,7 +367,7 @@ jobs:
 
   build-ubuntu2204-gcc-namespace-static:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       image: oidn/ubuntu:22.04
@@ -379,7 +379,7 @@ jobs:
 
   build-ubuntu2204-gcc-oiio:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       image: oidn/ubuntu:22.04
@@ -391,7 +391,7 @@ jobs:
 
   build-ubuntu2204-clang-asan:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       image: oidn/ubuntu:22.04
@@ -401,7 +401,7 @@ jobs:
 
   # build-ubuntu2004-gcc-minimal:
   #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
   #   with:
   #     project: oidn
   #     image: oidn-build:ubuntu20.04
@@ -409,7 +409,7 @@ jobs:
 
   # build-arch-gcc-oiio:
   #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
   #   with:
   #     project: oidn
   #     image: oidn-build:arch
@@ -421,7 +421,7 @@ jobs:
 
   build-ubuntu2204-icx:
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       image: oidn/ubuntu:22.04
@@ -477,7 +477,7 @@ jobs:
   test-rockylinux8-sse4:
     needs: build-rockylinux8
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "avx512" ]'
@@ -493,7 +493,7 @@ jobs:
   test-rockylinux8-avx2:
     needs: build-rockylinux8
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "avx2" ]'
@@ -507,7 +507,7 @@ jobs:
   test-rockylinux8-avx512:
     needs: build-rockylinux8
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "avx512" ]'
@@ -521,7 +521,7 @@ jobs:
   test-rockylinux8-namespace-nover-avx512:
     needs: build-rockylinux8-namespace-nover
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "avx512" ]'
@@ -535,7 +535,7 @@ jobs:
   test-rockylinux8-static-avx512:
     needs: build-rockylinux8-static
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "avx512" ]'
@@ -549,7 +549,7 @@ jobs:
   test-rockylinux8-adl:
     needs: build-rockylinux8
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "gpu_amd" ]' # FIXME: igpu, adl
@@ -564,7 +564,7 @@ jobs:
   test-rockylinux8-dg2:
     needs: build-rockylinux8
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "dg2" ]'
@@ -579,7 +579,7 @@ jobs:
   test-rockylinux8-bmg:
     needs: build-rockylinux8
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "bmg" ]'
@@ -594,7 +594,7 @@ jobs:
   test-rockylinux8-pvc:
     needs: build-rockylinux8
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "pvc" ]'
@@ -611,7 +611,7 @@ jobs:
   test-rockylinux8-cuda:
     needs: build-rockylinux8
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "gpu_nvidia" ]'
@@ -626,7 +626,7 @@ jobs:
   test-rockylinux8-namespace-nover-cuda:
     needs: build-rockylinux8-namespace-nover
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "gpu_nvidia" ]'
@@ -641,7 +641,7 @@ jobs:
   test-rockylinux8-hip:
     needs: build-rockylinux8
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "gpu_amd" ]'
@@ -656,7 +656,7 @@ jobs:
   test-rockylinux8-namespace-static-dg2:
     needs: build-rockylinux8-namespace-static
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "dg2" ]'
@@ -671,7 +671,7 @@ jobs:
   test-rockylinux8-oldsyclos-avx2:
     needs: build-rockylinux8-oldsyclos
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "avx2" ]'
@@ -685,7 +685,7 @@ jobs:
   test-rockylinux8-oldsyclos-dg2:
     needs: build-rockylinux8-oldsyclos
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "dg2" ]'
@@ -700,7 +700,7 @@ jobs:
   test-rockylinux8-syclos-avx2:
     needs: build-rockylinux8-syclos
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "avx2" ]'
@@ -714,7 +714,7 @@ jobs:
   test-rockylinux8-syclos-dg2:
     needs: build-rockylinux8-syclos
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "dg2" ]'
@@ -729,7 +729,7 @@ jobs:
   test-rockylinux8-debug-avx2:
     needs: build-rockylinux8-debug
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "avx2" ]'
@@ -743,7 +743,7 @@ jobs:
   test-rockylinux8-namespace-avx2:
     needs: build-rockylinux8-namespace
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "avx2" ]'
@@ -757,7 +757,7 @@ jobs:
   test-rockylinux8-gcc-onednn-avx2:
     needs: build-rockylinux8-gcc-onednn
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "avx2" ]'
@@ -771,7 +771,7 @@ jobs:
   test-ubuntu2204-clang-asan:
     needs: build-ubuntu2204-clang-asan
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "gpu_nvidia" ]'
@@ -787,7 +787,7 @@ jobs:
   test-ubuntu2204-clang-asan-cuda:
     needs: build-ubuntu2204-clang-asan
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "gpu_nvidia" ]'
@@ -805,7 +805,7 @@ jobs:
   test-ubuntu2204-icx-avx2:
     needs: build-ubuntu2204-icx
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "avx2" ]'
@@ -820,7 +820,7 @@ jobs:
   test-ubuntu2204-icx-dg2:
     needs: build-ubuntu2204-icx
     secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker_gpu.yml@main
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
       project: oidn
       runs-on: '[ "Linux", "dg2" ]'
