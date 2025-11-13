@@ -72,7 +72,7 @@ jobs:
       runs-on: '[ "Windows", "cuda", "hip" ]'
       msvc-version: "2022"
       dpcpp-version: intel-llvm/v6.0.1-rk
-      ocloc-version: oneAPI/ocloc/2025.0
+      ocloc-version: oneAPI/ocloc/2025.2
       cmd: |
         echo $env:ROCM_PATH
         where ocloc.exe
@@ -1237,7 +1237,7 @@ jobs:
       runs-on: '[ "Windows", "cuda", "hip" ]'
       msvc-version: "2022"
       dpcpp-version: intel-llvm/v6.0.1-rk
-      ocloc-version: oneAPI/ocloc/2025.0
+      ocloc-version: oneAPI/ocloc/2025.2
       artifact-out: build-windows
       artifact-path: build install
       cmd: python scripts/build.py install --full
@@ -1250,7 +1250,7 @@ jobs:
       runs-on: '[ "Windows", "cuda", "hip" ]'
       msvc-version: "2022"
       dpcpp-version: intel-llvm/v6.0.1-rk
-      ocloc-version: oneAPI/ocloc/2025.0
+      ocloc-version: oneAPI/ocloc/2025.2
       artifact-out: build-windows-static
       artifact-path: build install
       cmd: python scripts/build.py install --full -D OIDN_STATIC_LIB=ON
@@ -1264,7 +1264,7 @@ jobs:
       runs-on: '[ "Windows", "cuda", "hip" ]'
       msvc-version: "2022"
       dpcpp-version: intel-llvm/v6.0.1-rk
-      ocloc-version: oneAPI/ocloc/2025.0
+      ocloc-version: oneAPI/ocloc/2025.2
       artifact-out: build-windows-debug
       artifact-path: build install
       cmd: >
@@ -1279,7 +1279,7 @@ jobs:
       runs-on: '[ "Windows", "cuda", "hip" ]'
       msvc-version: "2022"
       dpcpp-version: intel-llvm/v6.0.1-rk
-      ocloc-version: oneAPI/ocloc/2025.0
+      ocloc-version: oneAPI/ocloc/2025.2
       artifact-out: build-windows-namespace
       artifact-path: build install
       cmd: python scripts/build.py install --full -D OIDN_LIBRARY_NAME=OIDN -D OIDN_API_NAMESPACE=myoidn
@@ -1292,7 +1292,7 @@ jobs:
       runs-on: '[ "Windows", "cuda", "hip" ]'
       msvc-version: "2022"
       dpcpp-version: intel-llvm/v6.0.1-rk
-      ocloc-version: oneAPI/ocloc/2025.0
+      ocloc-version: oneAPI/ocloc/2025.2
       artifact-out: build-windows-namespace-nover
       artifact-path: build install
       cmd: python scripts/build.py install --full -D OIDN_LIBRARY_NAME=OIDN -D OIDN_API_NAMESPACE=myoidn -D OIDN_LIBRARY_VERSIONED=OFF
@@ -1305,7 +1305,7 @@ jobs:
       runs-on: '[ "Windows", "cuda", "hip" ]'
       msvc-version: "2022"
       dpcpp-version: intel-llvm/v6.0.1-rk
-      ocloc-version: oneAPI/ocloc/2025.0
+      ocloc-version: oneAPI/ocloc/2025.2
       artifact-out: build-windows-namespace-static
       artifact-path: build install
       cmd: python scripts/build.py install --full -D OIDN_LIBRARY_NAME=OIDN -D OIDN_API_NAMESPACE=myoidn -D OIDN_STATIC_LIB=ON
@@ -1318,7 +1318,7 @@ jobs:
       runs-on: '[ "Windows", "build" ]'
       msvc-version: "2022"
       dpcpp-version: intel-llvm/v6.0.1-rk
-      ocloc-version: oneAPI/ocloc/2025.0
+      ocloc-version: oneAPI/ocloc/2025.2
       artifact-out: build-windows-gta-aotjit
       artifact-path: oidn-gta-aotjit-win
       cmd: >
@@ -1335,7 +1335,7 @@ jobs:
       runs-on: '[ "Windows", "build" ]'
       msvc-version: "2022"
       dpcpp-version: intel-llvm/v6.0.1-rk
-      ocloc-version: oneAPI/ocloc/2025.0
+      ocloc-version: oneAPI/ocloc/2025.2
       artifact-out: build-windows-gta-jit
       artifact-path: oidn-gta-jit-win
       cmd: >
@@ -1352,7 +1352,7 @@ jobs:
       runs-on: '[ "Windows", "cuda", "hip" ]'
       msvc-version: "2022"
       dpcpp-version: intel-llvm/v6.0.1-rk
-      ocloc-version: oneAPI/ocloc/2025.0
+      ocloc-version: oneAPI/ocloc/2025.2
       artifact-out: build-windows-cudart
       artifact-path: build install
       cmd: python scripts/build.py install --full -D OIDN_DEVICE_CUDA_API=RuntimeStatic
@@ -1365,7 +1365,7 @@ jobs:
       runs-on: '[ "Windows", "cuda", "hip" ]'
       msvc-version: "2022"
       dpcpp-version: intel-llvm/sycl-rel_5_2_0-rk
-      ocloc-version: oneAPI/ocloc/2025.0
+      ocloc-version: oneAPI/ocloc/2025.2
       artifact-out: build-windows-syclos
       artifact-path: build install
       cmd: python scripts/build.py install --full -D OIDN_DEVICE_SYCL_AOT=OFF
@@ -1378,7 +1378,7 @@ jobs:
       runs-on: '[ "Windows", "cuda", "hip" ]'
       msvc-version: "2022"
       dpcpp-version: oneAPI/compiler/2025.0
-      ocloc-version: oneAPI/ocloc/2025.0
+      ocloc-version: oneAPI/ocloc/2025.2
       artifact-out: build-windows-icx
       artifact-path: build install
       cmd: python scripts/build.py install --compiler icx --full
