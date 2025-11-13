@@ -1377,7 +1377,7 @@ jobs:
       project: oidn
       runs-on: '[ "Windows", "cuda", "hip" ]'
       msvc-version: "2022"
-      dpcpp-version: oneAPI/compiler/2025.0
+      dpcpp-version: intel/2025.2
       ocloc-version: oneAPI/ocloc/2025.2
       artifact-out: build-windows-icx
       artifact-path: build install
