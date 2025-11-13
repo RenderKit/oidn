@@ -1657,7 +1657,7 @@ jobs:
     with:
       project: oidn
       runs-on: '[ "Windows", "bmg", "NAS" ]'
-      env-from-files: ./.github/workflows/gfx-windows-public-bmg.env
+      env-from-files: ./.github/workflows/gfx-windows-public.env
       artifact-in: build-windows
       artifact-out: test-windows-bmg
       artifact-path: test.log
