@@ -90,7 +90,11 @@ OIDN_NAMESPACE_BEGIN
       lastEvent = syclQueue.parallel_for<Kernel>(
         sycl::nd_range<N>(numGroups * groupSize, groupSize),
         getDepEvents(),
+      #if defined(SYCL_LANGUAGE_VERSION) && (SYCL_LANGUAGE_VERSION >= 202001)
+        [=](sycl::nd_item<N> it) [[sycl::reqd_sub_group_size(subgroupSize)]] { kernel(it); });
+      #else
         [=](sycl::nd_item<N> it) [[intel::reqd_sub_group_size(subgroupSize)]] { kernel(it); });
+      #endif
     }
 
     // Enqueues a basic ESIMD kernel
