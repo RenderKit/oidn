@@ -6,6 +6,6 @@
 version: 2
 updates:
   - package-ecosystem: "pip" # See documentation for possible values
-    directory: "/" # Location of package manifests
+    directory: "/training" # Location of package manifests
     schedule:
       interval: "monthly"
