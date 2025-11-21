@@ -16,7 +16,7 @@ OIDN_NAMESPACE_BEGIN
       dataType(DataType::Void),
       format(Format::Undefined) {}
 
-  ImageBuffer::ImageBuffer(const DeviceRef& device, int width, int height, int numChannels,
+  ImageBuffer::ImageBuffer(const DeviceRef& device, size_t width, size_t height, size_t numChannels,
                            DataType dataType, Storage storage, bool forceHostCopy)
     : device(device),
       numValues(size_t(width) * height * numChannels),
@@ -26,6 +26,10 @@ OIDN_NAMESPACE_BEGIN
       dataType(dataType),
       format(makeFormat(dataType, numChannels))
   {
+
+    if (width > maxDim || height > maxDim || width * height * getC() > std::numeric_limits<int>::max())
+      throw std::runtime_error("image size is too large");
+
     const size_t valueByteSize = getDataTypeSize(dataType);
     byteSize = std::max(numValues * valueByteSize, size_t(1)); // avoid zero-sized buffer
     buffer = device.newBuffer(byteSize, storage);

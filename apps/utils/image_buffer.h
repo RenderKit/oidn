@@ -15,17 +15,19 @@ OIDN_NAMESPACE_BEGIN
   class ImageBuffer
   {
   public:
+    static constexpr size_t maxDim = 65536;
+
     ImageBuffer();
-    ImageBuffer(const DeviceRef& device, int width, int height, int numChannels,
+    ImageBuffer(const DeviceRef& device, size_t width, size_t height, size_t numChannels,
                 DataType dataType = DataType::Float32,
                 Storage storage = Storage::Undefined,
                 bool forceHostCopy = false);
     ~ImageBuffer();
 
-    oidn_inline int getW() const { return width; }
-    oidn_inline int getH() const { return height; }
-    oidn_inline int getC() const { return numChannels; }
-    std::array<int, 3> getDims() const { return {width, height, numChannels}; }
+    oidn_inline size_t getW() const { return width; }
+    oidn_inline size_t getH() const { return height; }
+    oidn_inline size_t getC() const { return numChannels; }
+    std::array<size_t, 3> getDims() const { return {width, height, numChannels}; }
 
     oidn_inline DataType getDataType() const { return dataType; }
     oidn_inline Format getFormat() const { return format; }
@@ -98,9 +100,9 @@ OIDN_NAMESPACE_BEGIN
     char* hostPtr;
     size_t byteSize;
     size_t numValues;
-    int width;
-    int height;
-    int numChannels;
+    size_t width;
+    size_t height;
+    size_t numChannels;
     DataType dataType;
     Format format;
   };
