@@ -60,7 +60,7 @@ OIDN_NAMESPACE_BEGIN
       // Read the header
       std::string id;
       file >> id;
-      int C;
+      size_t C;
       if (id == "PF")
         C = 3;
       else if (id == "Pf")
@@ -73,7 +73,7 @@ OIDN_NAMESPACE_BEGIN
       if (dataType == DataType::Void)
         dataType = DataType::Float32;
 
-      int H, W;
+      size_t H, W;
       file >> W >> H;
 
       float scale;
@@ -91,22 +91,21 @@ OIDN_NAMESPACE_BEGIN
       // Read the pixels
       auto image = std::make_shared<ImageBuffer>(device, W, H, C, dataType, storage);
 
-      for (int h = 0; h < H; ++h)
+      for (size_t h = 0; h < H; ++h)
       {
-        for (int w = 0; w < W; ++w)
+        for (size_t w = 0; w < W; ++w)
         {
-          for (int c = 0; c < C; ++c)
+          for (size_t c = 0; c < C; ++c)
           {
             float x;
-            file.read((char*)&x, sizeof(float));
-            if (c < C)
-              image->set((size_t(H-1-h)*W + w) * C + c, x * scale);
+            file.read(reinterpret_cast<char*>(&x), sizeof(float));
+            if (file.fail()) {
+                throw std::runtime_error("invalid PFM image: error reading pixel data");
+            }
+            image->set((size_t(H-1-h)*W + w) * C + c, x * scale);
           }
         }
       }
-
-      if (file.fail())
-        throw std::runtime_error("invalid PFM image");
 
       return image;
     }
