@@ -23,6 +23,7 @@ OIDN_NAMESPACE_BEGIN
     Xe2LPG,
     Xe2HPG,
     Xe3LPG,
+    Xe3pXPC,
   };
 
   class SYCLPhysicalDevice : public PhysicalDevice

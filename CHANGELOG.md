@@ -1,6 +1,7 @@
 Version History
 ---------------
 
+-   Added Intel BMG-G31, Wildcat Lake, Nova Lake, and Crescent Island GPU support
 -   Added AMD RDNA 3.5 GPU support, extended RDNA 2 support
 
 ### Changes in v2.3.3:

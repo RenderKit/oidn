@@ -48,8 +48,8 @@ vendors:
     Intel® Data Center GPU Max Series, Intel® Iris® Xe Graphics, Intel® Core™
     Ultra Processors with Intel® Arc™ Graphics, 11th-14th Gen Intel® Core™
     processor graphics, and related Intel Pentium® and Celeron® processors
-    (Xe-LP, Xe-LPG, Xe-LPG+, Xe-HPG, Xe-HPC, Xe2-LPG, Xe2-HPG, and Xe3-LPG
-    microarchitectures)
+    (Xe-LP, Xe-LPG, Xe-LPG+, Xe-HPG, Xe-HPC, Xe2-LPG, Xe2-HPG, Xe3-LPG, and
+    Xe3p-XPC microarchitectures)
 
 -   NVIDIA GPUs with Volta, Turing, Ampere, Ada Lovelace, Hopper, and
     Blackwell architectures

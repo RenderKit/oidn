@@ -211,6 +211,7 @@ OIDN_NAMESPACE_BEGIN
     case SYCLArch::Xe2LPG:       score = 11; break;
     case SYCLArch::Xe2HPG:       score = 21; break;
     case SYCLArch::Xe3LPG:       score = 12; break;
+    case SYCLArch::Xe3pXPC:      score = 31; break;
     default:
       return -1;
     }
@@ -324,16 +325,17 @@ OIDN_NAMESPACE_BEGIN
         std::cout << "    Arch    : ";
         switch (arch)
         {
-        case SYCLArch::XeLP:         std::cout << "Xe-LP";   break;
-        case SYCLArch::XeLPG:        std::cout << "Xe-LPG";  break;
-        case SYCLArch::XeLPGplus:    std::cout << "Xe-LPG+"; break;
-        case SYCLArch::XeHPG:        std::cout << "Xe-HPG";  break;
-        case SYCLArch::XeHPC:        std::cout << "Xe-HPC";  break;
-        case SYCLArch::XeHPC_NoDPAS: std::cout << "Xe-HPC";  break;
-        case SYCLArch::Xe2LPG:       std::cout << "Xe2-LPG"; break;
-        case SYCLArch::Xe2HPG:       std::cout << "Xe2-HPG"; break;
-        case SYCLArch::Xe3LPG:       std::cout << "Xe3-LPG"; break;
-        default:                     std::cout << "Unknown"; break;
+        case SYCLArch::XeLP:         std::cout << "Xe-LP";    break;
+        case SYCLArch::XeLPG:        std::cout << "Xe-LPG";   break;
+        case SYCLArch::XeLPGplus:    std::cout << "Xe-LPG+";  break;
+        case SYCLArch::XeHPG:        std::cout << "Xe-HPG";   break;
+        case SYCLArch::XeHPC:        std::cout << "Xe-HPC";   break;
+        case SYCLArch::XeHPC_NoDPAS: std::cout << "Xe-HPC";   break;
+        case SYCLArch::Xe2LPG:       std::cout << "Xe2-LPG";  break;
+        case SYCLArch::Xe2HPG:       std::cout << "Xe2-HPG";  break;
+        case SYCLArch::Xe3LPG:       std::cout << "Xe3-LPG";  break;
+        case SYCLArch::Xe3pXPC:      std::cout << "Xe3p-XPC"; break;
+        default:                     std::cout << "Unknown";  break;
         }
         std::cout << std::endl;
 
@@ -369,6 +371,7 @@ OIDN_NAMESPACE_BEGIN
     case SYCLArch::Xe2LPG:
     case SYCLArch::Xe2HPG:
     case SYCLArch::Xe3LPG:
+    case SYCLArch::Xe3pXPC:
       weightDataType = DataType::Float16;
       weightLayout   = TensorLayout::OIhw8i16o2i;
       break;

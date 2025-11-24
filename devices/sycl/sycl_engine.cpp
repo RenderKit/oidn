@@ -61,6 +61,7 @@ OIDN_NAMESPACE_BEGIN
     case SYCLArch::Xe2LPG:
     case SYCLArch::Xe2HPG:
     case SYCLArch::Xe3LPG:
+    case SYCLArch::Xe3pXPC:
       return xe2::newSYCLConv(this, desc);
     default:
       throw std::logic_error("unsupported architecture");
