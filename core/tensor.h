@@ -42,7 +42,7 @@ OIDN_NAMESPACE_BEGIN
     {
       if (layout != TensorLayout::x || dataType != DataTypeOf<T>::value)
         throw std::logic_error("incompatible tensor accessor");
-      return TensorAccessor1D<T>(getPtr(), getPaddedX());
+      return TensorAccessor1D<T>(getPtr(), getDesc());
     }
 
     template<typename T, TensorLayout accessorLayout>
@@ -50,7 +50,7 @@ OIDN_NAMESPACE_BEGIN
     {
       if (layout != accessorLayout || dataType != DataTypeOf<T>::value)
         throw std::logic_error("incompatible tensor accessor");
-      return TensorAccessor3D<T, accessorLayout>(getPtr(), getPaddedC(), getH(), getW());
+      return TensorAccessor3D<T, accessorLayout>(getPtr(), getDesc());
     }
 
     template<typename T, TensorLayout accessorLayout>
@@ -58,7 +58,7 @@ OIDN_NAMESPACE_BEGIN
     {
       if (layout != accessorLayout || dataType != DataTypeOf<T>::value)
         throw std::logic_error("incompatible tensor accessor");
-      return TensorAccessor4D<T, accessorLayout>(getPtr(), getPaddedO(), getPaddedI(), getH(), getW());
+      return TensorAccessor4D<T, accessorLayout>(getPtr(), getDesc());
     }
 
     operator ispc::TensorAccessor1D();
