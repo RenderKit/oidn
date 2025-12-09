@@ -66,6 +66,7 @@ set(OIDN_CORE_SOURCES
   tensor.h
   tensor.cpp
   tensor_accessor.h
+  tensor_desc.h
   tensor_layout.h
   tensor_reorder.h
   tensor_reorder.cpp
