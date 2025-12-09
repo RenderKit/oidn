@@ -281,8 +281,8 @@ The following list describes the options that can be configured in CMake:
 
 - `OIDN_APPS`: Enable building example and test applications (ON by default).
 
-- `OIDN_APPS_OPENIMAGEIO`: Enable [OpenImageIO](http://openimageio.org/)
-  support in the example and test applications to be able to load/save
+- `OIDN_APPS_OPENIMAGEIO`: Enable [OpenImageIO](http://openimageio.org/) 2.1 or
+  later support in the example and test applications to be able to load/save
   OpenEXR, PNG, and other image file formats (OFF by default).
 
 - `OIDN_INSTALL_DEPENDENCIES`: Enable installing the dependencies (e.g. TBB,
