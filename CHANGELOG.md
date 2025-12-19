@@ -1,6 +1,8 @@
 Version History
 ---------------
 
+### Changes in v2.4.0:
+
 -   Added Intel AMX-FP16 support, dramatically improving performance on Intel
     Granite Rapids CPUs
 -   Added Intel BMG-G31, Wildcat Lake, Nova Lake, and Crescent Island GPU support
