@@ -34,7 +34,7 @@ OIDN_NAMESPACE_BEGIN
     filename += ".dll";
   #else
     #if defined(OIDN_LIBRARY_VERSIONED)
-    const std::string versionStr = "." OIDN_VERSION_STRING;
+    const std::string versionStr = "." OIDN_VERSION_STRING_SHORT;
     #else
     const std::string versionStr = "";
     #endif
