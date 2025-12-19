@@ -13,7 +13,7 @@ OIDN_NAMESPACE_BEGIN
       width(0),
       height(0),
       numChannels(0),
-      dataType(DataType::Void),
+      dataType(DataType::Undefined),
       format(Format::Undefined) {}
 
   ImageBuffer::ImageBuffer(const DeviceRef& device, size_t width, size_t height, size_t numChannels,

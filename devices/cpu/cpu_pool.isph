@@ -1,0 +1,35 @@
+// Copyright 2022 Intel Corporation
+// SPDX-License-Identifier: Apache-2.0
+
+#pragma once
+
+#include "tensor_accessor.isph"
+
+struct CPUPoolKernel
+{
+  uniform TensorAccessor3D src;
+  uniform TensorAccessor3D dst;
+};
+
+template<typename T>
+inline void CPUPoolKernel_run(const uniform CPUPoolKernel* uniform self,
+                              uniform int cb, uniform int h)
+{
+  const uniform int B = getBlockC<T>();
+  const uniform size_t W = (uniform size_t)self->dst.W;
+
+  uniform T* const uniform dstPtr_line  = (uniform T* const uniform)Tensor_getPtr<T>(self->dst, cb*B, h, 0);
+  uniform T* const uniform srcPtr_line0 = (uniform T* const uniform)Tensor_getPtr<T>(self->src, cb*B, h*2, 0);
+  uniform T* const uniform srcPtr_line1 = (uniform T* const uniform)Tensor_getPtr<T>(self->src, cb*B, h*2+1, 0);
+
+  for (uniform size_t w = 0; w < W; ++w)
+  {
+    const T value0 = *((varying T* uniform)&srcPtr_line0[w*2*B  ]);
+    const T value1 = *((varying T* uniform)&srcPtr_line0[w*2*B+B]);
+    const T value2 = *((varying T* uniform)&srcPtr_line1[w*2*B  ]);
+    const T value3 = *((varying T* uniform)&srcPtr_line1[w*2*B+B]);
+
+    const T value = max(max(value0, value1), max(value2, value3));
+    streaming_store(&dstPtr_line[w*B], value);
+  }
+}

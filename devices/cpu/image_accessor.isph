@@ -5,17 +5,9 @@
 
 #include "vec.isph"
 
-enum DataType
-{
-  DataType_Void,
-  DataType_UInt8,
-  DataType_Float16,
-  DataType_Float32,
-};
-
 struct ImageAccessor
 {
-  uniform uint8* uniform ptr;
+  uniform int8* uniform ptr;
   uniform size_t hByteStride; // row stride in number of bytes
   uniform size_t wByteStride; // pixel stride in number of bytes
   uniform DataType dataType;  // data type

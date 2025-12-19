@@ -17,7 +17,15 @@
     #include <intrin.h> // __cpuid
   #elif !defined(__APPLE__)
     #include <cpuid.h>
+    #include <unistd.h>
+    #include <sys/syscall.h>
   #endif
+
+  // AMX feature control
+  #define ARCH_GET_XCOMP_PERM 0x1022
+  #define ARCH_REQ_XCOMP_PERM 0x1023
+  #define XFEATURE_XTILECFG   17
+  #define XFEATURE_XTILEDATA  18
 #endif
 
 OIDN_NAMESPACE_BEGIN
@@ -41,7 +49,7 @@ OIDN_NAMESPACE_BEGIN
 
   std::vector<Ref<PhysicalDevice>> CPUDevice::getPhysicalDevices()
   {
-    CPUArch arch = getArch();
+    CPUArch arch = getNativeArch();
     if (arch == CPUArch::Unknown)
       return {};
 
@@ -76,19 +84,22 @@ OIDN_NAMESPACE_BEGIN
     return "CPU"; // fallback
   }
 
-  CPUArch CPUDevice::getArch()
+  // Returns the native CPU architecture but this may not be what we are allowed to use (e.g. AMX)
+  CPUArch CPUDevice::getNativeArch()
   {
     switch (ispc::getCPUArch())
     {
-    case ispc::CPUArch_SSE4:   return CPUArch::SSE41;
-    case ispc::CPUArch_AVX2:   return CPUArch::AVX2;
-    case ispc::CPUArch_AVX512: return CPUArch::AVX512;
-    case ispc::CPUArch_NEON:   return CPUArch::NEON;
-    default:                   return CPUArch::Unknown;
+    case ispc::CPUArch_SSE4:           return CPUArch::SSE4;
+    case ispc::CPUArch_AVX2:           return CPUArch::AVX2;
+    case ispc::CPUArch_AVX512:         return CPUArch::AVX512;
+    case ispc::CPUArch_AVX512_AMXFP16: return CPUArch::AVX512_AMXFP16;
+    case ispc::CPUArch_NEON:           return CPUArch::NEON;
+    default:                           return CPUArch::Unknown;
     }
   }
 
-  CPUDevice::CPUDevice()
+  CPUDevice::CPUDevice(const Ref<CPUPhysicalDevice>& physicalDevice)
+    : physicalDevice(physicalDevice)
   {
     systemMemorySupported  = true;
     managedMemorySupported = true;
@@ -100,8 +111,41 @@ OIDN_NAMESPACE_BEGIN
 
   void CPUDevice::init()
   {
-    arch = getArch();
+    // Detect the architecture only once
+    if (physicalDevice->arch == CPUArch::Unknown)
+    {
+      physicalDevice->arch = getNativeArch();
 
+    #if defined(OIDN_ARCH_X64)
+      if (physicalDevice->arch == CPUArch::AVX512_AMXFP16)
+      {
+      #if defined(_WIN32)
+        // Check whether AMX is enabled by Windows
+        const DWORD64 features = GetEnabledXStateFeatures();
+        if ((features & (1 << XFEATURE_XTILECFG))  == 0 ||
+            (features & (1 << XFEATURE_XTILEDATA)) == 0)
+        {
+          printWarning("AMX not enabled by the OS");
+          physicalDevice->arch = CPUArch::AVX512; // fallback to plain AVX-512
+        }
+      #elif defined(__linux__)
+        // We must request permission to use AMX on Linux
+        if (syscall(SYS_arch_prctl, ARCH_REQ_XCOMP_PERM, XFEATURE_XTILEDATA))
+        {
+          printWarning("failed to get AMX enabled by the OS");
+          physicalDevice->arch = CPUArch::AVX512; // fallback to plain AVX-512
+        }
+      #else
+        // We don't support AMX on other OSes
+        physicalDevice->arch = CPUArch::AVX512; // fallback to plain AVX-512
+      #endif
+      }
+    #endif
+    }
+
+    arch = physicalDevice->arch;
+
+    // Set the tensor data types and layouts based on the architecture
     tensorDataType = DataType::Float32;
     weightDataType = DataType::Float32;
 
@@ -135,6 +179,14 @@ OIDN_NAMESPACE_BEGIN
       weightLayout = TensorLayout::IOhw16i16o;
       tensorBlockC = 16;
     }
+    else if (arch == CPUArch::AVX512_AMXFP16)
+    {
+      tensorDataType = DataType::Float16;
+      weightDataType = DataType::Float16;
+      tensorLayout = TensorLayout::Chw32c;
+      weightLayout = TensorLayout::OIhw2o16i16o2i;
+      tensorBlockC = 32;
+    }
     else
     {
       tensorLayout = TensorLayout::Chw8c;
@@ -157,12 +209,13 @@ OIDN_NAMESPACE_BEGIN
       std::cout << "    ISA     : ";
       switch (arch)
       {
-      case CPUArch::SSE2:   std::cout << "SSE2";    break;
-      case CPUArch::SSE41:  std::cout << "SSE4.1";  break;
-      case CPUArch::AVX2:   std::cout << "AVX2";    break;
-      case CPUArch::AVX512: std::cout << "AVX-512"; break;
-      case CPUArch::NEON:   std::cout << "NEON";    break;
-      default:              std::cout << "Unknown"; break;
+      case CPUArch::SSE2:           std::cout << "SSE2";             break;
+      case CPUArch::SSE4:           std::cout << "SSE4.1";           break;
+      case CPUArch::AVX2:           std::cout << "AVX2";             break;
+      case CPUArch::AVX512:         std::cout << "AVX-512";          break;
+      case CPUArch::AVX512_AMXFP16: std::cout << "AVX-512 AMX-FP16"; break;
+      case CPUArch::NEON:           std::cout << "NEON";             break;
+      default:                      std::cout << "Unknown";          break;
       }
       std::cout << std::endl;
 

@@ -70,7 +70,7 @@ OIDN_NAMESPACE_BEGIN
       else
         throw std::runtime_error("invalid PFM image");
 
-      if (dataType == DataType::Void)
+      if (dataType == DataType::Undefined)
         dataType = DataType::Float32;
 
       size_t H, W;
@@ -173,7 +173,7 @@ OIDN_NAMESPACE_BEGIN
       else
         throw std::runtime_error("invalid PHM image");
 
-      if (dataType == DataType::Void)
+      if (dataType == DataType::Undefined)
         dataType = DataType::Float16;
 
       int H, W;
@@ -310,7 +310,7 @@ OIDN_NAMESPACE_BEGIN
       const OIIO::ImageSpec& spec = in->spec();
       const int numChannels = std::min(spec.nchannels, 3);
 
-      if (dataType == DataType::Void)
+      if (dataType == DataType::Undefined)
         dataType = (spec.channelformat(0) == OIIO::TypeDesc::HALF) ? DataType::Float16 : DataType::Float32;
 
       auto image = std::make_shared<ImageBuffer>(device, spec.width, spec.height, numChannels,

@@ -44,18 +44,19 @@ OIDN_NAMESPACE_BEGIN
   void reorderWeight(Tensor& src, int srcBeginI, int srcI, Tensor& dst, int dstBeginI, int dstI)
   {
     bool ok =
-      tryReorderWeight<half, half,  TensorLayout::oihw, TensorLayout::oihw>        (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
-      tryReorderWeight<half, float, TensorLayout::oihw, TensorLayout::oihw>        (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
-      tryReorderWeight<half, half,  TensorLayout::oihw, TensorLayout::OIhw8i8o>    (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
-      tryReorderWeight<half, float, TensorLayout::oihw, TensorLayout::OIhw8i8o>    (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
-      tryReorderWeight<half, half,  TensorLayout::oihw, TensorLayout::OIhw16i16o>  (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
-      tryReorderWeight<half, float, TensorLayout::oihw, TensorLayout::OIhw16i16o>  (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
-      tryReorderWeight<half, half,  TensorLayout::oihw, TensorLayout::OIhw2o8i8o2i>(src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
-      tryReorderWeight<half, half,  TensorLayout::oihw, TensorLayout::OIhw8i16o2i> (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
-      tryReorderWeight<half, float, TensorLayout::oihw, TensorLayout::IOhw8i8o>    (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
-      tryReorderWeight<half, float, TensorLayout::oihw, TensorLayout::IOhw16i16o>  (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
-      tryReorderWeight<half, half,  TensorLayout::oihw, TensorLayout::ohwi>        (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
-      tryReorderWeight<half, float, TensorLayout::oihw, TensorLayout::ohwi>        (src, srcBeginI, srcI, dst, dstBeginI, dstI);
+      tryReorderWeight<half, half,  TensorLayout::oihw, TensorLayout::oihw>          (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
+      tryReorderWeight<half, float, TensorLayout::oihw, TensorLayout::oihw>          (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
+      tryReorderWeight<half, half,  TensorLayout::oihw, TensorLayout::OIhw8i8o>      (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
+      tryReorderWeight<half, float, TensorLayout::oihw, TensorLayout::OIhw8i8o>      (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
+      tryReorderWeight<half, half,  TensorLayout::oihw, TensorLayout::OIhw16i16o>    (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
+      tryReorderWeight<half, float, TensorLayout::oihw, TensorLayout::OIhw16i16o>    (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
+      tryReorderWeight<half, half,  TensorLayout::oihw, TensorLayout::OIhw2o8i8o2i>  (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
+      tryReorderWeight<half, half,  TensorLayout::oihw, TensorLayout::OIhw8i16o2i>   (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
+      tryReorderWeight<half, half,  TensorLayout::oihw, TensorLayout::OIhw2o16i16o2i>(src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
+      tryReorderWeight<half, float, TensorLayout::oihw, TensorLayout::IOhw8i8o>      (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
+      tryReorderWeight<half, float, TensorLayout::oihw, TensorLayout::IOhw16i16o>    (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
+      tryReorderWeight<half, half,  TensorLayout::oihw, TensorLayout::ohwi>          (src, srcBeginI, srcI, dst, dstBeginI, dstI) ||
+      tryReorderWeight<half, float, TensorLayout::oihw, TensorLayout::ohwi>          (src, srcBeginI, srcI, dst, dstBeginI, dstI);
 
     if (!ok)
       throw std::logic_error("unsupported weight layout or data type");

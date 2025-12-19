@@ -1,6 +1,8 @@
 // Copyright 2018 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
+#pragma once
+
 #include "tensor_accessor.isph"
 #include "image_accessor.isph"
 #include "color.isph"
@@ -73,7 +75,8 @@ inline vec3f getNormal(const uniform CPUInputProcessKernel* uniform self, unifor
   return value;
 }
 
-export void CPUInputProcessKernel_run(const uniform CPUInputProcessKernel* uniform self,
+template<typename DstT>
+inline void CPUInputProcessKernel_run(const uniform CPUInputProcessKernel* uniform self,
                                       uniform int hDst)
 {
   const uniform int h = hDst - self->tile.hDstBegin;
@@ -86,7 +89,7 @@ export void CPUInputProcessKernel_run(const uniform CPUInputProcessKernel* unifo
     foreach (wDst = 0 ... self->tile.wDstBegin)
     {
       for (uniform int c = 0; c < self->dst.C; ++c)
-        Tensor_set(self->dst, c, hDst, wDst, 0);
+        Tensor_set<DstT>(self->dst, c, hDst, wDst, 0);
     }
 
     // Reorder
@@ -95,30 +98,30 @@ export void CPUInputProcessKernel_run(const uniform CPUInputProcessKernel* unifo
       const int wSrc = w + self->tile.wSrcBegin;
       const int wDst = w + self->tile.wDstBegin;
 
-      Tensor_set3(self->dst, 0, hDst, wDst, getInput(self, hSrc, wSrc));
+      Tensor_set3<DstT>(self->dst, 0, hDst, wDst, getInput(self, hSrc, wSrc));
       uniform int c = 3;
 
       if (self->albedo.ptr)
       {
-        Tensor_set3(self->dst, 3, hDst, wDst, getAlbedo(self, hSrc, wSrc));
+        Tensor_set3<DstT>(self->dst, 3, hDst, wDst, getAlbedo(self, hSrc, wSrc));
         c += 3;
 
         if (self->normal.ptr)
         {
-          Tensor_set3(self->dst, 6, hDst, wDst, getNormal(self, hSrc, wSrc));
+          Tensor_set3<DstT>(self->dst, 6, hDst, wDst, getNormal(self, hSrc, wSrc));
           c += 3;
         }
       }
 
       for (; c < self->dst.C; ++c)
-        Tensor_set(self->dst, c, hDst, wDst, 0);
+        Tensor_set<DstT>(self->dst, c, hDst, wDst, 0);
     }
 
     // Zero pad
     foreach (wDst = self->tile.W + self->tile.wDstBegin ... self->dst.W)
     {
       for (uniform int c = 0; c < self->dst.C; ++c)
-        Tensor_set(self->dst, c, hDst, wDst, 0);
+        Tensor_set<DstT>(self->dst, c, hDst, wDst, 0);
     }
   }
   else
@@ -127,8 +130,7 @@ export void CPUInputProcessKernel_run(const uniform CPUInputProcessKernel* unifo
     foreach (wDst = 0 ... self->dst.W)
     {
       for (uniform int c = 0; c < self->dst.C; ++c)
-        Tensor_set(self->dst, c, hDst, wDst, 0);
+        Tensor_set<DstT>(self->dst, c, hDst, wDst, 0);
     }
   }
 }
-

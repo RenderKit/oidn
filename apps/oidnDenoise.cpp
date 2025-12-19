@@ -86,7 +86,7 @@ int main(int argc, char* argv[])
   bool directional = false;
   float inputScale = std::numeric_limits<float>::quiet_NaN();
   bool cleanAux = false;
-  DataType dataType = DataType::Void;
+  DataType dataType = DataType::Undefined;
   int numRuns = 1;
   int numThreads = -1;
   int setAffinity = -1;

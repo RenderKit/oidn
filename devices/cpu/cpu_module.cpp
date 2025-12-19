@@ -12,7 +12,7 @@ OIDN_NAMESPACE_BEGIN
     Ref<Device> newDevice(const Ref<PhysicalDevice>& physicalDevice) override
     {
       assert(physicalDevice->type == DeviceType::CPU);
-      return makeRef<CPUDevice>();
+      return makeRef<CPUDevice>(staticRefCast<CPUPhysicalDevice>(physicalDevice));
     }
   };
 

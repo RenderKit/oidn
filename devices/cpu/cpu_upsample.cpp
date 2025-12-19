@@ -2,7 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "cpu_upsample.h"
-#include "cpu_upsample_ispc.h"
+#include "cpu_upsample_f32_ispc.h"
+#include "cpu_upsample_f16_ispc.h"
 #include "cpu_common.h"
 
 OIDN_NAMESPACE_BEGIN
@@ -11,10 +12,14 @@ OIDN_NAMESPACE_BEGIN
     : Upsample(desc),
       engine(engine)
   {
-    if (srcDesc.layout != TensorLayout::chw &&
-        srcDesc.layout != TensorLayout::Chw8c &&
-        srcDesc.layout != TensorLayout::Chw16c)
+    if (srcDesc.layout != TensorLayout::chw    &&
+        srcDesc.layout != TensorLayout::Chw8c  &&
+        srcDesc.layout != TensorLayout::Chw16c &&
+        srcDesc.layout != TensorLayout::Chw32c)
       throw std::invalid_argument("unsupported upsampling source layout");
+    if (srcDesc.dataType != DataType::Float32 &&
+        (srcDesc.dataType != DataType::Float16 || srcDesc.layout == TensorLayout::chw))
+      throw std::invalid_argument("unsupported upsampling source data type");
   }
 
   void CPUUpsample::submitKernels(const Ref<CancellationToken>& ct)
@@ -30,11 +35,15 @@ OIDN_NAMESPACE_BEGIN
       kernel.src = *src;
       kernel.dst = *dst;
 
+      auto kernelFunc = (src->getDataType() == DataType::Float16)
+        ? ispc::CPUUpsampleKernel_run_f16
+        : ispc::CPUUpsampleKernel_run_f32;
+
       engine->submitFunc([=]
       {
         parallel_for(kernel.src.C / blockC, kernel.src.H, [&](int cb, int h)
         {
-          ispc::CPUUpsampleKernel_run(&kernel, cb, h);
+          kernelFunc(&kernel, cb, h);
         });
       }, ct);
     }

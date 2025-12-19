@@ -3,15 +3,17 @@
 
 #pragma once
 
-#include "tensor_desc.h"
+#include "tensor_layout.h"
 #include "vec.h"
 
 // ISPC forward declarations
 namespace ispc
 {
   struct TensorAccessor1D;
-  struct TensorAccessor3D;
-  struct TensorAccessor4D;
+  struct TensorAccessor3D_chw;
+  struct TensorAccessor3D_ChwBc;
+  struct TensorAccessor4D_IOhwBiBo;
+  struct TensorAccessor4D_OIhwPoQiRoSi;
 };
 
 OIDN_NAMESPACE_BEGIN
@@ -25,12 +27,9 @@ OIDN_NAMESPACE_BEGIN
 
     TensorAccessor1D() = default;
 
-    oidn_host_device_inline TensorAccessor1D(oidn_global void* data, const TensorDesc& desc)
+    oidn_host_device_inline TensorAccessor1D(oidn_global void* data, int X)
       : ptr(static_cast<oidn_global char*>(data)),
-        X(desc.getPaddedX())
-    {
-      assert(desc.getRank() == 1);
-    }
+        X(X) {}
 
     oidn_host_device_inline oidn_global T& operator ()(int x) const
     {
@@ -47,15 +46,9 @@ OIDN_NAMESPACE_BEGIN
 
     TensorAccessor3D() = default;
 
-    oidn_host_device_inline TensorAccessor3D(oidn_global void* data, const TensorDesc& desc)
-      : getByteOffset(desc.getPaddedC(), desc.getH(), desc.getW()),
-        ptr(static_cast<oidn_global char*>(data)),
-        C(desc.getPaddedC()),
-        H(desc.getH()),
-        W(desc.getW())
-    {
-      assert(desc.getRank() == 3);
-    }
+    oidn_host_device_inline TensorAccessor3D(oidn_global void* data, int C, int H, int W)
+      : getByteOffset(C, H, W),
+        ptr(static_cast<oidn_global char*>(data)), C(C), H(H), W(W) {}
 
     oidn_host_device_inline oidn_global T& operator ()(int c, int h, int w) const
     {
@@ -86,16 +79,9 @@ OIDN_NAMESPACE_BEGIN
 
     TensorAccessor4D() = default;
 
-    oidn_host_device_inline TensorAccessor4D(oidn_global void* data, const TensorDesc& desc)
-      : getByteOffset(desc.getPaddedO(), desc.getPaddedI(), desc.getH(), desc.getW()),
-        ptr(static_cast<oidn_global char*>(data)),
-        O(desc.getPaddedO()),
-        I(desc.getPaddedI()),
-        H(desc.getH()),
-        W(desc.getW())
-    {
-      assert(desc.getRank() == 4);
-    }
+    oidn_host_device_inline TensorAccessor4D(oidn_global void* data, int O, int I, int H, int W)
+      : getByteOffset(O, I, H, W),
+        ptr(static_cast<oidn_global char*>(data)), O(O), I(I), H(H), W(W) {}
 
     oidn_host_device_inline oidn_global T& operator ()(int o, int i, int h, int w) const
     {

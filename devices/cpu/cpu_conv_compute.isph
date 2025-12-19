@@ -17,10 +17,10 @@ unmasked void CPUConvKernel_compute(T, blockOCB)(const uniform CPUConvKernel* un
 
   for (uniform int ic = 0; ic < self->src.C; ic += blockC)
   {
-    const uniform uint8* uniform srcPtr    = Tensor_getPtr(self->src, ic, oh + khBegin - PH, owBegin);
-    const uniform uint8* uniform weightPtr = Tensor_getPtr(self->weight, oc, ic, khBegin, 0);
-    const uniform uint8* uniform biasPtr   = (ic == 0) ? Tensor_getPtr(self->bias, oc) : NULL;
-    uniform uint8* uniform dstPtr          = Tensor_getPtr(self->dst, oc, oh, owBegin);
+    const uniform int8* uniform srcPtr    = Tensor_getPtr<T>(self->src, ic, oh + khBegin - PH, owBegin);
+    const uniform int8* uniform weightPtr = Tensor_getPtr<T>(self->weight, oc, ic, khBegin, 0);
+    const uniform int8* uniform biasPtr   = (ic == 0) ? Tensor_getPtr<T>(self->bias, oc) : NULL;
+    uniform int8* uniform dstPtr          = Tensor_getPtr<T>(self->dst, oc, oh, owBegin);
     const uniform bool relu = self->relu && ic == (self->src.C - blockC);
 
     uniform int ow = owBegin; // owBegin/owEnd *must* be aligned to block boundaries

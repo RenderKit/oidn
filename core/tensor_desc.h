@@ -17,10 +17,10 @@ OIDN_NAMESPACE_BEGIN
   // Tensor descriptor
   struct TensorDesc
   {
-    TensorDims   dims;       // logical dimensions
-    TensorDims   paddedDims; // storage dimensions with zero-padding
-    TensorLayout layout;     // storage layout
-    DataType     dataType;   // element data type
+    TensorDims   dims;                             // logical dimensions
+    TensorDims   paddedDims;                       // storage dimensions with zero-padding
+    TensorLayout layout = TensorLayout::Undefined; // storage layout
+    DataType     dataType = DataType::Undefined;   // element data type
 
     TensorDesc() = default;
 

@@ -42,7 +42,7 @@ OIDN_NAMESPACE_BEGIN
     {
       if (layout != TensorLayout::x || dataType != DataTypeOf<T>::value)
         throw std::logic_error("incompatible tensor accessor");
-      return TensorAccessor1D<T>(getPtr(), getDesc());
+      return TensorAccessor1D<T>(getPtr(), getPaddedX());
     }
 
     template<typename T, TensorLayout accessorLayout>
@@ -50,7 +50,7 @@ OIDN_NAMESPACE_BEGIN
     {
       if (layout != accessorLayout || dataType != DataTypeOf<T>::value)
         throw std::logic_error("incompatible tensor accessor");
-      return TensorAccessor3D<T, accessorLayout>(getPtr(), getDesc());
+      return TensorAccessor3D<T, accessorLayout>(getPtr(), getPaddedC(), getH(), getW());
     }
 
     template<typename T, TensorLayout accessorLayout>
@@ -58,12 +58,14 @@ OIDN_NAMESPACE_BEGIN
     {
       if (layout != accessorLayout || dataType != DataTypeOf<T>::value)
         throw std::logic_error("incompatible tensor accessor");
-      return TensorAccessor4D<T, accessorLayout>(getPtr(), getDesc());
+      return TensorAccessor4D<T, accessorLayout>(getPtr(), getPaddedO(), getPaddedI(), getH(), getW());
     }
 
     operator ispc::TensorAccessor1D();
-    operator ispc::TensorAccessor3D();
-    operator ispc::TensorAccessor4D();
+    operator ispc::TensorAccessor3D_chw();
+    operator ispc::TensorAccessor3D_ChwBc();
+    operator ispc::TensorAccessor4D_IOhwBiBo();
+    operator ispc::TensorAccessor4D_OIhwPoQiRoSi();
 
     virtual Ref<Tensor> toDevice(Engine* engine, Storage storage = Storage::Device);
 

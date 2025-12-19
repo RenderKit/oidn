@@ -27,14 +27,16 @@ OIDN_NAMESPACE_BEGIN
   Tensor::Tensor(const TensorDesc& desc)
     : TensorDesc(desc)
   {
-    assert(desc.isValid());
+    if (!desc.isValid())
+      throw std::invalid_argument("invalid tensor descriptor");
   }
 
   Tensor::Tensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
     : Memory(buffer, byteOffset),
       TensorDesc(desc)
   {
-    assert(desc.isValid());
+    if (!desc.isValid())
+      throw std::invalid_argument("invalid tensor descriptor");
   }
 
   Ref<Tensor> Tensor::toDevice(Engine* engine, Storage storage)

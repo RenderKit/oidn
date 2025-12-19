@@ -240,7 +240,7 @@ OIDN_NAMESPACE_BEGIN
   // Data types sorted by precision in ascending order
   enum class DataType
   {
-    Void,
+    Undefined,
     UInt8,
     Float16,
     Float32,

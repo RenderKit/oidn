@@ -5,10 +5,10 @@
 
 struct CPUConvKernel
 {
-  uniform TensorAccessor3D src;
-  uniform TensorAccessor4D weight;
+  uniform TensorAccessor3D_ChwBc src;
+  uniform TensorAccessor4D_IOhwBiBo weight;
   uniform TensorAccessor1D bias;
-  uniform TensorAccessor3D dst;
+  uniform TensorAccessor3D_ChwBc dst;
   uniform bool relu;
 };
 
@@ -27,26 +27,28 @@ struct CPUConvKernel
 #define PH 1 // padding height on each side
 
 // Kernel variants optimized for different ISAs
-#if defined(ISPC_TARGET_AVX512SKX) || defined(ISPC_TARGET_AVX512SPR)
+#if defined(OIDN_ARCH_AVX512)
   #define maxBlockOCB 4
   #define blockOW1 10
   #define blockOW2 10
   #define blockOW3 7
   #define blockOW4 6
-#elif defined(ISPC_TARGET_AVX2)
+#elif defined(OIDN_ARCH_AVX2)
   #define maxBlockOCB 4
   #define blockOW1 5
   #define blockOW2 5
   #define blockOW3 3
   #define blockOW4 3
-#elif defined(ISPC_TARGET_NEON)
+#elif defined(OIDN_ARCH_NEON)
   #define maxBlockOCB 3
   #define blockOW1 9
   #define blockOW2 5
   #define blockOW3 3
-#elif defined(ISPC_TARGET_SSE4) || defined(ISPC_TARGET_SSE2)
+#elif defined(OIDN_ARCH_SSE4)
   #define maxBlockOCB 1
   #define blockOW1 5
+#else
+  #error "Unsupported architecture"
 #endif
 
 #if maxBlockOCB >= 1

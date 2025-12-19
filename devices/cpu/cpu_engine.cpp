@@ -1,9 +1,13 @@
 // Copyright 2018 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
+#include "core/conv.h"
 #include "cpu_engine.h"
 #if !defined(OIDN_DNNL) && !defined(OIDN_BNNS)
   #include "cpu_conv.h"
+  #if defined(OIDN_ARCH_X64)
+    #include "cpu_conv_amx.h"
+  #endif
 #endif
 #include "cpu_pool.h"
 #include "cpu_upsample.h"
@@ -59,10 +63,27 @@ OIDN_NAMESPACE_BEGIN
       observer.reset();
   }
 
+  bool CPUEngine::isConvSupported(PostOp postOp)
+  {
+    if (device->getArch() == CPUArch::AVX512_AMXFP16)
+    {
+      return postOp == PostOp::None ||
+             postOp == PostOp::Pool ||
+             postOp == PostOp::Upsample;
+    }
+    else
+      return postOp == PostOp::None;
+  }
+
 #if !defined(OIDN_DNNL) && !defined(OIDN_BNNS)
   Ref<Conv> CPUEngine::newConv(const ConvDesc& desc)
   {
-    return makeRef<CPUConv>(this, desc);
+  #if defined(OIDN_ARCH_X64)
+    if (device->getArch() == CPUArch::AVX512_AMXFP16)
+      return makeRef<CPUConvAMX>(this, desc);
+    else
+  #endif
+      return makeRef<CPUConv>(this, desc);
   }
 #endif
 

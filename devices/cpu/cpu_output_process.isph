@@ -1,6 +1,8 @@
 // Copyright 2018 Intel Corporation
 // SPDX-License-Identifier: Apache-2.0
 
+#pragma once
+
 #include "tensor_accessor.isph"
 #include "image_accessor.isph"
 #include "color.isph"
@@ -23,7 +25,8 @@ struct CPUOutputProcessKernel
   uniform bool snorm; // signed normalized ([-1..1])
 };
 
-export void CPUOutputProcessKernel_run(const uniform CPUOutputProcessKernel* uniform self,
+template<typename SrcT>
+inline void CPUOutputProcessKernel_run(const uniform CPUOutputProcessKernel* uniform self,
                                        uniform int h)
 {
   const uniform int hSrc = h + self->tile.hSrcBegin;
@@ -37,7 +40,7 @@ export void CPUOutputProcessKernel_run(const uniform CPUOutputProcessKernel* uni
     const int wDst = w + self->tile.wDstBegin;
 
     // Load
-    vec3f value = Tensor_get3(self->src, 0, hSrc, wSrc);
+    vec3f value = Tensor_get3<SrcT>(self->src, 0, hSrc, wSrc);
 
     // The CNN output may contain negative values or even NaNs, so it must be sanitized
     value = clamp(nan_to_zero(value), 0.f, pos_max);

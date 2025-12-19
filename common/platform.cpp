@@ -47,11 +47,11 @@ OIDN_NAMESPACE_BEGIN
   {
     switch (dataType)
     {
-    case DataType::Void:    sm << "v";   break;
-    case DataType::UInt8:   sm << "u8";  break;
-    case DataType::Float16: sm << "f16"; break;
-    case DataType::Float32: sm << "f32"; break;
-    default:                sm << "?";   break;
+    case DataType::Undefined: sm << "x";   break;
+    case DataType::UInt8:     sm << "u8";  break;
+    case DataType::Float16:   sm << "f16"; break;
+    case DataType::Float32:   sm << "f32"; break;
+    default:                  sm << "?";   break;
     }
 
     return sm;

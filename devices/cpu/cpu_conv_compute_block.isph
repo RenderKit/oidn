@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 inline unmasked void CPUConvKernel_computeBlock(T, blockOCB, blockOW)(
-                       const uniform uint8* uniform srcPtr,
+                       const uniform int8* uniform srcPtr,
                        uniform size_t srcHByteStride,
-                       const uniform uint8* uniform weightPtr,
-                       const uniform uint8* uniform biasPtr,
-                       uniform uint8* uniform dstPtr,
+                       const uniform int8* uniform weightPtr,
+                       const uniform int8* uniform biasPtr,
+                       uniform int8* uniform dstPtr,
                        uniform size_t dstCByteStride,
                        uniform size_t khEnd,
                        uniform size_t kwBegin, uniform size_t kwEnd,

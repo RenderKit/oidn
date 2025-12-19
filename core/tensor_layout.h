@@ -10,18 +10,23 @@ OIDN_NAMESPACE_BEGIN
   // Tensor memory layout
   enum class TensorLayout
   {
+    Undefined,
+
     x,
 
     chw,
     Chw8c,  // blocked
     Chw16c, // blocked
+    Chw32c, // blocked
+
     oihw,
-    OIhw8i8o,     // blocked
-    OIhw16i16o,   // blocked
-    OIhw2o8i8o2i, // blocked (Xe-HPG DPAS)
-    OIhw8i16o2i,  // blocked (Xe-HPC DPAS)
-    IOhw8i8o,     // blocked
-    IOhw16i16o,   // blocked
+    OIhw8i8o,       // blocked
+    OIhw16i16o,     // blocked
+    OIhw2o8i8o2i,   // blocked (Xe-HPG DPAS)
+    OIhw8i16o2i,    // blocked (Xe-HPC DPAS)
+    OIhw2o16i16o2i, // blocked (AMX-FP16)
+    IOhw8i8o,       // blocked
+    IOhw16i16o,     // blocked
 
     hwc,
     ohwi,
@@ -142,6 +147,13 @@ OIDN_NAMESPACE_BEGIN
   {
     template<typename T>
     using ByteOffset = TensorByteOffsetChwBc<T, 16>;
+  };
+
+  template<>
+  struct TensorLayoutTraits<TensorLayout::Chw32c>
+  {
+    template<typename T>
+    using ByteOffset = TensorByteOffsetChwBc<T, 32>;
   };
 
   template<>
@@ -320,6 +332,13 @@ OIDN_NAMESPACE_BEGIN
   };
 
   template<>
+  struct TensorLayoutTraits<TensorLayout::OIhw2o16i16o2i>
+  {
+    template<typename T>
+    using ByteOffset = TensorByteOffsetOIhwPoQiRoSi<T, 2, 16, 16, 2>;
+  };
+
+  template<>
   struct TensorLayoutTraits<TensorLayout::ohwi>
   {
     template<typename T>
@@ -375,6 +394,8 @@ OIDN_NAMESPACE_BEGIN
       return {3, 8};
     case TensorLayout::Chw16c:
       return {3, 16};
+    case TensorLayout::Chw32c:
+      return {3, 32};
     case TensorLayout::oihw:
     case TensorLayout::ohwi:
       return {4, 1};
@@ -386,6 +407,8 @@ OIDN_NAMESPACE_BEGIN
     case TensorLayout::OIhw2o8i8o2i:
     case TensorLayout::OIhw8i16o2i:
       return {4, 16};
+    case TensorLayout::OIhw2o16i16o2i:
+      return {4, 32};
     default:
       throw std::invalid_argument("invalid tensor layout");
     }
@@ -395,20 +418,22 @@ OIDN_NAMESPACE_BEGIN
   {
     switch (layout)
     {
-    case TensorLayout::x:            sm << "x";            break;
-    case TensorLayout::chw:          sm << "chw";          break;
-    case TensorLayout::Chw8c:        sm << "Chw8c";        break;
-    case TensorLayout::Chw16c:       sm << "Chw16c";       break;
-    case TensorLayout::oihw:         sm << "oihw";         break;
-    case TensorLayout::OIhw8i8o:     sm << "OIhw8i8o";     break;
-    case TensorLayout::OIhw16i16o:   sm << "OIhw16i16o";   break;
-    case TensorLayout::OIhw2o8i8o2i: sm << "OIhw2o8i8o2i"; break;
-    case TensorLayout::OIhw8i16o2i:  sm << "OIhw8i16o2i";  break;
-    case TensorLayout::IOhw8i8o:     sm << "IOhw8i8o";     break;
-    case TensorLayout::IOhw16i16o:   sm << "IOhw16i16o";   break;
-    case TensorLayout::hwc:          sm << "hwc";          break;
-    case TensorLayout::ohwi:         sm << "ohwi";         break;
-    default:                         sm << "?";            break;
+    case TensorLayout::x:              sm << "x";              break;
+    case TensorLayout::chw:            sm << "chw";            break;
+    case TensorLayout::Chw8c:          sm << "Chw8c";          break;
+    case TensorLayout::Chw16c:         sm << "Chw16c";         break;
+    case TensorLayout::Chw32c:         sm << "Chw32c";         break;
+    case TensorLayout::oihw:           sm << "oihw";           break;
+    case TensorLayout::OIhw8i8o:       sm << "OIhw8i8o";       break;
+    case TensorLayout::OIhw16i16o:     sm << "OIhw16i16o";     break;
+    case TensorLayout::OIhw2o8i8o2i:   sm << "OIhw2o8i8o2i";   break;
+    case TensorLayout::OIhw8i16o2i:    sm << "OIhw8i16o2i";    break;
+    case TensorLayout::OIhw2o16i16o2i: sm << "OIhw2o16i16o2i"; break;
+    case TensorLayout::IOhw8i8o:       sm << "IOhw8i8o";       break;
+    case TensorLayout::IOhw16i16o:     sm << "IOhw16i16o";     break;
+    case TensorLayout::hwc:            sm << "hwc";            break;
+    case TensorLayout::ohwi:           sm << "ohwi";           break;
+    default:                           sm << "?";              break;
     }
 
     return sm;

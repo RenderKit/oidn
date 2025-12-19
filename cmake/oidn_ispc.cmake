@@ -2,10 +2,7 @@
 ## SPDX-License-Identifier: Apache-2.0
 
 # ISPC versions to look for, in descending order (newest first)
-set(ISPC_VERSION_WORKING "1.26.0" "1.25.3" "1.25.2" "1.24.0" "1.23.0" "1.22.0" "1.21.1" "1.21.0")
-if(WIN32 AND OIDN_ARCH STREQUAL "ARM64")
-  list(REMOVE_ITEM ISPC_VERSION_WORKING "1.22.0")
-endif()
+set(ISPC_VERSION_WORKING "1.29.0")
 list(GET ISPC_VERSION_WORKING -1 ISPC_VERSION_REQUIRED)
 list(GET ISPC_VERSION_WORKING 0 ISPC_VERSION_LATEST)
 
@@ -62,10 +59,6 @@ if(NOT ISPC_VERSION)
   mark_as_advanced(ISPC_EXECUTABLE)
 endif()
 
-if(WIN32 AND OIDN_ARCH STREQUAL "ARM64" AND ${ISPC_VERSION} VERSION_EQUAL "1.22.0")
-  message(FATAL_ERROR "ISPC v1.22.0 is not supported on Windows ARM64. Please use v${ISPC_VERSION_LATEST}.")
-endif()
-
 get_filename_component(ISPC_DIR ${ISPC_EXECUTABLE} PATH)
 
 ## -----------------------------------------------------------------------------
@@ -91,8 +84,8 @@ endmacro()
 ## -----------------------------------------------------------------------------
 
 macro(ispc_compile)
-  set(ISPC_ADDITIONAL_ARGS "")
-  set(ISPC_TARGETS ${OIDN_ISPC_TARGET_LIST})
+  set(ISPC_ADDITIONAL_ARGS ${ISPC_ADDITIONAL_ARGS})
+  set(ISPC_TARGETS ${ISPC_TARGET_LIST})
 
   set(ISPC_TARGET_EXT ${CMAKE_CXX_OUTPUT_EXTENSION})
   string(REPLACE ";" "," ISPC_TARGET_ARGS "${ISPC_TARGETS}")
@@ -172,6 +165,7 @@ macro(ispc_compile)
         string(REPLACE "-i32x8"  "" target ${target}) # strip (sse4|avx|avx2)-i32x8
         string(REPLACE "-i32x16" "" target ${target}) # strip avx512(knl|skx)-i32x16
         string(REPLACE "-x16"    "" target ${target}) # strip avx512spr-x16
+        string(REPLACE "-x32"    "" target ${target}) # strip avx512spr-x32
         set(results ${results} "${outdir}/${fname}.dev_${target}${ISPC_TARGET_EXT}")
       endforeach()
     endif()
@@ -187,7 +181,7 @@ macro(ispc_compile)
       -I ${CMAKE_CURRENT_SOURCE_DIR}
       ${ISPC_INCLUDE_DIR_PARMS}
       --arch=${ISPC_ARCHITECTURE}
-      --addressing=${OIDN_ISPC_ADDRESSING}
+      --addressing=${ISPC_ADDRESSING}
       ${ISPC_OPT_FLAGS}
       --target=${ISPC_TARGET_ARGS}
       --woff
@@ -210,12 +204,15 @@ endmacro()
 ## -----------------------------------------------------------------------------
 
 function(ispc_target_add_sources target)
-  # Split-out C/C++ from ISPC files
+  cmake_parse_arguments(PARSE_ARGV 1 ISPC_ARG "" "" "TARGET_LIST;COMPILE_OPTIONS")
+  set(ISPC_TARGET_LIST ${ISPC_TARGET_LIST} ${ISPC_ARG_TARGET_LIST})
+  set(ISPC_ADDITIONAL_ARGS ${ISPC_ADDITIONAL_ARGS} ${ISPC_ARG_COMPILE_OPTIONS})
 
+  # Split-out C/C++ from ISPC files
   set(ISPC_SOURCES "")
   set(OTHER_SOURCES "")
 
-  foreach(src ${ARGN})
+  foreach(src ${ISPC_ARG_UNPARSED_ARGUMENTS})
     get_filename_component(ext ${src} EXT)
     if(ext STREQUAL ".ispc")
       set(ISPC_SOURCES ${ISPC_SOURCES} ${src})

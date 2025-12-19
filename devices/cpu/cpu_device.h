@@ -15,15 +15,18 @@ OIDN_NAMESPACE_BEGIN
   {
     Unknown,
     SSE2,
-    SSE41,
+    SSE4,
     AVX2,
     AVX512,
+    AVX512_AMXFP16,
     NEON
   };
 
   class CPUPhysicalDevice final : public PhysicalDevice
   {
   public:
+    CPUArch arch = CPUArch::Unknown;
+
     explicit CPUPhysicalDevice(int score);
   };
 
@@ -35,9 +38,9 @@ OIDN_NAMESPACE_BEGIN
   public:
     static std::vector<Ref<PhysicalDevice>> getPhysicalDevices();
     static std::string getName();
-    static CPUArch getArch();
+    static CPUArch getNativeArch();
 
-    CPUDevice();
+    explicit CPUDevice(const Ref<CPUPhysicalDevice>& physicalDevice);
 
     DeviceType getType() const override { return DeviceType::CPU; }
 
@@ -51,6 +54,8 @@ OIDN_NAMESPACE_BEGIN
 
     void wait() override;
 
+    CPUArch getArch() const { return arch; }
+
   protected:
     void init() override;
 
@@ -59,6 +64,9 @@ OIDN_NAMESPACE_BEGIN
 
     int numThreads = 0; // autodetect by default
     bool setAffinity = true;
+
+    // Used only for initialization
+    Ref<CPUPhysicalDevice> physicalDevice;
   };
 
 OIDN_NAMESPACE_END

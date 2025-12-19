@@ -18,8 +18,8 @@ OIDN_NAMESPACE_BEGIN
   template<typename T>
   struct DataTypeOf;
 
-  template<> struct DataTypeOf<void>    { static constexpr DataType value = DataType::Void;    };
-  template<> struct DataTypeOf<uint8_t> { static constexpr DataType value = DataType::UInt8;   };
+  template<> struct DataTypeOf<void>    { static constexpr DataType value = DataType::Undefined; };
+  template<> struct DataTypeOf<uint8_t> { static constexpr DataType value = DataType::UInt8; };
   template<> struct DataTypeOf<half>    { static constexpr DataType value = DataType::Float16; };
   template<> struct DataTypeOf<float>   { static constexpr DataType value = DataType::Float32; };
 

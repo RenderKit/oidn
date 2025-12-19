@@ -22,7 +22,7 @@ OIDN_NAMESPACE_BEGIN
     switch (format)
     {
     case Format::Undefined:
-      return DataType::Void;
+      return DataType::Undefined;
     case Format::Float:
     case Format::Float2:
     case Format::Float3:
@@ -40,7 +40,7 @@ OIDN_NAMESPACE_BEGIN
 
   Format makeFormat(DataType dataType, int numChannels)
   {
-    if (dataType == DataType::Void)
+    if (dataType == DataType::Undefined)
       return Format::Undefined;
 
     Format baseFormat;

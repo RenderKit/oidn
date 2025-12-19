@@ -64,8 +64,9 @@ rendering, but, depending on the hardware used, also for interactive or even
 real-time ray tracing.
 
 Intel Open Image Denoise exploits modern instruction sets like SSE4, AVX2,
-AVX-512, and NEON on CPUs, Intel® Xe Matrix Extensions (Intel® XMX) on Intel
-GPUs, and tensor cores on NVIDIA GPUs to achieve high denoising performance.
+AVX-512, Intel® Advanced Matrix Extensions (Intel® AMX), and NEON on CPUs,
+Intel® Xe Matrix Extensions (Intel® XMX) on Intel GPUs, and tensor cores on
+NVIDIA GPUs to achieve high denoising performance.
 
 
 System Requirements

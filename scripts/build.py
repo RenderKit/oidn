@@ -13,8 +13,8 @@ import multiprocessing
 
 from common import *
 
-ISPC_VERSION = '1.26.0'
-TBB_VERSION  = '2021.12.0'
+ISPC_VERSION = '1.29.0'
+TBB_VERSION  = '2022.3.0'
 
 def check_symbols(filename, label, max_version):
   with os.popen("nm \"%s\" | tr ' ' '\n' | grep @@%s_" % (filename, label)) as out:

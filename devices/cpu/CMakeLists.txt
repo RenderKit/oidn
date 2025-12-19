@@ -36,11 +36,11 @@ endif()
 
 # ISPC
 if(OIDN_ARCH STREQUAL "X64")
-  set(OIDN_ISPC_TARGET_LIST sse4.1-i32x8;avx2-i32x8;avx512skx-i32x16)
+  set(OIDN_ISPC_TARGET_LIST sse4.1-i32x8 avx2-i32x8 avx512skx-x16 avx512gnr-x16)
 elseif(OIDN_ARCH STREQUAL "ARM64")
   set(OIDN_ISPC_TARGET_LIST neon-i32x8)
 endif()
-set(OIDN_ISPC_ADDRESSING 64)
+set(ISPC_ADDRESSING 64)
 include(oidn_ispc)
 
 set(OIDN_CPU_SOURCES
@@ -67,19 +67,22 @@ set(OIDN_CPU_SOURCES
   tasking.cpp
 )
 
-set(OIDN_CPU_SOURCES_ISPC
+set(OIDN_ISPC_SOURCES_COMMON
   cpu_autoexposure.ispc
   cpu_image_copy.ispc
-  cpu_input_process.ispc
-  cpu_output_process.ispc
-  cpu_pool.ispc
-  cpu_upsample.ispc
+  cpu_input_process.isph
+  cpu_input_process_f32.ispc
+  cpu_output_process.isph
+  cpu_output_process_f32.ispc
+  cpu_pool.isph
+  cpu_pool_f32.ispc
+  cpu_upsample.isph
+  cpu_upsample_f32.ispc
   color.isph
   color.ispc
   image_accessor.isph
   math.isph
   platform.isph
-  #platform.ispc
   tensor_accessor.isph
   tile.isph
   vec.isph
@@ -113,7 +116,14 @@ else()
     cpu_conv.cpp
   )
 
-  list(APPEND OIDN_CPU_SOURCES_ISPC
+  if(OIDN_ARCH STREQUAL "X64")
+    list(APPEND OIDN_CPU_SOURCES
+      cpu_conv_amx.h
+      cpu_conv_amx.cpp
+    )
+  endif()
+
+  list(APPEND OIDN_ISPC_SOURCES_COMMON
     cpu_conv.ispc
     cpu_conv_compute.isph
     cpu_conv_compute_block.isph
@@ -139,11 +149,51 @@ elseif(OIDN_BNNS)
   target_link_libraries(OpenImageDenoise_device_cpu PRIVATE "-framework Accelerate")
 endif()
 
-ispc_target_add_sources(OpenImageDenoise_device_cpu ${OIDN_CPU_SOURCES_ISPC})
 if(OIDN_ARCH STREQUAL "X64")
-  set(OIDN_ISPC_TARGET_LIST sse2-i32x4;${OIDN_ISPC_TARGET_LIST}) # required just for ISA detection
+  ispc_target_add_sources(OpenImageDenoise_device_cpu
+    platform.ispc
+    TARGET_LIST sse2-i32x4 ${OIDN_ISPC_TARGET_LIST} # SSE2 added just for ISA detection
+  )
+else()
+  list(APPEND OIDN_ISPC_SOURCES_COMMON platform.ispc)
 endif()
-ispc_target_add_sources(OpenImageDenoise_device_cpu platform.ispc)
+
+ispc_target_add_sources(OpenImageDenoise_device_cpu
+  ${OIDN_ISPC_SOURCES_COMMON}
+  TARGET_LIST ${OIDN_ISPC_TARGET_LIST}
+)
+
+if(OIDN_ARCH STREQUAL "X64")
+  ispc_target_add_sources(OpenImageDenoise_device_cpu
+    cpu_input_process_f16.ispc
+    cpu_output_process_f16.ispc
+    TARGET_LIST avx512gnr-x16
+  )
+
+  ispc_target_add_sources(OpenImageDenoise_device_cpu
+    cpu_conv_amx.ispc
+    TARGET_LIST avx512gnr-x16
+    COMPILE_OPTIONS --enable-llvm-intrinsics # AMX requires LLVM intrinsics
+  )
+
+  ispc_target_add_sources(OpenImageDenoise_device_cpu
+    cpu_pool_f16.ispc
+    cpu_upsample_f16.ispc
+    TARGET_LIST avx512gnr-x32
+  )
+elseif(OIDN_ARCH STREQUAL "ARM64")
+  ispc_target_add_sources(OpenImageDenoise_device_cpu
+    cpu_input_process_f16.ispc
+    cpu_output_process_f16.ispc
+    TARGET_LIST neon-i32x8
+  )
+
+  ispc_target_add_sources(OpenImageDenoise_device_cpu
+    cpu_pool_f16.ispc
+    cpu_upsample_f16.ispc
+    TARGET_LIST neon-i16x16
+  )
+endif()
 
 target_link_libraries(OpenImageDenoise_device_cpu PRIVATE OpenImageDenoise_core ${CMAKE_THREAD_LIBS_INIT} TBB::tbb)
 

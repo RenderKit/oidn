@@ -14,21 +14,25 @@ enum CPUArch
   CPUArch_SSE4,
   CPUArch_AVX2,
   CPUArch_AVX512,
+  CPUArch_AVX512_AMXFP16,
   CPUArch_NEON
 };
 
 export uniform CPUArch getCPUArch()
 {
-#if defined(ISPC_TARGET_SSE2)
-  return CPUArch_SSE2;
-#elif defined(ISPC_TARGET_SSE4)
-  return CPUArch_SSE4;
-#elif defined(ISPC_TARGET_AVX2)
-  return CPUArch_AVX2;
-#elif defined(ISPC_TARGET_AVX512SKX) || defined(ISPC_TARGET_AVX512SPR)
+#if defined(OIDN_ARCH_AVX512_AMXFP16)
+  return CPUArch_AVX512_AMXFP16;
+#elif defined(OIDN_ARCH_AVX512)
   return CPUArch_AVX512;
-#elif defined(ISPC_TARGET_NEON)
+#elif defined(OIDN_ARCH_AVX2)
+  return CPUArch_AVX2;
+#elif defined(OIDN_ARCH_SSE4)
+  return CPUArch_SSE4;
+#elif defined(OIDN_ARCH_SSE2)
+  return CPUArch_SSE2;
+#elif defined(OIDN_ARCH_NEON)
   return CPUArch_NEON;
+#else
+  #error "Unsupported architecture"
 #endif
-  return CPUArch_Unknown;
 }
