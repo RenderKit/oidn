@@ -31,7 +31,7 @@ inline unmasked void CPUConvKernel_computeBlock(
                        uniform size_t kwBegin, uniform size_t kwEnd,
                        uniform bool relu)
 {
-  varying T accum[blockOCB][blockOW];
+  varying T accumRow[blockOCB][blockOW];
 
   if (biasPtr)
   {
@@ -40,7 +40,7 @@ inline unmasked void CPUConvKernel_computeBlock(
     {
       #pragma unroll
       for (uniform size_t bow = 0; bow < blockOW; ++bow)
-        accum[bocb][bow] = *((const varying T* uniform)biasPtr + bocb);
+        accumRow[bocb][bow] = *((const varying T* uniform)biasPtr + bocb);
     }
   }
   else
@@ -50,7 +50,7 @@ inline unmasked void CPUConvKernel_computeBlock(
     {
       #pragma unroll
       for (uniform size_t bow = 0; bow < blockOW; ++bow)
-        accum[bocb][bow] = *((const varying T* uniform)(dstPtr + bocb * dstCByteStride) + bow);
+        accumRow[bocb][bow] = *((const varying T* uniform)(dstPtr + bocb * dstCByteStride) + bow);
     }
   }
 
@@ -73,7 +73,7 @@ inline unmasked void CPUConvKernel_computeBlock(
           for (uniform size_t bow = 0; bow < blockOW; ++bow)
           {
             const varying T srcVec = *((const uniform T* uniform)srcPtr + (bow + kw - PW) * blockC + i);
-            accum[bocb][bow] += srcVec * weightVec;
+            accumRow[bocb][bow] += srcVec * weightVec;
           }
         }
       }
@@ -90,7 +90,7 @@ inline unmasked void CPUConvKernel_computeBlock(
     {
       #pragma unroll
       for (uniform size_t bow = 0; bow < blockOW; ++bow)
-        accum[bocb][bow] = max(accum[bocb][bow], 0);
+        accumRow[bocb][bow] = max(accumRow[bocb][bow], 0);
     }
   }
 
@@ -99,7 +99,7 @@ inline unmasked void CPUConvKernel_computeBlock(
   {
     #pragma unroll
     for (uniform size_t bow = 0; bow < blockOW; ++bow)
-      *((varying T* uniform)(dstPtr + bocb * dstCByteStride) + bow) = accum[bocb][bow];
+      *((varying T* uniform)(dstPtr + bocb * dstCByteStride) + bow) = accumRow[bocb][bow];
   }
 }
 

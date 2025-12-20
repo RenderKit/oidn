@@ -33,7 +33,6 @@ struct CPUConvAMXKernel
 #define blockOH 2                  // output block height
 #define blockIW (blockOW + KW - 1) // input block width (with borders for the kernel)
 #define blockIH (blockOH + KH - 1) // input block height (with borders for the kernel)
-#define blockOC 32                 // output channel block size
 
 #define wByteStride 64 // width byte stride of tensors (= AMX-512 vector size)
 
@@ -50,7 +49,7 @@ struct CPUConvAMXKernel
 #define tmm_inRow1         ((uniform uint8)5) // input block row 1
 #define tmm_weight         ((uniform uint8)6) // weight output channel block 0/1
 
-// Store output channel block
+// Store output channel blocks
 template<typename T>
 inline unmasked void storeOCB(uniform int8* uniform ptr, varying T ocb0, varying T ocb1)
 {
