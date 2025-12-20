@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 #include "cpu_common.h"
-#if !defined(OIDN_DNNL) && !defined(OIDN_BNNS)
+#if !defined(OIDN_BNNS)
   #include "cpu_conv_ispc.h"
   #if defined(OIDN_ARCH_X64)
     #include "cpu_conv_amx_ispc.h"
@@ -89,7 +89,7 @@ OIDN_NAMESPACE_BEGIN
   }
 #endif
 
-#if !defined(OIDN_DNNL) && !defined(OIDN_BNNS)
+#if !defined(OIDN_BNNS)
   Tensor::operator ispc::TensorAccessor1D()
   {
     if (layout != TensorLayout::x)

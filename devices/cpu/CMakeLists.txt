@@ -16,15 +16,7 @@ if(NOT TBB_FOUND)
   find_package(TBB ${OIDN_TBB_MIN_VERSION} REQUIRED tbb)
 endif()
 
-if(OIDN_ARCH STREQUAL "X64")
-  # oneDNN
-  option(OIDN_DEVICE_CPU_ONEDNN "Enable oneDNN for CPU device." OFF)
-  mark_as_advanced(OIDN_DEVICE_CPU_ONEDNN)
-  if(OIDN_DEVICE_CPU_ONEDNN)
-    set(OIDN_DNNL ON)
-    include(oidn_dnnl)
-  endif()
-elseif(APPLE AND OIDN_ARCH STREQUAL "ARM64")
+if(APPLE AND OIDN_ARCH STREQUAL "ARM64")
   # BNNS
   option(OIDN_DEVICE_CPU_BNNS "Enable BNNS for CPU device." ON)
   mark_as_advanced(OIDN_DEVICE_CPU_BNNS)
@@ -88,18 +80,7 @@ set(OIDN_ISPC_SOURCES_COMMON
   vec.isph
 )
 
-if(OIDN_DNNL)
-  list(APPEND OIDN_CPU_SOURCES
-    dnnl/dnnl_conv.h
-    dnnl/dnnl_conv.cpp
-    dnnl/dnnl_common.h
-    dnnl/dnnl_common.cpp
-    dnnl/dnnl_engine.h
-    dnnl/dnnl_engine.cpp
-    dnnl/dnnl_tensor.h
-    dnnl/dnnl_tensor.cpp
-  )
-elseif(OIDN_BNNS)
+if(OIDN_BNNS)
   list(APPEND OIDN_CPU_SOURCES
     bnns/bnns_common.h
     bnns/bnns_common.cpp
@@ -139,11 +120,7 @@ if(OIDN_LIBRARY_VERSIONED)
   set_target_properties(OpenImageDenoise_device_cpu PROPERTIES VERSION ${PROJECT_VERSION})
 endif()
 
-if(OIDN_DNNL)
-  target_compile_definitions(OpenImageDenoise_device_cpu PRIVATE OIDN_DNNL)
-  ispc_add_definitions(-DOIDN_DNNL)
-  target_link_libraries(OpenImageDenoise_device_cpu PRIVATE dnnl)
-elseif(OIDN_BNNS)
+if(OIDN_BNNS)
   target_compile_definitions(OpenImageDenoise_device_cpu PRIVATE OIDN_BNNS)
   ispc_add_definitions(-DOIDN_BNNS)
   target_link_libraries(OpenImageDenoise_device_cpu PRIVATE "-framework Accelerate")

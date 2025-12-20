@@ -4,9 +4,7 @@
 #include "cpu_device.h"
 #include "platform_ispc.h"
 
-#if defined(OIDN_DNNL)
-  #include "dnnl/dnnl_engine.h"
-#elif defined(OIDN_BNNS)
+#if defined(OIDN_BNNS)
   #include "bnns/bnns_engine.h"
 #else
   #include "cpu_engine.h"
@@ -151,22 +149,7 @@ OIDN_NAMESPACE_BEGIN
 
     std::unique_ptr<CPUEngine> engine;
 
-  #if defined(OIDN_DNNL)
-    if (arch == CPUArch::AVX512)
-    {
-      tensorLayout = TensorLayout::Chw16c;
-      weightLayout = TensorLayout::OIhw16i16o;
-      tensorBlockC = 16;
-    }
-    else
-    {
-      tensorLayout = TensorLayout::Chw8c;
-      weightLayout = TensorLayout::OIhw8i8o;
-      tensorBlockC = 8;
-    }
-
-    engine.reset(new DNNLEngine(this, numThreads));
-  #elif defined(OIDN_BNNS)
+  #if defined(OIDN_BNNS)
     tensorLayout = TensorLayout::chw;
     weightLayout = TensorLayout::oihw;
     tensorBlockC = 1;

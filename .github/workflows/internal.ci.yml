@@ -270,17 +270,6 @@ jobs:
       artifact-out: build-rockylinux8-gcc-minimal
       artifact-path: build install deps
 
-  build-rockylinux8-gcc-onednn:
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
-    with:
-      project: oidn
-      image: oidn/rockylinux:8.8
-      dpcpp-version: intel-llvm/v6.0.1-rk
-      cmd: scripts/build.py install --compiler gcc -D OIDN_DEVICE_CPU_ONEDNN=ON
-      artifact-out: build-rockylinux8-gcc-onednn
-      artifact-path: build install deps
-
   build-rockylinux8-gta-aotjit:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
@@ -750,20 +739,6 @@ jobs:
       image: oidn/rockylinux:8.8
       artifact-in: build-rockylinux8-namespace
       artifact-out: test-rockylinux8-namespace-avx2
-      artifact-path: test.log
-      artifact-on-failure: true
-      cmd: scripts/test.py --device cpu --log test.log
-
-  test-rockylinux8-gcc-onednn-avx2:
-    needs: build-rockylinux8-gcc-onednn
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
-    with:
-      project: oidn
-      runs-on: '[ "Linux", "avx2" ]'
-      image: oidn/rockylinux:8.8
-      artifact-in: build-rockylinux8-gcc-onednn
-      artifact-out: test-rockylinux8-gcc-onednn-avx2
       artifact-path: test.log
       artifact-on-failure: true
       cmd: scripts/test.py --device cpu --log test.log
@@ -1433,16 +1408,6 @@ jobs:
       runs-on: '[ "Windows", "build" ]'
       cmd: python scripts/build.py --compiler msvc17 -D OIDN_LIBRARY_NAME=OIDN -D OIDN_API_NAMESPACE=myoidn
 
-  build-windows-msvc17-onednn:
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
-    with:
-      project: oidn
-      runs-on: '[ "Windows", "build" ]'
-      artifact-out: build-windows-msvc17-onednn
-      artifact-path: build install
-      cmd: python scripts/build.py install --compiler msvc17 -D OIDN_DEVICE_CPU_ONEDNN=ON
-
   build-windows-msvc17-asan:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
@@ -1579,19 +1544,6 @@ jobs:
       artifact-path: test.log
       artifact-on-failure: true
       cmd: python scripts/test.py --device cpu --log test.log
-
-  test-windows-msvc17-onednn-avx512:
-    needs: build-windows-msvc17-onednn
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
-    with:
-      project: oidn
-      runs-on: '[ "Windows", "avx512", "NAS" ]'
-      artifact-in: build-windows-msvc17-onednn
-      artifact-out: test-windows-msvc17-onednn-avx512
-      artifact-path: test.log
-      artifact-on-failure: true
-      cmd: python scripts/test.py --device cpu --minimal --log test.log
 
   # FIXME: ASAN not on the path?
   # test-windows-msvc17-asan-avx2:

@@ -3,7 +3,7 @@
 
 #include "core/conv.h"
 #include "cpu_engine.h"
-#if !defined(OIDN_DNNL) && !defined(OIDN_BNNS)
+#if !defined(OIDN_BNNS)
   #include "cpu_conv.h"
   #if defined(OIDN_ARCH_X64)
     #include "cpu_conv_amx.h"
@@ -75,7 +75,7 @@ OIDN_NAMESPACE_BEGIN
       return postOp == PostOp::None;
   }
 
-#if !defined(OIDN_DNNL) && !defined(OIDN_BNNS)
+#if !defined(OIDN_BNNS)
   Ref<Conv> CPUEngine::newConv(const ConvDesc& desc)
   {
   #if defined(OIDN_ARCH_X64)

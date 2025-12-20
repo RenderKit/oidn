@@ -1,6 +1,3 @@
-[submodule "mkl-dnn"]
-	path = external/mkl-dnn
-	url = ../mkl-dnn.git
 [submodule "weights"]
 	path = weights
 	url = ../oidn-weights.git

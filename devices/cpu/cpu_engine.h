@@ -24,7 +24,7 @@ OIDN_NAMESPACE_BEGIN
 
     // Ops
     bool isConvSupported(PostOp postOp) override;
-  #if !defined(OIDN_DNNL) && !defined(OIDN_BNNS)
+  #if !defined(OIDN_BNNS)
     Ref<Conv> newConv(const ConvDesc& desc) override;
   #endif
     Ref<Pool> newPool(const PoolDesc& desc) override;

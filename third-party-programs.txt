@@ -14,10 +14,7 @@ terms are listed below.
 
 --------------------------------------------------------------------------------
 
-1.  Intel(R) oneAPI Deep Neural Network Library (oneDNN)
-    Copyright 2016-2023 Intel Corporation
-
-    Intel(R) oneAPI Threading Building Blocks (oneTBB)
+1.  Intel(R) oneAPI Threading Building Blocks (oneTBB)
     Copyright 2005-2023 Intel Corporation
 
     Intel® Embree (snippets)
@@ -633,13 +630,10 @@ Software.
 The following third party programs have their own third party programs. These
 additional third party program files are as follows:
 
-1.  Intel(R) oneAPI Deep Neural Network Library (oneDNN)
-      ./third-party-programs-oneDNN.txt
-
-2.  Intel(R) oneAPI Threading Building Blocks (oneTBB)
+1.  Intel(R) oneAPI Threading Building Blocks (oneTBB)
       ./third-party-programs-oneTBB.txt
 
-3.  oneAPI DPC++ Compiler
+2.  oneAPI DPC++ Compiler
       ./third-party-programs-DPCPP.txt
 
 --------------------------------------------------------------------------------
