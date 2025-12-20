@@ -31,26 +31,26 @@ namespace xe2 {
     static constexpr int dpasDepth  = 8; // DPAS depth
     static constexpr int dpasRepeat = 8; // DPAS repeat count
 
-    static constexpr int blockC = TensorByteOffset<SrcDstT, srcDstLayout>::blockC; // block input/output channels
+    static constexpr int blockC = TensorByteOffset<SrcDstT, srcDstLayout>::blockC; // channel block size
 
   #if defined(OIDN_ARCH_XEHPG)
     using MatmulT = SrcDstT;
-    static constexpr int blockAC = 8;                   // block accumulator channels (exec width)
-    static constexpr int numBlockAC = blockC / blockAC; // number of accumulator channel blocks
+    static constexpr int blockOC = 8;                 // output channel block size (= exec width)
+    static constexpr int blockOCB = blockC / blockOC; // block of output channel blocks
     static constexpr int blockOH = (postOp == PostOp::Pool) ? 6 : 5; // block output height
   #elif defined(OIDN_ARCH_XEHPC)
     using MatmulT = SrcDstT;
-    static constexpr int blockOH = 4; // block output height
+    static constexpr int blockOH = 4; // output block height
   #elif defined(OIDN_ARCH_XE2)
     using MatmulT = SrcDstT;
-    static constexpr int blockOH = 6; // block output height
+    static constexpr int blockOH = 6; // output block height
   #else
     using MatmulT = float; // no DPAS -> use FP32 FMAs
-    static constexpr int blockOH = 2; // block output height
+    static constexpr int blockOH = 2; // output block height
   #endif
 
-    static constexpr int blockOW = dpasRepeat;       // block output width
-    static constexpr int blockIW = blockOW + KW - 1; // block input width
+    static constexpr int blockOW = dpasRepeat;       // output block width
+    static constexpr int blockIW = blockOW + KW - 1; // input block width
 
     TensorAccessor3D<SrcDstT, srcDstLayout> src;
     TensorAccessor4D<WeightT, weightLayout> weight;
@@ -62,7 +62,7 @@ namespace xe2 {
     {
     #if defined(OIDN_ARCH_XEHPG)
       // FP32 accumulator rows
-      simd<float, blockOW * blockAC> accumRows[blockOH][numBlockAC] = {}; // = 0
+      simd<float, blockOW * blockOC> accumRows[blockOH][blockOCB] = {}; // = 0
     #else
       // FP32 accumulator rows
       simd<float, blockOW * blockC> accumRows[blockOH] = {}; // = 0
@@ -101,12 +101,12 @@ namespace xe2 {
           {
             // Load weight matrix for kernel tap
           #if defined(OIDN_ARCH_XEHPG)
-            simd<MatmulT, blockAC * blockC> weightMat[numBlockAC];
+            simd<MatmulT, blockOC * blockC> weightMat[blockOCB];
             #pragma unroll
-            for (int i = 0; i < numBlockAC; ++i)
+            for (int bocb = 0; bocb < blockOCB; ++bocb)
             {
-              weightMat[i] = loadBlock<WeightT, blockAC * blockC>(weightPtr);
-              weightPtr += blockAC * blockC;
+              weightMat[bocb] = loadBlock<WeightT, blockOC * blockC>(weightPtr);
+              weightPtr += blockOC * blockC;
             }
           #else
             simd<MatmulT, blockC * blockC> weightMat = loadLargeBlock<WeightT, blockC * blockC>(weightPtr);
@@ -119,11 +119,11 @@ namespace xe2 {
             for (int boh = 0; boh < blockOH; ++boh)
             {
               #pragma unroll
-              for (int i = 0; i < numBlockAC; ++i)
+              for (int bocb = 0; bocb < blockOCB; ++bocb)
               {
-                accumRows[boh][i] = xmx::dpas<dpasDepth, dpasRepeat, float>(
-                  accumRows[boh][i],
-                  weightMat[i],
+                accumRows[boh][bocb] = xmx::dpas<dpasDepth, dpasRepeat, float>(
+                  accumRows[boh][bocb],
+                  weightMat[bocb],
                   inRows[(kh + boh) % blockOH].template select<blockOW * blockC, 1>(kw * blockC).read());
               }
             }
@@ -166,8 +166,8 @@ namespace xe2 {
       {
         auto outRowView = outRows[boh].template bit_cast_view<SrcDstT, blockOW, blockC>();
         #pragma unroll
-        for (int i = 0; i < numBlockAC; ++i)
-          outRowView.template select<blockOW, 1, blockAC, 1>(0, i * blockAC) = accumRows[boh][i];
+        for (int bocb = 0; bocb < blockOCB; ++bocb)
+          outRowView.template select<blockOW, 1, blockOC, 1>(0, bocb * blockOC) = accumRows[boh][bocb];
       }
     #else
       // Down-convert accumulator rows to output rows
@@ -212,7 +212,7 @@ namespace xe2 {
         #pragma unroll
         for (int boh = 0; boh < blockOH; boh += 2)
         {
-          if (oh + boh >= src.H) // src.H = output height without pooling
+          if (oh + boh >= src.H) // src.H = output height before pooling
             break;
 
           // Pool output rows
@@ -229,7 +229,7 @@ namespace xe2 {
         #pragma unroll
         for (int boh = 0; boh < blockOH; ++boh)
         {
-          if (oh + boh >= src.H) // src.H = output height without upsampling
+          if (oh + boh >= src.H) // src.H = output height before upsampling
             break;
 
           // Upsample output row
