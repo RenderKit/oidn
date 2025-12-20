@@ -35,7 +35,7 @@ prerequisites are needed:
 
 #### CPU device: {-}
 
--   [Intel® SPMD Program Compiler (ISPC)](http://ispc.github.io) 1.29.0 or
+-   [Intel® SPMD Program Compiler (ISPC)](http://ispc.github.io) 1.29.1 or
     newer. Please obtain a release of ISPC from the
     [ISPC downloads page](https://ispc.github.io/downloads.html). The build
     system looks for ISPC in the `PATH` and in the directory right "next to" the
