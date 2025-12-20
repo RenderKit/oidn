@@ -23,41 +23,41 @@ OIDN_NAMESPACE_BEGIN
       throw std::invalid_argument("unsupported convolution bias layout/data type");
 
     const int blockC = getTensorLayoutInfo(dstDesc.layout).blockC;
-    const int IC = srcDesc.getPaddedC();
-    const int OC = dstDesc.getPaddedC();
-    const int OH = dstDesc.getH();
-    const int OW = dstDesc.getW();
+    const int IC = srcDesc.getPaddedC(); // input channels
+    const int OC = dstDesc.getPaddedC(); // output channels
+    const int OH = dstDesc.getH();       // output height
+    const int OW = dstDesc.getW();       // output width
 
-    const int OCB = OC / blockC;
+    const int OCB = OC / blockC; // number of output channel blocks
     blockOCB = min(OCB, ispc::CPUConvKernel_getMaxBlockOCB());
     while (OCB % blockOCB != 0)
       blockOCB--;
 
-    OCBB = OCB / blockOCB;
+    OCBB = OCB / blockOCB; // number of output channel block blocks
     blockOW = ispc::CPUConvKernel_getBlockOW(blockOCB);
 
-    // Split the output width into tiles to fit into the L2 cache
+    // Split the output width into chunks to fit into the L2 cache
     const size_t cacheSize = 512 * 1024; // FIXME: query actual size but this also works well
 
-    const int tileOW = max(
+    const int chunkOW = max(
       static_cast<int>((cacheSize - weightDesc.getByteSize() - biasDesc.getByteSize()) /
                        (IC * getDataTypeSize(srcDesc.dataType)  * weightDesc.getH() +
                         OC * getDataTypeSize(dstDesc.dataType)) - weightDesc.getW() + 1),
       1);
 
-    const int maxOWT = max(OW / (2*blockOW), 1); // max number of OW tiles
-    OWT = min(ceil_div(OW, tileOW), maxOWT);     // number of OW tiles
+    const int maxOWC = max(OW / (2*blockOW), 1); // max number of output width chunks
+    OWC = min(ceil_div(OW, chunkOW), maxOWC);    // number of output width chunks
 
-    // Tweak the number of OW tiles to maximize threading efficiency
+    // Tweak the number of output width chunks to maximize threading efficiency
     const int numThreads = engine->getNumThreads();
     double bestThreadEff = 0;
-    for (int curOWT = OWT; curOWT < maxOWT; ++curOWT)
+    for (int curOWC = OWC; curOWC < maxOWC; ++curOWC)
     {
-      const size_t N = size_t(OCBB) * OH * curOWT; // work amount
+      const size_t N = size_t(OCBB) * OH * curOWC; // work amount
       const double threadEff = 1. - double(N % numThreads) / N;
       if (threadEff > bestThreadEff)
       {
-        OWT = curOWT;
+        OWC = curOWC;
         bestThreadEff = threadEff;
         if (threadEff >= 0.99)
           break;
@@ -79,23 +79,23 @@ OIDN_NAMESPACE_BEGIN
 
     engine->submitFunc([=]
     {
-      const int OH = kernel.dst.H;
-      const int OW = kernel.dst.W;
-      const size_t N = size_t(OCBB) * OH * OWT;
+      const int OH = kernel.dst.H; // output height
+      const int OW = kernel.dst.W; // output width
+      const size_t N = size_t(OCBB) * OH * OWC; // total number of work items
 
       parallel_for(N, [&](size_t i)
       {
         const size_t j = i / OCBB;
-        const int ocbb = int(i % OCBB);
-        const int oh   = int(j % OH);
-        const int owt  = int(j / OH);
+        const int ocbb = int(i % OCBB); // output channel block block index
+        const int oh   = int(j % OH);   // output height index
+        const int owc  = int(j / OH);   // output width chunk index
 
         constexpr int PW = 1; // KW = 3
-        const int owr = OWT * (blockOW - PW - 1);
-        const int owBegin = owt   > 0   ? (owt     * OW + owr) / (OWT*blockOW) * blockOW + PW : 0;
-        const int owEnd   = owt+1 < OWT ? ((owt+1) * OW + owr) / (OWT*blockOW) * blockOW + PW : OW;
+        const int owr = OWC * (blockOW - PW - 1);
+        const int owBegin = owc   > 0   ? (owc     * OW + owr) / (OWC*blockOW) * blockOW + PW : 0;
+        const int owEnd   = owc+1 < OWC ? ((owc+1) * OW + owr) / (OWC*blockOW) * blockOW + PW : OW;
 
-        ispc::CPUConvKernel_run(&kernel, blockOCB, ocbb * blockOCB, oh, owBegin, owEnd);
+        ispc::CPUConvKernel_run_f32(&kernel, blockOCB, ocbb * blockOCB, oh, owBegin, owEnd);
       });
     }, ct);
   }

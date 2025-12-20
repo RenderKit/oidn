@@ -19,9 +19,9 @@ OIDN_NAMESPACE_BEGIN
   private:
     CPUEngine* engine;
     int blockOCB; // block of output channel blocks
-    int blockOW;  // block of output width
+    int blockOW;  // output block width
     int OCBB;     // number of output channel block blocks
-    int OWT;      // number of output width tiles
+    int OWC;      // number of output width chunks
   };
 
 OIDN_NAMESPACE_END

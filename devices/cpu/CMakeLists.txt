@@ -106,8 +106,6 @@ else()
 
   list(APPEND OIDN_ISPC_SOURCES_COMMON
     cpu_conv.ispc
-    cpu_conv_compute.isph
-    cpu_conv_compute_block.isph
   )
 endif()
 
