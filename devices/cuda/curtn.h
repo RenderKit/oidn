@@ -11,6 +11,7 @@ namespace curtn
   cudaError_t init();
 
   // Unlike CUDA Runtime, CURTN requires explicit initialization and cleanup of the current context
+  // when building with CUDA versions older than 13.0
   cudaError_t initContext();
   cudaError_t cleanupContext();
 }

@@ -27,6 +27,30 @@
   #define CURTN_DEFINE_ERROR_12_1(a, b)
 #endif
 
+#if CUDA_VERSION >= 12030
+  #define CURTN_DEFINE_ERROR_12_3(a, b) CURTN_DEFINE_ERROR(a, b)
+#else
+  #define CURTN_DEFINE_ERROR_12_3(a, b)
+#endif
+
+#if CUDA_VERSION >= 12060
+  #define CURTN_DEFINE_ERROR_12_6(a, b) CURTN_DEFINE_ERROR(a, b)
+#else
+  #define CURTN_DEFINE_ERROR_12_6(a, b)
+#endif
+
+#if CUDA_VERSION >= 12080
+  #define CURTN_DEFINE_ERROR_12_8(a, b) CURTN_DEFINE_ERROR(a, b)
+#else
+  #define CURTN_DEFINE_ERROR_12_8(a, b)
+#endif
+
+#if CUDA_VERSION >= 13010
+  #define CURTN_DEFINE_ERROR_13_1(a, b) CURTN_DEFINE_ERROR(a, b)
+#else
+  #define CURTN_DEFINE_ERROR_13_1(a, b)
+#endif
+
 #define CURTN_DEFINE_ERRORS \
   CURTN_DEFINE_ERROR(CUDA_SUCCESS,                              cudaSuccess) \
   CURTN_DEFINE_ERROR(CUDA_ERROR_INVALID_VALUE,                  cudaErrorInvalidValue) \
@@ -115,7 +139,14 @@
   CURTN_DEFINE_ERROR(CUDA_ERROR_UNKNOWN,                        cudaErrorUnknown) \
   CURTN_DEFINE_ERROR_12_0(CUDA_ERROR_CDP_NOT_SUPPORTED,         cudaErrorCdpNotSupported) \
   CURTN_DEFINE_ERROR_12_0(CUDA_ERROR_CDP_VERSION_MISMATCH,      cudaErrorCdpVersionMismatch) \
-  CURTN_DEFINE_ERROR_12_1(CUDA_ERROR_UNSUPPORTED_DEVSIDE_SYNC,  cudaErrorUnsupportedDevSideSync)
+  CURTN_DEFINE_ERROR_12_1(CUDA_ERROR_UNSUPPORTED_DEVSIDE_SYNC,  cudaErrorUnsupportedDevSideSync) \
+  CURTN_DEFINE_ERROR_12_3(CUDA_ERROR_LOSSY_QUERY,               cudaErrorLossyQuery) \
+  CURTN_DEFINE_ERROR_12_6(CUDA_ERROR_FUNCTION_NOT_LOADED,       cudaErrorFunctionNotLoaded) \
+  CURTN_DEFINE_ERROR_12_6(CUDA_ERROR_INVALID_RESOURCE_TYPE,     cudaErrorInvalidResourceType) \
+  CURTN_DEFINE_ERROR_12_6(CUDA_ERROR_INVALID_RESOURCE_CONFIGURATION, cudaErrorInvalidResourceConfiguration) \
+  CURTN_DEFINE_ERROR_12_8(CUDA_ERROR_CONTAINED,                 cudaErrorContained) \
+  CURTN_DEFINE_ERROR_12_8(CUDA_ERROR_TENSOR_MEMORY_LEAK,        cudaErrorTensorMemoryLeak) \
+  CURTN_DEFINE_ERROR_13_1(CUDA_ERROR_STREAM_DETACHED,           cudaErrorStreamDetached)
 
 namespace curtn
 {
@@ -142,6 +173,7 @@ namespace curtn
     void* userData;
   };
 
+#if CUDA_VERSION < 13000
   // Per-context state
   struct ContextState
   {
@@ -149,6 +181,7 @@ namespace curtn
     std::unordered_map<const void*, CUfunction> funcs; // function handles by symbol
     uint64_t refCount = 0;                             // reference count
   };
+#endif
 
   // Global runtime state
   struct Runtime
@@ -195,6 +228,74 @@ namespace curtn
       desc->callback(stream, error, desc->userData);
     }
 
+  #if CUDA_VERSION >= 13000
+    ~Runtime()
+    {
+      // Unload all libraries
+      for (const auto& libraryItem : libraries)
+        cuLibraryUnload(libraryItem.second);
+    }
+
+    CUresult initContext()
+    {
+      return CUDA_SUCCESS;
+    }
+
+    CUresult cleanupContext()
+    {
+      return CUDA_SUCCESS;
+    }
+
+    // Returns the kernel handle for the given symbol
+    CUresult getKernel(const void* funcSymbol, CUkernel& kernel)
+    {
+      std::lock_guard<std::mutex> lock(mutex);
+
+      // Look up the kernel handle in the global state
+      auto kernelIter = kernels.find(funcSymbol);
+      if (kernelIter == kernels.end())
+      {
+        // The kernel handle has not been cached yet, look up the library handle
+        auto funcDescIter = funcDescs.find(funcSymbol);
+        if (funcDescIter == funcDescs.end())
+        {
+          // The function doesn't exist, assume that it's a cudaKernel_t
+          kernel = (CUkernel)funcSymbol;
+          return CUDA_SUCCESS;
+        }
+
+        const FunctionDesc& funcDesc = funcDescIter->second;
+
+        CUlibrary library;
+        auto libraryIter = libraries.find(funcDesc.fatCubinHandle);
+        if (libraryIter == libraries.end())
+        {
+          // The library handle has not been cached yet, load the library
+          CUresult result = cuLibraryLoadData(&library, *funcDesc.fatCubinHandle,
+                                              nullptr, nullptr, 0,
+                                              nullptr, nullptr, 0);
+
+          if (result != CUDA_SUCCESS)
+            return result;
+
+          libraries[funcDesc.fatCubinHandle] = library;
+        }
+        else
+          library = libraryIter->second;
+
+        // Get the kernel handle
+        CUresult result = cuLibraryGetKernel(&kernel, library, funcDesc.deviceName);
+        if (result != CUDA_SUCCESS)
+          return result;
+
+        kernels[funcSymbol] = kernel;
+      }
+      else
+        kernel = kernelIter->second;
+
+      return CUDA_SUCCESS;
+    }
+  #else
     // Prepares the current context for runtime API usage
     CUresult initContext()
     {
@@ -262,6 +363,7 @@ namespace curtn
     #else
       contextStates.erase(context);
     #endif
+
       return result;
     }
 
@@ -292,9 +394,13 @@ namespace curtn
       if (funcIter == cs.funcs.end())
       {
         // The function handle has not been cached yet, look up the module handle
-        const FunctionDesc& funcDesc = funcDescs[funcSymbol];
-        CUmodule module;
+        auto funcDescIter = funcDescs.find(funcSymbol);
+        if (funcDescIter == funcDescs.end())
+          return CUDA_ERROR_NOT_FOUND; // the function doesn't exist
 
+        const FunctionDesc& funcDesc = funcDescIter->second;
+
+        CUmodule module;
         auto moduleIter = cs.modules.find(funcDesc.fatCubinHandle);
         if (moduleIter == cs.modules.end())
         {
@@ -320,15 +426,22 @@ namespace curtn
 
       return CUDA_SUCCESS;
     }
+  #endif
 
     static thread_local std::vector<CallConfig> callConfigs;
     static thread_local cudaError_t lastError;
 
-  #if CUDA_VERSION >= 12000
+  #if CUDA_VERSION >= 13000
+    // Context-independent module loading
+    // https://developer.nvidia.com/blog/cuda-context-independent-module-loading/
+    std::unordered_map<void**, CUlibrary> libraries;   // library handles by fatCubinHandle
+    std::unordered_map<const void*, CUkernel> kernels; // kernel handles by symbol
+  #elif CUDA_VERSION >= 12000
     std::unordered_map<unsigned long long, ContextState> contextStates; // context states by ID
   #else
     std::unordered_map<CUcontext, ContextState> contextStates; // context states by handle
   #endif
+
     std::unordered_map<const void*, FunctionDesc> funcDescs; // function descriptors by symbol
     std::mutex mutex;
   };
@@ -669,10 +782,22 @@ namespace curtn
 
     cudaError_t CUDARTAPI cudaFuncSetAttribute(const void* func, cudaFuncAttribute attr, int value)
     {
+    #if CUDA_VERSION >= 13000
+      CUkernel kernel;
+      CUresult result = Runtime::get().getKernel(func, kernel);
+      if (result != CUDA_SUCCESS)
+        return Runtime::setError(result);
+
+      CUdevice device;
+      result = cuCtxGetDevice(&device);
+      if (result != CUDA_SUCCESS)
+        return Runtime::setError(result);
+    #else
       CUfunction funcHandle;
       CUresult result = Runtime::get().getFunction(func, funcHandle);
       if (result != CUDA_SUCCESS)
         return Runtime::setError(result);
+    #endif
 
       CUfunction_attribute cuAttr;
       switch (attr)
@@ -699,16 +824,68 @@ namespace curtn
         return Runtime::setError(cudaErrorInvalidValue);
       }
 
+    #if CUDA_VERSION >= 13000
+      result = cuKernelSetAttribute(cuAttr, value, kernel, device);
+    #else
       result = cuFuncSetAttribute(funcHandle, cuAttr, value);
+    #endif
+      return Runtime::setError(result);
+    }
+
+  #if CUDA_VERSION >= 13000
+    cudaError_t CUDARTAPI __cudaGetKernel(cudaKernel_t* kernelPtr, const void* entryFuncAddr)
+    {
+      if (kernelPtr == nullptr || entryFuncAddr == nullptr)
+        return Runtime::setError(cudaErrorInvalidValue);
+
+      CUkernel kernel;
+      CUresult result = Runtime::get().getKernel(entryFuncAddr, kernel);
+      if (result != CUDA_SUCCESS)
+        return Runtime::setError(result);
+
+      *kernelPtr = kernel;
+      return cudaSuccess;
+    }
+
+    cudaError_t CUDARTAPI __cudaLaunchKernel(cudaKernel_t kernel,
+                                             dim3 gridDim,
+                                             dim3 blockDim,
+                                             void** args,
+                                             size_t sharedMem,
+                                             cudaStream_t stream)
+    {
+      CUresult result = cuLaunchKernel((CUfunction)kernel,
+                                       gridDim.x, gridDim.y, gridDim.z,
+                                       blockDim.x, blockDim.y, blockDim.z,
+                                       sharedMem,
+                                       stream,
+                                       args,
+                                       nullptr);
+
       return Runtime::setError(result);
     }
 
     cudaError_t CUDARTAPI cudaLaunchKernel(const void* func,
-                                          dim3 gridDim,
-                                          dim3 blockDim,
-                                          void** args,
-                                          size_t sharedMem,
-                                          cudaStream_t stream)
+                                           dim3 gridDim,
+                                           dim3 blockDim,
+                                           void** args,
+                                           size_t sharedMem,
+                                           cudaStream_t stream)
+    {
+      CUkernel kernel;
+      CUresult result = Runtime::get().getKernel(func, kernel);
+      if (result != CUDA_SUCCESS)
+        return Runtime::setError(result);
+
+      return __cudaLaunchKernel(kernel, gridDim, blockDim, args, sharedMem, stream);
+    }
+  #else
+    cudaError_t CUDARTAPI cudaLaunchKernel(const void* func,
+                                           dim3 gridDim,
+                                           dim3 blockDim,
+                                           void** args,
+                                           size_t sharedMem,
+                                           cudaStream_t stream)
     {
       CUfunction funcHandle;
       CUresult result = Runtime::get().getFunction(func, funcHandle);
@@ -725,6 +902,7 @@ namespace curtn
 
       return Runtime::setError(result);
     }
+  #endif
 
     cudaError_t CUDARTAPI cudaMallocManaged(void** devPtr, size_t size, unsigned int flags)
     {
@@ -874,7 +1052,7 @@ namespace curtn
     }
 
     cudaError_t CUDARTAPI cudaImportExternalMemory(cudaExternalMemory_t* extMem_out,
-                                                  const cudaExternalMemoryHandleDesc* memHandleDesc)
+                                                   const cudaExternalMemoryHandleDesc* memHandleDesc)
     {
       CUDA_EXTERNAL_MEMORY_HANDLE_DESC cuMemHandleDesc{};
 

@@ -75,7 +75,11 @@ set_source_files_properties(
   PROPERTIES COMPILE_FLAGS ${OIDN_CUDA_SM80_FLAGS}
 )
 
-add_library(OpenImageDenoise_device_cuda SHARED ${OIDN_CUDA_SOURCES} ${OIDN_GPU_SOURCES} ${OIDN_RESOURCE_FILE})
+add_library(OpenImageDenoise_device_cuda SHARED
+  ${OIDN_CUDA_SOURCES}
+  ${OIDN_GPU_SOURCES}
+  ${OIDN_RESOURCE_FILE}
+)
 
 set_target_properties(OpenImageDenoise_device_cuda PROPERTIES
   OUTPUT_NAME ${OIDN_LIBRARY_NAME}_device_cuda
@@ -113,12 +117,22 @@ set_target_properties(OpenImageDenoise_device_cuda PROPERTIES
   CUDA_RUNTIME_LIBRARY ${OIDN_CUDA_RUNTIME_LIBRARY}
 )
 
-# Fix warning: support for offline compilation for architectures prior to SM75 will be removed
-# in a future release
-target_compile_options(OpenImageDenoise_device_cuda PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Wno-deprecated-gpu-targets>)
+# Fix warning: support for offline compilation for architectures prior to ... will be removed
+target_compile_options(OpenImageDenoise_device_cuda PRIVATE
+  $<$<COMPILE_LANGUAGE:CUDA>:-Wno-deprecated-gpu-targets>
+)
 # Fix warning: calling a constexpr __host__ function from a __host__ __device__ function is
 # not allowed (CUTLASS)
-target_compile_options(OpenImageDenoise_device_cuda PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>)
+target_compile_options(OpenImageDenoise_device_cuda PRIVATE
+  $<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>
+)
+if(MSVC)
+  # Fix warning: MSVC/cl.exe with traditional preprocessor is used. This may lead to unexpected
+  # compilation errors.
+  target_compile_definitions(OpenImageDenoise_device_cuda PRIVATE
+    CCCL_IGNORE_MSVC_TRADITIONAL_PREPROCESSOR_WARNING
+  )
+endif()
 
 target_link_libraries(OpenImageDenoise_device_cuda PRIVATE OpenImageDenoise_core)
 oidn_strip_symbols(OpenImageDenoise_device_cuda)
