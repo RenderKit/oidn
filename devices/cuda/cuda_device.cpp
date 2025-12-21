@@ -101,7 +101,7 @@ OIDN_NAMESPACE_BEGIN
   bool CUDADevice::isSupported(const cudaDeviceProp& prop)
   {
     const int smArch = prop.major * 10 + prop.minor;
-    return ((smArch >= 70 && smArch <= 109) || (smArch >= 120 && smArch <= 129)) &&
+    return ((smArch >= 75 && smArch <= 109) || (smArch >= 120 && smArch <= 129)) &&
            prop.unifiedAddressing;
   }
 

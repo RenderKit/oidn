@@ -15,8 +15,6 @@ OIDN_NAMESPACE_BEGIN
       kernels = getCutlassConvInstances<80>();
     else if (smArch >= 75)
       kernels = getCutlassConvInstances<75>();
-    else if (smArch >= 70)
-      kernels = getCutlassConvInstances<70>();
     else
       throw std::runtime_error("unsupported convolution");
 

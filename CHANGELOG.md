@@ -9,6 +9,7 @@ Version History
 -   Added AMD RDNA 3.5 GPU support, extended RDNA 2 support
 -   Fixed integer overflow and out-of-bounds write issues in image loaders (only
     affects the `oidnDenoise` example application)
+-   Removed support for NVIDIA Volta GPUs
 
 ### Changes in v2.3.3:
 

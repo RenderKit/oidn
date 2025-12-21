@@ -41,7 +41,6 @@ set(OIDN_CUDA_SOURCES
   cuda_external_buffer.cpp
   cuda_module.cpp
   cutlass_conv.h
-  cutlass_conv_sm70.cu
   cutlass_conv_sm75.cu
   cutlass_conv_sm80.cu
 )
@@ -56,18 +55,12 @@ function(oidn_set_cuda_sm_flags output_var)
   set(${output_var} "${${output_var}}" PARENT_SCOPE)
 endfunction()
 
-oidn_set_cuda_sm_flags(OIDN_CUDA_SM_FLAGS 70 75 80 90 100 120)
+oidn_set_cuda_sm_flags(OIDN_CUDA_SM_FLAGS 75 80 90 100 120)
 set_source_files_properties(
   cuda_conv.cu
   cuda_device.cu
   cuda_engine.cu
   PROPERTIES COMPILE_FLAGS ${OIDN_CUDA_SM_FLAGS}
-)
-
-oidn_set_cuda_sm_flags(OIDN_CUDA_SM70_FLAGS 70)
-set_source_files_properties(
-  cutlass_conv_sm70.cu
-  PROPERTIES COMPILE_FLAGS ${OIDN_CUDA_SM70_FLAGS}
 )
 
 oidn_set_cuda_sm_flags(OIDN_CUDA_SM75_FLAGS 75)
