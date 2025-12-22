@@ -99,9 +99,8 @@ OIDN_NAMESPACE_BEGIN
           {
             float x;
             file.read(reinterpret_cast<char*>(&x), sizeof(float));
-            if (file.fail()) {
-                throw std::runtime_error("invalid PFM image: error reading pixel data");
-            }
+            if (file.fail())
+              throw std::runtime_error("invalid PFM image: error reading pixel data");
             image->set((size_t(H-1-h)*W + w) * C + c, x * scale);
           }
         }
