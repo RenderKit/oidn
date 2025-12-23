@@ -5,7 +5,7 @@
 #include "cpu_engine.h"
 #if !defined(OIDN_BNNS)
   #include "cpu_conv.h"
-  #if defined(OIDN_ARCH_X64)
+  #if defined(OIDN_ARCH_X64) && !defined(__APPLE__)
     #include "cpu_conv_amx.h"
   #endif
 #endif
@@ -78,7 +78,7 @@ OIDN_NAMESPACE_BEGIN
 #if !defined(OIDN_BNNS)
   Ref<Conv> CPUEngine::newConv(const ConvDesc& desc)
   {
-  #if defined(OIDN_ARCH_X64)
+  #if defined(OIDN_ARCH_X64) && !defined(__APPLE__)
     if (device->getArch() == CPUArch::AVX512_AMXFP16)
       return makeRef<CPUConvAMX>(this, desc);
     else

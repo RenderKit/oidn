@@ -28,7 +28,11 @@ endif()
 
 # ISPC
 if(OIDN_ARCH STREQUAL "X64")
-  set(OIDN_ISPC_TARGET_LIST sse4.1-i32x8 avx2-i32x8 avx512skx-x16 avx512gnr-x16)
+  if(APPLE)
+    set(OIDN_ISPC_TARGET_LIST sse4.1-i32x8 avx2-i32x8 avx512skx-x16)
+  else()
+    set(OIDN_ISPC_TARGET_LIST sse4.1-i32x8 avx2-i32x8 avx512skx-x16 avx512gnr-x16)
+  endif()
 elseif(OIDN_ARCH STREQUAL "ARM64")
   set(OIDN_ISPC_TARGET_LIST neon-i32x8)
 endif()
@@ -97,7 +101,7 @@ else()
     cpu_conv.cpp
   )
 
-  if(OIDN_ARCH STREQUAL "X64")
+  if(OIDN_ARCH STREQUAL "X64" AND NOT APPLE)
     list(APPEND OIDN_CPU_SOURCES
       cpu_conv_amx.h
       cpu_conv_amx.cpp
@@ -138,7 +142,7 @@ ispc_target_add_sources(OpenImageDenoise_device_cpu
   TARGET_LIST ${OIDN_ISPC_TARGET_LIST}
 )
 
-if(OIDN_ARCH STREQUAL "X64")
+if(OIDN_ARCH STREQUAL "X64" AND NOT APPLE)
   ispc_target_add_sources(OpenImageDenoise_device_cpu
     cpu_input_process_f16.ispc
     cpu_output_process_f16.ispc
@@ -167,6 +171,18 @@ elseif(OIDN_ARCH STREQUAL "ARM64")
     cpu_pool_f16.ispc
     cpu_upsample_f16.ispc
     TARGET_LIST neon-i16x16
+  )
+else()
+  ispc_target_add_sources(OpenImageDenoise_device_cpu
+    cpu_input_process_f16.ispc
+    cpu_output_process_f16.ispc
+    TARGET_LIST avx512skx-x16
+  )
+
+  ispc_target_add_sources(OpenImageDenoise_device_cpu
+    cpu_pool_f16.ispc
+    cpu_upsample_f16.ispc
+    TARGET_LIST avx512skx-x32
   )
 endif()
 

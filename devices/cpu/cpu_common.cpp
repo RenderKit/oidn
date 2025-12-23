@@ -4,7 +4,7 @@
 #include "cpu_common.h"
 #if !defined(OIDN_BNNS)
   #include "cpu_conv_ispc.h"
-  #if defined(OIDN_ARCH_X64)
+  #if defined(OIDN_ARCH_X64) && !defined(__APPLE__)
     #include "cpu_conv_amx_ispc.h"
   #endif
 #endif
@@ -125,7 +125,7 @@ OIDN_NAMESPACE_BEGIN
     return acc;
   }
 
-#if defined(OIDN_ARCH_X64)
+#if defined(OIDN_ARCH_X64) && !defined(__APPLE__)
   Tensor::operator ispc::TensorAccessor4D_OIhwPoQiRoSi()
   {
     if (getRank() != 4 || layout != TensorLayout::OIhw2o16i16o2i)
