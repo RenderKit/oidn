@@ -80,6 +80,8 @@ set_source_files_properties(
   PROPERTIES COMPILE_FLAGS "-mcumode -mno-wavefrontsize64" # Navi3x optimizations
 )
 
+# Fix error with ROCm 7: constexpr function never produces a constant expression
+target_compile_options(OpenImageDenoise_device_hip PRIVATE -Wno-invalid-constexpr)
 # Fix warning: ignoring return value of function declared with 'nodiscard' attribute (HIP API)
 target_compile_options(OpenImageDenoise_device_hip PRIVATE -Wno-unused-result)
 if(WIN32)

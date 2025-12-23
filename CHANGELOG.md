@@ -10,6 +10,7 @@ Version History
 -   Fixed integer overflow and out-of-bounds write issues in image loaders (only
     affects the `oidnDenoise` example application)
 -   Added support for compilation with CUDA 13
+-   Added support for compilation with ROCm 7
 -   Removed support for NVIDIA Volta GPUs
 
 ### Changes in v2.3.3:
