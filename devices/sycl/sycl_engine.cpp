@@ -47,22 +47,30 @@ OIDN_NAMESPACE_BEGIN
   {
     switch (device->getArch())
     {
-    case SYCLArch::XeLP:
-    case SYCLArch::XeLPG:
+    case SYCLArch::Xe_NoDPAS:
+    case SYCLArch::XeLP_NoDPAS:
+    case SYCLArch::XeLPG_NoDPAS:
     case SYCLArch::XeHPC_NoDPAS:
       return xelp::newSYCLConv(this, desc);
+
+    case SYCLArch::Xe:
     case SYCLArch::XeLPGplus:
     case SYCLArch::XeHPG:
       return xehpg::newSYCLConv(this, desc);
+
   #if defined(__linux__)
     case SYCLArch::XeHPC:
       return xehpc::newSYCLConv(this, desc);
   #endif
+
+    case SYCLArch::Xe2:
     case SYCLArch::Xe2LPG:
     case SYCLArch::Xe2HPG:
+    case SYCLArch::Xe3:
     case SYCLArch::Xe3LPG:
     case SYCLArch::Xe3pXPC:
       return xe2::newSYCLConv(this, desc);
+
     default:
       throw std::logic_error("unsupported architecture");
     }

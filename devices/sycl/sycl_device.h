@@ -14,14 +14,18 @@ OIDN_NAMESPACE_BEGIN
   enum class SYCLArch
   {
     Unknown,
-    XeLP,
-    XeLPG,
+    Xe_NoDPAS,
+    XeLP_NoDPAS,
+    XeLPG_NoDPAS,
+    Xe,
     XeLPGplus,
     XeHPG,
     XeHPC,
     XeHPC_NoDPAS,
+    Xe2,
     Xe2LPG,
     Xe2HPG,
+    Xe3,
     Xe3LPG,
     Xe3pXPC,
   };

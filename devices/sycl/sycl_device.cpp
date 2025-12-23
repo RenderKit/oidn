@@ -4,6 +4,7 @@
 #include "sycl_device.h"
 #include "sycl_device_table.h"
 #include "sycl_engine.h"
+#include <level_zero/ze_intel_gpu.h>
 #include <iomanip>
 
 OIDN_NAMESPACE_BEGIN
@@ -173,23 +174,62 @@ OIDN_NAMESPACE_BEGIN
       }
     }
 
-  #if !defined(OIDN_DEVICE_SYCL_AOT)
-    // Check whether ESIMD is supported
-    // FIXME: enable when supported by ICX
-    // if (!syclDevice.has(sycl::aspect::ext_intel_esimd))
-    //   return SYCLArch::Unknown;
+    // Failed to exactly identify the architecture, try to use other methods
+    // Only Gen 12 (Xe1) to 3x (Xe3) are supported
+    if (ipVersion < 0x03000000 || ipVersion >= 0x0a000000)
+      return SYCLArch::Unknown;
 
-    // Get the EU SIMD width
+    // Check whether ESIMD is supported
+    if (!syclDevice.has(sycl::aspect::ext_intel_esimd))
+      return SYCLArch::Unknown;
+
+    // Check the EU SIMD width
     if (!syclDevice.has(sycl::aspect::ext_intel_gpu_eu_simd_width))
       return SYCLArch::Unknown;
     const int simdWidth = syclDevice.get_info<sycl::ext::intel::info::device::gpu_eu_simd_width>();
+    if (simdWidth != 8 && simdWidth != 16)
+      return SYCLArch::Unknown;
 
-    // Gen 12.0.0 or newer is required
-    if (ipVersion >= 0x03000000 && (simdWidth == 8 || simdWidth == 16))
-      return SYCLArch::XeLP; // always fallback to Xe-LP
-  #endif
+    // Check whether DPAS is supported
+    bool dpasSupported = false;
+    for (const auto& extension : extensions)
+    {
+      if (strcmp(extension.name, ZE_INTEL_DEVICE_MODULE_DP_PROPERTIES_EXP_NAME) == 0)
+      {
+        ze_intel_device_module_dp_exp_properties_t zeDeviceModDPProps
+          {ZE_STRUCTURE_INTEL_DEVICE_MODULE_DP_EXP_PROPERTIES};
 
-    return SYCLArch::Unknown;
+        ze_device_module_properties_t zeDeviceModProps{ZE_STRUCTURE_TYPE_DEVICE_MODULE_PROPERTIES};
+        zeDeviceModProps.pNext = &zeDeviceModDPProps;
+
+        if (zeDeviceGetModuleProperties(zeDevice, &zeDeviceModProps) == ZE_RESULT_SUCCESS)
+        {
+          if (zeDeviceModDPProps.flags & ZE_INTEL_DEVICE_MODULE_EXP_FLAG_DPAS)
+            dpasSupported = true;
+        }
+
+        break;
+      }
+    }
+
+    // Identify the architecture family
+    if (ipVersion >= 0x07800000)
+    {
+      if (dpasSupported && simdWidth == 16)
+        return SYCLArch::Xe3;
+    }
+    else if (ipVersion >= 0x05000000)
+    {
+      if (dpasSupported && simdWidth == 16)
+        return SYCLArch::Xe2;
+    }
+    else
+    {
+      if (dpasSupported && simdWidth == 8)
+        return SYCLArch::Xe;
+    }
+
+    return SYCLArch::Xe_NoDPAS; // safe fallback
   }
 
   int SYCLDevice::getScore(const sycl::device& syclDevice)
@@ -202,14 +242,18 @@ OIDN_NAMESPACE_BEGIN
     int score = 0;
     switch (arch)
     {
-    case SYCLArch::XeLP:         score = 1;  break;
-    case SYCLArch::XeLPG:        score = 2;  break;
+    case SYCLArch::Xe_NoDPAS:    score = 1;  break;
+    case SYCLArch::XeLP_NoDPAS:  score = 1;  break;
+    case SYCLArch::XeLPG_NoDPAS: score = 2;  break;
+    case SYCLArch::Xe:           score = 10; break;
     case SYCLArch::XeLPGplus:    score = 10; break;
     case SYCLArch::XeHPG:        score = 20; break;
     case SYCLArch::XeHPC:        score = 30; break;
     case SYCLArch::XeHPC_NoDPAS: score = 20; break;
+    case SYCLArch::Xe2:          score = 11; break;
     case SYCLArch::Xe2LPG:       score = 11; break;
     case SYCLArch::Xe2HPG:       score = 21; break;
+    case SYCLArch::Xe3:          score = 12; break;
     case SYCLArch::Xe3LPG:       score = 12; break;
     case SYCLArch::Xe3pXPC:      score = 31; break;
     default:
@@ -325,17 +369,21 @@ OIDN_NAMESPACE_BEGIN
         std::cout << "    Arch    : ";
         switch (arch)
         {
-        case SYCLArch::XeLP:         std::cout << "Xe-LP";    break;
-        case SYCLArch::XeLPG:        std::cout << "Xe-LPG";   break;
-        case SYCLArch::XeLPGplus:    std::cout << "Xe-LPG+";  break;
-        case SYCLArch::XeHPG:        std::cout << "Xe-HPG";   break;
-        case SYCLArch::XeHPC:        std::cout << "Xe-HPC";   break;
-        case SYCLArch::XeHPC_NoDPAS: std::cout << "Xe-HPC";   break;
-        case SYCLArch::Xe2LPG:       std::cout << "Xe2-LPG";  break;
-        case SYCLArch::Xe2HPG:       std::cout << "Xe2-HPG";  break;
-        case SYCLArch::Xe3LPG:       std::cout << "Xe3-LPG";  break;
-        case SYCLArch::Xe3pXPC:      std::cout << "Xe3p-XPC"; break;
-        default:                     std::cout << "Unknown";  break;
+        case SYCLArch::Xe_NoDPAS:    std::cout << "Xe";           break;
+        case SYCLArch::XeLP_NoDPAS:  std::cout << "Xe-LP";        break;
+        case SYCLArch::XeLPG_NoDPAS: std::cout << "Xe-LPG";       break;
+        case SYCLArch::Xe:           std::cout << "Xe XMX";       break;
+        case SYCLArch::XeLPGplus:    std::cout << "Xe-LPG+ XMX";  break;
+        case SYCLArch::XeHPG:        std::cout << "Xe-HPG XMX";   break;
+        case SYCLArch::XeHPC:        std::cout << "Xe-HPC XMX";   break;
+        case SYCLArch::XeHPC_NoDPAS: std::cout << "Xe-HPC";       break;
+        case SYCLArch::Xe2:          std::cout << "Xe2 XMX";      break;
+        case SYCLArch::Xe2LPG:       std::cout << "Xe2-LPG XMX";  break;
+        case SYCLArch::Xe2HPG:       std::cout << "Xe2-HPG XMX";  break;
+        case SYCLArch::Xe3:          std::cout << "Xe3 XMX";      break;
+        case SYCLArch::Xe3LPG:       std::cout << "Xe3-LPG XMX";  break;
+        case SYCLArch::Xe3pXPC:      std::cout << "Xe3p-XPC XMX"; break;
+        default:                     std::cout << "Unknown";      break;
         }
         std::cout << std::endl;
 
@@ -361,6 +409,7 @@ OIDN_NAMESPACE_BEGIN
 
     switch (arch)
     {
+    case SYCLArch::Xe:
     case SYCLArch::XeLPGplus:
     case SYCLArch::XeHPG:
       weightDataType = DataType::Float16;
@@ -368,8 +417,10 @@ OIDN_NAMESPACE_BEGIN
       break;
 
     case SYCLArch::XeHPC:
+    case SYCLArch::Xe2:
     case SYCLArch::Xe2LPG:
     case SYCLArch::Xe2HPG:
+    case SYCLArch::Xe3:
     case SYCLArch::Xe3LPG:
     case SYCLArch::Xe3pXPC:
       weightDataType = DataType::Float16;

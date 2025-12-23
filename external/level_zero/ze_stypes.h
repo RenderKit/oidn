@@ -1,0 +1,69 @@
+/*
+ * Copyright (C) 2024-2025 Intel Corporation
+ *
+ * SPDX-License-Identifier: MIT
+ *
+ */
+
+#if defined(__cplusplus)
+#pragma once
+#endif
+
+#ifndef _ZE_STYPES_H
+#define _ZE_STYPES_H
+
+#include <level_zero/ze_api.h>
+#include <level_zero/zes_api.h>
+#include <level_zero/zet_api.h>
+
+#include <cstdint>
+using ze_structure_type_ext_t = uint32_t;
+using zet_structure_type_ext_t = uint32_t;
+using zes_structure_type_ext_t = uint32_t;
+
+#define ZE_STRUCTURE_TYPE_SYNCHRONIZED_DISPATCH_EXP_DESC static_cast<ze_structure_type_ext_t>(0x00020020)
+#define ZE_STRUCTURE_TYPE_INTEL_MEDIA_COMMUNICATION_DESC static_cast<ze_structure_type_ext_t>(0x00020021)
+#define ZE_STRUCTURE_TYPE_INTEL_MEDIA_DOORBELL_HANDLE_DESC static_cast<ze_structure_type_ext_t>(0x00020022)
+#define ZE_STRUCTURE_TYPE_INTEL_DEVICE_MEDIA_EXP_PROPERTIES static_cast<ze_structure_type_ext_t>(0x00020023)
+#define ZEX_STRUCTURE_TYPE_LABEL_DESCRIPTOR static_cast<ze_structure_type_ext_t>(0x00030002)
+#define ZEX_STRUCTURE_TYPE_OPERAND_DESCRIPTOR static_cast<ze_structure_type_ext_t>(0x00030003)
+#define ZEX_STRUCTURE_TYPE_VARIABLE_DESCRIPTOR static_cast<ze_structure_type_ext_t>(0x00030004)
+#define ZEX_STRUCTURE_TYPE_TEMP_VARIABLE_DESCRIPTOR static_cast<ze_structure_type_ext_t>(0x00030005)
+#define ZEX_STRUCTURE_TYPE_VARIABLE_INFO static_cast<ze_structure_type_ext_t>(0x00030006)
+#define ZE_INTEL_DEVICE_BLOCK_ARRAY_EXP_PROPERTIES static_cast<ze_structure_type_ext_t>(0x00030007)
+#define ZEX_STRUCTURE_DEVICE_MODULE_REGISTER_FILE_EXP static_cast<ze_structure_type_ext_t>(0x00030010)
+#define ZEX_STRUCTURE_KERNEL_REGISTER_FILE_SIZE_EXP static_cast<ze_structure_type_ext_t>(0x00030012)
+#define ZE_STRUCTURE_INTEL_DEVICE_MODULE_DP_EXP_PROPERTIES static_cast<ze_structure_type_ext_t>(0x00030013)
+#define ZEX_INTEL_STRUCTURE_TYPE_EVENT_SYNC_MODE_EXP_DESC static_cast<ze_structure_type_ext_t>(0x00030016)
+#define ZE_INTEL_STRUCTURE_TYPE_DEVICE_COMMAND_LIST_WAIT_ON_MEMORY_DATA_SIZE_EXP_DESC static_cast<ze_structure_type_ext_t>(0x00030017)
+#define ZEX_INTEL_STRUCTURE_TYPE_QUEUE_ALLOCATE_MSIX_HINT_EXP_PROPERTIES static_cast<ze_structure_type_ext_t>(0x00030018)
+#define ZEX_INTEL_STRUCTURE_TYPE_QUEUE_COPY_OPERATIONS_OFFLOAD_HINT_EXP_PROPERTIES static_cast<ze_structure_type_ext_t>(0x0003001B)
+#define ZEX_STRUCTURE_COUNTER_BASED_EVENT_DESC static_cast<ze_structure_type_ext_t>(0x0003001C)
+#define ZEX_STRUCTURE_COUNTER_BASED_EVENT_EXTERNAL_SYNC_ALLOC_PROPERTIES static_cast<ze_structure_type_ext_t>(0x0003001D)
+#define ZE_STRUCTURE_TYPE_INTEL_XE_DEVICE_EXP_PROPERTIES static_cast<ze_structure_type_ext_t>(0x00030021)
+#define ZEX_STRUCTURE_COUNTER_BASED_EVENT_EXTERNAL_STORAGE_ALLOC_PROPERTIES static_cast<ze_structure_type_ext_t>(0x00030027)
+#define ZE_STRUCTURE_TYPE_QUEUE_PRIORITY_DESC static_cast<ze_structure_type_ext_t>(0x00030028)
+#ifndef ZE_RECORD_REPLAY_GRAPH_EXP_NAME
+#define ZE_STRUCTURE_TYPE_RECORD_REPLAY_GRAPH_EXP_PROPERTIES static_cast<ze_structure_type_ext_t>(0x00030029)
+#define ZE_STRUCTURE_TYPE_RECORD_REPLAY_GRAPH_EXP_DUMP_DESC static_cast<ze_structure_type_ext_t>(0x00030031)
+#endif // ZE_RECORD_REPLAY_GRAPH_EXP_NAME
+#define ZEX_STRUCTURE_TYPE_MEMORY_FREE_CALLBACK_EXT_DESC static_cast<ze_structure_type_ext_t>(0x00030030)
+
+// Metric structure types
+#define ZET_STRUCTURE_TYPE_INTEL_METRIC_SCOPE_PROPERTIES_EXP static_cast<zet_structure_type_ext_t>(0x00010006)
+#define ZET_INTEL_STRUCTURE_TYPE_METRIC_HW_BUFFER_SIZE_EXP_DESC static_cast<zet_structure_type_ext_t>(0x00010007)
+#define ZET_INTEL_STRUCTURE_TYPE_METRIC_GROUP_CALCULATION_EXP_PROPERTIES static_cast<zet_structure_type_ext_t>(0x00010008)
+#define ZET_INTEL_STRUCTURE_TYPE_METRIC_CALCULATION_DESC_EXP static_cast<zet_structure_type_ext_t>(0x00010009)
+#define ZET_INTEL_STRUCTURE_TYPE_METRIC_SOURCE_ID_EXP static_cast<zet_structure_type_ext_t>(0x0001000a)
+#define ZET_INTEL_STRUCTURE_TYPE_METRIC_DECODED_BUFFER_PROPERTIES_EXP static_cast<zet_structure_type_ext_t>(0x0001000b)
+#define ZET_INTEL_STRUCTURE_TYPE_METRIC_CALCULABLE_PROPERTIES_EXP static_cast<zet_structure_type_ext_t>(0x0001000c)
+
+// Sysman structure types
+#define ZES_INTEL_PCI_LINK_SPEED_DOWNGRADE_EXP_STATE static_cast<zes_structure_type_ext_t>(0x00040001)
+#define ZES_INTEL_PCI_LINK_SPEED_DOWNGRADE_EXP_PROPERTIES static_cast<zes_structure_type_ext_t>(0x00040002)
+#define ZES_INTEL_DRIVER_NAME_EXP_PROPERTIES static_cast<zes_structure_type_ext_t>(0x00040003)
+#define ZES_INTEL_STRUCTURE_TYPE_FREQUENCY_THROTTLE_DETAILED_REASON_EXP static_cast<zes_structure_type_ext_t>(0x00040004)
+#define ZES_INTEL_STRUCTURE_TYPE_RAS_CONFIG_EXP static_cast<zes_structure_type_ext_t>(0x00040005)
+#define ZES_INTEL_STRUCTURE_TYPE_RAS_STATE_EXP static_cast<zes_structure_type_ext_t>(0x00040006)
+
+#endif

@@ -22,7 +22,7 @@ OIDN_NAMESPACE_BEGIN
   inline const std::vector<SYCLDeviceTableEntry> syclDeviceTable =
   {
     {
-      SYCLArch::XeLP,
+      SYCLArch::XeLP_NoDPAS,
       {
         0x03000000, // tgllp
         0x03004000, // rkl
@@ -33,7 +33,7 @@ OIDN_NAMESPACE_BEGIN
       }
     },
     {
-      SYCLArch::XeLPG,
+      SYCLArch::XeLPG_NoDPAS,
       {
         0x03118000, // mtl-u
         0x0311c000, // mtl-h
