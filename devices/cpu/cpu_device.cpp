@@ -51,8 +51,19 @@ OIDN_NAMESPACE_BEGIN
     if (arch == CPUArch::Unknown)
       return {};
 
-    // Prefer the CPU over some low-power integrated GPUs
-    int score = (1 << 16) + 61;
+    int score = 0;
+    switch (arch)
+    {
+    case CPUArch::AVX512_AMXFP16:
+      score = (15 << 16);
+      break;
+
+    default:
+      // Prefer the CPU over some low-power integrated GPUs
+      score = (1 << 16) + 61;
+      break;
+    }
+
     return {makeRef<CPUPhysicalDevice>(score)};
   }
 
