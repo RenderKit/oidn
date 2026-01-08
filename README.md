@@ -1,6 +1,6 @@
 # Intel® Open Image Denoise
 
-This is release v2.3.3 of Intel Open Image Denoise. For changes and new
+This is release v2.4.0 of Intel Open Image Denoise. For changes and new
 features see the [changelog](CHANGELOG.md). Visit
 https://www.openimagedenoise.org for more information.
 
@@ -58,13 +58,12 @@ different vendors:
     Graphics, Intel® Core™ Ultra Processors with Intel® Arc™ Graphics,
     11th-14th Gen Intel® Core™ processor graphics, and related Intel
     Pentium® and Celeron® processors (Xe-LP, Xe-LPG, Xe-LPG+, Xe-HPG,
-    Xe-HPC, Xe2-LPG, Xe2-HPG, and Xe3-LPG microarchitectures)
+    Xe-HPC, Xe2-LPG, Xe2-HPG, Xe3-LPG, and Xe3p-XPC microarchitectures)
 
-  - NVIDIA GPUs with Volta, Turing, Ampere, Ada Lovelace, Hopper, and
-    Blackwell architectures
+  - NVIDIA GPUs with Turing, Ampere, Ada Lovelace, Hopper, and Blackwell
+    architectures
 
-  - AMD GPUs with RDNA2 (Navi 21 only), RDNA3 (Navi 3x), and RDNA4 (Navi
-    4x) architectures
+  - AMD GPUs with RDNA 2, RDNA 3, RDNA 3.5, and RDNA 4 architectures
 
   - Apple silicon GPUs (M1 and newer)
 
@@ -74,9 +73,10 @@ only for offline rendering, but, depending on the hardware used, also
 for interactive or even real-time ray tracing.
 
 Intel Open Image Denoise exploits modern instruction sets like SSE4,
-AVX2, AVX-512, and NEON on CPUs, Intel® Xe Matrix Extensions (Intel®
-XMX) on Intel GPUs, and tensor cores on NVIDIA GPUs to achieve high
-denoising performance.
+AVX2, AVX-512, Intel® Advanced Matrix Extensions (Intel® AMX), and NEON
+on CPUs, Intel® Xe Matrix Extensions (Intel® XMX) on Intel GPUs, and
+various other AI acceleration capabilities on NVIDIA, AMD, and Apple
+GPUs.
 
 ## System Requirements
 
@@ -88,14 +88,12 @@ For Intel GPU support, please also install the latest Intel graphics
 drivers:
 
   - Windows: [Intel® Graphics
-    Driver](https://www.intel.com/content/www/us/en/download/726609/intel-arc-iris-xe-graphics-whql-windows.html)
+    Driver](https://www.intel.com/content/www/us/en/download-center/home.html)
     31.0.101.4953 or newer
 
   - Linux: [Intel® software for General Purpose GPU
-    capabilities](https://dgpu-docs.intel.com/driver/installation.html)
-    release
-    [20230323](https://dgpu-docs.intel.com/releases/stable_602_20230323.html)
-    or newer
+    capabilities](https://dgpu-docs.intel.com/driver/overview/overview.html)
+    release 20230323 or newer
 
 Using older driver versions is *not* supported and Intel Open Image
 Denoise might run with only limited capabilities, have suboptimal
@@ -116,8 +114,8 @@ drivers](https://www.amd.com/en/support):
   - Windows: AMD Software: Adrenalin Edition 25.3.1 or newer
 
   - Linux: [Radeon Software for
-    Linux](https://www.amd.com/en/support/linux-drivers) version 24.30.4
-    or newer
+    Linux](https://www.amd.com/en/support/download/linux-drivers.html)
+    version 25.30.1 or newer
 
 For Apple GPU support, macOS Ventura or newer is required.
 
@@ -187,52 +185,50 @@ additional prerequisites are needed:
 
 #### CPU device:
 
-  - [Intel® SPMD Program Compiler (ISPC)](http://ispc.github.io) 1.21.0
+  - [Intel® SPMD Program Compiler (ISPC)](http://ispc.github.io) 1.29.1
     or newer. Please obtain a release of ISPC from the [ISPC downloads
     page](https://ispc.github.io/downloads.html). The build system looks
     for ISPC in the `PATH` and in the directory right “next to” the
     checked-out Intel Open Image Denoise sources. For example, if Intel
     Open Image Denoise is in `~/Projects/oidn`, ISPC will also be
-    searched in `~/Projects/ispc-v1.21.0-linux`. Alternatively set the
+    searched in `~/Projects/ispc-v1.29.1-linux`. Alternatively set the
     CMake variable `ISPC_EXECUTABLE` to the location of the ISPC
     compiler.
 
   - [Intel® Threading Building
-    Blocks](https://github.com/oneapi-src/oneTBB) (TBB) 2017 or newer
+    Blocks](https://github.com/uxlfoundation/oneTBB) (TBB) 2017 or newer
 
 #### SYCL device for Intel GPUs:
 
   - oneAPI DPC++ Compiler, one of the following versions (other versions
     might work as well but have *not* been validated with Intel Open
     Image Denoise):
-
+    
       - [oneAPI DPC++
-        Compiler 6.0.1](https://github.com/intel/llvm/releases/tag/v6.0.1).
-        This is the open source version of the compiler, which needs to
-        be built from source. We recommend building it with the
-        `--disable-jit` flag to minimize the size of the SYCL runtime
-        binaries.
+        Compiler 6.2.1](https://github.com/intel/llvm/releases/tag/v6.2.1).
+        This is the open source version of the compiler.
       - [Intel® oneAPI DPC++/C++
         Compiler](https://www.intel.com/content/www/us/en/developer/tools/oneapi/dpc-compiler.html)
-        2024.1 or newer
+        2025.3 or newer
 
-  - Intel® Graphics Offline Compiler for OpenCL™ Code (OCLOC)
-
-      - Windows: Version [2025.0.0
-        / 32.0.101.6129](https://registrationcenter-download.intel.com/akdlm/IRC_NAS/7000f8d2-dda8-4dd6-8b63-3917e4476fa5/intel-ocloc-2025.0.0.257_offline.exe)
+  - *Optional*: Intel® Graphics Offline Compiler for OpenCL™ Code
+    (OCLOC), if building with `OIDN_DEVICE_SYCL_AOT` enabled
+    
+      - Windows: Version [2025.3.3
+        / 32.0.101.8331](https://registrationcenter-download.intel.com/akdlm/IRC_NAS/cb17f6e4-6e61-47c7-bb27-1008b23f1c7b/intel-ocloc-2025.3.3.4_offline.exe)
         or newer as a [standalone component of Intel® oneAPI
         Toolkits](https://www.intel.com/content/www/us/en/developer/articles/tool/oneapi-standalone-components.html),
         which must be extracted and its contents added to the `PATH`.
         Also included with [Intel® oneAPI Base
         Toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/toolkits.html#base-kit).
-
+    
       - Linux: Included with [Intel® software for General Purpose GPU
         capabilities](https://dgpu-docs.intel.com) release
-        [2441.19](https://dgpu-docs.intel.com/releases/rolling-release-notes.html#release-2024-10-31)
+        [LTS 2523.x](https://dgpu-docs.intel.com/releases/LTS-release-notes.html#release-2025-12-11)
         or newer (install at least `intel-opencl-icd` on Ubuntu,
-        `intel-ocloc` on RHEL or SLES). Also available with [Intel®
-        Graphics Compute Runtime for oneAPI Level Zero and OpenCL™
-        Driver](https://github.com/intel/compute-runtime).
+        `intel-ocloc` on RHEL or SLES). For more recent versions please
+        refer to [Intel® Graphics Compute Runtime for oneAPI Level Zero
+        and OpenCL™ Driver](https://github.com/intel/compute-runtime).
 
   - If using Intel® oneAPI DPC++/C++ Compiler:
     [CMake](http://www.cmake.org) 3.25.2 or newer
@@ -276,12 +272,8 @@ follow the included instructions.
 If you are building with SYCL support on Linux, make sure that the DPC++
 compiler is properly set up. The open source oneAPI DPC++ Compiler can
 be downloaded and simply extracted. However, before using the compiler,
-the environment must be set up as well with the following command:
-
-    source ./dpcpp_compiler/startup.sh
-
-The `startup.sh` script will put `clang` and `clang++` from the oneAPI
-DPC++ Compiler into your `PATH`.
+the environment must be set up as described in the [Get Started
+Guide](https://github.com/intel/llvm/blob/sycl/sycl/doc/GetStartedGuide.md).
 
 Alternatively, if you have installed Intel® oneAPI DPC++/C++ Compiler
 instead, you can set up the compiler by sourcing the `vars.sh` script in
@@ -293,25 +285,25 @@ This script will put the `icx` and `icpx` compiler executables from the
 Intel(R) oneAPI DPC++/C++ Compiler in your `PATH`.
 
   - Create a build directory, and go into it using a command prompt
-
+    
         mkdir oidn/build
         cd oidn/build
-
+    
     (We do recommend having separate build directories for different
     configurations such as release, debug, etc.).
 
   - CMake will use the default compiler, which on most Linux machines is
     `gcc`, but it can be switched to `clang` by executing the following:
-
+    
         cmake -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ ..
-
+    
     If you are building with SYCL support, you must set the DPC++
     compiler (`clang`/`clang++` or `icx`/`icpx`) as the C/C++ compiler
     here. Note that the compiler variables cannot be changed after the
     first `cmake` or `ccmake` run.
 
   - Open the CMake configuration dialog
-
+    
         ccmake ..
 
   - Make sure to properly set the build mode and enable the components
@@ -319,7 +311,7 @@ Intel(R) oneAPI DPC++/C++ Compiler in your `PATH`.
     and other device support must be enabled manually (e.g. with the
     `OIDN_DEVICE_SYCL` option). Then type ’c’onfigure and ’g’enerate.
     When back on the command prompt, build the library using
-
+    
         ninja
 
 ## Compiling on Windows
@@ -327,19 +319,8 @@ Intel(R) oneAPI DPC++/C++ Compiler in your `PATH`.
 If you are building with SYCL support, make sure that the DPC++ compiler
 is properly set up. The open source oneAPI DPC++ Compiler can be
 downloaded and simply extracted. However, before using the compiler, the
-environment must be set up. To achieve this, open the “x64 Native Tools
-Command Prompt for VS” that ships with Visual Studio and execute the
-following commands:
-
-    set "DPCPP_DIR=path_to_dpcpp_compiler"
-    set "PATH=%DPCPP_DIR%\bin;%PATH%"
-    set "PATH=%DPCPP_DIR%\lib;%PATH%"
-    set "CPATH=%DPCPP_DIR%\include;%CPATH%"
-    set "INCLUDE=%DPCPP_DIR%\include;%INCLUDE%"
-    set "LIB=%DPCPP_DIR%\lib;%LIB%"
-
-The `path_to_dpcpp_compiler` should point to the unpacked oneAPI DPC++
-Compiler.
+environment must be set up as described in the [Get Started
+Guide](https://github.com/intel/llvm/blob/sycl/sycl/doc/GetStartedGuide.md).
 
 Alternatively, if you have installed Intel® oneAPI DPC++/C++ Compiler
 instead, you can either open a regular “Command Prompt” and execute the
@@ -358,26 +339,26 @@ because not all devices can be built using the Visual Studio generator
 
   - Create a build directory, and go into it using a Visual Studio
     command prompt
-
+    
         mkdir oidn/build
         cd oidn/build
-
+    
     (We do recommend having separate build directories for different
     configurations such as release, debug, etc.).
 
   - CMake will use the default compiler, which on most Windows machines
     is MSVC, but it can be switched to `clang` by executing the
     following:
-
+    
         cmake -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ ..
-
+    
     If you are building with SYCL support, you must set the DPC++
     compiler (`clang`/`clang++` or `icx`) as the C/C++ compiler here.
     Note that the compiler variables cannot be changed after the first
     `cmake` or `cmake-gui` run.
 
   - Open the CMake GUI (`cmake-gui.exe`)
-
+    
         cmake-gui ..
 
   - Make sure to properly set the build mode and enable the components
@@ -385,7 +366,7 @@ because not all devices can be built using the Visual Studio generator
     and other device support must be enabled manually
     (e.g. `OIDN_DEVICE_SYCL` option). Then click on Configure and
     Generate. When back on the command prompt, build the library using
-
+    
         ninja
 
 ## CMake Configuration
@@ -418,10 +399,9 @@ CMake:
     by default).
 
   - `OIDN_DEVICE_SYCL_AOT`: Enable ahead-of-time (AOT) compilation for
-    SYCL kernels (ON by default). Turning this off removes dependency on
-    OCLOC at build time and decreases binary size but significantly
-    increases initialization time at runtime, so it is recommended only
-    for development.
+    SYCL kernels (OFF by default). Turning this on adds dependency on
+    OCLOC at build time and increases binary size but decreases
+    initialization time at runtime.
 
   - `OIDN_DEVICE_CUDA`: Enable CUDA device support for NVIDIA GPUs (OFF
     by default).
@@ -448,9 +428,9 @@ CMake:
     default).
 
   - `OIDN_APPS_OPENIMAGEIO`: Enable
-    [OpenImageIO](http://openimageio.org/) support in the example and
-    test applications to be able to load/save OpenEXR, PNG, and other
-    image file formats (OFF by default).
+    [OpenImageIO](http://openimageio.org/) 2.1 or later support in the
+    example and test applications to be able to load/save OpenEXR, PNG,
+    and other image file formats (OFF by default).
 
   - `OIDN_INSTALL_DEPENDENCIES`: Enable installing the dependencies
     (e.g. TBB, SYCL runtime) as well.
