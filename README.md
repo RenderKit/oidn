@@ -146,7 +146,7 @@ cite the project using the following BibTeX entry:
 @misc{OpenImageDenoise,
   author = {Attila T. {\'A}fra},
   title  = {{Intel\textsuperscript{\textregistered} Open Image Denoise}},
-  year   = {2025},
+  year   = {2026},
   note   = {\url{https://www.openimagedenoise.org}}
 }
 ```
@@ -205,7 +205,7 @@ additional prerequisites are needed:
   - oneAPI DPC++ Compiler, one of the following versions (other versions
     might work as well but have *not* been validated with Intel Open
     Image Denoise):
-    
+
       - [oneAPI DPC++
         Compiler 6.0.1](https://github.com/intel/llvm/releases/tag/v6.0.1).
         This is the open source version of the compiler, which needs to
@@ -217,7 +217,7 @@ additional prerequisites are needed:
         2024.1 or newer
 
   - Intel® Graphics Offline Compiler for OpenCL™ Code (OCLOC)
-    
+
       - Windows: Version [2025.0.0
         / 32.0.101.6129](https://registrationcenter-download.intel.com/akdlm/IRC_NAS/7000f8d2-dda8-4dd6-8b63-3917e4476fa5/intel-ocloc-2025.0.0.257_offline.exe)
         or newer as a [standalone component of Intel® oneAPI
@@ -225,7 +225,7 @@ additional prerequisites are needed:
         which must be extracted and its contents added to the `PATH`.
         Also included with [Intel® oneAPI Base
         Toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/toolkits.html#base-kit).
-    
+
       - Linux: Included with [Intel® software for General Purpose GPU
         capabilities](https://dgpu-docs.intel.com) release
         [2441.19](https://dgpu-docs.intel.com/releases/rolling-release-notes.html#release-2024-10-31)
@@ -293,25 +293,25 @@ This script will put the `icx` and `icpx` compiler executables from the
 Intel(R) oneAPI DPC++/C++ Compiler in your `PATH`.
 
   - Create a build directory, and go into it using a command prompt
-    
+
         mkdir oidn/build
         cd oidn/build
-    
+
     (We do recommend having separate build directories for different
     configurations such as release, debug, etc.).
 
   - CMake will use the default compiler, which on most Linux machines is
     `gcc`, but it can be switched to `clang` by executing the following:
-    
+
         cmake -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ ..
-    
+
     If you are building with SYCL support, you must set the DPC++
     compiler (`clang`/`clang++` or `icx`/`icpx`) as the C/C++ compiler
     here. Note that the compiler variables cannot be changed after the
     first `cmake` or `ccmake` run.
 
   - Open the CMake configuration dialog
-    
+
         ccmake ..
 
   - Make sure to properly set the build mode and enable the components
@@ -319,7 +319,7 @@ Intel(R) oneAPI DPC++/C++ Compiler in your `PATH`.
     and other device support must be enabled manually (e.g. with the
     `OIDN_DEVICE_SYCL` option). Then type ’c’onfigure and ’g’enerate.
     When back on the command prompt, build the library using
-    
+
         ninja
 
 ## Compiling on Windows
@@ -358,26 +358,26 @@ because not all devices can be built using the Visual Studio generator
 
   - Create a build directory, and go into it using a Visual Studio
     command prompt
-    
+
         mkdir oidn/build
         cd oidn/build
-    
+
     (We do recommend having separate build directories for different
     configurations such as release, debug, etc.).
 
   - CMake will use the default compiler, which on most Windows machines
     is MSVC, but it can be switched to `clang` by executing the
     following:
-    
+
         cmake -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ ..
-    
+
     If you are building with SYCL support, you must set the DPC++
     compiler (`clang`/`clang++` or `icx`) as the C/C++ compiler here.
     Note that the compiler variables cannot be changed after the first
     `cmake` or `cmake-gui` run.
 
   - Open the CMake GUI (`cmake-gui.exe`)
-    
+
         cmake-gui ..
 
   - Make sure to properly set the build mode and enable the components
@@ -385,7 +385,7 @@ because not all devices can be built using the Visual Studio generator
     and other device support must be enabled manually
     (e.g. `OIDN_DEVICE_SYCL` option). Then click on Configure and
     Generate. When back on the command prompt, build the library using
-    
+
         ninja
 
 ## CMake Configuration

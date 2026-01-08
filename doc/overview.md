@@ -136,7 +136,7 @@ project using the following BibTeX entry:
 @misc{OpenImageDenoise,
   author = {Attila T. {\'A}fra},
   title  = {{Intel\textsuperscript{\textregistered} Open Image Denoise}},
-  year   = {2025},
+  year   = {2026},
   note   = {\url{https://www.openimagedenoise.org}}
 }
 ```
