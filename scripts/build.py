@@ -158,7 +158,7 @@ config_cmd += f' -D CMAKE_BUILD_TYPE={cfg.config}'
 
 if cfg.full:
   if OS != 'macos' and ARCH != 'arm64':
-    config_cmd += ' -D OIDN_DEVICE_CPU=ON -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_CUDA=ON -D OIDN_DEVICE_HIP=ON'
+    config_cmd += ' -D OIDN_DEVICE_CPU=ON -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_SYCL_AOT=ON -D OIDN_DEVICE_CUDA=ON -D OIDN_DEVICE_HIP=ON'
   elif OS == 'macos' and ARCH == 'arm64':
     config_cmd += ' -D OIDN_DEVICE_CPU=ON -D OIDN_DEVICE_METAL=ON'
 

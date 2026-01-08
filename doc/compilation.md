@@ -239,9 +239,9 @@ The following list describes the options that can be configured in CMake:
   default).
 
 - `OIDN_DEVICE_SYCL_AOT`: Enable ahead-of-time (AOT) compilation for SYCL
-  kernels (ON by default). Turning this off removes dependency on OCLOC at
-  build time and decreases binary size but significantly increases
-  initialization time at runtime, so it is recommended only for development.
+  kernels (OFF by default). Turning this on adds dependency on OCLOC at
+  build time and increases binary size but decreases initialization time
+  at runtime.
 
 - `OIDN_DEVICE_CUDA`: Enable CUDA device support for NVIDIA GPUs (OFF by
   default).
