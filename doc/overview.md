@@ -65,8 +65,8 @@ real-time ray tracing.
 
 Intel Open Image Denoise exploits modern instruction sets like SSE4, AVX2,
 AVX-512, Intel® Advanced Matrix Extensions (Intel® AMX), and NEON on CPUs,
-Intel® Xe Matrix Extensions (Intel® XMX) on Intel GPUs, and tensor cores on
-NVIDIA GPUs to achieve high denoising performance.
+Intel® Xe Matrix Extensions (Intel® XMX) on Intel GPUs, and various other
+AI acceleration capabilities on NVIDIA, AMD, and Apple GPUs.
 
 
 System Requirements
@@ -79,13 +79,12 @@ operating system as well.
 For Intel GPU support, please also install the latest Intel graphics drivers:
 
 -   Windows:
-    [Intel® Graphics Driver](https://www.intel.com/content/www/us/en/download/726609/intel-arc-iris-xe-graphics-whql-windows.html)
+    [Intel® Graphics Driver](https://www.intel.com/content/www/us/en/download-center/home.html)
     31.0.101.4953 or newer
 
 -   Linux:
-    [Intel® software for General Purpose GPU capabilities](https://dgpu-docs.intel.com/driver/installation.html)
-    release [20230323](https://dgpu-docs.intel.com/releases/stable_602_20230323.html)
-    or newer
+    [Intel® software for General Purpose GPU capabilities](https://dgpu-docs.intel.com/driver/overview/overview.html)
+    release 20230323 or newer
 
 Using older driver versions is *not* supported and Intel Open Image Denoise
 might run with only limited capabilities, have suboptimal performance or might
@@ -105,8 +104,8 @@ For AMD GPU support, please also install the latest
 
 -   Windows: AMD Software: Adrenalin Edition 25.3.1 or newer
 
--   Linux: [Radeon Software for Linux](https://www.amd.com/en/support/linux-drivers)
-    version 24.30.4 or newer
+-   Linux: [Radeon Software for Linux](https://www.amd.com/en/support/download/linux-drivers.html)
+    version 25.30.1 or newer
 
 For Apple GPU support, macOS Ventura or newer is required.
 

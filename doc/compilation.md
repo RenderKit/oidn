@@ -41,26 +41,25 @@ prerequisites are needed:
     system looks for ISPC in the `PATH` and in the directory right "next to" the
     checked-out Intel Open Image Denoise sources. For example, if Intel Open
     Image Denoise is in `~/Projects/oidn`, ISPC will also be searched in
-    `~/Projects/ispc-v1.29.0-linux`. Alternatively set the CMake variable
+    `~/Projects/ispc-v1.29.1-linux`. Alternatively set the CMake variable
     `ISPC_EXECUTABLE` to the location of the ISPC compiler.
 
--   [Intel® Threading Building Blocks](https://github.com/oneapi-src/oneTBB)
+-   [Intel® Threading Building Blocks](https://github.com/uxlfoundation/oneTBB)
     (TBB) 2017 or newer
 
 #### SYCL device for Intel GPUs: {-}
 
 -   oneAPI DPC++ Compiler, one of the following versions (other versions might
     work as well but have *not* been validated with Intel Open Image Denoise):
-    -   [oneAPI DPC++ Compiler 6.0.1](https://github.com/intel/llvm/releases/tag/v6.0.1).
-        This is the open source version of the compiler, which needs to be built
-        from source. We recommend building it with the `--disable-jit` flag to
-        minimize the size of the SYCL runtime binaries.
+    -   [oneAPI DPC++ Compiler 6.2.1](https://github.com/intel/llvm/releases/tag/v6.2.1).
+        This is the open source version of the compiler.
     -   [Intel® oneAPI DPC++/C++ Compiler](https://www.intel.com/content/www/us/en/developer/tools/oneapi/dpc-compiler.html)
-        2024.1 or newer
+        2025.3 or newer
 
--   Intel® Graphics Offline Compiler for OpenCL™ Code (OCLOC)
+-   _Optional_: Intel® Graphics Offline Compiler for OpenCL™ Code (OCLOC), if
+    building with `OIDN_DEVICE_SYCL_AOT` enabled
     -   Windows:
-        Version [2025.0.0 / 32.0.101.6129](https://registrationcenter-download.intel.com/akdlm/IRC_NAS/7000f8d2-dda8-4dd6-8b63-3917e4476fa5/intel-ocloc-2025.0.0.257_offline.exe)
+        Version [2025.3.3 / 32.0.101.8331](https://registrationcenter-download.intel.com/akdlm/IRC_NAS/cb17f6e4-6e61-47c7-bb27-1008b23f1c7b/intel-ocloc-2025.3.3.4_offline.exe)
         or newer as a
         [standalone component of Intel® oneAPI Toolkits](https://www.intel.com/content/www/us/en/developer/articles/tool/oneapi-standalone-components.html),
         which must be extracted and its contents added to the `PATH`.
@@ -68,9 +67,9 @@ prerequisites are needed:
         [Intel® oneAPI Base Toolkit](https://www.intel.com/content/www/us/en/developer/tools/oneapi/toolkits.html#base-kit).
 
     -   Linux: Included with [Intel® software for General Purpose GPU capabilities](https://dgpu-docs.intel.com)
-        release [2441.19](https://dgpu-docs.intel.com/releases/rolling-release-notes.html#release-2024-10-31) or newer
+        release [LTS 2523.x](https://dgpu-docs.intel.com/releases/LTS-release-notes.html#release-2025-12-11) or newer
         (install at least `intel-opencl-icd` on Ubuntu, `intel-ocloc` on RHEL or SLES).
-        Also available with
+        For more recent versions please refer to
         [Intel® Graphics Compute Runtime for oneAPI Level Zero and OpenCL™ Driver](https://github.com/intel/compute-runtime).
 
 -   If using Intel® oneAPI DPC++/C++ Compiler:
@@ -115,12 +114,8 @@ Compiling on Linux/macOS
 If you are building with SYCL support on Linux, make sure that the DPC++
 compiler is properly set up. The open source oneAPI DPC++ Compiler can be
 downloaded and simply extracted. However, before using the compiler, the
-environment must be set up as well with the following command:
-
-    source ./dpcpp_compiler/startup.sh
-
-The `startup.sh` script will put `clang` and `clang++` from the
-oneAPI DPC++ Compiler into your `PATH`.
+environment must be set up as described in the
+[Get Started Guide](https://github.com/intel/llvm/blob/sycl/sycl/doc/GetStartedGuide.md).
 
 Alternatively, if you have installed Intel® oneAPI DPC++/C++ Compiler instead,
 you can set up the compiler by sourcing the `vars.sh` script in the `env`
@@ -168,18 +163,8 @@ Compiling on Windows
 If you are building with SYCL support, make sure that the DPC++ compiler is
 properly set up. The open source oneAPI DPC++ Compiler can be downloaded and
 simply extracted. However, before using the compiler, the environment must be
-set up. To achieve this, open the "x64 Native Tools Command Prompt for VS"
-that ships with Visual Studio and execute the following commands:
-
-    set "DPCPP_DIR=path_to_dpcpp_compiler"
-    set "PATH=%DPCPP_DIR%\bin;%PATH%"
-    set "PATH=%DPCPP_DIR%\lib;%PATH%"
-    set "CPATH=%DPCPP_DIR%\include;%CPATH%"
-    set "INCLUDE=%DPCPP_DIR%\include;%INCLUDE%"
-    set "LIB=%DPCPP_DIR%\lib;%LIB%"
-
-The `path_to_dpcpp_compiler` should point to the unpacked oneAPI DPC++
-Compiler.
+set up as described in the
+[Get Started Guide](https://github.com/intel/llvm/blob/sycl/sycl/doc/GetStartedGuide.md).
 
 Alternatively, if you have installed Intel® oneAPI DPC++/C++ Compiler instead,
 you can either open a regular "Command Prompt" and execute the `vars.bat` script
