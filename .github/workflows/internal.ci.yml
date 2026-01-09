@@ -50,9 +50,10 @@ jobs:
     with:
       project: oidn
       runs-on: '[ "macOS", "sign", "x86_64", "vis-mac-pro-1" ]'
-      cmd: scripts/build.py package --full
+      cmd: scripts/build.py package --full --sign
       artifact-out: package-macos
       artifact-path: build/oidn-*.tar.gz
+      notarize-package: build/oidn-*.zip
 
   package-macos-arm:
     secrets: inherit
@@ -60,9 +61,10 @@ jobs:
     with:
       project: oidn
       runs-on: '[ "macOS", "ARM64", "vis-mac-studio-1" ]'
-      cmd: scripts/build.py package --full
+      cmd: scripts/build.py package --full --sign
       artifact-out: package-macos-arm
       artifact-path: build/oidn-*.tar.gz
+      notarize-package: build/oidn-*.zip
 
   package-windows:
     secrets: inherit
@@ -78,7 +80,7 @@ jobs:
         where ocloc.exe
         where $env:CC
         where $env:CXX
-        python scripts/build.py package --full
+        python scripts/build.py package --full --sign
       artifact-out: package-windows
       artifact-path: build/oidn-*.zip
 

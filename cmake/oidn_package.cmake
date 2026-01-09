@@ -80,7 +80,7 @@ else()
 
   if(APPLE)
     # macOS specific settings
-    set(CPACK_GENERATOR TGZ)
+    set(CPACK_GENERATOR "TGZ;ZIP") # ZIP for notarization only
     set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}.${ARCH}.macos")
     set(CPACK_MONOLITHIC_INSTALL 1)
   else()

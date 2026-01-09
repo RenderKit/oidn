@@ -45,6 +45,7 @@ parser.add_argument('--install_dir', '-I', type=str, help='install directory')
 parser.add_argument('--compiler', type=str, choices=(['default'] + compilers[OS]), default='default')
 parser.add_argument('--config', type=str, choices=['Debug', 'Release', 'RelWithDebInfo'], default='Release')
 parser.add_argument('--full', action='store_true', help='build with full device support')
+parser.add_argument('--sign', action='store_true', help='sign the binaries')
 parser.add_argument('--wrapper', type=str, help='wrap build command')
 parser.add_argument('-D', dest='cmake_vars', type=str, action='append', help='create or update a CMake cache entry')
 cfg = parser.parse_args()
@@ -177,6 +178,9 @@ if cfg.target == 'package' and OS == 'windows':
 if cfg.target == 'install':
   config_cmd += f' -D CMAKE_INSTALL_PREFIX={cfg.install_dir}'
 
+if OS == 'macos' and cfg.sign:
+  config_cmd += ' -D CPACK_PRE_BUILD_SCRIPTS=$CPACK_PRE_BUILD_SIGNING_SCRIPT'
+
 if cfg.cmake_vars:
   for var in cfg.cmake_vars:
     config_cmd += f' -D {var}'
@@ -225,16 +229,16 @@ if cfg.target == 'package':
       check_symbols_linux(filename)
 
   # Sign the binaries
-  sign_tool = None
-  if OS == 'windows':
-    sign_tool = os.environ.get('SIGN_FILE_WINDOWS')
-    sign_tool_cmd = f'{sign_tool} -q -vv'
-  elif OS == 'macos':
-    sign_tool = os.environ.get('MACOS_SIGNING_SCRIPT')
-    sign_tool_cmd = sign_tool
-  if sign_tool:
-    for filename in binaries:
-      run(f'{sign_tool_cmd} {filename}')
+  if cfg.sign:
+    sign_tool = None
+    if OS == 'windows':
+      sign_tool = os.environ.get('SIGN_FILE_WINDOWS')
+      if not sign_tool:
+        raise Exception('SIGN_FILE_WINDOWS environment variable not set')
+      sign_tool_cmd = f'{sign_tool} -q -vv'
+    if sign_tool:
+      for filename in binaries:
+        run(f'{sign_tool_cmd} {filename}')
 
   # Make the binaries consistently executable
   if OS != 'windows':
