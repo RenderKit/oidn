@@ -313,7 +313,7 @@ jobs:
       artifact-out: build-rockylinux8-oldsyclos
       artifact-path: build install deps
 
-  build-rockylinux8-syclos:
+  build-rockylinux8-oldsyclos:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
     with:
@@ -1364,7 +1364,7 @@ jobs:
       artifact-path: build install
       cmd: python scripts/build.py install --full -D OIDN_DEVICE_CUDA_API=RuntimeStatic
 
-  build-windows-syclos:
+  build-windows-oldsyclos:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
@@ -1558,6 +1558,7 @@ jobs:
     with:
       project: oidn
       runs-on: '[ "Windows", "avx2", "NAS" ]'
+      dpcpp-version: intel/2025.3
       artifact-in: build-windows-icx
       artifact-out: test-windows-icx-avx2
       artifact-path: test.log
@@ -1749,6 +1750,7 @@ jobs:
       project: oidn
       runs-on: '[ "Windows", "dg2", "NAS" ]'
       env-from-files: ./.github/workflows/gfx-windows-public.env
+      dpcpp-version: intel/2025.3
       artifact-in: build-windows-icx
       artifact-out: test-windows-icx-dg2
       artifact-path: test.log
