@@ -31,9 +31,9 @@ jobs:
         mkdir /tmp/deps
         cd /tmp/deps
 
-        wget https://github.com/ispc/ispc/releases/download/v1.24.0/ispc-v1.24.0-linux.tar.gz
-        tar -xvf ispc-v1.24.0-linux.tar.gz
-        echo "PATH=$PATH:`pwd`/ispc-v1.24.0-linux/bin" >> $GITHUB_ENV
+        wget https://github.com/ispc/ispc/releases/download/v1.29.1/ispc-v1.29.1-linux.tar.gz
+        tar -xvf ispc-v1.29.1-linux.tar.gz
+        echo "PATH=$PATH:`pwd`/ispc-v1.29.1-linux/bin" >> $GITHUB_ENV
 
     - name: Checkout Repository
       uses: actions/checkout@v4
@@ -90,9 +90,9 @@ jobs:
         mkdir /tmp/deps
         cd /tmp/deps
 
-        wget https://github.com/ispc/ispc/releases/download/v1.24.0/ispc-v1.24.0-linux.tar.gz
-        tar -xvf ispc-v1.24.0-linux.tar.gz
-        echo "PATH=$PATH:`pwd`/ispc-v1.24.0-linux/bin" >> $GITHUB_ENV
+        wget https://github.com/ispc/ispc/releases/download/v1.29.1/ispc-v1.29.1-linux.tar.gz
+        tar -xvf ispc-v1.29.1-linux.tar.gz
+        echo "PATH=$PATH:`pwd`/ispc-v1.29.1-linux/bin" >> $GITHUB_ENV
 
     - name: Checkout Repository
       uses: actions/checkout@v4
@@ -149,9 +149,9 @@ jobs:
         mkdir /tmp/deps
         cd /tmp/deps
 
-        wget https://github.com/ispc/ispc/releases/download/v1.24.0/ispc-v1.24.0-linux.aarch64.tar.gz
-        tar -xvf ispc-v1.24.0-linux.aarch64.tar.gz
-        echo "PATH=$PATH:`pwd`/ispc-v1.24.0-linux.aarch64/bin" >> $GITHUB_ENV
+        wget https://github.com/ispc/ispc/releases/download/v1.29.1/ispc-v1.29.1-linux.aarch64.tar.gz
+        tar -xvf ispc-v1.29.1-linux.aarch64.tar.gz
+        echo "PATH=$PATH:`pwd`/ispc-v1.29.1-linux.aarch64/bin" >> $GITHUB_ENV
 
     - name: Checkout Repository
       uses: actions/checkout@v4
@@ -171,7 +171,7 @@ jobs:
       with:
         name: build-cpu-rocky-8-arm
         path: build/install
-  
+
   test-cpu-rocky-8-arm:
     needs: build-cpu-rocky-8-arm
     runs-on: ubuntu-24.04-arm
@@ -191,7 +191,7 @@ jobs:
           chmod +x ./bin/*
           ./bin/oidnTest
           ./bin/oidnBenchmark -v 1
-          
+
   build-cpu-ubuntu-2204-arm:
     runs-on: ubuntu-24.04-arm
     container:
@@ -208,9 +208,9 @@ jobs:
         mkdir /tmp/deps
         cd /tmp/deps
 
-        wget https://github.com/ispc/ispc/releases/download/v1.24.0/ispc-v1.24.0-linux.aarch64.tar.gz
-        tar -xvf ispc-v1.24.0-linux.aarch64.tar.gz
-        echo "PATH=$PATH:`pwd`/ispc-v1.24.0-linux.aarch64/bin" >> $GITHUB_ENV
+        wget https://github.com/ispc/ispc/releases/download/v1.29.1/ispc-v1.29.1-linux.aarch64.tar.gz
+        tar -xvf ispc-v1.29.1-linux.aarch64.tar.gz
+        echo "PATH=$PATH:`pwd`/ispc-v1.29.1-linux.aarch64/bin" >> $GITHUB_ENV
 
     - name: Checkout Repository
       uses: actions/checkout@v4
@@ -230,7 +230,7 @@ jobs:
       with:
         name: build-cpu-ubuntu-2204-arm
         path: build/install
-        
+
   test-cpu-ubuntu-2204-arm:
     needs: build-cpu-ubuntu-2204-arm
     runs-on: ubuntu-24.04-arm
@@ -250,4 +250,4 @@ jobs:
           chmod +x ./bin/*
           ./bin/oidnTest
           ./bin/oidnBenchmark -v 1
-          
+
