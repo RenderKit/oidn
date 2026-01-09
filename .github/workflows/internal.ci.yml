@@ -313,17 +313,6 @@ jobs:
       artifact-out: build-rockylinux8-oldsyclos
       artifact-path: build install deps
 
-  build-rockylinux8-oldsyclos:
-    secrets: inherit
-    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
-    with:
-      project: oidn
-      image: oidn/rockylinux:8
-      dpcpp-version: intel-llvm/sycl-rel_5_2_0-rk
-      cmd: scripts/build.py install --full -D OIDN_DEVICE_SYCL_AOT=OFF
-      artifact-out: build-rockylinux8-syclos
-      artifact-path: build install deps
-
   build-ubuntu2404-gcc:
     secrets: inherit
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/docker.yml@main
