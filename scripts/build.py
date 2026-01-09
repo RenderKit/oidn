@@ -229,8 +229,8 @@ if cfg.target == 'package':
       check_symbols_linux(filename)
 
   # Sign the binaries
+  sign_tool = None
   if cfg.sign:
-    sign_tool = None
     if OS == 'windows':
       sign_tool = os.environ.get('SIGN_FILE_WINDOWS')
       if not sign_tool:
