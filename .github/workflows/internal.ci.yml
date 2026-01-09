@@ -1439,15 +1439,25 @@ jobs:
       artifact-path: build install
       cmd: python scripts/build.py install --compiler msvc17 -D OIDN_SANITIZER=Address
 
-  # build-windows-arm-msvc17:
-  #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
-  #   with:
-  #     project: oidn
-  #     runs-on: '[ "Windows", "arm" ]'
-  #     artifact-out: build-windows-arm-msvc17
-  #     artifact-path: build install
-  #     cmd: python scripts/build.py install --compiler msvc17
+  build-windows-arm-msvc17:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "ARM64" ]'
+      artifact-out: build-windows-arm-msvc17
+      artifact-path: build install
+      cmd: python scripts/build.py install --compiler msvc17
+
+  build-windows-arm-msvc17-debug:
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "ARM64" ]'
+      artifact-out: build-windows-arm-msvc17-debug
+      artifact-path: build install
+      cmd: python scripts/build.py install --compiler msvc17 --config Debug
 
   test-windows-avx2:
     needs: build-windows
@@ -1455,7 +1465,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "avx2", "NAS" ]'
+      runs-on: '[ "Windows", "avx2" ]'
       artifact-in: build-windows
       artifact-out: test-windows-avx2
       artifact-path: test.log
@@ -1468,7 +1478,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "avx512", "NAS" ]'
+      runs-on: '[ "Windows", "avx512" ]'
       artifact-in: build-windows
       artifact-out: test-windows-avx512
       artifact-path: test.log
@@ -1481,7 +1491,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "avx512", "NAS" ]'
+      runs-on: '[ "Windows", "avx512" ]'
       artifact-in: build-windows-namespace-nover
       artifact-out: test-windows-namespace-nover-avx512
       artifact-path: test.log
@@ -1494,7 +1504,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "avx2", "NAS" ]'
+      runs-on: '[ "Windows", "avx2" ]'
       artifact-in: build-windows-debug
       artifact-out: test-windows-debug-avx2
       artifact-path: test.log
@@ -1507,7 +1517,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "avx2", "NAS" ]'
+      runs-on: '[ "Windows", "avx2" ]'
       artifact-in: build-windows-namespace
       artifact-out: test-windows-namespace-avx2
       artifact-path: test.log
@@ -1520,7 +1530,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "avx2", "NAS" ]'
+      runs-on: '[ "Windows", "avx2" ]'
       artifact-in: build-windows-namespace-static
       artifact-out: test-windows-namespace-static-avx2
       artifact-path: test.log
@@ -1533,7 +1543,7 @@ jobs:
   #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
   #   with:
   #     project: oidn
-  #     runs-on: '[ "Windows", "avx2", "NAS" ]'
+  #     runs-on: '[ "Windows", "avx2" ]'
   #     artifact-in: build-windows-oldsyclos
   #     artifact-out: test-windows-oldsyclos-avx2
   #     artifact-path: test.log
@@ -1546,7 +1556,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "avx2", "NAS" ]'
+      runs-on: '[ "Windows", "avx2" ]'
       dpcpp-version: intel/2025.3
       artifact-in: build-windows-icx
       artifact-out: test-windows-icx-avx2
@@ -1560,7 +1570,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "avx512", "NAS" ]'
+      runs-on: '[ "Windows", "avx512" ]'
       artifact-in: build-windows-msvc17
       artifact-out: test-windows-msvc17-avx512
       artifact-path: test.log
@@ -1574,7 +1584,7 @@ jobs:
   #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
   #   with:
   #     project: oidn
-  #     runs-on: '[ "Windows", "avx2", "NAS" ]'
+  #     runs-on: '[ "Windows", "avx2" ]'
   #     artifact-in: build-windows-msvc17-asan
   #     artifact-out: test-windows-msvc17-asan-avx2
   #     artifact-path: test.log
@@ -1583,18 +1593,31 @@ jobs:
   #       $Env:TBB_ENABLE_SANITIZERS=1
   #       python scripts/test.py --device cpu --minimal --log test.log
 
-  # test-windows-arm-msvc17:
-  #   needs: build-windows-arm-msvc17
-  #   secrets: inherit
-  #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
-  #   with:
-  #     project: oidn
-  #     runs-on: '[ "Windows", "arm", "NAS" ]'
-  #     artifact-in: build-windows-arm-msvc17
-  #     artifact-out: test-windows-arm-msvc17
-  #     artifact-path: test.log
-  #     artifact-on-failure: true
-  #     cmd: python scripts/test.py --device cpu --minimal --log test.log
+  test-windows-arm-msvc17:
+    needs: build-windows-arm-msvc17
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "ARM64" ]'
+      artifact-in: build-windows-arm-msvc17
+      artifact-out: test-windows-arm-msvc17
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: python scripts/test.py --device cpu --minimal --log test.log
+
+  test-windows-arm-msvc17-debug:
+    needs: build-windows-arm-msvc17-debug
+    secrets: inherit
+    uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
+    with:
+      project: oidn
+      runs-on: '[ "Windows", "ARM64" ]'
+      artifact-in: build-windows-arm-msvc17-debug
+      artifact-out: test-windows-arm-msvc17-debug
+      artifact-path: test.log
+      artifact-on-failure: true
+      cmd: python scripts/test.py --device cpu --minimal --log test.log
 
   test-windows-adl:
     needs: build-windows
@@ -1616,7 +1639,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "dg2", "NAS" ]'
+      runs-on: '[ "Windows", "dg2" ]'
       env-from-files: ./.github/workflows/gfx-windows-public.env
       artifact-in: build-windows
       artifact-out: test-windows-dg2
@@ -1630,7 +1653,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "bmg", "NAS" ]'
+      runs-on: '[ "Windows", "bmg" ]'
       env-from-files: ./.github/workflows/gfx-windows-public.env
       artifact-in: build-windows
       artifact-out: test-windows-bmg
@@ -1644,7 +1667,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "lnl", "NAS" ]'
+      runs-on: '[ "Windows", "lnl" ]'
       env-from-files: ./.github/workflows/gfx-windows-public.env
       artifact-in: build-windows
       artifact-out: test-windows-lnl
@@ -1697,7 +1720,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "dg2", "NAS" ]'
+      runs-on: '[ "Windows", "dg2" ]'
       env-from-files: ./.github/workflows/gfx-windows-public.env
       artifact-in: build-windows-namespace-static
       artifact-out: test-windows-namespace-static-dg2
@@ -1737,7 +1760,7 @@ jobs:
   #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
   #   with:
   #     project: oidn
-  #     runs-on: '[ "Windows", "dg2", "NAS" ]'
+  #     runs-on: '[ "Windows", "dg2" ]'
   #     env-from-files: ./.github/workflows/gfx-windows-public.env
   #     artifact-in: build-windows-oldsyclos
   #     artifact-out: test-windows-oldsyclos-dg2
@@ -1751,7 +1774,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "dg2", "NAS" ]'
+      runs-on: '[ "Windows", "dg2" ]'
       env-from-files: ./.github/workflows/gfx-windows-public.env
       dpcpp-version: intel/2025.3
       artifact-in: build-windows-icx
