@@ -1,6 +1,6 @@
 # Intel® Open Image Denoise
 
-This is release v2.4.0 of Intel Open Image Denoise. For changes and new
+This is release v2.4.1 of Intel Open Image Denoise. For changes and new
 features see the [changelog](CHANGELOG.md). Visit
 https://www.openimagedenoise.org for more information.
 
@@ -250,9 +250,7 @@ additional prerequisites are needed:
   - [Ninja](https://ninja-build.org) or Make as the CMake generator. The
     Visual Studio generator is *not* supported.
 
-  - [AMD ROCm (HIP SDK)](https://rocm.docs.amd.com) v6.2.4 or newer.
-
-  - Perl (e.g. [Strawberry Perl](https://strawberryperl.com) on Windows)
+  - [AMD ROCm (HIP SDK)](https://rocm.docs.amd.com) v6.4.2 or newer.
 
 #### Metal device for Apple GPUs:
 
