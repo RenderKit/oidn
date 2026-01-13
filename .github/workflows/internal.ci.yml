@@ -71,7 +71,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "cuda", "hip" ]'
+      runs-on: '[ "Windows", "cuda", "hip", "vis-vm-win11-01" ]'
       msvc-version: "2022"
       dpcpp-version: intel-llvm/v6.2.0
       ocloc-version: oneAPI/ocloc/2025.3
@@ -1230,7 +1230,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "cuda", "hip" ]'
+      runs-on: '[ "Windows", "cuda", "hip", "vis-vm-win11-01" ]'
       msvc-version: "2022"
       dpcpp-version: intel-llvm/v6.2.0
       ocloc-version: oneAPI/ocloc/2025.3
@@ -1243,7 +1243,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "cuda", "hip" ]'
+      runs-on: '[ "Windows", "cuda", "hip", "vis-vm-win11-01" ]'
       msvc-version: "2022"
       dpcpp-version: intel-llvm/v6.2.0
       ocloc-version: oneAPI/ocloc/2025.3
@@ -1257,7 +1257,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "cuda", "hip" ]'
+      runs-on: '[ "Windows", "cuda", "hip", "vis-vm-win11-01" ]'
       msvc-version: "2022"
       dpcpp-version: intel-llvm/v6.2.0
       ocloc-version: oneAPI/ocloc/2025.3
@@ -1272,7 +1272,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "cuda", "hip" ]'
+      runs-on: '[ "Windows", "cuda", "hip", "vis-vm-win11-01" ]'
       msvc-version: "2022"
       dpcpp-version: intel-llvm/v6.2.0
       ocloc-version: oneAPI/ocloc/2025.3
@@ -1285,7 +1285,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "cuda", "hip" ]'
+      runs-on: '[ "Windows", "cuda", "hip", "vis-vm-win11-01" ]'
       msvc-version: "2022"
       dpcpp-version: intel-llvm/v6.2.0
       ocloc-version: oneAPI/ocloc/2025.3
@@ -1298,7 +1298,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "cuda", "hip" ]'
+      runs-on: '[ "Windows", "cuda", "hip", "vis-vm-win11-01" ]'
       msvc-version: "2022"
       dpcpp-version: intel-llvm/v6.2.0
       ocloc-version: oneAPI/ocloc/2025.3
@@ -1345,7 +1345,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "cuda", "hip" ]'
+      runs-on: '[ "Windows", "cuda", "hip", "vis-vm-win11-01" ]'
       msvc-version: "2022"
       dpcpp-version: intel-llvm/v6.2.0
       ocloc-version: oneAPI/ocloc/2025.3
@@ -1358,7 +1358,7 @@ jobs:
   #   uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
   #   with:
   #     project: oidn
-  #     runs-on: '[ "Windows", "cuda", "hip" ]'
+  #     runs-on: '[ "Windows", "cuda", "hip", "vis-vm-win11-01" ]'
   #     msvc-version: "2022"
   #     dpcpp-version: intel-llvm/v6.0.1-rk
   #     ocloc-version: oneAPI/ocloc/2025.3
@@ -1371,7 +1371,7 @@ jobs:
     uses: intel-innersource/libraries.devops.renderkit.workflows/.github/workflows/windows.yml@main
     with:
       project: oidn
-      runs-on: '[ "Windows", "cuda", "hip" ]'
+      runs-on: '[ "Windows", "cuda", "hip", "vis-vm-win11-01" ]'
       msvc-version: "2022"
       dpcpp-version: intel/2025.3
       ocloc-version: oneAPI/ocloc/2025.3
