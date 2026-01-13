@@ -105,8 +105,13 @@ if(OIDN_DEVICE_HIP)
     find_path(ROCM_PATH
       NAMES
         bin/hipconfig
+        bin/hipconfig.bat
+        bin/hipconfig.exe
+        bin/hipconfig.pl
       HINTS
         $ENV{ROCM_PATH}
+        $ENV{HIP_PATH}
+        $ENV{HIP_PATH_64}
       PATHS
         ${_rocm_search_paths}
       NO_DEFAULT_PATH
