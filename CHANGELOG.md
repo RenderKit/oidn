@@ -1,6 +1,11 @@
 Version History
 ---------------
 
+### Changes in v2.5.0:
+
+-   Added API for external semaphores imported from graphics APIs (e.g. Vulkan,
+    Direct3D 12)
+
 ### Changes in v2.4.1:
 
 -   Added AMD RDNA 3.5 GFX1152 GPU support

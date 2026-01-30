@@ -141,6 +141,10 @@ OIDN_API_NAMESPACE_BEGIN
     }
   }
 
+  // -----------------------------------------------------------------------------------------------
+  // Physical Device
+  // -----------------------------------------------------------------------------------------------
+
   OIDN_API int oidnGetNumPhysicalDevices()
   {
     OIDN_TRY
@@ -192,6 +196,10 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_CATCH
     return nullptr;
   }
+
+  // -----------------------------------------------------------------------------------------------
+  // Device
+  // -----------------------------------------------------------------------------------------------
 
   OIDN_API bool oidnIsCPUDeviceSupported()
   {
@@ -554,6 +562,10 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_CATCH_DEVICE(device)
   }
 
+  // -----------------------------------------------------------------------------------------------
+  // Buffer
+  // -----------------------------------------------------------------------------------------------
+
   OIDN_API OIDNBuffer oidnNewBuffer(OIDNDevice hDevice, size_t byteSize)
   {
     Device* device = reinterpret_cast<Device*>(hDevice);
@@ -734,6 +746,100 @@ OIDN_API_NAMESPACE_BEGIN
     OIDN_CATCH_DEVICE(buffer)
     return nullptr;
   }
+
+  // -----------------------------------------------------------------------------------------------
+  // Semaphore
+  // -----------------------------------------------------------------------------------------------
+
+  OIDN_API OIDNSemaphore oidnNewSharedSemaphoreFromFD(OIDNDevice hDevice,
+                                                      OIDNExternalSemaphoreTypeFlag fdType,
+                                                      int fd)
+  {
+    Device* device = reinterpret_cast<Device*>(hDevice);
+    OIDN_TRY
+      checkHandle(hDevice);
+      OIDN_LOCK_DEVICE(device);
+      device->checkCommitted();
+      if (!(static_cast<ExternalSemaphoreTypeFlag>(fdType) & device->getExternalSemaphoreTypes()))
+        throw Exception(Error::InvalidArgument, "external semaphore type not supported by the device");
+      Ref<Semaphore> semaphore = device->newExternalSemaphore(
+        static_cast<ExternalSemaphoreTypeFlag>(fdType), fd);
+      return reinterpret_cast<OIDNSemaphore>(semaphore.detach());
+    OIDN_CATCH_DEVICE(device)
+    return nullptr;
+  }
+
+  OIDN_API OIDNSemaphore oidnNewSharedSemaphoreFromWin32Handle(OIDNDevice hDevice,
+                                                               OIDNExternalSemaphoreTypeFlag handleType,
+                                                               void* handle, const void* name)
+  {
+    Device* device = reinterpret_cast<Device*>(hDevice);
+    OIDN_TRY
+      checkHandle(hDevice);
+      OIDN_LOCK_DEVICE(device);
+      device->checkCommitted();
+      if (!(static_cast<ExternalSemaphoreTypeFlag>(handleType) & device->getExternalSemaphoreTypes()))
+        throw Exception(Error::InvalidArgument, "external semaphore type not supported by the device");
+      if ((!handle && !name) || (handle && name))
+        throw Exception(Error::InvalidArgument, "exactly one of the external memory handle and name must be non-null");
+      Ref<Semaphore> semaphore = device->newExternalSemaphore(
+        static_cast<ExternalSemaphoreTypeFlag>(handleType), handle, name);
+      return reinterpret_cast<OIDNSemaphore>(semaphore.detach());
+    OIDN_CATCH_DEVICE(device)
+    return nullptr;
+  }
+
+  OIDN_API void oidnSignalSemaphoresAsync(OIDNDevice hDevice,
+                                          const OIDNSemaphore* hSemaphores,
+                                          const uint64_t* values,
+                                          int numSemaphores)
+  {
+    Device* device = reinterpret_cast<Device*>(hDevice);
+    OIDN_TRY
+      checkHandle(hDevice);
+      OIDN_LOCK_DEVICE(device);
+      device->checkCommitted();
+      device->submitSignalSemaphores(
+        reinterpret_cast<Semaphore* const*>(hSemaphores),
+        values,
+        numSemaphores);
+    OIDN_CATCH_DEVICE(device)
+  }
+
+  OIDN_API void oidnWaitSemaphoresAsync(OIDNDevice hDevice,
+                                        const OIDNSemaphore* hSemaphores,
+                                        const uint64_t* values,
+                                        const uint32_t* timeoutsMs,
+                                        int numSemaphores)
+  {
+    Device* device = reinterpret_cast<Device*>(hDevice);
+    OIDN_TRY
+      checkHandle(hDevice);
+      OIDN_LOCK_DEVICE(device);
+      device->checkCommitted();
+      device->submitWaitSemaphores(
+        reinterpret_cast<Semaphore* const*>(hSemaphores),
+        values,
+        timeoutsMs,
+        numSemaphores);
+    OIDN_CATCH_DEVICE(device)
+  }
+
+  OIDN_API void oidnRetainSemaphore(OIDNSemaphore hSemaphore)
+  {
+    Semaphore* semaphore = reinterpret_cast<Semaphore*>(hSemaphore);
+    retainObject(semaphore);
+  }
+
+  OIDN_API void oidnReleaseSemaphore(OIDNSemaphore hSemaphore)
+  {
+    Semaphore* semaphore = reinterpret_cast<Semaphore*>(hSemaphore);
+    releaseObject(semaphore);
+  }
+
+  // -----------------------------------------------------------------------------------------------
+  // Filter
+  // -----------------------------------------------------------------------------------------------
 
   OIDN_API OIDNFilter oidnNewFilter(OIDNDevice hDevice, const char* type)
   {

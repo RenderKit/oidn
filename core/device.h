@@ -17,6 +17,7 @@ OIDN_NAMESPACE_BEGIN
   class Subdevice;
   class Engine;
   class Buffer;
+  class Semaphore;
   class Filter;
 
   class PhysicalDevice : public RefCount
@@ -110,6 +111,22 @@ OIDN_NAMESPACE_BEGIN
     ExternalMemoryTypeFlags getExternalMemoryTypes() const { return externalMemoryTypes; }
     void trimScratch();
 
+    // Semaphore
+    Ref<Semaphore> newExternalSemaphore(ExternalSemaphoreTypeFlag fdType, int fd);
+    Ref<Semaphore> newExternalSemaphore(ExternalSemaphoreTypeFlag handleType,
+                                        void* handle, const void* name);
+
+    void submitSignalSemaphores(Semaphore* const* semaphores,
+                                const uint64_t* values,
+                                int numSemaphores);
+
+    void submitWaitSemaphores(Semaphore* const* semaphores,
+                              const uint64_t* values,
+                              const uint32_t* timeoutsMs,
+                              int numSemaphores);
+
+    ExternalSemaphoreTypeFlags getExternalSemaphoreTypes() const { return externalSemaphoreTypes; }
+
     // Executes operations on the device, making sure to wait/flush and release temporary
     // allocations (e.g. from ObjC) at the end, even if an exception is thrown
     virtual void execute(std::function<void()>&& f, SyncMode sync = SyncMode::Blocking);
@@ -146,6 +163,8 @@ OIDN_NAMESPACE_BEGIN
     bool systemMemorySupported  = false;
     bool managedMemorySupported = false;
     ExternalMemoryTypeFlags externalMemoryTypes;
+
+    ExternalSemaphoreTypeFlags externalSemaphoreTypes;
 
     // State
     bool dirty = true;

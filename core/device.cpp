@@ -280,6 +280,32 @@ OIDN_NAMESPACE_BEGIN
     return getEngine()->newExternalBuffer(handleType, handle, name, byteSize)->toUser();
   }
 
+  Ref<Semaphore> Device::newExternalSemaphore(ExternalSemaphoreTypeFlag fdType, int fd)
+  {
+    return getEngine()->newExternalSemaphore(fdType, fd);
+  }
+
+  Ref<Semaphore> Device::newExternalSemaphore(ExternalSemaphoreTypeFlag handleType,
+                                              void* handle, const void* name)
+  {
+    return getEngine()->newExternalSemaphore(handleType, handle, name);
+  }
+
+  void Device::submitSignalSemaphores(Semaphore* const* semaphores,
+                                      const uint64_t* values,
+                                      int numSemaphores)
+  {
+    getEngine()->submitSignalSemaphores(semaphores, values, numSemaphores);
+  }
+
+  void Device::submitWaitSemaphores(Semaphore* const* semaphores,
+                                    const uint64_t* values,
+                                    const uint32_t* timeoutsMs,
+                                    int numSemaphores)
+  {
+    getEngine()->submitWaitSemaphores(semaphores, values, timeoutsMs, numSemaphores);
+  }
+
   Ref<Filter> Device::newFilter(const std::string& type)
   {
     if (isVerbose(2))

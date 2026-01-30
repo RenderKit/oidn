@@ -73,6 +73,22 @@ OIDN_NAMESPACE_BEGIN
     // Tensor
     bool isSupported(const TensorDesc& desc) const override;
 
+    // Semaphore
+    Ref<Semaphore> newExternalSemaphore(ExternalSemaphoreTypeFlag fdType,
+                                        int fd) override;
+
+    Ref<Semaphore> newExternalSemaphore(ExternalSemaphoreTypeFlag handleType,
+                                        void* handle, const void* name) override;
+
+    void submitSignalSemaphores(Semaphore* const* semaphores,
+                                const uint64_t* values,
+                                int numSemaphores) override;
+
+    void submitWaitSemaphores(Semaphore* const* semaphores,
+                              const uint64_t* values,
+                              const uint32_t* timeoutsMs,
+                              int numSemaphores) override;
+
     // Ops
     Ref<Conv> newConv(const ConvDesc& desc) override;
     Ref<Pool> newPool(const PoolDesc& desc) override;
@@ -140,6 +156,11 @@ OIDN_NAMESPACE_BEGIN
 
     CUDADevice* device;
     cudaStream_t stream;
+
+    // Temporary storage for semaphore handles and params
+    std::vector<cudaExternalSemaphore_t>           semaphoreHandles;
+    std::vector<cudaExternalSemaphoreSignalParams> semaphoreSignalParams;
+    std::vector<cudaExternalSemaphoreWaitParams>   semaphoreWaitParams;
   };
 
 OIDN_NAMESPACE_END

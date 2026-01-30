@@ -1131,5 +1131,101 @@ namespace curtn
       CUresult result = cuDestroyExternalMemory((CUexternalMemory)extMem);
       return Runtime::setError(result);
     }
+
+    cudaError_t CUDARTAPI cudaImportExternalSemaphore(cudaExternalSemaphore_t* extSem_out,
+                                                      const cudaExternalSemaphoreHandleDesc* semHandleDesc)
+    {
+      CUDA_EXTERNAL_SEMAPHORE_HANDLE_DESC cuSemHandleDesc{};
+
+      switch (semHandleDesc->type)
+      {
+      case cudaExternalSemaphoreHandleTypeOpaqueFd:
+        cuSemHandleDesc.type = CU_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_FD;
+        break;
+      case cudaExternalSemaphoreHandleTypeOpaqueWin32:
+        cuSemHandleDesc.type = CU_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32;
+        break;
+      case cudaExternalSemaphoreHandleTypeOpaqueWin32Kmt:
+        cuSemHandleDesc.type = CU_EXTERNAL_SEMAPHORE_HANDLE_TYPE_OPAQUE_WIN32_KMT;
+        break;
+      case cudaExternalSemaphoreHandleTypeD3D12Fence:
+        cuSemHandleDesc.type = CU_EXTERNAL_SEMAPHORE_HANDLE_TYPE_D3D12_FENCE;
+        break;
+      case cudaExternalSemaphoreHandleTypeD3D11Fence:
+        cuSemHandleDesc.type = CU_EXTERNAL_SEMAPHORE_HANDLE_TYPE_D3D11_FENCE;
+        break;
+      case cudaExternalSemaphoreHandleTypeNvSciSync:
+        cuSemHandleDesc.type = CU_EXTERNAL_SEMAPHORE_HANDLE_TYPE_NVSCISYNC;
+        break;
+      case cudaExternalSemaphoreHandleTypeKeyedMutex:
+        cuSemHandleDesc.type = CU_EXTERNAL_SEMAPHORE_HANDLE_TYPE_D3D11_KEYED_MUTEX;
+        break;
+      case cudaExternalSemaphoreHandleTypeKeyedMutexKmt:
+        cuSemHandleDesc.type = CU_EXTERNAL_SEMAPHORE_HANDLE_TYPE_D3D11_KEYED_MUTEX_KMT;
+        break;
+      case cudaExternalSemaphoreHandleTypeTimelineSemaphoreFd:
+        cuSemHandleDesc.type = CU_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TIMELINE_SEMAPHORE_FD;
+        break;
+      case cudaExternalSemaphoreHandleTypeTimelineSemaphoreWin32:
+        cuSemHandleDesc.type = CU_EXTERNAL_SEMAPHORE_HANDLE_TYPE_TIMELINE_SEMAPHORE_WIN32;
+        break;
+      default:
+        return Runtime::setError(cudaErrorInvalidValue);
+      }
+
+      switch (semHandleDesc->type)
+      {
+      case cudaExternalSemaphoreHandleTypeOpaqueFd:
+      case cudaExternalSemaphoreHandleTypeTimelineSemaphoreFd:
+        cuSemHandleDesc.handle.fd = semHandleDesc->handle.fd;
+        break;
+      case cudaExternalSemaphoreHandleTypeNvSciSync:
+        cuSemHandleDesc.handle.nvSciSyncObj = semHandleDesc->handle.nvSciSyncObj;
+        break;
+      default:
+        cuSemHandleDesc.handle.win32.handle = semHandleDesc->handle.win32.handle;
+        cuSemHandleDesc.handle.win32.name   = semHandleDesc->handle.win32.name;
+        break;
+      }
+
+      CUresult result = cuImportExternalSemaphore((CUexternalSemaphore*)extSem_out, &cuSemHandleDesc);
+      return Runtime::setError(result);
+    }
+
+    cudaError_t CUDARTAPI cudaSignalExternalSemaphoresAsync(const cudaExternalSemaphore_t* extSemArray,
+                                                            const cudaExternalSemaphoreSignalParams* paramsArray,
+                                                            unsigned int numExtSems,
+                                                            cudaStream_t stream)
+    {
+      static_assert(sizeof(CUDA_EXTERNAL_SEMAPHORE_SIGNAL_PARAMS) == sizeof(cudaExternalSemaphoreSignalParams));
+
+      CUresult result = cuSignalExternalSemaphoresAsync(
+                          (CUexternalSemaphore*)extSemArray,
+                          (const CUDA_EXTERNAL_SEMAPHORE_SIGNAL_PARAMS*)paramsArray,
+                          numExtSems,
+                          stream);
+      return Runtime::setError(result);
+    }
+
+    cudaError_t CUDARTAPI cudaWaitExternalSemaphoresAsync(const cudaExternalSemaphore_t* extSemArray,
+                                                          const cudaExternalSemaphoreWaitParams* paramsArray,
+                                                          unsigned int numExtSems,
+                                                          cudaStream_t stream)
+    {
+      static_assert(sizeof(CUDA_EXTERNAL_SEMAPHORE_WAIT_PARAMS) == sizeof(cudaExternalSemaphoreWaitParams));
+
+      CUresult result = cuWaitExternalSemaphoresAsync(
+                          (CUexternalSemaphore*)extSemArray,
+                          (const CUDA_EXTERNAL_SEMAPHORE_WAIT_PARAMS*)paramsArray,
+                          numExtSems,
+                          stream);
+      return Runtime::setError(result);
+    }
+
+    cudaError_t CUDARTAPI cudaDestroyExternalSemaphore(cudaExternalSemaphore_t extSem)
+    {
+      CUresult result = cuDestroyExternalSemaphore((CUexternalSemaphore)extSem);
+      return Runtime::setError(result);
+    }
   } // extern "C"
 } // namespace curtn

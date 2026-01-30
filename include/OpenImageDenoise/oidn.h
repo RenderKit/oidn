@@ -280,10 +280,10 @@ typedef enum
   // file descriptor handle for a Linux dma_buf
   OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DMA_BUF = 1 << 1,
 
-  // NT handle
+  // opaque NT handle
   OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32 = 1 << 2,
 
-  // global share (KMT) handle
+  // opaque global share (KMT) handle
   OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32_KMT = 1 << 3,
 
   // NT handle returned by IDXGIResource1::CreateSharedHandle referring to a Direct3D 11 texture
@@ -367,6 +367,76 @@ OIDN_API void oidnRetainBuffer(OIDNBuffer buffer);
 
 // Releases the buffer (decrements the reference count).
 OIDN_API void oidnReleaseBuffer(OIDNBuffer buffer);
+
+// -------------------------------------------------------------------------------------------------
+// Semaphore
+// -------------------------------------------------------------------------------------------------
+
+// External semaphore type flags
+typedef enum
+{
+  OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_NONE = 0,
+
+  // opaque POSIX file descriptor handle
+  OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_OPAQUE_FD = 1 << 0,
+
+  // opaque NT handle
+  OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_OPAQUE_WIN32 = 1 << 1,
+
+  // opaque global share (KMT) handle
+  OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_OPAQUE_WIN32_KMT = 1 << 2,
+
+  // NT handle referencing a Direct3D 11 fence object
+  OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_D3D11_FENCE = 1 << 3,
+
+  // NT handle referencing a Direct3D 12 fence object
+  OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_D3D12_FENCE = 1 << 4,
+
+  // NT handle referencing a Direct3D 11 keyed mutex object
+  OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_KEYED_MUTEX = 1 << 5,
+
+  // global share (KMT) handle referencing a Direct3D 11 keyed mutex object
+  OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_KEYED_MUTEX_KMT = 1 << 6,
+
+  // POSIX file descriptor referencing a timeline semaphore
+  OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_TIMELINE_SEMAPHORE_FD = 1 << 7,
+
+  // NT handle referencing a timeline semaphore
+  OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_TIMELINE_SEMAPHORE_WIN32 = 1 << 8,
+} OIDNExternalSemaphoreTypeFlag;
+
+// Semaphore handle
+typedef struct OIDNSemaphoreImpl* OIDNSemaphore;
+
+// Creates a shared semaphore by importing an external semaphore from a POSIX file descriptor.
+OIDN_API OIDNSemaphore oidnNewSharedSemaphoreFromFD(OIDNDevice device,
+                                                    OIDNExternalSemaphoreTypeFlag fdType,
+                                                    int fd);
+
+// Creates a shared semaphore by importing an external semaphore from a Win32 handle.
+OIDN_API OIDNSemaphore oidnNewSharedSemaphoreFromWin32Handle(OIDNDevice device,
+                                                             OIDNExternalSemaphoreTypeFlag handleType,
+                                                             void* handle, const void* name);
+
+// Signals semaphores with specified values/keys asynchronously.
+OIDN_API void oidnSignalSemaphoresAsync(OIDNDevice device,
+                                        const OIDNSemaphore* semaphores,
+                                        const uint64_t* values,
+                                        int numSemaphores);
+
+// Waits on semaphores with specified values/keys and optional timeouts in milliseconds (for
+// semaphore types which support it) asynchronously.
+OIDN_API void oidnWaitSemaphoresAsync(OIDNDevice device,
+                                      const OIDNSemaphore* semaphores,
+                                      const uint64_t* values,
+                                      const uint32_t* timeoutsMs,
+                                      int numSemaphores);
+
+// Retains the semaphore (increments the reference count).
+OIDN_API void oidnRetainSemaphore(OIDNSemaphore semaphore);
+
+// Releases the semaphore (decrements the reference count).
+OIDN_API void oidnReleaseSemaphore(OIDNSemaphore semaphore);
 
 // -------------------------------------------------------------------------------------------------
 // Filter

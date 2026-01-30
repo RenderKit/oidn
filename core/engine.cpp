@@ -59,6 +59,37 @@ OIDN_NAMESPACE_BEGIN
       "creating a shared buffer from a Win32 handle is not supported by the device");
   }
 
+  Ref<Semaphore> Engine::newExternalSemaphore(ExternalSemaphoreTypeFlag fdType,
+                                              int fd)
+  {
+    throw Exception(Error::InvalidOperation,
+      "creating a shared semaphore from a POSIX file descriptor is not supported by the device");
+  }
+
+  Ref<Semaphore> Engine::newExternalSemaphore(ExternalSemaphoreTypeFlag handleType,
+                                              void* handle, const void* name)
+  {
+    throw Exception(Error::InvalidOperation,
+      "creating a shared semaphore from a Win32 handle is not supported by the device");
+  }
+
+  void Engine::submitSignalSemaphores(Semaphore* const* semaphores,
+                                      const uint64_t* values,
+                                      int numSemaphores)
+  {
+    throw Exception(Error::InvalidOperation,
+      "signaling semaphores is not supported by the device");
+  }
+
+  void Engine::submitWaitSemaphores(Semaphore* const* semaphores,
+                                    const uint64_t* values,
+                                    const uint32_t* timeoutsMs,
+                                    int numSemaphores)
+  {
+    throw Exception(Error::InvalidOperation,
+      "waiting on semaphores is not supported by the device");
+  }
+
   bool Engine::isSupported(const TensorDesc& desc) const
   {
     // We store tensor byte offsets in 32-bit unsigned integers

@@ -159,10 +159,10 @@ OIDN_NAMESPACE_BEGIN
     // file descriptor handle for a Linux dma_buf
     DMABuf = OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DMA_BUF,
 
-    // NT handle
+    // opaque NT handle
     OpaqueWin32 = OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32,
 
-    // global share (KMT) handle
+    // opaque global share (KMT) handle
     OpaqueWin32KMT = OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32_KMT,
 
     // NT handle returned by IDXGIResource1::CreateSharedHandle referring to a Direct3D 11
@@ -312,6 +312,123 @@ OIDN_NAMESPACE_BEGIN
 
   private:
     OIDNBuffer handle;
+  };
+
+  // -----------------------------------------------------------------------------------------------
+  // Semaphore
+  // -----------------------------------------------------------------------------------------------
+
+  // External semaphore type flags
+  enum class ExternalSemaphoreTypeFlag
+  {
+    None = OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_NONE,
+
+    // opaque POSIX file descriptor handle
+    OpaqueFD = OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_OPAQUE_FD,
+
+    // opaque NT handle
+    OpaqueWin32 = OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_OPAQUE_WIN32,
+
+    // opaque global share (KMT) handle
+    OpaqueWin32KMT = OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_OPAQUE_WIN32_KMT,
+
+    // NT handle referencing a Direct3D 11 fence object
+    D3D11Fence = OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_D3D11_FENCE,
+
+    // NT handle referencing a Direct3D 12 fence object
+    D3D12Fence = OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_D3D12_FENCE,
+
+    // NT handle referencing a Direct3D 11 keyed mutex object
+    KeyedMutex = OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_KEYED_MUTEX,
+
+    // global share (KMT) handle referencing a Direct3D 11 keyed mutex object
+    KeyedMutexKMT = OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_KEYED_MUTEX_KMT,
+
+    // POSIX file descriptor referencing a timeline semaphore
+    TimelineSemaphoreFD = OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_TIMELINE_SEMAPHORE_FD,
+
+    // NT handle referencing a timeline semaphore
+    TimelineSemaphoreWin32 = OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_TIMELINE_SEMAPHORE_WIN32,
+  };
+
+  template<> struct IsFlag<ExternalSemaphoreTypeFlag> { static constexpr bool value = true; };
+  using ExternalSemaphoreTypeFlags = Flags<ExternalSemaphoreTypeFlag>;
+
+  // Semaphore object with automatic reference counting
+  class SemaphoreRef
+  {
+  public:
+    SemaphoreRef() : handle(nullptr) {}
+    SemaphoreRef(OIDNSemaphore handle) : handle(handle) {}
+
+    SemaphoreRef(const SemaphoreRef& other) : handle(other.handle)
+    {
+      if (handle)
+        oidnRetainSemaphore(handle);
+    }
+
+    SemaphoreRef(SemaphoreRef&& other) noexcept : handle(other.handle)
+    {
+      other.handle = nullptr;
+    }
+
+    SemaphoreRef& operator =(const SemaphoreRef& other)
+    {
+      if (&other != this)
+      {
+        if (other.handle)
+          oidnRetainSemaphore(other.handle);
+        if (handle)
+          oidnReleaseSemaphore(handle);
+        handle = other.handle;
+      }
+      return *this;
+    }
+
+    SemaphoreRef& operator =(SemaphoreRef&& other) noexcept
+    {
+      std::swap(handle, other.handle);
+      return *this;
+    }
+
+    SemaphoreRef& operator =(OIDNSemaphore other)
+    {
+      if (other)
+        oidnRetainSemaphore(other);
+      if (handle)
+        oidnReleaseSemaphore(handle);
+      handle = other;
+      return *this;
+    }
+
+    ~SemaphoreRef()
+    {
+      if (handle)
+        oidnReleaseSemaphore(handle);
+    }
+
+    OIDNSemaphore getHandle() const
+    {
+      return handle;
+    }
+
+    operator bool() const
+    {
+      return handle != nullptr;
+    }
+
+    // Releases the semaphore (decrements the reference count).
+    void release()
+    {
+      if (handle)
+      {
+        oidnReleaseSemaphore(handle);
+        handle = nullptr;
+      }
+    }
+
+  private:
+    OIDNSemaphore handle;
   };
 
   // -----------------------------------------------------------------------------------------------

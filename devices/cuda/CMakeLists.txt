@@ -39,6 +39,8 @@ set(OIDN_CUDA_SOURCES
   cuda_engine.cu
   cuda_external_buffer.h
   cuda_external_buffer.cpp
+  cuda_external_semaphore.h
+  cuda_external_semaphore.cpp
   cuda_module.cpp
   cutlass_conv.h
   cutlass_conv_sm75.cu
