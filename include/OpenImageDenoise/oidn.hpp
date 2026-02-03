@@ -248,7 +248,7 @@ OIDN_NAMESPACE_BEGIN
         oidnReleaseBuffer(handle);
     }
 
-    OIDNBuffer getHandle() const
+    const OIDNBuffer& getHandle() const
     {
       return handle;
     }
@@ -409,7 +409,7 @@ OIDN_NAMESPACE_BEGIN
         oidnReleaseSemaphore(handle);
     }
 
-    OIDNSemaphore getHandle() const
+    const OIDNSemaphore& getHandle() const
     {
       return handle;
     }
@@ -503,7 +503,7 @@ OIDN_NAMESPACE_BEGIN
         oidnReleaseFilter(handle);
     }
 
-    OIDNFilter getHandle() const
+    const OIDNFilter& getHandle() const
     {
       return handle;
     }
@@ -781,7 +781,7 @@ OIDN_NAMESPACE_BEGIN
         oidnReleaseDevice(handle);
     }
 
-    OIDNDevice getHandle() const
+    const OIDNDevice& getHandle() const
     {
       return handle;
     }
@@ -898,6 +898,63 @@ OIDN_NAMESPACE_BEGIN
       return oidnNewSharedBufferFromMetal(handle, buffer);
     }
   #endif
+
+    SemaphoreRef newSemaphore(OIDNExternalSemaphoreTypeFlags fdType, int fd) const
+    {
+      return oidnNewSharedSemaphoreFromFD(
+        handle, static_cast<OIDNExternalSemaphoreTypeFlags>(fdType), fd);
+    }
+
+    SemaphoreRef newSemaphore(OIDNExternalSemaphoreTypeFlags handleType, void* handle, const void* name) const
+    {
+      return oidnNewSharedSemaphoreFromWin32Handle(
+        this->handle, static_cast<OIDNExternalSemaphoreTypeFlags>(handleType), handle, name);
+    }
+
+    void signalSemaphoreAsync(const SemaphoreRef& semaphore, uint64_t value) const
+    {
+      oidnSignalSemaphoresAsync(handle, &semaphore.getHandle(), &value, 1);
+    }
+
+    void signalSemaphoresAsync(const std::vector<SemaphoreRef>& semaphores,
+                               const std::vector<uint64_t>& values) const
+    {
+      oidnSignalSemaphoresAsync(handle,
+                                reinterpret_cast<const OIDNSemaphore*>(semaphores.data()),
+                                values.data(),
+                                static_cast<int>(semaphores.size()));
+    }
+
+    void waitSemaphoreAsync(const SemaphoreRef& semaphore, uint64_t value) const
+    {
+      oidnWaitSemaphoresAsync(handle, &semaphore.getHandle(), &value, nullptr, 1);
+    }
+
+    void waitSemaphoreAsync(const SemaphoreRef& semaphore, uint64_t value, uint32_t timeoutMs) const
+    {
+      oidnWaitSemaphoresAsync(handle, &semaphore.getHandle(), &value, &timeoutMs, 1);
+    }
+
+    void waitSemaphoresAsync(const std::vector<SemaphoreRef>& semaphores,
+                             const std::vector<uint64_t>& values) const
+    {
+      oidnWaitSemaphoresAsync(handle,
+                              reinterpret_cast<const OIDNSemaphore*>(semaphores.data()),
+                              values.data(),
+                              nullptr,
+                              static_cast<int>(semaphores.size()));
+    }
+
+    void waitSemaphoresAsync(const std::vector<SemaphoreRef>& semaphores,
+                             const std::vector<uint64_t>& values,
+                             const std::vector<uint32_t>& timeoutsMs) const
+    {
+      oidnWaitSemaphoresAsync(handle,
+                              reinterpret_cast<const OIDNSemaphore*>(semaphores.data()),
+                              values.data(),
+                              timeoutsMs.data(),
+                              static_cast<int>(semaphores.size()));
+    }
 
     // Creates a filter of the specified type (e.g. "RT").
     FilterRef newFilter(const char* type) const
