@@ -899,13 +899,13 @@ OIDN_NAMESPACE_BEGIN
     }
   #endif
 
-    SemaphoreRef newSemaphore(OIDNExternalSemaphoreTypeFlags fdType, int fd) const
+    SemaphoreRef newSemaphore(ExternalSemaphoreTypeFlags fdType, int fd) const
     {
       return oidnNewSharedSemaphoreFromFD(
         handle, static_cast<OIDNExternalSemaphoreTypeFlags>(fdType), fd);
     }
 
-    SemaphoreRef newSemaphore(OIDNExternalSemaphoreTypeFlags handleType, void* handle, const void* name) const
+    SemaphoreRef newSemaphore(ExternalSemaphoreTypeFlags handleType, void* handle, const void* name) const
     {
       return oidnNewSharedSemaphoreFromWin32Handle(
         this->handle, static_cast<OIDNExternalSemaphoreTypeFlags>(handleType), handle, name);
