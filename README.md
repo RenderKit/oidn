@@ -1,7 +1,7 @@
 # Intel® Open Image Denoise
 
-This is release v2.4.1 of Intel Open Image Denoise. For changes and new
-features see the [changelog](CHANGELOG.md). Visit
+This is release v2.5.0-alpha of Intel Open Image Denoise. For changes
+and new features see the [changelog](CHANGELOG.md). Visit
 https://www.openimagedenoise.org for more information.
 
 # Overview
@@ -705,10 +705,19 @@ possible avoid copying texture data by using a linear texture layout
 backs this data. In this case, you should ensure that the row stride of
 the linear texture data is correctly set.
 
-Importing external synchronization primitives (e.g. semaphores) from
-graphics APIs is not yet supported either but it is planned for a future
-release. Meanwhile, synchronizing access to shared memory should be done
-on the host using `oidnSyncDevice` and the used graphics API.
+For efficiently synchronizing access to shared memory, external
+semaphores should be also imported from the graphics API using the
+`oidnNewSharedSemaphoreFromFD` and
+`oidnNewSharedSemaphoreFromWin32Handle` functions. The external memory
+types supported by Open Image Denoise can be queried using the
+`externalSemaphoreTypes` device parameter. Signaling and waiting on
+semaphores are executed asynchronously with the
+`oidnSignalSemaphoresAsync` and `oidnWaitSemaphoresAsync` functions.
+
+If importing external semaphores is not possible, synchronizing access
+to shared memory should be done on the host using `oidnSyncDevice` and
+the graphics API but this typically introduces a significant performance
+overhead.
 
 When importing external memory, the application also needs to make sure
 that the Open Image Denoise device is running on the same *physical*
@@ -940,12 +949,12 @@ For Metal, a single command queue is supported.
 Once a device is created, you can call
 
 ``` cpp
-bool oidnGetDeviceBool(OIDNDevice device, const char* name);
-void oidnSetDeviceBool(OIDNDevice device, const char* name, bool value);
-int  oidnGetDeviceInt (OIDNDevice device, const char* name);
-void oidnSetDeviceInt (OIDNDevice device, const char* name, int  value);
-int  oidnGetDeviceUInt(OIDNDevice device, const char* name);
-void oidnSetDeviceUInt(OIDNDevice device, const char* name, unsigned int value);
+bool         oidnGetDeviceBool(OIDNDevice device, const char* name);
+void         oidnSetDeviceBool(OIDNDevice device, const char* name, bool value);
+int          oidnGetDeviceInt (OIDNDevice device, const char* name);
+void         oidnSetDeviceInt (OIDNDevice device, const char* name, int  value);
+unsigned int oidnGetDeviceUInt(OIDNDevice device, const char* name);
+void         oidnSetDeviceUInt(OIDNDevice device, const char* name, unsigned int value);
 ```
 
 to set and get parameter values on the device. Note that some parameters
@@ -961,7 +970,8 @@ for the parameters supported by devices.
 | `Int`  | `versionPatch`           | *constant* | patch version number                                                                                                                      |
 | `Bool` | `systemMemorySupported`  | *constant* | device can directly access memory allocated with the system allocator (e.g. `malloc`)                                                     |
 | `Bool` | `managedMemorySupported` | *constant* | device supports buffers created with managed storage (`OIDN_STORAGE_MANAGED`)                                                             |
-| `Int`  | `externalMemoryTypes`    | *constant* | bitfield of `OIDNExternalMemoryTypeFlag` values representing the external memory types supported by the device                            |
+| `UInt` | `externalMemoryTypes`    | *constant* | bitfield of `OIDNExternalMemoryTypeFlag` values representing the external memory types supported by the device                            |
+| `UInt` | `externalSemaphoreTypes` | *constant* | bitfield of `OIDNExternalSemaphoreTypeFlag` values representing the external semaphore types supported by the device                      |
 | `Int`  | `verbose`                |          0 | verbosity level of the console output between 0–4; when set to 0, no output is printed, when set to a higher level more output is printed |
 
 Parameters supported by all devices.
@@ -1185,17 +1195,17 @@ Win32 handles using
 
 ``` cpp
 OIDNBuffer oidnNewSharedBufferFromFD(OIDNDevice device,
-                                     OIDNExternalMemoryTypeFlag fdType,
+                                     OIDNExternalMemoryTypeFlags fdType,
                                      int fd, size_t byteSize);
 
 OIDNBuffer oidnNewSharedBufferFromWin32Handle(OIDNDevice device,
-                                              OIDNExternalMemoryTypeFlag handleType,
+                                              OIDNExternalMemoryTypeFlags handleType,
                                               void* handle, const void* name, size_t byteSize);
 ```
 
 Before exporting memory from the graphics API, the application should
 find a handle type which is supported by both the Open Image Denoise
-device (see `externalMemoryTypes` device parameter) and the graphics
+device (see the `externalMemoryTypes` device parameter) and the graphics
 API. Note that different GPU vendors may support different handle types.
 To ensure compatibility with all device types, applications should
 support at least `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32` on
@@ -1203,22 +1213,31 @@ Windows and both `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_FD` and
 `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DMA_BUF` on Linux. All possible external
 memory types are listed in the table below.
 
-| Name                                                | Description                                                                                                        |
-| :-------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------- |
-| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_NONE`               |                                                                                                                    |
-| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_FD`          | opaque POSIX file descriptor handle (recommended on Linux)                                                         |
-| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DMA_BUF`            | file descriptor handle for a Linux dma\_buf (recommended on Linux)                                                 |
-| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32`       | NT handle (recommended on Windows)                                                                                 |
-| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32_KMT`   | global share (KMT) handle                                                                                          |
-| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_TEXTURE`      | NT handle returned by `IDXGIResource1::CreateSharedHandle` referring to a Direct3D 11 texture resource             |
-| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_TEXTURE_KMT`  | global share (KMT) handle returned by `IDXGIResource::GetSharedHandle` referring to a Direct3D 11 texture resource |
-| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_RESOURCE`     | NT handle returned by `IDXGIResource1::CreateSharedHandle` referring to a Direct3D 11 resource                     |
-| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_RESOURCE_KMT` | global share (KMT) handle returned by `IDXGIResource::GetSharedHandle` referring to a Direct3D 11 resource         |
-| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D12_HEAP`         | NT handle returned by `ID3D12Device::CreateSharedHandle` referring to a Direct3D 12 heap resource                  |
-| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D12_RESOURCE`     | NT handle returned by `ID3D12Device::CreateSharedHandle` referring to a Direct3D 12 committed resource             |
+| Name                                                | Description                                                                                                                                   |
+| :-------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------- |
+| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_NONE`               |                                                                                                                                               |
+| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_FD`          | opaque POSIX file descriptor handle (recommended on Linux)                                                                                    |
+| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DMA_BUF`            | file descriptor handle for a Linux dma\_buf (recommended on Linux)                                                                            |
+| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32`       | NT handle (recommended on Windows)                                                                                                            |
+| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32_KMT`   | global share (KMT) handle                                                                                                                     |
+| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_TEXTURE`      | NT handle returned by `IDXGIResource1::CreateSharedHandle` referring to a Direct3D 11 texture resource                                        |
+| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_TEXTURE_KMT`  | global share (KMT) handle returned by `IDXGIResource::GetSharedHandle` referring to a Direct3D 11 texture resource                            |
+| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_RESOURCE`     | NT handle returned by `IDXGIResource1::CreateSharedHandle` referring to a Direct3D 11 resource                                                |
+| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D11_RESOURCE_KMT` | global share (KMT) handle returned by `IDXGIResource::GetSharedHandle` referring to a Direct3D 11 resource                                    |
+| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D12_HEAP`         | NT handle returned by `ID3D12Device::CreateSharedHandle` referring to a Direct3D 12 heap resource                                             |
+| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D12_RESOURCE`     | NT handle returned by `ID3D12Device::CreateSharedHandle` referring to a Direct3D 12 committed resource                                        |
+| `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DEDICATED`          | modifier flag indicating that the external memory has dedicated allocation (used only in combination with one of the handle type flags above) |
 
 Supported external memory type flags, i.e., valid constants of type
 `OIDNExternalMemoryTypeFlag`.
+
+Please note that if the external memory uses dedicated allocation, the
+`OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DEDICATED` flag must be combined with
+the handle type flag (e.g., `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32
+| OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DEDICATED` as `handleType`). To
+maximize compatibility, we recommend to always use dedicated allocations
+if possible because some backends support only dedicated allocations for
+certain external memory types.
 
 Metal buffers can be imported directly with
 
@@ -1303,6 +1322,77 @@ pointers. This can be done using the `OIDNFormat` enumeration type:
 | `OIDN_FORMAT_HALF[234]`  | 16-bit floating-point \[234\]-element vector |
 
 Supported data formats, i.e., valid constants of type `OIDNFormat`.
+
+## Semaphores
+
+Access to external buffers imported from graphics APIs needs to be
+explicitly synchronized between Open Image Denoise and graphics
+operations to avoid race conditions. The most efficient way is by using
+external semaphores also imported from the graphics API, which enable
+synchronization on the GPU device instead of the host (but this depends
+on the implementation).
+
+External semaphores can be imported similarly to buffers:
+
+``` cpp
+OIDNSemaphore oidnNewSharedSemaphoreFromFD(OIDNDevice device,
+                                           OIDNExternalSemaphoreTypeFlags fdType,
+                                           int fd);
+
+OIDNSemaphore oidnNewSharedSemaphoreFromWin32Handle(OIDNDevice device,
+                                                    OIDNExternalSemaphoreTypeFlags handleType,
+                                                    void* handle, const void* name);
+```
+
+The semaphore handle types supported by Open Image Denoise can be
+queried using the `externalSemaphoreTypes` device parameter. The
+possible semaphore type flags are listed in the following table.
+
+| Name                                                         | Description                                                            |
+| :----------------------------------------------------------- | :--------------------------------------------------------------------- |
+| `OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_NONE`                     |                                                                        |
+| `OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_OPAQUE_FD`                | opaque POSIX file descriptor handle                                    |
+| `OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_OPAQUE_WIN32`             | opaque NT handle                                                       |
+| `OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_OPAQUE_WIN32_KMT`         | opaque global share (KMT) handle                                       |
+| `OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_D3D11_FENCE`              | NT handle referencing a Direct3D 11 fence object                       |
+| `OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_D3D12_FENCE`              | NT handle referencing a Direct3D 12 fence object                       |
+| `OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_KEYED_MUTEX`              | NT handle referencing a Direct3D 11 keyed mutex object                 |
+| `OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_KEYED_MUTEX_KMT`          | global share (KMT) handle referencing a Direct3D 11 keyed mutex object |
+| `OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_TIMELINE_SEMAPHORE_FD`    | POSIX file descriptor referencing a timeline semaphore                 |
+| `OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_TIMELINE_SEMAPHORE_WIN32` | NT handle referencing a timeline semaphore                             |
+
+Supported external semaphore type flags, i.e., valid constants of type
+`OIDNExternalSemaphoreTypeFlag`.
+
+The reference counted semaphore objects can be retained and released
+with
+
+``` cpp
+void oidnRetainSemaphore(OIDNSemaphore semaphore);
+void oidnReleaseSemaphore(OIDNSemaphore semaphore);
+```
+
+One or more semaphores can be signaled or waited on asynchronously by
+calling the following functions:
+
+``` cpp
+void oidnSignalSemaphoresAsync(OIDNDevice device,
+                               const OIDNSemaphore* semaphores,
+                               const uint64_t* values,
+                               int numSemaphores);
+
+void oidnWaitSemaphoresAsync(OIDNDevice device,
+                             const OIDNSemaphore* semaphores,
+                             const uint64_t* values,
+                             const uint32_t* timeoutsMs,
+                             int numSemaphores);
+```
+
+The meaning of the `values` parameter depends on the respective
+semaphore types (e.g. for fences it is the value to set/wait for, for
+keyed mutexes it is the key). The `timeoutsMs` parameter is optional
+(can be `NULL`) and applies only to certain kinds of semaphores
+(e.g. keyed mutexes), otherwise these values are simply ignored.
 
 ## Filters
 

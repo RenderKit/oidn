@@ -240,10 +240,17 @@ avoid copying texture data by using a linear texture layout (e.g.
 data. In this case, you should ensure that the row stride of the linear texture
 data is correctly set.
 
-Importing external synchronization primitives (e.g. semaphores) from graphics
-APIs is not yet supported either but it is planned for a future release.
-Meanwhile, synchronizing access to shared memory should be done on the host
-using `oidnSyncDevice` and the used graphics API.
+For efficiently synchronizing access to shared memory, external semaphores
+should be also imported from the graphics API using the
+`oidnNewSharedSemaphoreFromFD` and `oidnNewSharedSemaphoreFromWin32Handle`
+functions. The external memory types supported by Open Image Denoise
+can be queried using the `externalSemaphoreTypes` device parameter. Signaling
+and waiting on semaphores are executed asynchronously with the
+`oidnSignalSemaphoresAsync` and `oidnWaitSemaphoresAsync` functions.
+
+If importing external semaphores is not possible, synchronizing access to
+shared memory should be done on the host using `oidnSyncDevice` and the
+graphics API but this typically introduces a significant performance overhead.
 
 When importing external memory, the application also needs to make sure that the
 Open Image Denoise device is running on the same *physical* device as the
@@ -477,45 +484,49 @@ For Metal, a single command queue is supported.
 
 Once a device is created, you can call
 
-    bool oidnGetDeviceBool(OIDNDevice device, const char* name);
-    void oidnSetDeviceBool(OIDNDevice device, const char* name, bool value);
-    int  oidnGetDeviceInt (OIDNDevice device, const char* name);
-    void oidnSetDeviceInt (OIDNDevice device, const char* name, int  value);
-    int  oidnGetDeviceUInt(OIDNDevice device, const char* name);
-    void oidnSetDeviceUInt(OIDNDevice device, const char* name, unsigned int value);
+    bool         oidnGetDeviceBool(OIDNDevice device, const char* name);
+    void         oidnSetDeviceBool(OIDNDevice device, const char* name, bool value);
+    int          oidnGetDeviceInt (OIDNDevice device, const char* name);
+    void         oidnSetDeviceInt (OIDNDevice device, const char* name, int  value);
+    unsigned int oidnGetDeviceUInt(OIDNDevice device, const char* name);
+    void         oidnSetDeviceUInt(OIDNDevice device, const char* name, unsigned int value);
 
 to set and get parameter values on the device. Note that some parameters are
 constants, thus trying to set them is an error. See the tables below for the
 parameters supported by devices.
 
------------ ----------------------- ----------- ----------------------------------------------------
-Type        Name                        Default Description
------------ ------------------------ ---------- ----------------------------------------------------
-`Int`       `type`                   *constant* device type as an `OIDNDeviceType` value
+----------- ------------------------  ---------- ---------------------------------------------------
+Type        Name                         Default Description
+----------- ------------------------  ---------- ---------------------------------------------------
+`Int`       `type`                    *constant* device type as an `OIDNDeviceType` value
 
-`Int`       `version`                *constant* combined version number (major.minor.patch)
-                                                with two decimal digits per component
+`Int`       `version`                 *constant* combined version number (major.minor.patch)
+                                                 with two decimal digits per component
 
-`Int`       `versionMajor`           *constant* major version number
+`Int`       `versionMajor`            *constant* major version number
 
-`Int`       `versionMinor`           *constant* minor version number
+`Int`       `versionMinor`            *constant* minor version number
 
-`Int`       `versionPatch`           *constant* patch version number
+`Int`       `versionPatch`            *constant* patch version number
 
-`Bool`      `systemMemorySupported`  *constant* device can directly access memory allocated with the
-                                                system allocator (e.g. `malloc`)
+`Bool`      `systemMemorySupported`   *constant* device can directly access memory allocated with
+                                                 the system allocator (e.g. `malloc`)
 
-`Bool`      `managedMemorySupported` *constant* device supports buffers created with managed storage
-                                                (`OIDN_STORAGE_MANAGED`)
+`Bool`      `managedMemorySupported`  *constant* device supports buffers created with managed
+                                                 storage (`OIDN_STORAGE_MANAGED`)
 
-`Int`       `externalMemoryTypes`    *constant* bitfield of `OIDNExternalMemoryTypeFlag` values
-                                                representing the external memory types supported by
-                                                the device
+`UInt`      `externalMemoryTypes`     *constant* bitfield of `OIDNExternalMemoryTypeFlag` values
+                                                 representing the external memory types supported by
+                                                 the device
 
-`Int`       `verbose`                         0 verbosity level of the console output between 0--4;
-                                                when set to 0, no output is printed, when set to a
-                                                higher level more output is printed
------------ ------------------------ ---------- ----------------------------------------------------
+`UInt`      `externalSemaphoreTypes`  *constant* bitfield of `OIDNExternalSemaphoreTypeFlag` values
+                                                 representing the external semaphore types supported
+                                                 by the device
+
+`Int`       `verbose`                          0 verbosity level of the console output between 0--4;
+                                                 when set to 0, no output is printed, when set to a
+                                                 higher level more output is printed
+----------- ------------------------ ----------- ---------------------------------------------------
 : Parameters supported by all devices.
 
 ------ -------------- -------- -------------------------------------------------
@@ -733,7 +744,7 @@ using
 
 Before exporting memory from the graphics API, the application should find a
 handle type which is supported by both the Open Image Denoise device
-(see `externalMemoryTypes` device parameter) and the graphics API. Note that
+(see the `externalMemoryTypes` device parameter) and the graphics API. Note that
 different GPU vendors may support different handle types. To ensure compatibility
 with all device types, applications should support at least
 `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32` on Windows and both
@@ -780,11 +791,12 @@ Name                                                Description
 --------------------------------------------------- ----------------------------------------------------------
 : Supported external memory type flags, i.e., valid constants of type `OIDNExternalMemoryTypeFlag`.
 
-Please note that if the external memory uses dedicated allocation, the `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DEDICATED`
-flag must be combined with the handle type flag (e.g.,
-`OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32 | OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DEDICATED`
-as `handleType`). We recommend to always use dedicated allocations if possible because some backends
-support only dedicated allocations for certain external memory types.
+Please note that if the external memory uses dedicated allocation, the
+`OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DEDICATED` flag must be combined with the handle
+type flag (e.g., `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32 | OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DEDICATED`
+as `handleType`). To maximize compatibility, we recommend to always use dedicated
+allocations if possible because some backends support only dedicated allocations
+for certain external memory types.
 
 Metal buffers can be imported directly with
 
@@ -854,6 +866,86 @@ Name                     Description
 `OIDN_FORMAT_HALF[234]`  16-bit floating-point [234]-element vector
 ------------------------ -------------------------------------------------------
 : Supported data formats, i.e., valid constants of type `OIDNFormat`.
+
+
+Semaphores
+----------
+
+Access to external buffers imported from graphics APIs needs to be explicitly
+synchronized between Open Image Denoise and graphics operations to avoid race
+conditions. The most efficient way is by using external semaphores also imported
+from the graphics API, which enable synchronization on the GPU device instead of
+the host (but this depends on the implementation).
+
+External semaphores can be imported similarly to buffers:
+
+    OIDNSemaphore oidnNewSharedSemaphoreFromFD(OIDNDevice device,
+                                               OIDNExternalSemaphoreTypeFlags fdType,
+                                               int fd);
+
+    OIDNSemaphore oidnNewSharedSemaphoreFromWin32Handle(OIDNDevice device,
+                                                        OIDNExternalSemaphoreTypeFlags handleType,
+                                                        void* handle, const void* name);
+
+The semaphore handle types supported by Open Image Denoise can be queried using the
+`externalSemaphoreTypes` device parameter. The possible semaphore type flags are
+listed in the following table.
+
+------------------------------------------------------------ ---------------------------------------
+Name                                                         Description
+------------------------------------------------------------ ---------------------------------------
+`OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_NONE`
+
+`OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_OPAQUE_FD`                opaque POSIX file descriptor handle
+
+`OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_OPAQUE_WIN32`             opaque NT handle
+
+`OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_OPAQUE_WIN32_KMT`         opaque global share (KMT) handle
+
+`OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_D3D11_FENCE`              NT handle referencing a Direct3D 11
+                                                             fence object
+
+`OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_D3D12_FENCE`              NT handle referencing a Direct3D 12
+                                                             fence object
+
+`OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_KEYED_MUTEX`              NT handle referencing a Direct3D 11
+                                                             keyed mutex object
+
+`OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_KEYED_MUTEX_KMT`          global share (KMT) handle referencing a
+                                                             Direct3D 11 keyed mutex object
+
+`OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_TIMELINE_SEMAPHORE_FD`    POSIX file descriptor referencing a
+                                                             timeline semaphore
+
+`OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_TIMELINE_SEMAPHORE_WIN32` NT handle referencing a timeline
+                                                             semaphore
+------------------------------------------------------------ ---------------------------------------
+: Supported external semaphore type flags, i.e., valid constants of type `OIDNExternalSemaphoreTypeFlag`.
+
+The reference counted semaphore objects can be retained and released with
+
+    void oidnRetainSemaphore(OIDNSemaphore semaphore);
+    void oidnReleaseSemaphore(OIDNSemaphore semaphore);
+
+One or more semaphores can be signaled or waited on asynchronously by calling
+the following functions:
+
+    void oidnSignalSemaphoresAsync(OIDNDevice device,
+                                   const OIDNSemaphore* semaphores,
+                                   const uint64_t* values,
+                                   int numSemaphores);
+
+    void oidnWaitSemaphoresAsync(OIDNDevice device,
+                                 const OIDNSemaphore* semaphores,
+                                 const uint64_t* values,
+                                 const uint32_t* timeoutsMs,
+                                 int numSemaphores);
+
+The meaning of the `values` parameter depends on the respective semaphore types
+(e.g. for fences it is the value to set/wait for, for keyed mutexes it is
+the key). The `timeoutsMs` parameter is optional (can be `NULL`) and applies
+only to certain kinds of semaphores (e.g. keyed mutexes), otherwise these values
+are simply ignored.
 
 
 Filters
