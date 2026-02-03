@@ -197,6 +197,8 @@ OIDN_NAMESPACE_BEGIN
       return managedMemorySupported;
     else if (name == "externalMemoryTypes")
       return static_cast<OIDNFlags>(externalMemoryTypes);
+    else if (name == "externalSemaphoreTypes")
+      return static_cast<OIDNFlags>(externalSemaphoreTypes);
     else
       throw Exception(Error::InvalidArgument, "unknown device parameter or type mismatch: '" + name + "'");
   }
