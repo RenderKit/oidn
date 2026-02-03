@@ -1197,7 +1197,8 @@ namespace curtn
                                                             unsigned int numExtSems,
                                                             cudaStream_t stream)
     {
-      static_assert(sizeof(CUDA_EXTERNAL_SEMAPHORE_SIGNAL_PARAMS) == sizeof(cudaExternalSemaphoreSignalParams));
+      static_assert(sizeof(CUDA_EXTERNAL_SEMAPHORE_SIGNAL_PARAMS) == sizeof(cudaExternalSemaphoreSignalParams),
+                    "unexpected size of cudaExternalSemaphoreSignalParams");
 
       CUresult result = cuSignalExternalSemaphoresAsync(
                           (CUexternalSemaphore*)extSemArray,
@@ -1212,7 +1213,8 @@ namespace curtn
                                                           unsigned int numExtSems,
                                                           cudaStream_t stream)
     {
-      static_assert(sizeof(CUDA_EXTERNAL_SEMAPHORE_WAIT_PARAMS) == sizeof(cudaExternalSemaphoreWaitParams));
+      static_assert(sizeof(CUDA_EXTERNAL_SEMAPHORE_WAIT_PARAMS) == sizeof(cudaExternalSemaphoreWaitParams),
+                    "unexpected size of cudaExternalSemaphoreWaitParams");
 
       CUresult result = cuWaitExternalSemaphoresAsync(
                           (CUexternalSemaphore*)extSemArray,
