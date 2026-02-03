@@ -782,7 +782,9 @@ Name                                                Description
 
 Please note that if the external memory uses dedicated allocation, the `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DEDICATED`
 flag must be combined with the handle type flag (e.g.,
-`OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32 | OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DEDICATED` as `handleType`).
+`OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32 | OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DEDICATED`
+as `handleType`). We recommend to always use dedicated allocations if possible because some backends
+support only dedicated allocations for certain external memory types.
 
 Metal buffers can be imported directly with
 
