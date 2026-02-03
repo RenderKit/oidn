@@ -6,10 +6,13 @@
 OIDN_NAMESPACE_BEGIN
 
   SYCLExternalBuffer::SYCLExternalBuffer(SYCLEngine* engine,
-                                         ExternalMemoryTypeFlag fdType,
+                                         ExternalMemoryTypeFlags fdType,
                                          int fd, size_t byteSize)
     : USMBuffer(engine)
   {
+    if (fdType & ExternalMemoryTypeFlag::Dedicated)
+      fdType ^= ExternalMemoryTypeFlag::Dedicated; // ignore
+
     if (fdType != ExternalMemoryTypeFlag::DMABuf)
       throw Exception(Error::InvalidArgument, "external memory type not supported by the device");
 
@@ -25,10 +28,13 @@ OIDN_NAMESPACE_BEGIN
   }
 
   SYCLExternalBuffer::SYCLExternalBuffer(SYCLEngine* engine,
-                                         ExternalMemoryTypeFlag handleType,
+                                         ExternalMemoryTypeFlags handleType,
                                          void* handle, const void* name, size_t byteSize)
     : USMBuffer(engine)
   {
+    if (handleType & ExternalMemoryTypeFlag::Dedicated)
+      handleType ^= ExternalMemoryTypeFlag::Dedicated; // ignore
+
     if (handleType != ExternalMemoryTypeFlag::OpaqueWin32)
       throw Exception(Error::InvalidArgument, "external memory type not supported by the device");
 

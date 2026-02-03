@@ -606,7 +606,7 @@ OIDN_API_NAMESPACE_BEGIN
   }
 
   OIDN_API OIDNBuffer oidnNewSharedBufferFromFD(OIDNDevice hDevice,
-                                                OIDNExternalMemoryTypeFlag fdType,
+                                                OIDNExternalMemoryTypeFlags fdTypeC,
                                                 int fd, size_t byteSize)
   {
     Device* device = reinterpret_cast<Device*>(hDevice);
@@ -614,17 +614,17 @@ OIDN_API_NAMESPACE_BEGIN
       checkHandle(hDevice);
       OIDN_LOCK_DEVICE(device);
       device->checkCommitted();
-      if (!(static_cast<ExternalMemoryTypeFlag>(fdType) & device->getExternalMemoryTypes()))
+      const ExternalMemoryTypeFlags fdType = static_cast<ExternalMemoryTypeFlags>(fdTypeC);
+      if ((fdType & device->getExternalMemoryTypes()) != fdType)
         throw Exception(Error::InvalidArgument, "external memory type not supported by the device");
-      Ref<Buffer> buffer = device->newExternalUserBuffer(
-        static_cast<ExternalMemoryTypeFlag>(fdType), fd, byteSize);
+      Ref<Buffer> buffer = device->newExternalUserBuffer(fdType, fd, byteSize);
       return reinterpret_cast<OIDNBuffer>(buffer.detach());
     OIDN_CATCH_DEVICE(device)
     return nullptr;
   }
 
   OIDN_API OIDNBuffer oidnNewSharedBufferFromWin32Handle(OIDNDevice hDevice,
-                                                         OIDNExternalMemoryTypeFlag handleType,
+                                                         OIDNExternalMemoryTypeFlags handleTypeC,
                                                          void* handle, const void* name, size_t byteSize)
   {
     Device* device = reinterpret_cast<Device*>(hDevice);
@@ -632,12 +632,12 @@ OIDN_API_NAMESPACE_BEGIN
       checkHandle(hDevice);
       OIDN_LOCK_DEVICE(device);
       device->checkCommitted();
-      if (!(static_cast<ExternalMemoryTypeFlag>(handleType) & device->getExternalMemoryTypes()))
+      const ExternalMemoryTypeFlags handleType = static_cast<ExternalMemoryTypeFlags>(handleTypeC);
+      if ((handleType & device->getExternalMemoryTypes()) != handleType)
         throw Exception(Error::InvalidArgument, "external memory type not supported by the device");
       if ((!handle && !name) || (handle && name))
         throw Exception(Error::InvalidArgument, "exactly one of the external memory handle and name must be non-null");
-      Ref<Buffer> buffer = device->newExternalUserBuffer(
-        static_cast<ExternalMemoryTypeFlag>(handleType), handle, name, byteSize);
+      Ref<Buffer> buffer = device->newExternalUserBuffer(handleType, handle, name, byteSize);
       return reinterpret_cast<OIDNBuffer>(buffer.detach());
     OIDN_CATCH_DEVICE(device)
     return nullptr;
@@ -752,7 +752,7 @@ OIDN_API_NAMESPACE_BEGIN
   // -----------------------------------------------------------------------------------------------
 
   OIDN_API OIDNSemaphore oidnNewSharedSemaphoreFromFD(OIDNDevice hDevice,
-                                                      OIDNExternalSemaphoreTypeFlag fdType,
+                                                      OIDNExternalSemaphoreTypeFlags fdTypeC,
                                                       int fd)
   {
     Device* device = reinterpret_cast<Device*>(hDevice);
@@ -760,17 +760,17 @@ OIDN_API_NAMESPACE_BEGIN
       checkHandle(hDevice);
       OIDN_LOCK_DEVICE(device);
       device->checkCommitted();
-      if (!(static_cast<ExternalSemaphoreTypeFlag>(fdType) & device->getExternalSemaphoreTypes()))
+      const ExternalSemaphoreTypeFlags fdType = static_cast<ExternalSemaphoreTypeFlag>(fdTypeC);
+      if ((fdType & device->getExternalSemaphoreTypes()) != fdType)
         throw Exception(Error::InvalidArgument, "external semaphore type not supported by the device");
-      Ref<Semaphore> semaphore = device->newExternalSemaphore(
-        static_cast<ExternalSemaphoreTypeFlag>(fdType), fd);
+      Ref<Semaphore> semaphore = device->newExternalSemaphore(fdType, fd);
       return reinterpret_cast<OIDNSemaphore>(semaphore.detach());
     OIDN_CATCH_DEVICE(device)
     return nullptr;
   }
 
   OIDN_API OIDNSemaphore oidnNewSharedSemaphoreFromWin32Handle(OIDNDevice hDevice,
-                                                               OIDNExternalSemaphoreTypeFlag handleType,
+                                                               OIDNExternalSemaphoreTypeFlags handleTypeC,
                                                                void* handle, const void* name)
   {
     Device* device = reinterpret_cast<Device*>(hDevice);
@@ -778,12 +778,12 @@ OIDN_API_NAMESPACE_BEGIN
       checkHandle(hDevice);
       OIDN_LOCK_DEVICE(device);
       device->checkCommitted();
-      if (!(static_cast<ExternalSemaphoreTypeFlag>(handleType) & device->getExternalSemaphoreTypes()))
+      const ExternalSemaphoreTypeFlags handleType = static_cast<ExternalSemaphoreTypeFlag>(handleTypeC);
+      if ((handleType & device->getExternalSemaphoreTypes()) != handleType)
         throw Exception(Error::InvalidArgument, "external semaphore type not supported by the device");
       if ((!handle && !name) || (handle && name))
         throw Exception(Error::InvalidArgument, "exactly one of the external memory handle and name must be non-null");
-      Ref<Semaphore> semaphore = device->newExternalSemaphore(
-        static_cast<ExternalSemaphoreTypeFlag>(handleType), handle, name);
+      Ref<Semaphore> semaphore = device->newExternalSemaphore(handleType, handle, name);
       return reinterpret_cast<OIDNSemaphore>(semaphore.detach());
     OIDN_CATCH_DEVICE(device)
     return nullptr;

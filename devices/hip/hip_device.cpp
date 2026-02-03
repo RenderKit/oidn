@@ -204,6 +204,8 @@ OIDN_NAMESPACE_BEGIN
     externalMemoryTypes = ExternalMemoryTypeFlag::OpaqueFD;
   #endif
 
+    externalMemoryTypes |= ExternalMemoryTypeFlag::Dedicated;
+
     subdevices.emplace_back(new Subdevice(std::unique_ptr<Engine>(new HIPEngine(this, stream))));
   }
 

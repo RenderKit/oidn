@@ -19,25 +19,25 @@ OIDN_NAMESPACE_BEGIN
     : device(device),
       stream(stream) {}
 
-  Ref<Buffer> CUDAEngine::newExternalBuffer(ExternalMemoryTypeFlag fdType,
+  Ref<Buffer> CUDAEngine::newExternalBuffer(ExternalMemoryTypeFlags fdType,
                                             int fd, size_t byteSize)
   {
     return makeRef<CUDAExternalBuffer>(this, fdType, fd, byteSize);
   }
 
-  Ref<Buffer> CUDAEngine::newExternalBuffer(ExternalMemoryTypeFlag handleType,
+  Ref<Buffer> CUDAEngine::newExternalBuffer(ExternalMemoryTypeFlags handleType,
                                             void* handle, const void* name, size_t byteSize)
   {
     return makeRef<CUDAExternalBuffer>(this, handleType, handle, name, byteSize);
   }
 
-  Ref<Semaphore> CUDAEngine::newExternalSemaphore(ExternalSemaphoreTypeFlag fdType,
+  Ref<Semaphore> CUDAEngine::newExternalSemaphore(ExternalSemaphoreTypeFlags fdType,
                                                   int fd)
   {
     return makeRef<CUDAExternalSemaphore>(this, fdType, fd);
   }
 
-  Ref<Semaphore> CUDAEngine::newExternalSemaphore(ExternalSemaphoreTypeFlag handleType,
+  Ref<Semaphore> CUDAEngine::newExternalSemaphore(ExternalSemaphoreTypeFlags handleType,
                                                   void* handle, const void* name)
   {
     return makeRef<CUDAExternalSemaphore>(this, handleType, handle, name);
@@ -67,7 +67,7 @@ OIDN_NAMESPACE_BEGIN
         throw Exception(Error::InvalidArgument, "semaphore was created on a different device");
 
       CUDAExternalSemaphore* cudaSemaphore = reinterpret_cast<CUDAExternalSemaphore*>(semaphores[i]);
-      ExternalSemaphoreTypeFlag type = cudaSemaphore->getType();
+      ExternalSemaphoreTypeFlags type = cudaSemaphore->getType();
 
       semaphoreHandles[i] = cudaSemaphore->getHandle();
 
@@ -111,7 +111,7 @@ OIDN_NAMESPACE_BEGIN
         throw Exception(Error::InvalidArgument, "semaphore was created on a different device");
 
       CUDAExternalSemaphore* cudaSemaphore = reinterpret_cast<CUDAExternalSemaphore*>(semaphores[i]);
-      ExternalSemaphoreTypeFlag type = cudaSemaphore->getType();
+      ExternalSemaphoreTypeFlags type = cudaSemaphore->getType();
 
       semaphoreHandles[i] = cudaSemaphore->getHandle();
 

@@ -12,20 +12,20 @@ OIDN_NAMESPACE_BEGIN
   {
   public:
     CUDAExternalSemaphore(Engine* engine,
-                          ExternalSemaphoreTypeFlag fdType,
+                          ExternalSemaphoreTypeFlags fdType,
                           int fd);
 
     CUDAExternalSemaphore(Engine* engine,
-                          ExternalSemaphoreTypeFlag handleType,
+                          ExternalSemaphoreTypeFlags handleType,
                           void* handle, const void* name);
 
     ~CUDAExternalSemaphore();
 
-    ExternalSemaphoreTypeFlag getType() const { return type; }
+    ExternalSemaphoreTypeFlags getType() const { return type; }
     cudaExternalSemaphore_t getHandle() const { return extSem; }
 
   private:
-    ExternalSemaphoreTypeFlag type;
+    ExternalSemaphoreTypeFlags type;
     cudaExternalSemaphore_t extSem;
 
     void init(const cudaExternalSemaphoreHandleDesc& handleDesc);

@@ -245,6 +245,8 @@ OIDN_NAMESPACE_BEGIN
                              ExternalSemaphoreTypeFlag::TimelineSemaphoreFD;
 #endif
 
+    externalMemoryTypes |= ExternalMemoryTypeFlag::Dedicated;
+
     subdevices.emplace_back(new Subdevice(std::unique_ptr<Engine>(new CUDAEngine(this, stream))));
   }
 

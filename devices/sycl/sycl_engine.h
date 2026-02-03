@@ -27,10 +27,10 @@ OIDN_NAMESPACE_BEGIN
     ze_device_handle_t getZeDevice() const { return zeDevice; }
 
     // Buffer
-    Ref<Buffer> newExternalBuffer(ExternalMemoryTypeFlag fdType,
+    Ref<Buffer> newExternalBuffer(ExternalMemoryTypeFlags fdType,
                                   int fd, size_t byteSize) override;
 
-    Ref<Buffer> newExternalBuffer(ExternalMemoryTypeFlag handleType,
+    Ref<Buffer> newExternalBuffer(ExternalMemoryTypeFlags handleType,
                                   void* handle, const void* name, size_t byteSize) override;
 
     // Ops

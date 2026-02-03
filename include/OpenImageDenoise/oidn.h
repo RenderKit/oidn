@@ -44,6 +44,8 @@ typedef struct ihipStream_t* hipStream_t;
 
 OIDN_API_NAMESPACE_BEGIN
 
+typedef unsigned int OIDNFlags;
+
 // -------------------------------------------------------------------------------------------------
 // Physical Device
 // -------------------------------------------------------------------------------------------------
@@ -308,7 +310,13 @@ typedef enum
   // NT handle returned by ID3D12Device::CreateSharedHandle referring to a Direct3D 12 committed
   // resource
   OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D12_RESOURCE = 1 << 9,
+
+  // modifier flag indicating that the external memory has dedicated allocation
+  // used only in combination with one of handle type flags above
+  OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DEDICATED = 1 << 30,
 } OIDNExternalMemoryTypeFlag;
+
+typedef OIDNFlags OIDNExternalMemoryTypeFlags;
 
 // Buffer handle
 typedef struct OIDNBufferImpl* OIDNBuffer;
@@ -324,12 +332,12 @@ OIDN_API OIDNBuffer oidnNewSharedBuffer(OIDNDevice device, void* devPtr, size_t 
 
 // Creates a shared buffer by importing external memory from a POSIX file descriptor.
 OIDN_API OIDNBuffer oidnNewSharedBufferFromFD(OIDNDevice device,
-                                              OIDNExternalMemoryTypeFlag fdType,
+                                              OIDNExternalMemoryTypeFlags fdType,
                                               int fd, size_t byteSize);
 
 // Creates a shared buffer by importing external memory from a Win32 handle.
 OIDN_API OIDNBuffer oidnNewSharedBufferFromWin32Handle(OIDNDevice device,
-                                                       OIDNExternalMemoryTypeFlag handleType,
+                                                       OIDNExternalMemoryTypeFlags handleType,
                                                        void* handle, const void* name, size_t byteSize);
 
 // Creates a shared buffer from a Metal buffer.
@@ -405,17 +413,19 @@ typedef enum
   OIDN_EXTERNAL_SEMAPHORE_TYPE_FLAG_TIMELINE_SEMAPHORE_WIN32 = 1 << 8,
 } OIDNExternalSemaphoreTypeFlag;
 
+typedef OIDNFlags OIDNExternalSemaphoreTypeFlags;
+
 // Semaphore handle
 typedef struct OIDNSemaphoreImpl* OIDNSemaphore;
 
 // Creates a shared semaphore by importing an external semaphore from a POSIX file descriptor.
 OIDN_API OIDNSemaphore oidnNewSharedSemaphoreFromFD(OIDNDevice device,
-                                                    OIDNExternalSemaphoreTypeFlag fdType,
+                                                    OIDNExternalSemaphoreTypeFlags fdType,
                                                     int fd);
 
 // Creates a shared semaphore by importing an external semaphore from a Win32 handle.
 OIDN_API OIDNSemaphore oidnNewSharedSemaphoreFromWin32Handle(OIDNDevice device,
-                                                             OIDNExternalSemaphoreTypeFlag handleType,
+                                                             OIDNExternalSemaphoreTypeFlags handleType,
                                                              void* handle, const void* name);
 
 // Signals semaphores with specified values/keys asynchronously.

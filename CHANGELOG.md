@@ -5,6 +5,9 @@ Version History
 
 -   Added API for external semaphores imported from graphics APIs (e.g. Vulkan,
     Direct3D 12)
+-   Added the `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DEDICATED` flag which must be
+    combined with the handle type flag when importing external memory with
+    dedicated allocation
 
 ### Changes in v2.4.1:
 

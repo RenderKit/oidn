@@ -724,11 +724,11 @@ memory can be imported from either POSIX file descriptors or Win32 handles
 using
 
     OIDNBuffer oidnNewSharedBufferFromFD(OIDNDevice device,
-                                         OIDNExternalMemoryTypeFlag fdType,
+                                         OIDNExternalMemoryTypeFlags fdType,
                                          int fd, size_t byteSize);
 
     OIDNBuffer oidnNewSharedBufferFromWin32Handle(OIDNDevice device,
-                                                  OIDNExternalMemoryTypeFlag handleType,
+                                                  OIDNExternalMemoryTypeFlags handleType,
                                                   void* handle, const void* name, size_t byteSize);
 
 Before exporting memory from the graphics API, the application should find a
@@ -773,8 +773,16 @@ Name                                                Description
 
 `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D12_RESOURCE`     NT handle returned by `ID3D12Device::CreateSharedHandle`
                                                     referring to a Direct3D 12 committed resource
+
+`OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DEDICATED`          modifier flag indicating that the external memory has
+                                                    dedicated allocation (used only in combination with one of
+                                                    the handle type flags above)
 --------------------------------------------------- ----------------------------------------------------------
 : Supported external memory type flags, i.e., valid constants of type `OIDNExternalMemoryTypeFlag`.
+
+Please note that if the external memory uses dedicated allocation, the `OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DEDICATED`
+flag must be combined with the handle type flag (e.g.,
+`OIDN_EXTERNAL_MEMORY_TYPE_FLAG_OPAQUE_WIN32 | OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DEDICATED` as `handleType`).
 
 Metal buffers can be imported directly with
 

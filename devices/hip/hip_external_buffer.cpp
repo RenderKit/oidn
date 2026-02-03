@@ -6,60 +6,68 @@
 OIDN_NAMESPACE_BEGIN
 
   HIPExternalBuffer::HIPExternalBuffer(Engine* engine,
-                                       ExternalMemoryTypeFlag fdType,
+                                       ExternalMemoryTypeFlags fdType,
                                        int fd, size_t byteSize)
     : USMBuffer(engine)
   {
-    if (fdType != ExternalMemoryTypeFlag::OpaqueFD)
-      throw Exception(Error::InvalidArgument, "external memory type not supported by the device");
-
     hipExternalMemoryHandleDesc handleDesc{};
     handleDesc.type = hipExternalMemoryHandleTypeOpaqueFd;
     handleDesc.handle.fd = fd;
     handleDesc.size = byteSize;
 
+    if (fdType & ExternalMemoryTypeFlag::Dedicated)
+    {
+      handleDesc.flags = hipExternalMemoryDedicated;
+      fdType ^= ExternalMemoryTypeFlag::Dedicated;
+    }
+
+    if (fdType != ExternalMemoryTypeFlag::OpaqueFD)
+      throw Exception(Error::InvalidArgument, "external memory type not supported by the device");
+
     init(handleDesc);
   }
 
   HIPExternalBuffer::HIPExternalBuffer(Engine* engine,
-                                       ExternalMemoryTypeFlag handleType,
+                                       ExternalMemoryTypeFlags handleType,
                                        void* handle, const void* name, size_t byteSize)
     : USMBuffer(engine)
   {
     hipExternalMemoryHandleDesc handleDesc{};
-
-    switch (handleType)
-    {
-    case ExternalMemoryTypeFlag::OpaqueWin32:
-      handleDesc.type = hipExternalMemoryHandleTypeOpaqueWin32;
-      break;
-    case ExternalMemoryTypeFlag::OpaqueWin32KMT:
-      handleDesc.type = hipExternalMemoryHandleTypeOpaqueWin32Kmt;
-      break;
-    case ExternalMemoryTypeFlag::D3D11Texture:
-    case ExternalMemoryTypeFlag::D3D11Resource:
-      handleDesc.type  = hipExternalMemoryHandleTypeD3D11Resource;
-      handleDesc.flags = hipExternalMemoryDedicated;
-      break;
-    case ExternalMemoryTypeFlag::D3D11TextureKMT:
-    case ExternalMemoryTypeFlag::D3D11ResourceKMT:
-      handleDesc.type  = hipExternalMemoryHandleTypeD3D11ResourceKmt;
-      handleDesc.flags = hipExternalMemoryDedicated;
-      break;
-    case ExternalMemoryTypeFlag::D3D12Heap:
-      handleDesc.type = hipExternalMemoryHandleTypeD3D12Heap;
-      break;
-    case ExternalMemoryTypeFlag::D3D12Resource:
-      handleDesc.type  = hipExternalMemoryHandleTypeD3D12Resource;
-      handleDesc.flags = hipExternalMemoryDedicated;
-      break;
-    default:
-      throw Exception(Error::InvalidArgument, "external memory type not supported by the device");
-    }
-
     handleDesc.handle.win32.handle = handle;
     handleDesc.handle.win32.name = name;
     handleDesc.size = byteSize;
+
+    if (handleType & ExternalMemoryTypeFlag::Dedicated)
+    {
+      handleDesc.flags = hipExternalMemoryDedicated;
+      handleType ^= ExternalMemoryTypeFlag::Dedicated;
+    }
+
+    if (handleType == ExternalMemoryTypeFlag::OpaqueWin32)
+      handleDesc.type = hipExternalMemoryHandleTypeOpaqueWin32;
+    else if (handleType == ExternalMemoryTypeFlag::OpaqueWin32KMT)
+      handleDesc.type = hipExternalMemoryHandleTypeOpaqueWin32Kmt;
+    else if (handleType == ExternalMemoryTypeFlag::D3D11Texture ||
+             handleType == ExternalMemoryTypeFlag::D3D11Resource)
+    {
+      handleDesc.type  = hipExternalMemoryHandleTypeD3D11Resource;
+      handleDesc.flags = hipExternalMemoryDedicated; // mandatory
+    }
+    else if (handleType == ExternalMemoryTypeFlag::D3D11TextureKMT ||
+             handleType == ExternalMemoryTypeFlag::D3D11ResourceKMT)
+    {
+      handleDesc.type  = hipExternalMemoryHandleTypeD3D11ResourceKmt;
+      handleDesc.flags = hipExternalMemoryDedicated; // mandatory
+    }
+    else if (handleType == ExternalMemoryTypeFlag::D3D12Heap)
+      handleDesc.type = hipExternalMemoryHandleTypeD3D12Heap;
+    else if (handleType == ExternalMemoryTypeFlag::D3D12Resource)
+    {
+      handleDesc.type  = hipExternalMemoryHandleTypeD3D12Resource;
+      handleDesc.flags = hipExternalMemoryDedicated; // mandatory
+    }
+    else
+      throw Exception(Error::InvalidArgument, "external memory type not supported by the device");
 
     init(handleDesc);
   }

@@ -24,13 +24,13 @@ OIDN_NAMESPACE_BEGIN
     maxWorkGroupSize = syclDevice.get_info<sycl::info::device::max_work_group_size>();
   }
 
-  Ref<Buffer> SYCLEngine::newExternalBuffer(ExternalMemoryTypeFlag fdType,
+  Ref<Buffer> SYCLEngine::newExternalBuffer(ExternalMemoryTypeFlags fdType,
                                             int fd, size_t byteSize)
   {
     return makeRef<SYCLExternalBuffer>(this, fdType, fd, byteSize);
   }
 
-  Ref<Buffer> SYCLEngine::newExternalBuffer(ExternalMemoryTypeFlag handleType,
+  Ref<Buffer> SYCLEngine::newExternalBuffer(ExternalMemoryTypeFlags handleType,
                                             void* handle, const void* name, size_t byteSize)
   {
     return makeRef<SYCLExternalBuffer>(this, handleType, handle, name, byteSize);

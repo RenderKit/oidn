@@ -196,7 +196,7 @@ OIDN_NAMESPACE_BEGIN
     else if (name == "managedMemorySupported")
       return managedMemorySupported;
     else if (name == "externalMemoryTypes")
-      return static_cast<int>(externalMemoryTypes);
+      return static_cast<OIDNFlags>(externalMemoryTypes);
     else
       throw Exception(Error::InvalidArgument, "unknown device parameter or type mismatch: '" + name + "'");
   }
@@ -268,24 +268,24 @@ OIDN_NAMESPACE_BEGIN
     return getEngine()->newNativeBuffer(handle)->toUser();
   }
 
-  Ref<Buffer> Device::newExternalUserBuffer(ExternalMemoryTypeFlag fdType,
+  Ref<Buffer> Device::newExternalUserBuffer(ExternalMemoryTypeFlags fdType,
                                             int fd, size_t byteSize)
   {
     return getEngine()->newExternalBuffer(fdType, fd, byteSize)->toUser();
   }
 
-  Ref<Buffer> Device::newExternalUserBuffer(ExternalMemoryTypeFlag handleType,
+  Ref<Buffer> Device::newExternalUserBuffer(ExternalMemoryTypeFlags handleType,
                                             void* handle, const void* name, size_t byteSize)
   {
     return getEngine()->newExternalBuffer(handleType, handle, name, byteSize)->toUser();
   }
 
-  Ref<Semaphore> Device::newExternalSemaphore(ExternalSemaphoreTypeFlag fdType, int fd)
+  Ref<Semaphore> Device::newExternalSemaphore(ExternalSemaphoreTypeFlags fdType, int fd)
   {
     return getEngine()->newExternalSemaphore(fdType, fd);
   }
 
-  Ref<Semaphore> Device::newExternalSemaphore(ExternalSemaphoreTypeFlag handleType,
+  Ref<Semaphore> Device::newExternalSemaphore(ExternalSemaphoreTypeFlags handleType,
                                               void* handle, const void* name)
   {
     return getEngine()->newExternalSemaphore(handleType, handle, name);

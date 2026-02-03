@@ -31,12 +31,10 @@ OIDN_NAMESPACE_BEGIN
   public:
     static_assert(IsFlag<FlagT>::value, "not a flag type");
 
-    using MaskType = typename std::underlying_type<FlagT>::type;
-
     constexpr Flags() noexcept : mask(0) {}
-    constexpr Flags(FlagT flag) noexcept : mask(static_cast<MaskType>(flag)) {}
+    constexpr Flags(FlagT flag) noexcept : mask(static_cast<OIDNFlags>(flag)) {}
     constexpr Flags(const Flags& b) noexcept = default;
-    constexpr explicit Flags(MaskType mask) noexcept : mask(mask) {}
+    constexpr explicit Flags(OIDNFlags mask) noexcept : mask(mask) {}
 
     constexpr bool operator !() const noexcept { return !mask; }
 
@@ -68,10 +66,10 @@ OIDN_NAMESPACE_BEGIN
     constexpr bool operator !=(const Flags& b) const noexcept { return mask != b.mask; }
 
     constexpr explicit operator bool() const noexcept { return mask; }
-    constexpr explicit operator MaskType() const noexcept { return mask; }
+    constexpr explicit operator OIDNFlags() const noexcept { return mask; }
 
   private:
-    MaskType mask;
+    OIDNFlags mask;
   };
 
   template<typename FlagT>
@@ -188,6 +186,10 @@ OIDN_NAMESPACE_BEGIN
     // NT handle returned by ID3D12Device::CreateSharedHandle referring to a Direct3D 12
     // committed resource
     D3D12Resource = OIDN_EXTERNAL_MEMORY_TYPE_FLAG_D3D12_RESOURCE,
+
+    // modifier flag indicating that the external memory has dedicated allocation
+    // used only in combination with one of the handle type flags above
+    Dedicated = OIDN_EXTERNAL_MEMORY_TYPE_FLAG_DEDICATED,
   };
 
   template<> struct IsFlag<ExternalMemoryTypeFlag> { static constexpr bool value = true; };
@@ -875,17 +877,17 @@ OIDN_NAMESPACE_BEGIN
     }
 
     // Creates a shared buffer by importing external memory from a POSIX file descriptor.
-    BufferRef newBuffer(ExternalMemoryTypeFlag fdType, int fd, size_t byteSize) const
+    BufferRef newBuffer(ExternalMemoryTypeFlags fdType, int fd, size_t byteSize) const
     {
       return oidnNewSharedBufferFromFD(
-        handle, static_cast<OIDNExternalMemoryTypeFlag>(fdType), fd, byteSize);
+        handle, static_cast<OIDNExternalMemoryTypeFlags>(fdType), fd, byteSize);
     }
 
     // Creates a shared buffer by importing external memory from a Win32 handle.
-    BufferRef newBuffer(ExternalMemoryTypeFlag handleType, void* handle, const void* name, size_t byteSize) const
+    BufferRef newBuffer(ExternalMemoryTypeFlags handleType, void* handle, const void* name, size_t byteSize) const
     {
       return oidnNewSharedBufferFromWin32Handle(
-        this->handle, static_cast<OIDNExternalMemoryTypeFlag>(handleType), handle, name, byteSize);
+        this->handle, static_cast<OIDNExternalMemoryTypeFlags>(handleType), handle, name, byteSize);
     }
 
     // Creates a shared buffer from a Metal buffer.

@@ -12,11 +12,11 @@ OIDN_NAMESPACE_BEGIN
   {
   public:
     CUDAExternalBuffer(Engine* engine,
-                       ExternalMemoryTypeFlag fdType,
+                       ExternalMemoryTypeFlags fdType,
                        int fd, size_t byteSize);
 
     CUDAExternalBuffer(Engine* engine,
-                       ExternalMemoryTypeFlag handleType,
+                       ExternalMemoryTypeFlags handleType,
                        void* handle, const void* name, size_t byteSize);
 
     ~CUDAExternalBuffer();

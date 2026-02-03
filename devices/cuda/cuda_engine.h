@@ -64,20 +64,20 @@ OIDN_NAMESPACE_BEGIN
     cudaStream_t getCUDAStream() const { return stream; }
 
     // Buffer
-    Ref<Buffer> newExternalBuffer(ExternalMemoryTypeFlag fdType,
+    Ref<Buffer> newExternalBuffer(ExternalMemoryTypeFlags fdType,
                                   int fd, size_t byteSize) override;
 
-    Ref<Buffer> newExternalBuffer(ExternalMemoryTypeFlag handleType,
+    Ref<Buffer> newExternalBuffer(ExternalMemoryTypeFlags handleType,
                                   void* handle, const void* name, size_t byteSize) override;
 
     // Tensor
     bool isSupported(const TensorDesc& desc) const override;
 
     // Semaphore
-    Ref<Semaphore> newExternalSemaphore(ExternalSemaphoreTypeFlag fdType,
+    Ref<Semaphore> newExternalSemaphore(ExternalSemaphoreTypeFlags fdType,
                                         int fd) override;
 
-    Ref<Semaphore> newExternalSemaphore(ExternalSemaphoreTypeFlag handleType,
+    Ref<Semaphore> newExternalSemaphore(ExternalSemaphoreTypeFlags handleType,
                                         void* handle, const void* name) override;
 
     void submitSignalSemaphores(Semaphore* const* semaphores,

@@ -18,13 +18,13 @@ OIDN_NAMESPACE_BEGIN
     : device(device),
       stream(stream) {}
 
-  Ref<Buffer> HIPEngine::newExternalBuffer(ExternalMemoryTypeFlag fdType,
+  Ref<Buffer> HIPEngine::newExternalBuffer(ExternalMemoryTypeFlags fdType,
                                            int fd, size_t byteSize)
   {
     return makeRef<HIPExternalBuffer>(this, fdType, fd, byteSize);
   }
 
-  Ref<Buffer> HIPEngine::newExternalBuffer(ExternalMemoryTypeFlag handleType,
+  Ref<Buffer> HIPEngine::newExternalBuffer(ExternalMemoryTypeFlags handleType,
                                            void* handle, const void* name, size_t byteSize)
   {
     return makeRef<HIPExternalBuffer>(this, handleType, handle, name, byteSize);

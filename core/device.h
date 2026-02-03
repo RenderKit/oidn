@@ -78,10 +78,10 @@ OIDN_NAMESPACE_BEGIN
     Ref<Buffer> newUserBuffer(void* ptr, size_t byteSize);
     Ref<Buffer> newNativeUserBuffer(void* handle);
 
-    Ref<Buffer> newExternalUserBuffer(ExternalMemoryTypeFlag fdType,
+    Ref<Buffer> newExternalUserBuffer(ExternalMemoryTypeFlags fdType,
                                       int fd, size_t byteSize);
 
-    Ref<Buffer> newExternalUserBuffer(ExternalMemoryTypeFlag handleType,
+    Ref<Buffer> newExternalUserBuffer(ExternalMemoryTypeFlags handleType,
                                       void* handle, const void* name, size_t byteSize);
 
     // Filter
@@ -112,8 +112,8 @@ OIDN_NAMESPACE_BEGIN
     void trimScratch();
 
     // Semaphore
-    Ref<Semaphore> newExternalSemaphore(ExternalSemaphoreTypeFlag fdType, int fd);
-    Ref<Semaphore> newExternalSemaphore(ExternalSemaphoreTypeFlag handleType,
+    Ref<Semaphore> newExternalSemaphore(ExternalSemaphoreTypeFlags fdType, int fd);
+    Ref<Semaphore> newExternalSemaphore(ExternalSemaphoreTypeFlags handleType,
                                         void* handle, const void* name);
 
     void submitSignalSemaphores(Semaphore* const* semaphores,

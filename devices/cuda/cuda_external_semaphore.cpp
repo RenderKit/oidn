@@ -6,67 +6,50 @@
 OIDN_NAMESPACE_BEGIN
 
   CUDAExternalSemaphore::CUDAExternalSemaphore(Engine* engine,
-                                               ExternalSemaphoreTypeFlag fdType,
+                                               ExternalSemaphoreTypeFlags fdType,
                                                int fd)
     : Semaphore(engine->getDevice()),
       type(fdType)
   {
     cudaExternalSemaphoreHandleDesc handleDesc{};
-
-    switch (fdType)
-    {
-    case ExternalSemaphoreTypeFlag::OpaqueFD:
-      handleDesc.type = cudaExternalSemaphoreHandleTypeOpaqueFd;
-      break;
-    case ExternalSemaphoreTypeFlag::TimelineSemaphoreFD:
-      handleDesc.type = cudaExternalSemaphoreHandleTypeTimelineSemaphoreFd;
-      break;
-    default:
-      throw Exception(Error::InvalidArgument, "external semaphore type not supported by the device");
-    }
-
     handleDesc.handle.fd = fd;
+
+    if (fdType == ExternalSemaphoreTypeFlag::OpaqueFD)
+      handleDesc.type = cudaExternalSemaphoreHandleTypeOpaqueFd;
+    else if (fdType == ExternalSemaphoreTypeFlag::TimelineSemaphoreFD)
+      handleDesc.type = cudaExternalSemaphoreHandleTypeTimelineSemaphoreFd;
+    else
+      throw Exception(Error::InvalidArgument, "external semaphore type not supported by the device");
 
     init(handleDesc);
   }
 
   CUDAExternalSemaphore::CUDAExternalSemaphore(Engine* engine,
-                                               ExternalSemaphoreTypeFlag handleType,
+                                               ExternalSemaphoreTypeFlags handleType,
                                                void* handle, const void* name)
     : Semaphore(engine->getDevice()),
       type(handleType)
   {
     cudaExternalSemaphoreHandleDesc handleDesc{};
-
-    switch (handleType)
-    {
-    case ExternalSemaphoreTypeFlag::OpaqueWin32:
-      handleDesc.type = cudaExternalSemaphoreHandleTypeOpaqueWin32;
-      break;
-    case ExternalSemaphoreTypeFlag::OpaqueWin32KMT:
-      handleDesc.type = cudaExternalSemaphoreHandleTypeOpaqueWin32Kmt;
-      break;
-    case ExternalSemaphoreTypeFlag::D3D11Fence:
-      handleDesc.type = cudaExternalSemaphoreHandleTypeD3D11Fence;
-      break;
-    case ExternalSemaphoreTypeFlag::D3D12Fence:
-      handleDesc.type = cudaExternalSemaphoreHandleTypeD3D12Fence;
-      break;
-    case ExternalSemaphoreTypeFlag::KeyedMutex:
-      handleDesc.type = cudaExternalSemaphoreHandleTypeKeyedMutex;
-      break;
-    case ExternalSemaphoreTypeFlag::KeyedMutexKMT:
-      handleDesc.type = cudaExternalSemaphoreHandleTypeKeyedMutexKmt;
-      break;
-    case ExternalSemaphoreTypeFlag::TimelineSemaphoreWin32:
-      handleDesc.type = cudaExternalSemaphoreHandleTypeTimelineSemaphoreWin32;
-      break;
-    default:
-      throw Exception(Error::InvalidArgument, "external semaphore type not supported by the device");
-    }
-
     handleDesc.handle.win32.handle = handle;
     handleDesc.handle.win32.name = name;
+
+    if (handleType == ExternalSemaphoreTypeFlag::OpaqueWin32)
+      handleDesc.type = cudaExternalSemaphoreHandleTypeOpaqueWin32;
+    else if (handleType == ExternalSemaphoreTypeFlag::OpaqueWin32KMT)
+      handleDesc.type = cudaExternalSemaphoreHandleTypeOpaqueWin32Kmt;
+    else if (handleType == ExternalSemaphoreTypeFlag::D3D11Fence)
+      handleDesc.type = cudaExternalSemaphoreHandleTypeD3D11Fence;
+    else if (handleType == ExternalSemaphoreTypeFlag::D3D12Fence)
+      handleDesc.type = cudaExternalSemaphoreHandleTypeD3D12Fence;
+    else if (handleType == ExternalSemaphoreTypeFlag::KeyedMutex)
+      handleDesc.type = cudaExternalSemaphoreHandleTypeKeyedMutex;
+    else if (handleType == ExternalSemaphoreTypeFlag::KeyedMutexKMT)
+      handleDesc.type = cudaExternalSemaphoreHandleTypeKeyedMutexKmt;
+    else if (handleType == ExternalSemaphoreTypeFlag::TimelineSemaphoreWin32)
+      handleDesc.type = cudaExternalSemaphoreHandleTypeTimelineSemaphoreWin32;
+    else
+      throw Exception(Error::InvalidArgument, "external semaphore type not supported by the device");
 
     init(handleDesc);
   }
