@@ -53,8 +53,6 @@ OIDN_NAMESPACE_BEGIN
       return;
     if (semaphores == nullptr)
       throw Exception(Error::InvalidArgument, "semaphores pointer is null");
-    if (values == nullptr)
-      throw Exception(Error::InvalidArgument, "semaphore signal values pointer is null");
 
     semaphoreHandles.resize(numSemaphores);
     semaphoreSignalParams.resize(numSemaphores);
@@ -72,11 +70,14 @@ OIDN_NAMESPACE_BEGIN
       semaphoreHandles[i] = cudaSemaphore->getHandle();
 
       semaphoreSignalParams[i] = {};
-      if (type == ExternalSemaphoreTypeFlag::KeyedMutex ||
-          type == ExternalSemaphoreTypeFlag::KeyedMutexKMT)
-        semaphoreSignalParams[i].params.keyedMutex.key = values[i];
-      else
-        semaphoreSignalParams[i].params.fence.value = values[i];
+      if (values != nullptr)
+      {
+        if (type == ExternalSemaphoreTypeFlag::KeyedMutex ||
+            type == ExternalSemaphoreTypeFlag::KeyedMutexKMT)
+          semaphoreSignalParams[i].params.keyedMutex.key = values[i];
+        else
+          semaphoreSignalParams[i].params.fence.value = values[i];
+      }
     }
 
     checkError(cudaSignalExternalSemaphoresAsync(
@@ -97,8 +98,6 @@ OIDN_NAMESPACE_BEGIN
       return;
     if (semaphores == nullptr)
       throw Exception(Error::InvalidArgument, "semaphores pointer is null");
-    if (values == nullptr)
-      throw Exception(Error::InvalidArgument, "semaphore wait values pointer is null");
 
     semaphoreHandles.resize(numSemaphores);
     semaphoreWaitParams.resize(numSemaphores);
@@ -119,13 +118,15 @@ OIDN_NAMESPACE_BEGIN
       if (type == ExternalSemaphoreTypeFlag::KeyedMutex ||
           type == ExternalSemaphoreTypeFlag::KeyedMutexKMT)
       {
-        semaphoreWaitParams[i].params.keyedMutex.key = values[i];
+        if (values != nullptr)
+          semaphoreWaitParams[i].params.keyedMutex.key = values[i];
         if (timeoutsMs != nullptr)
           semaphoreWaitParams[i].params.keyedMutex.timeoutMs = timeoutsMs[i];
       }
       else
       {
-        semaphoreWaitParams[i].params.fence.value = values[i];
+        if (values != nullptr)
+          semaphoreWaitParams[i].params.fence.value = values[i];
       }
     }
 

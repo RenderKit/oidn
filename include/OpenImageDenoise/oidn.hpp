@@ -911,9 +911,22 @@ OIDN_NAMESPACE_BEGIN
         this->handle, static_cast<OIDNExternalSemaphoreTypeFlags>(handleType), handle, name);
     }
 
+    void signalSemaphoreAsync(const SemaphoreRef& semaphore) const
+    {
+      oidnSignalSemaphoresAsync(handle, &semaphore.getHandle(), nullptr, 1);
+    }
+
     void signalSemaphoreAsync(const SemaphoreRef& semaphore, uint64_t value) const
     {
       oidnSignalSemaphoresAsync(handle, &semaphore.getHandle(), &value, 1);
+    }
+
+    void signalSemaphoresAsync(const std::vector<SemaphoreRef>& semaphores) const
+    {
+      oidnSignalSemaphoresAsync(handle,
+                                reinterpret_cast<const OIDNSemaphore*>(semaphores.data()),
+                                nullptr,
+                                static_cast<int>(semaphores.size()));
     }
 
     void signalSemaphoresAsync(const std::vector<SemaphoreRef>& semaphores,
@@ -925,6 +938,11 @@ OIDN_NAMESPACE_BEGIN
                                 static_cast<int>(semaphores.size()));
     }
 
+    void waitSemaphoreAsync(const SemaphoreRef& semaphore) const
+    {
+      oidnWaitSemaphoresAsync(handle, &semaphore.getHandle(), nullptr, nullptr, 1);
+    }
+
     void waitSemaphoreAsync(const SemaphoreRef& semaphore, uint64_t value) const
     {
       oidnWaitSemaphoresAsync(handle, &semaphore.getHandle(), &value, nullptr, 1);
@@ -933,6 +951,15 @@ OIDN_NAMESPACE_BEGIN
     void waitSemaphoreAsync(const SemaphoreRef& semaphore, uint64_t value, uint32_t timeoutMs) const
     {
       oidnWaitSemaphoresAsync(handle, &semaphore.getHandle(), &value, &timeoutMs, 1);
+    }
+
+    void waitSemaphoresAsync(const std::vector<SemaphoreRef>& semaphores) const
+    {
+      oidnWaitSemaphoresAsync(handle,
+                              reinterpret_cast<const OIDNSemaphore*>(semaphores.data()),
+                              nullptr,
+                              nullptr,
+                              static_cast<int>(semaphores.size()));
     }
 
     void waitSemaphoresAsync(const std::vector<SemaphoreRef>& semaphores,

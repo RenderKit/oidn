@@ -221,8 +221,8 @@ inline int oidnGetDevice1i(OIDNDevice device, const char* name)
 OIDN_API void oidnSetDeviceErrorFunction(OIDNDevice device, OIDNErrorFunction func, void* userPtr);
 
 // Returns the first unqueried error code stored in the device for the current thread, optionally
-// also returning a string message (if not NULL), and clears the stored error. Can be called with
-// a NULL device as well to check for per-thread global errors (e.g. why a device creation or
+// also returning a string message (if not null), and clears the stored error. Can be called with
+// a null device as well to check for per-thread global errors (e.g. why a device creation or
 // physical device query has failed).
 OIDN_API OIDNError oidnGetDeviceError(OIDNDevice device, const char** outMessage);
 
@@ -428,14 +428,15 @@ OIDN_API OIDNSemaphore oidnNewSharedSemaphoreFromWin32Handle(OIDNDevice device,
                                                              OIDNExternalSemaphoreTypeFlags handleType,
                                                              void* handle, const void* name);
 
-// Signals semaphores with specified values/keys asynchronously.
+// Signals semaphores using optionally specified values/keys (required only for certain semaphore
+// types, otherwise may be null) asynchronously.
 OIDN_API void oidnSignalSemaphoresAsync(OIDNDevice device,
                                         const OIDNSemaphore* semaphores,
                                         const uint64_t* values,
                                         int numSemaphores);
 
-// Waits on semaphores with specified values/keys and optional timeouts in milliseconds (for
-// semaphore types which support it) asynchronously.
+// Waits on semaphores using optionally specified values/keys and timeouts in milliseconds (required
+// only for certain semaphore types, otherwise may be null) asynchronously.
 OIDN_API void oidnWaitSemaphoresAsync(OIDNDevice device,
                                       const OIDNSemaphore* semaphores,
                                       const uint64_t* values,

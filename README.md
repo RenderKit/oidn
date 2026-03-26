@@ -1388,11 +1388,12 @@ void oidnWaitSemaphoresAsync(OIDNDevice device,
                              int numSemaphores);
 ```
 
-The meaning of the `values` parameter depends on the respective
-semaphore types (e.g. for fences it is the value to set/wait for, for
-keyed mutexes it is the key). The `timeoutsMs` parameter is optional
-(can be `NULL`) and applies only to certain kinds of semaphores
-(e.g. keyed mutexes), otherwise these values are simply ignored.
+The `values` and `timeoutMs` parameters are needed only for certain
+kinds of semaphores (e.g. fences, keyed mutexes), for other semaphores
+these values are ignored and the pointers may be `NULL`. The meaning of
+the `values` parameter depends on the respective semaphore types
+(e.g. for fences it is the value to set/wait for, for keyed mutexes it
+is the key).
 
 ## Filters
 
