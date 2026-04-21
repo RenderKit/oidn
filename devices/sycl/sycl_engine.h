@@ -25,6 +25,7 @@ OIDN_NAMESPACE_BEGIN
 
     Device* getDevice() const override { return device; }
     ze_device_handle_t getZeDevice() const { return zeDevice; }
+    sycl::queue getSYCLQueue() const { return syclQueue; }
 
     // Buffer
     Ref<Buffer> newExternalBuffer(ExternalMemoryTypeFlags fdType,
@@ -32,6 +33,22 @@ OIDN_NAMESPACE_BEGIN
 
     Ref<Buffer> newExternalBuffer(ExternalMemoryTypeFlags handleType,
                                   void* handle, const void* name, size_t byteSize) override;
+
+    // Semaphore
+    Ref<Semaphore> newExternalSemaphore(ExternalSemaphoreTypeFlags fdType,
+                                        int fd) override;
+
+    Ref<Semaphore> newExternalSemaphore(ExternalSemaphoreTypeFlags handleType,
+                                        void* handle, const void* name) override;
+
+    void submitSignalSemaphores(Semaphore* const* semaphores,
+                                const uint64_t* values,
+                                int numSemaphores) override;
+
+    void submitWaitSemaphores(Semaphore* const* semaphores,
+                              const uint64_t* values,
+                              const uint32_t* timeoutsMs,
+                              int numSemaphores) override;
 
     // Ops
     bool isConvSupported(PostOp postOp) override;
