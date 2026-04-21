@@ -84,6 +84,8 @@ set(OIDN_SYCL_SOURCES_COMMON
   sycl_engine.cpp
   sycl_external_buffer.h
   sycl_external_buffer.cpp
+  sycl_external_semaphore.h
+  sycl_external_semaphore.cpp
   sycl_input_process.h
   sycl_output_process.h
   sycl_module.cpp

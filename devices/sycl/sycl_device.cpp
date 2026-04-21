@@ -468,6 +468,25 @@ OIDN_NAMESPACE_BEGIN
     #endif
 
       externalMemoryTypes |= ExternalMemoryTypeFlag::Dedicated;
+
+      bool externalSemaphoresSupported = true;
+      for (auto& syclQueue : syclQueues)
+      {
+        externalSemaphoresSupported &=
+          syclQueue.get_device().has(sycl::aspect::ext_oneapi_external_semaphore_import);
+      }
+
+      if (externalSemaphoresSupported)
+      {
+      #if defined(_WIN32)
+        externalSemaphoreTypes = ExternalSemaphoreTypeFlag::OpaqueWin32 |
+                                 ExternalSemaphoreTypeFlag::D3D12Fence |
+                                 ExternalSemaphoreTypeFlag::TimelineSemaphoreWin32;
+      #else
+        externalSemaphoreTypes = ExternalSemaphoreTypeFlag::OpaqueFD |
+                                 ExternalSemaphoreTypeFlag::TimelineSemaphoreFD;
+      #endif
+      }
     }
   }
 

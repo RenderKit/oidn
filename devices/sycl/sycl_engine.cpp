@@ -4,6 +4,7 @@
 #include "sycl_engine.h"
 #include "sycl_ops.h"
 #include "sycl_external_buffer.h"
+#include "sycl_external_semaphore.h"
 #include "../gpu/gpu_autoexposure.h"
 #include "../gpu/gpu_image_copy.h"
 
@@ -32,6 +33,108 @@ OIDN_NAMESPACE_BEGIN
                                             void* handle, const void* name, size_t byteSize)
   {
     return makeRef<SYCLExternalBuffer>(this, handleType, handle, name, byteSize);
+  }
+
+  Ref<Semaphore> SYCLEngine::newExternalSemaphore(ExternalSemaphoreTypeFlags fdType, int fd)
+  {
+    return makeRef<SYCLExternalSemaphore>(this, fdType, fd);
+  }
+
+  Ref<Semaphore> SYCLEngine::newExternalSemaphore(ExternalSemaphoreTypeFlags handleType,
+                                                   void* handle, const void* name)
+  {
+    return makeRef<SYCLExternalSemaphore>(this, handleType, handle, name);
+  }
+
+  void SYCLEngine::submitSignalSemaphores(Semaphore* const* semaphores,
+                                          const uint64_t* values,
+                                          int numSemaphores)
+  {
+    if (numSemaphores < 0)
+      throw Exception(Error::InvalidArgument, "number of semaphores is negative");
+    if (numSemaphores == 0)
+      return;
+    if (semaphores == nullptr)
+      throw Exception(Error::InvalidArgument, "semaphores pointer is null");
+
+    auto depEvents = getDepEvents();
+    std::vector<sycl::event> signalEvents;
+    signalEvents.reserve(numSemaphores);
+
+    for (int i = 0; i < numSemaphores; ++i)
+    {
+      if (semaphores[i] == nullptr)
+        throw Exception(Error::InvalidArgument, "semaphore is null");
+      if (semaphores[i]->getDevice() != getDevice())
+        throw Exception(Error::InvalidArgument, "semaphore was created on a different device");
+
+      SYCLExternalSemaphore* syclSem = reinterpret_cast<SYCLExternalSemaphore*>(semaphores[i]);
+      sycl::event event;
+      if (values != nullptr)
+        event = syclQueue.ext_oneapi_signal_external_semaphore(syclSem->getHandle(), values[i], depEvents);
+      else
+        event = syclQueue.ext_oneapi_signal_external_semaphore(syclSem->getHandle(), depEvents);
+
+      signalEvents.push_back(event);
+    }
+
+    if (numSemaphores == 1)
+    {
+      lastEvent = signalEvents[0];
+    }
+    else
+    {
+      lastEvent = syclQueue.submit([&](sycl::handler& cgh) {
+        cgh.depends_on(signalEvents);
+        cgh.single_task([](){});
+      });
+    }
+  }
+
+  void SYCLEngine::submitWaitSemaphores(Semaphore* const* semaphores,
+                                        const uint64_t* values,
+                                        const uint32_t* /*timeoutsMs*/,
+                                        int numSemaphores)
+  {
+    if (numSemaphores < 0)
+      throw Exception(Error::InvalidArgument, "number of semaphores is negative");
+    if (numSemaphores == 0)
+      return;
+    if (semaphores == nullptr)
+      throw Exception(Error::InvalidArgument, "semaphores pointer is null");
+
+    auto depEvents = getDepEvents();
+    std::vector<sycl::event> waitEvents;
+    waitEvents.reserve(numSemaphores);
+
+    for (int i = 0; i < numSemaphores; ++i)
+    {
+      if (semaphores[i] == nullptr)
+        throw Exception(Error::InvalidArgument, "semaphore is null");
+      if (semaphores[i]->getDevice() != getDevice())
+        throw Exception(Error::InvalidArgument, "semaphore was created on a different device");
+
+      SYCLExternalSemaphore* syclSem = reinterpret_cast<SYCLExternalSemaphore*>(semaphores[i]);
+      sycl::event event;
+      if (values != nullptr)
+        event = syclQueue.ext_oneapi_wait_external_semaphore(syclSem->getHandle(), values[i], depEvents);
+      else
+        event = syclQueue.ext_oneapi_wait_external_semaphore(syclSem->getHandle(), depEvents);
+
+      waitEvents.push_back(event);
+    }
+
+    if (numSemaphores == 1)
+    {
+      lastEvent = waitEvents[0];
+    }
+    else
+    {
+      lastEvent = syclQueue.submit([&](sycl::handler& cgh) {
+        cgh.depends_on(waitEvents);
+        cgh.single_task([](){});
+      });
+    }
   }
 
   bool SYCLEngine::isConvSupported(Fusion fusion) const
