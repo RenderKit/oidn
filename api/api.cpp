@@ -782,7 +782,7 @@ OIDN_API_NAMESPACE_BEGIN
       if ((handleType & device->getExternalSemaphoreTypes()) != handleType)
         throw Exception(Error::InvalidArgument, "external semaphore type not supported by the device");
       if ((!handle && !name) || (handle && name))
-        throw Exception(Error::InvalidArgument, "exactly one of the external memory handle and name must be non-null");
+        throw Exception(Error::InvalidArgument, "exactly one of the external semaphore handle and name must be non-null");
       Ref<Semaphore> semaphore = device->newExternalSemaphore(handleType, handle, name);
       return reinterpret_cast<OIDNSemaphore>(semaphore.detach());
     OIDN_CATCH_DEVICE(device)
