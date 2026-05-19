@@ -43,6 +43,8 @@ set(OIDN_HIP_SOURCES
   hip_engine.cpp
   hip_external_buffer.h
   hip_external_buffer.cpp
+  hip_external_semaphore.h
+  hip_external_semaphore.cpp
   hip_module.cpp
 )
 

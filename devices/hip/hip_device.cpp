@@ -200,8 +200,19 @@ OIDN_NAMESPACE_BEGIN
                           ExternalMemoryTypeFlag::D3D11ResourceKMT |
                           ExternalMemoryTypeFlag::D3D12Heap |
                           ExternalMemoryTypeFlag::D3D12Resource;
+
+    externalSemaphoreTypes = ExternalSemaphoreTypeFlag::OpaqueWin32 |
+                             ExternalSemaphoreTypeFlag::OpaqueWin32KMT |
+                             ExternalSemaphoreTypeFlag::D3D11Fence |
+                             ExternalSemaphoreTypeFlag::D3D12Fence |
+                             ExternalSemaphoreTypeFlag::KeyedMutex |
+                             ExternalSemaphoreTypeFlag::KeyedMutexKMT |
+                             ExternalSemaphoreTypeFlag::TimelineSemaphoreWin32;
   #else
     externalMemoryTypes = ExternalMemoryTypeFlag::OpaqueFD;
+
+    // Not yet supported by HIP on Linux.
+    externalSemaphoreTypes = 0;
   #endif
 
     externalMemoryTypes |= ExternalMemoryTypeFlag::Dedicated;

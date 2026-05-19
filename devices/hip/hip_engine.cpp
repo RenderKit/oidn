@@ -3,6 +3,7 @@
 
 #include "hip_engine.h"
 #include "hip_external_buffer.h"
+#include "hip_external_semaphore.h"
 #include "hip_conv.h"
 #include "../gpu/gpu_autoexposure.h"
 #include "../gpu/gpu_input_process.h"
@@ -28,6 +29,112 @@ OIDN_NAMESPACE_BEGIN
                                            void* handle, const void* name, size_t byteSize)
   {
     return makeRef<HIPExternalBuffer>(this, handleType, handle, name, byteSize);
+  }
+
+  Ref<Semaphore> HIPEngine::newExternalSemaphore(ExternalSemaphoreTypeFlags fdType,
+                                                  int fd)
+  {
+    return makeRef<HIPExternalSemaphore>(this, fdType, fd);
+  }
+
+  Ref<Semaphore> HIPEngine::newExternalSemaphore(ExternalSemaphoreTypeFlags handleType,
+                                                  void* handle, const void* name)
+  {
+    return makeRef<HIPExternalSemaphore>(this, handleType, handle, name);
+  }
+
+  void HIPEngine::submitSignalSemaphores(Semaphore* const* semaphores,
+                                          const uint64_t* values,
+                                          int numSemaphores)
+  {
+    if (numSemaphores < 0)
+      throw Exception(Error::InvalidArgument, "number of semaphores is negative");
+    if (numSemaphores == 0)
+      return;
+    if (semaphores == nullptr)
+      throw Exception(Error::InvalidArgument, "semaphores pointer is null");
+
+    semaphoreHandles.resize(numSemaphores);
+    semaphoreSignalParams.resize(numSemaphores);
+
+    for (int i = 0; i < numSemaphores; ++i)
+    {
+      if (semaphores[i] == nullptr)
+        throw Exception(Error::InvalidArgument, "semaphore is null");
+      if (semaphores[i]->getDevice() != getDevice())
+        throw Exception(Error::InvalidArgument, "semaphore was created on a different device");
+
+      HIPExternalSemaphore* hipSemaphore = reinterpret_cast<HIPExternalSemaphore*>(semaphores[i]);
+      ExternalSemaphoreTypeFlags type = hipSemaphore->getType();
+
+      semaphoreHandles[i] = hipSemaphore->getHandle();
+
+      semaphoreSignalParams[i] = {};
+      if (values != nullptr)
+      {
+        if (type == ExternalSemaphoreTypeFlag::KeyedMutex ||
+            type == ExternalSemaphoreTypeFlag::KeyedMutexKMT)
+          semaphoreSignalParams[i].params.keyedMutex.key = values[i];
+        else
+          semaphoreSignalParams[i].params.fence.value = values[i];
+      }
+    }
+
+    checkError(hipSignalExternalSemaphoresAsync(
+      semaphoreHandles.data(),
+      semaphoreSignalParams.data(),
+      numSemaphores,
+      stream));
+  }
+
+  void HIPEngine::submitWaitSemaphores(Semaphore* const* semaphores,
+                                        const uint64_t* values,
+                                        const uint32_t* timeoutsMs,
+                                        int numSemaphores)
+  {
+    if (numSemaphores < 0)
+      throw Exception(Error::InvalidArgument, "number of semaphores is negative");
+    if (numSemaphores == 0)
+      return;
+    if (semaphores == nullptr)
+      throw Exception(Error::InvalidArgument, "semaphores pointer is null");
+
+    semaphoreHandles.resize(numSemaphores);
+    semaphoreWaitParams.resize(numSemaphores);
+
+    for (int i = 0; i < numSemaphores; ++i)
+    {
+      if (semaphores[i] == nullptr)
+        throw Exception(Error::InvalidArgument, "semaphore is null");
+      if (semaphores[i]->getDevice() != getDevice())
+        throw Exception(Error::InvalidArgument, "semaphore was created on a different device");
+
+      HIPExternalSemaphore* hipSemaphore = reinterpret_cast<HIPExternalSemaphore*>(semaphores[i]);
+      ExternalSemaphoreTypeFlags type = hipSemaphore->getType();
+
+      semaphoreHandles[i] = hipSemaphore->getHandle();
+
+      semaphoreWaitParams[i] = {};
+      if (type == ExternalSemaphoreTypeFlag::KeyedMutex ||
+          type == ExternalSemaphoreTypeFlag::KeyedMutexKMT)
+      {
+        if (values != nullptr)
+          semaphoreWaitParams[i].params.keyedMutex.key = values[i];
+        if (timeoutsMs != nullptr)
+          semaphoreWaitParams[i].params.keyedMutex.timeoutMs = timeoutsMs[i];
+      }
+      else
+      {
+        if (values != nullptr)
+          semaphoreWaitParams[i].params.fence.value = values[i];
+      }
+    }
+
+    checkError(hipWaitExternalSemaphoresAsync(
+      semaphoreHandles.data(),
+      semaphoreWaitParams.data(),
+      numSemaphores,
+      stream));
   }
 
   bool HIPEngine::isSupported(const TensorDesc& desc) const

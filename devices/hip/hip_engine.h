@@ -73,6 +73,22 @@ OIDN_NAMESPACE_BEGIN
     // Tensor
     bool isSupported(const TensorDesc& desc) const override;
 
+    // Semaphore
+    Ref<Semaphore> newExternalSemaphore(ExternalSemaphoreTypeFlags fdType,
+                                        int fd) override;
+
+    Ref<Semaphore> newExternalSemaphore(ExternalSemaphoreTypeFlags handleType,
+                                        void* handle, const void* name) override;
+
+    void submitSignalSemaphores(Semaphore* const* semaphores,
+                                const uint64_t* values,
+                                int numSemaphores) override;
+
+    void submitWaitSemaphores(Semaphore* const* semaphores,
+                              const uint64_t* values,
+                              const uint32_t* timeoutsMs,
+                              int numSemaphores) override;
+
     // Ops
     Ref<Conv> newConv(const ConvDesc& desc) override;
     Ref<Pool> newPool(const PoolDesc& desc) override;
@@ -135,6 +151,11 @@ OIDN_NAMESPACE_BEGIN
 
     HIPDevice* device;
     hipStream_t stream;
+
+    // Temporary storage for semaphore handles and params
+    std::vector<hipExternalSemaphore_t> semaphoreHandles;
+    std::vector<hipExternalSemaphoreSignalParams> semaphoreSignalParams;
+    std::vector<hipExternalSemaphoreWaitParams> semaphoreWaitParams;
   };
 
 OIDN_NAMESPACE_END
