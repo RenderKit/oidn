@@ -211,8 +211,7 @@ OIDN_NAMESPACE_BEGIN
   #else
     externalMemoryTypes = ExternalMemoryTypeFlag::OpaqueFD;
 
-    // Not yet supported by HIP on Linux.
-    externalSemaphoreTypes = 0;
+    // External semaphores aren't yet supported by HIP on Linux.
   #endif
 
     externalMemoryTypes |= ExternalMemoryTypeFlag::Dedicated;
