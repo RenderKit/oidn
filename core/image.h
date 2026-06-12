@@ -15,11 +15,12 @@ OIDN_NAMESPACE_BEGIN
   {
     static constexpr size_t maxDim = 65536;
 
-    size_t width;       // width in number of pixels
-    size_t height;      // height in number of pixels
-    size_t wByteStride; // pixel stride in number of bytes
-    size_t hByteStride; // row stride in number of bytes
-    Format format;      // pixel format
+    size_t width       = 0;                  // width in number of pixels
+    size_t height      = 0;                  // height in number of pixels
+    size_t wByteStride = 0;                  // pixel stride in number of bytes
+    size_t hByteStride = 0;                  // row stride in number of bytes
+    Format format      = Format::Undefined;  // pixel format
+    size_t byteSize    = 0;                  // total size in bytes
 
     ImageDesc() = default;
     ImageDesc(Format format, size_t width, size_t height, size_t pixelByteStride = 0, size_t rowByteStride = 0);
@@ -60,9 +61,7 @@ OIDN_NAMESPACE_BEGIN
     // Returns the size in bytes of the image
     oidn_inline size_t getByteSize() const
     {
-      if (width == 0 || height == 0)
-        return 0;
-      return (height - 1) * hByteStride + (width - 1) * wByteStride + getFormatSize(format);
+      return byteSize;
     }
 
     oidn_inline DataType getDataType() const

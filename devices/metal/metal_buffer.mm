@@ -38,8 +38,8 @@ OIDN_NAMESPACE_BEGIN
     const auto byteSizeAndAlignment = engine->getBufferByteSizeAndAlignment(byteSize, storage);
     if (byteOffset % byteSizeAndAlignment.alignment != 0)
       throw Exception(Error::InvalidArgument, "buffer offset is unaligned");
-    if (byteOffset + byteSizeAndAlignment.size > arena->getByteSize())
-      throw Exception(Error::InvalidArgument, "arena region is out of bounds");
+    if (!isRangeValid(byteOffset, byteSizeAndAlignment.size, arena->getByteSize()))
+      throw Exception(Error::InvalidArgument, "arena range is out of bounds");
 
     init();
   }
@@ -168,8 +168,8 @@ OIDN_NAMESPACE_BEGIN
 
   void MetalBuffer::read(size_t byteOffset, size_t byteSize, void* dstHostPtr, SyncMode sync)
   {
-    if (byteOffset + byteSize > this->byteSize)
-      throw Exception(Error::InvalidArgument, "buffer region is out of bounds");
+    if (!isRangeValid(byteOffset, byteSize, this->byteSize))
+      throw Exception(Error::InvalidArgument, "buffer range is out of bounds");
     if (dstHostPtr == nullptr && byteSize > 0)
       throw Exception(Error::InvalidArgument, "destination host pointer is null");
 
@@ -203,8 +203,8 @@ OIDN_NAMESPACE_BEGIN
 
   void MetalBuffer::write(size_t byteOffset, size_t byteSize, const void* srcHostPtr, SyncMode sync)
   {
-    if (byteOffset + byteSize > this->byteSize)
-      throw Exception(Error::InvalidArgument, "buffer region is out of bounds");
+    if (!isRangeValid(byteOffset, byteSize, this->byteSize))
+      throw Exception(Error::InvalidArgument, "buffer range is out of bounds");
     if (srcHostPtr == nullptr && byteSize > 0)
       throw Exception(Error::InvalidArgument, "source host pointer is null");
 

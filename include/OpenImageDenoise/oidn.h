@@ -358,18 +358,18 @@ OIDN_API OIDNStorage oidnGetBufferStorage(OIDNBuffer buffer);
 // is empty or getting a pointer to data with device storage is not supported by the device.
 OIDN_API void* oidnGetBufferData(OIDNBuffer buffer);
 
-// Copies data from a region of the buffer to host memory.
+// Copies data from a range of the buffer to host memory.
 OIDN_API void oidnReadBuffer(OIDNBuffer buffer, size_t byteOffset, size_t byteSize, void* dstHostPtr);
 
-// Copies data from a region of the buffer to host memory asynchronously.
+// Copies data from a range of the buffer to host memory asynchronously.
 OIDN_API void oidnReadBufferAsync(OIDNBuffer buffer,
                                   size_t byteOffset, size_t byteSize, void* dstHostPtr);
 
-// Copies data to a region of the buffer from host memory.
+// Copies data to a range of the buffer from host memory.
 OIDN_API void oidnWriteBuffer(OIDNBuffer buffer,
                               size_t byteOffset, size_t byteSize, const void* srcHostPtr);
 
-// Copies data to a region of the buffer from host memory asynchronously.
+// Copies data to a range of the buffer from host memory asynchronously.
 OIDN_API void oidnWriteBufferAsync(OIDNBuffer buffer,
                                    size_t byteOffset, size_t byteSize, const void* srcHostPtr);
 

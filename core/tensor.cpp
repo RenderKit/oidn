@@ -166,8 +166,8 @@ OIDN_NAMESPACE_BEGIN
   DeviceTensor::DeviceTensor(const Ref<Buffer>& buffer, const TensorDesc& desc, size_t byteOffset)
     : Tensor(buffer, desc, byteOffset)
   {
-    if (byteOffset + getByteSize() > buffer->getByteSize())
-      throw Exception(Error::InvalidArgument, "buffer region is out of bounds");
+    if (!isRangeValid(byteOffset, getByteSize(), buffer->getByteSize()))
+      throw Exception(Error::InvalidArgument, "buffer range is out of bounds");
 
     ptr = static_cast<char*>(buffer->getPtr()) + byteOffset;
   }

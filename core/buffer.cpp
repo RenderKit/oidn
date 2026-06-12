@@ -46,8 +46,8 @@ OIDN_NAMESPACE_BEGIN
   {
     if (!arena)
       throw Exception(Error::InvalidOperation, "cannot suballocate a buffer without an arena");
-    if (byteOffset + byteSize > getByteSize())
-      throw Exception(Error::InvalidArgument, "buffer region is out of bounds");
+    if (!isRangeValid(byteOffset, byteSize, getByteSize()))
+      throw Exception(Error::InvalidArgument, "buffer range is out of bounds");
 
     return arena->newBuffer(byteSize, this->byteOffset + byteOffset);
   }
@@ -138,8 +138,8 @@ OIDN_NAMESPACE_BEGIN
       shared(true),
       storage(arena->getHeap()->getStorage())
   {
-    if (byteOffset + byteSize > arena->getByteSize())
-      throw Exception(Error::InvalidArgument, "arena region is out of bounds");
+    if (!isRangeValid(byteOffset, byteSize, arena->getByteSize()))
+      throw Exception(Error::InvalidArgument, "arena range is out of bounds");
 
     USMHeap* heap = dynamic_cast<USMHeap*>(arena->getHeap());
     if (!heap)
@@ -173,8 +173,8 @@ OIDN_NAMESPACE_BEGIN
 
   void USMBuffer::read(size_t byteOffset, size_t byteSize, void* dstHostPtr, SyncMode sync)
   {
-    if (byteOffset + byteSize > this->byteSize)
-      throw Exception(Error::InvalidArgument, "buffer region is out of bounds");
+    if (!isRangeValid(byteOffset, byteSize, this->byteSize))
+      throw Exception(Error::InvalidArgument, "buffer range is out of bounds");
     if (dstHostPtr == nullptr && byteSize > 0)
       throw Exception(Error::InvalidArgument, "destination host pointer is null");
 
@@ -186,8 +186,8 @@ OIDN_NAMESPACE_BEGIN
 
   void USMBuffer::write(size_t byteOffset, size_t byteSize, const void* srcHostPtr, SyncMode sync)
   {
-    if (byteOffset + byteSize > this->byteSize)
-      throw Exception(Error::InvalidArgument, "buffer region is out of bounds");
+    if (!isRangeValid(byteOffset, byteSize, this->byteSize))
+      throw Exception(Error::InvalidArgument, "buffer range is out of bounds");
     if (srcHostPtr == nullptr && byteSize > 0)
       throw Exception(Error::InvalidArgument, "source host pointer is null");
 

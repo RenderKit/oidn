@@ -288,25 +288,25 @@ OIDN_NAMESPACE_BEGIN
       return oidnGetBufferData(handle);
     }
 
-    // Copies data from a region of the buffer to host memory.
+    // Copies data from a range of the buffer to host memory.
     void read(size_t byteOffset, size_t byteSize, void* dstHostPtr) const
     {
       oidnReadBuffer(handle, byteOffset, byteSize, dstHostPtr);
     }
 
-    // Copies data from a region of the buffer to host memory asynchronously.
+    // Copies data from a range of the buffer to host memory asynchronously.
     void readAsync(size_t byteOffset, size_t byteSize, void* dstHostPtr) const
     {
       oidnReadBufferAsync(handle, byteOffset, byteSize, dstHostPtr);
     }
 
-    // Copies data to a region of the buffer from host memory.
+    // Copies data to a range of the buffer from host memory.
     void write(size_t byteOffset, size_t byteSize, const void* srcHostPtr)
     {
       oidnWriteBuffer(handle, byteOffset, byteSize, srcHostPtr);
     }
 
-    // Copies data to a region of the buffer from host memory asynchronously.
+    // Copies data to a range of the buffer from host memory asynchronously.
     void writeAsync(size_t byteOffset, size_t byteSize, const void* srcHostPtr)
     {
       oidnWriteBufferAsync(handle, byteOffset, byteSize, srcHostPtr);

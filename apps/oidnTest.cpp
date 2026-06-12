@@ -378,6 +378,10 @@ TEST_CASE("buffer read/write", "[buffer_rw]")
     REQUIRE(device.getError() == Error::InvalidArgument);
     buffer.write(256, bufferSize, src.data());
     REQUIRE(device.getError() == Error::InvalidArgument);
+    buffer.write(std::numeric_limits<size_t>::max(), 1, src.data());
+    REQUIRE(device.getError() == Error::InvalidArgument);
+    buffer.write(1, std::numeric_limits<size_t>::max(), src.data());
+    REQUIRE(device.getError() == Error::InvalidArgument);
 
     // Write to the buffer
     buffer.write(0, bufferSize, src.data());
@@ -390,6 +394,10 @@ TEST_CASE("buffer read/write", "[buffer_rw]")
     buffer.read(0, bufferSize+256, dst.data());
     REQUIRE(device.getError() == Error::InvalidArgument);
     buffer.read(256, bufferSize, dst.data());
+    REQUIRE(device.getError() == Error::InvalidArgument);
+    buffer.read(std::numeric_limits<size_t>::max(), 1, dst.data());
+    REQUIRE(device.getError() == Error::InvalidArgument);
+    buffer.read(1, std::numeric_limits<size_t>::max(), dst.data());
     REQUIRE(device.getError() == Error::InvalidArgument);
 
     // Read from the buffer
@@ -410,6 +418,10 @@ TEST_CASE("buffer read/write", "[buffer_rw]")
     REQUIRE(device.getError() == Error::InvalidArgument);
     buffer.writeAsync(256, bufferSize, src.data());
     REQUIRE(device.getError() == Error::InvalidArgument);
+    buffer.writeAsync(std::numeric_limits<size_t>::max(), 1, src.data());
+    REQUIRE(device.getError() == Error::InvalidArgument);
+    buffer.writeAsync(1, std::numeric_limits<size_t>::max(), src.data());
+    REQUIRE(device.getError() == Error::InvalidArgument);
 
     // Write to the buffer
     buffer.writeAsync(0, bufferSize, src.data());
@@ -422,6 +434,10 @@ TEST_CASE("buffer read/write", "[buffer_rw]")
     buffer.readAsync(0, bufferSize+256, dst.data());
     REQUIRE(device.getError() == Error::InvalidArgument);
     buffer.readAsync(256, bufferSize, dst.data());
+    REQUIRE(device.getError() == Error::InvalidArgument);
+    buffer.readAsync(std::numeric_limits<size_t>::max(), 1, dst.data());
+    REQUIRE(device.getError() == Error::InvalidArgument);
+    buffer.readAsync(1, std::numeric_limits<size_t>::max(), dst.data());
     REQUIRE(device.getError() == Error::InvalidArgument);
 
     // Read from the buffer
@@ -449,7 +465,7 @@ TEST_CASE("buffer read/write", "[buffer_rw]")
     REQUIRE(device.getError() == Error::None);
     REQUIRE(memcmp(partial.data(), src.data() + offset, count * sizeof(int)) == 0);
 
-    // Overwrite a sub-range and verify only that region changed
+    // Overwrite a sub-range and verify only that range changed
     std::vector<int> patch(count);
     for (int i = 0; i < count; ++i)
       patch[i] = -(i + 1);
@@ -459,9 +475,9 @@ TEST_CASE("buffer read/write", "[buffer_rw]")
     buffer.read(0, bufferSize, dst.data());
     REQUIRE(device.getError() == Error::None);
     REQUIRE(memcmp(dst.data() + offset, patch.data(), count * sizeof(int)) == 0);
-    // Bytes before the patched region must be untouched
+    // Bytes before the patched range must be untouched
     REQUIRE(memcmp(dst.data(), src.data(), offset * sizeof(int)) == 0);
-    // Bytes after the patched region must be untouched
+    // Bytes after the patched range must be untouched
     REQUIRE(memcmp(dst.data() + offset + count, src.data() + offset + count,
                    (N - offset - count) * sizeof(int)) == 0);
   }
@@ -650,6 +666,15 @@ TEST_CASE("single filter", "[single_filter][minimal]")
   filter.setImage("color", input->getBuffer(), input->getFormat(), W, H, 0, 100);
   REQUIRE(device.getError() == Error::InvalidArgument);
   filter.setImage("color", input->getBuffer(), input->getFormat(), W, H, 0, 0, W*100);
+  REQUIRE(device.getError() == Error::InvalidArgument);
+  filter.setImage("color", input->getBuffer(), input->getFormat(), W, H,
+                  std::numeric_limits<size_t>::max());
+  REQUIRE(device.getError() == Error::InvalidArgument);
+  filter.setImage("color", input->getBuffer(), Format::Float, 2, 2, 0,
+                  std::numeric_limits<size_t>::max());
+  REQUIRE(device.getError() == Error::InvalidArgument);
+  filter.setImage("color", input->getBuffer(), Format::Float, 2, 2, 0, 0,
+                  std::numeric_limits<size_t>::max());
   REQUIRE(device.getError() == Error::InvalidArgument);
 
   // Set the input image

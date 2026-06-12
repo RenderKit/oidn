@@ -1,6 +1,14 @@
 Version History
 ---------------
 
+-   Fixed integer overflows which could cause out-of-bounds reads or writes
+    instead of an error if a very large byte offset was passed to
+    `oidnReadBuffer`, `oidnWriteBuffer` or `oidnSetFilterImage`, or a very large
+    pixel or row stride was passed to `oidnSetFilterImage` or
+    `oidnSetSharedFilterImage`
+-   Fixed `oidnSetSharedFilterImage` accepting a byte offset large enough to
+    make the address of the image overflow instead of returning an error
+
 ### Changes in v2.5.0:
 
 -   Significantly improved performance and reduced memory usage on Intel GPUs

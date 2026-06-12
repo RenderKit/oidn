@@ -9,9 +9,16 @@ OIDN_NAMESPACE_BEGIN
   ImageDesc::ImageDesc(Format format, size_t width, size_t height, size_t pixelByteStride, size_t rowByteStride)
     : width(width),
       height(height),
-      format(format)
+      format(format),
+      byteSize(0)
   {
-    if (width > maxDim || height > maxDim || width * height * getC() > std::numeric_limits<int>::max())
+    const size_t C = size_t(getC());
+    if (width > maxDim || height > maxDim || !isMulSafe(width, height))
+      throw Exception(Error::InvalidArgument, "image size is too large");
+
+    const size_t numPixels = width * height;
+    if (!isMulSafe(numPixels, C) ||
+        numPixels * C > std::numeric_limits<int>::max())
       throw Exception(Error::InvalidArgument, "image size is too large");
 
     const size_t pixelByteSize = getFormatSize(format);
@@ -24,14 +31,36 @@ OIDN_NAMESPACE_BEGIN
     else
       wByteStride = pixelByteSize;
 
+    if (!isMulSafe(width, wByteStride))
+      throw Exception(Error::InvalidArgument, "image strides are too large");
+    const size_t minRowByteStride = width * wByteStride;
+
     if (rowByteStride != 0)
     {
-      if (rowByteStride < width * wByteStride)
+      if (rowByteStride < minRowByteStride)
         throw Exception(Error::InvalidArgument, "row stride is smaller than width * pixel stride");
       hByteStride = rowByteStride;
     }
     else
-      hByteStride = width * wByteStride;
+      hByteStride = minRowByteStride;
+
+    if (width == 0 || height == 0)
+      return;
+
+    if (!isMulSafe(height - 1, hByteStride) ||
+        !isMulSafe(width - 1, wByteStride))
+      throw Exception(Error::InvalidArgument, "image strides are too large");
+
+    const size_t lastRowByteOffset = (height - 1) * hByteStride;
+    const size_t lastPixelByteOffset = (width - 1) * wByteStride;
+    if (!isAddSafe(lastRowByteOffset, lastPixelByteOffset))
+      throw Exception(Error::InvalidArgument, "image strides are too large");
+
+    const size_t lastByteOffset = lastRowByteOffset + lastPixelByteOffset;
+    if (!isAddSafe(lastByteOffset, pixelByteSize))
+      throw Exception(Error::InvalidArgument, "image strides are too large");
+
+    byteSize = lastByteOffset + pixelByteSize;
   }
 
   Image::Image() :
@@ -41,8 +70,16 @@ OIDN_NAMESPACE_BEGIN
   Image::Image(void* ptr, Format format, size_t width, size_t height, size_t byteOffset, size_t pixelByteStride, size_t rowByteStride)
     : ImageDesc(format, width, height, pixelByteStride, rowByteStride)
   {
-    if ((ptr == nullptr) && (byteOffset + getByteSize() > 0))
+    if (ptr == nullptr && (byteOffset > 0 || getByteSize() > 0))
       throw Exception(Error::InvalidArgument, "image pointer is null");
+
+    // The size of the memory region is unknown, so the image cannot be bounds checked against it,
+    // but the address of the last byte of the image must be still representable, otherwise the
+    // pointer arithmetic below would overflow
+    const uintptr_t address = reinterpret_cast<uintptr_t>(ptr);
+    if (!isAddSafe(address, byteOffset) ||
+        !isAddSafe(address + byteOffset, getByteSize()))
+      throw Exception(Error::InvalidArgument, "image region is out of range");
 
     this->ptr = static_cast<char*>(ptr) + byteOffset;
   }
@@ -51,8 +88,8 @@ OIDN_NAMESPACE_BEGIN
     : Memory(buffer, byteOffset),
       ImageDesc(desc)
   {
-    if (byteOffset + getByteSize() > buffer->getByteSize())
-      throw Exception(Error::InvalidArgument, "buffer region is out of bounds");
+    if (!isRangeValid(byteOffset, getByteSize(), buffer->getByteSize()))
+      throw Exception(Error::InvalidArgument, "buffer range is out of bounds");
 
     this->ptr = static_cast<char*>(buffer->getPtr()) + byteOffset;
   }
@@ -61,8 +98,8 @@ OIDN_NAMESPACE_BEGIN
     : Memory(buffer, byteOffset),
       ImageDesc(format, width, height, pixelByteStride, rowByteStride)
   {
-    if (byteOffset + getByteSize() > buffer->getByteSize())
-      throw Exception(Error::InvalidArgument, "buffer region is out of bounds");
+    if (!isRangeValid(byteOffset, getByteSize(), buffer->getByteSize()))
+      throw Exception(Error::InvalidArgument, "buffer range is out of bounds");
 
     this->ptr = static_cast<char*>(buffer->getPtr()) + byteOffset;
   }

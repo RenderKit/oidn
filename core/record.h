@@ -18,8 +18,8 @@ OIDN_NAMESPACE_BEGIN
     Record(const Ref<Buffer>& buffer, size_t byteOffset = 0)
       : Memory(buffer, byteOffset)
     {
-      if (byteOffset + sizeof(T) > buffer->getByteSize())
-        throw Exception(Error::InvalidArgument, "buffer region is out of bounds");
+      if (!isRangeValid(byteOffset, sizeof(T), buffer->getByteSize()))
+        throw Exception(Error::InvalidArgument, "buffer range is out of bounds");
     }
 
     T* getPtr() const

@@ -189,6 +189,26 @@ OIDN_NAMESPACE_BEGIN
     return min(max(x, minVal), maxVal);
   }
 
+  // Returns whether a + b can be represented as size_t
+  oidn_host_device_inline constexpr bool isAddSafe(size_t a, size_t b)
+  {
+    return b <= size_t(-1) - a;
+  }
+
+  // Returns whether a * b can be represented as size_t
+  oidn_host_device_inline constexpr bool isMulSafe(size_t a, size_t b)
+  {
+    return a == 0 || b <= size_t(-1) / a;
+  }
+
+  // Returns whether the range [offset, offset + size) is within [0, totalSize)
+  oidn_host_device_inline constexpr bool isRangeValid(size_t offset,
+                                                      size_t size,
+                                                      size_t totalSize)
+  {
+    return offset <= totalSize && size <= totalSize - offset;
+  }
+
   // Returns ceil(a / b) for non-negative integers
   template<typename Int, typename IntB>
   oidn_host_device_inline constexpr Int ceil_div(Int a, IntB b)
@@ -367,4 +387,3 @@ OIDN_NAMESPACE_BEGIN
 #endif // !defined(OIDN_COMPILE_METAL_DEVICE)
 
 OIDN_NAMESPACE_END
-
