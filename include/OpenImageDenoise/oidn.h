@@ -331,11 +331,14 @@ OIDN_API OIDNBuffer oidnNewBufferWithStorage(OIDNDevice device, size_t byteSize,
 OIDN_API OIDNBuffer oidnNewSharedBuffer(OIDNDevice device, void* devPtr, size_t byteSize);
 
 // Creates a shared buffer by importing external memory from a POSIX file descriptor.
+// On success, ownership of the file descriptor is transferred to the device, so the application
+// must not close it; on failure (returns NULL), the application retains ownership of it.
 OIDN_API OIDNBuffer oidnNewSharedBufferFromFD(OIDNDevice device,
                                               OIDNExternalMemoryTypeFlags fdType,
                                               int fd, size_t byteSize);
 
 // Creates a shared buffer by importing external memory from a Win32 handle.
+// Ownership of the handle is not transferred to the device, so the application must release it.
 OIDN_API OIDNBuffer oidnNewSharedBufferFromWin32Handle(OIDNDevice device,
                                                        OIDNExternalMemoryTypeFlags handleType,
                                                        void* handle, const void* name, size_t byteSize);
@@ -419,11 +422,14 @@ typedef OIDNFlags OIDNExternalSemaphoreTypeFlags;
 typedef struct OIDNSemaphoreImpl* OIDNSemaphore;
 
 // Creates a shared semaphore by importing an external semaphore from a POSIX file descriptor.
+// On success, ownership of the file descriptor is transferred to the device, so the application
+// must not close it; on failure (returns NULL), the application retains ownership of it.
 OIDN_API OIDNSemaphore oidnNewSharedSemaphoreFromFD(OIDNDevice device,
                                                     OIDNExternalSemaphoreTypeFlags fdType,
                                                     int fd);
 
 // Creates a shared semaphore by importing an external semaphore from a Win32 handle.
+// Ownership of the handle is not transferred to the device, so the application must release it.
 OIDN_API OIDNSemaphore oidnNewSharedSemaphoreFromWin32Handle(OIDNDevice device,
                                                              OIDNExternalSemaphoreTypeFlags handleType,
                                                              void* handle, const void* name);

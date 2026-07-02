@@ -801,6 +801,29 @@ as `handleType`). To maximize compatibility, we recommend to always use dedicate
 allocations if possible because some backends support only dedicated allocations
 for certain external memory types.
 
+Importing external memory either transfers or retains ownership of the provided
+handle depending on its kind, following the conventions of the underlying
+compute and graphics APIs:
+
+-   When importing from a POSIX file descriptor (`oidnNewSharedBufferFromFD`), a
+    *successful* import transfers ownership of the file descriptor to Open Image
+    Denoise. The application *must not* close the file descriptor, nor perform
+    any other operation on it, after the import. The file descriptor is closed
+    automatically when it is no longer needed (i.e., when the imported buffer is
+    released). If the import fails (the function returns `NULL`), ownership is
+    *not* transferred and the application remains responsible for closing the
+    file descriptor.
+
+-   When importing from a Win32 handle (`oidnNewSharedBufferFromWin32Handle`),
+    ownership of the handle is *not* transferred to Open Image Denoise. The
+    application retains ownership and must release the handle using the
+    appropriate system call (e.g., `CloseHandle` for NT handle types) once it is
+    no longer needed. Because NT handles hold their own reference to the
+    underlying memory, the handle may be closed any time after a successful
+    import. Global share (KMT) handles, however, do *not* hold such a reference,
+    so the imported buffer must be released before the underlying memory is
+    destroyed.
+
 Metal buffers can be imported directly with
 
     OIDNBuffer oidnNewSharedBufferFromMetal(OIDNDevice device, MTLBuffer_id buffer);
@@ -924,6 +947,28 @@ Name                                                         Description
                                                              semaphore
 ------------------------------------------------------------ ---------------------------------------
 : Supported external semaphore type flags, i.e., valid constants of type `OIDNExternalSemaphoreTypeFlag`.
+
+As with external buffers, importing an external semaphore transfers or retains
+ownership of the provided handle depending on its kind:
+
+-   When importing from a POSIX file descriptor (`oidnNewSharedSemaphoreFromFD`),
+    a *successful* import transfers ownership of the file descriptor to Open
+    Image Denoise. The application *must not* close the file descriptor, nor
+    perform any other operation on it, after the import. The file descriptor is
+    closed automatically when it is no longer needed (i.e., when the imported
+    semaphore is released). If the import fails (the function returns `NULL`),
+    ownership is *not* transferred and the application remains responsible for
+    closing the file descriptor.
+
+-   When importing from a Win32 handle (`oidnNewSharedSemaphoreFromWin32Handle`),
+    ownership of the handle is *not* transferred to Open Image Denoise. The
+    application retains ownership and must release the handle using the
+    appropriate system call (e.g., `CloseHandle` for NT handle types) once it is
+    no longer needed. Because NT handles hold their own reference to the
+    underlying semaphore, the handle may be closed any time after a successful
+    import. Global share (KMT) handles, however, do *not* hold such a reference,
+    so the imported semaphore must be released before the underlying semaphore is
+    destroyed.
 
 The reference counted semaphore objects can be retained and released with
 

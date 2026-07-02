@@ -877,6 +877,8 @@ OIDN_NAMESPACE_BEGIN
     }
 
     // Creates a shared buffer by importing external memory from a POSIX file descriptor.
+    // On success, ownership of the file descriptor is transferred to the device, so the application
+    // must not close it; on failure the application retains ownership of it.
     BufferRef newBuffer(ExternalMemoryTypeFlags fdType, int fd, size_t byteSize) const
     {
       return oidnNewSharedBufferFromFD(
@@ -884,6 +886,7 @@ OIDN_NAMESPACE_BEGIN
     }
 
     // Creates a shared buffer by importing external memory from a Win32 handle.
+    // Ownership of the handle is not transferred to the device, so the application must release it.
     BufferRef newBuffer(ExternalMemoryTypeFlags handleType, void* handle, const void* name, size_t byteSize) const
     {
       return oidnNewSharedBufferFromWin32Handle(
@@ -899,12 +902,17 @@ OIDN_NAMESPACE_BEGIN
     }
   #endif
 
+    // Creates a shared semaphore by importing an external semaphore from a POSIX file descriptor.
+    // On success, ownership of the file descriptor is transferred to the device, so the application
+    // must not close it; on failure the application retains ownership of it.
     SemaphoreRef newSemaphore(ExternalSemaphoreTypeFlags fdType, int fd) const
     {
       return oidnNewSharedSemaphoreFromFD(
         handle, static_cast<OIDNExternalSemaphoreTypeFlags>(fdType), fd);
     }
 
+    // Creates a shared semaphore by importing an external semaphore from a Win32 handle.
+    // Ownership of the handle is not transferred to the device, so the application must release it.
     SemaphoreRef newSemaphore(ExternalSemaphoreTypeFlags handleType, void* handle, const void* name) const
     {
       return oidnNewSharedSemaphoreFromWin32Handle(
