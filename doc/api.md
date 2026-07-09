@@ -1065,7 +1065,7 @@ filters can be used.
 To unset a previously set image parameter, returning it to a state as if it had
 not been set, call
 
-    void oidnRemoveFilterImage(OIDNFilter filter, const char* name);
+    void oidnUnsetFilterImage(OIDNFilter filter, const char* name);
 
 Some special data used by filters are opaque/untyped (e.g. trained model weights
 blobs), which can be specified with the `oidnSetSharedFilterData` function:
@@ -1085,7 +1085,7 @@ updated by calling
 
 Unsetting an opaque data parameter can be performed with
 
-    void oidnRemoveFilterData(OIDNFilter filter, const char* name);
+    void oidnUnsetFilterData(OIDNFilter filter, const char* name);
 
 Filters may have parameters other than buffers as well, which you can set and
 get using the following functions:
