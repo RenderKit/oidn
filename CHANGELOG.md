@@ -1,6 +1,8 @@
 Version History
 ---------------
 
+### Changes in v2.5.1:
+
 -   Fixed integer overflows which could cause out-of-bounds reads or writes
     instead of an error if a very large byte offset was passed to
     `oidnReadBuffer`, `oidnWriteBuffer` or `oidnSetFilterImage`, or a very large
