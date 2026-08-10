@@ -300,8 +300,10 @@ OIDN_NAMESPACE_BEGIN
     const int maxTileSize = (maxMemoryMB < 0) ? defaultMaxTileSize : INT_MAX;
     const size_t maxMemoryByteSize = (maxMemoryMB >= 0) ? size_t(maxMemoryMB)*1024*1024 : SIZE_MAX;
 
+    // The tile size is computed in size_t because the product of the dimensions of a large image
+    // would overflow an int
     while ((tileCountH * tileCountW) % device->getNumSubdevices() != 0 ||
-           (tileH * tileW) > maxTileSize ||
+           (size_t(tileH) * size_t(tileW)) > size_t(maxTileSize) ||
            !buildModel(maxMemoryByteSize))
     {
       if (tileH > minTileH && tileH > tileW)

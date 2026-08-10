@@ -4,6 +4,7 @@
 #pragma once
 
 #include "tensor_layout.h"
+#include "exception.h"
 #include <vector>
 
 OIDN_NAMESPACE_BEGIN
@@ -42,6 +43,7 @@ OIDN_NAMESPACE_BEGIN
 
       return getRank() == info.rank &&
              dims.size() == paddedDims.size() &&
+             std::all_of(dims.begin(), dims.end(), [](int a) { return a >= 0; }) &&
              std::mismatch(dims.begin(), dims.end(), paddedDims.begin(),
                            [](int a, int b) { return a <= b; }).first == dims.end() &&
              (info.blockC == 1 ||
@@ -118,6 +120,14 @@ OIDN_NAMESPACE_BEGIN
       return dims[dims.size()-1];
     }
 
+    // Helper function for safely multiplying two sizes
+    static oidn_inline size_t mulSize(size_t a, size_t b)
+    {
+      if (!isMulSafe(a, b))
+        throw Exception(Error::InvalidArgument, "tensor size is too large");
+      return a * b;
+    }
+
     // Returns the number of elements in the tensor
     oidn_inline size_t getNumElements() const
     {
@@ -125,7 +135,7 @@ OIDN_NAMESPACE_BEGIN
         return 0;
       size_t num = 1;
       for (size_t i = 0; i < dims.size(); ++i)
-        num *= size_t(dims[i]);
+        num = mulSize(num, size_t(dims[i]));
       return num;
     }
 
@@ -144,17 +154,20 @@ OIDN_NAMESPACE_BEGIN
         // For blocked CHW layouts, the C planes need to be aligned
         const size_t B = getTensorLayoutInfo(layout).blockC;
         const size_t cByteStride = elementSize;
-        const size_t wByteStride = B * cByteStride;
-        const size_t hByteStride = size_t(getW()) * wByteStride;
-        const size_t CByteStride = round_up(size_t(getH()) * hByteStride, TensorLayoutTraitsChwBc::CByteAlignment);
-        return size_t(getPaddedC() / B) * CByteStride;
+        const size_t wByteStride = mulSize(B, cByteStride);
+        const size_t hByteStride = mulSize(size_t(getW()), wByteStride);
+        const size_t CByteSize   = mulSize(size_t(getH()), hByteStride);
+        if (!isAddSafe(CByteSize, TensorLayoutTraitsChwBc::CByteAlignment - 1))
+          throw Exception(Error::InvalidArgument, "tensor size is too large");
+        const size_t CByteStride = round_up(CByteSize, TensorLayoutTraitsChwBc::CByteAlignment);
+        return mulSize(size_t(getPaddedC() / B), CByteStride);
       }
       else
       {
         size_t num = 1;
         for (size_t i = 0; i < paddedDims.size(); ++i)
-          num *= size_t(paddedDims[i]);
-        return num * elementSize;
+          num = mulSize(num, size_t(paddedDims[i]));
+        return mulSize(num, elementSize);
       }
     }
 
