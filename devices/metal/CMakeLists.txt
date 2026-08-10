@@ -30,6 +30,7 @@ metallib_target_add_sources(OpenImageDenoise_device_metal metal_kernels
   metal_kernels.metal
   INCLUDE_DIRECTORIES
     ${PROJECT_SOURCE_DIR}
+    ${PROJECT_BINARY_DIR} # for the generated config.h
   COMPILE_OPTIONS
     -std=metal3.0 -fno-fast-math -m${OIDN_APPLE_SDK}-version-min=${OIDN_APPLE_SDK_VERSION_MIN}
 )

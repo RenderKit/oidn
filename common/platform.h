@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "../include/OpenImageDenoise/config.h"
+#include "include/OpenImageDenoise/config.h"
 
 // -------------------------------------------------------------------------------------------------
 // Macros

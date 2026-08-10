@@ -91,7 +91,7 @@ Thumbs.db
 # Dependencies
 /deps
 
-# Generated files
+# Generated files (only left over from versions which generated them into the source tree)
 include/OpenImageDenoise/config.h
 common/export.linux.map
 common/export.macos.map
