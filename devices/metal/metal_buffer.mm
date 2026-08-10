@@ -172,6 +172,8 @@ OIDN_NAMESPACE_BEGIN
       throw Exception(Error::InvalidArgument, "buffer range is out of bounds");
     if (dstHostPtr == nullptr && byteSize > 0)
       throw Exception(Error::InvalidArgument, "destination host pointer is null");
+    if (byteSize == 0)
+      return; // zero-sized Metal buffers cannot be created but we support them
 
     @autoreleasepool
     {
@@ -207,6 +209,8 @@ OIDN_NAMESPACE_BEGIN
       throw Exception(Error::InvalidArgument, "buffer range is out of bounds");
     if (srcHostPtr == nullptr && byteSize > 0)
       throw Exception(Error::InvalidArgument, "source host pointer is null");
+    if (byteSize == 0)
+      return; // zero-sized Metal buffers cannot be created but we support them
 
     @autoreleasepool
     {

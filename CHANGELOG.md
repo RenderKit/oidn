@@ -8,6 +8,8 @@ Version History
     `oidnSetSharedFilterImage`
 -   Fixed `oidnSetSharedFilterImage` accepting a byte offset large enough to
     make the address of the image overflow instead of returning an error
+-   Fixed `oidnReadBuffer` and `oidnWriteBuffer` failing with an out-of-memory
+    error on Metal devices if the specified byte size was 0
 
 ### Changes in v2.5.0:
 

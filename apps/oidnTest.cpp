@@ -481,6 +481,54 @@ TEST_CASE("buffer read/write", "[buffer_rw]")
     REQUIRE(memcmp(dst.data() + offset + count, src.data() + offset + count,
                    (N - offset - count) * sizeof(int)) == 0);
   }
+
+  SECTION("zero-size")
+  {
+    // Fill the whole buffer so that we can verify that empty transfers leave it untouched
+    buffer.write(0, bufferSize, src.data());
+    REQUIRE(device.getError() == Error::None);
+
+    // Empty transfers are legal at any offset within the buffer, including at its very end
+    buffer.write(0, 0, src.data());
+    REQUIRE(device.getError() == Error::None);
+    buffer.read(0, 0, dst.data());
+    REQUIRE(device.getError() == Error::None);
+    buffer.write(bufferSize/2, 0, src.data());
+    REQUIRE(device.getError() == Error::None);
+    buffer.read(bufferSize/2, 0, dst.data());
+    REQUIRE(device.getError() == Error::None);
+    buffer.write(bufferSize, 0, src.data());
+    REQUIRE(device.getError() == Error::None);
+    buffer.read(bufferSize, 0, dst.data());
+    REQUIRE(device.getError() == Error::None);
+
+    // The host pointer may be null if there is nothing to transfer
+    buffer.write(0, 0, nullptr);
+    REQUIRE(device.getError() == Error::None);
+    buffer.read(bufferSize, 0, nullptr);
+    REQUIRE(device.getError() == Error::None);
+
+    // The same must hold for asynchronous transfers
+    buffer.writeAsync(0, 0, nullptr);
+    REQUIRE(device.getError() == Error::None);
+    buffer.readAsync(bufferSize, 0, nullptr);
+    REQUIRE(device.getError() == Error::None);
+    device.sync();
+    REQUIRE(device.getError() == Error::None);
+
+    // An empty transfer past the end of the buffer is still out of bounds
+    buffer.write(bufferSize+1, 0, src.data());
+    REQUIRE(device.getError() == Error::InvalidArgument);
+    buffer.read(bufferSize+1, 0, dst.data());
+    REQUIRE(device.getError() == Error::InvalidArgument);
+
+    // None of the empty transfers may have modified the buffer
+    for (int i = 0; i < N; ++i)
+      dst[i] = 0;
+    buffer.read(0, bufferSize, dst.data());
+    REQUIRE(device.getError() == Error::None);
+    REQUIRE(memcmp(src.data(), dst.data(), bufferSize) == 0);
+  }
 }
 
 // -------------------------------------------------------------------------------------------------
