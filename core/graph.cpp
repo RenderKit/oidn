@@ -11,6 +11,16 @@
 
 OIDN_NAMESPACE_BEGIN
 
+  // Looks up a constant tensor by name. Using operator[] would silently insert a null tensor for
+  // a name missing from a user-provided weights blob, which would then be dereferenced.
+  static Ref<Tensor> getConstTensor(const TensorMap& constTensors, const std::string& name)
+  {
+    auto it = constTensors.find(name);
+    if (it == constTensors.end() || !it->second)
+      throw Exception(Error::InvalidOperation, "invalid or corrupted weights blob");
+    return it->second;
+  }
+
   Graph::Graph(Engine* engine,
                const std::shared_ptr<TensorMap>& constTensors,
                const std::shared_ptr<TensorMap>& cachedConstTensors,
@@ -86,8 +96,8 @@ OIDN_NAMESPACE_BEGIN
 
     const std::string weightName = name + ".weight";
     const std::string biasName   = name + ".bias";
-    Ref<Tensor> weight = (*constTensors)[weightName];
-    Ref<Tensor> bias   = (*constTensors)[biasName];
+    Ref<Tensor> weight = getConstTensor(*constTensors, weightName);
+    Ref<Tensor> bias   = getConstTensor(*constTensors, biasName);
 
     if (weight->getRank() != 4 || bias->getRank() != 1)
       throw std::invalid_argument("invalid convolution weight/bias");
@@ -172,8 +182,8 @@ OIDN_NAMESPACE_BEGIN
 
     const std::string weightName = name + ".weight";
     const std::string biasName   = name + ".bias";
-    Ref<Tensor> weight = (*constTensors)[weightName];
-    Ref<Tensor> bias   = (*constTensors)[biasName];
+    Ref<Tensor> weight = getConstTensor(*constTensors, weightName);
+    Ref<Tensor> bias   = getConstTensor(*constTensors, biasName);
 
     if (weight->getRank() != 4 || bias->getRank() != 1)
       throw std::invalid_argument("invalid convolution weight/bias");
