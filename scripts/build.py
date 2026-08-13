@@ -14,7 +14,7 @@ import multiprocessing
 from common import *
 
 ISPC_VERSION = '1.30.0'
-TBB_VERSION  = '2023.0.0'
+TBB_VERSION  = '2023.1.0'
 
 def check_symbols(filename, label, max_version):
   with os.popen("nm \"%s\" | tr ' ' '\n' | grep @@%s_" % (filename, label)) as out:
