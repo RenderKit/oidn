@@ -27,8 +27,12 @@ pdf: ../readme.pdf
 
 .PHONY: all www doc pdf clean realclean
 
-tmp/version: ../include/OpenImageDenoise/config.h
-	sed -n 's/#define OIDN_VERSION_STRING \"\(.*\)\".*/\1/p' $< > $@
+tmp/version: ../cmake/oidn_version.cmake
+	@major=`sed -n 's/^set(OIDN_VERSION_MAJOR \(.*\))/\1/p' $<`; \
+	 minor=`sed -n 's/^set(OIDN_VERSION_MINOR \(.*\))/\1/p' $<`; \
+	 patch=`sed -n 's/^set(OIDN_VERSION_PATCH \(.*\))/\1/p' $<`; \
+	 note=`sed -n 's/^set(OIDN_VERSION_NOTE "\(.*\)")/\1/p' $<`; \
+	 echo "$$major.$$minor.$$patch$$note" > $@
 
 replace_version = sed -e "s/<OIDN_VERSION>/`cat tmp/version`/g" $< > $@
 
