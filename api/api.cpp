@@ -883,7 +883,7 @@ OIDN_API_NAMESPACE_BEGIN
       if (buffer->getDevice() != filter->getDevice())
         throw Exception(Error::InvalidArgument, "the specified objects are bound to different devices");
       auto image = makeRef<Image>(buffer, static_cast<Format>(format),
-                                  static_cast<int>(width), static_cast<int>(height),
+                                  width, height,
                                   byteOffset, pixelByteStride, rowByteStride);
       filter->setImage(name, image);
     OIDN_CATCH_DEVICE(filter)
@@ -901,7 +901,7 @@ OIDN_API_NAMESPACE_BEGIN
       OIDN_LOCK_DEVICE(filter);
       checkString(name);
       auto image = makeRef<Image>(devPtr, static_cast<Format>(format),
-                                  static_cast<int>(width), static_cast<int>(height),
+                                  width, height,
                                   byteOffset, pixelByteStride, rowByteStride);
       filter->setImage(name, image);
     OIDN_CATCH_DEVICE(filter)

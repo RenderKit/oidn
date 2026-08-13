@@ -10,6 +10,9 @@ Version History
     `oidnSetSharedFilterImage`
 -   Fixed `oidnSetSharedFilterImage` accepting a byte offset large enough to
     make the address of the image overflow instead of returning an error
+-   Fixed `oidnSetFilterImage` and `oidnSetSharedFilterImage` truncating the
+    width and height of the image to 32 bits, which could silently denoise a
+    much smaller image instead of returning an error
 -   Fixed a crash if a null array of command queues was passed to
     `oidnNewMetalDevice`, which now returns an error instead
 -   Fixed `oidnReadBuffer` and `oidnWriteBuffer` failing with an out-of-memory
