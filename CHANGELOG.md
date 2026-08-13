@@ -21,6 +21,10 @@ Version History
     crashing
 -   Fixed a signed integer overflow when denoising very large single-channel
     images, close to the maximum supported number of pixels
+-   Fixed crashes and incorrect output if committing a filter failed due to
+    running out of memory, which could also break the other filters of the
+    device. Executing such a filter now returns an error instead, and the filter
+    can be recovered by committing it again
 
 ### Changes in v2.5.0:
 

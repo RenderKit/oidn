@@ -68,6 +68,14 @@ OIDN_NAMESPACE_BEGIN
     void setScratch(const Ref<Buffer>& scratch) override;
     size_t getPrivateByteSize() { return privateByteSize; }
 
+    // Returns whether the scratch memory of the graph has been lost, which happens if
+    // reallocating the scratch heap fails, e.g. when running out of memory. A buffer which does
+    // not need any memory legitimately has a null pointer, so it is not considered lost.
+    bool isScratchLost() const
+    {
+      return scratch && scratch->getByteSize() > 0 && scratch->getPtr() == nullptr;
+    }
+
     size_t getWorkAmount() const override { return workAmount; }
     void clear();
     void finalize() override;

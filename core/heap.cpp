@@ -65,9 +65,26 @@ OIDN_NAMESPACE_BEGIN
 
     preRealloc();
 
+    // The old memory is freed before allocating the new one to avoid having to hold both at the
+    // same time, which would increase the peak memory usage
     engine->usmFree(ptr, storage);
-    ptr = static_cast<char*>(engine->usmAlloc(newByteSize, storage));
-    byteSize = newByteSize;
+    ptr = nullptr;
+    byteSize = 0;
+
+    try
+    {
+      ptr = static_cast<char*>(engine->usmAlloc(newByteSize, storage));
+      byteSize = newByteSize;
+    }
+    catch (...)
+    {
+      // No attempt is made to allocate the old size again: running out of memory is usually not
+      // recoverable, and it could fail as well. The heap is simply left empty, but the buffers
+      // attached to it must be still updated, otherwise they would keep pointing to the memory
+      // which has just been freed.
+      postRealloc();
+      throw;
+    }
 
     postRealloc();
   }

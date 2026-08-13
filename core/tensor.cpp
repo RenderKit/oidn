@@ -175,7 +175,12 @@ OIDN_NAMESPACE_BEGIN
   void DeviceTensor::postRealloc()
   {
     if (buffer)
-      ptr = static_cast<char*>(buffer->getPtr()) + byteOffset;
+    {
+      // The buffer is null if reallocating its heap has failed, in which case the tensor must
+      // become null as well instead of pointing to a bogus address
+      char* bufferPtr = static_cast<char*>(buffer->getPtr());
+      ptr = bufferPtr ? bufferPtr + byteOffset : nullptr;
+    }
   }
 
 OIDN_NAMESPACE_END

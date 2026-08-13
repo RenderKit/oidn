@@ -26,6 +26,9 @@ OIDN_NAMESPACE_BEGIN
     void commit() override;
     void execute(SyncMode sync) override;
 
+    // Returns whether the filter has lost the scratch memory it was initialized with
+    bool isScratchLost() const;
+
   protected:
     explicit UNetFilter(const Ref<Device>& device);
     virtual std::shared_ptr<TransferFunction> newTransferFunc() = 0;

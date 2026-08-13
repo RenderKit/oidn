@@ -1136,6 +1136,11 @@ re-committed for any new changes to take effect. Committing major changes to the
 filter (e.g. setting new image parameters, changing the image resolution) can
 be expensive, and thus should not be done frequently (e.g. per frame).
 
+If committing a filter fails with an `OIDN_ERROR_OUT_OF_MEMORY` error, the
+filters of the device may lose the memory they have been using, thus *all*
+filters of the device must be committed again. Executing a filter which has lost
+its memory returns an `OIDN_ERROR_INVALID_OPERATION` error instead.
+
 Finally, an image can be filtered by executing the filter with
 
     void oidnExecuteFilter(OIDNFilter filter);

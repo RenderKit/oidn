@@ -164,8 +164,10 @@ OIDN_NAMESPACE_BEGIN
   {
     if (arena)
     {
+      // The heap is empty if reallocating it has failed, in which case the buffer must become
+      // null as well instead of pointing to a bogus address
       USMHeap* heap = static_cast<USMHeap*>(arena->getHeap());
-      ptr = heap->ptr + byteOffset;
+      ptr = heap->ptr ? heap->ptr + byteOffset : nullptr;
     }
 
     Buffer::postRealloc();

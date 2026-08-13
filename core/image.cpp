@@ -114,7 +114,12 @@ OIDN_NAMESPACE_BEGIN
   void Image::postRealloc()
   {
     if (buffer)
-      ptr = static_cast<char*>(buffer->getPtr()) + byteOffset;
+    {
+      // The buffer is null if reallocating its heap has failed, in which case the image must
+      // become null as well instead of pointing to a bogus address
+      char* bufferPtr = static_cast<char*>(buffer->getPtr());
+      ptr = bufferPtr ? bufferPtr + byteOffset : nullptr;
+    }
   }
 
   bool Image::overlaps(const Image& other) const

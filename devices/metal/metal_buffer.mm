@@ -120,6 +120,11 @@ OIDN_NAMESPACE_BEGIN
     {
       MetalHeap* heap = static_cast<MetalHeap*>(arena->getHeap());
 
+      // The heap is empty if reallocating it has failed, in which case the buffer must become
+      // null as well. Throwing here would replace the original error with a misleading one.
+      if (!heap->heap)
+        return;
+
       buffer = [heap->heap newBufferWithLength: byteSize
                                        options: options
                                         offset: byteOffset];

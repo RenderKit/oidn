@@ -112,9 +112,26 @@ OIDN_NAMESPACE_BEGIN
       throw Exception(Error::InvalidArgument, "unknown filter parameter or type mismatch: '" + name + "'");
   }
 
+  // Returns whether the filter has lost the scratch memory it was initialized with, which happens
+  // if reallocating the scratch heap fails, e.g. when another filter runs out of memory.
+  bool UNetFilter::isScratchLost() const
+  {
+    for (const auto& instance : instances)
+    {
+      if (instance.graph->isScratchLost())
+        return true;
+    }
+    return false;
+  }
+
   void UNetFilter::commit()
   {
-    if (!dirty)
+    // The filter must be re-initialized if its scratch memory has been lost, otherwise it would
+    // be left referring to memory which no longer exists
+    if (isScratchLost())
+      dirtyParam = true;
+
+    if (!dirty && !dirtyParam)
       return;
 
     // Determine whether in-place filtering is required
@@ -146,6 +163,9 @@ OIDN_NAMESPACE_BEGIN
   {
     if (dirty)
       throw Exception(Error::InvalidOperation, "changes to the filter are not committed");
+    if (isScratchLost())
+      throw Exception(Error::InvalidOperation,
+                      "the memory of the filter has been lost, it must be committed again");
 
     if (H <= 0 || W <= 0)
       return;

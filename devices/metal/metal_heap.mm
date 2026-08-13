@@ -49,9 +49,27 @@ OIDN_NAMESPACE_BEGIN
       return;
 
     preRealloc();
+
+    // The old heap is released before creating the new one to avoid having to hold both at the
+    // same time, which would increase the peak memory usage
     free();
     byteSize = newByteSize;
-    init();
+
+    try
+    {
+      init();
+    }
+    catch (...)
+    {
+      // No attempt is made to create a heap of the old size again: running out of memory is
+      // usually not recoverable, and it could fail as well. The heap is simply left empty, but
+      // the buffers attached to it must be still updated, otherwise they would keep pointing to
+      // the memory which has just been released.
+      byteSize = 0;
+      postRealloc();
+      throw;
+    }
+
     postRealloc();
   }
 
