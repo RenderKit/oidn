@@ -39,7 +39,7 @@ jobs:
     with:
       project: oidn
       image: oidn/rockylinux:8
-      dpcpp-version: intel-llvm/v6.2.0
+      dpcpp-version: intel-llvm/v7.0.0
       cmd: scripts/build.py package --full
       artifact-out: package-linux
       artifact-path: build/oidn-*.tar.gz
@@ -73,7 +73,7 @@ jobs:
       project: oidn
       runs-on: '[ "Windows", "cuda", "hip" ]'
       msvc-version: "2022"
-      dpcpp-version: intel-llvm/v6.1.0-rk
+      dpcpp-version: intel-llvm/v7.0.0
       ocloc-version: oneAPI/ocloc/2025.3
       cmd: |
         echo $env:ROCM_PATH
@@ -155,7 +155,7 @@ jobs:
     with:
       project: oidn
       image: oidn/rockylinux:8
-      dpcpp-version: intel-llvm/v6.2.0
+      dpcpp-version: intel-llvm/v7.0.0
       cmd: scripts/build.py install --full
       artifact-out: build-rockylinux8
       artifact-path: build install deps
@@ -167,7 +167,7 @@ jobs:
     with:
       project: oidn
       image: oidn/rockylinux:8
-      dpcpp-version: intel-llvm/v6.2.0
+      dpcpp-version: intel-llvm/v7.0.0
       cmd: scripts/build.py install --compiler clang --config Debug -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_CUDA=ON
       artifact-out: build-rockylinux8-debug
       artifact-path: build install deps
@@ -178,7 +178,7 @@ jobs:
     with:
       project: oidn
       image: oidn/rockylinux:8
-      dpcpp-version: intel-llvm/v6.2.0
+      dpcpp-version: intel-llvm/v7.0.0
       cmd: scripts/build.py install --full -D OIDN_DEVICE_SYCL_AOT=OFF
       artifact-out: build-rockylinux8-jit
       artifact-path: build install deps
@@ -189,7 +189,7 @@ jobs:
     with:
       project: oidn
       image: oidn/rockylinux:8
-      dpcpp-version: intel-llvm/v6.2.0
+      dpcpp-version: intel-llvm/v7.0.0
       cmd: scripts/build.py install --full -D OIDN_STATIC_LIB=ON
       artifact-out: build-rockylinux8-static
       artifact-path: build install deps
@@ -200,7 +200,7 @@ jobs:
     with:
       project: oidn
       image: oidn/rockylinux:8
-      dpcpp-version: intel-llvm/v6.2.0
+      dpcpp-version: intel-llvm/v7.0.0
       cmd: scripts/build.py install --full -D OIDN_LIBRARY_NAME=OIDN -D OIDN_API_NAMESPACE=myoidn
       artifact-out: build-rockylinux8-namespace
       artifact-path: build install deps
@@ -211,7 +211,7 @@ jobs:
     with:
       project: oidn
       image: oidn/rockylinux:8
-      dpcpp-version: intel-llvm/v6.2.0
+      dpcpp-version: intel-llvm/v7.0.0
       cmd: scripts/build.py install --full -D OIDN_LIBRARY_NAME=OIDN -D OIDN_API_NAMESPACE=myoidn -D OIDN_LIBRARY_VERSIONED=OFF
       artifact-out: build-rockylinux8-namespace-nover
       artifact-path: build install deps
@@ -222,7 +222,7 @@ jobs:
     with:
       project: oidn
       image: oidn/rockylinux:8
-      dpcpp-version: intel-llvm/v6.2.0
+      dpcpp-version: intel-llvm/v7.0.0
       cmd: scripts/build.py install --full -D OIDN_LIBRARY_NAME=OIDN -D OIDN_API_NAMESPACE=myoidn -D OIDN_STATIC_LIB=ON
       artifact-out: build-rockylinux8-namespace-static
       artifact-path: build install deps
@@ -234,7 +234,7 @@ jobs:
     with:
       project: oidn
       image: oidn/rockylinux:8
-      dpcpp-version: intel-llvm/v6.2.0
+      dpcpp-version: intel-llvm/v7.0.0
       cmd: scripts/build.py install --compiler clang --config Debug -D OIDN_DEVICE_SYCL=ON -D OIDN_DEVICE_CUDA=ON -D OIDN_LIBRARY_NAME=OIDN -D OIDN_API_NAMESPACE=myoidn
       artifact-out: build-rockylinux8-namespace-debug
       artifact-path: build install deps
@@ -245,7 +245,7 @@ jobs:
     with:
       project: oidn
       image: oidn/rockylinux:8
-      dpcpp-version: intel-llvm/v6.2.0
+      dpcpp-version: intel-llvm/v7.0.0
       cmd: scripts/build.py install --compiler gcc -D OIDN_DEVICE_CUDA=ON -D OIDN_DEVICE_HIP=ON
       artifact-out: build-rockylinux8-gcc
       artifact-path: build install deps
@@ -256,7 +256,7 @@ jobs:
     with:
       project: oidn
       image: oidn/rockylinux:8
-      dpcpp-version: intel-llvm/v6.2.0
+      dpcpp-version: intel-llvm/v7.0.0
       cmd: scripts/build.py install --compiler gcc --config Debug -D OIDN_DEVICE_CUDA=ON
       artifact-out: build-rockylinux8-gcc-debug
       artifact-path: build install deps
@@ -267,7 +267,7 @@ jobs:
     with:
       project: oidn
       image: oidn/rockylinux:8
-      dpcpp-version: intel-llvm/v6.2.0
+      dpcpp-version: intel-llvm/v7.0.0
       cmd: scripts/build.py install --compiler gcc -D OIDN_FILTER_RT=OFF -D OIDN_FILTER_RTLIGHTMAP=OFF
       artifact-out: build-rockylinux8-gcc-minimal
       artifact-path: build install deps
@@ -278,7 +278,7 @@ jobs:
     with:
       project: oidn
       image: oidn/rockylinux:8
-      dpcpp-version: intel-llvm/v6.2.0
+      dpcpp-version: intel-llvm/v7.0.0
       cmd: >
         scripts/build.py install --install_dir oidn-gta-aotjit-lin --compiler clang
         -D OIDN_DEVICE_CPU=OFF
@@ -293,7 +293,7 @@ jobs:
     with:
       project: oidn
       image: oidn/rockylinux:8
-      dpcpp-version: intel-llvm/v6.2.0
+      dpcpp-version: intel-llvm/v7.0.0
       cmd: >
         scripts/build.py install --install_dir oidn-gta-jit-lin --compiler clang
         -D OIDN_DEVICE_CPU=OFF
@@ -1272,7 +1272,7 @@ jobs:
       project: oidn
       runs-on: '[ "Windows", "cuda", "hip" ]'
       msvc-version: "2022"
-      dpcpp-version: intel-llvm/v6.1.0-rk
+      dpcpp-version: intel-llvm/v7.0.0
       ocloc-version: oneAPI/ocloc/2025.3
       artifact-out: build-windows
       artifact-path: build install
@@ -1285,7 +1285,7 @@ jobs:
       project: oidn
       runs-on: '[ "Windows", "cuda", "hip" ]'
       msvc-version: "2022"
-      dpcpp-version: intel-llvm/v6.1.0-rk
+      dpcpp-version: intel-llvm/v7.0.0
       ocloc-version: oneAPI/ocloc/2025.3
       artifact-out: build-windows-static
       artifact-path: build install
@@ -1299,7 +1299,7 @@ jobs:
       project: oidn
       runs-on: '[ "Windows", "cuda", "hip" ]'
       msvc-version: "2022"
-      dpcpp-version: intel-llvm/v6.1.0-rk
+      dpcpp-version: intel-llvm/v7.0.0
       ocloc-version: oneAPI/ocloc/2025.3
       artifact-out: build-windows-debug
       artifact-path: build install
@@ -1314,7 +1314,7 @@ jobs:
       project: oidn
       runs-on: '[ "Windows", "cuda", "hip" ]'
       msvc-version: "2022"
-      dpcpp-version: intel-llvm/v6.1.0-rk
+      dpcpp-version: intel-llvm/v7.0.0
       ocloc-version: oneAPI/ocloc/2025.3
       artifact-out: build-windows-namespace
       artifact-path: build install
@@ -1327,7 +1327,7 @@ jobs:
       project: oidn
       runs-on: '[ "Windows", "cuda", "hip" ]'
       msvc-version: "2022"
-      dpcpp-version: intel-llvm/v6.1.0-rk
+      dpcpp-version: intel-llvm/v7.0.0
       ocloc-version: oneAPI/ocloc/2025.3
       artifact-out: build-windows-namespace-nover
       artifact-path: build install
@@ -1340,7 +1340,7 @@ jobs:
       project: oidn
       runs-on: '[ "Windows", "cuda", "hip" ]'
       msvc-version: "2022"
-      dpcpp-version: intel-llvm/v6.1.0-rk
+      dpcpp-version: intel-llvm/v7.0.0
       ocloc-version: oneAPI/ocloc/2025.3
       artifact-out: build-windows-namespace-static
       artifact-path: build install
@@ -1353,7 +1353,7 @@ jobs:
       project: oidn
       runs-on: '[ "Windows", "build" ]'
       msvc-version: "2022"
-      dpcpp-version: intel-llvm/v6.1.0-rk
+      dpcpp-version: intel-llvm/v7.0.0
       ocloc-version: oneAPI/ocloc/2025.3
       artifact-out: build-windows-gta-aotjit
       artifact-path: oidn-gta-aotjit-win
@@ -1370,7 +1370,7 @@ jobs:
       project: oidn
       runs-on: '[ "Windows", "build" ]'
       msvc-version: "2022"
-      dpcpp-version: intel-llvm/v6.1.0-rk
+      dpcpp-version: intel-llvm/v7.0.0
       ocloc-version: oneAPI/ocloc/2025.3
       artifact-out: build-windows-gta-jit
       artifact-path: oidn-gta-jit-win
@@ -1387,7 +1387,7 @@ jobs:
       project: oidn
       runs-on: '[ "Windows", "cuda", "hip" ]'
       msvc-version: "2022"
-      dpcpp-version: intel-llvm/v6.1.0-rk
+      dpcpp-version: intel-llvm/v7.0.0
       ocloc-version: oneAPI/ocloc/2025.3
       artifact-out: build-windows-cudart
       artifact-path: build install
