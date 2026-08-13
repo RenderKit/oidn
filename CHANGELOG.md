@@ -15,6 +15,9 @@ Version History
     much smaller image instead of returning an error
 -   Fixed a crash if a null array of command queues was passed to
     `oidnNewMetalDevice`, which now returns an error instead
+-   Fixed leaking the imported memory object on CUDA and HIP devices if
+    `oidnNewSharedBufferFromFD` or `oidnNewSharedBufferFromWin32Handle` failed
+    after the handle had already been imported
 -   Fixed `oidnReadBuffer` and `oidnWriteBuffer` failing with an out-of-memory
     error on Metal devices if the specified byte size was 0
 -   Fixed a signed integer overflow when denoising very large single-channel

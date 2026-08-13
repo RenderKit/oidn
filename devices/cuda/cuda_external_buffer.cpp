@@ -81,7 +81,19 @@ OIDN_NAMESPACE_BEGIN
     bufferDesc.offset = 0;
     bufferDesc.size   = handleDesc.size;
     bufferDesc.flags  = 0;
-    checkError(cudaExternalMemoryGetMappedBuffer(&devPtr, extMem, &bufferDesc));
+
+    try
+    {
+      checkError(cudaExternalMemoryGetMappedBuffer(&devPtr, extMem, &bufferDesc));
+    }
+    catch (...)
+    {
+      // The destructor is not called if the constructor throws, so the imported memory object
+      // must be destroyed here. Otherwise it would be leaked together with the handle it has
+      // taken ownership of, which the application cannot reclaim anymore.
+      cudaDestroyExternalMemory(extMem);
+      throw;
+    }
 
     ptr      = static_cast<char*>(devPtr);
     byteSize = handleDesc.size;
