@@ -19,8 +19,8 @@ OIDN_NAMESPACE_BEGIN
     {
       if (!src || !dst)
         throw std::logic_error("image copy source/destination not set");
-      if (dst->getH() < src->getH() || dst->getW() < src->getW())
-        throw std::out_of_range("image copy destination smaller than the source");
+      if (dst->getH() != src->getH() || dst->getW() != src->getW())
+        throw std::logic_error("image copy source and destination sizes do not match");
     }
 
     Ref<Image> src;
