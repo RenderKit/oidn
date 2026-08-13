@@ -1121,6 +1121,9 @@ normally. When returning `false`, the library will attempt to cancel the filter
 operation as soon as possible, and if that is fulfilled, it will raise an
 `OIDN_ERROR_CANCELLED` error. Note that cancellation is not guaranteed.
 
+The callback function *must not* call any Open Image Denoise API function
+except `oidnGetDeviceError`, otherwise a deadlock occurs.
+
 Using a progress monitor callback function introduces some overhead, which may
 be significant on GPU devices, hurting performance. Therefore we strongly
 recommend progress monitoring only for offline denoising, when denoising an
