@@ -21,6 +21,8 @@ Version History
     crashing
 -   Fixed a signed integer overflow when denoising very large single-channel
     images, close to the maximum supported number of pixels
+-   Fixed a crash (division by zero) if the weights blob set with
+    `oidnSetSharedFilterData` contained a tensor with a zero dimension
 -   Fixed crashes and incorrect output if committing a filter failed due to
     running out of memory, which could also break the other filters of the
     device. Executing such a filter now returns an error instead, and the filter

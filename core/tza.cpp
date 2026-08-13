@@ -79,7 +79,7 @@ OIDN_NAMESPACE_BEGIN
       for (int j = 0; j < ndims; ++j)
       {
         const uint32_t dim = read<uint32_t>(input, bufferBegin, bufferEnd);
-        if (dim > uint32_t(std::numeric_limits<int>::max()))
+        if (dim == 0 || dim > uint32_t(std::numeric_limits<int>::max()))
           throw Exception(Error::InvalidOperation, "invalid tensor dimension");
         tensorDesc.dims[j] = int(dim);
       }
