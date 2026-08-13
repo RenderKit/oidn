@@ -25,6 +25,8 @@ OIDN_NAMESPACE_BEGIN
     {
       if (numQueues != 1)
         throw Exception(Error::InvalidArgument, "invalid number of Metal command queues");
+      if (commandQueues == nullptr)
+        throw Exception(Error::InvalidArgument, "array of Metal command queues is null");
       return makeRef<MetalDevice>(commandQueues[0]);
     }
   };
