@@ -1,6 +1,6 @@
 # Intel® Open Image Denoise
 
-This is release v2.5.0 of Intel Open Image Denoise. For changes and new
+This is release v2.5.1 of Intel Open Image Denoise. For changes and new
 features see the [changelog](CHANGELOG.md). Visit
 https://www.openimagedenoise.org for more information.
 
@@ -205,10 +205,8 @@ additional prerequisites are needed:
     Image Denoise):
     
       - [oneAPI DPC++
-        Compiler 6.1.0](https://github.com/intel/llvm/releases/tag/v6.1.0).
-        This is the open source version of the compiler. Versions 6.2.x
-        and 6.3.0 may cause crashes or device detection failures on
-        Windows so it is highly recommended to avoid these.
+        Compiler 7.0.0](https://github.com/intel/llvm/releases/tag/v7.0.0).
+        This is the open source version of the compiler.
       - [Intel® oneAPI DPC++/C++
         Compiler](https://www.intel.com/content/www/us/en/developer/tools/oneapi/dpc-compiler.html)
         2025.3 or newer
@@ -1243,6 +1241,31 @@ maximize compatibility, we recommend to always use dedicated allocations
 if possible because some backends support only dedicated allocations for
 certain external memory types.
 
+Importing external memory either transfers or retains ownership of the
+provided handle depending on its kind, following the conventions of the
+underlying compute and graphics APIs:
+
+  - When importing from a POSIX file descriptor
+    (`oidnNewSharedBufferFromFD`), a *successful* import transfers
+    ownership of the file descriptor to Open Image Denoise. The
+    application *must not* close the file descriptor, nor perform any
+    other operation on it, after the import. The file descriptor is
+    closed automatically when it is no longer needed (i.e., when the
+    imported buffer is released). If the import fails (the function
+    returns `NULL`), ownership is *not* transferred and the application
+    remains responsible for closing the file descriptor.
+
+  - When importing from a Win32 handle
+    (`oidnNewSharedBufferFromWin32Handle`), ownership of the handle is
+    *not* transferred to Open Image Denoise. The application retains
+    ownership and must release the handle using the appropriate system
+    call (e.g., `CloseHandle` for NT handle types) once it is no longer
+    needed. Because NT handles hold their own reference to the
+    underlying memory, the handle may be closed any time after a
+    successful import. Global share (KMT) handles, however, do *not*
+    hold such a reference, so the imported buffer must be released
+    before the underlying memory is destroyed.
+
 Metal buffers can be imported directly with
 
 ``` cpp
@@ -1368,6 +1391,30 @@ possible semaphore type flags are listed in the following table.
 Supported external semaphore type flags, i.e., valid constants of type
 `OIDNExternalSemaphoreTypeFlag`.
 
+As with external buffers, importing an external semaphore transfers or
+retains ownership of the provided handle depending on its kind:
+
+  - When importing from a POSIX file descriptor
+    (`oidnNewSharedSemaphoreFromFD`), a *successful* import transfers
+    ownership of the file descriptor to Open Image Denoise. The
+    application *must not* close the file descriptor, nor perform any
+    other operation on it, after the import. The file descriptor is
+    closed automatically when it is no longer needed (i.e., when the
+    imported semaphore is released). If the import fails (the function
+    returns `NULL`), ownership is *not* transferred and the application
+    remains responsible for closing the file descriptor.
+
+  - When importing from a Win32 handle
+    (`oidnNewSharedSemaphoreFromWin32Handle`), ownership of the handle
+    is *not* transferred to Open Image Denoise. The application retains
+    ownership and must release the handle using the appropriate system
+    call (e.g., `CloseHandle` for NT handle types) once it is no longer
+    needed. Because NT handles hold their own reference to the
+    underlying semaphore, the handle may be closed any time after a
+    successful import. Global share (KMT) handles, however, do *not*
+    hold such a reference, so the imported semaphore must be released
+    before the underlying semaphore is destroyed.
+
 The reference counted semaphore objects can be retained and released
 with
 
@@ -1480,7 +1527,7 @@ To unset a previously set image parameter, returning it to a state as if
 it had not been set, call
 
 ``` cpp
-void oidnRemoveFilterImage(OIDNFilter filter, const char* name);
+void oidnUnsetFilterImage(OIDNFilter filter, const char* name);
 ```
 
 Some special data used by filters are opaque/untyped (e.g. trained model
@@ -1507,7 +1554,7 @@ void oidnUpdateFilterData(OIDNFilter filter, const char* name);
 Unsetting an opaque data parameter can be performed with
 
 ``` cpp
-void oidnRemoveFilterData(OIDNFilter filter, const char* name);
+void oidnUnsetFilterData(OIDNFilter filter, const char* name);
 ```
 
 Filters may have parameters other than buffers as well, which you can
@@ -1549,6 +1596,9 @@ Denoise will continue the filter operation normally. When returning
 as possible, and if that is fulfilled, it will raise an
 `OIDN_ERROR_CANCELLED` error. Note that cancellation is not guaranteed.
 
+The callback function *must not* call any Open Image Denoise API
+function except `oidnGetDeviceError`, otherwise a deadlock occurs.
+
 Using a progress monitor callback function introduces some overhead,
 which may be significant on GPU devices, hurting performance. Therefore
 we strongly recommend progress monitoring only for offline denoising,
@@ -1566,6 +1616,12 @@ be re-committed for any new changes to take effect. Committing major
 changes to the filter (e.g. setting new image parameters, changing the
 image resolution) can be expensive, and thus should not be done
 frequently (e.g. per frame).
+
+If committing a filter fails with an `OIDN_ERROR_OUT_OF_MEMORY` error,
+the filters of the device may lose the memory they have been using, thus
+*all* filters of the device must be committed again. Executing a filter
+which has lost its memory returns an `OIDN_ERROR_INVALID_OPERATION`
+error instead.
 
 Finally, an image can be filtered by executing the filter with
 
