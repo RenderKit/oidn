@@ -13,11 +13,14 @@ Version History
 -   Fixed out-of-bounds reads and crashes caused by insufficient validation of
     the weights blob set with `oidnSetSharedFilterData`, which could occur if
     the blob was corrupted or malicious
--   Fixed integer overflows when computing the size of a tensor or the tile size
-    for a very large image, which could result in an incorrect size instead of
-    an error
 -   Fixed `oidnReadBuffer` and `oidnWriteBuffer` failing with an out-of-memory
     error on Metal devices if the specified byte size was 0
+-   Fixed changes to other filter parameters being discarded when setting an
+    empty data parameter with `oidnSetSharedFilterData`, which could cause the
+    filter to be executed with an outdated model, corrupting the output image or
+    crashing
+-   Fixed a signed integer overflow when denoising very large single-channel
+    images, close to the maximum supported number of pixels
 
 ### Changes in v2.5.0:
 

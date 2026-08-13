@@ -73,7 +73,7 @@ OIDN_NAMESPACE_BEGIN
     if (src && device->getPtrStorage(src.ptr) == Storage::Device)
       throw Exception(Error::InvalidArgument, "the specified data is not accessible to the host, please use host malloc");
 
-    dirtyParam = dst || src;
+    dirtyParam |= bool(dst) || bool(src);
     dst = src;
   }
 
