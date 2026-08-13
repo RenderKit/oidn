@@ -73,13 +73,16 @@ OIDN_NAMESPACE_BEGIN
       // Parse the number of dimensions
       const int ndims = read<uint8_t>(input, bufferBegin, bufferEnd);
 
-      // Parse the shape of the tensor. The dimensions are stored as signed ints, so values which
-      // do not fit would become negative and later sign-extend to a huge size in getByteSize().
+      // Parse the shape of the tensor. The dimensions are limited to the largest power of two
+      // which can be represented as a signed int. Using INT_MAX instead would result in an
+      // overflow when rounding up to the nearest multiple of the block size.
+      constexpr uint32_t maxTensorDim = uint32_t(1) << 30;
+
       tensorDesc.dims.resize(ndims);
       for (int j = 0; j < ndims; ++j)
       {
         const uint32_t dim = read<uint32_t>(input, bufferBegin, bufferEnd);
-        if (dim == 0 || dim > uint32_t(std::numeric_limits<int>::max()))
+        if (dim == 0 || dim > maxTensorDim)
           throw Exception(Error::InvalidOperation, "invalid tensor dimension");
         tensorDesc.dims[j] = int(dim);
       }
