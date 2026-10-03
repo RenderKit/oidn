@@ -140,6 +140,19 @@ OIDN_NAMESPACE_BEGIN
   // -----------------------------------------------------------------------------------------------
 
 #if defined(OIDN_ARCH_XEHPC) || defined(OIDN_ARCH_XE2)
+  // Xe-HPC/Xe2+ 2D block loads/stores address one channel plane of a tensor as a surface: elements
+  // of a block outside the surface load as zero and are not stored. The restrictions on the
+  // surface, and what guarantees each for the blocked CHW tensors handled here:
+  //  - base address 64-byte aligned: the tensor allocation and the C plane stride are
+  //    (TensorLayoutTraitsChwBc::CByteAlignment)
+  //  - width a multiple of 4 bytes, pitch >= width and a multiple of 16 bytes: both are the row
+  //    size, a whole number of pixels of wByteStride (a multiple of 32) bytes each
+  //  - width >= 64 bytes: a row is at least 2 pixels, the filter pads its input for that
+  //    (UNetFilter::minPaddedTileW)
+  //  - X (in elements) a multiple of 4 bytes: a whole number of pixels
+  //  - block width a multiple of 4 bytes and at most 64 bytes, block height at most 32 rows for
+  //    loads and 8 rows for stores: one 64-byte block per message, the rest is checked by ESIMD
+
   // Loads a row from a tensor using LSC 2D block loads with implicit zero padding
   template<typename DstT, int N, typename SrcT, TensorLayout layout>
   oidn_inline void loadRow(simd<DstT, N>& row,
@@ -149,6 +162,8 @@ OIDN_NAMESPACE_BEGIN
     constexpr int blockC = TensorByteOffset<SrcT, layout>::blockC;
     constexpr int lscBlockN = 64 / sizeof(SrcT); // LSC 2D block width in elements
     static_assert(N % lscBlockN == 0, "row size must be multiple of LSC 2D block width");
+    static_assert(TensorByteOffset<SrcT, layout>::wByteStride % 32 == 0,
+                  "Xe-HPC/Xe2+ 2D block surfaces need pixels of a multiple of 32 bytes");
 
     const SrcT* surfPtr = &src(ic, 0, 0);
     const uint surfWidth  = src.getByteOffset.hByteStride - 1; // bytes - 1
@@ -173,6 +188,8 @@ OIDN_NAMESPACE_BEGIN
     constexpr int blockC = TensorByteOffset<SrcT, layout>::blockC;
     constexpr int lscBlockN = 64 / sizeof(SrcT);
     static_assert(N % lscBlockN == 0, "row size must be multiple of LSC 2D block width");
+    static_assert(TensorByteOffset<SrcT, layout>::wByteStride % 32 == 0,
+                  "Xe-HPC/Xe2+ 2D block surfaces need pixels of a multiple of 32 bytes");
 
     const SrcT* surfPtr = &src(ic, 0, 0);
     const uint surfWidth  = src.getByteOffset.hByteStride - 1; // bytes - 1
@@ -286,6 +303,8 @@ OIDN_NAMESPACE_BEGIN
     constexpr int blockC = TensorByteOffset<DstT, layout>::blockC;
     constexpr int lscBlockN = 64 / sizeof(DstT); // LSC 2D block width in elements
     static_assert(N % lscBlockN == 0, "row size must be multiple of LSC 2D block width");
+    static_assert(TensorByteOffset<DstT, layout>::wByteStride % 32 == 0,
+                  "Xe-HPC/Xe2+ 2D block surfaces need pixels of a multiple of 32 bytes");
 
     DstT* surfPtr = &dst(oc, 0, 0);
     const uint surfWidth  = dst.getByteOffset.hByteStride - 1; // bytes - 1
@@ -311,6 +330,8 @@ OIDN_NAMESPACE_BEGIN
     constexpr int blockC = TensorByteOffset<DstT, layout>::blockC;
     constexpr int lscBlockN = 64 / sizeof(DstT); // LSC 2D block width in elements
     static_assert(N % lscBlockN == 0, "row size must be multiple of LSC 2D block width");
+    static_assert(TensorByteOffset<DstT, layout>::wByteStride % 32 == 0,
+                  "Xe-HPC/Xe2+ 2D block surfaces need pixels of a multiple of 32 bytes");
 
     DstT* surfPtr = &dst(oc, 0, 0);
     const uint surfWidth  = dst.getByteOffset.hByteStride - 1; // bytes - 1

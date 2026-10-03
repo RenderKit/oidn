@@ -75,9 +75,10 @@ class Infer(object):
       color = self.transfer.forward(color)
     image[:, 0:self.num_main_channels, ...] = color
 
-    # Pad the output
+    # Pad the output, the width to at least 2 pixels at the coarsest level (2 * alignment) as the
+    # runtime requires
     shape = image.shape
-    image = F.pad(image, (0, round_up(shape[3], self.model.alignment) - shape[3],
+    image = F.pad(image, (0, max(round_up(shape[3], self.model.alignment), 2 * self.model.alignment) - shape[3],
                           0, round_up(shape[2], self.model.alignment) - shape[2]))
 
     # Prefilter the auxiliary features

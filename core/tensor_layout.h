@@ -110,9 +110,12 @@ OIDN_NAMESPACE_BEGIN
 
   struct TensorLayoutTraitsChwBc
   {
-    // Xe 2D block load/store requires C planes to be aligned
+    // Xe-HPC/Xe2+ 2D block loads/stores address a C plane as a surface whose base must be 64-byte
+    // aligned, so the planes are spaced by a multiple of this within an equally aligned allocation
     static constexpr oidn_constant uint32_t CByteAlignment = 64;
   };
+  static_assert(memoryAlignment % TensorLayoutTraitsChwBc::CByteAlignment == 0,
+                "tensor allocations must keep the C planes aligned");
 
   template<typename T, int B>
   struct TensorByteOffsetChwBc

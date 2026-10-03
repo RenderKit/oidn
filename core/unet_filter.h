@@ -38,6 +38,10 @@ OIDN_NAMESPACE_BEGIN
     static constexpr int receptiveFieldBase   = 174; // receptive field in pixels for UNet
     static constexpr int receptiveFieldLarge  = 202; // receptive field in pixels for UNetLarge
     static constexpr int minTileAlignment     = 16;  // required spatial alignment in pixels (padding may be necessary)
+    // Minimum padded tile width in pixels: the coarsest UNet level must be at least 2 pixels wide,
+    // because Xe-HPC/Xe2+ 2D block loads/stores need rows of at least 64 bytes and a pixel of the
+    // SYCL tensor layout takes 32
+    static constexpr int minPaddedTileW       = 2 * minTileAlignment;
 
     static constexpr int defaultMaxTileSize   = 2160*2160; // default maximum number of pixels per tile
 

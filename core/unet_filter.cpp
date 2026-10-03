@@ -234,7 +234,7 @@ OIDN_NAMESPACE_BEGIN
           const int overlapEndW   = j < tileCountW-1 ? tileOverlap+tilePadW : 0; // overlap on the right
           const int tileW1 = min(W - w, tileW); // input tile size (including overlaps)
           const int tileW2 = tileW1 - overlapBeginW - overlapEndW; // output tile size
-          const int alignOffsetW = tileW - round_up(tileW1, minTileAlignment); // align to the right in the tile buffer
+          const int alignOffsetW = tileW - max(round_up(tileW1, minTileAlignment), minPaddedTileW); // align to the right in the tile buffer
 
           auto& instance = instances[tileIndex % device->getNumSubdevices()];
 
@@ -307,7 +307,7 @@ OIDN_NAMESPACE_BEGIN
     H = output->getH();
     W = output->getW();
     tileH = round_up(H, minTileAlignment); // add minimum device-independent padding
-    tileW = round_up(W, minTileAlignment);
+    tileW = max(round_up(W, minTileAlignment), minPaddedTileW);
     tilePadH = tileH % tileAlignment; // increase the overlap on the bottom to align offsets
     tilePadW = tileW % tileAlignment; // increase the overlap on the right to align offsets
     tileCountH = 1;
