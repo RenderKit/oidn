@@ -665,6 +665,7 @@ Name                     Description
 `OIDN_DEVICE_CUDA`       value of 0 disables CUDA device support
 `OIDN_DEVICE_HIP`        value of 0 disables HIP device support
 `OIDN_DEVICE_METAL`      value of 0 disables Metal device support
+`OIDN_DEVICE_CPU_AMX`    value of 0 disables AMX support on CPU devices (e.g. for higher precision at the cost of performance)
 `OIDN_NUM_THREADS`       overrides `numThreads` device parameter
 `OIDN_SET_AFFINITY`      overrides `setAffinity` device parameter
 `OIDN_NUM_SUBDEVICES`    overrides number of SYCL sub-devices to use (e.g. for Intel® Data Center GPU Max Series)

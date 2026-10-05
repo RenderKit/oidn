@@ -3,6 +3,9 @@ Version History
 
 ### Changes in v2.5.2:
 
+-   Added the `OIDN_DEVICE_CPU_AMX` environment variable, which can be set to 0
+    to disable Intel AMX support on CPU devices (e.g. for higher precision at
+    the cost of performance)
 
 ### Changes in v2.5.1:
 

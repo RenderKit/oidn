@@ -39,6 +39,16 @@ OIDN_NAMESPACE_BEGIN
   }
 #endif
 
+  // Returns the native CPU architecture, possibly lowered by the user with environment variables,
+  // but this still may not be what we are allowed to use (e.g. AMX)
+  static CPUArch getRequestedArch()
+  {
+    CPUArch arch = CPUDevice::getNativeArch();
+    if (arch == CPUArch::AVX512_AMXFP16 && !getEnvVarOrDefault("OIDN_DEVICE_CPU_AMX", 1))
+      arch = CPUArch::AVX512; // AMX disabled by the user, fallback to plain AVX-512
+    return arch;
+  }
+
   CPUPhysicalDevice::CPUPhysicalDevice(int score)
     : PhysicalDevice(DeviceType::CPU, score)
   {
@@ -47,7 +57,7 @@ OIDN_NAMESPACE_BEGIN
 
   std::vector<Ref<PhysicalDevice>> CPUDevice::getPhysicalDevices()
   {
-    CPUArch arch = getNativeArch();
+    CPUArch arch = getRequestedArch();
     if (arch == CPUArch::Unknown)
       return {};
 
@@ -123,7 +133,7 @@ OIDN_NAMESPACE_BEGIN
     // Detect the architecture only once
     if (physicalDevice->arch == CPUArch::Unknown)
     {
-      physicalDevice->arch = getNativeArch();
+      physicalDevice->arch = getRequestedArch();
 
     #if defined(OIDN_ARCH_X64)
       if (physicalDevice->arch == CPUArch::AVX512_AMXFP16)
