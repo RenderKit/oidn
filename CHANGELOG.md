@@ -1,6 +1,9 @@
 Version History
 ---------------
 
+### Changes in v2.5.2:
+
+
 ### Changes in v2.5.1:
 
 -   Fixed integer overflows which could cause out-of-bounds reads or writes
