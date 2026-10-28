@@ -15,7 +15,8 @@ enum CPUArch
   CPUArch_AVX2,
   CPUArch_AVX512,
   CPUArch_AVX512_AMXFP16,
-  CPUArch_NEON
+  CPUArch_NEON,
+  CPUArch_VSX
 };
 
 export uniform CPUArch getCPUArch()
@@ -32,6 +33,8 @@ export uniform CPUArch getCPUArch()
   return CPUArch_SSE2;
 #elif defined(OIDN_ARCH_NEON)
   return CPUArch_NEON;
+#elif defined(OIDN_ARCH_VSX)
+  return CPUArch_VSX;
 #else
   #error "Unsupported architecture"
 #endif

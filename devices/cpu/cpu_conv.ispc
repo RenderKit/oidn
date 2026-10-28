@@ -187,6 +187,12 @@ unmasked void CPUConvKernel_compute(const uniform CPUConvKernel* uniform self,
   #define blockOW1 9
   #define blockOW2 5
   #define blockOW3 3
+#elif defined(OIDN_ARCH_VSX)
+  #define maxBlockOCB 4
+  #define blockOW1 9
+  #define blockOW2 7
+  #define blockOW3 5
+  #define blockOW4 4
 #elif defined(OIDN_ARCH_SSE4)
   #define maxBlockOCB 1
   #define blockOW1 5

@@ -76,6 +76,8 @@ else()
     set(ARCH "x86_64")
   elseif(OIDN_ARCH STREQUAL "ARM64")
     set(ARCH "arm64")
+  elseif(OIDN_ARCH STREQUAL "PPC64LE")
+    set(ARCH "ppc64le")
   endif()
 
   if(APPLE)
