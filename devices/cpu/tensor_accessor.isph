@@ -8,7 +8,8 @@
 // Compute the channel block size in bytes
 #if defined(OIDN_ARCH_AVX512)
   #define BLOCKC_BYTESIZE 64
-#elif defined(OIDN_ARCH_AVX2) || defined(OIDN_ARCH_SSE4) || defined(OIDN_ARCH_NEON)
+#elif defined(OIDN_ARCH_AVX2) || defined(OIDN_ARCH_SSE4) || defined(OIDN_ARCH_NEON) || \
+      defined(OIDN_ARCH_VSX)
   #define BLOCKC_BYTESIZE 32
 #else
   #error "Unsupported architecture"

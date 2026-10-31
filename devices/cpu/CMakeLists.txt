@@ -35,6 +35,8 @@ if(OIDN_ARCH STREQUAL "X64")
   endif()
 elseif(OIDN_ARCH STREQUAL "ARM64")
   set(OIDN_ISPC_TARGET_LIST neon-i32x8)
+elseif(OIDN_ARCH STREQUAL "PPC64LE")
+  set(OIDN_ISPC_TARGET_LIST vsx-i32x8)
 endif()
 set(ISPC_ADDRESSING 64)
 include(oidn_ispc)
@@ -171,6 +173,18 @@ elseif(OIDN_ARCH STREQUAL "ARM64")
     cpu_pool_f16.ispc
     cpu_upsample_f16.ispc
     TARGET_LIST neon-i16x16
+  )
+elseif(OIDN_ARCH STREQUAL "PPC64LE")
+  ispc_target_add_sources(OpenImageDenoise_device_cpu
+    cpu_input_process_f16.ispc
+    cpu_output_process_f16.ispc
+    TARGET_LIST vsx-i32x8
+  )
+
+  ispc_target_add_sources(OpenImageDenoise_device_cpu
+    cpu_pool_f16.ispc
+    cpu_upsample_f16.ispc
+    TARGET_LIST vsx-i16x16
   )
 else()
   ispc_target_add_sources(OpenImageDenoise_device_cpu

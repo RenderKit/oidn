@@ -103,6 +103,7 @@ OIDN_NAMESPACE_BEGIN
     case ispc::CPUArch_AVX512:         return CPUArch::AVX512;
     case ispc::CPUArch_AVX512_AMXFP16: return CPUArch::AVX512_AMXFP16;
     case ispc::CPUArch_NEON:           return CPUArch::NEON;
+    case ispc::CPUArch_VSX:            return CPUArch::VSX;
     default:                           return CPUArch::Unknown;
     }
   }
@@ -209,6 +210,7 @@ OIDN_NAMESPACE_BEGIN
       case CPUArch::AVX512:         std::cout << "AVX-512";          break;
       case CPUArch::AVX512_AMXFP16: std::cout << "AVX-512 AMX-FP16"; break;
       case CPUArch::NEON:           std::cout << "NEON";             break;
+      case CPUArch::VSX:            std::cout << "VSX";              break;
       default:                      std::cout << "Unknown";          break;
       }
       std::cout << std::endl;

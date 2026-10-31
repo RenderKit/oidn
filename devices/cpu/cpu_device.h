@@ -19,7 +19,8 @@ OIDN_NAMESPACE_BEGIN
     AVX2,
     AVX512,
     AVX512_AMXFP16,
-    NEON
+    NEON,
+    VSX
   };
 
   class CPUPhysicalDevice final : public PhysicalDevice

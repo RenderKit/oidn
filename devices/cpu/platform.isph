@@ -20,6 +20,8 @@
   #define OIDN_ARCH_SSE2
 #elif defined(ISPC_TARGET_NEON)
   #define OIDN_ARCH_NEON
+#elif defined(ISPC_TARGET_VSX)
+  #define OIDN_ARCH_VSX
 #else
   #error "Unsupported ISPC target"
 #endif
