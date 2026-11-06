@@ -63,7 +63,8 @@ different vendors:
   - NVIDIA GPUs with Turing, Ampere, Ada Lovelace, Hopper, and Blackwell
     architectures
 
-  - AMD GPUs with RDNA 2, RDNA 3, RDNA 3.5, and RDNA 4 architectures
+  - AMD GPUs with RDNA 2, RDNA 3, RDNA 3.5, and RDNA 4 architectures, and CDNA 4
+    (Instinct MI350, gfx950)
 
   - Apple silicon GPUs (M1 and newer)
 
@@ -410,6 +411,11 @@ CMake:
 
   - `OIDN_DEVICE_HIP`: Enable HIP device support for AMD GPUs (OFF by
     default).
+
+  - `OIDN_HIP_GFX950`: Build CDNA 4 (gfx950, Instinct MI350) kernels into
+    the HIP device (ON by default). Ignored when the HIP compiler does
+    not accept `--offload-arch=gfx950`. `OIDN_HIP_TARGETS` replaces the
+    whole offload list, including gfx950, when set.
 
   - `OIDN_DEVICE_METAL`: Enable Metal device support for Apple GPUs (OFF
     by default).

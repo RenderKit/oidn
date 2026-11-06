@@ -16,7 +16,8 @@ OIDN_NAMESPACE_BEGIN
   {
     Unknown,
     DL,      // RDNA 2
-    WMMA,    // RDNA 3
+    WMMA,    // RDNA 3+
+    MFMA,    // CDNA4 (gfx950, Instinct MI350)
   };
 
   class HIPPhysicalDevice : public PhysicalDevice
