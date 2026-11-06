@@ -21,12 +21,40 @@ list(APPEND CMAKE_MODULE_PATH ${OIDN_ROOT_SOURCE_DIR}/cmake)
 # Common
 include(oidn_common_external)
 
-# Set the GPU targets: RDNA2, RDNA3, RDNA4
+# Set the GPU targets: RDNA2, RDNA3, RDNA4, and CDNA4 (gfx950) when the compiler
+# accepts it. gfx950 cannot share a translation unit with the RDNA WMMA/DL
+# sources: those kernels are wave32 and use RDNA matrix instructions, while the
+# CDNA MFMA kernels are wave64. The conv sources below opt out per file.
 # FIXME: Older versions of the HIP runtime have a bug which may cause a crash if the kernels are
 # not compiled for all targets detected in the system (it seems mostly APUs/integrated GPUs).
 # As a workaround, we compile for more targets then we actually support to avoid this crash.
-set(GPU_TARGETS "gfx902,gfx909,gfx90c,gfx1030,gfx1031,gfx1032,gfx1033,gfx1034,gfx1035,gfx1036,gfx1100,gfx1101,gfx1102,gfx1103,gfx1150,gfx1151,gfx1152,gfx1200,gfx1201" CACHE INTERNAL "")
+set(OIDN_HIP_RDNA_TARGETS "gfx902,gfx909,gfx90c,gfx1030,gfx1031,gfx1032,gfx1033,gfx1034,gfx1035,gfx1036,gfx1100,gfx1101,gfx1102,gfx1103,gfx1150,gfx1151,gfx1152,gfx1200,gfx1201")
+option(OIDN_HIP_GFX950 "Build HIP kernels for CDNA4 gfx950 (Instinct MI350)." ON)
+if(NOT OIDN_HIP_TARGETS)
+  set(OIDN_HIP_TARGETS "${OIDN_HIP_RDNA_TARGETS}")
+  if(OIDN_HIP_GFX950)
+    set(_oidn_gfx950_probe "${CMAKE_CURRENT_BINARY_DIR}/oidn_gfx950_probe.hip")
+    file(WRITE "${_oidn_gfx950_probe}" "__global__ void oidn_gfx950_probe() {}\n")
+    execute_process(
+      COMMAND "${CMAKE_CXX_COMPILER}" -x hip --offload-arch=gfx950 --cuda-device-only
+              -c "${_oidn_gfx950_probe}" -o "${CMAKE_CURRENT_BINARY_DIR}/oidn_gfx950_probe.o"
+      RESULT_VARIABLE _oidn_gfx950_probe_result
+      OUTPUT_QUIET ERROR_QUIET
+    )
+    if(_oidn_gfx950_probe_result EQUAL 0)
+      string(APPEND OIDN_HIP_TARGETS ",gfx950")
+    else()
+      message(STATUS "HIP compiler does not accept gfx950; CDNA4 kernels will not be built")
+    endif()
+  endif()
+endif()
+set(GPU_TARGETS "${OIDN_HIP_TARGETS}" CACHE INTERNAL "")
 set(AMDGPU_TARGETS ${GPU_TARGETS} CACHE INTERNAL "")
+if(OIDN_HIP_TARGETS MATCHES "(^|,)gfx950(,|$)")
+  set(OIDN_HIP_GFX950_ENABLED ON)
+else()
+  set(OIDN_HIP_GFX950_ENABLED OFF)
+endif()
 
 # Enable parallel Clang jobs per source file: Clang generates code for each GPU
 # ISA target in parallel, which significantly speeds up HIP compilation.
@@ -58,6 +86,9 @@ set(OIDN_HIP_SOURCES
   hip_external_semaphore.cpp
   hip_module.cpp
 )
+if(OIDN_HIP_GFX950_ENABLED)
+  list(APPEND OIDN_HIP_SOURCES ck_conv_mfma.cpp)
+endif()
 
 add_library(OpenImageDenoise_device_hip SHARED ${OIDN_HIP_SOURCES} ${OIDN_GPU_SOURCES} ${OIDN_RESOURCE_FILE})
 
@@ -69,9 +100,13 @@ if(OIDN_LIBRARY_VERSIONED)
   set_target_properties(OpenImageDenoise_device_hip PROPERTIES VERSION ${PROJECT_VERSION})
 endif()
 
+# Generate CK's config header in the build tree. The pinned submodule already
+# contains a config.h from a previous build, and writing into the submodule
+# dirties it.
+set(_oidn_ck_config_dir "${CMAKE_CURRENT_BINARY_DIR}/ck_config")
 configure_file(
   "${OIDN_ROOT_SOURCE_DIR}/external/composable_kernel/include/ck/config.h.in"
-  "${OIDN_ROOT_SOURCE_DIR}/external/composable_kernel/include/ck/config.h"
+  "${_oidn_ck_config_dir}/ck/config.h"
 )
 
 target_include_directories(OpenImageDenoise_device_hip
@@ -79,19 +114,48 @@ target_include_directories(OpenImageDenoise_device_hip
     "${OIDN_ROOT_SOURCE_DIR}/external/composable_kernel/include"
     "${OIDN_ROOT_SOURCE_DIR}/external/composable_kernel/library/include"
 )
+target_include_directories(OpenImageDenoise_device_hip
+  BEFORE PRIVATE
+    "${_oidn_ck_config_dir}"
+)
 
 target_compile_definitions(OpenImageDenoise_device_hip PRIVATE
   CK_ENABLE_INT8
   CK_ENABLE_FP16
-  DL_KERNELS
-  CK_USE_WMMA
   CK_USE_OCP_FP8
 )
-
-set_source_files_properties(
-  ck_conv_wmma.cpp
-  PROPERTIES COMPILE_FLAGS "-mcumode -mno-wavefrontsize64" # Navi3x optimizations
+# DL/WMMA switches select RDNA kernels inside Composable Kernel. Keep them off
+# the gfx950 MFMA translation unit, which uses the XDL implementation instead.
+set_source_files_properties(ck_conv_dl.cpp ck_conv_wmma.cpp PROPERTIES
+  COMPILE_DEFINITIONS "DL_KERNELS;CK_USE_WMMA"
 )
+if(OIDN_HIP_GFX950_ENABLED)
+  target_compile_definitions(OpenImageDenoise_device_hip PRIVATE OIDN_HIP_GFX950)
+endif()
+
+# WMMA kernels are wave32. Drop gfx950 from that translation unit, and compile
+# the MFMA kernels for gfx950 only. --no-offload-arch is applied per source so
+# it comes after the hip::device --offload-arch list.
+string(REPLACE "," ";" _oidn_hip_target_list "${OIDN_HIP_TARGETS}")
+set(_oidn_wmma_flags -mcumode -mno-wavefrontsize64)
+set(_oidn_dl_flags)
+set(_oidn_mfma_flags -mwavefrontsize64)
+foreach(_oidn_hip_target IN LISTS _oidn_hip_target_list)
+  if(_oidn_hip_target STREQUAL "gfx950")
+    list(APPEND _oidn_wmma_flags "--no-offload-arch=gfx950")
+    list(APPEND _oidn_dl_flags "--no-offload-arch=gfx950")
+  else()
+    list(APPEND _oidn_mfma_flags "--no-offload-arch=${_oidn_hip_target}")
+  endif()
+endforeach()
+
+set_source_files_properties(ck_conv_wmma.cpp PROPERTIES COMPILE_OPTIONS "${_oidn_wmma_flags}")
+if(_oidn_dl_flags)
+  set_source_files_properties(ck_conv_dl.cpp PROPERTIES COMPILE_OPTIONS "${_oidn_dl_flags}")
+endif()
+if(OIDN_HIP_GFX950_ENABLED)
+  set_source_files_properties(ck_conv_mfma.cpp PROPERTIES COMPILE_OPTIONS "${_oidn_mfma_flags}")
+endif()
 
 # Fix error with ROCm 7: constexpr function never produces a constant expression
 target_compile_options(OpenImageDenoise_device_hip PRIVATE -Wno-invalid-constexpr)

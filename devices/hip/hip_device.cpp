@@ -103,8 +103,12 @@ OIDN_NAMESPACE_BEGIN
         name == "gfx1150" || name == "gfx1151" || name == "gfx1152" ||
         name == "gfx1200" || name == "gfx1201")
       return HIPArch::WMMA;
-    else
-      return HIPArch::Unknown;
+  #if defined(OIDN_HIP_GFX950)
+    // Instinct MI350. gcnArchName is "gfx950" or "gfx950:sramecc+:xnack-".
+    if (name == "gfx950")
+      return HIPArch::MFMA;
+  #endif
+    return HIPArch::Unknown;
   }
 
   bool HIPDevice::isSupported(int deviceID)
@@ -187,7 +191,12 @@ OIDN_NAMESPACE_BEGIN
     weightDataType = DataType::Float16;
     tensorLayout   = TensorLayout::hwc;
     weightLayout   = TensorLayout::ohwi;
-    tensorBlockC   = (arch == HIPArch::DL) ? 32 : 8;
+    // MFMA conv on gfx950 uses AK1=16, so channels must be a multiple of 16.
+    // 32 is already handled by HIPEngine::newInputProcess (8 and 32 only).
+    if (arch == HIPArch::DL || arch == HIPArch::MFMA)
+      tensorBlockC = 32;
+    else
+      tensorBlockC = 8;
 
     managedMemorySupported = prop.managedMemory;
 

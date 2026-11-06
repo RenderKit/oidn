@@ -18,6 +18,11 @@ OIDN_NAMESPACE_BEGIN
     case HIPArch::WMMA:
       kernels = getCKConvInstances<HIPArch::WMMA>(desc.activation);
       break;
+  #if defined(OIDN_HIP_GFX950)
+    case HIPArch::MFMA:
+      kernels = getCKConvInstances<HIPArch::MFMA>(desc.activation);
+      break;
+  #endif
     default:
       throw std::runtime_error("unsupported architecture");
     }

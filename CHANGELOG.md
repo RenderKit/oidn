@@ -1,6 +1,15 @@
 Version History
 ---------------
 
+### Changes since v2.5.1:
+
+-   Added AMD CDNA 4 (gfx950, Instinct MI350) support to the HIP device. The
+    RDNA kernels stay in the same library. gfx950 convolution is compiled as
+    its own translation unit because CDNA MFMA kernels are wave64 and cannot
+    share a fat binary with the RDNA WMMA kernels. Disable with
+    `-DOIDN_HIP_GFX950=OFF`. ROCm versions that do not accept
+    `--offload-arch=gfx950` skip these kernels.
+
 ### Changes in v2.5.1:
 
 -   Fixed integer overflows which could cause out-of-bounds reads or writes

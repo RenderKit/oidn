@@ -148,6 +148,11 @@ if(OIDN_DEVICE_HIP)
   list(APPEND _hip_prefix_path ${ROCM_PATH}/hip ${ROCM_PATH})
   list(JOIN _hip_prefix_path "|" _hip_prefix_path_str)
 
+  set(_oidn_hip_jobs_arg "")
+  if(DEFINED HIP_CLANG_NUM_PARALLEL_JOBS AND NOT HIP_CLANG_NUM_PARALLEL_JOBS STREQUAL "")
+    set(_oidn_hip_jobs_arg "-DHIP_CLANG_NUM_PARALLEL_JOBS:STRING=${HIP_CLANG_NUM_PARALLEL_JOBS}")
+  endif()
+
   ExternalProject_Add(OpenImageDenoise_device_hip
     PREFIX hip
     SOURCE_DIR ${PROJECT_SOURCE_DIR}/devices/hip
@@ -170,6 +175,9 @@ if(OIDN_DEVICE_HIP)
       -DOIDN_API_NAMESPACE:STRING=${OIDN_API_NAMESPACE}
       -DOIDN_WARN_AS_ERRORS:BOOL=${OIDN_WARN_AS_ERRORS}
       -DOIDN_SANITIZER:STRING=${OIDN_SANITIZER}
+      -DOIDN_HIP_GFX950:BOOL=${OIDN_HIP_GFX950}
+      -DOIDN_HIP_TARGETS:STRING=${OIDN_HIP_TARGETS}
+      ${_oidn_hip_jobs_arg}
     BUILD_ALWAYS TRUE
     DEPENDS
       OpenImageDenoise_core

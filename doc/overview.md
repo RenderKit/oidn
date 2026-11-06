@@ -54,7 +54,8 @@ vendors:
 -   NVIDIA GPUs with Turing, Ampere, Ada Lovelace, Hopper, and Blackwell
     architectures
 
--   AMD GPUs with RDNA 2, RDNA 3, RDNA 3.5, and RDNA 4 architectures
+-   AMD GPUs with RDNA 2, RDNA 3, RDNA 3.5, and RDNA 4 architectures, and CDNA 4
+    (Instinct MI350, gfx950)
 
 -   Apple silicon GPUs (M1 and newer)
 
